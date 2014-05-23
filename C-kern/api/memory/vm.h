@@ -107,10 +107,10 @@ struct vmpage_t {
 
 // group: lifetime
 
-/* define: vmpage_INIT_FREEABLE
+/* define: vmpage_FREE
  * Static initializer. Sets object of type <vmpage_t> to NULL.
  * Unmapping (<free_vmpage>) such a NULL <vmpage_t> is safe. */
-#define vmpage_INIT_FREEABLE              vmpage_INIT(0, 0)
+#define vmpage_FREE vmpage_INIT(0, 0)
 
 /* define: vmpage_INIT
  * Static initializer.
@@ -146,14 +146,14 @@ int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes) 
  * Invalidates virtual memory address range
  * > vmpage->addr[0 .. vmpage->size - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
- * vmpage is set to <vmpage_INIT_FREEABLE>.
+ * vmpage is set to <vmpage_FREE>.
  * Therefore unmapping an already unmapped memory region does nothing and returns success. */
 int free_vmpage(vmpage_t * vmpage) ;
 
 // group: query
 
 /* function: isfree_vmpage
- * Returns true if vmpage equals <vmpage_INIT_FREEABLE>. */
+ * Returns true if vmpage equals <vmpage_FREE>. */
 bool isfree_vmpage(vmpage_t * vmpage) ;
 
 // group: change
@@ -262,9 +262,9 @@ struct vm_mappedregions_t
 
 // group: lifetime
 
-/* define: vm_mappedregions_INIT_FREEABLE
+/* define: vm_mappedregions_FREE
  * Static initializer: Makes calling <free_vmmappedregions> safe. */
-#define vm_mappedregions_INIT_FREEABLE  { 0, 0, 0, 0, 0 }
+#define vm_mappedregions_FREE { 0, 0, 0, 0, 0 }
 
 /* function: init_vmmappedregions
  * Returns in mappedregions the descriptions of all current virtual memory mappings.

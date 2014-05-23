@@ -85,9 +85,9 @@ struct syncwlist_iterator_t {
 
 // group: lifetime
 
-/* define: syncwlist_iterator_INIT_FREEABLE
+/* define: syncwlist_iterator_FREE
  * Static initializer. */
-#define syncwlist_iterator_INIT_FREEABLE  { 0, 0 }
+#define syncwlist_iterator_FREE { 0, 0 }
 
 /* function: initfirst_syncwlistiterator
  * Initializes an iterator for <syncwlist_t>. */
@@ -127,9 +127,9 @@ struct syncwlist_t {
 
 // group: lifetime
 
-/* define: syncwlist_INIT_FREEABLE
+/* define: syncwlist_FREE
  * Static initializer. */
-#define syncwlist_INIT_FREEABLE           { 0, 0, 0 }
+#define syncwlist_FREE { 0, 0, 0 }
 
 /* function: init_syncwlist
  * Initializes wlist to an empty list. */
@@ -155,7 +155,7 @@ int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue) ;
 bool isempty_syncwlist(const syncwlist_t * wlist) ;
 
 /* function: isfree_syncwlist
- * Returns true if wlist equals <syncwlist_INIT_FREEABLE>. */
+ * Returns true if wlist equals <syncwlist_FREE>. */
 bool isfree_syncwlist(const syncwlist_t * wlist) ;
 
 /* function: len_syncwlist
@@ -189,7 +189,7 @@ typedef struct syncevent_t *     iteratedtype_syncwlist ;
 /* function: insert_syncwlist
  * Allocates new wlist node and inserts it into wlist.
  * The memory is allocated from queue and the new node is inserted as last element into wlist.
- * The <syncevent_t> member of the node is initialized to <syncevent_INIT_FREEABLE> and a
+ * The <syncevent_t> member of the node is initialized to <syncevent_FREE> and a
  * reference to it is returned in newevent. The function returns ENOMEM in case of out of memory. */
 int insert_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue, /*out*/struct syncevent_t ** newevent) ;
 
@@ -230,7 +230,7 @@ int transferall_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist) ;
 /* define: free_syncwlistiterator
  * Implements <syncwlist_iterator_t.free_syncwlistiterator>. */
 #define free_syncwlistiterator(iter)   \
-         (*(iter) = (syncwlist_iterator_t) syncwlist_iterator_INIT_FREEABLE, 0)
+         (*(iter) = (syncwlist_iterator_t) syncwlist_iterator_FREE, 0)
 
 // group: syncwlist_t
 

@@ -86,9 +86,9 @@ struct log_it * interface_logwriter(void);
 
 // group: lifetime
 
-/* define: logwriter_INIT_FREEABLE
+/* define: logwriter_FREE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE           { 0, 0, 0 }
+#define logwriter_FREE { 0, 0, 0 }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.

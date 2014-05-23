@@ -62,9 +62,9 @@ typedef opengl_context_t * eglcontext_t;
 
 // group: lifetime
 
-/* define: eglcontext_INIT_FREEABLE
+/* define: eglcontext_FREE
  * Static initializer. */
-#define eglcontext_INIT_FREEABLE 0
+#define eglcontext_FREE 0
 
 /* function: init_eglcontext
  * Initializes eglcont with a graphic context.

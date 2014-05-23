@@ -47,7 +47,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_arraysf_errtimer
  * Simulates an error in different functions. */
-static test_errortimer_t   s_arraysf_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_arraysf_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -481,7 +481,7 @@ int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * arra
 {
    int err ;
    size_t        objectsize = sizeof(binarystack_t) ;
-   memblock_t    objectmem  = memblock_INIT_FREEABLE ;
+   memblock_t    objectmem  = memblock_FREE ;
    binarystack_t * stack  = 0 ;
 
    (void) array ;
@@ -719,9 +719,9 @@ ONABORT:
 static int test_initfree(void)
 {
    const size_t      nrnodes   = 50000 ;
-   memblock_t        memblock  = memblock_INIT_FREEABLE ;
+   memblock_t        memblock  = memblock_FREE ;
    arraysf_t *       array     = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    testnode_t *      nodes ;
    arraysf_node_t *  inserted_node ;
@@ -1057,10 +1057,10 @@ ONABORT:
 static int test_error(void)
 {
    const size_t      nrnodes   = 50000 ;
-   memblock_t        memblock  = memblock_INIT_FREEABLE ;
+   memblock_t        memblock  = memblock_FREE ;
    arraysf_t *       array     = 0 ;
    arraysf_t *       array2    = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    testnode_t      * nodes ;
    arraysf_node_t  * removed_node  = 0 ;
@@ -1139,8 +1139,8 @@ ONABORT:
 static int test_iterator(void)
 {
    const size_t   nrnodes  = 30000 ;
-   memblock_t     memblock = memblock_INIT_FREEABLE ;
-   arraysf_iterator_t iter = arraysf_iterator_INIT_FREEABLE ;
+   memblock_t     memblock = memblock_FREE ;
+   arraysf_iterator_t iter = arraysf_iterator_FREE ;
    arraysf_t  *   array    = 0 ;
    testnode_t *   nodes ;
    arraysf_node_t*removed_node ;
@@ -1156,7 +1156,7 @@ static int test_iterator(void)
       TEST(0 == insert_arraysf(array, &nodes[i].node, 0, 0)) ;
    }
 
-   // TEST arraysf_iterator_INIT_FREEABLE
+   // TEST arraysf_iterator_FREE
    TEST(0 == iter.stack) ;
    TEST(0 == iter.array) ;
    TEST(0 == iter.ri) ;
@@ -1235,10 +1235,10 @@ arraysf_IMPLEMENT(_t2arraysf, testnode_t, pos2)
 static int test_generic(void)
 {
    const size_t       nrnodes   = 300 ;
-   memblock_t         memblock  = memblock_INIT_FREEABLE ;
+   memblock_t         memblock  = memblock_FREE ;
    arraysf_t          * array   = 0 ;
    arraysf_t          * array2  = 0 ;
-   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp1  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    typeadapt_member_t nodeadp2  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,pos2)) ;
    testnode_t         * nodes ;
@@ -1326,7 +1326,7 @@ static int test_generic(void)
    }
 
    // TEST initfirst_arraysfiterator
-   arraysf_iterator_t iter = arraysf_iterator_INIT_FREEABLE ;
+   arraysf_iterator_t iter = arraysf_iterator_FREE ;
    iter.ri = 1 ;
    TEST(0 == initfirst_tarraysfiterator(&iter, array)) ;
    TEST(iter.stack != 0) ;

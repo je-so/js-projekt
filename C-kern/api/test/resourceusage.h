@@ -86,9 +86,9 @@ struct resourceusage_t {
 
 // group: lifetime
 
-/* define: resourceusage_INIT_FREEABLE
+/* define: resourceusage_FREE
  * Static initializer. */
-#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+#define resourceusage_FREE { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */

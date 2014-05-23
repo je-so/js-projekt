@@ -43,7 +43,7 @@
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_gcontext_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_gcontext_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -96,13 +96,13 @@ ONABORT:
 
 static int test_initfree(display_t * disp)
 {
-   gcontext_t cont = gcontext_INIT_FREEABLE;
-   gconfig_t  conf = gconfig_INIT_FREEABLE;
+   gcontext_t cont = gcontext_FREE;
+   gconfig_t  conf = gconfig_FREE;
    int32_t    confattr[] = { gconfig_CONFORMANT, gconfig_value_CONFORMANT_ES2_BIT, gconfig_NONE };
    int32_t    bits[] = { gconfig_value_CONFORMANT_ES2_BIT, gconfig_value_CONFORMANT_OPENVG_BIT, gconfig_value_CONFORMANT_OPENGL_BIT };
    gcontext_api_e api[] = { gcontext_api_OPENGLES, gcontext_api_OPENVG, gcontext_api_OPENGL };
 
-   // TEST gcontext_INIT_FREEABLE
+   // TEST gcontext_FREE
    TEST(0 == cont.glcontext);
 
    for (unsigned i = 0; i < lengthof(bits); ++i) {
@@ -129,7 +129,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == init_gconfig(&conf, disp, confattr));
 
    // TEST init_gcontext: ERROR
-   TEST(EINVAL == init_gcontext(&cont, &(display_t) display_INIT_FREEABLE, &conf, gcontext_api_OPENGLES));
+   TEST(EINVAL == init_gcontext(&cont, &(display_t) display_FREE, &conf, gcontext_api_OPENGLES));
    TEST(0 == cont.glcontext);
 
    // TEST free_gcontext: ERROR
@@ -151,8 +151,8 @@ ONABORT:
 
 static int test_query(display_t * disp)
 {
-   gcontext_t cont = gcontext_INIT_FREEABLE;
-   gconfig_t  conf = gconfig_INIT_FREEABLE;
+   gcontext_t cont = gcontext_FREE;
+   gconfig_t  conf = gconfig_FREE;
    int32_t    confattr[] = { gconfig_CONFORMANT, gconfig_value_CONFORMANT_ES2_BIT, gconfig_NONE };
    int32_t    bits[] = { gconfig_value_CONFORMANT_ES2_BIT, gconfig_value_CONFORMANT_OPENVG_BIT, gconfig_value_CONFORMANT_OPENGL_BIT };
    gcontext_api_e api[] = { gcontext_api_OPENGLES, gcontext_api_OPENVG, gcontext_api_OPENGL };
@@ -197,10 +197,10 @@ ONABORT:
 
 static int test_current(display_t * disp)
 {
-   gconfig_t      gconf = gconfig_INIT_FREEABLE;
-   gcontext_t     gcont = gcontext_INIT_FREEABLE;
-   pixelbuffer_t  pbuf  = pixelbuffer_INIT_FREEABLE;
-   pixelbuffer_t  pbuf2 = pixelbuffer_INIT_FREEABLE;
+   gconfig_t      gconf = gconfig_FREE;
+   gcontext_t     gcont = gcontext_FREE;
+   pixelbuffer_t  pbuf  = pixelbuffer_FREE;
+   pixelbuffer_t  pbuf2 = pixelbuffer_FREE;
    int32_t        confattr[] = {
                      gconfig_TYPE, gconfig_value_TYPE_PBUFFER_BIT, gconfig_BITS_BUFFER, 32, gconfig_NONE
                   };
@@ -370,16 +370,16 @@ ONABORT:
 
 static int test_thread(display_t * disp)
 {
-   gconfig_t      gconf = gconfig_INIT_FREEABLE;
-   gcontext_t     gcont = gcontext_INIT_FREEABLE;
-   pixelbuffer_t  pbuf  = pixelbuffer_INIT_FREEABLE;
+   gconfig_t      gconf = gconfig_FREE;
+   gcontext_t     gcont = gcontext_FREE;
+   pixelbuffer_t  pbuf  = pixelbuffer_FREE;
    thread_t     * thread = 0;
    int32_t        confattr[] = {
                      gconfig_TYPE, gconfig_value_TYPE_PBUFFER_BIT, gconfig_BITS_BUFFER, 32, gconfig_NONE
                   };
    uint32_t       pixels[32*32] = { 0 };
    uint32_t       rgba;
-   resourceusage_t usage = resourceusage_INIT_FREEABLE;
+   resourceusage_t usage = resourceusage_FREE;
 
    // prepare
    TEST(0 == init_gconfig(&gconf, disp, confattr));
@@ -442,8 +442,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   display_t         disp  = display_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   display_t         disp  = display_FREE;
 
    // prepare
    TEST(0 == initdefault_display(&disp));

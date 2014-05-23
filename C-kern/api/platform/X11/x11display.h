@@ -122,9 +122,9 @@ struct x11display_t {
 
 // group: lifetime
 
-/* define: x11display_INIT_FREEABLE
+/* define: x11display_FREE
  * Static initializer. */
-#define x11display_INIT_FREEABLE    { .idmap = 0, .sys_display = 0 }
+#define x11display_FREE { .idmap = 0, .sys_display = 0 }
 
 /* function: init_x11display
  * Connects to a X11 display server and returns the newly created connection.
@@ -175,7 +175,7 @@ void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char 
 bool isextxrandr_x11display(const x11display_t * x11disp) ;
 
 /* function: isfree_x11display
- * Returns true if x11disp is set to <x11display_INIT_FREEABLE>. */
+ * Returns true if x11disp is set to <x11display_FREE>. */
 static inline bool isfree_x11display(const x11display_t * x11disp);
 
 // group: screen

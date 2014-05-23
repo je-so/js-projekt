@@ -142,7 +142,7 @@ struct wbuffer_t {
  * If the memory is not big enough <RESIZE_MM> is called to resize it.
  *
  * Parameter:
- * memblock - Pointer to initialized <memblock_t>. It is allowed to set it to <memblock_INIT_FREEABLE>. */
+ * memblock - Pointer to initialized <memblock_t>. It is allowed to set it to <memblock_FREE>. */
 #define wbuffer_INIT_MEMBLOCK(memblock) \
          wbuffer_INIT_OTHER(size_memblock(memblock), addr_memblock(memblock), memblock, &g_wbuffer_memblock)
 
@@ -167,9 +167,9 @@ struct wbuffer_t {
 #define wbuffer_INIT_OTHER(buffer_size, buffer, impl, iimpl_it)  \
          { (buffer), (buffer) + (buffer_size), (impl), (iimpl_it) }
 
-/* define: wbuffer_INIT_FREEABLE
+/* define: wbuffer_FREE
  * Static initializer for invalid <wbuffer_t>. */
-#define wbuffer_INIT_FREEABLE \
+#define wbuffer_FREE \
          { 0, 0, 0, 0 }
 
 // group: query

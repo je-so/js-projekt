@@ -192,7 +192,7 @@ static int test_initfree(void)
 {
    slist_t            slist     = slist_INIT ;
    slist_node_t       node      = slist_node_INIT ;
-   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_t *      typeadp   = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
 
@@ -322,7 +322,7 @@ ONABORT:
 static int test_iterate(void)
 {
    slist_t            slist = slist_INIT ;
-   slist_iterator_t   iter  = slist_iterator_INIT_FREEABLE ;
+   slist_iterator_t   iter  = slist_iterator_FREE ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
 
    // prepare
@@ -331,7 +331,7 @@ static int test_iterate(void)
       nodes[(3*i)%lengthof(nodes)].next = (slist_node_t*)&nodes[(3*i+3)%lengthof(nodes)].next ;
    }
 
-   // TEST slist_iterator_INIT_FREEABLE
+   // TEST slist_iterator_FREE
    TEST(0 == iter.next) ;
    TEST(0 == iter.list) ;
 
@@ -382,7 +382,7 @@ ONABORT:
 static int test_insertremove(void)
 {
    slist_t            slist      = slist_INIT ;
-   testnode_adapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_t *      typeadp    = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
    slist_node_t       * node     = 0 ;
@@ -609,7 +609,7 @@ static int test_generic(void)
 {
    slist_t              slist1     = slist_INIT ;
    slist_t              slist2     = slist_INIT ;
-   gnodeadapter_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_deleteobject_gnodeadapter), test_errortimer_INIT_FREEABLE, 0 } ;
+   gnodeadapter_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_deleteobject_gnodeadapter), test_errortimer_FREE, 0 } ;
    typeadapt_t *        typeadp    = genericcast_typeadapt(&typeadapt, gnodeadapter_t, gnode_t, void*) ;
    gnode_t              nodes[100] = { { 0, 0, 0, {0}, 0, 0 } } ;
    gnode_t *            removed_node ;
@@ -664,8 +664,8 @@ static int test_generic(void)
    TEST(&nodes[1] == last_slist2(&slist2)) ;
 
    // TEST initfirst_slistiterator
-   slist_iterator_t it1 = slist_iterator_INIT_FREEABLE ;
-   slist_iterator_t it2 = slist_iterator_INIT_FREEABLE ;
+   slist_iterator_t it1 = slist_iterator_FREE ;
+   slist_iterator_t it2 = slist_iterator_FREE ;
    TEST(0 == initfirst_slist1iterator(&it1, &slist1)) ;
    TEST(it1.next == (slist_node_t*)&first_slist1(&slist1)->next) ;
    TEST(it1.list == &slist1) ;

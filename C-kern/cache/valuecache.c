@@ -58,7 +58,7 @@ int free_valuecache(valuecache_t * valuecache)
 
 static int test_initfree(void)
 {
-   valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
+   valuecache_t   valuecache = valuecache_FREE ;
 
    // TEST static init
    TEST(0 == valuecache.pagesize_vm) ;

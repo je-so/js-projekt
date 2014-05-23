@@ -76,13 +76,13 @@ struct syncqueue_t {
 
 // group: lifetime
 
-/* define: syncqueue_INIT_FREEABLE
+/* define: syncqueue_FREE
  * Static initializer. */
-#define syncqueue_INIT_FREEABLE           syncqueue_INIT
+#define syncqueue_FREE syncqueue_INIT
 
 /* define: syncqueue_INIT
  * Static initializer. */
-#define syncqueue_INIT                    { 0, 0 }
+#define syncqueue_INIT { 0, 0 }
 
 /* function: init_syncqueue
  * Initializes syncqueue. */
@@ -96,7 +96,7 @@ int free_syncqueue(syncqueue_t * syncqueue) ;
 // group: query
 
 /* function: isfree_syncqueue
- * Returns true if syncqueue is equal to <syncqueue_INIT_FREEABLE>. */
+ * Returns true if syncqueue is equal to <syncqueue_FREE>. */
 bool isfree_syncqueue(const syncqueue_t * syncqueue) ;
 
 /* function: len_syncqueue

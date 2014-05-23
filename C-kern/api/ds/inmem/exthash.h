@@ -74,9 +74,9 @@ struct exthash_iterator_t {
 
 // group: lifetime
 
-/* define: exthash_iterator_INIT_FREEABLE
+/* define: exthash_iterator_FREE
  * Static initializer. */
-#define exthash_iterator_INIT_FREEABLE       { 0, 0, 0 }
+#define exthash_iterator_FREE { 0, 0, 0 }
 
 /* function: initfirst_exthashiterator
  * Initializes an iterator for <exthash_t>. */
@@ -101,7 +101,7 @@ bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** no
 
 /* define: exthash_node_INIT
  * Static initializer. */
-#define exthash_node_INIT              lrptree_node_INIT
+#define exthash_node_INIT lrptree_node_INIT
 
 
 /* struct: exthash_t
@@ -152,9 +152,10 @@ struct exthash_t {
 
 // group: lifetime
 
-/* define: exthash_INIT_FREEABLE
+/* define: exthash_FREE
  * Static initializer. Makes calling <free_exthash> safe. */
-#define exthash_INIT_FREEABLE          { 0, 0, typeadapt_member_INIT_FREEABLE, 0, 0}
+#define exthash_FREE \
+         { 0, 0, typeadapt_member_FREE, 0, 0}
 
 /* function: init_exthash
  * Allocates a hash table of at least size 1.

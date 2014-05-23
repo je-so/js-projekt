@@ -225,7 +225,7 @@ static int comparelogfile_unittest(const char * testname)
 {
    int err;
    directory_t   *dir             = 0;
-   memblock_t     logfile_content = memblock_INIT_FREEABLE;
+   memblock_t     logfile_content = memblock_FREE;
    wbuffer_t      wbuffer         = wbuffer_INIT_MEMBLOCK(&logfile_content);
 
    err = new_directory(&dir, s_unittest_singleton.log_files_directory, 0);
@@ -259,7 +259,7 @@ int execsingle_unittest(const char * testname, int (*test_f)(void))
 {
    int err;
    bool  isResourceError = true;
-   resourceusage_t usage = resourceusage_INIT_FREEABLE;
+   resourceusage_t usage = resourceusage_FREE;
 
    logrun_unittest(testname);
 
@@ -321,7 +321,7 @@ static int childprocess_unittest(childprocess_t * param)
 int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
 {
    int err;
-   process_t         child = process_INIT_FREEABLE;
+   process_t         child = process_FREE;
    process_result_t  result;
    childprocess_t    param;
    int               fd[2] = { -1, -1 };
@@ -421,8 +421,8 @@ ONABORT:
 
 static int test_report(void)
 {
-   int         fd[2]       = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
-   int         oldstdout   = iochannel_INIT_FREEABLE;
+   int         fd[2]       = { iochannel_FREE, iochannel_FREE };
+   int         oldstdout   = iochannel_FREE;
    unittest_t  old;
    uint8_t     buffer[512];
    size_t      bytes_read;
@@ -551,9 +551,9 @@ ONABORT:
 
 static int test_logfile(void)
 {
-   int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
-   int         oldstdout = iochannel_INIT_FREEABLE;
-   memblock_t  memblock  = memblock_INIT_FREEABLE;
+   int         fd[2]     = { iochannel_FREE, iochannel_FREE };
+   int         oldstdout = iochannel_FREE;
+   memblock_t  memblock  = memblock_FREE;
    wbuffer_t   wbuffer   = wbuffer_INIT_MEMBLOCK(&memblock);
    unittest_t  old;
    uint8_t     buffer[100];
@@ -654,8 +654,8 @@ static int dummy_unittest_abort(void)
 
 static int test_exec(void)
 {
-   int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
-   int         oldstdout = iochannel_INIT_FREEABLE;
+   int         fd[2]     = { iochannel_FREE, iochannel_FREE };
+   int         oldstdout = iochannel_FREE;
    unittest_t  old;
    uint8_t     buffer[200];
    wbuffer_t   wbuffer   = wbuffer_INIT_STATIC(sizeof(buffer), buffer);
@@ -818,8 +818,8 @@ ONABORT:
 
 static int test_macros(void)
 {
-   int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
-   int         oldstdout = iochannel_INIT_FREEABLE;
+   int         fd[2]     = { iochannel_FREE, iochannel_FREE };
+   int         oldstdout = iochannel_FREE;
    unittest_t  old;
    uint8_t     buffer[200];
    size_t      bytes_read;

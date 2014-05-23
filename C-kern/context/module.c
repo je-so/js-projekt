@@ -47,7 +47,7 @@
  * Use a relative name which depends on the working directory
  * if you want to be independant of the current installation directory.
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
-#define module_DIRECTORY  "bin/mod/"
+#define module_DIRECTORY "bin/mod/"
 
 // TEXTDB:SELECT('#undef  module_'name\n'#define module_'name'  "'value'"')FROM("C-kern/resource/config/modulevalues")WHERE(module=="module_t")
 #undef  module_DIRECTORY
@@ -60,7 +60,7 @@ int init_module(/*out*/module_t * mod, const char * modulename)
 {
    int err ;
    directory_t *  dir    = 0 ;
-   mmfile_t       mmfile = mmfile_INIT_FREEABLE ;
+   mmfile_t       mmfile = mmfile_FREE ;
 
    err = new_directory(&dir, module_DIRECTORY, 0) ;
    if (err) goto ONABORT ;
@@ -99,14 +99,14 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   module_t       mod    = module_INIT_FREEABLE ;
+   module_t       mod    = module_FREE ;
    const char *   name[] = { "testmodule", "testmodule_Debug" } ;
    directory_t *  dir ;
 
    // prepare
    TEST(0 == new_directory(&dir, module_DIRECTORY, 0)) ;
 
-   // TEST module_INIT_FREEABLE
+   // TEST module_FREE
    TEST(0 == mod.code_addr) ;
    TEST(0 == mod.code_size) ;
 
@@ -179,7 +179,7 @@ ONABORT:
 
 static int test_exec(void)
 {
-   module_t       mod    = module_INIT_FREEABLE ;
+   module_t       mod    = module_FREE ;
    const char *   name[] = { "testmodule", "testmodule_Debug" } ;
 
 

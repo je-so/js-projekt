@@ -89,9 +89,9 @@ static int emptycache1_dummy(pagecache_t * pgcache)
 
 static int test_initfreeit(void)
 {
-   pagecache_it   pgcacheif = pagecache_it_INIT_FREEABLE ;
+   pagecache_it   pgcacheif = pagecache_it_FREE ;
 
-   // TEST pagecache_it_INIT_FREEABLE
+   // TEST pagecache_it_FREE
    TEST(0 == pgcacheif.allocpage) ;
    TEST(0 == pgcacheif.releasepage) ;
    TEST(0 == pgcacheif.sizeallocated) ;
@@ -115,9 +115,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   pagecache_t pgcacheobj = pagecache_INIT_FREEABLE ;
+   pagecache_t pgcacheobj = pagecache_FREE ;
 
-   // TEST pagecache_INIT_FREEABLE
+   // TEST pagecache_FREE
    TEST(0 == pgcacheobj.object) ;
    TEST(0 == pgcacheobj.iimpl) ;
 
@@ -133,7 +133,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   pagecache_t pgcache = pagecache_INIT_FREEABLE ;
+   pagecache_t pgcache = pagecache_FREE ;
 
    // TEST isobject_pagecache
    pgcache.object = (void*)1 ;
@@ -231,9 +231,9 @@ pagecache_it_DECLARE(pagecachex_it, struct pagecachex_t)
 
 static int test_genericit(void)
 {
-   pagecachex_it  pgcacheif = pagecache_it_INIT_FREEABLE ;
+   pagecachex_it  pgcacheif = pagecache_it_FREE ;
 
-   // TEST pagecache_it_INIT_FREEABLE
+   // TEST pagecache_it_FREE
    TEST(0 == pgcacheif.allocpage) ;
    TEST(0 == pgcacheif.releasepage) ;
    TEST(0 == pgcacheif.sizeallocated) ;

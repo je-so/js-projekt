@@ -190,7 +190,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
    const uint8_t  * pos ;
    const uint8_t  * next     = (const uint8_t*)encodedstr ;
    const uint8_t  * slashpos = (const uint8_t*)strchrnul(encodedstr, '/') ;
-   url_parts_t    parts      = url_parts_INIT_FREEABLE ;
+   url_parts_t    parts      = url_parts_FREE ;
 
    VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ONABORT, PRINTINT_ERRLOG(scheme)) ;
 
@@ -585,7 +585,7 @@ static int test_url_initfree(void)
    // TEST newparts_url: not encoded
    test = "us:pw@serv.xx@/@:/?@/#?/#:" ;
    url_parts_t parts = {
-      string_INIT(2, (const uint8_t*)&test[0]), string_INIT(2, (const uint8_t*)&test[3]), string_INIT(8, (const uint8_t*)&test[6]), string_INIT_FREEABLE,
+      string_INIT(2, (const uint8_t*)&test[0]), string_INIT(2, (const uint8_t*)&test[3]), string_INIT(8, (const uint8_t*)&test[6]), string_FREE,
       string_INIT(3, (const uint8_t*)&test[15]), string_INIT(2, (const uint8_t*)&test[19]), string_INIT(4, (const uint8_t*)&test[22])
    } ;
    TEST(0 == newparts_url(&url, url_scheme_HTTP, &parts, false)) ;

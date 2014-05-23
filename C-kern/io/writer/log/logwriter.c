@@ -360,9 +360,9 @@ static bool isfree_logwriter(logwriter_t * lgwrt)
 
 static int test_initfree(void)
 {
-   logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
+   logwriter_t lgwrt = logwriter_FREE ;
 
-   // TEST logwriter_INIT_FREEABLE
+   // TEST logwriter_FREE
    TEST(1 == isfree_logwriter(&lgwrt)) ;
 
    // TEST init_logwriter
@@ -396,7 +396,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
+   logwriter_t lgwrt = logwriter_FREE ;
 
    // prepare
    TEST(0 == init_logwriter(&lgwrt)) ;
@@ -458,7 +458,7 @@ ONABORT:
 
 static int test_config(void)
 {
-   logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
+   logwriter_t lgwrt = logwriter_FREE ;
 
    // prepare
    TEST(0 == init_logwriter(&lgwrt)) ;
@@ -527,11 +527,11 @@ static void textres_test(logbuffer_t * logbuf, va_list vargs)
 
 static int test_write(void)
 {
-   logwriter_t    lgwrt      = logwriter_INIT_FREEABLE ;
+   logwriter_t    lgwrt      = logwriter_FREE ;
    int            oldstderr  = -1 ;
    int            oldstdout  = -1 ;
    int            pipefd[2][2] = { { -1, -1, }, { -1, -1 } } ;
-   memblock_t     mem        = memblock_INIT_FREEABLE ;
+   memblock_t     mem        = memblock_FREE ;
 
    // prepare
    TEST(0 == ALLOC_PAGECACHE(pagesize_16384, &mem)) ;

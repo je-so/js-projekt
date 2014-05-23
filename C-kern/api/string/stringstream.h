@@ -63,9 +63,9 @@ struct stringstream_t {
 
 // group: lifetime
 
-/* define: stringstream_INIT_FREEABLE
+/* define: stringstream_FREE
  * Static initializer. */
-#define stringstream_INIT_FREEABLE              stringstream_INIT(0,0)
+#define stringstream_FREE stringstream_INIT(0,0)
 
 /* define: stringstream_INIT
  * Static initializer. The parameter startaddr is the start address of the string (lowest address in memory).
@@ -168,7 +168,7 @@ stringstream_t * genericcast_stringstream(void * strstream) ;
 /* define: free_stringstream
  * Implements <stringstream_t.free_stringstream>. */
 #define free_stringstream(strstream)   \
-         ((void)(*(strstream) = (stringstream_t) stringstream_INIT_FREEABLE))
+         ((void)(*(strstream) = (stringstream_t) stringstream_FREE))
 
 /* define: genericcast_stringstream
  * Implements <stringstream_t.genericcast_stringstream>. */

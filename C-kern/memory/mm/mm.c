@@ -69,10 +69,10 @@ size_t sizeallocated_dummy(struct mm_t * mman)
  * Test lifetime functions of <mm_t> and <mm_it>. */
 static int test_initfree(void)
 {
-   mm_it mminterface = mm_it_INIT_FREEABLE ;
-   mm_t  mman        = mm_INIT_FREEABLE ;
+   mm_it mminterface = mm_it_FREE ;
+   mm_t  mman        = mm_FREE ;
 
-   // TEST mm_INIT_FREEABLE
+   // TEST mm_FREE
    TEST(0 == mman.object) ;
    TEST(0 == mman.iimpl) ;
 
@@ -81,7 +81,7 @@ static int test_initfree(void)
    TEST(2 == (uintptr_t)mman.object) ;
    TEST(3 == (uintptr_t)mman.iimpl) ;
 
-   // TEST mm_it_INIT_FREEABLE
+   // TEST mm_it_FREE
    TEST(0 == mminterface.mresize) ;
    TEST(0 == mminterface.mfree) ;
    TEST(0 == mminterface.sizeallocated) ;
@@ -148,9 +148,9 @@ mm_it_DECLARE(mmx_it, struct mmx_t)
  * Test generic functions of <mm_it>. */
 static int test_generic(void)
 {
-   mmx_it mmxif = mm_it_INIT_FREEABLE ;
+   mmx_it mmxif = mm_it_FREE ;
 
-   // TEST mm_it_INIT_FREEABLE
+   // TEST mm_it_FREE
    TEST(0 == mmxif.mresize) ;
    TEST(0 == mmxif.mfree) ;
    TEST(0 == mmxif.sizeallocated) ;

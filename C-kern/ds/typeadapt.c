@@ -143,9 +143,9 @@ static int impl_delete_testadapt(testadapt_t * typeadp, struct testobject_t ** o
 
 static int test_initfree(void)
 {
-   typeadapt_t typeadp = typeadapt_INIT_FREEABLE ;
+   typeadapt_t typeadp = typeadapt_FREE ;
 
-   // TEST typeadapt_INIT_FREEABLE
+   // TEST typeadapt_FREE
    TEST(0 == typeadp.comparator.cmp_key_object) ;
    TEST(0 == typeadp.comparator.cmp_object) ;
    TEST(0 == typeadp.gethash.hashobject) ;
@@ -254,8 +254,8 @@ static int test_initfree(void)
    TEST(typeadp.lifetime.delete_object    == (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
 
    // TEST isequal_typeadapt
-   typeadapt_t typeadp2 = typeadapt_INIT_FREEABLE ;
-   typeadp = (typeadapt_t) typeadapt_INIT_FREEABLE ;
+   typeadapt_t typeadp2 = typeadapt_FREE ;
+   typeadp = (typeadapt_t) typeadapt_FREE ;
    for (unsigned i = 0; i < sizeof(typeadapt_t)/sizeof(void*); ++i) {
       ((void**)&typeadp2)[i] = (void*)1 ;
       TEST(0 == isequal_typeadapt(&typeadp, &typeadp2)) ;
@@ -266,7 +266,7 @@ static int test_initfree(void)
    }
 
    // TEST iscalldelete_typeadapt
-   typeadp = (typeadapt_t) typeadapt_INIT_FREEABLE ;
+   typeadp = (typeadapt_t) typeadapt_FREE ;
    typeadp.lifetime.delete_object = (typeof(typeadp.lifetime.delete_object)) 1 ;
    TEST(1 == iscalldelete_typeadapt(&typeadp)) ;
    typeadp.lifetime.delete_object = (typeof(typeadp.lifetime.delete_object)) 0 ;
@@ -356,7 +356,7 @@ static int test_generic(void)
    // TEST callgetbinarykey_typeadapt
    for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int                   callcount = testadp.call_count + 1 ;
-      typeadapt_binarykey_t binkey    = typeadapt_binarykey_INIT_FREEABLE ;
+      typeadapt_binarykey_t binkey    = typeadapt_binarykey_FREE ;
       testobj[i].key = 1 + i ;
       callgetbinarykey_typeadapt(&testadp, &testobj[i], &binkey) ;
       TEST(binkey.addr == (void*)&testobj[i].key) ;
@@ -400,7 +400,7 @@ ONABORT:
 
 static int test_typeadaptmember(void)
 {
-   typeadapt_member_t      nodeadp = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_member_t      nodeadp = typeadapt_member_FREE ;
    typeadapt_nodeoffset_t  nodeoff = typeadapt_nodeoffset_INIT(0) ;
    testadapt_t             testadp = {
                               typeadapt_INIT_LIFECMPHASHKEY(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt, &impl_getbinarykey_testadapt),
@@ -421,7 +421,7 @@ static int test_typeadaptmember(void)
    typeadapt_object_t   * objptr ;
    int                  callcount ;
 
-   // TEST typeadapt_member_INIT_FREEABLE
+   // TEST typeadapt_member_FREE
    TEST(0 == nodeadp.typeadp) ;
    TEST(isequal_typeadaptnodeoffset(nodeoff, nodeadp.nodeoff)) ;
 
@@ -434,8 +434,8 @@ static int test_typeadaptmember(void)
    }
 
    // TEST isequal_typeadaptmember
-   typeadapt_member_t nodeadp2 = typeadapt_member_INIT_FREEABLE ;
-   nodeadp = (typeadapt_member_t) typeadapt_member_INIT_FREEABLE ;
+   typeadapt_member_t nodeadp2 = typeadapt_member_FREE ;
+   nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
    for (unsigned i = 0; i < sizeof(typeadapt_member_t)/sizeof(uint32_t); ++i) {
       memset(&((uint32_t*)&nodeadp2)[i], 255, sizeof(uint32_t)) ;
       TEST(0 == isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
@@ -482,7 +482,7 @@ static int test_typeadaptmember(void)
 
    // TEST callgetbinarykey_typeadaptmember
    callcount = testadp.call_count ;
-   typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
+   typeadapt_binarykey_t binkey = typeadapt_binarykey_FREE ;
    testobj.key = 4 ;
    callgetbinarykey_typeadaptmember(&nodeadp, (typeadapt_object_t*)&testobj, &binkey) ;
    TEST(binkey.addr == (void*)&testobj.key) ;

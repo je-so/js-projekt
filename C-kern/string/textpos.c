@@ -39,9 +39,9 @@
 
 static int test_initfree(void)
 {
-   textpos_t txtpos = textpos_INIT_FREEABLE ;
+   textpos_t txtpos = textpos_FREE ;
 
-   // TEST textpos_INIT_FREEABLE
+   // TEST textpos_FREE
    TEST(0 == txtpos.column) ;
    TEST(0 == txtpos.line) ;
    TEST(0 == txtpos.prevlastcolumn) ;
@@ -82,7 +82,7 @@ ONABORT:
 
 static int test_change(void)
 {
-   textpos_t txtpos = textpos_INIT_FREEABLE ;
+   textpos_t txtpos = textpos_FREE ;
 
    // TEST addcolumn_textpos
    for (unsigned i = 1; i < 15; ++i) {

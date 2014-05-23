@@ -83,9 +83,9 @@ static int adapt_deleteobject_testadapter(struct typeadapt_t * typeadp, struct t
 
 static int test_initfree(void)
 {
-   typeadapt_lifetime_it   adplife = typeadapt_lifetime_INIT_FREEABLE ;
+   typeadapt_lifetime_it   adplife = typeadapt_lifetime_FREE ;
 
-   // TEST typeadapt_lifetime_INIT_FREEABLE
+   // TEST typeadapt_lifetime_FREE
    TEST(0 == adplife.newcopy_object) ;
    TEST(0 == adplife.delete_object) ;
 
@@ -162,7 +162,7 @@ typeadapt_lifetime_DECLARE(testadapter_it, testadapter_t, struct typeadapt_objec
 static int test_generic(void)
 {
    testadapter_t  testadp = { .err = 0 } ;
-   testadapter_it adplife = typeadapt_lifetime_INIT_FREEABLE ;
+   testadapter_it adplife = typeadapt_lifetime_FREE ;
 
    // TEST typeadapt_lifetime_DECLARE
    static_assert(sizeof(testadapter_it) == sizeof(typeadapt_lifetime_it), "structur compatible") ;
@@ -172,7 +172,7 @@ static int test_generic(void)
    // TEST genericcast_typeadaptlifetime
    TEST((struct typeadapt_lifetime_it*)&adplife == genericcast_typeadaptlifetime(&adplife, testadapter_t, struct typeadapt_object_t)) ;
 
-   // TEST typeadapt_lifetime_INIT_FREEABLE
+   // TEST typeadapt_lifetime_FREE
    TEST(0 == adplife.newcopy_object) ;
    TEST(0 == adplife.delete_object) ;
 

@@ -102,7 +102,7 @@ int free_x11dblbuffer(x11dblbuffer_t * dblbuf)
    if (x11disp) {
       int isErr = !XdbeDeallocateBackBufferName(x11disp->sys_display, dblbuf->sys_drawable);
 
-      *dblbuf = (x11dblbuffer_t) x11dblbuffer_INIT_FREEABLE;
+      *dblbuf = (x11dblbuffer_t) x11dblbuffer_FREE;
 
       if (isErr) {
          err = EINVAL ;
@@ -133,9 +133,9 @@ ONABORT:
 
 static int test_initfree(x11window_t * x11win)
 {
-   x11dblbuffer_t dblbuf   = x11dblbuffer_INIT_FREEABLE;
+   x11dblbuffer_t dblbuf   = x11dblbuffer_FREE;
 
-   // TEST x11dblbuffer_INIT_FREEABLE
+   // TEST x11dblbuffer_FREE
    TEST(0 == dblbuf.display);
    TEST(0 == dblbuf.sys_drawable);
    TEST(0 == dblbuf.sys_colormap);
@@ -190,7 +190,7 @@ static int test_draw(x11window_t * x11win)
 {
    XColor         colblue  = { .red = 0, .green = 0, .blue = USHRT_MAX, .flags = DoRed|DoGreen|DoBlue } ;
    XColor         colgreen = { .red = 0, .green = USHRT_MAX, .blue = 0, .flags = DoRed|DoGreen|DoBlue } ;
-   x11dblbuffer_t dblbuf   = x11dblbuffer_INIT_FREEABLE;
+   x11dblbuffer_t dblbuf   = x11dblbuffer_FREE;
    GC             gc = 0;
 
    // prepare
@@ -237,10 +237,10 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   x11display_t      x11disp   = x11display_INIT_FREEABLE ;
+   x11display_t      x11disp   = x11display_FREE ;
    uint32_t          snr       = 0;
-   x11window_t       x11win    = x11window_INIT_FREEABLE ;
-   x11window_t       x11win2   = x11window_INIT_FREEABLE ;
+   x11window_t       x11win    = x11window_FREE ;
+   x11window_t       x11win2   = x11window_FREE ;
    windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
                                     windowconfig_INIT_TITLE("Double Buffer"),
                                     windowconfig_INIT_SIZE(200, 100),
@@ -249,7 +249,7 @@ static int childprocess_unittest(void)
    windowconfig_t    config2[] = {  windowconfig_INIT_SIZE(200, 100),
                                     windowconfig_INIT_NONE
                                  } ;
-   resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage     = resourceusage_FREE ;
 
    // prepare
    TEST(0 == init_x11display(&x11disp, 0)) ;

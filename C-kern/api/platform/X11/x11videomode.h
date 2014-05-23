@@ -65,9 +65,9 @@ struct x11videomode_t {
 
 // group: lifetime
 
-/* define: x11videomode_INIT_FREEABLE
+/* define: x11videomode_FREE
  * Static initializer. */
-#define x11videomode_INIT_FREEABLE        { 0, 0, 0 }
+#define x11videomode_FREE { 0, 0, 0 }
 
 /* function: initfromvalues_x11videomode
  * Initializes xvidmode with the parameter values. */
@@ -94,9 +94,9 @@ struct x11videomode_iterator_t {
 
 // group: lifetime
 
-/* define: x11videomode_iterator_INIT_FREEABLE
+/* define: x11videomode_iterator_FREE
  * Static initializer. */
-#define x11videomode_iterator_INIT_FREEABLE     { 0, 0, 0 }
+#define x11videomode_iterator_FREE { 0, 0, 0 }
 
 /* function: init_x11videomodeiterator
  * Returns an iterator to a list of all video modes supported by <x11screen_t>. */

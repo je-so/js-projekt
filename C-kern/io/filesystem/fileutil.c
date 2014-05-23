@@ -49,7 +49,7 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    off_t    loadsize ;
    size_t   readsize ;
    size_t   oldsize = size_wbuffer(result);
-   file_t   file    = file_INIT_FREEABLE ;
+   file_t   file    = file_FREE ;
 
    err = init_file(&file, filepath, accessmode_READ, relative_to) ;
    if (err) goto ONABORT ;
@@ -125,12 +125,12 @@ ONABORT:
 
 static int test_loadsave(directory_t * tempdir)
 {
-   file_t      file = file_INIT_FREEABLE ;
+   file_t      file = file_FREE ;
    cstring_t   cstr = cstring_INIT ;
-   wbuffer_t   wbuf = wbuffer_INIT_FREEABLE ;
+   wbuffer_t   wbuf = wbuffer_FREE ;
    const char  * testcontent[] = { "", "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" } ;
    off_t       filesize ;
-   memblock_t  datablock = memblock_INIT_FREEABLE ;
+   memblock_t  datablock = memblock_FREE ;
 
    // TEST save_file, load_file: small files
    for (unsigned ti = 0; ti < lengthof(testcontent); ++ti) {

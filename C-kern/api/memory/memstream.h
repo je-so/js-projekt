@@ -60,9 +60,9 @@ struct memstream_t {
 
 // group: lifetime
 
-/* define: memstream_INIT_FREEABLE
+/* define: memstream_FREE
  * Static initializer. */
-#define memstream_INIT_FREEABLE           { 0, 0 }
+#define memstream_FREE { 0, 0 }
 
 /* define: memstream_INIT
  * Initializes memstream_t.

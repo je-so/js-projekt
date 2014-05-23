@@ -69,7 +69,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
       const typeadapt_object_t * upperbound ;
    } ;
 
-   binarystack_t  parents = binarystack_INIT_FREEABLE ;
+   binarystack_t  parents = binarystack_FREE ;
    struct state_t * state ;
    struct state_t * prevstate ;
 
@@ -713,11 +713,11 @@ static int test_initfree(void)
 {
    testadapt_t                typeadapt = {
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-      test_errortimer_INIT_FREEABLE, 0
+      test_errortimer_FREE, 0
    } ;
    typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
-   memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
-   splaytree_t                tree      = splaytree_INIT_FREEABLE ;
+   memblock_t                 memblock1 = memblock_FREE ;
+   splaytree_t                tree      = splaytree_FREE ;
    nodesarray_t               * nodes1 ;
    lrtree_node_t              emptynode = lrtree_node_INIT ;
 
@@ -733,7 +733,7 @@ static int test_initfree(void)
    TEST(0 == emptynode.left) ;
    TEST(0 == emptynode.right) ;
 
-   // TEST splaytree_INIT_FREEABLE
+   // TEST splaytree_FREE
    TEST(0 == tree.root) ;
    TEST(isempty_splaytree(&tree)) ;
 
@@ -809,12 +809,12 @@ static int test_initfree(void)
    tree = (splaytree_t)splaytree_INIT(&(*nodes1)[0].index) ;
    getinistate_splaytree(&tree, &saved_root) ;
    TEST(saved_root == &(*nodes1)[0].index) ;
-   tree = (splaytree_t)splaytree_INIT_FREEABLE ;
+   tree = (splaytree_t)splaytree_FREE ;
    getinistate_splaytree(&tree, &saved_root) ;
    TEST(saved_root == 0) ;
 
    // TEST isempty_splaytree
-   tree = (splaytree_t)splaytree_INIT_FREEABLE ;
+   tree = (splaytree_t)splaytree_FREE ;
    TEST(isempty_splaytree(&tree)) ;
    tree.root = (void*)1 ;
    TEST(! isempty_splaytree(&tree)) ;
@@ -833,11 +833,11 @@ static int test_insertremove(void)
 {
    testadapt_t                typeadapt = {
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-      test_errortimer_INIT_FREEABLE, 0
+      test_errortimer_FREE, 0
    } ;
    typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
-   memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
-   memblock_t                 memblock2 = memblock_INIT_FREEABLE ;
+   memblock_t                 memblock1 = memblock_FREE ;
+   memblock_t                 memblock2 = memblock_FREE ;
    splaytree_t                tree      = splaytree_INIT(0) ;
    nodesarray_t               * nodes1 ;
    nodesarray_t               * nodes2 ;
@@ -1087,13 +1087,13 @@ static int test_iterator(void)
 {
    testadapt_t                typeadapt = {
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-      test_errortimer_INIT_FREEABLE, 0
+      test_errortimer_FREE, 0
    } ;
    typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
-   memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
-   splaytree_t                tree      = splaytree_INIT_FREEABLE ;
-   splaytree_t                emptytree = splaytree_INIT_FREEABLE ;
-   splaytree_iterator_t       iter = splaytree_iterator_INIT_FREEABLE ;
+   memblock_t                 memblock1 = memblock_FREE ;
+   splaytree_t                tree      = splaytree_FREE ;
+   splaytree_t                emptytree = splaytree_FREE ;
+   splaytree_iterator_t       iter = splaytree_iterator_FREE ;
    nodesarray_t               * nodes1 ;
 
    // prepare
@@ -1114,7 +1114,7 @@ static int test_iterator(void)
       TEST(1 == (*nodes1)[i].is_inserted) ;
    }
 
-   // TEST splaytree_iterator_INIT_FREEABLE
+   // TEST splaytree_iterator_FREE
    TEST(0 == iter.next) ;
    TEST(0 == iter.tree) ;
 
@@ -1228,11 +1228,11 @@ static int test_generic(void)
 {
    testadapt_t                typeadapt = {
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-      test_errortimer_INIT_FREEABLE, 0
+      test_errortimer_FREE, 0
    } ;
    typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
-   memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
-   splaytree_t                tree      = splaytree_INIT_FREEABLE ;
+   memblock_t                 memblock1 = memblock_FREE ;
+   splaytree_t                tree      = splaytree_FREE ;
    nodesarray_t               * nodes1 ;
 
    // prepare

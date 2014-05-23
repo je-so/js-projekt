@@ -53,7 +53,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadcontext_errtimer
  * Simulates an error in <init_threadcontext>. */
-static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_FREE ;
 #endif
 
 /* variable: s_threadcontext_nextid
@@ -69,7 +69,7 @@ static size_t              s_threadcontext_nextid = 0 ;
  * is assigned to iobj.iimpl. */
 #define INITIOBJ(module, objtype_t, iobj)                   \
          int err ;                                          \
-         memblock_t memobject = memblock_INIT_FREEABLE ;    \
+         memblock_t memobject = memblock_FREE ;             \
                                                             \
          if (! interface_##module()) {                      \
             /* keep static object */                        \
@@ -132,7 +132,7 @@ static size_t              s_threadcontext_nextid = 0 ;
  * is assigned to object. */
 #define INITOBJECT(module, objtype_t, object)               \
          int err ;                                          \
-         memblock_t memobject = memblock_INIT_FREEABLE;     \
+         memblock_t memobject = memblock_FREE;              \
                                                             \
          ONERROR_testerrortimer(                            \
                &s_threadcontext_errtimer, &err, ONABORT);   \
@@ -484,7 +484,7 @@ static int call_freeiobj2(struct testmodule_t * testiobj)
 static int test_iobjhelper(void)
 {
    struct testmodule_t  testiobj ;
-   memblock_t           memblock = memblock_INIT_FREEABLE ;
+   memblock_t           memblock = memblock_FREE ;
 
    // TEST INITIOBJ
    size_t stsize = SIZESTATIC_PAGECACHE() ;
@@ -557,7 +557,7 @@ static int call_freeobject(struct testmodule_impl_t ** testobj)
 static int test_objhelper(void)
 {
    testmodule_impl_t *  testobj  = 0 ;
-   memblock_t           memblock = memblock_INIT_FREEABLE ;
+   memblock_t           memblock = memblock_FREE ;
 
    // TEST INITOBJECT
    size_t stsize = SIZESTATIC_PAGECACHE() ;
@@ -611,7 +611,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   threadcontext_t      tcontext = threadcontext_INIT_FREEABLE ;
+   threadcontext_t      tcontext = threadcontext_FREE ;
    thread_t *           thread   = 0 ;
    processcontext_t *   p        = pcontext_maincontext() ;
    const size_t         nrsvc    = 5 ;
@@ -620,7 +620,7 @@ static int test_initfree(void)
    // prepare
    TEST(p != 0) ;
 
-   // TEST threadcontext_INIT_FREEABLE
+   // TEST threadcontext_FREE
    TEST(0 == tcontext.pcontext) ;
    TEST(0 == tcontext.pagecache.object) ;
    TEST(0 == tcontext.pagecache.iimpl) ;
@@ -743,11 +743,11 @@ static int test_initfree(void)
    }
 
    // unprepare
-   s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
+   s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_FREE ;
 
    return 0 ;
 ONABORT:
-   s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
+   s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_FREE ;
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -803,7 +803,7 @@ ONABORT:
 
 static int test_change(void)
 {
-   threadcontext_t tcontext = threadcontext_INIT_FREEABLE ;
+   threadcontext_t tcontext = threadcontext_FREE ;
 
    // TEST resetthreadid_threadcontext
    s_threadcontext_nextid = 10 ;

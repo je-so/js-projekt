@@ -83,13 +83,13 @@ struct processcontext_t {
 /* define: processcontext_STATICSIZE
  * Defines the number of bytes needed from <processcontext_t>.
  * Static memory is allocated in <init_processcontext>. */
-#define processcontext_STATICSIZE         (sizeof(sysuser_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
+#define processcontext_STATICSIZE (sizeof(sysuser_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
 
 // group: lifetime
 
 /* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_STATIC        { 0, 0, errorcontext_INIT_STATIC, 0, 0 }
+#define processcontext_INIT_STATIC { 0, 0, errorcontext_INIT_STATIC, 0, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

@@ -50,7 +50,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_window_errtimer
  * Allows to introduce artificial errors. */
-static test_errortimer_t   s_window_errtimer = test_errortimer_INIT_FREEABLE;
+static test_errortimer_t   s_window_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper-macros
@@ -211,9 +211,9 @@ static int test_transparentalpha(display_t * disp)
                         windowconfig_INIT_POS(50, 100),
                         windowconfig_INIT_NONE
                      };
-   window_t    top      = window_INIT_FREEABLE;
-   window_t    bottom   = window_INIT_FREEABLE;
-   gconfig_t   gconf = gconfig_INIT_FREEABLE;
+   window_t    top      = window_FREE;
+   window_t    bottom   = window_FREE;
+   gconfig_t   gconf = gconfig_FREE;
    uint32_t    snr      = defaultscreennr_display(disp);
    EGLContext  eglcontext = EGL_NO_CONTEXT;
 
@@ -283,7 +283,7 @@ static void acceptleak_helper(resourceusage_t * usage)
 
 static int init_test_window(/*out*/window_t * win, /*out*/EGLContext * eglcontext, display_t * disp, window_evh_t * evhandler)
 {
-   gconfig_t gconf      = gconfig_INIT_FREEABLE;
+   gconfig_t gconf      = gconfig_FREE;
    int32_t   surfattr[] = {
                   gconfig_BITS_BUFFER, 32, gconfig_BITS_ALPHA, 1,
                   gconfig_TYPE, gconfig_value_TYPE_WINDOW_BIT,
@@ -314,8 +314,8 @@ ONABORT:
 
 static int test_initfree(display_t * disp)
 {
-   window_t    win   = window_INIT_FREEABLE;
-   gconfig_t   gconf = gconfig_INIT_FREEABLE;
+   window_t    win   = window_FREE;
+   gconfig_t   gconf = gconfig_FREE;
    int32_t     surfattr[4][7] = {
          { gconfig_TYPE, gconfig_value_TYPE_WINDOW_BIT, gconfig_BITS_RED, 8, gconfig_NONE },
          { gconfig_TYPE, gconfig_value_TYPE_WINDOW_BIT, gconfig_BITS_ALPHA, 1, gconfig_BITS_STENCIL, 1, gconfig_NONE },
@@ -328,7 +328,7 @@ static int test_initfree(display_t * disp)
          windowconfig_INIT_SIZE(1000,1000), windowconfig_INIT_POS(333,444), windowconfig_INIT_NONE
    };
 
-   // TEST window_INIT_FREEABLE
+   // TEST window_FREE
    TEST(1 == isfree_helper(&win));
    TEST(1 == ISFREE_OSWINDOW(&win.oswindow));
 
@@ -486,9 +486,9 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   display_t         disp  = display_INIT_FREEABLE;
-   window_t          win   = window_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   display_t         disp  = display_FREE;
+   window_t          win   = window_FREE;
    window_evh_t      evhandler = window_evh_INIT_NULL;
    EGLContext        eglcontext = EGL_NO_CONTEXT;
 

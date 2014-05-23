@@ -46,7 +46,7 @@
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_eglcontext_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_eglcontext_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -163,22 +163,22 @@ ONABORT:
 void current_eglcontext(/*out*/eglcontext_t * eglcont, /*out*/egldisplay_t * egldisp, /*out*/struct opengl_surface_t ** drawsurf, /*out*/struct opengl_surface_t ** readsurf)
 {
    if (eglcont) {
-      static_assert(EGL_NO_CONTEXT == 0 && eglcontext_INIT_FREEABLE == 0, "are the same");
+      static_assert(EGL_NO_CONTEXT == 0 && eglcontext_FREE == 0, "are the same");
       *eglcont = eglGetCurrentContext();
    }
 
    if (egldisp) {
-      static_assert(EGL_NO_DISPLAY == 0 && egldisplay_INIT_FREEABLE == 0, "are the same");
+      static_assert(EGL_NO_DISPLAY == 0 && egldisplay_FREE == 0, "are the same");
       *egldisp  = eglGetCurrentDisplay();
    }
 
    if (drawsurf) {
-      static_assert(EGL_NO_SURFACE == 0 && eglwindow_INIT_FREEABLE == 0 && eglpbuffer_INIT_FREEABLE == 0, "are the same");
+      static_assert(EGL_NO_SURFACE == 0 && eglwindow_FREE == 0 && eglpbuffer_FREE == 0, "are the same");
       *drawsurf = eglGetCurrentSurface(EGL_DRAW);
    }
 
    if (readsurf) {
-      static_assert(EGL_NO_SURFACE == 0 && eglwindow_INIT_FREEABLE == 0 && eglpbuffer_INIT_FREEABLE == 0, "are the same");
+      static_assert(EGL_NO_SURFACE == 0 && eglwindow_FREE == 0 && eglpbuffer_FREE == 0, "are the same");
       *readsurf = eglGetCurrentSurface(EGL_READ);
    }
 }
@@ -249,12 +249,12 @@ ONABORT:
 
 static int test_initfree(egldisplay_t disp)
 {
-   eglcontext_t   cont = eglcontext_INIT_FREEABLE;
+   eglcontext_t   cont = eglcontext_FREE;
    gcontext_api_e capi[] = { gcontext_api_OPENGLES, gcontext_api_OPENVG, gcontext_api_OPENGL };
    EGLenum        api[]  = { EGL_OPENGL_ES_API, EGL_OPENVG_API, EGL_OPENGL_API };
    EGLint         apibit[] = { EGL_OPENGL_ES2_BIT, EGL_OPENVG_BIT, EGL_OPENGL_BIT };
 
-   // TEST eglcontext_INIT_FREEABLE
+   // TEST eglcontext_FREE
    TEST(0 == cont);
 
    for (unsigned i = 0; i < lengthof(apibit); ++i) {
@@ -324,7 +324,7 @@ ONABORT:
 
 static int test_query(egldisplay_t disp)
 {
-   eglcontext_t   cont = eglcontext_INIT_FREEABLE;
+   eglcontext_t   cont = eglcontext_FREE;
    gcontext_api_e capi[] = { gcontext_api_OPENGLES, gcontext_api_OPENVG, gcontext_api_OPENGL };
    EGLint         apibit[] = { EGL_OPENGL_ES2_BIT, EGL_OPENVG_BIT, EGL_OPENGL_BIT };
 
@@ -369,16 +369,16 @@ ONABORT:
 
 static int test_current(egldisplay_t disp)
 {
-   eglcontext_t   cont = eglcontext_INIT_FREEABLE;
-   eglcontext_t   cont2 = eglcontext_INIT_FREEABLE;
+   eglcontext_t   cont = eglcontext_FREE;
+   eglcontext_t   cont2 = eglcontext_FREE;
    gcontext_api_e capi[] = { gcontext_api_OPENGLES, gcontext_api_OPENVG, gcontext_api_OPENGL };
    EGLenum        api[]  = { EGL_OPENGL_ES_API, EGL_OPENVG_API, EGL_OPENGL_API };
    EGLint         apibit[] = { EGL_OPENGL_ES2_BIT, EGL_OPENVG_BIT, EGL_OPENGL_BIT };
-   eglpbuffer_t   pbuf[2] = { eglpbuffer_INIT_FREEABLE, eglpbuffer_INIT_FREEABLE };
-   eglcontext_t   current_cont = eglcontext_INIT_FREEABLE;
-   egldisplay_t   current_disp = egldisplay_INIT_FREEABLE;
-   eglpbuffer_t   current_draw = eglpbuffer_INIT_FREEABLE;
-   eglpbuffer_t   current_read = eglpbuffer_INIT_FREEABLE;
+   eglpbuffer_t   pbuf[2] = { eglpbuffer_FREE, eglpbuffer_FREE };
+   eglcontext_t   current_cont = eglcontext_FREE;
+   egldisplay_t   current_disp = egldisplay_FREE;
+   eglpbuffer_t   current_draw = eglpbuffer_FREE;
+   eglpbuffer_t   current_read = eglpbuffer_FREE;
 
    for (unsigned i = 0; i < lengthof(apibit); ++i) {
       EGLint    listsize = 0;
@@ -450,10 +450,10 @@ static int test_current(egldisplay_t disp)
 
       // current_eglcontext: released context
       current_eglcontext(&current_cont, &current_disp, &current_draw, &current_read);
-      TEST(current_cont == eglcontext_INIT_FREEABLE);
-      TEST(current_disp == egldisplay_INIT_FREEABLE);
-      TEST(current_draw == eglpbuffer_INIT_FREEABLE);
-      TEST(current_read == eglpbuffer_INIT_FREEABLE);
+      TEST(current_cont == eglcontext_FREE);
+      TEST(current_disp == egldisplay_FREE);
+      TEST(current_draw == eglpbuffer_FREE);
+      TEST(current_read == eglpbuffer_FREE);
 
       // unprepare
       TEST(0 == free_eglpbuffer(&pbuf[0], disp));
@@ -484,10 +484,10 @@ static int comparecurrent_thread(void * dummy)
    TEST(EGL_OPENGL_ES_API == eglQueryAPI());
 
    current_eglcontext(&current_cont, &current_disp, &current_draw, &current_read);
-   TEST(current_cont == eglcontext_INIT_FREEABLE);
-   TEST(current_disp == egldisplay_INIT_FREEABLE);
-   TEST(current_draw == eglpbuffer_INIT_FREEABLE);
-   TEST(current_read == eglpbuffer_INIT_FREEABLE);
+   TEST(current_cont == eglcontext_FREE);
+   TEST(current_disp == egldisplay_FREE);
+   TEST(current_draw == eglpbuffer_FREE);
+   TEST(current_read == eglpbuffer_FREE);
 
    return 0;
 ONABORT:
@@ -512,10 +512,10 @@ static int setcurrent_thread(struct setcurrent_args_t * args)
    TEST(EACCES == setcurrent_eglcontext(args->cont, args->disp, args->pbuf, args->pbuf));
 
    current_eglcontext(&current_cont, &current_disp, &current_draw, &current_read);
-   TEST(current_cont == eglcontext_INIT_FREEABLE);
-   TEST(current_disp == egldisplay_INIT_FREEABLE);
-   TEST(current_draw == eglpbuffer_INIT_FREEABLE);
-   TEST(current_read == eglpbuffer_INIT_FREEABLE);
+   TEST(current_cont == eglcontext_FREE);
+   TEST(current_disp == egldisplay_FREE);
+   TEST(current_draw == eglpbuffer_FREE);
+   TEST(current_read == eglpbuffer_FREE);
 
    CLEARBUFFER_ERRLOG();
    return 0;
@@ -527,8 +527,8 @@ ONABORT:
 
 static int test_thread(egldisplay_t disp)
 {
-   eglcontext_t   cont  = eglcontext_INIT_FREEABLE;
-   eglpbuffer_t   pbuf  = eglpbuffer_INIT_FREEABLE;
+   eglcontext_t   cont  = eglcontext_FREE;
+   eglpbuffer_t   pbuf  = eglpbuffer_FREE;
    thread_t     * thread = 0;
 
    // prepare
@@ -575,8 +575,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   egldisplay_t      disp  = egldisplay_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   egldisplay_t      disp  = egldisplay_FREE;
 
    // prepare
    TEST(0 == initdefault_egldisplay(&disp));

@@ -53,9 +53,9 @@ struct test_errortimer_t {
 
 // group: lifetime
 
-/* define: test_errortimer_INIT_FREEABLE
+/* define: test_errortimer_FREE
  * Static initializer. Initializes timer disarmed. */
-#define test_errortimer_INIT_FREEABLE    { 0, 0 }
+#define test_errortimer_FREE { 0, 0 }
 
 /* function: init_testerrortimer
  * Inits errtimer with timercount and errcode.
@@ -69,7 +69,7 @@ struct test_errortimer_t {
 void init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
 
 /* function: free_testerrortimer
- * Sets errtimer to <test_errortimer_INIT_FREEABLE>. */
+ * Sets errtimer to <test_errortimer_FREE>. */
 void free_testerrortimer(test_errortimer_t * errtimer) ;
 
 // group: query
@@ -121,7 +121,7 @@ void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
 /* define: free_testerrortimer
  * Implements <test_errortimer_t.free_testerrortimer>. */
 #define free_testerrortimer(errtimer)  \
-         ((void)(*(errtimer) = (test_errortimer_t) test_errortimer_INIT_FREEABLE))
+         ((void)(*(errtimer) = (test_errortimer_t) test_errortimer_FREE))
 
 /* define: isenabled_testerrortimer
  * Implements <test_errortimer_t.isenabled_testerrortimer>. */

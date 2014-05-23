@@ -122,7 +122,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  *
  * > int unittest_module()
  * > {
- * >    type_t type = type_INIT_FREEABLE;
+ * >    type_t type = type_FREE;
  * >    TEST(0 == init_type(&type));
  * >    TEST(0 == free_type(&type));
  * >    return 0; // success
@@ -152,7 +152,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  *
  * > int unittest_module()
  * > {
- * >    type_t type = type_INIT_FREEABLE;
+ * >    type_t type = type_FREE;
  * >    TESTP(d,0 ==,init_type(&type));
  * >    TESTP(d,0 ==,free_type(&type));
  * >    return 0; // success

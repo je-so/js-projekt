@@ -190,9 +190,9 @@ struct arraysf_iterator_t {
 
 // group: lifetime
 
-/* define: arraysf_iterator_INIT_FREEABLE
+/* define: arraysf_iterator_FREE
  * Static initializer. */
-#define arraysf_iterator_INIT_FREEABLE   { 0, 0, 0 }
+#define arraysf_iterator_FREE { 0, 0, 0 }
 
 /* function: initfirst_arraysfiterator
  * Initializes an iterator for <arraysf_t>. */

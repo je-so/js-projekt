@@ -82,9 +82,9 @@ typedef sys_iochannel_t    iochannel_t ;
 
 // group: lifetime
 
-/* define: iochannel_INIT_FREEABLE
+/* define: iochannel_FREE
  * Static initializer. */
-#define iochannel_INIT_FREEABLE           sys_iochannel_INIT_FREEABLE
+#define iochannel_FREE sys_iochannel_FREE
 
 /* function: initcopy_iochannel
  * Makes ioc a duplicate of from_ioc.
@@ -102,7 +102,7 @@ int free_iochannel(iochannel_t * ioc) ;
 // group: query
 
 /* function: isfree_iochannel
- * Returns true if ioc equals <iochannel_INIT_FREEABLE>. */
+ * Returns true if ioc equals <iochannel_FREE>. */
 static inline bool isfree_iochannel(const iochannel_t ioc) ;
 
 /* function: isvalid_iochannel
@@ -159,7 +159,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
  * Implements <iochannel_t.isfree_iochannel>. */
 static inline bool isfree_iochannel(iochannel_t ioc)
 {
-   return iochannel_INIT_FREEABLE == ioc ;
+   return iochannel_FREE == ioc ;
 }
 
 

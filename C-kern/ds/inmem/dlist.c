@@ -331,7 +331,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
    typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t           list = dlist_INIT ;
    testnode_t        nodes[1000] ;
@@ -462,12 +462,12 @@ ONABORT:
 static int test_dlistiterator(void)
 {
    dlist_t           list = dlist_INIT ;
-   dlist_iterator_t  iter = dlist_iterator_INIT_FREEABLE ;
+   dlist_iterator_t  iter = dlist_iterator_FREE ;
    testnode_t        nodes[999] ;
 
    memset(nodes, 0, sizeof(nodes)) ;
 
-   // TEST dlist_iterator_INIT_FREEABLE
+   // TEST dlist_iterator_FREE
    TEST(0 == iter.next) ;
    TEST(0 == iter.list) ;
 
@@ -655,7 +655,7 @@ ONABORT:
 
 static int test_insertremove(void)
 {
-   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
    typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t           list = dlist_INIT ;
    testnode_t        nodes[1000] ;
@@ -1060,7 +1060,7 @@ ONABORT:
 
 static int test_setops(void)
 {
-   testadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   testadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
    typeadapt_t *  typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t        list  = dlist_INIT ;
    dlist_t        list2 = dlist_INIT ;
@@ -1184,7 +1184,7 @@ dlist_IMPLEMENT(_glist2, genericnode_t, node2.)
 
 static int test_generic(void)
 {
-   genericadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   genericadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_FREE, 0 } ;
    typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*) ;
    dlist_t           list1 = dlist_INIT ;
    dlist_t           list2 = dlist_INIT ;

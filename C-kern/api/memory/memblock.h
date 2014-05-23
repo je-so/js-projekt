@@ -61,9 +61,9 @@ struct memblock_t {
 
 // group: lifetime
 
-/* define: memblock_INIT_FREEABLE
+/* define: memblock_FREE
  * Static initializer. */
-#define memblock_INIT_FREEABLE         { 0, 0 }
+#define memblock_FREE { 0, 0 }
 
 /* define: memblock_INIT
  * Static initializer.
@@ -76,12 +76,12 @@ struct memblock_t {
 // group: query
 
 /* function: isfree_memblock
- * Returns true if mblock equals <memblock_INIT_FREEABLE>. */
+ * Returns true if mblock equals <memblock_FREE>. */
 bool isfree_memblock(const memblock_t * mblock) ;
 
 /* function: isvalid_memblock
  * Returns true if mblock->addr != 0 and block->size != 0.
- * This functions returns true for a <memblock_t> which is initialized to <memblock_INIT_FREEABLE>. */
+ * This functions returns true for a <memblock_t> which is initialized to <memblock_FREE>. */
 bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock

@@ -68,9 +68,9 @@ struct typeadapt_impl_t {
 
 // group: lifetime
 
-/* define: typeadapt_impl_INIT_FREEABLE
+/* define: typeadapt_impl_FREE
  * Static initializer. */
-#define typeadapt_impl_INIT_FREEABLE         { typeadapt_INIT_FREEABLE, 0 }
+#define typeadapt_impl_FREE { typeadapt_FREE, 0 }
 
 /* define: typeadapt_impl_INIT
  * Static initializer. */

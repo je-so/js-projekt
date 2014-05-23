@@ -71,9 +71,10 @@ struct objectcache_it * interface_objectcacheimpl(void) ;
 
 // group: lifetime
 
-/* define: objectcache_impl_INIT_FREEABLE
+/* define: objectcache_impl_FREE
  * Static initializer. */
-#define objectcache_impl_INIT_FREEABLE    { vmpage_INIT_FREEABLE }
+#define objectcache_impl_FREE \
+         { vmpage_FREE }
 
 /* function: init_objectcacheimpl
  * Inits <objectcache_impl_t> and all contained objects. */

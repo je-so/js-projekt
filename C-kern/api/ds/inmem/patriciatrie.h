@@ -99,14 +99,16 @@ struct patriciatrie_t {
 
 // group: lifetime
 
-/* define: patriciatrie_INIT_FREEABLE
+/* define: patriciatrie_FREE
  * Static initializer. */
-#define patriciatrie_INIT_FREEABLE              patriciatrie_INIT(0, typeadapt_member_INIT_FREEABLE)
+#define patriciatrie_FREE \
+         patriciatrie_INIT(0, typeadapt_member_FREE)
 
 /* define: patriciatrie_INIT
  * Static initializer. You can use <patriciatrie_INIT> with the returned values prvided by <getinistate_patriciatrie>.
  * Parameter root is a pointer to <patriciatrie_node_t> and nodeadp must be of type <typeadapt_member_t> (no pointer). */
-#define patriciatrie_INIT(root, nodeadp)        { root, nodeadp }
+#define patriciatrie_INIT(root, nodeadp) \
+         { root, nodeadp }
 
 /* function: init_patriciatrie
  * Inits an empty tree object.
@@ -187,9 +189,9 @@ struct patriciatrie_iterator_t {
 
 // group: lifetime
 
-/* define: patriciatrie_iterator_INIT_FREEABLE
+/* define: patriciatrie_iterator_FREE
  * Static initializer. */
-#define patriciatrie_iterator_INIT_FREEABLE     { 0, 0 }
+#define patriciatrie_iterator_FREE { 0, 0 }
 
 /* function: initfirst_patriciatrieiterator
  * Initializes an iterator for <patriciatrie_t>. */
@@ -229,9 +231,10 @@ struct patriciatrie_prefixiter_t {
 
 // group: lifetime
 
-/* define: patriciatrie_prefixiter_INIT_FREEABLE
+/* define: patriciatrie_prefixiter_FREE
  * Static initializer. */
-#define patriciatrie_prefixiter_INIT_FREEABLE      { 0, 0, 0 }
+#define patriciatrie_prefixiter_FREE \
+         { 0, 0, 0 }
 
 /* function: initfirst_patriciatrieprefixiter
  * Initializes an iterator for <patriciatrie_t> for nodes with prefix *prefixkey*. */

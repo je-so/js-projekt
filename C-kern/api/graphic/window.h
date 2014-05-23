@@ -142,10 +142,10 @@ struct window_t {
 // group: lifetime
 
 #if defined(KONFIG_USERINTERFACE_X11)
-/* define: window_INIT_FREEABLE
+/* define: window_FREE
  * Static initializer. */
-#define window_INIT_FREEABLE \
-         { x11window_INIT_FREEABLE, surface_INIT_FREEABLE_EMBEDDED }
+#define window_FREE \
+         { x11window_FREE, surface_FREE_EMBEDDED }
 #endif
 
 /* function: init_window

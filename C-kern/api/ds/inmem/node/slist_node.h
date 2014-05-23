@@ -52,7 +52,7 @@ struct slist_node_t {
  * The next pointer is checked against NULL in the precondition of every insert function
  * of every list implementation.
  * This ensures that a node is not inserted in more than one list by mistake. */
-#define slist_node_INIT     { 0 }
+#define slist_node_INIT { 0 }
 
 // group: generic
 

@@ -52,9 +52,9 @@ struct x11screen_t {
 
 // group: lifetime
 
-/* define: x11screen_INIT_FREEABLE
+/* define: x11screen_FREE
  * Static initializer. */
-#define x11screen_INIT_FREEABLE  \
+#define x11screen_FREE  \
          { 0, 0 }
 
 /* define: x11screen_INIT

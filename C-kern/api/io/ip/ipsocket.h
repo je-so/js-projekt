@@ -60,9 +60,9 @@ int unittest_io_ipsocket(void) ;
 
 // group: lifetime
 
-/* define: ipsocket_INIT_FREEABLE
+/* define: ipsocket_FREE
  * Static initializer for <ipsocket_t>. Makes calling of <free_ipsocket> safe. */
-#define ipsocket_INIT_FREEABLE            sys_iochannel_INIT_FREEABLE
+#define ipsocket_FREE sys_iochannel_FREE
 
 /* function: init_ipsocket
  * Creates a new unconnected UDP network communication endpoint.
@@ -265,9 +265,9 @@ struct ipsocket_async_t {
 
 // group: lifetime
 
-/* define: ipsocket_async_INIT_FREEABLE
+/* define: ipsocket_async_FREE
  * Static initializer. */
-#define ipsocket_async_INIT_FREEABLE   {  ipsocket_INIT_FREEABLE, 0 }
+#define ipsocket_async_FREE {  ipsocket_FREE, 0 }
 
 /* function: initconnect_ipsocketasync
  * Same as <initconnect_ipsocket> except for async operation.
@@ -282,7 +282,7 @@ int free_ipsocketasync(ipsocket_async_t * ipsockasync) ;
 /* function: convert_ipsocketasync
  * Converts <ipsocket_async_t> into <ipsocket_t>.
  *
- * In case of success (returns 0) ipsockasync is reset to <ipsocket_async_INIT_FREEABLE>
+ * In case of success (returns 0) ipsockasync is reset to <ipsocket_async_FREE>
  * and ipsock contains a connected socket ready for read/write operations.
  *
  * In case <success_ipsocketasync> does not return 0 this same error code is returned

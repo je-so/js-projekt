@@ -122,7 +122,7 @@ enum log_channel_e {
 
 typedef enum log_channel_e log_channel_e;
 
-#define log_channel_NROFCHANNEL  (log_channel_ERR + 1)
+#define log_channel_NROFCHANNEL (log_channel_ERR + 1)
 
 
 /* enums: log_state_e
@@ -147,7 +147,7 @@ enum log_state_e {
 
 typedef enum log_state_e log_state_e;
 
-#define log_state_NROFSTATE   (log_state_IMMEDIATE + 1)
+#define log_state_NROFSTATE (log_state_IMMEDIATE + 1)
 
 
 /* struct: log_t

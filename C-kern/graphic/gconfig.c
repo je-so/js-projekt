@@ -151,9 +151,9 @@ static bool dummy_filter(gconfig_t * gconf, struct display_t * display, int32_t 
 
 static int test_configfilter(void)
 {
-   gconfig_filter_t filter = gconfig_filter_INIT_FREEABLE;
+   gconfig_filter_t filter = gconfig_filter_FREE;
 
-   // TEST gconfig_filter_INIT_FREEABLE
+   // TEST gconfig_filter_FREE
    TEST(0 == filter.user);
    TEST(0 == filter.accept);
 
@@ -218,16 +218,16 @@ static bool filter_attriboff(gconfig_t * gconf, struct display_t * display, int3
 
 static int test_initfree(display_t * display)
 {
-   gconfig_t config = gconfig_INIT_FREEABLE;
+   gconfig_t config = gconfig_FREE;
    int config_attributes[10];
    int config_attriberr1[] = { gconfig_TYPE, -1, gconfig_NONE };
    int config_attriberr2[2*gconfig_NROFELEMENTS+1];
    int config_attriberr3[] = { gconfig_BITS_RED, 1024, gconfig_NONE };
 
-   // TEST gconfig_INIT_FREEABLE
+   // TEST gconfig_FREE
    TEST(0 == config.glconfig);
 
-   // TEST free_gconfig: initialized with gconfig_INIT_FREEABLE
+   // TEST free_gconfig: initialized with gconfig_FREE
    TEST(0 == free_gconfig(&config));
    TEST(0 == config.glconfig);
 
@@ -242,7 +242,7 @@ static int test_initfree(display_t * display)
    }
 
    // TEST init_gconfig: EINVAL (egldisplay_t not initialized)
-   TEST(EINVAL == init_gconfig(&config, &(display_t) display_INIT_FREEABLE, config_attributes));
+   TEST(EINVAL == init_gconfig(&config, &(display_t) display_FREE, config_attributes));
    TEST(0 == config.glconfig);
 
    // TEST init_gconfig: EINVAL (value in config_attributes wrong)
@@ -354,7 +354,7 @@ ONABORT:
 
 static int test_query(display_t * display)
 {
-   gconfig_t config = gconfig_INIT_FREEABLE;
+   gconfig_t config = gconfig_FREE;
    int       attrlist[10];
 
    // TEST gl_gconfig
@@ -454,8 +454,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE;
-   display_t         display = display_INIT_FREEABLE;
+   resourceusage_t   usage   = resourceusage_FREE;
+   display_t         display = display_FREE;
 
    TEST(0 == INITDEFAULT_DISPLAY(&display));
 

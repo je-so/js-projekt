@@ -80,9 +80,9 @@ struct queue_iterator_t {
 
 // group: lifetime
 
-/* define: queue_iterator_INIT_FREEABLE
+/* define: queue_iterator_FREE
  * Static initializer. */
-#define queue_iterator_INIT_FREEABLE   { 0, 0, 0, 0, 0 }
+#define queue_iterator_FREE { 0, 0, 0, 0, 0 }
 
 /* function: initfirst_queueiterator
  * Initializes an iterator for <queue_t>.
@@ -129,13 +129,13 @@ struct queue_t {
 
 // group: lifetime
 
-/* define: queue_INIT_FREEABLE
+/* define: queue_FREE
  * Static initializer. */
-#define queue_INIT_FREEABLE      queue_INIT
+#define queue_FREE queue_INIT
 
 /* define: queue_INIT
  * Static initializer. */
-#define queue_INIT               { 0 }
+#define queue_INIT { 0 }
 
 /* function: init_queue
  * Sets al fields to 0. Even if it can never fail check return code in case
@@ -297,7 +297,7 @@ struct queue_page_t {
 /* define: free_queueiterator
  * Implements <queue_iterator_t.free_queueiterator>. */
 #define free_queueiterator(iter) \
-         (*(iter) = (queue_iterator_t) queue_iterator_INIT_FREEABLE, 0)
+         (*(iter) = (queue_iterator_t) queue_iterator_FREE, 0)
 
 /* define: initfirst_queueiterator
  * Implements <queue_iterator_t.initfirst_queueiterator>. */

@@ -35,19 +35,19 @@
  *
  * sys_iochannel_t             - Type holding system specific description of a file descriptor.
  *                               Which is used for files and network connections (sockets).
- * sys_iochannel_INIT_FREEABLE - Static initializer for <sys_iochannel_t>. It marks the file descriptor as invalid.
+ * sys_iochannel_FREE - Static initializer for <sys_iochannel_t>. It marks the file descriptor as invalid.
  * sys_mutex_t                 - Type holding system specific description of a mutex (lock).
  * sys_mutex_INIT_DEFAULT      - Static initializer for a mutex useable by threads of the same process.
  * sys_process_t               - Type represents a system process.
- * sys_process_INIT_FREEABLE   - Static initializer for a process. It sets a process id or handle to an invalid value.
+ * sys_process_FREE   - Static initializer for a process. It sets a process id or handle to an invalid value.
  * sys_semaphore_t             - Type holding system specific description of a semaphore.
- * sys_semaphore_INIT_FREEABLE - Static initializer for a semaphore. It sets a semaphore handle to an invalid value.
+ * sys_semaphore_FREE - Static initializer for a semaphore. It sets a semaphore handle to an invalid value.
  * sys_socketaddr_t            - Type holding network addresses used from sockets.
  * sys_socketaddr_MAXSIZE      - Value which holds max size in bytes of all possible socket addresses.
  * sys_thread_t                - Type holding system specific description of a thread.
- * sys_thread_INIT_FREEABLE    - Static initializer for a thread. It sets a thread id or handle to an invalid value.
+ * sys_thread_FREE    - Static initializer for a thread. It sets a thread id or handle to an invalid value.
  * sys_userid_t                - Type holding system specific description of a system user id.
- * sys_userid_INIT_FREEABLE    - Static initializer for a system user id. It sets a user id to an invalid value.
+ * sys_userid_FREE    - Static initializer for a system user id. It sets a user id to an invalid value.
  *
  * */
 
@@ -68,9 +68,9 @@
  * Choose Posix STDERR file descriptor number. */
 #define sys_iochannel_STDERR           STDERR_FILENO
 
-/* define: sys_iochannel_INIT_FREEABLE
+/* define: sys_iochannel_FREE
  * Choose Posix file descriptor type. */
-#define sys_iochannel_INIT_FREEABLE    (-1)
+#define sys_iochannel_FREE    (-1)
 
 /* define: sys_mutex_t
  * Chooses Posix mutex type. Needs pthread support. */
@@ -89,17 +89,17 @@
  * Chooses Posix process id. */
 #define sys_process_t                  pid_t
 
-/* define: sys_process_INIT_FREEABLE
+/* define: sys_process_FREE
  * Static initializer for <sys_process_t>. */
-#define sys_process_INIT_FREEABLE      (0)
+#define sys_process_FREE      (0)
 
 /* define: sys_semaphore_t
  * Chooses Posix semaphore handle. */
 #define sys_semaphore_t                int
 
-/* define: sys_semaphore_INIT_FREEABLE
+/* define: sys_semaphore_FREE
  * Static initializer for <sys_semaphore_t>. */
-#define sys_semaphore_INIT_FREEABLE    (-1)
+#define sys_semaphore_FREE    (-1)
 
 /* define: sys_socketaddr_t
  * Chooses Posix socket address type. */
@@ -113,16 +113,16 @@
  * Chooses Posix thread type.  Needs pthread support. */
 #define sys_thread_t                   pthread_t
 
-/* define: sys_thread_INIT_FREEABLE
+/* define: sys_thread_FREE
  * Static initializer for <sys_thread_t>. */
-#define sys_thread_INIT_FREEABLE       (0)
+#define sys_thread_FREE       (0)
 
 /* define: sys_userid_t
  * Chooses Posix system user id. */
 #define sys_userid_t                   uid_t
 
-/* define: sys_userid_INIT_FREEABLE
+/* define: sys_userid_FREE
  * Static initializer for <sys_userid_t>. */
-#define sys_userid_INIT_FREEABLE       ((uid_t)(-1))
+#define sys_userid_FREE       ((uid_t)(-1))
 
 #endif

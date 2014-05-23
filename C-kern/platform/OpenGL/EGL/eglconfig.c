@@ -369,14 +369,14 @@ static bool filter_test_attriboff(eglconfig_t eglconf, int32_t visualid, void * 
 
 static int test_initfree(egldisplay_t egldisp)
 {
-   eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
+   eglconfig_t eglconf = eglconfig_FREE;
    int32_t     attrlist[2*gconfig_NROFELEMENTS+1];
 
-   // TEST eglconfig_INIT_FREEABLE
+   // TEST eglconfig_FREE
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: EINVAL (egldisplay_t not initialized)
-   TEST(EINVAL == init_eglconfig(&eglconf, egldisplay_INIT_FREEABLE, (int[]) { gconfig_BITS_RED, 1, gconfig_NONE}));
+   TEST(EINVAL == init_eglconfig(&eglconf, egldisplay_FREE, (int[]) { gconfig_BITS_RED, 1, gconfig_NONE}));
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: EINVAL (values in config_attributes wrong)
@@ -555,7 +555,7 @@ ONABORT:
 
 static int test_query(egldisplay_t egldisp)
 {
-   eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
+   eglconfig_t eglconf = eglconfig_FREE;
    int32_t     attrlist[10];
 
    for (int i = 8; i <= 32; i += 8) {
@@ -637,8 +637,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE;
-   egldisplay_t      egldisp = egldisplay_INIT_FREEABLE;
+   resourceusage_t   usage   = resourceusage_FREE;
+   egldisplay_t      egldisp = egldisplay_FREE;
 
    TEST(0 == initdefault_egldisplay(&egldisp));
 

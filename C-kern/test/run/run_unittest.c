@@ -48,7 +48,7 @@
 
 // group: helper
 
-#define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log"
+#define GENERATED_LOGRESOURCE_DIR "C-kern/resource/unittest.log"
 
 static void prepare_test(void)
 {
@@ -65,7 +65,7 @@ static void prepare_test(void)
 
    // preallocate some memory
    // TODO: remove line if own memory subsystem instead of malloc
-   resourceusage_t   usage[200]  = { resourceusage_INIT_FREEABLE };
+   resourceusage_t   usage[200]  = { resourceusage_FREE };
    for (unsigned i = 0; i < lengthof(usage); ++i) {
       (void) init_resourceusage(&usage[i]);
    }

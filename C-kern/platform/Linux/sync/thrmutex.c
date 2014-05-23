@@ -191,9 +191,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   thrmutex_t mutex = thrmutex_INIT_FREEABLE ;
+   thrmutex_t mutex = thrmutex_FREE ;
 
-   // TEST thrmutex_INIT_FREEABLE
+   // TEST thrmutex_FREE
    TEST(0 == mutex.last) ;
    TEST(0 == mutex.lockholder) ;
    TEST(0 == mutex.lockflag) ;
@@ -488,7 +488,7 @@ static int process_callsunlock(thrmutex_t * mutex)
 static int test_safesync(void)
 {
    thrmutex_t        mutex   = thrmutex_INIT ;
-   process_t         process = process_INIT_FREEABLE ;
+   process_t         process = process_FREE ;
    process_result_t  result ;
 
    // TEST slock_thrmutex

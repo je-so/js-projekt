@@ -124,7 +124,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
 
    if (test_query())    goto ONABORT;
 

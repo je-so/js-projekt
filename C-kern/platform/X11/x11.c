@@ -43,109 +43,109 @@
  * Remembers if initialization was done. It is used in
  * <initonce_X11> which is called before any other X11
  * function is called and which inits the X11-library to make it thread safe. */
-static bool s_X11_init = false ;
+static bool s_X11_init = false;
 
 // group: init
 
 int initonce_X11()
 {
-   int err ;
+   int err;
 
    if (!s_X11_init) {
       if (! XInitThreads()) {
-         err = ENOSYS ;
-         TRACESYSCALL_ERRLOG("XInitThreads", err) ;
-         goto ONABORT ;
+         err = ENOSYS;
+         TRACESYSCALL_ERRLOG("XInitThreads", err);
+         goto ONABORT;
       }
-      s_X11_init = true ;
+      s_X11_init = true;
    }
 
-   return 0 ;
+   return 0;
 ONABORT:
-   return err ;
+   return err;
 }
 
 int freeonce_X11()
 {
-   s_X11_init = false ;
-   return 0 ;
+   s_X11_init = false;
+   return 0;
 }
 
 // group: update
 
 int dispatchevent_X11(x11display_t * x11disp)
 {
-   int err ;
-   x11window_t *  x11win ;
-   XEvent         xevent ;
+   int err;
+   x11window_t *  x11win;
+   XEvent         xevent;
 
    while (XPending(x11disp->sys_display)) {
 
       if (XNextEvent(x11disp->sys_display, &xevent)) {
-         err = EINVAL ;
-         goto ONABORT ;
+         err = EINVAL;
+         goto ONABORT;
       }
 
       // process event
       switch (xevent.type) {
       case ClientMessage:
-         #define event  xevent.xclient
+         #define event xevent.xclient
          // filter event
          if (  event.message_type       == x11disp->atoms.WM_PROTOCOLS
                && (Atom)event.data.l[0] == x11disp->atoms.WM_DELETE_WINDOW
                && 0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
             if (x11win->evhimpl && x11win->evhimpl->onclose) {
-               x11win->evhimpl->onclose(x11win) ;
+               x11win->evhimpl->onclose(x11win);
             }
          }
          #undef event
-         break ;
+         break;
 
       case DestroyNotify:
-         #define event  xevent.xdestroywindow
+         #define event xevent.xdestroywindow
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
             // <free_x11window> was not called before this message
-            x11win->sys_drawable = 0 ;
-            x11win->state        = x11window_state_DESTROYED ;
-            x11win->flags        = (uint8_t) (x11win->flags & ~x11window_flags_OWNWINDOW) ;
-            (void) removeobject_x11display(x11disp, event.window) ;
+            x11win->sys_drawable = 0;
+            x11win->state        = x11window_state_DESTROYED;
+            x11win->flags        = (uint8_t) (x11win->flags & ~x11window_flags_OWNWINDOW);
+            (void) removeobject_x11display(x11disp, event.window);
 
             if (x11win->evhimpl && x11win->evhimpl->ondestroy) {
-               x11win->evhimpl->ondestroy(x11win) ;
+               x11win->evhimpl->ondestroy(x11win);
             }
          }
          #undef event
-         break ;
+         break;
 
       case ConfigureNotify:
-         #define event  xevent.xconfigure
+         #define event xevent.xconfigure
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
             if (x11win->evhimpl && x11win->evhimpl->onreshape) {
-               x11win->evhimpl->onreshape(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
+               x11win->evhimpl->onreshape(x11win, (uint32_t)event.width, (uint32_t)event.height);
             }
          }
          #undef event
-         break ;
+         break;
 
       case Expose:
-         #define event  xevent.xexpose
+         #define event xevent.xexpose
 
          // filter event
          if (  0 == event.count/*last expose*/
                && 0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
             if (x11win->evhimpl && x11win->evhimpl->onredraw) {
-               x11win->evhimpl->onredraw(x11win) ;
+               x11win->evhimpl->onredraw(x11win);
             }
          }
          #undef event
-         break ;
+         break;
 
       case MapNotify:
-         #define event  xevent.xmap
+         #define event xevent.xmap
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
@@ -156,10 +156,10 @@ int dispatchevent_X11(x11display_t * x11disp)
             }
          }
          #undef event
-         break ;
+         break;
 
       case UnmapNotify:
-         #define event  xevent.xunmap
+         #define event xevent.xunmap
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
@@ -170,27 +170,27 @@ int dispatchevent_X11(x11display_t * x11disp)
             }
          }
          #undef event
-         break ;
+         break;
 
       default:
          // handle RRScreenChangeNotifyMask
          if (XRRUpdateConfiguration(&xevent)) {
             // handled by randr extension
-            break ;
+            break;
          }
 
          //////////////////////////////////////////////////
          // add event handlers for other extensions here //
          //////////////////////////////////////////////////
 
-         break ;
+         break;
       }
    }
 
-   return 0 ;
+   return 0;
 ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
+   TRACEABORT_ERRLOG(err);
+   return err;
 }
 
 int nextevent_X11(struct x11display_t * x11disp)
@@ -209,27 +209,27 @@ int nextevent_X11(struct x11display_t * x11disp)
 static int test_initonce(void)
 {
    // prepare
-   TEST(0 == freeonce_X11()) ;
-   TEST(!s_X11_init) ;
+   TEST(0 == freeonce_X11());
+   TEST(!s_X11_init);
 
    // TEST initonce_X11
-   TEST(0 == initonce_X11()) ;
-   TEST(s_X11_init) ;
+   TEST(0 == initonce_X11());
+   TEST(s_X11_init);
 
    // TEST freeonce_X11
-   TEST(0 == freeonce_X11()) ;
-   TEST(!s_X11_init) ;
-   TEST(0 == freeonce_X11()) ;
-   TEST(!s_X11_init) ;
+   TEST(0 == freeonce_X11());
+   TEST(!s_X11_init);
+   TEST(0 == freeonce_X11());
+   TEST(!s_X11_init);
 
    // unprepare
-   TEST(0 == initonce_X11()) ;
-   TEST(s_X11_init) ;
+   TEST(0 == initonce_X11());
+   TEST(s_X11_init);
 
-   return 0 ;
+   return 0;
 ONABORT:
-   initonce_X11() ;
-   return EINVAL ;
+   initonce_X11();
+   return EINVAL;
 }
 
 int unittest_platform_X11()
@@ -241,7 +241,7 @@ int unittest_platform_X11()
    TEST(disp);
 
 
-   if (test_initonce())    goto ONABORT ;
+   if (test_initonce())    goto ONABORT;
 
    // restore
    XCloseDisplay(disp);

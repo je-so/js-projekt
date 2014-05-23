@@ -191,7 +191,7 @@ int free_vmmappedregions(vm_mappedregions_t * mappedregions)
       if (err2) err = err2;
    }
 
-   *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
+   *mappedregions = (vm_mappedregions_t) vm_mappedregions_FREE ;
 
    if (err) goto ONABORT ;
 
@@ -250,7 +250,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
          }
 
          if (!free_region_count) {
-            memblock_t mem = memblock_INIT_FREEABLE ;
+            memblock_t mem = memblock_FREE ;
             err = RESIZE_MM(sizeof(vm_regionsarray_t), &mem) ;
             if (err) goto ONABORT ;
             vm_regionsarray_t * next_array = (vm_regionsarray_t*) mem.addr ;
@@ -488,7 +488,7 @@ int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes)
 {
    int err ;
 
-   *vmpage = (vmpage_t) vmpage_INIT_FREEABLE ;
+   *vmpage = (vmpage_t) vmpage_FREE ;
 
    VALIDATE_INPARAM_TEST(powerof2_size_in_bytes >= pagesize_vm(), ONABORT,) ;
    VALIDATE_INPARAM_TEST(ispowerof2_int(powerof2_size_in_bytes), ONABORT,) ;
@@ -728,9 +728,9 @@ ONABORT:
 
 static int test_mappedregions(void)
 {
-   vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions = vm_mappedregions_FREE ;
 
-   // TEST vm_mappedregions_INIT_FREEABLE
+   // TEST vm_mappedregions_FREE
    TEST(0 == mappedregions.total_count) ;
    TEST(0 == mappedregions.element_count) ;
    TEST(0 == mappedregions.element_iterator) ;
@@ -890,12 +890,12 @@ ONABORT:
 
 static int test_vmpage(void)
 {
-   vmpage_t page    = vmpage_INIT_FREEABLE ;
+   vmpage_t page    = vmpage_FREE ;
    size_t   bytes[] = { 1, pagesize_vm()/2+1, pagesize_vm()-1 } ;
    vmpage_t unpage ; // unmapped page
    size_t   size_in_pages ;
 
-   // TEST vmpage_INIT_FREEABLE
+   // TEST vmpage_FREE
    TEST(0 == page.addr) ;
    TEST(0 == page.size) ;
 
@@ -905,7 +905,7 @@ static int test_vmpage(void)
    TEST(page.size == 11) ;
 
    // TEST isfree_vmpage: checks size and addr!
-   page = (vmpage_t) vmpage_INIT_FREEABLE ;
+   page = (vmpage_t) vmpage_FREE ;
    TEST(1 == isfree_vmpage(&page)) ;
    page.addr = (uint8_t*)1 ;
    TEST(0 == isfree_vmpage(&page)) ;
@@ -1217,7 +1217,7 @@ static void sigsegfault(int _signr)
 
 static int test_protection(void)
 {
-   vmpage_t          vmpage   = vmpage_INIT_FREEABLE ;
+   vmpage_t          vmpage   = vmpage_FREE ;
    bool              isOldact = false ;
    struct sigaction  oldact ;
    volatile int      is_exception ;
@@ -1296,8 +1296,8 @@ ONABORT:
 
 int unittest_platform_vm()
 {
-   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
-   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions  = vm_mappedregions_FREE ;
+   vm_mappedregions_t mappedregions2 = vm_mappedregions_FREE ;
 
    // store current mapping
    TEST(0 == init_vmmappedregions(&mappedregions)) ;

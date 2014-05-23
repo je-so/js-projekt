@@ -257,18 +257,18 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   iopoll_t  iopoll = iopoll_INIT_FREEABLE ;
+   iopoll_t  iopoll = iopoll_FREE ;
 
-   // TEST iopoll_INIT_FREEABLE
-   TEST(iopoll.sys_poll == sys_iochannel_INIT_FREEABLE) ;
+   // TEST iopoll_FREE
+   TEST(iopoll.sys_poll == sys_iochannel_FREE) ;
 
    // TEST init_iopoll, free_iopoll
    TEST(0 == init_iopoll(&iopoll)) ;
    TEST(iopoll.sys_poll > 0) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == iochannel_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == iochannel_FREE) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == iochannel_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == iochannel_FREE) ;
 
    // TEST free_iopoll: removes regisestered fds
    TEST(0 == init_iopoll(&iopoll)) ;
@@ -277,7 +277,7 @@ static int test_initfree(void)
    TEST(0 == registerfd_iopoll(&iopoll, iochannel_STDOUT, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 2))) ;
    TEST(0 == registerfd_iopoll(&iopoll, iochannel_STDERR, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 3))) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_iochannel_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_iochannel_FREE) ;
 
    return 0 ;
 ONABORT:
@@ -286,7 +286,7 @@ ONABORT:
 
 static int test_registerfd(void)
 {
-   iopoll_t    iopoll = iopoll_INIT_FREEABLE ;
+   iopoll_t    iopoll = iopoll_FREE ;
    uint32_t    nr_events ;
    int         fd[20][2] ;
    ioevent_t   ioevents[21] ;
@@ -394,7 +394,7 @@ ONABORT:
 
 static int test_waitevents(void)
 {
-   iopoll_t    iopoll = iopoll_INIT_FREEABLE ;
+   iopoll_t    iopoll = iopoll_FREE ;
    size_t      nr_events ;
    char        buffer[128] ;
    int         fd[15][2] ;

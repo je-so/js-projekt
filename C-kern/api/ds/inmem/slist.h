@@ -80,9 +80,9 @@ struct slist_iterator_t {
 
 // group: lifetime
 
-/* define: slist_iterator_INIT_FREEABLE
+/* define: slist_iterator_FREE
  * Static initializer. */
-#define slist_iterator_INIT_FREEABLE   { 0, 0 }
+#define slist_iterator_FREE { 0, 0 }
 
 /* function: initfirst_slistiterator
  * Initializes an iterator for <slist_t>. */
@@ -163,7 +163,7 @@ struct slist_t {
 /* define: slist_INIT
  * Static initializer. You can use it instead of <init_slist>.
  * After assigning you can call <free_slist> or any other function safely. */
-#define slist_INIT                     { (void*)0 }
+#define slist_INIT { (void*)0 }
 
 /* constructor: init_slist
  * Initializes a single linked list object.

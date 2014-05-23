@@ -178,9 +178,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   mm_impl_t mman = mmimpl_INIT_FREEABLE ;
+   mm_impl_t mman = mmimpl_FREE ;
 
-   // TEST mmimpl_INIT_FREEABLE
+   // TEST mmimpl_FREE
    TEST(0 == mman.size_allocated) ;
 
    // TEST init_mmimpl
@@ -215,7 +215,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   mm_impl_t mman = mmimpl_INIT_FREEABLE ;
+   mm_impl_t mman = mmimpl_FREE ;
 
    // TEST sizeallocated_mmimpl: 0
    TEST(0 == init_mmimpl(&mman)) ;
@@ -236,7 +236,7 @@ ONABORT:
 
 static int test_allocate(void)
 {
-   mm_impl_t      mman = mmimpl_INIT_FREEABLE ;
+   mm_impl_t      mman = mmimpl_FREE ;
    size_t         size = 0 ;
    memblock_t     mblocks[100] ;
 
@@ -264,7 +264,7 @@ static int test_allocate(void)
 
    // TEST mresize_mmimpl: empty block,
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
-      mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      mblocks[i] = (memblock_t) memblock_FREE ;
       TEST(0 == mresize_mmimpl(&mman, 16 * (1 + i), &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 16 * (1 + i)) ;
@@ -295,19 +295,19 @@ static int test_allocate(void)
    TEST(ENOMEM == malloc_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
 
    // TEST mresize_mmimpl: EINVAL
-   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0] = (memblock_t)memblock_FREE;
    mblocks[0].addr = (void*)1;
    TEST(EINVAL == mresize_mmimpl(&mman, 10, &mblocks[0]));
-   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0] = (memblock_t)memblock_FREE;
    mblocks[0].size = 1;
    TEST(EINVAL == mresize_mmimpl(&mman, 10, &mblocks[0]));
 
    // TEST mresize_mmimpl: ENOMEM
-   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0] = (memblock_t)memblock_FREE;
    TEST(ENOMEM == mresize_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
 
    // TEST mfree_mmimpl: EINVAL
-   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0] = (memblock_t)memblock_FREE;
    mblocks[0].addr = (void*)1;
    TEST(EINVAL == mfree_mmimpl(&mman, &mblocks[0]));
 
@@ -350,7 +350,7 @@ static int test_mm_macros(void)
 
    // TEST RESIZE_MM, SIZEALLOCATED_MM: empty block
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
-      mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      mblocks[i] = (memblock_t) memblock_FREE ;
       TEST(0 == RESIZE_MM(32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 32 + 32 * i) ;
@@ -390,7 +390,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage = resourceusage_FREE ;
 
    if (test_allocate())    goto ONABORT ;
 

@@ -78,9 +78,9 @@ struct mmfile_t {
 
 // group: lifetime
 
-/* define: mmfile_INIT_FREEABLE
+/* define: mmfile_FREE
  * Static initializer for <mmfile_t>. Makes calling of <free_mmfile> a no op. */
-#define mmfile_INIT_FREEABLE           { 0, 0 }
+#define mmfile_FREE { 0, 0 }
 
 /* function: init_mmfile
  * Opens a new file and maps it to memory.
@@ -115,18 +115,18 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
  * Attention:
  * If the file_offset + size is bigger than the size of the underlying file accessing the memory which has no file backing
  * is undefinded. The operating system creates a bus error exception in cases where a whole memory page has no backing file object.
- * If the size is set to 0 no mapping is done at all and <mmfile_t> is initialized with a 0 (<memblock_INIT_FREEABLE>).
+ * If the size is set to 0 no mapping is done at all and <mmfile_t> is initialized with a 0 (<memblock_FREE>).
  * */
 int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
 
 /* function: initsplit_mmfile
  * Split a memory mapping into two. After return destheadmfile maps the first headsize bytes. headsize must be a multiple of <pagesize_vm>.
  * desttailmfile maps the last (size_mmfile(sourcemfile)-headsize) bytes.
- * sourcemfile is set to <mmfile_INIT_FREEABLE> if it is not equal to destheadmfile or desttailmfile. */
+ * sourcemfile is set to <mmfile_FREE> if it is not equal to destheadmfile or desttailmfile. */
 int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttailmfile, size_t headsize, mmfile_t * sourcemfile) ;
 
 /* function: initmove_mmfile
- * Moves content of sourcemfile to destmfile. sourcemfile is also reset to <mmfile_INIT_FREEABLE>. */
+ * Moves content of sourcemfile to destmfile. sourcemfile is also reset to <mmfile_FREE>. */
 void initmove_mmfile(/*out*/mmfile_t * restrict destmfile, mmfile_t * restrict sourcemfile) ;
 
 /* function: free_mmfile
@@ -136,7 +136,7 @@ int free_mmfile(mmfile_t * mfile) ;
 // group: query
 
 /* function: isfree_mmfile
- * Returns true if mfile == <mmfile_INIT_FREEABLE>. */
+ * Returns true if mfile == <mmfile_FREE>. */
 bool isfree_mmfile(const mmfile_t * mfile) ;
 
 /* function: addr_mmfile
@@ -218,9 +218,9 @@ mmfile_t * genericcast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER quali
  * Implements <mmfile_t.initmove_mmfile>. */
 #define initmove_mmfile(destmfile, sourcemfile)                   \
          do {                                                     \
-            mmfile_t * _sourcemfile = (sourcemfile) ;             \
-            *(destmfile) = *(_sourcemfile) ;                      \
-            *(_sourcemfile) = (mmfile_t) mmfile_INIT_FREEABLE ;   \
+            mmfile_t * _sourcemfile = (sourcemfile);              \
+            *(destmfile) = *(_sourcemfile);                       \
+            *(_sourcemfile) = (mmfile_t) mmfile_FREE;             \
          } while (0)
 
 /* define: isfree_mmfile

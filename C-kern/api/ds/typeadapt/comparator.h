@@ -73,9 +73,9 @@ struct typeadapt_comparator_it {
 
 // group: lifetime
 
-/* define: typeadapt_comparator_INIT_FREEABLE
+/* define: typeadapt_comparator_FREE
  * Static initializer. Sets all functions pointers of <typeadapt_comparator_it> to 0. */
-#define typeadapt_comparator_INIT_FREEABLE                  { 0, 0 }
+#define typeadapt_comparator_FREE { 0, 0 }
 
 /* define: typeadapt_comparator_INIT
  * Static initializer. Sets all function pointers to the provided values.

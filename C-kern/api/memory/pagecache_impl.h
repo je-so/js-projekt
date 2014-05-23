@@ -127,9 +127,9 @@ int freethread_pagecacheimpl(struct pagecache_t * pagecache) ;
 
 // group: lifetime
 
-/* define: pagecache_impl_INIT_FREEABLE
+/* define: pagecache_impl_FREE
  * Static initializer. */
-#define pagecache_impl_INIT_FREEABLE      { { 0 }, { { 0 } }, { 0 }, 0, 0 }
+#define pagecache_impl_FREE { { 0 }, { { 0 } }, { 0 }, 0, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
@@ -157,7 +157,7 @@ size_t sizeallocated_pagecacheimpl(const pagecache_impl_t * pgcache) ;
 size_t sizestatic_pagecacheimpl(const pagecache_impl_t * pgcache) ;
 
 /* function: isfree_pagecacheimpl
- * Returns true if pgcache equals <pagecache_impl_INIT_FREEABLE>. */
+ * Returns true if pgcache equals <pagecache_impl_FREE>. */
 bool isfree_pagecacheimpl(const pagecache_impl_t * pgcache) ;
 
 // group: alloc
@@ -170,8 +170,8 @@ int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/s
 /* function: releasepage_pagecacheimpl
  * Releases a single memory page. It is kept in the cache and only returned to
  * the operating system if a big chunk of memory is not in use.
- * After return page is set to <memblock_INIT_FREEABLE>. Calling this function with
- * page set to <memblock_INIT_FREEABLE> does nothing. */
+ * After return page is set to <memblock_FREE>. Calling this function with
+ * page set to <memblock_FREE> does nothing. */
 int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * page) ;
 
 /* function: allocstatic_pagecacheimpl
@@ -188,8 +188,8 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
  * Frees static memory.
  * If this function is not called in the reverse order of the call sequence of <allocstatic_pagecacheimpl>
  * the value EINVAL is returned and nothing is done.
- * After return memblock is set to <memblock_INIT_FREEABLE>.
- * Calling this function with memblock set to <memblock_INIT_FREEABLE> does nothing. */
+ * After return memblock is set to <memblock_FREE>.
+ * Calling this function with memblock set to <memblock_FREE> does nothing. */
 int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * memblock) ;
 
 // group: cache
@@ -221,16 +221,16 @@ struct pagecache_blockmap_t {
  * The number of supported <pagecache_block_t> is fixed cause only
  * one entry per hash bucket is supported with no overflow handling.
  * pagecache_blockmap_t is considered to be implemented in hardware. */
-#define pagecache_blockmap_ARRAYSIZE      (2*1024*1024)
+#define pagecache_blockmap_ARRAYSIZE (2*1024*1024)
 
 // group: lifetime
 
-/* define: pagecache_blockmap_INIT_FREEABLE
+/* define: pagecache_blockmap_FREE
  * Static initializer. */
-#define pagecache_blockmap_INIT_FREEABLE  { 0, 0, 0, 0 }
+#define pagecache_blockmap_FREE { 0, 0, 0, 0 }
 
 /* function: init_pagecacheblockmap
- * Allocates a shared hash table of size <pagecache_blockmap_INIT_FREEABLE>. */
+ * Allocates a shared hash table of size <pagecache_blockmap_FREE>. */
 int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap) ;
 
 /* function: free_pagecacheblockmap

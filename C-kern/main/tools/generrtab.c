@@ -160,11 +160,11 @@ static int main_thread(maincontext_t * maincontext)
    int err = 1;
    static strtable_t errtable[2] ;
    const char *      filename ;
-   memblock_t        filedata    = memblock_INIT_FREEABLE ;
+   memblock_t        filedata    = memblock_FREE ;
    wbuffer_t         filecontent = wbuffer_INIT_MEMBLOCK(&filedata) ;
    size_t            filesize ;
    char              langid[10] ;
-   file_t            file = file_INIT_FREEABLE ;
+   file_t            file = file_FREE ;
 
    if (maincontext->argc != 2) goto PRINT_USAGE ;
 

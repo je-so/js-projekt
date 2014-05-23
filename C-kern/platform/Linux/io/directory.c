@@ -47,7 +47,7 @@ struct directory_t ;
 #ifdef KONFIG_UNITTEST
 /* variable: s_directory_errtimer
  * Simulates an error in <path_directory>. */
-static test_errortimer_t   s_directory_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_directory_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -236,7 +236,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       PRINTCSTR_ERRLOG(path) ;
       goto ONABORT ;
    }
-   fdd = iochannel_INIT_FREEABLE ; // is used internally
+   fdd = iochannel_FREE ; // is used internally
 
    *(DIR**)dir = sysdir ;
 
@@ -969,7 +969,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage      = resourceusage_FREE ;
    unsigned          open_count = 0 ;
    iochannel_t       dummyfile[8] ;
 

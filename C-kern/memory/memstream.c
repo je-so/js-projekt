@@ -43,9 +43,9 @@
 
 static int test_initfree(void)
 {
-   memstream_t memstr = memstream_INIT_FREEABLE ;
+   memstream_t memstr = memstream_FREE ;
 
-   // TEST memstream_INIT_FREEABLE
+   // TEST memstream_FREE
    TEST(0 == memstr.next) ;
    TEST(0 == memstr.end) ;
 

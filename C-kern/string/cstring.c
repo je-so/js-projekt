@@ -41,7 +41,7 @@ static inline void compiletime_tests(void)
 int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
 {
    int err ;
-   memblock_t strmem = memblock_INIT_FREEABLE ;
+   memblock_t strmem = memblock_FREE ;
 
    if (preallocate_size) {
       err = RESIZE_MM(preallocate_size, &strmem) ;
@@ -256,10 +256,10 @@ void clear_cstring(cstring_t * cstr)
 
 static int test_initfree(void)
 {
-   cstring_t   cstr  = cstring_INIT_FREEABLE ;
+   cstring_t   cstr  = cstring_FREE ;
    cstring_t   cstr2 = cstring_INIT ;
 
-   // TEST static init cstring_INIT_FREEABLE
+   // TEST static init cstring_FREE
    TEST(0 == cstr.size)
    TEST(0 == cstr.allocated_size)
    TEST(0 == cstr.chars)
@@ -286,7 +286,7 @@ static int test_initfree(void)
    TEST(0 == cstr.chars) ;
 
    // TEST initfromstring_cstring on empty string
-   string_t stringfrom = string_INIT_FREEABLE ;
+   string_t stringfrom = string_FREE ;
    TEST(0 == initfromstring_cstring(&cstr, &stringfrom)) ;
    TEST(0 == cstr.size) ;
    TEST(0 == cstr.allocated_size) ;
@@ -336,7 +336,7 @@ ONABORT:
 
 static int test_changeandquery(void)
 {
-   cstring_t   cstr  = cstring_INIT_FREEABLE ;
+   cstring_t   cstr  = cstring_FREE ;
    cstring_t   cstr2 = cstring_INIT ;
 
    // TEST size_cstring

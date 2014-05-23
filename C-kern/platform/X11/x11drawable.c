@@ -54,9 +54,9 @@ static inline void compiletime_assert(void)
 
 static int test_initfree(void)
 {
-   x11drawable_t x11draw = x11drawable_INIT_FREEABLE;
+   x11drawable_t x11draw = x11drawable_FREE;
 
-   // TEST x11drawable_INIT_FREEABLE
+   // TEST x11drawable_FREE
    TEST(x11draw.display      == 0);
    TEST(x11draw.sys_drawable == 0);
    TEST(x11draw.sys_colormap == 0);
@@ -74,7 +74,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   x11drawable_t x11draw = x11drawable_INIT_FREEABLE;
+   x11drawable_t x11draw = x11drawable_FREE;
 
    // TEST genericcast_x11drawable
    TEST(&x11draw == genericcast_x11drawable(&x11draw));

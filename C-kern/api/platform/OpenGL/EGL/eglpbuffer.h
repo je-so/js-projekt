@@ -60,9 +60,9 @@ typedef struct opengl_surface_t * eglpbuffer_t;
 
 // group: lifetime
 
-/* define: eglpbuffer_INIT_FREEABLE
+/* define: eglpbuffer_FREE
  * Static initializer. */
-#define eglpbuffer_INIT_FREEABLE 0
+#define eglpbuffer_FREE 0
 
 /* function: init_eglpbuffer
  * Allocates a pixel buffer with size (width, height) in pixels and returns it in eglpbuf.

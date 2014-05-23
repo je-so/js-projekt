@@ -69,9 +69,9 @@ struct typeadapt_lifetime_it {
 
 // group: lifetime
 
-/* define: typeadapt_lifetime_INIT_FREEABLE
+/* define: typeadapt_lifetime_FREE
  * Static initializer. Sets all functions pointers of <typeadapt_lifetime_it> to 0. */
-#define typeadapt_lifetime_INIT_FREEABLE                    { 0, 0 }
+#define typeadapt_lifetime_FREE { 0, 0 }
 
 /* define: typeadapt_lifetime_INIT
  * Static initializer. Sets all function pointers to the provided values.

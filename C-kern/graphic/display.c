@@ -39,7 +39,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_display_errtimer
  * Allows to introduce artificial errors. */
-static test_errortimer_t   s_display_errtimer = test_errortimer_INIT_FREEABLE;
+static test_errortimer_t   s_display_errtimer = test_errortimer_FREE;
 /* variable: s_display_noext
  * Allows to introduce an X11 display withou extensions. */
 static bool                s_display_noext = false;
@@ -185,9 +185,9 @@ static void acceptleak_helper(resourceusage_t * usage)
 
 static int test_initfree(void)
 {
-   display_t disp = display_INIT_FREEABLE;
+   display_t disp = display_FREE;
 
-   // TEST display_INIT_FREEABLE
+   // TEST display_FREE
    TEST(1 == isfree_helper(&disp));
    TEST(1 == ISFREE_OSDISPLAY(&disp.osdisplay));
 
@@ -227,7 +227,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   display_t   disp = display_INIT_FREEABLE;
+   display_t   disp = display_FREE;
    uint32_t    N;
 
    // prepare
@@ -269,7 +269,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
 
    if (test_initfree())       goto ONABORT;
    if (test_query())          goto ONABORT;

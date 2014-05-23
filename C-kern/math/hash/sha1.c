@@ -43,10 +43,10 @@
 #define F3(b,c,d)                      ((b & c) | (d & (b | c)))
 #define F4(b,c,d)                      (b ^ c ^ d)
 
-#define K1                             0x5A827999
-#define K2                             0x6ED9EBA1
-#define K3                             0x8F1BBCDC
-#define K4                             0xCA62C1D6
+#define K1 0x5A827999
+#define K2 0x6ED9EBA1
+#define K3 0x8F1BBCDC
+#define K4 0xCA62C1D6
 
 /* function: update_sha1hash
  * Implements calculating hash of 1 512 bit block.
@@ -429,7 +429,7 @@ static int test_sha1(void)
    // TEST hash of function
    string = "int unittest_math_hash_sha1()\n"
             "{\n"
-            "   resourceusage_t usage = resourceusage_INIT_FREEABLE ;\n"
+            "   resourceusage_t usage = resourceusage_FREE ;\n"
             "\n"
             "   TEST(0 == init_resourceusage(&usage)) ;\n"
             "\n"
@@ -443,7 +443,7 @@ static int test_sha1(void)
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-   strncpy((char*)sha1sum, "\xea\xbf\xc3\xbc\xc1\x82\x9b\xa3\x37\x61\x0a\xb2\xf9\xb5\x4d\x73\x9a\x18\xae\xa8", 20) ;
+   strncpy((char*)sha1sum, "\xdc\xac\x7e\x52\x6a\x45\xce\x10\xe5\x66\x32\xfc\x27\x61\x3d\x60\xe2\xaa\xd5\x49", 20) ;
    TEST(0 == test_unevenaddr(&sha1sum, string)) ;
 
    // TEST EOVERFLOW

@@ -67,9 +67,9 @@ struct iocallback_t {
 
 // group: lifetime
 
-/* define: iocallback_INIT_FREEABLE
+/* define: iocallback_FREE
  * Static initializer. Sets pointer to object and pointer to callback function to 0. */
-#define iocallback_INIT_FREEABLE             iocallback_INIT(0, 0)
+#define iocallback_FREE iocallback_INIT(0, 0)
 
 /* define: iocallback_INIT
  * Static initializer.

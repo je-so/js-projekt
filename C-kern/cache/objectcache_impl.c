@@ -60,7 +60,7 @@ objectcache_it * interface_objectcacheimpl(void)
 int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
 {
    int err ;
-   memblock_t  iobuffer = memblock_INIT_FREEABLE ;
+   memblock_t  iobuffer = memblock_FREE ;
 
    err = ALLOC_PAGECACHE(pagesize_4096, &iobuffer) ;
    if (err) goto ONABORT ;
@@ -145,9 +145,9 @@ void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, memblock_t
 
 static int test_initfree(void)
 {
-   objectcache_impl_t   cache = objectcache_impl_INIT_FREEABLE ;
+   objectcache_impl_t   cache = objectcache_impl_FREE ;
 
-   // TEST objectcache_impl_INIT_FREEABLE
+   // TEST objectcache_impl_FREE
    TEST(0 == cache.iobuffer.addr) ;
    TEST(0 == cache.iobuffer.size) ;
 
@@ -207,8 +207,8 @@ static int child_unlockassert(objectcache_impl_t * cache)
 
 static int test_iobuffer(void)
 {
-   objectcache_impl_t   cache     = objectcache_impl_INIT_FREEABLE ;
-   process_t            process   = process_INIT_FREEABLE ;
+   objectcache_impl_t   cache     = objectcache_impl_FREE ;
+   process_t            process   = process_FREE ;
    memblock_t *         iobuffer  = 0 ;
    int                  pipefd[2] = { -1, -1 } ;
    process_result_t     result ;

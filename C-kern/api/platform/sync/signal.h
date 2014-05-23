@@ -124,9 +124,9 @@ typedef sys_iochannel_t                   signalwait_t ;
 
 // group: lifetime
 
-/* define: signalwait_INIT_FREEABLE
+/* define: signalwait_FREE
  * Static initializer. */
-#define signalwait_INIT_FREEABLE          sys_iochannel_INIT_FREEABLE
+#define signalwait_FREE sys_iochannel_FREE
 
 /* function: initrealtime_signalwait
  * Initializes a set of realtime signals which can be waited upon.

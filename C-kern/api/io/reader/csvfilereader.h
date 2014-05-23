@@ -77,9 +77,9 @@ struct csvfilereader_t {
 
 // group: lifetime
 
-/* define: csvfilereader_INIT_FREEABLE
+/* define: csvfilereader_FREE
  * Static initializer. */
-#define csvfilereader_INIT_FREEABLE    { mmfile_INIT_FREEABLE, 0, 0, 0, 0 }
+#define csvfilereader_FREE { mmfile_FREE, 0, 0, 0, 0 }
 
 /* function: init_csvfilereader
  * Opens file and reads all contained values.

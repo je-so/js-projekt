@@ -43,10 +43,10 @@
 
 static int test_initfree_event(void)
 {
-   syncevent_t    event = syncevent_INIT_FREEABLE ;
+   syncevent_t    event = syncevent_FREE ;
    syncwait_t     waiting ;
 
-   // TEST syncevent_INIT_FREEABLE
+   // TEST syncevent_FREE
    TEST(0 == event.waiting) ;
 
    // TEST syncevent_INIT
@@ -58,7 +58,7 @@ static int test_initfree_event(void)
    // TEST initmove_syncevent
    waiting.event = &event ;
    event.waiting = &waiting ;
-   syncevent_t event2 = syncevent_INIT_FREEABLE ;
+   syncevent_t event2 = syncevent_FREE ;
    initmove_syncevent(&event2, &event) ;
    TEST(&waiting == event.waiting) ;
    TEST(&waiting == event2.waiting) ;
@@ -104,7 +104,7 @@ ONABORT:
 
 static int test_query_event(void)
 {
-   syncevent_t    event = syncevent_INIT_FREEABLE ;
+   syncevent_t    event = syncevent_FREE ;
    syncwait_t     waiting ;
 
    // TEST isfree_syncevent
@@ -139,11 +139,11 @@ static int dummy_mainfct(syncthread_t * thread, uint32_t signalstate)
 
 static int test_initfree(void)
 {
-   syncwait_t     waiting = syncwait_INIT_FREEABLE ;
-   syncevent_t    event   = syncevent_INIT_FREEABLE ;
+   syncwait_t     waiting = syncwait_FREE ;
+   syncevent_t    event   = syncevent_FREE ;
    syncthread_t   thread  = syncthread_INIT(&dummy_mainfct, (void*)20) ;
 
-   // TEST syncwait_INIT_FREEABLE
+   // TEST syncwait_FREE
    TEST(1 == isfree_syncthread(&waiting.thread)) ;
    TEST(0 == waiting.event) ;
    TEST(0 == waiting.continuelabel) ;
@@ -159,7 +159,7 @@ static int test_initfree(void)
    TEST(event.waiting          == &waiting) ;
 
    // TEST initmove_syncwait
-   syncwait_t  waiting2 = syncwait_INIT_FREEABLE ;
+   syncwait_t  waiting2 = syncwait_FREE ;
    syncwait_t  oldwait ;
    memcpy(&oldwait, &waiting, sizeof(waiting)) ;
    initmove_syncwait(&waiting2, &waiting) ;
@@ -178,8 +178,8 @@ ONABORT:
 
 static int test_query(void)
 {
-   syncwait_t  waiting  = syncwait_INIT_FREEABLE ;
-   syncwait_t  waiting2 = syncwait_INIT_FREEABLE ;
+   syncwait_t  waiting  = syncwait_FREE ;
+   syncwait_t  waiting2 = syncwait_FREE ;
 
    // TEST thread_syncwait
    TEST(&waiting.thread  == thread_syncwait(&waiting)) ;
@@ -208,10 +208,10 @@ ONABORT:
 
 static int test_update(void)
 {
-   syncthread_t   thread = syncthread_INIT_FREEABLE ;
-   syncwait_t     waiting = syncwait_INIT_FREEABLE ;
-   syncevent_t    event1  = syncevent_INIT_FREEABLE ;
-   syncevent_t    event2  = syncevent_INIT_FREEABLE ;
+   syncthread_t   thread = syncthread_FREE ;
+   syncwait_t     waiting = syncwait_FREE ;
+   syncevent_t    event1  = syncevent_FREE ;
+   syncevent_t    event2  = syncevent_FREE ;
 
    // TEST update_syncwait
    init_syncwait(&waiting, &thread, &event1, (void*)8) ;

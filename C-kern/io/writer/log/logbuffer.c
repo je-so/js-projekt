@@ -67,7 +67,7 @@ int free_logbuffer(logbuffer_t * logbuf)
 
    if (  logbuf->io == iochannel_STDOUT
          || logbuf->io == iochannel_STDERR) {
-      logbuf->io = iochannel_INIT_FREEABLE ;
+      logbuf->io = iochannel_FREE ;
    } else {
       err = free_iochannel(&logbuf->io) ;
       if (err) goto ONABORT ;
@@ -196,14 +196,14 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
 
 static int test_initfree(void)
 {
-   logbuffer_t logbuf = logbuffer_INIT_FREEABLE ;
+   logbuffer_t logbuf = logbuffer_FREE ;
    uint8_t     buffer[10] ;
 
-   // TEST logbuffer_INIT_FREEABLE
+   // TEST logbuffer_FREE
    TEST(0 == logbuf.addr) ;
    TEST(0 == logbuf.size) ;
    TEST(0 == logbuf.logsize) ;
-   TEST(sys_iochannel_INIT_FREEABLE == logbuf.io) ;
+   TEST(sys_iochannel_FREE == logbuf.io) ;
 
    // TEST logbuffer_INIT
    buffer[2] = 1 ;
@@ -229,13 +229,13 @@ static int test_initfree(void)
    TEST(0 == logbuf.addr) ;
    TEST(0 == logbuf.size) ;
    TEST(0 == logbuf.logsize) ;
-   TEST(sys_iochannel_INIT_FREEABLE == logbuf.io) ;
+   TEST(sys_iochannel_FREE == logbuf.io) ;
    TEST(1 == isvalid_iochannel(iochannel_STDOUT)) ;
    TEST(0 == free_logbuffer(&logbuf)) ;
    TEST(0 == logbuf.addr) ;
    TEST(0 == logbuf.size) ;
    TEST(0 == logbuf.logsize) ;
-   TEST(sys_iochannel_INIT_FREEABLE == logbuf.io) ;
+   TEST(sys_iochannel_FREE == logbuf.io) ;
 
    // TEST free_logbuffer: close descriptor
    int pfd[2] ;
@@ -248,7 +248,7 @@ static int test_initfree(void)
       TEST(0 == logbuf.addr) ;
       TEST(0 == logbuf.size) ;
       TEST(0 == logbuf.logsize) ;
-      TEST(sys_iochannel_INIT_FREEABLE == logbuf.io) ;
+      TEST(sys_iochannel_FREE == logbuf.io) ;
       TEST(0 == isvalid_iochannel(pfd[i])) ;
    }
 
@@ -257,7 +257,7 @@ static int test_initfree(void)
    TEST(0 == logbuf.addr) ;
    TEST(0 == logbuf.size) ;
    TEST(0 == logbuf.logsize) ;
-   TEST(sys_iochannel_INIT_FREEABLE == logbuf.io) ;
+   TEST(sys_iochannel_FREE == logbuf.io) ;
 
    return 0 ;
 ONABORT:
@@ -266,7 +266,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   logbuffer_t logbuf = logbuffer_INIT_FREEABLE ;
+   logbuffer_t logbuf = logbuffer_FREE ;
 
    // TEST io_logbuffer
    for (int i = -1; i < 100; ++i) {
@@ -375,7 +375,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   logbuffer_t logbuf    = logbuffer_INIT_FREEABLE ;
+   logbuffer_t logbuf    = logbuffer_FREE ;
    thread_t *  thread    = 0 ;
    int         pipefd[2] = { -1, -1 } ;
    uint8_t     buffer[1024] ;
@@ -486,7 +486,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage = resourceusage_FREE ;
 
    if (test_update())      goto ONABORT ;
 

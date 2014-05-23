@@ -64,9 +64,9 @@ struct syncevent_t {
 
 // group: lifetime
 
-/* define: syncevent_INIT_FREEABLE
+/* define: syncevent_FREE
  * Static initializer. */
-#define syncevent_INIT_FREEABLE           { 0 }
+#define syncevent_FREE { 0 }
 
 /* define: syncevent_INIT
  * Static initializer. The event supports a single waiting <syncthread_t>
@@ -87,7 +87,7 @@ void initmovesafe_syncevent(/*out*/syncevent_t * destsyncevent, const syncevent_
 // group: query
 
 /* function: isfree_syncevent
- * Returns true if syncevent equals to <syncevent_INIT_FREEABLE>. */
+ * Returns true if syncevent equals to <syncevent_FREE>. */
 bool isfree_syncevent(const syncevent_t * syncevent) ;
 
 /* function: iswaiting_syncevent
@@ -132,9 +132,9 @@ struct syncwait_t {
 
 // group: lifetime
 
-/* define: syncwait_INIT_FREEABLE
+/* define: syncwait_FREE
  * Static initializer. */
-#define syncwait_INIT_FREEABLE            { syncthread_INIT_FREEABLE, 0, 0 }
+#define syncwait_FREE { syncthread_FREE, 0, 0 }
 
 /* function: init_syncwait
  * Initializes syncwait and registers itself at event.

@@ -38,9 +38,9 @@
 
 static int test_initfree(void)
 {
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
 
-   // TEST static init / memblock_INIT_FREEABLE
+   // TEST static init / memblock_FREE
    TEST(0 == mblock.addr) ;
    TEST(0 == mblock.size) ;
 
@@ -52,7 +52,7 @@ static int test_initfree(void)
    }
 
    // TEST isfree_memblock
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(1 == isfree_memblock(&mblock)) ;
    mblock.addr = (void*)1 ;
    TEST(0 == isfree_memblock(&mblock)) ;
@@ -64,7 +64,7 @@ static int test_initfree(void)
    TEST(1 == isfree_memblock(&mblock)) ;
 
    // TEST isvalid_memblock
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(0 == isvalid_memblock(&mblock)) ;
    mblock.size = 1 ;
    TEST(0 == isvalid_memblock(&mblock)) ;
@@ -104,7 +104,7 @@ ONABORT:
 
 static int test_resize(void)
 {
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
 
    // TEST growleft_memblock with 0
    TEST(0 == growleft_memblock(&mblock, 0)) ;
@@ -125,13 +125,13 @@ static int test_resize(void)
    TEST(size_memblock(&mblock) == 0) ;
 
    // TEST growright_memblock with 0
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(0 == growright_memblock(&mblock, 0)) ;
    TEST(addr_memblock(&mblock) == 0) ;
    TEST(size_memblock(&mblock) == 0) ;
 
    // TEST growright_memblock with SIZE_MAX
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(0 == growright_memblock(&mblock, SIZE_MAX)) ;
    TEST(addr_memblock(&mblock) == 0) ;
    TEST(size_memblock(&mblock) == SIZE_MAX) ;
@@ -154,7 +154,7 @@ static int test_resize(void)
    TEST(size_memblock(&mblock) == 65536) ;
 
    // TEST shrinkleft_memblock: incr == 0
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(0 == shrinkleft_memblock(&mblock, 0)) ;
    TEST(isfree_memblock(&mblock)) ;
 
@@ -173,7 +173,7 @@ static int test_resize(void)
    TEST(size_memblock(&mblock) == 10000) ;
 
    // TEST shrinkright_memblock: decr == 0
-   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   mblock = (memblock_t) memblock_FREE ;
    TEST(0 == shrinkright_memblock(&mblock, 0)) ;
    TEST(isfree_memblock(&mblock)) ;
 

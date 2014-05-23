@@ -167,7 +167,7 @@ static int new_testmmpage(/*out*/testmm_page_t ** mmpage, size_t minblocksize, t
    const size_t   pgsize    = pagesize_vm() ;
    const size_t   datasize  = (blocksize + (pgsize-1)) & ~(pgsize-1) ;
    const size_t   extrasize = 2 * pgsize + ((sizeof(testmm_page_t) + (pgsize-1)) & ~(pgsize-1)) ;
-   vmpage_t       vmblock   = vmpage_INIT_FREEABLE ;
+   vmpage_t       vmblock   = vmpage_FREE ;
    testmm_page_t* new_mmpage ;
 
    if (minblocksize >= 16*1024*1024) {
@@ -272,7 +272,7 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
       (void) growleft_memblock(&mmpage->freeblock, (size_t)(mmpage->freeblock.addr - (uint8_t*)block)) ;
    }
 
-   *memblock = (memblock_t) memblock_INIT_FREEABLE ;
+   *memblock = (memblock_t) memblock_FREE ;
 
    return 0 ;
 ONABORT:
@@ -486,7 +486,7 @@ static int installnew_testmm(const mm_t * testmm)
 int switchon_testmm()
 {
    int  err;
-   mm_t testmm = mm_INIT_FREEABLE;
+   mm_t testmm = mm_FREE;
 
    if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       memblock_t  previous_mm;
@@ -579,7 +579,7 @@ int initasmm_testmm(/*out*/mm_t * testmm)
 {
    int err ;
    memblock_t     memblock ;
-   testmm_t       testmmobj = testmm_INIT_FREEABLE ;
+   testmm_t       testmmobj = testmm_FREE ;
    const size_t   objsize   = sizeof(testmm_t) ;
 
    err = init_testmm(&testmmobj) ;
@@ -602,7 +602,7 @@ ONABORT:
 int freeasmm_testmm(mm_t * testmm)
 {
    int err ;
-   testmm_t       testmmobj = testmm_INIT_FREEABLE ;
+   testmm_t       testmmobj = testmm_FREE ;
    const size_t   objsize   = sizeof(testmm_t) ;
 
    if (testmm->object) {
@@ -611,7 +611,7 @@ int freeasmm_testmm(mm_t * testmm)
       memcpy(&testmmobj, testmm->object, objsize) ;
       err = free_testmm(&testmmobj) ;
 
-      *testmm = (mm_t) mm_INIT_FREEABLE ;
+      *testmm = (mm_t) mm_FREE ;
 
       if (err) goto ONABORT ;
    }
@@ -724,7 +724,7 @@ int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock)
       err = freeblock_testmmpage(mmpage, memblock) ;
       if (err) goto ONABORT ;
 
-      *memblock = (memblock_t) memblock_INIT_FREEABLE ;
+      *memblock = (memblock_t) memblock_FREE ;
       mman->sizeallocated -= freesize ;
 
       if (ispagefree_testmmpage(mman->mmpage)) {
@@ -754,7 +754,7 @@ ONABORT:
 static int test_testmmpage(void)
 {
    testmm_page_t      * mmpage  = 0 ;
-   vm_mappedregions_t   mapping = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t   mapping = vm_mappedregions_FREE ;
    vmpage_t             page[4] ;
    memblock_t           memblock ;
    const size_t         headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
@@ -815,7 +815,7 @@ static int test_testmmpage(void)
    memblock_t nextfree = mmpage->freeblock ;
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i) ;
-      memblock = (memblock_t) memblock_INIT_FREEABLE ;
+      memblock = (memblock_t) memblock_FREE ;
       TEST(0      == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(true   == isblockvalid_testmmpage(mmpage, &memblock)) ;
       TEST(ENOMEM == allocblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
@@ -832,11 +832,11 @@ static int test_testmmpage(void)
    // TEST resizeblock_testmmpage
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
-   memblock_t oldblock = memblock_INIT_FREEABLE ;
+   memblock_t oldblock = memblock_FREE ;
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i+1) ;
-      memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      memblock = (memblock_t) memblock_INIT_FREEABLE ;
+      memblock = (memblock_t) memblock_FREE ;
+      memblock = (memblock_t) memblock_FREE ;
       TEST(0 == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
       TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
@@ -865,10 +865,10 @@ static int test_testmmpage(void)
    // TEST freeblock_testmmpage
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
-   oldblock = (memblock_t) memblock_INIT_FREEABLE ;
+   oldblock = (memblock_t) memblock_FREE ;
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i+1) ;
-      memblock = (memblock_t) memblock_INIT_FREEABLE ;
+      memblock = (memblock_t) memblock_FREE ;
       TEST(0 == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
       TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
@@ -921,9 +921,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   mm_t         mmobj    = mm_INIT_FREEABLE ;
-   testmm_t     testmm   = testmm_INIT_FREEABLE ;
-   memblock_t   memblock = memblock_INIT_FREEABLE ;
+   mm_t         mmobj    = mm_FREE ;
+   testmm_t     testmm   = testmm_FREE ;
+   memblock_t   memblock = memblock_FREE ;
    const size_t headersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
 
    // TEST static init
@@ -947,7 +947,7 @@ static int test_initfree(void)
    // TEST free: free all pages
    TEST(0 == init_testmm(&testmm)) ;
    for (unsigned i = 0; i < 10; ++i) {
-      memblock = (memblock_t) memblock_INIT_FREEABLE ;
+      memblock = (memblock_t) memblock_FREE ;
       TEST(0 == mresize_testmm(&testmm, 1024*1024-1000, &memblock)) ;
    }
    TEST(10*(1024*1024-1000) == testmm.sizeallocated) ;
@@ -979,7 +979,7 @@ static int test_allocate(void)
 {
    memblock_t     memblocks[1000] ;
    const size_t   blocksize   = 10*1024*1024 / lengthof(memblocks) ;
-   testmm_t       testmm      = testmm_INIT_FREEABLE ;
+   testmm_t       testmm      = testmm_FREE ;
    const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
 
    // prepare
@@ -988,7 +988,7 @@ static int test_allocate(void)
    // TEST mresize_testmm: alloc, realloc in FIFO order
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       // allocate blocksize/2 and then resize to blocksize
-      memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      memblocks[i] = (memblock_t) memblock_FREE ;
       TEST(0 == mresize_testmm(&testmm, blocksize/2, &memblocks[i])) ;
       TEST(i * blocksize + blocksize/2 == sizeallocated_testmm(&testmm))
       TEST(memblocks[i].addr != 0) ;
@@ -1065,7 +1065,7 @@ static int test_allocate(void)
    // TEST malloc_testmm, mresize_testmm, mfree_testmm: random order
    srandom(10000) ;
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
-      memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      memblocks[i] = (memblock_t) memblock_FREE ;
    }
    for (size_t ri = 0, datasize = 0; ri < 100000; ++ri) {
       unsigned i = (unsigned)random() % lengthof(memblocks) ;
@@ -1097,7 +1097,7 @@ static int test_allocate(void)
 
    // TEST reallocation preserves content
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
-      memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      memblocks[i] = (memblock_t) memblock_FREE ;
       TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[i])) ;
       TEST(sizeof(unsigned)*20 == memblocks[i].size) ;
       for (unsigned off = 0; off < 20; ++off) {

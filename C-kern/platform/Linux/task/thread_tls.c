@@ -49,7 +49,7 @@ struct thread_vars_t {
 
 /* define: thread_vars_INIT_STATIC
  * Static initializer. Used to initialize all variables of thread locval storage. */
-#define thread_vars_INIT_STATIC           {  threadcontext_INIT_STATIC, thread_INIT_FREEABLE }
+#define thread_vars_INIT_STATIC {  threadcontext_INIT_STATIC, thread_FREE }
 
 
 // section: thread_tls_t
@@ -59,7 +59,7 @@ struct thread_vars_t {
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadtls_errtimer
  * Simulates an error in <init_threadtls> and <free_threadtls>. */
-static test_errortimer_t   s_threadtls_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_threadtls_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -102,7 +102,7 @@ int init_threadtls(/*out*/thread_tls_t * tls)
                            + sizevars
                            + sizesigst
                            + sizestack ;
-   vmpage_t    mempage   = memblock_INIT_FREEABLE ;
+   vmpage_t    mempage   = memblock_FREE ;
 
    VALIDATE_STATE_TEST(size <= size_threadtls(), ONABORT, ) ;
 
@@ -297,10 +297,10 @@ void threadstack_threadtls(const thread_tls_t * tls,/*out*/struct memblock_t * s
 
 static int test_initfree(void)
 {
-   thread_tls_t   tls  = thread_tls_INIT_FREEABLE ;
+   thread_tls_t   tls  = thread_tls_FREE ;
    vmpage_t       vmpage ;
 
-   // TEST thread_tls_INIT_FREEABLE
+   // TEST thread_tls_FREE
    TEST(0 == tls.addr) ;
 
    // TEST init_threadtls
@@ -366,9 +366,9 @@ ONABORT:
 
 static int test_startup(void)
 {
-   thread_tls_t   tls  = thread_tls_INIT_FREEABLE ;
-   memblock_t     threadstack = memblock_INIT_FREEABLE ;
-   memblock_t     signalstack = memblock_INIT_FREEABLE ;
+   thread_tls_t   tls  = thread_tls_FREE ;
+   memblock_t     threadstack = memblock_FREE ;
+   memblock_t     signalstack = memblock_FREE ;
    vmpage_t       vmpage ;
 
    // TEST initstartup_threadtls
@@ -421,8 +421,8 @@ static int test_startup(void)
    TEST(1 == isunmapped_vm(&vmpage)) ;
 
    // TEST initstartup_threadtls: ERROR
-   threadstack = (memblock_t) memblock_INIT_FREEABLE ;
-   signalstack = (memblock_t) memblock_INIT_FREEABLE ;
+   threadstack = (memblock_t) memblock_FREE ;
+   signalstack = (memblock_t) memblock_FREE ;
    for (unsigned i = 1; i <= 6; ++i) {
       init_testerrortimer(&s_threadtls_errtimer, i, ENOMEM) ;
       TEST(ENOMEM == initstartup_threadtls(&tls, &threadstack, &signalstack)) ;
@@ -446,7 +446,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   thread_tls_t   tls  = thread_tls_INIT_FREEABLE ;
+   thread_tls_t   tls  = thread_tls_FREE ;
    memblock_t     stackmem ;
 
    // TEST sizesignalstack_threadtls

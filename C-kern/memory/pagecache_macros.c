@@ -79,7 +79,7 @@ static int test_alloc(void)
    // TEST ALLOC_PAGECACHE
    size_t oldsize = SIZEALLOCATED_PAGECACHE() ;
    for (unsigned i = 0; i < lengthof(page); ++i) {
-      page[i] = (memblock_t) memblock_INIT_FREEABLE ;
+      page[i] = (memblock_t) memblock_FREE ;
       TEST(0 == ALLOC_PAGECACHE(pagesize_4096, &page[i])) ;
       TEST(page[i].addr != 0) ;
       TEST(page[i].size == 4096) ;
@@ -122,8 +122,8 @@ ONABORT:
 
 static int test_cache(void)
 {
-   pagecache_t    oldpagecache  = pagecache_INIT_FREEABLE ;
-   pagecache_t    testpagecache = pagecache_INIT_FREEABLE ;
+   pagecache_t    oldpagecache  = pagecache_FREE ;
+   pagecache_t    testpagecache = pagecache_FREE ;
    memblock_t     page ;
 
    // prepare

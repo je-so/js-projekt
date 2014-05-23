@@ -43,7 +43,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_filepathstatic_errtimer
  * Simulates an error in <init_filepathstatic>. */
-static test_errortimer_t   s_filepathstatic_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_filepathstatic_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime

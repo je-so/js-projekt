@@ -44,7 +44,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_wbuffer_errtimer
  * Simulates an error in <reserve_memblock_wbuffer> and <reserve_cstring_wbuffer>. */
-static test_errortimer_t   s_wbuffer_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_wbuffer_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: interface implementation
@@ -248,13 +248,13 @@ static int test_initfree(void)
 {
    uint8_t     buffer[1000] = { 0 } ;
    cstring_t   cstr     = cstring_INIT ;
-   memblock_t  memblock = memblock_INIT_FREEABLE ;
-   wbuffer_t   wbuf     = wbuffer_INIT_FREEABLE ;
+   memblock_t  memblock = memblock_FREE ;
+   wbuffer_t   wbuf     = wbuffer_FREE ;
 
    // TEST wbuffer_t is subtype of memstream_t
    TEST((memstream_t*)&wbuf == genericcast_memstream(&wbuf,)) ;
 
-   // TEST wbuffer_INIT_FREEABLE
+   // TEST wbuffer_FREE
    TEST(0 == wbuf.next) ;
    TEST(0 == wbuf.end) ;
    TEST(0 == wbuf.impl) ;
@@ -398,7 +398,7 @@ ONABORT:
 
 static int test_memblock_adapter(void)
 {
-   memblock_t  mb   = memblock_INIT_FREEABLE ;
+   memblock_t  mb   = memblock_FREE ;
    wbuffer_t   wbuf = wbuffer_INIT_MEMBLOCK(&mb) ;
 
    // TEST size_memblock_wbuffer: empty memblock
@@ -512,8 +512,8 @@ static int test_query(void)
 {
    uint8_t     buffer[256] = { 0 } ;
    cstring_t   cstr     = cstring_INIT ;
-   memblock_t  memblock = memblock_INIT_FREEABLE ;
-   wbuffer_t   wbuf     = wbuffer_INIT_FREEABLE ;
+   memblock_t  memblock = memblock_FREE ;
+   wbuffer_t   wbuf     = wbuffer_FREE ;
 
    // TEST sizereserved_wbuffer: depends only wbuf.next and wbuf.end
    for (unsigned t = 0; t < 3; ++t) {
@@ -570,7 +570,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
    wbuffer_t   wbuf   = wbuffer_INIT_MEMBLOCK(&mblock) ;
    uint8_t *   b ;
 
@@ -863,7 +863,7 @@ static int shrink_other_test(void * impl, size_t new_size, /*inout*/struct memst
 
 static int test_other_impl(void)
 {
-   wbuffer_t   wbuf       = wbuffer_INIT_FREEABLE ;
+   wbuffer_t   wbuf       = wbuffer_FREE ;
    wbuffer_it  other_it   = { &alloc_other_test, &shrink_other_test, &size_other_test };
    uint8_t     buffer[64] = { 0 } ;
    // mb2array builds a list of 4 blocks of 16 byte of memory

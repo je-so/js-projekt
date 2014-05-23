@@ -70,13 +70,13 @@ struct cstring_t
 
 // group: lifetime
 
-/* define: cstring_INIT_FREEABLE
+/* define: cstring_FREE
  * Static initializer. Makes calling <free_cstring> a no op. */
-#define cstring_INIT_FREEABLE          { (size_t)0, (size_t)0, (void*)0 }
+#define cstring_FREE { (size_t)0, (size_t)0, (void*)0 }
 
 /* define: cstring_INIT
  * Static initializer. Same as calling <init_cstring> with preallocate_size set to 0. */
-#define cstring_INIT                   { (size_t)0, (size_t)0, (void*)0 }
+#define cstring_INIT { (size_t)0, (size_t)0, (void*)0 }
 
 /* function: init_cstring
  * Inits <cstring_t> and preallocates memory.
@@ -89,7 +89,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
 int initfromstring_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom) ;
 
 /* function: initmove_cstring
- * Inits dest with content of source and sets source to <cstring_INIT_FREEABLE>. */
+ * Inits dest with content of source and sets source to <cstring_FREE>. */
 void initmove_cstring(/*out*/cstring_t * restrict dest, cstring_t * restrict source) ;
 
 /* function: free_cstring
@@ -170,7 +170,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_size) ;
 /* define: initmove_cstring
  * Implements <cstring_t.initmove_cstring>. */
 #define initmove_cstring(dest, source)    \
-         do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
+         do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_FREE ; } while(0)
 
 /* define: allocatedsize_cstring
  * Implements <cstring_t.allocatedsize>. */

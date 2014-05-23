@@ -61,9 +61,9 @@ struct mm_it * interface_mmimpl(void) ;
 
 // group: lifetime
 
-/* define: mmimpl_INIT_FREEABLE
+/* define: mmimpl_FREE
  * Static initializer. */
-#define mmimpl_INIT_FREEABLE              { 0 }
+#define mmimpl_FREE { 0 }
 
 /* function: init_mmimpl
  * Initializes a new memory manager. */
@@ -101,7 +101,7 @@ int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memb
  * with the size and addr of parameter <memblock_t> set to 0.
  *
  * Before calling this function make sure that memblock is either
- * set to <memblock_INIT_FREEABLE> or to a value returned by a previous call
+ * set to <memblock_FREE> or to a value returned by a previous call
  * to <malloc_mmimpl> or this function.
  *
  * On successful return the field <memblock_t.size> can be set to a larger value than
@@ -114,7 +114,7 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
 
 /* function: mfree_mmimpl
  * Frees the memory of an allocated memory block. After return
- * memblock is set to <memblock_INIT_FREEABLE>. This ensured that calling
+ * memblock is set to <memblock_FREE>. This ensured that calling
  * this function twice with the same argument is a no op. */
 int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock) ;
 

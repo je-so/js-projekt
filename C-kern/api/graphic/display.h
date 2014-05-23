@@ -69,10 +69,10 @@ struct display_t {
 // group: lifetime
 
 #if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
-/* define: display_INIT_FREEABLE
+/* define: display_FREE
  * Static initializer. */
-#define display_INIT_FREEABLE \
-         { x11display_INIT_FREEABLE, egldisplay_INIT_FREEABLE }
+#define display_FREE \
+         { x11display_FREE, egldisplay_FREE }
 #endif
 
 /* function: initdefault_display

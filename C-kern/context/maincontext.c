@@ -52,15 +52,15 @@
  * Defines size for <s_maincontext_staticmem>.
  * This extrasize is needed during unit tests.
  * This value is a copy of <processcontext_STATICSIZE>. */
-#define maincontext_STATICSIZE         processcontext_STATICSIZE
+#define maincontext_STATICSIZE processcontext_STATICSIZE
 
 #ifdef KONFIG_UNITTEST
 /* define: maincontext_STATICTESTSIZE
  * Defines additonal size for <s_maincontext_staticmem>.
  * This extrasize is needed during unit test time. */
-#define maincontext_STATICTESTSIZE     (maincontext_STATICSIZE)
+#define maincontext_STATICTESTSIZE (maincontext_STATICSIZE)
 #else
-#define maincontext_STATICTESTSIZE     0
+#define maincontext_STATICTESTSIZE 0
 #endif
 
 // group: variables
@@ -83,7 +83,7 @@ static uint8_t             s_maincontext_staticmem[maincontext_STATICSIZE + main
 #ifdef KONFIG_UNITTEST
 /* variable: s_maincontext_errtimer
  * Simulates an error in <init_maincontext>. */
-static test_errortimer_t   s_maincontext_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_maincontext_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper

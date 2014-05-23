@@ -112,7 +112,7 @@ int unittest_io_ipaddr(void) ;
  * If you assign <ipport_ANY> to your own port number
  * the system chooses the next free port number > 0 for you
  * if you create an <ipsocket_t>. */
-#define ipport_ANY                        0
+#define ipport_ANY 0
 
 /* function: initnamed_ipport
  * Returns the tcp and udp port numbers of a named IP service.

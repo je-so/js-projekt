@@ -169,8 +169,8 @@ static int test_initfree(void)
    stringstream_t strstream ;
    uint8_t        buffer[256] ;
 
-   // TEST string_INIT_FREEABLE
-   str = (string_t) string_INIT_FREEABLE ;
+   // TEST string_FREE
+   str = (string_t) string_FREE ;
    TEST(0 == str.addr) ;
    TEST(0 == str.size) ;
    TEST(1 == isempty_string(&str)) ;
@@ -312,7 +312,7 @@ static int test_query(void)
    TEST(1 == isempty_string(&str)) ;
 
    // TEST isfree_string: checks size == 0 && addr == 0
-   str = (string_t) string_INIT_FREEABLE ;
+   str = (string_t) string_FREE ;
    TEST(1 == isfree_string(&str)) ;
    str.addr = (const uint8_t*) "" ;
    TEST(0 == isfree_string(&str)) ;

@@ -40,9 +40,9 @@
 
 static int test_initfree(void)
 {
-   surface_t surf = surface_INIT_FREEABLE;
+   surface_t surf = surface_FREE;
 
-   // TEST surface_INIT_FREEABLE
+   // TEST surface_FREE
    TEST(0 == surf.glsurface);
 
    // TEST gl_surface: glsurface == 0
@@ -71,9 +71,9 @@ static int test_generic(void)
       int x;
       surface_EMBED;
       int y;
-   } surf = { 0, surface_INIT_FREEABLE_EMBEDDED, 0 };
+   } surf = { 0, surface_FREE_EMBEDDED, 0 };
 
-   // TEST surface_INIT_FREEABLE_EMBEDDED
+   // TEST surface_FREE_EMBEDDED
    TEST(0 == surf.x);
    TEST(0 == surf.glsurface);
    TEST(0 == surf.y);

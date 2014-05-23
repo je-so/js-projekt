@@ -49,9 +49,9 @@ bool isfree_syncthread(const syncthread_t * sthread)
 
 static int test_initfree(void)
 {
-   syncthread_t sthread = syncthread_INIT_FREEABLE ;
+   syncthread_t sthread = syncthread_FREE ;
 
-   // TEST syncthread_INIT_FREEABLE
+   // TEST syncthread_FREE
    TEST(0 == sthread.mainfct) ;
    TEST(0 == sthread.state) ;
 
@@ -79,7 +79,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   syncthread_t sthread = syncthread_INIT_FREEABLE ;
+   syncthread_t sthread = syncthread_FREE ;
 
    // TEST state_syncthread
    TEST(0 == state_syncthread(&sthread)) ;
@@ -95,7 +95,7 @@ ONABORT:
 
 static int test_execstate(void)
 {
-   syncthread_t   sthread = syncthread_INIT_FREEABLE ;
+   syncthread_t   sthread = syncthread_FREE ;
    void *         label ;
    volatile int   jumpflag ;
 
@@ -221,7 +221,7 @@ ONABORT:
 
 static int test_callconvention(void)
 {
-   syncthread_t   sthread = syncthread_INIT_FREEABLE ;
+   syncthread_t   sthread = syncthread_FREE ;
    int            var ;
 
    // TEST callinit_syncthread

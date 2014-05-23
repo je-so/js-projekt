@@ -37,9 +37,9 @@
 
 static int test_initfree(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
+   test_errortimer_t  errtimer = test_errortimer_FREE ;
 
-   // TEST test_errortimer_INIT_FREEABLE
+   // TEST test_errortimer_FREE
    TEST(0 == errtimer.timercount) ;
    TEST(0 == errtimer.errcode) ;
 
@@ -63,7 +63,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
+   test_errortimer_t  errtimer = test_errortimer_FREE ;
 
    // TEST isenabled_testerrortimer
    TEST(0 == isenabled_testerrortimer(&errtimer)) ;
@@ -94,7 +94,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
+   test_errortimer_t  errtimer = test_errortimer_FREE ;
    int err;
 
    // TEST process_testerrortimer

@@ -54,9 +54,9 @@ void iocallback_testiocallbackhandler(test_iocallback_handler_t * iohandler, sys
 
 static int test_initfree(void)
 {
-   iocallback_t iocb = iocallback_INIT_FREEABLE ;
+   iocallback_t iocb = iocallback_FREE ;
 
-   // TEST iocallback_INIT_FREEABLE
+   // TEST iocallback_FREE
    TEST(0 == iocb.object) ;
    TEST(0 == iocb.iimpl) ;
 
@@ -74,11 +74,11 @@ ONABORT:
 
 static int test_generic(void)
 {
-   test_iocallback_t iocb = iocallback_INIT_FREEABLE ;
+   test_iocallback_t iocb = iocallback_FREE ;
 
    typedef void   (* test_iocallback_f) (test_iocallback_handler_t*, sys_iochannel_t, uint8_t) ;
 
-   // TEST iocallback_INIT_FREEABLE
+   // TEST iocallback_FREE
    TEST(0 == iocb.object) ;
    TEST(0 == iocb.iimpl) ;
 

@@ -196,7 +196,7 @@ int free_redblacktree(redblacktree_t * tree)
 {
    int err = removenodes_redblacktree(tree) ;
 
-   tree->nodeadp = (typeadapt_member_t) typeadapt_member_INIT_FREEABLE ;
+   tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
 
    if (err) goto ONABORT ;
 
@@ -875,10 +875,10 @@ static int test_initfree(void)
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
-   redblacktree_t       tree      = redblacktree_INIT_FREEABLE ;
+   redblacktree_t       tree      = redblacktree_FREE ;
    lrptree_node_t       emptynode = lrptree_node_INIT ;
 
    // prepare
@@ -892,8 +892,8 @@ static int test_initfree(void)
    TEST(0 == emptynode.right) ;
    TEST(0 == emptynode.parent) ;
 
-   // TEST redblacktree_INIT_FREEABLE
-   typeadapt_member_t emptyadapt = typeadapt_member_INIT_FREEABLE ;
+   // TEST redblacktree_FREE
+   typeadapt_member_t emptyadapt = typeadapt_member_FREE ;
    TEST(0 == tree.root) ;
    TEST(isequal_typeadaptmember(&emptyadapt, &tree.nodeadp)) ;
 
@@ -976,8 +976,8 @@ static int test_initfree(void)
    // TEST getinistate_redblacktree
    redblacktree_node_t * saved_root   = (void*) 1 ;
    typeadapt_member_t saved_nodeadapt = nodeadapt ;
-   typeadapt_member_t empty_nodeadapt = typeadapt_member_INIT_FREEABLE ;
-   tree = (redblacktree_t)redblacktree_INIT_FREEABLE ;
+   typeadapt_member_t empty_nodeadapt = typeadapt_member_FREE ;
+   tree = (redblacktree_t)redblacktree_FREE ;
    getinistate_redblacktree(&tree, &saved_root, 0) ;
    TEST(0 == saved_root) ;
    getinistate_redblacktree(&tree, &saved_root, &saved_nodeadapt) ;
@@ -1006,7 +1006,7 @@ static int test_insertconditions(void)
    testnode_t           nodes[20] ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
@@ -1257,7 +1257,7 @@ static int test_removeconditions(void)
    testnode_t           nodes[20] ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
@@ -1394,10 +1394,10 @@ static int test_insertremove(void)
 {
    typedef testnode_t   NODES[10000] ;
    NODES                * nodes ;
-   memblock_t           memblock  = memblock_INIT_FREEABLE ;
+   memblock_t           memblock  = memblock_FREE ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
@@ -1583,12 +1583,12 @@ static int test_iterator(void)
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
-   redblacktree_t       emptytree = redblacktree_INIT_FREEABLE ;
-   redblacktree_iterator_t iter   = redblacktree_iterator_INIT_FREEABLE ;
+   redblacktree_t       emptytree = redblacktree_FREE ;
+   redblacktree_iterator_t iter   = redblacktree_iterator_FREE ;
 
    // prepare
    MEMSET0(&nodes) ;
@@ -1602,7 +1602,7 @@ static int test_iterator(void)
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
 
-   // TEST redblacktree_iterator_INIT_FREEABLE
+   // TEST redblacktree_iterator_FREE
    TEST(0 == iter.next) ;
 
    // TEST initfirst_redblacktreeiterator: empty tree
@@ -1700,9 +1700,9 @@ static int test_generic(void)
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
                            typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
-                           test_errortimer_INIT_FREEABLE, 0
+                           test_errortimer_FREE, 0
                         } ;
-   typeadapt_member_t   emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_member_t   emptynodeadapt = typeadapt_member_FREE ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
    testnode_t           * found_node = 0 ;

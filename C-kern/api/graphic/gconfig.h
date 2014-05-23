@@ -154,7 +154,7 @@ struct gconfig_filter_t {
 #define gconfig_filter_INIT(accept, user) \
          { user, accept }
 
-#define gconfig_filter_INIT_FREEABLE \
+#define gconfig_filter_FREE \
          { 0, 0 }
 
 
@@ -171,9 +171,9 @@ struct gconfig_t {
 #define gconfig_INIT(glconfig) \
          { glconfig }
 
-/* define: gconfig_INIT_FREEABLE
+/* define: gconfig_FREE
  * Static initializer. */
-#define gconfig_INIT_FREEABLE \
+#define gconfig_FREE \
          { 0 }
 
 /* function: init_gconfig
@@ -240,7 +240,7 @@ int maxpbuffer_gconfig(const gconfig_t * gconf, struct display_t * display, /*ou
 /* define: free_gconfig
  * Implements <gconfig_t.free_gconfig>. */
 #define free_gconfig(gconf) \
-         (*(gconf) = (gconfig_t) gconfig_INIT_FREEABLE, 0)
+         (*(gconf) = (gconfig_t) gconfig_FREE, 0)
 
 #if defined(KONFIG_USERINTERFACE_EGL)
 

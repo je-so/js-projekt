@@ -193,9 +193,9 @@ struct arraystf_iterator_t {
 
 // group: lifetime
 
-/* define: arraystf_iterator_INIT_FREEABLE
+/* define: arraystf_iterator_FREE
  * Static initializer. */
-#define arraystf_iterator_INIT_FREEABLE   { 0, 0, 0 }
+#define arraystf_iterator_FREE { 0, 0, 0 }
 
 /* function: initfirst_arraystfiterator
  * Initializes an iterator for an <arraystf_t>. */

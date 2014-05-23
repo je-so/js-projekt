@@ -66,9 +66,10 @@ struct typeadapt_gethash_it {
 
 // group: lifetime
 
-/* define: typeadapt_gethash_INIT_FREEABLE
+/* define: typeadapt_gethash_FREE
  * Static initializer. Sets all functions pointers of <typeadapt_gethash_it> to 0. */
-#define typeadapt_gethash_INIT_FREEABLE      typeadapt_gethash_INIT(0,0)
+#define typeadapt_gethash_FREE \
+         typeadapt_gethash_INIT(0,0)
 
 /* define: typeadapt_gethash_INIT
  * Static initializer. Sets all function pointers to the provided values.

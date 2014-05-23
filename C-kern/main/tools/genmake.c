@@ -509,7 +509,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
    assert( result && filename ) ;
    size_t         namelen = 0 ;
    const char *   projectname = 0 ;
-   exthash_t      hashindex   = exthash_INIT_FREEABLE ;
+   exthash_t      hashindex   = exthash_FREE ;
 
    projectname = (strrchr(filename, '/') ? strrchr(filename, '/')+1 : filename) ;
    namelen = strlen(projectname) ;

@@ -80,9 +80,9 @@ iobj_DECLARE(pagecache_t, pagecache) ;
 
 // group: lifetime
 
-/* define: pagecache_INIT_FREEABLE
- * Static initializer. See <iobj_INIT_FREEABLE>. */
-#define pagecache_INIT_FREEABLE           iobj_INIT_FREEABLE
+/* define: pagecache_FREE
+ * Static initializer. See <iobj_FREE>. */
+#define pagecache_FREE iobj_FREE
 
 /* define: pagecache_INIT
  * Static initializer. See <iobj_INIT>. */
@@ -135,8 +135,8 @@ struct pagecache_it {
    /* function: releasepage
     * Releases a single memory page. It is kept in the cache and only returned to
     * the operating system if a big chunk of memory is not in use.
-    * After return page is set to <memblock_INIT_FREEABLE>. Calling this function with
-    * page set to <memblock_INIT_FREEABLE> does nothing. */
+    * After return page is set to <memblock_FREE>. Calling this function with
+    * page set to <memblock_FREE> does nothing. */
    int    (*releasepage)   (pagecache_t * pgcache, struct memblock_t * page) ;
    /* function: sizeallocated
     * Returns the sum of the size of all allocated pages. */
@@ -152,8 +152,8 @@ struct pagecache_it {
     * Frees static memory.
     * If this function is not called in the reverse order of the call sequence of <allocstatic_pagecacheimpl>
     * the value EINVAL is returned and nothing is done.
-    * After return memblock is set to <memblock_INIT_FREEABLE>.
-    * Calling this function with memblock set to <memblock_INIT_FREEABLE> does nothing. */
+    * After return memblock is set to <memblock_FREE>.
+    * Calling this function with memblock set to <memblock_FREE> does nothing. */
    int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;
    /* function: sizestatic
     * Size of memory allocated with <allocstatic>. */
@@ -165,9 +165,9 @@ struct pagecache_it {
 
 // group: lifetime
 
-/* define: pagecache_it_INIT_FREEABLE
+/* define: pagecache_it_FREE
  * Static initializer. */
-#define pagecache_it_INIT_FREEABLE  \
+#define pagecache_it_FREE  \
          { 0, 0, 0, 0, 0, 0, 0 }
 
 /* define: pagecache_it_INIT

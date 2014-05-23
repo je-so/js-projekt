@@ -241,7 +241,7 @@ struct textdb_t
    size_t          line_number ;
 } ;
 
-#define textdb_INIT_FREEABLE  { mmfile_INIT_FREEABLE, 0, 0, 0, 0, 0 }
+#define textdb_FREE { mmfile_FREE, 0, 0, 0, 0, 0 }
 
 static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_len, /*out*/size_t * number_of_cols)
 {
@@ -502,7 +502,7 @@ ONABORT:
 static int init_textdb(/*out*/textdb_t * result, const char * filename)
 {
    int err ;
-   textdb_t txtdb = textdb_INIT_FREEABLE ;
+   textdb_t txtdb = textdb_FREE ;
 
    txtdb.filename = strdup(filename) ;
    if (!txtdb.filename) {
@@ -1305,7 +1305,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    select_parameter_t   * select_param = 0 ;
    select_parameter_t     * from_param = 0 ;
    expression_t           * where_expr = 0 ;
-   textdb_t                    dbfile = textdb_INIT_FREEABLE ;
+   textdb_t                    dbfile = textdb_FREE ;
    bool                     ascending = true ;  // default ascending order
    char    * filename = 0 ;
    char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1 ;
@@ -1531,7 +1531,7 @@ ONABORT:
 static int main_thread(maincontext_t * maincontext)
 {
    int err ;
-   mmfile_t input_file = mmfile_INIT_FREEABLE ;
+   mmfile_t input_file = mmfile_FREE ;
    int      exclflag   = O_EXCL ;
 
    err = process_arguments(maincontext->argc, maincontext->argv) ;

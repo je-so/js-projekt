@@ -78,11 +78,13 @@ struct typeadapt_member_t {
 
 /* define: typeadapt_member_INIT
  * Static initializer. */
-#define typeadapt_member_INIT(typeadp, nodeoffset)    { typeadp, typeadapt_nodeoffset_INIT(nodeoffset) }
+#define typeadapt_member_INIT(typeadp, nodeoffset) \
+         { typeadp, typeadapt_nodeoffset_INIT(nodeoffset) }
 
-/* define: typeadapt_member_INIT_FREEABLE
+/* define: typeadapt_member_FREE
  * Static initializer. */
-#define typeadapt_member_INIT_FREEABLE                typeadapt_member_INIT(0, 0)
+#define typeadapt_member_FREE \
+         typeadapt_member_INIT(0, 0)
 
 // group: query
 
@@ -152,40 +154,40 @@ struct typeadapt_t {
 
 // group: lifetime
 
-/* define: typeadapt_INIT_FREEABLE
+/* define: typeadapt_FREE
  * Static initializer. */
-#define typeadapt_INIT_FREEABLE \
-   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT_FREEABLE }
+#define typeadapt_FREE \
+   { typeadapt_comparator_FREE, typeadapt_gethash_FREE, typeadapt_getkey_FREE, typeadapt_lifetime_FREE }
 
 /* define: typeadapt_INIT_LIFETIME
  * Static initializer. Uses <typeadapt_lifetime_INIT> to init interface <typeadapt_t.lifetime>. */
 #define typeadapt_INIT_LIFETIME(newcopyobj_f, deleteobj_f) \
-   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+   { typeadapt_comparator_FREE, typeadapt_gethash_FREE, typeadapt_getkey_FREE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 /* define: typeadapt_INIT_CMP
  * Static initializer. Uses <typeadapt_comparator_INIT> to init interface <typeadapt_t.comparator>. */
 #define typeadapt_INIT_CMP(cmpkeyobj_f, cmpobj_f) \
-   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT_FREEABLE }
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_FREE, typeadapt_getkey_FREE, typeadapt_lifetime_FREE }
 
 /* define: typeadapt_INIT_LIFECMP
  * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.comparator> service interfaces. */
 #define typeadapt_INIT_LIFECMP(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f) \
-   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_FREE, typeadapt_getkey_FREE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 /* define: typeadapt_INIT_LIFEKEY
  * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.getkey> service interfaces. */
 #define typeadapt_INIT_LIFEKEY(newcopyobj_f, deleteobj_f, getbinarykey_f) \
-   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+   { typeadapt_comparator_FREE, typeadapt_gethash_FREE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 /* define: typeadapt_INIT_LIFECMPKEY
  * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, and <typeadapt_t.getkey> service interfaces. */
 #define typeadapt_INIT_LIFECMPKEY(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, getbinarykey_f) \
-   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_FREE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 /* define: typeadapt_INIT_LIFECMPHASH
  * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, and <typeadapt_t.gethash> service interfaces. */
 #define typeadapt_INIT_LIFECMPHASH(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, hashobject_f, hashkey_f) \
-   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT(hashobject_f, hashkey_f), typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT(hashobject_f, hashkey_f), typeadapt_getkey_FREE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 /* define: typeadapt_INIT_LIFECMPHASHKEY
  * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, <typeadapt_t.gethash>, and <typeadapt_t.getkey> service interfaces. */

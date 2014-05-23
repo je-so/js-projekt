@@ -44,7 +44,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_pixelbuffer_errtimer
  * Allows to introduce artificial errors. */
-static test_errortimer_t   s_pixelbuffer_errtimer = test_errortimer_INIT_FREEABLE;
+static test_errortimer_t   s_pixelbuffer_errtimer = test_errortimer_FREE;
 #endif
 
 // group: lifetime
@@ -108,8 +108,8 @@ ONABORT:
 
 static int test_initfree(display_t * disp)
 {
-   gconfig_t      gconf = gconfig_INIT_FREEABLE;
-   pixelbuffer_t  pbuf  = pixelbuffer_INIT_FREEABLE;
+   gconfig_t      gconf = gconfig_FREE;
+   pixelbuffer_t  pbuf  = pixelbuffer_FREE;
    int32_t        confattr[] = {
                      gconfig_TYPE, gconfig_value_TYPE_PBUFFER_BIT, gconfig_NONE
                   };
@@ -123,7 +123,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == configid_gconfig(&gconf, disp, &configid));
    TEST(0 == maxpbuffer_gconfig(&gconf, disp, &maxwidth, &maxheight, &maxpixels));
 
-   // TEST pixelbuffer_INIT_FREEABLE
+   // TEST pixelbuffer_FREE
    TEST(1 == isfree_surface(&pbuf));
 
    for (uint32_t width = 16; width <= maxwidth; width *= 2) {
@@ -179,7 +179,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   pixelbuffer_t pbuf = pixelbuffer_INIT_FREEABLE;
+   pixelbuffer_t pbuf = pixelbuffer_FREE;
 
    // TEST gl_pixelbuffer
    for (uintptr_t i = 1; i; i <<= 1) {
@@ -196,9 +196,9 @@ ONABORT:
 
 static int test_draw(display_t * disp)
 {
-   gconfig_t      gconf = gconfig_INIT_FREEABLE;
-   gcontext_t     gcont = gcontext_INIT_FREEABLE;
-   pixelbuffer_t  pbuf  = pixelbuffer_INIT_FREEABLE;
+   gconfig_t      gconf = gconfig_FREE;
+   gcontext_t     gcont = gcontext_FREE;
+   pixelbuffer_t  pbuf  = pixelbuffer_FREE;
    int32_t        confattr[] = {
                      gconfig_TYPE, gconfig_value_TYPE_PBUFFER_BIT, gconfig_BITS_BUFFER, 32, gconfig_NONE
                   };
@@ -239,8 +239,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   display_t         disp  = display_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   display_t         disp  = display_FREE;
 
    // prepare
    TEST(0 == initdefault_display(&disp));

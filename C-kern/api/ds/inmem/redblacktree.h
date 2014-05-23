@@ -73,9 +73,9 @@ struct redblacktree_iterator_t {
 
 // group: lifetime
 
-/* define: redblacktree_iterator_INIT_FREEABLE
+/* define: redblacktree_iterator_FREE
  * Static initializer. */
-#define redblacktree_iterator_INIT_FREEABLE     { 0 }
+#define redblacktree_iterator_FREE { 0 }
 
 /* function: initfirst_redblacktreeiterator
  * Initializes an iterator for <redblacktree_t>. */
@@ -160,9 +160,10 @@ struct redblacktree_t {
 
 // group: lifetime
 
-/* define: redblacktree_INIT_FREEABLE
+/* define: redblacktree_FREE
  * Static initializer. Makes calling <free_redblacktree> safe. */
-#define redblacktree_INIT_FREEABLE                 redblacktree_INIT(0, typeadapt_member_INIT_FREEABLE)
+#define redblacktree_FREE \
+         redblacktree_INIT(0, typeadapt_member_FREE)
 
 /* define: redblacktree_INIT
  * Static initializer. You can use <redblacktree_INIT> with the returned values prvided by <getinistate_redblacktree>.

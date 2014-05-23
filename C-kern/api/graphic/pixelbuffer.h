@@ -66,10 +66,10 @@ struct pixelbuffer_t {
 
 // group: lifetime
 
-/* define: pixelbuffer_INIT_FREEABLE
+/* define: pixelbuffer_FREE
  * Static initializer. */
-#define pixelbuffer_INIT_FREEABLE \
-         surface_INIT_FREEABLE
+#define pixelbuffer_FREE \
+         surface_FREE
 
 /* function: init_pixelbuffer
  * Creates a new native OpenGL off-screen pixel buffer.

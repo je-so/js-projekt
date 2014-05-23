@@ -1297,7 +1297,7 @@ ONABORT:
 
 static int test_speed(void)
 {
-   systimer_t  timer = systimer_INIT_FREEABLE ;
+   systimer_t  timer = systimer_FREE ;
    uint64_t    microsec ;
    uint64_t    result[2]  = { UINT64_MAX, UINT64_MAX } ;
    union {

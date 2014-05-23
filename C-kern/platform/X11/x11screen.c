@@ -69,9 +69,9 @@ bool isequal_x11screen(const x11screen_t * lx11screen, const x11screen_t * rx11s
 
 static int test_initfree(x11display_t * x11disp)
 {
-   x11screen_t x11screen = x11screen_INIT_FREEABLE ;
+   x11screen_t x11screen = x11screen_FREE ;
 
-   // TEST x11screen_INIT_FREEABLE
+   // TEST x11screen_FREE
    TEST(0 == x11screen.display) ;
    TEST(0 == x11screen.nrscreen) ;
 
@@ -91,8 +91,8 @@ ONABORT:
 
 static int test_query(void)
 {
-   x11screen_t lx11screen = x11screen_INIT_FREEABLE ;
-   x11screen_t rx11screen = x11screen_INIT_FREEABLE ;
+   x11screen_t lx11screen = x11screen_FREE ;
+   x11screen_t rx11screen = x11screen_FREE ;
 
    // TEST display_x11screen
    for (uintptr_t i = 0; i < 15; ++i) {
@@ -125,8 +125,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
-   x11display_t      x11disp = x11display_INIT_FREEABLE ;
+   resourceusage_t   usage   = resourceusage_FREE ;
+   x11display_t      x11disp = x11display_FREE ;
 
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
 

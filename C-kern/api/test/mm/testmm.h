@@ -84,9 +84,9 @@ int switchoff_testmm(void) ;
 
 // group: lifetime
 
-/* define: testmm_INIT_FREEABLE
+/* define: testmm_FREE
  * Static initializer. */
-#define testmm_INIT_FREEABLE              { 0, 0 }
+#define testmm_FREE { 0, 0 }
 
 /* function: init_testmm
  * Initializes a new test memory manager. */

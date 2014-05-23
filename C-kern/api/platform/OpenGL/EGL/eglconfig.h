@@ -63,9 +63,9 @@ typedef struct opengl_config_t * eglconfig_t;
 
 // group: lifetime
 
-/* define: eglconfig_INIT_FREEABLE
+/* define: eglconfig_FREE
  * Static initializer. */
-#define eglconfig_INIT_FREEABLE  0
+#define eglconfig_FREE 0
 
 /* function: init_eglconfig
  * Returns a configuration which matches the given attributes.
@@ -132,6 +132,6 @@ int maxpbuffer_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp,
 /* define: free_eglconfig
  * Implements <eglconfig_t.free_eglconfig>. */
 #define free_eglconfig(eglconf) \
-         (*(eglconf) = eglconfig_INIT_FREEABLE, 0)
+         (*(eglconf) = eglconfig_FREE, 0)
 
 #endif

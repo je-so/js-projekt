@@ -49,7 +49,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_processcontext_errtimer
  * Simulates an error in <init_processcontext>. */
-static test_errortimer_t   s_processcontext_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_processcontext_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper

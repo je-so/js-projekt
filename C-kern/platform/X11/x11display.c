@@ -225,7 +225,7 @@ ONABORT:
 static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
 {
    int  err ;
-   x11display_t   newdisp = x11display_INIT_FREEABLE;
+   x11display_t   newdisp = x11display_FREE;
    memblock_t     mblock;
 
    if (!display_server_name) {
@@ -425,11 +425,11 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   x11display_t  x11disp  = x11display_INIT_FREEABLE ;
-   x11display_t  x11disp4 = x11display_INIT_FREEABLE ;
+   x11display_t  x11disp  = x11display_FREE ;
+   x11display_t  x11disp4 = x11display_FREE ;
    pid_t         child    = 1 ;
 
-   // TEST x11display_INIT_FREEABLE
+   // TEST x11display_FREE
    TEST(x11disp.idmap       == 0) ;
    TEST(x11disp.sys_display == 0) ;
    TEST(x11disp.atoms.WM_PROTOCOLS       == 0) ;
@@ -511,7 +511,7 @@ ONABORT:
 static int childprocess_environment(void * dummy)
 {
    (void) dummy;
-   x11display_t   x11disp = x11display_INIT_FREEABLE;
+   x11display_t   x11disp = x11display_FREE;
 
    // TEST init_x11display: ECONNREFUSED
    TEST(ECONNREFUSED == init_x11display(&x11disp, ":9999.0")) ;
@@ -538,7 +538,7 @@ ONABORT:
 
 static int test_initfree_env(void)
 {
-   process_t         child = process_INIT_FREEABLE;
+   process_t         child = process_FREE;
    process_result_t  result;
 
    TEST(0 == init_process(&child, &childprocess_environment, 0, &(process_stdio_t)process_stdio_INIT_INHERIT));
@@ -637,7 +637,7 @@ ONABORT:
 
 static int test_extensions(x11display_t * x11disp)
 {
-   x11display_t x11disp_noext = x11display_INIT_FREEABLE;
+   x11display_t x11disp_noext = x11display_FREE;
 
    // prepare
    TEST(0 == init2_x11display(&x11disp_noext, ":0", false));
@@ -737,9 +737,9 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   x11display_t      x11disp1 = x11display_INIT_FREEABLE ;
-   x11display_t      x11disp2 = x11display_INIT_FREEABLE ;
-   resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
+   x11display_t      x11disp1 = x11display_FREE ;
+   x11display_t      x11disp2 = x11display_FREE ;
+   resourceusage_t   usage    = resourceusage_FREE ;
 
    // XQueryExtension keeps file descriptors and memory
    // without it no resource leak !

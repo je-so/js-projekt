@@ -82,9 +82,9 @@ static size_t impl_hashkey_typeadapt(struct typeadapt_t * typeadp, const void * 
 
 static int test_initfree(void)
 {
-   typeadapt_gethash_it gethash = typeadapt_gethash_INIT_FREEABLE ;
+   typeadapt_gethash_it gethash = typeadapt_gethash_FREE ;
 
-   // TEST typeadapt_gethash_INIT_FREEABLE
+   // TEST typeadapt_gethash_FREE
    TEST(0 == gethash.hashobject) ;
    TEST(0 == gethash.hashkey) ;
 
@@ -100,9 +100,9 @@ static int test_initfree(void)
    typeadapt_gethash_it gethash2 = typeadapt_gethash_INIT(&impl_hashobject_typeadapt, &impl_hashkey_typeadapt) ;
    TEST(1 == isequal_typeadaptgethash(&gethash, &gethash2)) ;
    TEST(1 == isequal_typeadaptgethash(&gethash2, &gethash)) ;
-   gethash = (typeadapt_gethash_it) typeadapt_gethash_INIT_FREEABLE ;
+   gethash = (typeadapt_gethash_it) typeadapt_gethash_FREE ;
    TEST(0 == isequal_typeadaptgethash(&gethash, &gethash2)) ;
-   gethash2 = (typeadapt_gethash_it) typeadapt_gethash_INIT_FREEABLE ;
+   gethash2 = (typeadapt_gethash_it) typeadapt_gethash_FREE ;
    TEST(1 == isequal_typeadaptgethash(&gethash, &gethash2)) ;
    for (unsigned i = 0; i < sizeof(typeadapt_gethash_it)/sizeof(void*); ++i) {
       ((void**)&gethash)[i] = (void*)1 ;

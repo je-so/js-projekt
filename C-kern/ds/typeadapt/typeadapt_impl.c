@@ -42,7 +42,7 @@
 int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct typeadapt_object_t ** destobject, const struct typeadapt_object_t * srcobject)
 {
    int err ;
-   memblock_t destblock = memblock_INIT_FREEABLE ;
+   memblock_t destblock = memblock_FREE ;
 
    err = RESIZE_MM(typeadp->objectsize, &destblock) ;
    if (err) goto ONABORT ;
@@ -86,7 +86,7 @@ int init_typeadaptimpl(/*out*/typeadapt_impl_t * typeadp, size_t objectsize)
 
 int free_typeadaptimpl(typeadapt_impl_t * typeadp)
 {
-   *typeadp = (typeadapt_impl_t) typeadapt_impl_INIT_FREEABLE ;
+   *typeadp = (typeadapt_impl_t) typeadapt_impl_FREE ;
    return 0 ;
 }
 
@@ -106,11 +106,11 @@ struct testtype_t {
 
 static int test_initfree(void)
 {
-   typeadapt_t      emptytadp = typeadapt_INIT_FREEABLE ;
+   typeadapt_t      emptytadp = typeadapt_FREE ;
    typeadapt_t      initadp   = typeadapt_INIT_LIFETIME((typeof(emptytadp.lifetime.newcopy_object)) &lifetime_newcopyobj_typeadaptimpl, (typeof(emptytadp.lifetime.delete_object)) &lifetime_deleteobj_typeadaptimpl) ;
-   typeadapt_impl_t typeadp   = typeadapt_impl_INIT_FREEABLE ;
+   typeadapt_impl_t typeadp   = typeadapt_impl_FREE ;
 
-   // TEST typeadapt_impl_INIT_FREEABLE
+   // TEST typeadapt_impl_FREE
    TEST(isequal_typeadapt(&emptytadp, genericcast_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
    TEST(0 == typeadp.objectsize) ;
 

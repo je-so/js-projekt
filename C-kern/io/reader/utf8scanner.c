@@ -49,7 +49,7 @@ int init_utf8scanner(/*out*/utf8scanner_t * scan)
 {
    scan->next = 0 ;
    scan->end  = 0 ;
-   scan->scanned_token = (splitstring_t) splitstring_INIT_FREEABLE ;
+   scan->scanned_token = (splitstring_t) splitstring_FREE ;
 
    return 0 ;
 }
@@ -65,7 +65,7 @@ int free_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
       release_filereader(frd) ;
    }
 
-   *scan = (utf8scanner_t) utf8scanner_INIT_FREEABLE ;
+   *scan = (utf8scanner_t) utf8scanner_FREE ;
 
    return 0 ;
 }
@@ -323,14 +323,14 @@ ONABORT:
 
 static int test_initfree(directory_t * tempdir)
 {
-   utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
-   filereader_t   freader = filereader_INIT_FREEABLE ;
+   utf8scanner_t  scan    = utf8scanner_FREE ;
+   filereader_t   freader = filereader_FREE ;
    const size_t   B       = sizebuffer_filereader() ;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "init", 2*B)) ;
 
-   // TEST utf8scanner_INIT_FREEABLE
+   // TEST utf8scanner_FREE
    TEST(0 == scan.next) ;
    TEST(0 == scan.end) ;
    TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
@@ -397,7 +397,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   utf8scanner_t scan = utf8scanner_INIT_FREEABLE ;
+   utf8scanner_t scan = utf8scanner_FREE ;
 
    // TEST isfree_utf8scanner
    TEST(1 == isfree_utf8scanner(&scan)) ;
@@ -456,10 +456,10 @@ ONABORT:
 
 static int test_bufferio(directory_t * tempdir)
 {
-   utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
-   filereader_t   freader = filereader_INIT_FREEABLE ;
+   utf8scanner_t  scan    = utf8scanner_FREE ;
+   filereader_t   freader = filereader_FREE ;
    const size_t   BUFSZ   = 4*sizebuffer_filereader() + 29 ;
-   memblock_t     mem     = memblock_INIT_FREEABLE ;
+   memblock_t     mem     = memblock_FREE ;
 
    // prepare
    TEST(0 == RESIZE_MM(BUFSZ, &mem)) ;
@@ -714,9 +714,9 @@ ONABORT:
 
 static int test_read(directory_t * tempdir)
 {
-   utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
-   memblock_t     mem     = memblock_INIT_FREEABLE ;
-   filereader_t   freader = filereader_INIT_FREEABLE ;
+   utf8scanner_t  scan    = utf8scanner_FREE ;
+   memblock_t     mem     = memblock_FREE ;
+   filereader_t   freader = filereader_FREE ;
    const size_t   BUFSZ   = 3*sizebuffer_filereader() + 123 ;
    char32_t       uchar ;
 

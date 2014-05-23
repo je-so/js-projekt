@@ -105,13 +105,13 @@ struct rwlock_t {
 
 // group: lifetime
 
-/* define: rwlock_INIT_FREEABLE
+/* define: rwlock_FREE
  * Static initializer. */
-#define rwlock_INIT_FREEABLE              { { 0 } , { 0 }, 0, 0, 0 }
+#define rwlock_FREE { { 0 } , { 0 }, 0, 0, 0 }
 
 /* define: rwlock_INIT
  * Static initializer. */
-#define rwlock_INIT                       { { 0 } , { 0 }, 0, 0, 0 }
+#define rwlock_INIT { { 0 } , { 0 }, 0, 0, 0 }
 
 /* function: init_rwlock
  * Initializes data members. The same as assigning <rwlock_INIT>. */

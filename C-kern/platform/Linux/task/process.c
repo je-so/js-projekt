@@ -63,21 +63,21 @@ struct process_stdfd2_t {
 
 // group: lifetime
 
-#define process_stdfd2_INIT_FREEABLE      { process_stdio_INIT_DEVNULL, iochannel_INIT_FREEABLE }
+#define process_stdfd2_FREE { process_stdio_INIT_DEVNULL, iochannel_FREE }
 
 /* function: init_processstdio2
  * Initializes <process_stdfd2_t> with <process_stdio_t> and opens devnull.
  * The device null is only opened if stdfd is 0 or at least one file descriptor
- * is set to <iochannel_INIT_FREEABLE>. */
+ * is set to <iochannel_FREE>. */
 static int init_processstdio2(/*out*/process_stdfd2_t * stdfd2, process_stdio_t * stdfd)
 {
    int err ;
    int devnull = -1 ;
 
    if (  !stdfd
-      || iochannel_INIT_FREEABLE == stdfd->std_in
-      || iochannel_INIT_FREEABLE == stdfd->std_out
-      || iochannel_INIT_FREEABLE == stdfd->std_err ) {
+      || iochannel_FREE == stdfd->std_in
+      || iochannel_FREE == stdfd->std_out
+      || iochannel_FREE == stdfd->std_err ) {
       devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
       if (-1 == devnull) {
          err = errno ;
@@ -123,7 +123,7 @@ ONABORT:
  * stdfd           - The file descriptor of the standard io channel.
  *                   Set this value to one of STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
  * redirectto_file - The file descriptor of the file which now becomes the new standard io channel.
- *                   Use value <iochannel_INIT_FREEABLE> to redirect to devnull.
+ *                   Use value <iochannel_FREE> to redirect to devnull.
  *                   Use same value as stdfd if the standard channel should be
  *                   inherited between processes.
  * */
@@ -133,7 +133,7 @@ static int redirectstdfd_processstdio2(const process_stdfd2_t * stdfd2, int stdf
    int fd = redirectto_file ;
 
    if (stdfd != fd) {
-      if (iochannel_INIT_FREEABLE == fd) {
+      if (iochannel_FREE == fd) {
          fd = stdfd2->devnull ;
       }
       while (-1 == dup2(fd, stdfd)) {
@@ -275,7 +275,7 @@ static int childprocess_exec(childprocess_exec_t  * execparam)
 int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_stdio_t * stdfd/*0 => /dev/null*/)
 {
    int err ;
-   process_t            childprocess = process_INIT_FREEABLE ;
+   process_t            childprocess = process_FREE ;
    int                  pipefd[2]    = { -1, -1 } ;
    childprocess_exec_t  execparam    = { filename, (char**)(uintptr_t)arguments, -1 } ;
 
@@ -360,7 +360,7 @@ ONABORT:
 static int preparechild_process(process_stdio_t * stdfd/*0 => /dev/null*/)
 {
    int err ;
-   process_stdfd2_t stdfd2 = process_stdfd2_INIT_FREEABLE ;
+   process_stdfd2_t stdfd2 = process_stdfd2_FREE ;
 
    // TODO: MULTITHREAD: system handler for freeing thread resources (i.e. clear log, ...) ?!?
 
@@ -411,11 +411,11 @@ int free_process(process_t * process)
    int err ;
    pid_t pid = *process ;
 
-   static_assert(0 == sys_process_INIT_FREEABLE, "0 is no valid process id") ;
+   static_assert(0 == sys_process_FREE, "0 is no valid process id") ;
 
    if (pid) {
 
-      *process = sys_process_INIT_FREEABLE ;
+      *process = sys_process_FREE ;
 
       kill(pid, SIGKILL) ;
 
@@ -609,9 +609,9 @@ static int test_redirect(void)
    TEST(-1 == stdfd.std_in) ;
    TEST(-1 == stdfd.std_out) ;
    TEST(-1 == stdfd.std_err) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd.std_in) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd.std_out) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd.std_err) ;
+   TEST(iochannel_FREE == stdfd.std_in) ;
+   TEST(iochannel_FREE == stdfd.std_out) ;
+   TEST(iochannel_FREE == stdfd.std_err) ;
 
    // TEST static init: process_stdio_INIT_INHERIT
    stdfd = (process_stdio_t) process_stdio_INIT_INHERIT ;
@@ -628,17 +628,17 @@ static int test_redirect(void)
    // TEST redirectin_processstdio, redirectout_processstdio, redirecterr_processstdio
    for (int i = 0; i < 100; ++i) {
       stdfd = (process_stdio_t) process_stdio_INIT_DEVNULL ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_in) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_out) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_err) ;
+      TEST(iochannel_FREE == stdfd.std_in) ;
+      TEST(iochannel_FREE == stdfd.std_out) ;
+      TEST(iochannel_FREE == stdfd.std_err) ;
       redirectin_processstdio(&stdfd, i) ;
       TEST(i == stdfd.std_in) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_out) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_err) ;
+      TEST(iochannel_FREE == stdfd.std_out) ;
+      TEST(iochannel_FREE == stdfd.std_err) ;
       redirectout_processstdio(&stdfd, i+1) ;
       TEST(i == stdfd.std_in) ;
       TEST(i == stdfd.std_out-1) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd.std_err) ;
+      TEST(iochannel_FREE == stdfd.std_err) ;
       redirecterr_processstdio(&stdfd, i+2) ;
       TEST(i == stdfd.std_in) ;
       TEST(i == stdfd.std_out-1) ;
@@ -652,7 +652,7 @@ ONABORT:
 
 static int test_redirect2(void)
 {
-   process_stdfd2_t  stdfd2      = process_stdfd2_INIT_FREEABLE ;
+   process_stdfd2_t  stdfd2      = process_stdfd2_FREE ;
    int               oldstdfd[3] = { [STDIN_FILENO] = -1, [STDOUT_FILENO] = -1, [STDERR_FILENO] = -1 } ;
    int               pipefd1[2]  = { -1, -1 } ;
    int               pipefd2[2]  = { -1, -1 } ;
@@ -660,25 +660,25 @@ static int test_redirect2(void)
    process_stdio_t   stdfd ;
 
    // TEST static init
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_in) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_out) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_err) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_in) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_out) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_err) ;
+   TEST(iochannel_FREE == stdfd2.devnull) ;
 
    // TEST init_processstdio2: stdfd== 0
    MEMSET0(&stdfd2) ;
-   stdfd2.devnull = iochannel_INIT_FREEABLE ;
+   stdfd2.devnull = iochannel_FREE ;
    TEST(0 == init_processstdio2(&stdfd2, 0)) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_in) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_out) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_err) ;
-   TEST(iochannel_INIT_FREEABLE != stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_in) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_out) ;
+   TEST(iochannel_FREE == stdfd2.stdfd.std_err) ;
+   TEST(iochannel_FREE != stdfd2.devnull) ;
 
    // TEST free_processstdio2
    TEST(0 == free_processstdio2(&stdfd2)) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.devnull) ;
    TEST(0 == free_processstdio2(&stdfd2)) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.devnull) ;
 
    // TEST init_processstdio2: process_stdio_INIT_INHERIT
    stdfd = (process_stdio_t) process_stdio_INIT_INHERIT ;
@@ -687,40 +687,40 @@ static int test_redirect2(void)
    TEST(iochannel_STDIN  == stdfd2.stdfd.std_in) ;
    TEST(iochannel_STDOUT == stdfd2.stdfd.std_out) ;
    TEST(iochannel_STDERR == stdfd2.stdfd.std_err) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.devnull) ;
    TEST(0 == free_processstdio2(&stdfd2)) ;
-   TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+   TEST(iochannel_FREE == stdfd2.devnull) ;
 
    // TEST init_processstdio2: one fd is set to devnull
    for (int i = 0; i < 3; ++i) {
       stdfd = (process_stdio_t) process_stdio_INIT_INHERIT ;
-      stdfd2.devnull = iochannel_INIT_FREEABLE ;
+      stdfd2.devnull = iochannel_FREE ;
       switch(i) { // set one std fd to devnull
-      case 0:  redirectin_processstdio(&stdfd, iochannel_INIT_FREEABLE) ; break ;
-      case 1:  redirectout_processstdio(&stdfd, iochannel_INIT_FREEABLE) ; break ;
-      case 2:  redirecterr_processstdio(&stdfd, iochannel_INIT_FREEABLE) ; break ;
+      case 0:  redirectin_processstdio(&stdfd, iochannel_FREE) ; break ;
+      case 1:  redirectout_processstdio(&stdfd, iochannel_FREE) ; break ;
+      case 2:  redirecterr_processstdio(&stdfd, iochannel_FREE) ; break ;
       }
       TEST(0 == init_processstdio2(&stdfd2, &stdfd)) ;
       if (i == 0) {
-         TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_in) ;
+         TEST(iochannel_FREE == stdfd2.stdfd.std_in) ;
       } else {
          TEST(iochannel_STDIN == stdfd2.stdfd.std_in) ;
       }
       if (i == 1) {
-         TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_out) ;
+         TEST(iochannel_FREE == stdfd2.stdfd.std_out) ;
       } else {
          TEST(iochannel_STDOUT == stdfd2.stdfd.std_out) ;
       }
       if (i == 2) {
-         TEST(iochannel_INIT_FREEABLE == stdfd2.stdfd.std_err) ;
+         TEST(iochannel_FREE == stdfd2.stdfd.std_err) ;
       } else {
          TEST(iochannel_STDERR == stdfd2.stdfd.std_err) ;
       }
-      TEST(iochannel_INIT_FREEABLE != stdfd2.devnull) ;
+      TEST(iochannel_FREE != stdfd2.devnull) ;
       TEST(0 == free_processstdio2(&stdfd2)) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+      TEST(iochannel_FREE == stdfd2.devnull) ;
       TEST(0 == free_processstdio2(&stdfd2)) ;
-      TEST(iochannel_INIT_FREEABLE == stdfd2.devnull) ;
+      TEST(iochannel_FREE == stdfd2.devnull) ;
    }
 
    // store old stdio
@@ -740,7 +740,7 @@ static int test_redirect2(void)
    TEST(stdfd2.stdfd.std_in  == pipefd1[0]) ;
    TEST(stdfd2.stdfd.std_out == pipefd1[1]) ;
    TEST(stdfd2.stdfd.std_err == pipefd2[1]) ;
-   TEST(stdfd2.devnull       == iochannel_INIT_FREEABLE) ;
+   TEST(stdfd2.devnull       == iochannel_FREE) ;
    TEST(0 == redirectstdio_processstdio2(&stdfd2)) ;
    TEST(1 == write(iochannel_STDOUT, "1", 1)) ;
    TEST(1 == write(iochannel_STDERR, "2", 1)) ;
@@ -755,7 +755,7 @@ static int test_redirect2(void)
    TEST(stdfd2.stdfd.std_in  == pipefd1[0]) ;
    TEST(stdfd2.stdfd.std_out == pipefd1[1]) ;
    TEST(stdfd2.stdfd.std_err == pipefd2[1]) ;
-   TEST(stdfd2.devnull       == iochannel_INIT_FREEABLE) ;
+   TEST(stdfd2.devnull       == iochannel_FREE) ;
 
    // TEST redirectstdio_processstdio2: inherit of closed fds
    stdfd = (process_stdio_t) process_stdio_INIT_INHERIT ;
@@ -796,7 +796,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   process_t         process = process_INIT_FREEABLE ;
+   process_t         process = process_FREE ;
    process_result_t  process_result ;
    process_state_e   process_state ;
    struct timespec   ts              = { 0, 0 } ;
@@ -811,8 +811,8 @@ static int test_initfree(void)
    isoldsignalmask = true ;
 
    // TEST static init
-   TEST(sys_process_INIT_FREEABLE == process) ;
-   TEST(0 == sys_process_INIT_FREEABLE) ;
+   TEST(sys_process_FREE == process) ;
+   TEST(0 == sys_process_FREE) ;
 
    // TEST init_process, free_process
    TEST(0 == initgeneric_process(&process, &childprocess_return, 0, 0)) ;
@@ -927,7 +927,7 @@ ONABORT:
 
 static int test_abnormalexit(void)
 {
-   process_t               process   = process_INIT_FREEABLE ;
+   process_t               process   = process_FREE ;
    process_state_e         process_state ;
    process_result_t        process_result ;
 
@@ -996,7 +996,7 @@ ONABORT:
 
 static int test_assert(void)
 {
-   process_t            process = process_INIT_FREEABLE ;
+   process_t            process = process_FREE ;
    process_result_t     process_result ;
 
    // TEST assert exits with signal SIGABRT
@@ -1033,7 +1033,7 @@ ONABORT:
 
 static int test_statequery(void)
 {
-   process_t               process = process_INIT_FREEABLE ;
+   process_t               process = process_FREE ;
    int                     pipefd[2] = { -1, -1 } ;
    process_state_e         process_state ;
    process_result_t        process_result ;
@@ -1134,7 +1134,7 @@ ONABORT:
 
 static int test_exec(void)
 {
-   process_t            process = process_INIT_FREEABLE ;
+   process_t            process = process_FREE ;
    process_result_t     process_result ;
    process_stdio_t      stdfd   = process_stdio_INIT_DEVNULL ;
    int                  fd[2]   = { -1, -1 } ;
@@ -1249,7 +1249,7 @@ static int daemonprocess_redirect(process_stdio_t * stdfd)
 
 static int test_daemon(void)
 {
-   process_t            process = process_INIT_FREEABLE ;
+   process_t            process = process_FREE ;
    process_result_t     process_result ;
    process_stdio_t      stdfd   = process_stdio_INIT_DEVNULL ;
    int                  fd[2]   = { -1, -1 } ;

@@ -113,7 +113,7 @@ static inline int new_ptrblock(/*out*/ptrblock_t ** ptrblock, pagesize_e pagesiz
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t      s_blockarray_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_blockarray_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -452,9 +452,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   blockarray_t   barray  = blockarray_INIT_FREEABLE ;
+   blockarray_t   barray  = blockarray_FREE ;
 
-   // TEST blockarray_INIT_FREEABLE
+   // TEST blockarray_FREE
    TEST(1 == isfree_blockarray(&barray)) ;
 
    // TEST init_blockarray, free_blockarray: elementsize not power of two
@@ -548,7 +548,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   blockarray_t barray = blockarray_INIT_FREEABLE ;
+   blockarray_t barray = blockarray_FREE ;
 
    // TEST isfree_blockarray
    barray.elements_per_block = 1 ;
@@ -587,7 +587,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   blockarray_t   barray = blockarray_INIT_FREEABLE ;
+   blockarray_t   barray = blockarray_FREE ;
    size_t         oldsize ;
    void *         oldroot ;
 
@@ -774,7 +774,7 @@ ONABORT:
 
 static int test_read(void)
 {
-   blockarray_t   barray = blockarray_INIT_FREEABLE ;
+   blockarray_t   barray = blockarray_FREE ;
    uint16_t       elemsize[]   = { 1, 3, 4, 8, 12, 16, 24, 30, 32, 55 } ;
 
    // TEST at_blockarray
@@ -828,7 +828,7 @@ blockarray_IMPLEMENT(_testarray, test_t)
 
 static int test_generic(void)
 {
-   blockarray_t barray  = blockarray_INIT_FREEABLE ;
+   blockarray_t barray  = blockarray_FREE ;
    size_t       oldsize = sizeallocated_pagecache(pagecache_maincontext()) ;
 
    // TEST init_blockarray

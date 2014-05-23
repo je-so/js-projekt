@@ -42,9 +42,9 @@
  * Tests lifetime functions of <iobj_t>. */
 static int test_initfree(void)
 {
-   iobj_t   iobj = iobj_INIT_FREEABLE ;
+   iobj_t   iobj = iobj_FREE ;
 
-   // TEST iobj_INIT_FREEABLE
+   // TEST iobj_FREE
    TEST(iobj.object == 0) ;
    TEST(iobj.iimpl  == 0) ;
 

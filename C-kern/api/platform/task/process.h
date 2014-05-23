@@ -113,29 +113,29 @@ struct process_stdio_t {
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_stdio_INIT_DEVNULL        { sys_iochannel_INIT_FREEABLE, sys_iochannel_INIT_FREEABLE, sys_iochannel_INIT_FREEABLE }
+#define process_stdio_INIT_DEVNULL { sys_iochannel_FREE, sys_iochannel_FREE, sys_iochannel_FREE }
 
 /* define: process_stdio_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_stdio_INIT_INHERIT        { sys_iochannel_STDIN, sys_iochannel_STDOUT, sys_iochannel_STDERR }
+#define process_stdio_INIT_INHERIT { sys_iochannel_STDIN, sys_iochannel_STDOUT, sys_iochannel_STDERR }
 
 // group: update
 
 /* function: redirectin_processstdio
  * Redirects standard input to given file.
- * Use value <iochannel_INIT_FREEABLE> to redirect standard input to device null.
+ * Use value <iochannel_FREE> to redirect standard input to device null.
  * Use value <iochannel_STDIN> to let child inherit standard error. */
 void redirectin_processstdio(process_stdio_t * stdfd, sys_iochannel_t input_file) ;
 
 /* function: redirectout_processstdio
  * Redirects standard output to given file.
- * Use value <iochannel_INIT_FREEABLE> to redirect standard output to device null.
+ * Use value <iochannel_FREE> to redirect standard output to device null.
  * Use value <iochannel_STDOUT> to let child inherit standard error. */
 void redirectout_processstdio(process_stdio_t * stdfd, sys_iochannel_t output_file) ;
 
 /* function: redirecterr_processstdio
  * Redirects standard error output to given file.
- * Use value <iochannel_INIT_FREEABLE> to redirect standard error to device null.
+ * Use value <iochannel_FREE> to redirect standard error to device null.
  * Use value <iochannel_STDERR> to let child inherit standard error. */
 void redirecterr_processstdio(process_stdio_t * stdfd, sys_iochannel_t error_file) ;
 
@@ -146,9 +146,9 @@ typedef sys_process_t                     process_t ;
 
 // group: lifetime
 
-/* define: process_INIT_FREEABLE
+/* define: process_FREE
  * Static initializer. */
-#define process_INIT_FREEABLE             sys_process_INIT_FREEABLE
+#define process_FREE sys_process_FREE
 
 /* function: init_process
  * Creates child process which executes a function.

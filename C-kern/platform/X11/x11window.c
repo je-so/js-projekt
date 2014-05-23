@@ -696,7 +696,7 @@ int configfilter_x11window(/*out*/gconfig_filter_t * filter, const int32_t confi
 
 #ifdef KONFIG_UNITTEST
 
-#define WINDOW_TITLE    "test üöä title"
+#define WINDOW_TITLE "test üöä title"
 
 typedef struct testwindow_t         testwindow_t ;
 
@@ -712,7 +712,7 @@ struct testwindow_t {
    uint32_t height;
 } ;
 
-#define testwindow_INIT_FREEABLE    { x11window_INIT_FREEABLE, 0, 0, 0, 0, 0, 0, 0, 0 }
+#define testwindow_FREE { x11window_FREE, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 x11window_evh_DECLARE(testwindow_evh_t, testwindow_t) ;
 
@@ -746,7 +746,7 @@ static void onvisible_testwindow(testwindow_t * testwin, bool isVisible)
 
 static int test_interface(void)
 {
-   testwindow_t      testwin = testwindow_INIT_FREEABLE ;
+   testwindow_t      testwin = testwindow_FREE ;
    testwindow_evh_t  evhimpl = x11window_evh_INIT(_testwindow) ;
 
    // TEST x11window_evh_DECLARE
@@ -823,16 +823,16 @@ ONABORT:
 
 static int test_initfree(x11display_t * x11disp)
 {
-   testwindow_t      testwin = testwindow_INIT_FREEABLE ;
+   testwindow_t      testwin = testwindow_FREE ;
    testwindow_evh_t  evhimpl = x11window_evh_INIT(_testwindow);
    x11window_t *     x11win  = &testwin.x11win ;
    uint32_t          snr     = defaultscreennr_x11display(x11disp);
    uint32_t          syswin ;
    x11window_t  *    object ;
 
-   static_assert(x11window_state_DESTROYED == 0, "x11window_INIT_FREEABLE and free_x11window sets x11window_t.state to x11window_state_DESTROYED") ;
+   static_assert(x11window_state_DESTROYED == 0, "x11window_FREE and free_x11window sets x11window_t.state to x11window_state_DESTROYED") ;
 
-   // TEST x11window_INIT_FREEABLE
+   // TEST x11window_FREE
    TEST(x11win->display      == 0) ;
    TEST(x11win->sys_drawable == 0) ;
    TEST(x11win->sys_colormap == 0) ;
@@ -902,8 +902,8 @@ static int test_initfree(x11display_t * x11disp)
    TEST(x11win->flags        == 0) ;
 
    // TEST initmove_x11window
-   x11window_t x11win2 = x11window_INIT_FREEABLE;
-   x11window_t x11win3 = x11window_INIT_FREEABLE;
+   x11window_t x11win2 = x11window_FREE;
+   x11window_t x11win3 = x11window_FREE;
    TEST(0 == init_x11window(&x11win3, x11disp, snr, 0, 0, 0));
    memcpy(&x11win2, &x11win3, sizeof(x11win2));
    TEST(0 == initmove_x11window(x11win, &x11win3));
@@ -985,7 +985,7 @@ static int test_query(x11display_t * x11disp, testwindow_t * testwin, testwindow
    x11window_t *  x11win2 = &testwin_noframe->x11win ;
    uint32_t       snr     = defaultscreennr_x11display(x11disp);
    cstring_t      title   = cstring_INIT ;
-   x11window_t    dummy   = x11window_INIT_FREEABLE ;
+   x11window_t    dummy   = x11window_FREE ;
    VisualID       visualid ;
 
    // TEST matchvisual_x11window
@@ -1289,7 +1289,7 @@ ONABORT:
 static int test_config(x11display_t * x11disp)
 {
    cstring_t   title  = cstring_INIT ;
-   x11window_t x11win = x11window_INIT_FREEABLE ;
+   x11window_t x11win = x11window_FREE ;
    uint32_t    snr    = defaultscreennr_x11display(x11disp);
    XWindowAttributes winattr ;
 
@@ -1517,7 +1517,7 @@ static int test_configfilter(x11display_t * x11disp)
    int            vinfo_length;
    XVisualInfo    vinfo_pattern;
    XVisualInfo *  vinfo    = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
-   gconfig_filter_t filter = gconfig_filter_INIT_FREEABLE;
+   gconfig_filter_t filter = gconfig_filter_FREE;
    int            config_attributes[2*gconfig_NROFELEMENTS+2];
 
    // TEST configfilter_x11window: E2BIG
@@ -1570,10 +1570,10 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   x11display_t      x11disp   = x11display_INIT_FREEABLE ;
+   x11display_t      x11disp   = x11display_FREE ;
    uint32_t          snr       = 0;
-   testwindow_t      x11win    = testwindow_INIT_FREEABLE ;
-   testwindow_t      x11win2   = testwindow_INIT_FREEABLE ;
+   testwindow_t      x11win    = testwindow_FREE ;
+   testwindow_t      x11win2   = testwindow_FREE ;
    testwindow_evh_t  evhimpl   = x11window_evh_INIT(_testwindow) ;
    int32_t           gconf[]   = { gconfig_BITS_RED, 8, gconfig_NONE };
    windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
@@ -1585,7 +1585,7 @@ static int childprocess_unittest(void)
    windowconfig_t    config2[] = {  windowconfig_INIT_SIZE(200, 100),
                                     windowconfig_INIT_NONE
                                  };
-   resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage     = resourceusage_FREE ;
 
    // prepare
    TEST(0 == init_x11display(&x11disp, 0)) ;

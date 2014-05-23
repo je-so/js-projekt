@@ -35,7 +35,7 @@
 #define _THREAD_SAFE
 /* define: _FILE_OFFSET_BITS
  * Makes file api support of files with size of 2GB * 4GB. */
-#define _FILE_OFFSET_BITS  64
+#define _FILE_OFFSET_BITS 64
 /* define: _GNU_SOURCE
  * Makes file api support of files with size of 2GB * 4GB. */
 #define _GNU_SOURCE

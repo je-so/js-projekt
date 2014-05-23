@@ -155,9 +155,9 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), vo
 
 static int test_initfree(void)
 {
-   waitlist_t  wlist = waitlist_INIT_FREEABLE ;
+   waitlist_t  wlist = waitlist_FREE ;
 
-   // TEST waitlist_INIT_FREEABLE
+   // TEST waitlist_FREE
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -187,7 +187,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   waitlist_t  wlist = waitlist_INIT_FREEABLE ;
+   waitlist_t  wlist = waitlist_FREE ;
 
    // prepare
    TEST(0 == init_waitlist(&wlist)) ;
@@ -240,7 +240,7 @@ static int thread_callwakeup(waitlist_t * wlist)
 
 static int test_synchronize(void)
 {
-   waitlist_t  wlist       = waitlist_INIT_FREEABLE ;
+   waitlist_t  wlist       = waitlist_FREE ;
    thread_t *  threads[20] = { 0 } ;
 
    // TEST lockflag_waitlist

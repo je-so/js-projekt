@@ -104,7 +104,7 @@ struct initqueue_entry_t {
 static inline void init_initqueueentry(initqueue_entry_t * initentry, syncrun_f mainfct, void * initarg)
 {
    initentry->thread    = (syncthread_t) syncthread_INIT(mainfct, initarg) ;
-   initentry->exitevent = (syncevent_t) syncevent_INIT_FREEABLE ;
+   initentry->exitevent = (syncevent_t) syncevent_FREE ;
    initentry->initargsize = 0 ;
 }
 
@@ -114,7 +114,7 @@ static inline void init_initqueueentry(initqueue_entry_t * initentry, syncrun_f 
 static inline void init2_initqueueentry(initqueue_entry_t * initentry, syncrun_f mainfct, uint8_t initargsize)
 {
    initentry->thread    = (syncthread_t) syncthread_INIT(mainfct, initentry->initarg) ;
-   initentry->exitevent = (syncevent_t) syncevent_INIT_FREEABLE ;
+   initentry->exitevent = (syncevent_t) syncevent_FREE ;
    initentry->initargsize = initargsize ;
 }
 
@@ -276,7 +276,7 @@ static int clearevents_syncrun(syncrun_t * srun) ;
  * Defines local <test_errortimer_t> used in Unit Test.
  * Only defined if <KONFIG_UNITTEST> is defined. */
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t      s_syncrun_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_syncrun_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -481,7 +481,7 @@ int signalevent_syncrun(syncrun_t * srun, struct syncevent_t * syncevent)
 
    initmove_syncevent(wakeupentry, syncevent) ;
    // remove waiting from syncevent; signal it only once
-   *syncevent = (syncevent_t) syncevent_INIT_FREEABLE ;
+   *syncevent = (syncevent_t) syncevent_FREE ;
 
    return 0 ;
 ONABORT:
@@ -867,7 +867,7 @@ static int clearevents_syncrun(syncrun_t * srun)
       foreach (_queue, entry, genericcast_queue(&srun->queues[qid]), entrysize) {
          waitqueue_entry_t * waitentry = entry ;
 
-         *waitentry->syncwait.event = (syncevent_t) syncevent_INIT_FREEABLE ;
+         *waitentry->syncwait.event = (syncevent_t) syncevent_FREE ;
       }
    }
 
@@ -877,8 +877,8 @@ static int clearevents_syncrun(syncrun_t * srun)
 int runall_syncrun(syncrun_t * srun)
 {
    int err ;
-   syncqueue_t    copyqueue = syncqueue_INIT_FREEABLE ;
-   syncwlist_t    copylist  = syncwlist_INIT_FREEABLE ;
+   syncqueue_t    copyqueue = syncqueue_FREE ;
+   syncwlist_t    copylist  = syncwlist_FREE ;
 
    if (srun->running.thread) {
       err = EINPROGRESS ;
@@ -1015,9 +1015,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   syncrun_t  srun = syncrun_INIT_FREEABLE ;
+   syncrun_t  srun = syncrun_FREE ;
 
-   // TEST syncrun_INIT_FREEABLE
+   // TEST syncrun_FREE
    TEST(1 == isfree_syncrun(&srun)) ;
 
    // TEST init_syncrun, free_syncrun
@@ -1044,7 +1044,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   syncrun_t   srun = syncrun_INIT_FREEABLE ;
+   syncrun_t   srun = syncrun_FREE ;
    syncevent_t event ;
 
    // prepare
@@ -1114,10 +1114,10 @@ static int test_query(void)
       waitqueue_entry_t * entry ;
       wait2queue_entry_t * entry2 ;
       TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &entry))
-      init_waitqueueentry(entry, &srun, &(syncthread_t)syncthread_INIT_FREEABLE) ;
+      init_waitqueueentry(entry, &srun, &(syncthread_t)syncthread_FREE) ;
       TEST(2*i-1 == lenwaitqueue_syncrun(&srun)) ;
       TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT2], &entry2))
-      init_wait2queueentry(entry2, &srun, &(syncthread_t)syncthread_INIT_FREEABLE, &(syncevent_t)syncevent_INIT(&entry->syncwait)) ;
+      init_wait2queueentry(entry2, &srun, &(syncthread_t)syncthread_FREE, &(syncevent_t)syncevent_INIT(&entry->syncwait)) ;
       TEST(2*i   == lenwaitqueue_syncrun(&srun)) ;
    }
 
@@ -1140,10 +1140,10 @@ ONABORT:
 
 static int test_internal(void)
 {
-   syncrun_t      srun         = syncrun_INIT_FREEABLE ;
-   syncevent_t    events[100]  = { syncevent_INIT_FREEABLE } ;
+   syncrun_t      srun         = syncrun_FREE ;
+   syncevent_t    events[100]  = { syncevent_FREE } ;
    syncevent_t *  events2[100] = { 0 } ;
-   syncwlist_t    wlist        = syncwlist_INIT_FREEABLE ;
+   syncwlist_t    wlist        = syncwlist_FREE ;
 
    // TEST setstateabort_syncrun
    memset(&srun, 0, sizeof(srun)) ;
@@ -1182,7 +1182,7 @@ static int test_internal(void)
 
    // TEST setstatewait_syncrun: different arguments
    for (size_t i = 0; i < lengthof(events); ++ i) {
-      events[i] = (syncevent_t) syncevent_INIT_FREEABLE ;
+      events[i] = (syncevent_t) syncevent_FREE ;
       srun.running.state = syncrun_state_CONTINUE ;
       srun.waitinfo.wlist = (void*)1 ;
       setstatewait_syncrun(&srun, &events[i], (void*)i) ; // OK
@@ -1340,7 +1340,7 @@ static int call_exitthread(syncrun_t * srun, int err)
 
 static int test_threadlifetime(void)
 {
-   syncrun_t   srun      = syncrun_INIT_FREEABLE ;
+   syncrun_t   srun      = syncrun_FREE ;
    queue_t *   initqueue = genericcast_queue(&srun.queues[syncrun_qid_INIT]) ;
 
    // TEST startthread_syncrun
@@ -1511,8 +1511,8 @@ ONABORT:
 
 static int test_synchronize(void)
 {
-   syncrun_t      srun  = syncrun_INIT_FREEABLE ;
-   syncevent_t    event = syncevent_INIT_FREEABLE ;
+   syncrun_t      srun  = syncrun_FREE ;
+   syncevent_t    event = syncevent_FREE ;
    syncwlist_t    wlist ;
    void *         continuelabel ;
 
@@ -1633,12 +1633,12 @@ static int test_synchronize(void)
 
    // TEST signalevent_syncrun
    syncqueue_t * wakeup = &srun.queues[syncrun_qid_WAKEUP] ;
-   event = (syncevent_t) syncevent_INIT_FREEABLE ;
+   event = (syncevent_t) syncevent_FREE ;
    TEST(0 == signalevent_syncrun(&srun, &event)) ; // will be ignored
    TEST(1 == isfree_syncrun(&srun)) ;              // has been ignored
    waitqueue_entry_t * waitentry ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &event, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, &event, 0) ;
    TEST(0 == signalevent_syncrun(&srun, &event)) ; // passes
    TEST(0 == iswaiting_syncevent(&event)) ;        // cleared
    TEST(1 == len_syncqueue(wakeup)) ;
@@ -1647,7 +1647,7 @@ static int test_synchronize(void)
    TEST(wakeup == queuefromaddr_syncqueue(waitentry->syncwait.event)) ;
    wait2queue_entry_t * wait2entry ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT2], &wait2entry)) ;
-   init_syncwait(&wait2entry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &event, 0) ;
+   init_syncwait(&wait2entry->syncwait, &(syncthread_t)syncthread_FREE, &event, 0) ;
    TEST(0 == signalevent_syncrun(&srun, &event)) ; // passes
    TEST(0 == iswaiting_syncevent(&event)) ;        // cleared
    TEST(2 == len_syncqueue(wakeup)) ;
@@ -1663,14 +1663,14 @@ static int test_synchronize(void)
 
    // TEST signalevent_syncrun: EINVAL/ENOMEM
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_RUN], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &event, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, &event, 0) ;
    TEST(EINVAL == signalevent_syncrun(&srun, &event)) ;   // wrong queue
    TEST(1 == iswaiting_syncevent(&event))
    TEST(0 == free_syncqueue(&srun.queues[syncrun_qid_RUN])) ;
    init_syncqueue(&srun.queues[syncrun_qid_RUN]) ;
    TEST(1 == isfree_syncrun(&srun)) ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &event, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, &event, 0) ;
    waitentry->syncwait.event = 0 ;                       // clear backpointer
    TEST(EINVAL == signalevent_syncrun(&srun, &event)) ;  // wrong backpointer
    TEST(1 == iswaiting_syncevent(&event))
@@ -1679,7 +1679,7 @@ static int test_synchronize(void)
    TEST(1 == isfree_syncrun(&srun)) ;
    init_testerrortimer(&s_syncrun_errtimer, 1, ENOMEM) ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &event, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, &event, 0) ;
    TEST(ENOMEM == signalevent_syncrun(&srun, &event)) ;  // errtimer !
    TEST(1 == iswaiting_syncevent(&event))
    TEST(0 == free_syncqueue(&srun.queues[syncrun_qid_WAIT])) ;
@@ -1694,7 +1694,7 @@ static int test_synchronize(void)
    // single entry will be transfered
    TEST(0 == insert_syncwlist(&wlist, &srun.queues[syncrun_qid_WLIST], &event2)) ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, event2, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, event2, 0) ;
    TEST(0 == signalfirst_syncrun(&srun, &wlist)) ;
    TEST(event2 == event_syncwait(&waitentry->syncwait)) ;
    TEST(1 == len_syncwlist(&srun.wakeup_list)) ;
@@ -1724,7 +1724,7 @@ static int test_synchronize(void)
    // single entry will be transfered
    TEST(0 == insert_syncwlist(&wlist, &srun.queues[syncrun_qid_WLIST], &event2)) ;
    TEST(0 == insert_syncqueue(&srun.queues[syncrun_qid_WAIT], &waitentry)) ;
-   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, event2, 0) ;
+   init_syncwait(&waitentry->syncwait, &(syncthread_t)syncthread_FREE, event2, 0) ;
    TEST(0 == signalall_syncrun(&srun, &wlist)) ;
    TEST(event2 == event_syncwait(&waitentry->syncwait)) ;
    TEST(1 == len_syncwlist(&srun.wakeup_list)) ;
@@ -1850,7 +1850,7 @@ DOACTION:
  * All state transitions of a thread in every queue are tested. */
 static int test_run(void)
 {
-   syncrun_t         srun = syncrun_INIT_FREEABLE ;
+   syncrun_t         srun = syncrun_FREE ;
    teststateparam_t  params[128] ;
    syncwlist_t       wlist ;
 
@@ -2592,7 +2592,7 @@ void setstateaction(testrun2state_t (*state) [3][100], syncwlist_t * wlist, enum
  * Test correct variable values of a single thread in every posible state. */
 static int test_run2(void)
 {
-   syncrun_t         srun = syncrun_INIT_FREEABLE ;
+   syncrun_t         srun = syncrun_FREE ;
    syncwlist_t       wlist ;
    testrun2state_t   state[3][100] ;
    // state[0][...] are waiters which create a second thread and wait for their exit
@@ -2934,7 +2934,7 @@ ONABORT:
 
 static int test_runwaitchain(void)
 {
-   syncrun_t   srun = syncrun_INIT_FREEABLE ;
+   syncrun_t   srun = syncrun_FREE ;
 
    // prepare
    s_test_srun = &srun ;
@@ -3011,7 +3011,7 @@ ONINIT:
    } else if (param->wlist) {
       waitforlist_syncrun(s_test_srun, param->wlist) ;
    } else {
-      param->event = (syncevent_t) syncevent_INIT_FREEABLE ;
+      param->event = (syncevent_t) syncevent_FREE ;
       waitforevent_syncrun(s_test_srun, &param->event) ;
    }
    return 0 ;
@@ -3024,8 +3024,8 @@ ONABORT:
 
 static int test_abort(void)
 {
-   syncrun_t         srun = syncrun_INIT_FREEABLE ;
-   syncqueue_t       wlistqueue = syncqueue_INIT_FREEABLE ;
+   syncrun_t         srun = syncrun_FREE ;
+   syncqueue_t       wlistqueue = syncqueue_FREE ;
    syncwlist_t       wlist ;
    testabortparam_t  eparams[128] ;
    testabortparam_t  xparams[128] ;

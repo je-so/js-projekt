@@ -42,7 +42,7 @@
 // group: variable
 
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t      s_queuepage_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_queuepage_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -483,9 +483,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   queue_t queue = queue_INIT_FREEABLE ;
+   queue_t queue = queue_FREE ;
 
-   // TEST queue_INIT_FREEABLE
+   // TEST queue_FREE
    TEST(0 == queue.last) ;
 
    // TEST queue_INIT
@@ -540,7 +540,7 @@ static int test_initfree(void)
    for (int i = 0; i < 5; ++i) {
       TEST(0 == addlastpage_queue(&queue)) ;
    }
-   queue_t queue2 = queue_INIT_FREEABLE ;
+   queue_t queue2 = queue_FREE ;
    last = (queue_page_t*)queue.last ;
    TEST(0 != queue.last) ;
    TEST(0 == queue2.last) ;
@@ -648,10 +648,10 @@ static int test_iterator(void)
 {
    queue_t           queue     = queue_INIT ;
    queue_page_t *    qpages[5] = { 0 } ;
-   queue_iterator_t  iter      = queue_iterator_INIT_FREEABLE ;
+   queue_iterator_t  iter      = queue_iterator_FREE ;
    void *            node      = 0 ;
 
-   // TEST queue_iterator_INIT_FREEABLE
+   // TEST queue_iterator_FREE
    TEST(0 == iter.lastpage) ;
    TEST(0 == iter.nextpage) ;
    TEST(0 == iter.next_offset) ;

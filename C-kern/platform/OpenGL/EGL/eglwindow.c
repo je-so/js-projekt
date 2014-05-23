@@ -51,7 +51,7 @@
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_eglwindow_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_eglwindow_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -142,11 +142,11 @@ struct native_types_t {
    EGLContext     eglcontext;
 };
 
-#define native_types_INIT_FREEABLE  \
-         {  display_INIT_FREEABLE,  \
-            x11window_INIT_FREEABLE, \
-            { x11window_INIT_FREEABLE, x11window_INIT_FREEABLE, x11window_INIT_FREEABLE, x11window_INIT_FREEABLE, x11window_INIT_FREEABLE }, \
-            { eglconfig_INIT_FREEABLE, eglconfig_INIT_FREEABLE, eglconfig_INIT_FREEABLE, eglconfig_INIT_FREEABLE, eglconfig_INIT_FREEABLE }, \
+#define native_types_FREE  \
+         {  display_FREE,  \
+            x11window_FREE, \
+            { x11window_FREE, x11window_FREE, x11window_FREE, x11window_FREE, x11window_FREE }, \
+            { eglconfig_FREE, eglconfig_FREE, eglconfig_FREE, eglconfig_FREE, eglconfig_FREE }, \
             {  { gconfig_BITS_BUFFER, 32, gconfig_NONE, 0, 0 },   \
                { gconfig_BITS_RED,    1,  gconfig_NONE, 0, 0 },   \
                { gconfig_BITS_DEPTH,  1,  gconfig_NONE, 0, 0 },   \
@@ -159,7 +159,7 @@ struct native_types_t {
 static int init_native(/*out*/native_types_t * native)
 {
    uint32_t    snr = 0;
-   gconfig_t   gconf = gconfig_INIT_FREEABLE;
+   gconfig_t   gconf = gconfig_FREE;
 
    windowconfig_t winattr[] = {
       windowconfig_INIT_TITLE("egl-test-window"),
@@ -243,7 +243,7 @@ static int test_draw(native_types_t * native)
 {
    x11window_t *  oswin   = &native->oswindow[0];
    eglconfig_t    eglcfg  = native->eglconfig[0];
-   eglwindow_t    eglwin  = eglwindow_INIT_FREEABLE;
+   eglwindow_t    eglwin  = eglwindow_FREE;
 
    // prepare
    TEST(0 == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglcfg, oswin));
@@ -282,18 +282,18 @@ ONABORT:
 
 static int test_initfree(native_types_t * native)
 {
-   eglwindow_t eglwin  = eglwindow_INIT_FREEABLE;
-   eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
+   eglwindow_t eglwin  = eglwindow_FREE;
+   eglconfig_t eglconf = eglconfig_FREE;
 
-   // TEST eglwindow_INIT_FREEABLE
+   // TEST eglwindow_FREE
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized display
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, egldisplay_INIT_FREEABLE, native->eglconfig[0], &native->oswindow[0]));
+   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, egldisplay_FREE, native->eglconfig[0], &native->oswindow[0]));
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized config
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglconfig_INIT_FREEABLE, &native->oswindow[0]));
+   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglconfig_FREE, &native->oswindow[0]));
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized os window
@@ -335,8 +335,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE;
-   native_types_t    native  = native_types_INIT_FREEABLE;
+   resourceusage_t   usage   = resourceusage_FREE;
+   native_types_t    native  = native_types_FREE;
 
    TEST(0 == init_native(&native));
 

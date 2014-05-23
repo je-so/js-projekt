@@ -45,7 +45,7 @@ int free_patriciatrie(patriciatrie_t * tree)
 {
    int err = removenodes_patriciatrie(tree) ;
 
-   tree->nodeadp = (typeadapt_member_t) typeadapt_member_INIT_FREEABLE ;
+   tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
 
    if (err) goto ONABORT ;
 
@@ -664,7 +664,7 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
 
 #ifdef KONFIG_UNITTEST
 
-#define MAX_TREE_NODES        10000
+#define MAX_TREE_NODES 10000
 
 typedef struct testnode_t     testnode_t ;
 typedef struct testadapt_t    testadapt_t ;
@@ -778,10 +778,10 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
    typeadapt_member_t      nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
-   patriciatrie_t          tree = patriciatrie_INIT_FREEABLE ;
+   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE ;
+   patriciatrie_t          tree = patriciatrie_FREE ;
    patriciatrie_node_t     node = patriciatrie_node_INIT ;
    testnode_t              nodes[20] ;
 
@@ -797,7 +797,7 @@ static int test_initfree(void)
    TEST(0 == node.left) ;
    TEST(0 == node.right) ;
 
-   // TEST patriciatrie_INIT_FREEABLE
+   // TEST patriciatrie_FREE
    TEST(0 == tree.root) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
 
@@ -885,7 +885,7 @@ static int test_initfree(void)
    // TEST getinistate_patriciatrie
    patriciatrie_node_t * saved_root   = (void*) 1 ;
    typeadapt_member_t saved_nodeadapt = nodeadapt ;
-   tree = (patriciatrie_t)patriciatrie_INIT_FREEABLE ;
+   tree = (patriciatrie_t)patriciatrie_FREE ;
    getinistate_patriciatrie(&tree, &saved_root, 0) ;
    TEST(0 == saved_root) ;
    getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt) ;
@@ -911,10 +911,10 @@ ONABORT:
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   patriciatrie_t       tree      = patriciatrie_INIT_FREEABLE ;
-   memblock_t           memblock  = memblock_INIT_FREEABLE ;
+   patriciatrie_t       tree      = patriciatrie_FREE ;
+   memblock_t           memblock  = memblock_FREE ;
    testnode_t           * nodes   = 0 ;
    patriciatrie_node_t  * node ;
    unsigned             nodecount ;
@@ -1296,13 +1296,13 @@ ONABORT:
 
 static int test_iterator(void)
 {
-   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   patriciatrie_t             tree      = patriciatrie_INIT_FREEABLE ;
-   memblock_t                 memblock  = memblock_INIT_FREEABLE ;
+   patriciatrie_t             tree      = patriciatrie_FREE ;
+   memblock_t                 memblock  = memblock_FREE ;
    testnode_t                 * nodes   = 0 ;
-   patriciatrie_iterator_t    iter      = patriciatrie_iterator_INIT_FREEABLE ;
-   patriciatrie_prefixiter_t  preiter   = patriciatrie_prefixiter_INIT_FREEABLE ;
+   patriciatrie_iterator_t    iter      = patriciatrie_iterator_FREE ;
+   patriciatrie_prefixiter_t  preiter   = patriciatrie_prefixiter_FREE ;
    patriciatrie_node_t        * found_node ;
 
    // prepare
@@ -1319,7 +1319,7 @@ static int test_iterator(void)
       nodes[i].key[3] = (uint8_t)((i/1) % 10) ;
    }
 
-   // TEST patriciatrie_iterator_INIT_FREEABLE
+   // TEST patriciatrie_iterator_FREE
    TEST(0 == iter.next) ;
    TEST(0 == iter.tree) ;
 
@@ -1352,7 +1352,7 @@ static int test_iterator(void)
    TEST(0 == iter.next) ;
    TEST(0 != iter.tree) ;
 
-   // TEST patriciatrie_prefixiter_INIT_FREEABLE
+   // TEST patriciatrie_prefixiter_FREE
    TEST(0 == preiter.next) ;
    TEST(0 == preiter.tree) ;
    TEST(0 == preiter.prefix_bits) ;
@@ -1475,10 +1475,10 @@ patriciatrie_IMPLEMENT(_testtree, testnode_t, node)
 
 static int test_generic(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
    typeadapt_member_t      nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
-   patriciatrie_t          tree = patriciatrie_INIT_FREEABLE ;
+   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE ;
+   patriciatrie_t          tree = patriciatrie_FREE ;
    testnode_t              nodes[50] ;
 
    // prepare
@@ -1504,13 +1504,13 @@ static int test_generic(void)
 
    // TEST getinistate_patriciatrie
    testnode_t         * root     = 0 ;
-   typeadapt_member_t nodeadapt2 = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_member_t nodeadapt2 = typeadapt_member_FREE ;
    init_testtree(&tree, &nodeadapt) ;
    tree.root = &nodes[10].node ;
    getinistate_testtree(&tree, &root, &nodeadapt2) ;
    TEST(&nodes[10] == root) ;
    TEST(isequal_typeadaptmember(&nodeadapt2, &nodeadapt)) ;
-   tree = (patriciatrie_t) patriciatrie_INIT_FREEABLE ;
+   tree = (patriciatrie_t) patriciatrie_FREE ;
    nodeadapt2 = nodeadapt ;
    getinistate_testtree(&tree, &root, &nodeadapt2) ;
    TEST(0 == root) ;

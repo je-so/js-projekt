@@ -44,7 +44,7 @@
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_eglpbuffer_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_eglpbuffer_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -146,8 +146,8 @@ ONABORT:
 
 static int test_initfree(egldisplay_t disp)
 {
-   eglpbuffer_t pbuf = eglpbuffer_INIT_FREEABLE;
-   eglconfig_t  conf = eglconfig_INIT_FREEABLE;
+   eglpbuffer_t pbuf = eglpbuffer_FREE;
+   eglconfig_t  conf = eglconfig_FREE;
    uint32_t maxwidth;
    uint32_t maxheight;
    uint32_t maxpixels;
@@ -166,7 +166,7 @@ static int test_initfree(egldisplay_t disp)
          ;
    }
 
-   // TEST eglpbuffer_INIT_FREEABLE
+   // TEST eglpbuffer_FREE
    TEST(0 == pbuf);
 
    for (unsigned i = 8; i <= maxsize; i *= 2) {
@@ -226,8 +226,8 @@ ONABORT:
 
 static int test_query(egldisplay_t disp)
 {
-   eglpbuffer_t pbuf = eglpbuffer_INIT_FREEABLE;
-   eglconfig_t  conf = eglconfig_INIT_FREEABLE;
+   eglpbuffer_t pbuf = eglpbuffer_FREE;
+   eglconfig_t  conf = eglconfig_FREE;
    uint32_t     id   = 0;
    uint32_t     width  = 0;
    uint32_t     height = 0;
@@ -261,9 +261,9 @@ static int test_query(egldisplay_t disp)
    // size_eglpbuffer: EINVAL
    width = height = 0;
    TEST(0 == init_eglpbuffer(&pbuf, disp, conf, 16, 16));
-   TEST(EINVAL == size_eglpbuffer(pbuf, egldisplay_INIT_FREEABLE, &width, &height));
+   TEST(EINVAL == size_eglpbuffer(pbuf, egldisplay_FREE, &width, &height));
    TEST(0 == width && 0 == height);
-   TEST(EINVAL == size_eglpbuffer(eglpbuffer_INIT_FREEABLE, disp, &width, &height));
+   TEST(EINVAL == size_eglpbuffer(eglpbuffer_FREE, disp, &width, &height));
    TEST(0 == width && 0 == height);
    TEST(0 == free_eglpbuffer(&pbuf, disp));
 
@@ -284,9 +284,9 @@ static int test_query(egldisplay_t disp)
    // TEST configid_eglpbuffer: EINVAL
    id = INT32_MAX;
    TEST(0 == init_eglpbuffer(&pbuf, disp, conf, 16, 16));
-   TEST(EINVAL == configid_eglpbuffer(pbuf, egldisplay_INIT_FREEABLE, &id));
+   TEST(EINVAL == configid_eglpbuffer(pbuf, egldisplay_FREE, &id));
    TEST(INT32_MAX == id);
-   TEST(EINVAL == configid_eglpbuffer(eglpbuffer_INIT_FREEABLE, disp, &id));
+   TEST(EINVAL == configid_eglpbuffer(eglpbuffer_FREE, disp, &id));
    TEST(INT32_MAX == id);
    TEST(0 == free_eglpbuffer(&pbuf, disp));
 
@@ -302,8 +302,8 @@ ONABORT:
 
 static int test_draw(egldisplay_t disp)
 {
-   eglpbuffer_t pbuf = eglpbuffer_INIT_FREEABLE;
-   eglconfig_t  conf = eglconfig_INIT_FREEABLE;
+   eglpbuffer_t pbuf = eglpbuffer_FREE;
+   eglconfig_t  conf = eglconfig_FREE;
    EGLContext   ctx  = EGL_NO_CONTEXT;
    uint32_t     rgba;
    uint32_t     pixels[32*32] = { 0 };
@@ -352,8 +352,8 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   egldisplay_t      disp  = egldisplay_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   egldisplay_t      disp  = egldisplay_FREE;
 
    // prepare
    TEST(0 == initdefault_egldisplay(&disp));

@@ -81,9 +81,9 @@ struct suffixtree_t {
 
 // group: lifetime
 
-/* define: suffixtree_INIT_FREEABLE
+/* define: suffixtree_FREE
  * Static initializer. Sets all fields to 0. */
-#define suffixtree_INIT_FREEABLE            { (void*)0, 0 }
+#define suffixtree_FREE { (void*)0, 0 }
 
 /* fucntion: init_suffixtree
  * This function initializes the tree object with an empty tree. The adapter must live at

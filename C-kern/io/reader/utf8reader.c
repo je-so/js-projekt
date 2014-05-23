@@ -126,9 +126,9 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
 
 static int test_initfree(directory_t * tempdir)
 {
-   utf8reader_t   utfread = utf8reader_INIT_FREEABLE ;
+   utf8reader_t   utfread = utf8reader_FREE ;
 
-   // TEST utf8reader_INIT_FREEABLE
+   // TEST utf8reader_FREE
    TEST(0 == column_utf8reader(&utfread)) ;
    TEST(0 == line_utf8reader(&utfread)) ;
    TEST(0 == isnext_utf8reader(&utfread)) ;
@@ -214,7 +214,7 @@ ONABORT:
 
 static int test_read(directory_t * tempdir)
 {
-   utf8reader_t   utfread = utf8reader_INIT_FREEABLE ;
+   utf8reader_t   utfread = utf8reader_FREE ;
    const uint8_t  mbs[]   = { "ab\n\U000fffffab\n\U00000fffab\nöab\näab\nü" } ;
    const size_t   mbssize = 5*3 + 4 + 3 + 3*2 ;
    uint32_t       ch ;
@@ -389,7 +389,7 @@ ONABORT:
 
 static int test_skipline(directory_t * tempdir)
 {
-   utf8reader_t   utfread = utf8reader_INIT_FREEABLE ;
+   utf8reader_t   utfread = utf8reader_FREE ;
    uint8_t        buffer[512] ;
 
    // TEST skipline_utf8reader
@@ -429,7 +429,7 @@ ONABORT:
 
 static int test_match(directory_t * tempdir)
 {
-   utf8reader_t   utfread = utf8reader_INIT_FREEABLE ;
+   utf8reader_t   utfread = utf8reader_FREE ;
    uint8_t        buffer[256] ;
    uint8_t        buffer2[10] ;
    size_t         matchedsize ;

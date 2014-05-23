@@ -57,9 +57,9 @@ iobj_DECLARE(mm_t, mm) ;
 
 // group: lifetime
 
-/* define: mm_INIT_FREEABLE
+/* define: mm_FREE
  * Static initializer. */
-#define mm_INIT_FREEABLE                  iobj_INIT_FREEABLE
+#define mm_FREE iobj_FREE
 
 /* define: mm_INIT
  * Static initializer. */
@@ -105,9 +105,9 @@ struct mm_it {
 
 // group: lifetime
 
-/* define: mm_it_INIT_FREEABLE
+/* define: mm_it_FREE
  * Static initializer. Set all fields to 0. */
-#define mm_it_INIT_FREEABLE            { 0, 0, 0, 0 }
+#define mm_it_FREE { 0, 0, 0, 0 }
 
 /* define: mm_it_INIT
  * Static initializer. Set all function pointers to the provided values.

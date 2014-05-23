@@ -185,7 +185,7 @@ int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttail
    destheadmfile->size = headsize ;
 
    if (sourcemfile != destheadmfile && sourcemfile != desttailmfile) {
-      *sourcemfile = (mmfile_t) mmfile_INIT_FREEABLE ;
+      *sourcemfile = (mmfile_t) mmfile_FREE ;
    }
 
    return 0 ;
@@ -242,7 +242,7 @@ ONABORT:
 static int test_query(void)
 {
    size_t   pagesize = pagesize_vm() ;
-   mmfile_t    mfile = mmfile_INIT_FREEABLE ;
+   mmfile_t    mfile = mmfile_FREE ;
 
    // TEST addr_mmfile
    mfile.addr = (void*) 1234 ;
@@ -261,7 +261,7 @@ static int test_query(void)
    }
 
    // TEST isfree_mmfile
-   mfile = (mmfile_t) mmfile_INIT_FREEABLE ;
+   mfile = (mmfile_t) mmfile_FREE ;
    TEST(1 == isfree_mmfile(&mfile)) ;
    mfile.addr = (void*) 1 ;
    TEST(0 == isfree_mmfile(&mfile)) ;
@@ -294,8 +294,8 @@ static void sigsegfault(int _signr)
 static int test_initfree(directory_t * tempdir, const char * tmppath)
 {
    size_t            pagesize = pagesize_vm() ;
-   mmfile_t          mfile    = mmfile_INIT_FREEABLE ;
-   mmfile_t          split[2] = { mmfile_INIT_FREEABLE, mmfile_INIT_FREEABLE } ;
+   mmfile_t          mfile    = mmfile_FREE ;
+   mmfile_t          split[2] = { mmfile_FREE, mmfile_FREE } ;
    uint8_t           buffer[256] = { 0 } ;
    int               fd       = -1 ;
    bool              isOldact = false ;
@@ -320,7 +320,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    }
    TEST(0 == free_iochannel(&fd)) ;
 
-   // TEST mmfile_INIT_FREEABLE
+   // TEST mmfile_FREE
    TEST(0 == mfile.addr) ;
    TEST(0 == mfile.size) ;
 
@@ -459,7 +459,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
 
    // TEST initmove_mmfile
    for (unsigned i = 0; i < 256; ++i) {
-      mmfile_t destmfile = mmfile_INIT_FREEABLE ;
+      mmfile_t destmfile = mmfile_FREE ;
       mmfile_t sourcemfile = { .addr = (uint8_t*)(100+i), .size = i } ;
       TEST(!isfree_mmfile(&sourcemfile)) ;
       initmove_mmfile(&destmfile, &sourcemfile) ;
@@ -526,7 +526,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == initsplit_mmfile(&split[0], &split[0], pagesize, &split[0])) ;
    TEST(addr_mmfile(&split[0]) == addr_mmfile(&mfile)+pagesize) /*value from tail*/ ;
    TEST(size_mmfile(&split[0]) == pagesize) /*value from head*/ ;
-   split[0] = (mmfile_t) mmfile_INIT_FREEABLE ;
+   split[0] = (mmfile_t) mmfile_FREE ;
    TEST(0 == free_mmfile(&mfile)) ;
 
    // prepare
@@ -604,7 +604,7 @@ ONABORT:
 static int test_fileoffset(directory_t * tempdir)
 {
    size_t   pagesize = pagesize_vm() ;
-   mmfile_t mfile    = mmfile_INIT_FREEABLE ;
+   mmfile_t mfile    = mmfile_FREE ;
    int      fd       = -1 ;
 
    // create content
@@ -648,9 +648,9 @@ ONABORT:
 static int test_seek(directory_t * tempdir)
 {
    size_t            pagesize = pagesize_vm() ;
-   mmfile_t          mfile    = mmfile_INIT_FREEABLE ;
-   mmfile_t          split[2] = { mmfile_INIT_FREEABLE, mmfile_INIT_FREEABLE } ;
-   file_t            fd       = file_INIT_FREEABLE ;
+   mmfile_t          mfile    = mmfile_FREE ;
+   mmfile_t          split[2] = { mmfile_FREE, mmfile_FREE } ;
+   file_t            fd       = file_FREE ;
    const uint16_t    nrpages  = 10 ;
    bool              isoldact = false ;
    struct sigaction  newact ;
@@ -734,7 +734,7 @@ static int test_seek(directory_t * tempdir)
    // offset not page aligned
    TEST(EINVAL == seek_mmfile(&mfile, fd, pagesize-1, accessmode_READ)) ;
    // bad file descriptor
-   TEST(EINVAL == seek_mmfile(&mfile, file_INIT_FREEABLE, 0, accessmode_READ)) ;
+   TEST(EINVAL == seek_mmfile(&mfile, file_FREE, 0, accessmode_READ)) ;
    // file has no read access
    TEST(0 == free_iochannel(&fd)) ;
    TEST(0 == initappend_file(&fd, "mmfile", tempdir)) ;

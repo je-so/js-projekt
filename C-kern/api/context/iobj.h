@@ -111,9 +111,9 @@ struct iobj_t {
 
 // group: lifetime
 
-/* define: iobj_INIT_FREEABLE
+/* define: iobj_FREE
  * Static initializer. Sets both pointer to NULL. */
-#define iobj_INIT_FREEABLE                { 0, 0 }
+#define iobj_FREE { 0, 0 }
 
 /* define: iobj_INIT
  * Static initializer.
@@ -134,7 +134,7 @@ void init_iobj(/*out*/iobj_t * iobj, void * object, void * iimpl) ;
 void initcopy_iobj(/*out*/iobj_t * destiobj, const iobj_t * srciobj) ;
 
 /* function: free_iobj
- * Generic free operation. Same as assigning <iobj_INIT_FREEABLE>.
+ * Generic free operation. Same as assigning <iobj_FREE>.
  * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
 void free_iobj(iobj_t * iobj) ;
 

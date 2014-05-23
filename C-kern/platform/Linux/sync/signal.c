@@ -384,7 +384,7 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
    int err ;
    const int         nr_signal_handlers = nrhandlers_signalstate() ;
    const size_t      objectsize         = objectsize_signalstate() ;
-   memblock_t        mem                = memblock_INIT_FREEABLE ;
+   memblock_t        mem                = memblock_FREE ;
    signalstate_t *   newsigstate        = 0 ;
 
    err = RESIZE_MM(objectsize, &mem) ;
@@ -1215,9 +1215,9 @@ ONABORT:
 
 static int test_signalwait(void)
 {
-   signalwait_t signalwait = signalwait_INIT_FREEABLE ;
+   signalwait_t signalwait = signalwait_FREE ;
 
-   // TEST signalwait_INIT_FREEABLE
+   // TEST signalwait_FREE
    TEST(1 == isfree_iochannel(signalwait)) ;
 
    // TEST initrealtime_signalwait

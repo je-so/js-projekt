@@ -175,9 +175,9 @@ struct x11window_t {
 
 // group: lifetime
 
-/* define: x11window_INIT_FREEABLE
+/* define: x11window_FREE
  * Static initializer. */
-#define x11window_INIT_FREEABLE        { 0, 0, 0, 0, 0, 0 }
+#define x11window_FREE { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_x11window
  * Create a native X11 window on x11screen and assign it to x11win.
@@ -252,7 +252,7 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
 int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out*/int32_t * screen_y, /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
 /* function: isfree_x11window
- * Returns true if x11win is set to <x11window_INIT_FREEABLE>. */
+ * Returns true if x11win is set to <x11window_FREE>. */
 static inline bool isfree_x11window(const x11window_t * x11win);
 
 // group: update

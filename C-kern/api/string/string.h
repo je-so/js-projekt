@@ -74,9 +74,9 @@ struct string_t {
 
 // group: lifetime
 
-/* define: string_INIT_FREEABLE
+/* define: string_FREE
  * Static initializer. Sets string_t to null. */
-#define string_INIT_FREEABLE           { 0, 0 }
+#define string_FREE { 0, 0 }
 
 /* define: string_INIT
  * Static initializer. Assigns static string buffer to <string_t>.
@@ -140,7 +140,7 @@ int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, 
 void initfromstringstream_string(/*out*/string_t * str, const struct stringstream_t * strstream) ;
 
 /* function: free_string
- * Sets string to <string_INIT_FREEABLE>. */
+ * Sets string to <string_FREE>. */
 void free_string(string_t * str) ;
 
 // group: query
@@ -150,7 +150,7 @@ void free_string(string_t * str) ;
 bool isfree_string(const string_t * str) ;
 
 /* function: isempty_string
- * Returns true if string has size 0. A string initialized with <string_INIT_FREEABLE>
+ * Returns true if string has size 0. A string initialized with <string_FREE>
  * is considered an empty string. Use <isfree_string> to check if it is uninitialized. */
 bool isempty_string(const string_t * str) ;
 
@@ -239,7 +239,7 @@ const string_t * genericcast_string(const void * obj) ;
 
 /* function: free_string
  * Implements <string_t.free_string>. */
-#define free_string(str)                        ((void)((*str) = (string_t)string_INIT_FREEABLE))
+#define free_string(str)                        ((void)((*str) = (string_t)string_FREE))
 
 /* function: genericcast_string
  * Implements <string_t.genericcast_string>. */

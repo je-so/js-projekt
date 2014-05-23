@@ -58,6 +58,6 @@ struct lrptree_node_t {
 
 /* define: lrptree_node_INIT
  * Static initializer. */
-#define lrptree_node_INIT              { 0, 0, 0 }
+#define lrptree_node_INIT { 0, 0, 0 }
 
 #endif

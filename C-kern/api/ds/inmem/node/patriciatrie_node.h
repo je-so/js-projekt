@@ -59,7 +59,7 @@ struct patriciatrie_node_t {
 
 /* define: patriciatrie_node_INIT
  * Static initializer. */
-#define patriciatrie_node_INIT               { 0, 0, 0 }
+#define patriciatrie_node_INIT { 0, 0, 0 }
 
 
 #endif

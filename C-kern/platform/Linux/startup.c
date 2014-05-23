@@ -46,7 +46,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_platform_errtimer
  * Simulates an error in <startup_platform>. */
-static test_errortimer_t   s_platform_errtimer = test_errortimer_INIT_FREEABLE;
+static test_errortimer_t   s_platform_errtimer = test_errortimer_FREE;
 #endif
 
 // group: startup
@@ -84,7 +84,7 @@ int startup_platform(mainthread_f main_thread, void * user)
    volatile int linenr;
    int               retcode = 0;
    volatile int      is_exit = 0;
-   thread_tls_t      tls     = thread_tls_INIT_FREEABLE;
+   thread_tls_t      tls     = thread_tls_FREE;
    memblock_t        threadstack;
    memblock_t        signalstack;
    ucontext_t        context_caller;
@@ -201,9 +201,9 @@ static int child_startupabort(void * dummy)
 
 static int test_startup(void)
 {
-   file_t      fd      = file_INIT_FREEABLE;
-   file_t      pfd[2]  = { file_INIT_FREEABLE, file_INIT_FREEABLE };
-   process_t   process = process_INIT_FREEABLE;
+   file_t      fd      = file_FREE;
+   file_t      pfd[2]  = { file_FREE, file_FREE };
+   process_t   process = process_FREE;
 
    TEST( 0 == pipe2(pfd, O_CLOEXEC)
          && -1 != (fd = dup(STDERR_FILENO))
@@ -265,7 +265,7 @@ static int test_startup(void)
    return 0;
 ONABORT:
    free_process(&process);
-   if (fd != file_INIT_FREEABLE) {
+   if (fd != file_FREE) {
       dup2(fd, STDERR_FILENO);
    }
    free_file(&fd);

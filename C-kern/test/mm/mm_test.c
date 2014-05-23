@@ -104,7 +104,7 @@ ONABORT:
 
 static int test_mm_macros_release(void)
 {
-   memblock_t        mblock = memblock_INIT_FREEABLE ;
+   memblock_t        mblock = memblock_FREE ;
    test_errortimer_t errtimer ;
    size_t            size = SIZEALLOCATED_MM() ;
 

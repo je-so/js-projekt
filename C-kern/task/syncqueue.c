@@ -106,17 +106,17 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   syncqueue_t    syncqueue = syncqueue_INIT_FREEABLE ;
+   syncqueue_t    syncqueue = syncqueue_FREE ;
    queue_t        queue ;
 
    // TEST syncqueue_t compatible with queue_t
-   queue = (queue_t) queue_INIT_FREEABLE ;
+   queue = (queue_t) queue_FREE ;
    TEST(0 == queue.last) ;
    queue = (queue_t) queue_INIT ;
    TEST(0 == queue.last) ;
    TEST((queue_t*)&syncqueue == genericcast_queue(&syncqueue)) ;
 
-   // TEST syncqueue_INIT_FREEABLE
+   // TEST syncqueue_FREE
    TEST(0 == syncqueue.last) ;
    TEST(0 == syncqueue.nrelements) ;
 
@@ -149,7 +149,7 @@ ONABORT:
 static int test_query(void)
 {
    syncqueue_t    syncqueue ;
-   syncqueue_t    syncqueue2 = syncqueue_INIT_FREEABLE ;
+   syncqueue_t    syncqueue2 = syncqueue_FREE ;
 
    // TEST isfree_syncqueue
    memset(&syncqueue, 255 ,sizeof(syncqueue)) ;

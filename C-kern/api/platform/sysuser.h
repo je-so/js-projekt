@@ -66,9 +66,9 @@ typedef sys_userid_t                      sysuser_id_t ;
 
 // group: lifetime
 
-/* define: sysuser_id_INIT_FREEABLE
+/* define: sysuser_id_FREE
  * Static initializer. */
-#define sysuser_id_INIT_FREEABLE          sys_userid_INIT_FREEABLE
+#define sysuser_id_FREE sys_userid_FREE
 
 // group: query
 
@@ -107,9 +107,9 @@ struct sysuser_t {
 
 // group: lifetime
 
-/* define: sysuser_INIT_FREEABLE
+/* define: sysuser_FREE
  * Static initializer. Sets user to invalid value. */
-#define sysuser_INIT_FREEABLE             { sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE }
+#define sysuser_FREE { sysuser_id_FREE, sysuser_id_FREE, sysuser_id_FREE }
 
 /* function: init_sysuser
  * Initializes system user of process at process start.
@@ -252,10 +252,10 @@ const char * name_sysuserinfo(sysuser_info_t * usrinfo) ;
 #if !defined(KONFIG_SUBSYS_SYSUSER)
 /* define: init_sysuser
  * Implement <sysuser_t.init_sysuser> as noop if !defined(KONFIG_SUBSYS_SYSUSER) */
-#define init_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
+#define init_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_FREE, 0)
 /* define: free_sysuser
  * Implement <sysuser_t.free_sysuser> as noop if !defined(KONFIG_SUBSYS_SYSUSER) */
-#define free_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
+#define free_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_FREE, 0)
 #endif
 
 // group: sysuser_info_t

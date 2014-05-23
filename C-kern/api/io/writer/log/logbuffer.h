@@ -71,9 +71,9 @@ struct logbuffer_t {
 
 // group: lifetime
 
-/* define: logbuffer_INIT_FREEABLE
+/* define: logbuffer_FREE
  * Static initializer. */
-#define logbuffer_INIT_FREEABLE           { 0, 0, 0, sys_iochannel_INIT_FREEABLE }
+#define logbuffer_FREE { 0, 0, 0, sys_iochannel_FREE }
 
 /* define: logbuffer_INIT
  * Static initializer. You do not need to free an object initialized in such a manner

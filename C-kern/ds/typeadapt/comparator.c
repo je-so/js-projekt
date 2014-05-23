@@ -85,9 +85,9 @@ static int impl_cmpobject_typeadapt(struct typeadapt_t * typeadp, const struct t
 
 static int test_initfree(void)
 {
-   typeadapt_comparator_it adpcmp = typeadapt_comparator_INIT_FREEABLE ;
+   typeadapt_comparator_it adpcmp = typeadapt_comparator_FREE ;
 
-   // TEST typeadapt_comparator_INIT_FREEABLE
+   // TEST typeadapt_comparator_FREE
    TEST(0 == adpcmp.cmp_key_object) ;
    TEST(0 == adpcmp.cmp_object) ;
 
@@ -165,7 +165,7 @@ typeadapt_comparator_DECLARE(testadapter_it, testadapter_t, testobject_t, uintpt
 static int test_generic(void)
 {
    testadapter_t  testadp = { .result = 0 } ;
-   testadapter_it adpcmp  = typeadapt_comparator_INIT_FREEABLE ;
+   testadapter_it adpcmp  = typeadapt_comparator_FREE ;
 
    // TEST typeadapt_comparator_DECLARE
    static_assert(sizeof(testadapter_it) == sizeof(typeadapt_comparator_it), "structure compatible") ;
@@ -175,7 +175,7 @@ static int test_generic(void)
    // TEST genericcast_typeadaptcomparator
    TEST((struct typeadapt_comparator_it*)&adpcmp == genericcast_typeadaptcomparator(&adpcmp, testadapter_t, testobject_t, int)) ;
 
-   // TEST typeadapt_comparator_INIT_FREEABLE
+   // TEST typeadapt_comparator_FREE
    TEST(0 == adpcmp.cmp_key_object) ;
    TEST(0 == adpcmp.cmp_object) ;
 

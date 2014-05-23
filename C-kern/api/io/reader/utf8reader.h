@@ -65,9 +65,9 @@ struct utf8reader_t {
 
 // group: lifetime
 
-/* define: utf8reader_INIT_FREEABLE
+/* define: utf8reader_FREE
  * Static initializer.  */
-#define utf8reader_INIT_FREEABLE       { 0, 0, textpos_INIT_FREEABLE, mmfile_INIT_FREEABLE }
+#define utf8reader_FREE { 0, 0, textpos_FREE, mmfile_FREE }
 
 /* function: init_utf8reader
  * Opens file at *filepath* for reading as UTF-8 encoded text.

@@ -86,7 +86,7 @@ struct suffixtree_iterator_t {
 static inline int new_suffixtreeiterator(/*out*/suffixtree_iterator_t ** iter)
 {
    int err ;
-   memblock_t objmem = memblock_INIT_FREEABLE ;
+   memblock_t objmem = memblock_FREE ;
 
    err = RESIZE_MM(sizeof(suffixtree_iterator_t), &objmem) ;
    if (err) return err ;
@@ -188,7 +188,7 @@ struct suffixtree_leaf_t {
 static inline int new_suffixtreeleaf(/*out*/suffixtree_leaf_t ** leaf)
 {
    int err ;
-   memblock_t objmem = memblock_INIT_FREEABLE ;
+   memblock_t objmem = memblock_FREE ;
 
    err = RESIZE_MM(sizeof(suffixtree_leaf_t), &objmem) ;
    if (err) return err ;
@@ -282,7 +282,7 @@ struct suffixtree_node_t {
 static inline int new_suffixtreenode(/*out*/suffixtree_node_t ** node)
 {
    int err ;
-   memblock_t objmem = memblock_INIT_FREEABLE ;
+   memblock_t objmem = memblock_FREE ;
 
    err = RESIZE_MM(sizeof(suffixtree_node_t), &objmem) ;
    if (err) return err ;
@@ -338,7 +338,7 @@ struct suffixtree_pos_t {
 
 /* define: suffixtree_pos_INIT
  * Static initializer. */
-#define suffixtree_pos_INIT            { 0, NULL, NULL }
+#define suffixtree_pos_INIT { 0, NULL, NULL }
 
 
 /* struct: suffixtree_addstate_t
@@ -1152,10 +1152,10 @@ static int compare_size_f(const void * number1, const void * number2)
 
 static int test_initfree(void)
 {
-   suffixtree_t   tree = suffixtree_INIT_FREEABLE ;
+   suffixtree_t   tree = suffixtree_FREE ;
    const uint8_t  * teststr ;
 
-   // TEST suffixtree_INIT_FREEABLE
+   // TEST suffixtree_FREE
    TEST(0 == tree.childs) ;
    TEST(0 == tree.maxlength) ;
 
@@ -1182,7 +1182,7 @@ ONABORT:
 
 static int test_suffixtree(void)
 {
-   suffixtree_t      tree = suffixtree_INIT_FREEABLE ;
+   suffixtree_t      tree = suffixtree_FREE ;
    suffixtree_pos_t  found_pos ;
    suffixtree_node_t * found_node ;
    const uint8_t     * teststr ;
@@ -1445,14 +1445,14 @@ ONABORT:
 
 static int test_matchfile(void)
 {
-   suffixtree_t   tree          = suffixtree_INIT_FREEABLE ;
-   mmfile_t       sourcefile    = mmfile_INIT_FREEABLE ;
+   suffixtree_t   tree          = suffixtree_FREE ;
+   mmfile_t       sourcefile    = mmfile_FREE ;
    const uint8_t  * iterposstr  = (const uint8_t*) "suffixtree_iterator_t" ;
    // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3414,3487,3616,3687,3801,4084,4171,4285,4402,4487,4600,4765,4844,4920,4998,5074,44226,44504,45327,45510,60130,60254,60367,60422} ;
+   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3405,3478,3607,3678,3792,4075,4162,4276,4393,4478,4591,4756,4835,4911,4989,5065,44188,44466,45289,45472,60047,60171,60284,60339};
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;
@@ -1492,7 +1492,7 @@ ONABORT:
 
 static int test_dump(void)
 {
-   suffixtree_t   tree = suffixtree_INIT_FREEABLE ;
+   suffixtree_t   tree = suffixtree_FREE ;
    cstring_t      cstr = cstring_INIT ;
    suffixtree_node_t nodes[20] ;
    char           expectresult[600] ;
@@ -1552,7 +1552,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage = resourceusage_FREE ;
 
    if (test_dump())           goto ONABORT ;
 

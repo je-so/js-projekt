@@ -71,7 +71,7 @@ struct crc32_t {
 
 /* define: crc32_INIT
  * Static initializer. */
-#define crc32_INIT                     { (uint32_t)-1 }
+#define crc32_INIT { (uint32_t)-1 }
 
 /* function: init_crc32
  * Initializes object of type <crc32_t>. */

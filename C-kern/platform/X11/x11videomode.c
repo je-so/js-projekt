@@ -231,9 +231,9 @@ ONABORT:
 
 static int test_iterator(x11screen_t * x11screen)
 {
-   x11videomode_iterator_t xvidit = x11videomode_iterator_INIT_FREEABLE ;
+   x11videomode_iterator_t xvidit = x11videomode_iterator_FREE ;
 
-   // TEST x11videomode_iterator_INIT_FREEABLE
+   // TEST x11videomode_iterator_FREE
    TEST(0 == xvidit.nextindex) ;
    TEST(0 == xvidit.nrmodes) ;
    TEST(0 == xvidit.config) ;
@@ -294,10 +294,10 @@ ONABORT:
 
 static int test_initfree(x11screen_t * x11screen)
 {
-   x11videomode_t          xvidmode = x11videomode_INIT_FREEABLE ;
-   x11videomode_iterator_t xvidit   = x11videomode_iterator_INIT_FREEABLE ;
+   x11videomode_t          xvidmode = x11videomode_FREE ;
+   x11videomode_iterator_t xvidit   = x11videomode_iterator_FREE ;
 
-   // TEST x11videomode_INIT_FREEABLE
+   // TEST x11videomode_FREE
    TEST(0 == xvidmode.width_in_pixel) ;
    TEST(0 == xvidmode.height_in_pixel) ;
    TEST(0 == xvidmode.modeid) ;
@@ -318,7 +318,7 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(0 == xvidmode.modeid/*default mode of x11display is active*/) ;
    TEST(0 == init_x11videomodeiterator(&xvidit, x11screen)) ;
    for (size_t count = 0; !count; count = 1) {
-      x11videomode_t xvidmode2 = x11videomode_INIT_FREEABLE ;
+      x11videomode_t xvidmode2 = x11videomode_FREE ;
       while (next_x11videomodeiterator(&xvidit, &xvidmode2)) {
          if (count == xvidmode.modeid) {
             break ;
@@ -385,8 +385,8 @@ ONABORT:
 
 static int test_setvideomode(x11screen_t * x11screen)
 {
-   x11videomode_iterator_t xvidit  = x11videomode_iterator_INIT_FREEABLE ;
-   x11videomode_t          setmode = x11videomode_INIT_FREEABLE ;
+   x11videomode_iterator_t xvidit  = x11videomode_iterator_FREE ;
+   x11videomode_t          setmode = x11videomode_FREE ;
    bool                    isWrongVideoMode = false ;
    x11videomode_t          current_xvidmode ;
 
@@ -430,9 +430,9 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   x11display_t      x11disp   = x11display_INIT_FREEABLE ;
-   x11screen_t       x11screen = x11screen_INIT_FREEABLE ;
-   resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
+   x11display_t      x11disp   = x11display_FREE ;
+   x11screen_t       x11screen = x11screen_FREE ;
+   resourceusage_t   usage     = resourceusage_FREE ;
 
    // prepare
    TEST(0 == init_x11display(&x11disp, ":0")) ;

@@ -175,7 +175,7 @@ struct utf8validator_t {
 
 /* define: utf8validator_INIT
  * Static initializer. */
-#define utf8validator_INIT                { 0, { 0, 0, 0, 0} }
+#define utf8validator_INIT { 0, { 0, 0, 0, 0} }
 
 /* function: init_utf8validator
  * Same as assigning <utf8validator_INIT>. */

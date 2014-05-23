@@ -62,9 +62,9 @@ struct splitstring_t {
 
 // group: lifetime
 
-/* define: splitstring_INIT_FREEABLE
+/* define: splitstring_FREE
  * Static initializer. */
-#define splitstring_INIT_FREEABLE         { { string_INIT_FREEABLE, string_INIT_FREEABLE }, 0 }
+#define splitstring_FREE { { string_FREE, string_FREE }, 0 }
 
 /* function: free_splitstring
  * Sets all data members to 0. */
@@ -73,7 +73,7 @@ void free_splitstring(splitstring_t * spstr) ;
 // group: query
 
 /* function: isfree_splitstring
- * Returns *true* if spstr equals <splitstring_INIT_FREEABLE>. */
+ * Returns *true* if spstr equals <splitstring_FREE>. */
 bool isfree_splitstring(const splitstring_t * spstr) ;
 
 /* function: nrofparts_splitstring
@@ -121,7 +121,7 @@ void setsize_splitstring(splitstring_t * spstr, uint8_t stridx, size_t stringsiz
 /* function: free_splitstring
  * Implements <splitstring_t.free_splitstring>. */
 #define free_splitstring(spstr)        \
-         ((void)(*(spstr) = (splitstring_t) splitstring_INIT_FREEABLE))
+         ((void)(*(spstr) = (splitstring_t) splitstring_FREE))
 
 /* function: addr_splitstring
  * Implements <splitstring_t.addr_splitstring>. */

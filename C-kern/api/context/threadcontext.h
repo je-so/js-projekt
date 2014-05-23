@@ -82,10 +82,10 @@ struct threadcontext_t {
 
 // group: lifetime
 
-/* define: threadcontext_INIT_FREEABLE
+/* define: threadcontext_FREE
  * Static initializer for <threadcontext_t>. */
-#define threadcontext_INIT_FREEABLE   \
-         { 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, 0 }
+#define threadcontext_FREE   \
+         { 0, iobj_FREE, iobj_FREE, 0, iobj_FREE, iobj_FREE, 0, 0 }
 
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
@@ -93,7 +93,7 @@ struct threadcontext_t {
  * even without calling <init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
-         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { 0, &g_logmain_interface }, 0, 0 }
+         { &g_maincontext.pcontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { 0, &g_logmain_interface }, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.

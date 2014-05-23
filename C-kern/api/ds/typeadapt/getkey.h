@@ -65,9 +65,9 @@ struct typeadapt_binarykey_t {
 
 // group: lifetime
 
-/* define: typeadapt_binarykey_INIT_FREEABLE
+/* define: typeadapt_binarykey_FREE
  * Static initializer. */
-#define typeadapt_binarykey_INIT_FREEABLE          typeadapt_binarykey_INIT(0, (const uint8_t*)0)
+#define typeadapt_binarykey_FREE typeadapt_binarykey_INIT(0, (const uint8_t*)0)
 
 /* define: typeadapt_binarykey_INIT
  * Inits <typeadapt_binarykey_t> with size in bytes in start (lowest) memory address. */
@@ -93,9 +93,9 @@ struct typeadapt_getkey_it {
 
 // group: lifetime
 
-/* define: typeadapt_getkey_INIT_FREEABLE
+/* define: typeadapt_getkey_FREE
  * Static initializer. Sets all functions pointers of <typeadapt_getkey_it> to 0. */
-#define typeadapt_getkey_INIT_FREEABLE             { 0 }
+#define typeadapt_getkey_FREE { 0 }
 
 /* define: typeadapt_getkey_INIT
  * Static initializer. Sets all function pointers to the provided values.

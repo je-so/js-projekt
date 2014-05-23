@@ -295,9 +295,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   rwlock_t rwlock = rwlock_INIT_FREEABLE ;
+   rwlock_t rwlock = rwlock_FREE ;
 
-   // TEST rwlock_INIT_FREEABLE
+   // TEST rwlock_FREE
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(0 == rwlock.writer) ;
@@ -358,7 +358,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   rwlock_t rwlock = rwlock_INIT_FREEABLE ;
+   rwlock_t rwlock = rwlock_FREE ;
 
    // TEST nrofreader_rwlock
    for (uint32_t i = 1; i; i <<= 1) {
@@ -421,7 +421,7 @@ static int thread_unlockwriter(rwlock_t * rwlock)
 
 static int test_synchronize(void)
 {
-   rwlock_t    rwlock     = rwlock_INIT_FREEABLE ;
+   rwlock_t    rwlock     = rwlock_FREE ;
    thread_t *  threads[5] = { 0 } ;
 
    // prepare
@@ -913,7 +913,7 @@ static int process_sunlockwriter(rwlock_t * rwlock)
 static int test_safesync(void)
 {
    rwlock_t          rwlock = rwlock_INIT ;
-   process_t         child  = process_INIT_FREEABLE ;
+   process_t         child  = process_FREE ;
    process_result_t  result ;
 
    // TEST slockreader_rwlock

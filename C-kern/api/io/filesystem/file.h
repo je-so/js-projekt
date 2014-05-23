@@ -83,9 +83,9 @@ int unittest_io_file(void) ;
 
 // group: lifetime
 
-/* define: file_INIT_FREEABLE
+/* define: file_FREE
  * Static initializer. */
-#define file_INIT_FREEABLE                sys_iochannel_INIT_FREEABLE
+#define file_FREE sys_iochannel_FREE
 
 /* function: init_file
  * Opens a file identified by its path and name.
@@ -110,7 +110,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
 int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: initmove_file
- * Moves content of sourcefile to destfile. sourcefile is also reset to <file_INIT_FREEABLE>. */
+ * Moves content of sourcefile to destfile. sourcefile is also reset to <file_FREE>. */
 static inline void initmove_file(/*out*/file_t * restrict destfile, file_t * restrict sourcefile) ;
 
 /* function: free_file
@@ -197,7 +197,7 @@ int allocate_file(file_t fileobj, off_t file_size) ;
 static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
 {
    *destfile   = *sourcefile ;
-   *sourcefile = file_INIT_FREEABLE ;
+   *sourcefile = file_FREE ;
 }
 
 /* define: io_file
@@ -209,7 +209,7 @@ static inline void initmove_file(file_t * restrict destfile, file_t * restrict s
  * This function assumes that file is a primitive type. */
 static inline bool isfree_file(file_t fileobj)
 {
-   return file_INIT_FREEABLE == fileobj ;
+   return file_FREE == fileobj ;
 }
 
 /* function: read_file

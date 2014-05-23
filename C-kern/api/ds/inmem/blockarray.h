@@ -137,9 +137,9 @@ struct blockarray_t {
 
 // group: lifetime
 
-/* define: blockarray_INIT_FREEABLE
+/* define: blockarray_FREE
  * Static initializer. */
-#define blockarray_INIT_FREEABLE          { 0, 0, 0, 0, 0, 0, 0 }
+#define blockarray_FREE { 0, 0, 0, 0, 0, 0, 0 }
 
 /* function: init_blockarray
  * Initializes barray to use blocks of memory of size pagesize (see <pagesize_e>).
@@ -154,7 +154,7 @@ int free_blockarray(blockarray_t * barray) ;
 // group: query
 
 /* function: isfree_blockarray
- * Returns true if barray equals <blockarray_INIT_FREEABLE>. */
+ * Returns true if barray equals <blockarray_FREE>. */
 bool isfree_blockarray(const blockarray_t * barray) ;
 
 // group: read

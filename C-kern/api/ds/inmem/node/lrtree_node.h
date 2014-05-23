@@ -55,7 +55,7 @@ struct lrtree_node_t {
 
 /* define: lrtree_node_INIT
  * Static initializer. */
-#define lrtree_node_INIT               { 0, 0 }
+#define lrtree_node_INIT { 0, 0 }
 
 
 #endif

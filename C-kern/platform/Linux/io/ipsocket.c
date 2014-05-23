@@ -127,7 +127,7 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
 {
    int err ;
    int fd ;
-   ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipsocket_t        new_ipsock = ipsocket_FREE ;
    ipaddr_storage_t  localaddr2 ;
 
    VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
@@ -163,7 +163,7 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
 {
    int err ;
    int fd ;
-   ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipsocket_t new_ipsock = ipsocket_FREE ;
 
    VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ONABORT, ) ;
 
@@ -722,7 +722,7 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
 {
    int err ;
    int fd ;
-   ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipsocket_t        new_ipsock = ipsocket_FREE ;
    ipaddr_storage_t  localaddr2 ;
 
    VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
@@ -792,7 +792,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
 
    // convert
    *ipsock             = ipsockasync->ipsock ;
-   ipsockasync->ipsock = ipsocket_INIT_FREEABLE ;
+   ipsockasync->ipsock = ipsocket_FREE ;
 
    return 0 ;
 ONABORT:
@@ -880,8 +880,8 @@ static int test_initfree(void)
 {
    ipaddr_t   * ipaddr  = 0 ;
    ipaddr_t   * ipaddr2 = 0 ;
-   ipsocket_t   ipsock  = ipsocket_INIT_FREEABLE ;
-   ipsocket_t   ipsock2 = ipsocket_INIT_FREEABLE ;
+   ipsocket_t   ipsock  = ipsocket_FREE ;
+   ipsocket_t   ipsock2 = ipsocket_FREE ;
 
    // TEST static init
    TEST(-1 == ipsock) ;
@@ -944,7 +944,7 @@ static int test_initfree(void)
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == free_ipsocket(&ipsock)) ;
-      TEST(ipsocket_INIT_FREEABLE == ipsock) ;
+      TEST(ipsocket_FREE == ipsock) ;
    }
 
    // TEST init_ipsocket: EINVAL (ipaddr_t != 0)
@@ -1001,9 +1001,9 @@ static int test_connect(void)
    ipaddr_t  * ipaddr   = 0 ;
    ipaddr_t  * ipaddr2  = 0 ;
    cstring_t   name     = cstring_INIT ;
-   ipsocket_t  ipsockCL = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  ipsockLT = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE ;
+   ipsocket_t  ipsockCL = ipsocket_FREE ;
+   ipsocket_t  ipsockLT = ipsocket_FREE ;
+   ipsocket_t  ipsockSV = ipsocket_FREE ;
 
    // TEST connect TCP
    for (unsigned islocal = 0; islocal < 2; ++islocal) {
@@ -1102,10 +1102,10 @@ static int test_buffersize(void)
 {
    ipaddr_t  * ipaddr   = 0 ;
    ipaddr_t  * ipaddr2  = 0;
-   ipsocket_t  ipsockCL = ipsocket_INIT_FREEABLE;
-   ipsocket_t  ipsockLT = ipsocket_INIT_FREEABLE;
-   ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE;
-   memblock_t  buffer   = memblock_INIT_FREEABLE;
+   ipsocket_t  ipsockCL = ipsocket_FREE;
+   ipsocket_t  ipsockLT = ipsocket_FREE;
+   ipsocket_t  ipsockSV = ipsocket_FREE;
+   memblock_t  buffer   = memblock_FREE;
    size_t      unsend_bytes;
    size_t      unread_bytes;
 
@@ -1377,9 +1377,9 @@ static int test_outofbandData(void)
 {
    ipaddr_t     * ipaddr      = 0 ;
    ipaddr_t     * ipaddr2     = 0 ;
-   ipsocket_t     ipsockCL    = ipsocket_INIT_FREEABLE ;
-   ipsocket_t     ipsockLT    = ipsocket_INIT_FREEABLE ;
-   ipsocket_t     ipsockSV    = ipsocket_INIT_FREEABLE ;
+   ipsocket_t     ipsockCL    = ipsocket_FREE ;
+   ipsocket_t     ipsockLT    = ipsocket_FREE ;
+   ipsocket_t     ipsockSV    = ipsocket_FREE ;
    size_t         oob_offset  = 0 ;
    const size_t   buffer_size = 512u  ;
    uint8_t      * buffer      = (uint8_t*) malloc(buffer_size) ;
@@ -1448,8 +1448,8 @@ int test_udpIO(void)
 {
    ipaddr_t     * ipaddr       = 0 ;
    ipaddr_t     * ipaddr2      = 0 ;
-   ipsocket_t     ipsockCL[2]  = { ipsocket_INIT_FREEABLE } ;
-   ipsocket_t     ipsockSV[10] = { ipsocket_INIT_FREEABLE } ;
+   ipsocket_t     ipsockCL[2]  = { ipsocket_FREE } ;
+   ipsocket_t     ipsockSV[10] = { ipsocket_FREE } ;
    cstring_t      name         = cstring_INIT ;
    const size_t   buffer_size  = 512u  ;
    uint8_t      * buffer       = (uint8_t*) malloc(buffer_size) ;
@@ -1593,12 +1593,12 @@ ONABORT:
 
 static int test_async(void)
 {
-   ipsocket_t        iplisten = ipsocket_INIT_FREEABLE ;
-   ipsocket_t        ipsock1  = ipsocket_INIT_FREEABLE ;
-   ipsocket_t        ipsock2  = ipsocket_INIT_FREEABLE ;
+   ipsocket_t        iplisten = ipsocket_FREE ;
+   ipsocket_t        ipsock1  = ipsocket_FREE ;
+   ipsocket_t        ipsock2  = ipsocket_FREE ;
    ipaddr_t        * ipaddr   = 0 ;
    ipaddr_t        * ipaddr2  = 0 ;
-   ipsocket_async_t  ipasync  = ipsocket_async_INIT_FREEABLE ;
+   ipsocket_async_t  ipasync  = ipsocket_async_FREE ;
    uint8_t           buffer[100] ;
    size_t            size ;
 

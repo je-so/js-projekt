@@ -62,7 +62,7 @@ struct thread_startargument_t {
 #ifdef KONFIG_UNITTEST
 /* variable: s_thread_errtimer
  * Simulates an error in <newgroup_thread>. */
-static test_errortimer_t   s_thread_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -88,9 +88,9 @@ static void * main_thread(thread_startargument_t * startarg)
       goto ONABORT ;
    }
 
-   if (sys_thread_INIT_FREEABLE == pthread_self()) {
+   if (sys_thread_FREE == pthread_self()) {
       err = EINVAL ;
-      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
+      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_FREE)) ;
       goto ONABORT ;
    }
 
@@ -167,7 +167,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    int err2 = 0 ;
    pthread_attr_t    thread_attr ;
    thread_t *        thread            = 0 ;
-   thread_tls_t      tls               = thread_tls_INIT_FREEABLE ;
+   thread_tls_t      tls               = thread_tls_FREE ;
    bool              isThreadAttrValid = false ;
 
    ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
@@ -246,10 +246,10 @@ int join_thread(thread_t * threadobj)
 {
    int err ;
 
-   if (sys_thread_INIT_FREEABLE != threadobj->sys_thread) {
+   if (sys_thread_FREE != threadobj->sys_thread) {
 
       err = pthread_join(threadobj->sys_thread, 0) ;
-      threadobj->sys_thread = sys_thread_INIT_FREEABLE ;
+      threadobj->sys_thread = sys_thread_FREE ;
 
       if (err) goto ONABORT ;
    }
@@ -425,14 +425,14 @@ static int test_initfree(void)
 {
    thread_t * thread = 0 ;
 
-   // TEST thread_INIT_FREEABLE
-   thread_t sthread = thread_INIT_FREEABLE ;
+   // TEST thread_FREE
+   thread_t sthread = thread_FREE ;
    TEST(sthread.nextwait   == 0) ;
    TEST(sthread.lockflag   == 0) ;
    TEST(sthread.main_task  == 0) ;
    TEST(sthread.main_arg   == 0) ;
    TEST(sthread.returncode == 0) ;
-   TEST(sthread.sys_thread == sys_thread_INIT_FREEABLE) ;
+   TEST(sthread.sys_thread == sys_thread_FREE) ;
    TEST(sthread.tls_addr   == 0) ;
 
    // TEST new_thread
@@ -443,7 +443,7 @@ static int test_initfree(void)
    TEST(thread->main_task  == &thread_donothing) ;
    TEST(thread->main_arg   == (void*)3) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread != sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
 
    // TEST delete_thread
@@ -460,7 +460,7 @@ static int test_initfree(void)
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)14) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread != sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
    uint8_t *    tls_addr   = thread->tls_addr ;
    sys_thread_t T          = thread->sys_thread ;
@@ -489,7 +489,7 @@ static int test_initfree(void)
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)11) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread != sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
    T = thread->sys_thread ;
    atomicwrite_int(&s_thread_signal, 1) ;
@@ -522,7 +522,7 @@ ONABORT:
 
 static int test_startup(void)
 {
-   thread_t thread = thread_INIT_FREEABLE ;
+   thread_t thread = thread_FREE ;
 
    // TEST initstartup_thread
    TEST(0 == initstartup_thread(&thread))
@@ -600,7 +600,7 @@ static int test_join(void)
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->returncode == 12) ;
-   TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread == sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
 
    // TEST join_thread: calling on already joined thread
@@ -609,7 +609,7 @@ static int test_join(void)
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->returncode == 12) ;
-   TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread == sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
    TEST(0 == delete_thread(&thread)) ;
 
@@ -617,7 +617,7 @@ static int test_join(void)
    for (int i = -5; i < 5; ++i) {
       const intptr_t arg = 1111 * i ;
       TEST(0 == newgeneric_thread(&thread, thread_returncode, arg)) ;
-      TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+      TEST(thread->sys_thread != sys_thread_FREE) ;
       atomicwrite_int(&s_thread_signal, 1) ;
       TEST(0 == join_thread(thread)) ;
       TEST(0 == atomicread_int(&s_thread_signal)) ;
@@ -625,14 +625,14 @@ static int test_join(void)
       TEST(thread->main_task  == (thread_f)&thread_returncode) ;
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->returncode == arg) ;
-      TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
+      TEST(thread->sys_thread == sys_thread_FREE) ;
       TEST(thread->tls_addr   != 0) ;
       TEST(0 == join_thread(thread)) ;
       TEST(thread->nextwait   == 0) ;
       TEST(thread->main_task  == (thread_f)&thread_returncode) ;
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->returncode == arg) ;
-      TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
+      TEST(thread->sys_thread == sys_thread_FREE) ;
       TEST(thread->tls_addr   != 0) ;
       TEST(0 == delete_thread(&thread)) ;
    }
@@ -646,7 +646,7 @@ static int test_join(void)
    thread_t copied_thread = *thread ;
    atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(thread->sys_thread        == sys_thread_INIT_FREEABLE) ;
+   TEST(thread->sys_thread        == sys_thread_FREE) ;
    TEST(returncode_thread(thread) == 0) ;
    TEST(ESRCH == join_thread(&copied_thread)) ;
    TEST(0 == delete_thread(&thread)) ;
@@ -693,7 +693,7 @@ static int test_sigaltstack(void)
 {
    int err = 1 ;
    thread_t *  thread       = 0 ;
-   memblock_t  altstack     = memblock_INIT_FREEABLE ;
+   memblock_t  altstack     = memblock_FREE ;
    stack_t     oldst ;
    sigset_t    oldprocmask ;
    struct
@@ -1494,7 +1494,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage = resourceusage_FREE ;
 
    if (test_exit())                    goto ONABORT ;
 

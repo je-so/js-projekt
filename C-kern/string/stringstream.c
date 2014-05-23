@@ -75,11 +75,11 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   stringstream_t strstream   = stringstream_INIT_FREEABLE ;
+   stringstream_t strstream   = stringstream_FREE ;
    string_t       str ;
    uint8_t        buffer[256] = { 0 } ;
 
-   // TEST stringstream_INIT_FREEABLE
+   // TEST stringstream_FREE
    TEST(strstream.next == 0) ;
    TEST(strstream.end  == 0) ;
 
@@ -110,7 +110,7 @@ static int test_initfree(void)
 
    // TEST initfromstring_string
    for (unsigned i = 0; i <= sizeof(buffer); ++i) {
-      strstream = (stringstream_t) stringstream_INIT_FREEABLE ;
+      strstream = (stringstream_t) stringstream_FREE ;
       init_string(&str, sizeof(buffer)-i, buffer+i) ;
       TEST(0 == initfromstring_string(&strstream, &str)) ;
       TEST(strstream.next == buffer+i) ;
@@ -131,7 +131,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   stringstream_t strstream   = stringstream_INIT_FREEABLE ;
+   stringstream_t strstream   = stringstream_FREE ;
    uint8_t        buffer[256] = { 0 } ;
 
    // prepare
@@ -184,7 +184,7 @@ ONABORT:
 
 static int test_change(void)
 {
-   stringstream_t strstream   = stringstream_INIT_FREEABLE ;
+   stringstream_t strstream   = stringstream_FREE ;
    uint8_t        buffer[256] = { 0 } ;
 
    // prepare

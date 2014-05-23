@@ -84,13 +84,13 @@ int freeonce_errorcontext(errorcontext_t * error) ;
 
 // group: lifetime
 
-/* define: errorcontext_INIT_FREEABLE
+/* define: errorcontext_FREE
  * Static initializer. */
-#define errorcontext_INIT_FREEABLE        { 0, 0 }
+#define errorcontext_FREE { 0, 0 }
 
 /* define: errorcontext_INIT_STATIC
  * Static initializer used in <processcontext_INIT_STATIC>. */
-#define errorcontext_INIT_STATIC          { g_errorcontext_stroffset, g_errorcontext_strdata }
+#define errorcontext_INIT_STATIC { g_errorcontext_stroffset, g_errorcontext_strdata }
 
 /* function: init_errorcontext
  * Initializes errcontext with static system error string table. */

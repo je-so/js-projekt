@@ -29,11 +29,11 @@ struct memblock_t ;
 
 /* typedef: struct objectcache_t
  * Export <objectcache_t>. <objectcache_it> implementing object. */
-typedef struct objectcache_t              objectcache_t ;
+typedef struct objectcache_t objectcache_t ;
 
 /* typedef: struct objectcache_it
  * Export interface <objectcache_it>. */
-typedef struct objectcache_it             objectcache_it ;
+typedef struct objectcache_it objectcache_it ;
 
 
 /* struct: objectcache_t
@@ -43,9 +43,10 @@ iobj_DECLARE(objectcache_t, objectcache) ;
 
 // group: lifetime
 
-/* define: objectcache_INIT_FREEABLE
+/* define: objectcache_FREE
  * Static initializer. */
-#define objectcache_INIT_FREEABLE         iobj_INIT_FREEABLE
+#define objectcache_FREE \
+         iobj_FREE
 
 
 /* struct: objectcache_it

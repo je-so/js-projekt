@@ -79,9 +79,9 @@ struct splaytree_iterator_t {
 
 // group: lifetime
 
-/* define: splaytree_iterator_INIT_FREEABLE
+/* define: splaytree_iterator_FREE
  * Static initializer. */
-#define splaytree_iterator_INIT_FREEABLE   { 0, 0, 0, 0 }
+#define splaytree_iterator_FREE { 0, 0, 0, 0 }
 
 /* function: initfirst_splaytreeiterator
  * Initializes an iterator for <splaytree_t>. */
@@ -128,13 +128,14 @@ struct splaytree_t {
 
 // group: lifetime
 
-/* define: splaytree_INIT_FREEABLE
+/* define: splaytree_FREE
  * Static initializer: After assigning you can call <free_splaytree> without harm. */
-#define splaytree_INIT_FREEABLE                 splaytree_INIT(0)
+#define splaytree_FREE splaytree_INIT(0)
 
 /* define: splaytree_INIT
  * Static initializer. You can use <splaytree_INIT> with the returned values prvided by <getinistate_splaytree>. */
-#define splaytree_INIT(root)                    { root }
+#define splaytree_INIT(root) \
+         { root }
 
 /* function: init_splaytree
  * Inits an empty tree object. */

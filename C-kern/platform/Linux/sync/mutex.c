@@ -644,8 +644,8 @@ static int process_counter(processparam_t * param)
 static int test_interprocess(void)
 {
    processparam_t *  param      = 0 ;
-   process_t         process[2] = { process_INIT_FREEABLE, process_INIT_FREEABLE } ;
-   vmpage_t          shrdmem    = vmpage_INIT_FREEABLE ;
+   process_t         process[2] = { process_FREE, process_FREE } ;
+   vmpage_t          shrdmem    = vmpage_FREE ;
 
    // prepare
    TEST(0 == init2_vmpage(&shrdmem, pagesize_vm(), accessmode_RDWR_SHARED)) ;

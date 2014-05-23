@@ -116,7 +116,7 @@ static inline uint32_t headersize_blockheader(void)
 #ifdef KONFIG_UNITTEST
 /* variable: s_binarystack_errtimer
  *  * Simulates an error in <allocateblock_binarystack> and <freeblock_binarystack>. */
-static test_errortimer_t   s_binarystack_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_binarystack_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -186,7 +186,7 @@ int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size)
 {
    int err ;
 
-   *stack = (binarystack_t) binarystack_INIT_FREEABLE ;
+   *stack = (binarystack_t) binarystack_FREE ;
 
    err = allocateblock_binarystack(stack, preallocate_size) ;
    if (err) goto ONABORT ;
@@ -236,7 +236,7 @@ size_t size_binarystack(binarystack_t * stack)
 {
    size_t size = stack->blocksize - stack->freeblocksize ;
 
-   if (stack->blockstart) {   // works also in case stack == binarystack_INIT_FREEABLE
+   if (stack->blockstart) {   // works also in case stack == binarystack_FREE
       blockheader_t * header = header_blockheader(stack->blockstart) ;
 
       while (header->next) {
@@ -325,7 +325,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   binarystack_t  stack = binarystack_INIT_FREEABLE ;
+   binarystack_t  stack = binarystack_FREE ;
 
    // TEST static init
    TEST(0 == stack.freeblocksize) ;
@@ -398,7 +398,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   binarystack_t     stack      = binarystack_INIT_FREEABLE ;
+   binarystack_t     stack      = binarystack_FREE ;
    blockheader_t *   header[11] = { 0 } ;
 
    // TEST isempty_binarystack
@@ -468,7 +468,7 @@ ONABORT:
 
 static int test_change(void)
 {
-   binarystack_t  stack = binarystack_INIT_FREEABLE ;
+   binarystack_t  stack = binarystack_FREE ;
    binarystack_t  old ;
    uint8_t *      blockstart ;
    uint8_t *      addr ;

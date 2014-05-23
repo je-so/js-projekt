@@ -73,7 +73,7 @@ int free_iochannel(iochannel_t * ioc)
    int close_ioc = *ioc ;
 
    if (!isfree_iochannel(close_ioc)) {
-      *ioc = iochannel_INIT_FREEABLE ;
+      *ioc = iochannel_FREE ;
 
       err = close(close_ioc) ;
       if (err) {
@@ -97,7 +97,7 @@ ONABORT:
 int nropen_iochannel(/*out*/size_t * number_open)
 {
    int err ;
-   int   fd       = iochannel_INIT_FREEABLE ;
+   int   fd       = iochannel_FREE ;
    DIR * procself = 0 ;
 
    fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
@@ -113,7 +113,7 @@ int nropen_iochannel(/*out*/size_t * number_open)
       TRACESYSCALL_ERRLOG("fdopendir", err) ;
       goto ONABORT ;
    }
-   fd = iochannel_INIT_FREEABLE ;
+   fd = iochannel_FREE ;
 
    size_t            open_iocs = (size_t)0 ;
    struct dirent *   name ;
@@ -271,7 +271,7 @@ static int test_nropen(void)
 
    // prepare
    for (unsigned i = 0; i < lengthof(ioc); ++i) {
-      ioc[i] = file_INIT_FREEABLE ;
+      ioc[i] = file_FREE ;
    }
 
    // TEST nropen_iochannel: std file descriptors are open
@@ -309,11 +309,11 @@ ONABORT:
 static int test_initfree(void)
 {
    const int   N         = 4;  // next free file descriptor number
-   iochannel_t ioc       = iochannel_INIT_FREEABLE;
-   iochannel_t pipeioc[] = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
+   iochannel_t ioc       = iochannel_FREE;
+   iochannel_t pipeioc[] = { iochannel_FREE, iochannel_FREE };
 
-   // TEST iochannel_INIT_FREEABLE
-   TEST(-1 == sys_iochannel_INIT_FREEABLE) ;
+   // TEST iochannel_FREE
+   TEST(-1 == sys_iochannel_FREE) ;
    TEST(-1 == ioc) ;
 
    // TEST initcopy_iochannel
@@ -360,11 +360,11 @@ ONABORT:
 
 static int test_query(directory_t * tempdir)
 {
-   iochannel_t ioc   = iochannel_INIT_FREEABLE ;
-   iochannel_t pipeioc[] = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE } ;
-   file_t      file  = file_INIT_FREEABLE ;
-   ipsocket_t  ssock = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  csock = ipsocket_INIT_FREEABLE ;
+   iochannel_t ioc   = iochannel_FREE ;
+   iochannel_t pipeioc[] = { iochannel_FREE, iochannel_FREE } ;
+   file_t      file  = file_FREE ;
+   ipsocket_t  ssock = ipsocket_FREE ;
+   ipsocket_t  csock = ipsocket_FREE ;
 
    // TEST isfree_iochannel
    iochannel_t testioc[] =  { iochannel_STDIN, iochannel_STDOUT, iochannel_STDERR, 100, INT_MAX } ;
@@ -374,7 +374,7 @@ static int test_query(directory_t * tempdir)
    TEST(1 == isfree_iochannel(ioc)) ;
 
    // TEST isvalid_iochannel
-   TEST(0 == isvalid_iochannel(file_INIT_FREEABLE)) ;
+   TEST(0 == isvalid_iochannel(file_FREE)) ;
    TEST(0 == isvalid_iochannel(100)) ;
    TEST(0 == isvalid_iochannel(INT_MAX)) ;
    TEST(1 == isvalid_iochannel(file_STDIN)) ;
@@ -389,7 +389,7 @@ static int test_query(directory_t * tempdir)
    }
 
    // TEST accessmode_iochannel: predefined channels
-   TEST(accessmode_NONE  == accessmode_iochannel(iochannel_INIT_FREEABLE)) ;
+   TEST(accessmode_NONE  == accessmode_iochannel(iochannel_FREE)) ;
    TEST(accessmode_READ  == (accessmode_READ&accessmode_iochannel(iochannel_STDIN))) ;
    TEST(accessmode_WRITE == (accessmode_WRITE&accessmode_iochannel(iochannel_STDOUT))) ;
    TEST(accessmode_WRITE == (accessmode_WRITE&accessmode_iochannel(iochannel_STDERR))) ;
@@ -547,14 +547,14 @@ static int thread_writeerror(threadarg_t * arg)
 
 static int test_readwrite(directory_t * tempdir)
 {
-   iochannel_t ioc       = iochannel_INIT_FREEABLE ;
-   iochannel_t pipeioc[] = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE } ;
+   iochannel_t ioc       = iochannel_FREE ;
+   iochannel_t pipeioc[] = { iochannel_FREE, iochannel_FREE } ;
    thread_t *  thread    = 0 ;
    threadarg_t threadarg ;
-   file_t      file      = file_INIT_FREEABLE ;
-   ipsocket_t  ssock     = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  csock     = ipsocket_INIT_FREEABLE ;
-   memblock_t  buffer[2] = { memblock_INIT_FREEABLE, memblock_INIT_FREEABLE } ;
+   file_t      file      = file_FREE ;
+   ipsocket_t  ssock     = ipsocket_FREE ;
+   ipsocket_t  csock     = ipsocket_FREE ;
+   memblock_t  buffer[2] = { memblock_FREE, memblock_FREE } ;
    bool        isoldsignalmask = false ;
    sigset_t    oldsignalmask ;
    sigset_t    signalmask ;
@@ -653,8 +653,8 @@ static int test_readwrite(directory_t * tempdir)
    TEST(EBADF == read_iochannel(pipeioc[1], buffersize, buffer[0].addr, 0)) ;
    TEST(EBADF == write_iochannel(pipeioc[0], buffersize, buffer[0].addr, 0)) ;
    // wrong file descriptor value
-   TEST(EBADF == read_iochannel(iochannel_INIT_FREEABLE, buffersize, buffer[0].addr, 0)) ;
-   TEST(EBADF == write_iochannel(iochannel_INIT_FREEABLE, buffersize, buffer[0].addr, 0)) ;
+   TEST(EBADF == read_iochannel(iochannel_FREE, buffersize, buffer[0].addr, 0)) ;
+   TEST(EBADF == write_iochannel(iochannel_FREE, buffersize, buffer[0].addr, 0)) ;
    TEST(0 == free_iochannel(&pipeioc[0])) ;
    TEST(0 == free_iochannel(&pipeioc[1])) ;
 

@@ -201,7 +201,7 @@ ONABORT:
 static int test_urlencode(void)
 {
    const uint8_t* test ;
-   memblock_t     data   = memblock_INIT_FREEABLE ;
+   memblock_t     data   = memblock_FREE ;
    wbuffer_t      result = wbuffer_INIT_MEMBLOCK(&data) ;
 
    // TEST urlencode_string: alphabetical chars are not encoded
@@ -282,7 +282,7 @@ ONABORT:
 
 static int test_urldecode(void)
 {
-   memblock_t     data   = memblock_INIT_FREEABLE ;
+   memblock_t     data   = memblock_FREE ;
    wbuffer_t      result = wbuffer_INIT_MEMBLOCK(&data) ;
    const uint8_t *test ;
 

@@ -287,7 +287,7 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
 {
    int err ;
 
-   *csvfile = (csvfilereader_t) csvfilereader_INIT_FREEABLE ;
+   *csvfile = (csvfilereader_t) csvfilereader_FREE ;
 
    err = init_mmfile(&csvfile->file, filepath, 0, 0, accessmode_READ, 0) ;
    if (err) goto ONABORT ;
@@ -368,12 +368,12 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   csvfilereader_t  csvfile  = csvfilereader_INIT_FREEABLE ;
-   mmfile_t         mmempty  = mmfile_INIT_FREEABLE ;
+   csvfilereader_t  csvfile  = csvfilereader_FREE ;
+   mmfile_t         mmempty  = mmfile_FREE ;
    directory_t    * tmpdir   = 0 ;
    cstring_t        tmppath  = cstring_INIT ;
    cstring_t        filepath = cstring_INIT ;
-   file_t           file     = file_INIT_FREEABLE ;
+   file_t           file     = file_FREE ;
 
    // prepare
    TEST(0 == newtemp_directory(&tmpdir, "test_initfree")) ;
@@ -383,7 +383,7 @@ static int test_initfree(void)
    TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0)) ;
    TEST(0 == free_file(&file)) ;
 
-   // TEST csvfilereader_INIT_FREEABLE
+   // TEST csvfilereader_FREE
    TEST(0 == memcmp(&mmempty, &csvfile.file, sizeof(mmempty))) ;
    TEST(0 == csvfile.nrcolumns) ;
    TEST(0 == csvfile.nrrows) ;
@@ -428,7 +428,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   csvfilereader_t   csvfile  = csvfilereader_INIT_FREEABLE ;
+   csvfilereader_t   csvfile  = csvfilereader_FREE ;
    string_t          values[] = {
                                  string_INIT_CSTR("1"), string_INIT_CSTR("22"), string_INIT_CSTR("333"), string_INIT_CSTR("444"),
                                  string_INIT_CSTR("v1"), string_INIT_CSTR("v2"), string_INIT_CSTR("v3"), string_INIT_CSTR("v4"),
@@ -456,7 +456,7 @@ static int test_query(void)
    csvfile.nrrows    = 3 ;
    csvfile.tablevalues = values ;
    for (unsigned i = 0; i < nrcolumns_csvfilereader(&csvfile); ++i) {
-      string_t colname = string_INIT_FREEABLE ;
+      string_t colname = string_FREE ;
       TEST(0 == colname_csvfilereader(&csvfile, i, &colname)) ;
       TEST(values[i].addr == colname.addr) ;
       TEST(values[i].size == colname.size) ;
@@ -465,7 +465,7 @@ static int test_query(void)
    // TEST colvalue_csvfilereader
    for (unsigned ri = 0; ri < nrrows_csvfilereader(&csvfile); ++ri) {
       for (unsigned ci = 0; ci < nrcolumns_csvfilereader(&csvfile); ++ci) {
-         string_t colvalue = string_INIT_FREEABLE ;
+         string_t colvalue = string_FREE ;
          TEST(0 == colvalue_csvfilereader(&csvfile, ri, ci, &colvalue)) ;
          TEST(values[ri * nrcolumns_csvfilereader(&csvfile) + ci].addr == colvalue.addr) ;
          TEST(values[ri * nrcolumns_csvfilereader(&csvfile) + ci].size == colvalue.size) ;
@@ -487,12 +487,12 @@ ONABORT:
 
 static int test_reading(void)
 {
-   csvfilereader_t   csvfile  = csvfilereader_INIT_FREEABLE ;
+   csvfilereader_t   csvfile  = csvfilereader_FREE ;
    directory_t     * tmpdir   = 0 ;
-   mmfile_t          mmempty  = mmfile_INIT_FREEABLE ;
+   mmfile_t          mmempty  = mmfile_FREE ;
    cstring_t         tmppath  = cstring_INIT ;
    cstring_t         filepath = cstring_INIT ;
-   file_t            file     = file_INIT_FREEABLE ;
+   file_t            file     = file_FREE ;
    const char        * errdata[] = {
                         "\"h1\", \"h2\" x",    // extra data in header
                          "\"h1\", \"h2\", \n\"h3\"",  // header field on next line
@@ -595,7 +595,7 @@ static int test_reading(void)
    TEST(50 == nrrows_csvfilereader(&csvfile)) ;
    for (unsigned rows = 0; rows < 50; ++rows) {
       for (unsigned cols = 0; cols < 20; ++cols) {
-         string_t colvalue = string_INIT_FREEABLE ;
+         string_t colvalue = string_FREE ;
          char     buffer[100] ;
          sprintf(buffer, "%s%u%u", rows ? "value" : "header", rows, cols) ;
          TEST(0 == colvalue_csvfilereader(&csvfile, rows, cols, &colvalue)) ;

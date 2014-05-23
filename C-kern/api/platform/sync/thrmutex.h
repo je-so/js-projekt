@@ -68,27 +68,27 @@ struct thrmutex_t {
 
 // group: lifetime
 
-/* define: thrmutex_INIT_FREEABLE
+/* define: thrmutex_FREE
  * Static initializer. */
-#define thrmutex_INIT_FREEABLE            { 0, 0, 0 }
+#define thrmutex_FREE { 0, 0, 0 }
 
 /* define: thrmutex_INIT
  * Static initializer. Used in function <init_thrmutex>. */
-#define thrmutex_INIT                     { 0, 0, 0 }
+#define thrmutex_INIT { 0, 0, 0 }
 
 /* function: init_thrmutex
  * Sets mutex to <thrmutex_INIT>. */
 void init_thrmutex(/*out*/thrmutex_t * mutex) ;
 
 /* function: free_thrmutex
- * Checks that no one is waiting and sets mutex to <thrmutex_INIT_FREEABLE>.
+ * Checks that no one is waiting and sets mutex to <thrmutex_FREE>.
  * Returns EBUSY and does nothing if anyone holds the lock. */
 int free_thrmutex(thrmutex_t * mutex) ;
 
 // group: query
 
 /* function: isfree_thrmutex
- * Returns true if mutex equals <thrmutex_INIT_FREEABLE>. */
+ * Returns true if mutex equals <thrmutex_FREE>. */
 bool isfree_thrmutex(thrmutex_t * mutex) ;
 
 /* function: islocked_thrmutex

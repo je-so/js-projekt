@@ -82,9 +82,9 @@ struct gcontext_t {
 
 // group: lifetime
 
-/* define: gcontext_INIT_FREEABLE
+/* define: gcontext_FREE
  * Static initializer. */
-#define gcontext_INIT_FREEABLE \
+#define gcontext_FREE \
          { 0 }
 
 /* function: init_gcontext

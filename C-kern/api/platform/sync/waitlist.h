@@ -72,9 +72,9 @@ struct waitlist_t {
 
 // group: lifetime
 
-/* define: waitlist_INIT_FREEABLE
+/* define: waitlist_FREE
  * Static initializer. After initialization it is safe to call <free_waitlist>. */
-#define waitlist_INIT_FREEABLE            { 0, 0, 0 }
+#define waitlist_FREE { 0, 0, 0 }
 
 /* function: init_waitlist
  * Inits a waiting list. The waiting is protexted by a mutex. */

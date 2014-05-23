@@ -81,9 +81,9 @@ struct utf8scanner_t {
 
 // group: lifetime
 
-/* define: utf8scanner_INIT_FREEABLE
+/* define: utf8scanner_FREE
  * Static initializer. */
-#define utf8scanner_INIT_FREEABLE         { 0, 0, splitstring_INIT_FREEABLE }
+#define utf8scanner_FREE { 0, 0, splitstring_FREE }
 
 /* function: init_utf8scanner
  * Sets all data members to 0. No data is read. */
@@ -96,7 +96,7 @@ int free_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
 // group: query
 
 /* function: isfree_utf8scanner
- * Returns true if scan is initialized with <utf8scanner_INIT_FREEABLE>. */
+ * Returns true if scan is initialized with <utf8scanner_FREE>. */
 bool isfree_utf8scanner(const utf8scanner_t * scan) ;
 
 /* function: isnext_utf8scanner

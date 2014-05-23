@@ -51,9 +51,9 @@ bool isfree_splitstring(const splitstring_t * spstr)
 
 static int test_initfree(void)
 {
-   splitstring_t spstr = splitstring_INIT_FREEABLE ;
+   splitstring_t spstr = splitstring_FREE ;
 
-   // TEST splitstring_INIT_FREEABLE
+   // TEST splitstring_FREE
    TEST(0 == spstr.stringpart[0].addr) ;
    TEST(0 == spstr.stringpart[0].size) ;
    TEST(0 == spstr.stringpart[1].addr) ;
@@ -76,7 +76,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   splitstring_t spstr = splitstring_INIT_FREEABLE ;
+   splitstring_t spstr = splitstring_FREE ;
 
    // TEST isfree_splitstring
    TEST(1 == isfree_splitstring(&spstr)) ;
@@ -134,7 +134,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   splitstring_t spstr = splitstring_INIT_FREEABLE ;
+   splitstring_t spstr = splitstring_FREE ;
 
    // TEST setnrofparts_splitstring
    for (uint8_t i = 15; i <= 15; --i) {

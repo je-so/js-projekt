@@ -147,22 +147,22 @@ ONABORT:
 
 static int test_semaphore_init(void)
 {
-   semaphore_t    sema = semaphore_INIT_FREEABLE ;
+   semaphore_t    sema = semaphore_FREE ;
 
    // TEST static init
-   TEST(sema.sys_sema == sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema == sys_semaphore_FREE) ;
 
    // TEST init, double free
    TEST(0 == init_semaphore(&sema, 2)) ;
-   TEST(sema.sys_sema != sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema != sys_semaphore_FREE) ;
    TEST(0 == free_semaphore(&sema)) ;
-   TEST(sema.sys_sema == sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema == sys_semaphore_FREE) ;
    TEST(0 == free_semaphore(&sema)) ;
-   TEST(sema.sys_sema == sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema == sys_semaphore_FREE) ;
 
    // TEST init, wait
    TEST(0 == init_semaphore(&sema, 13)) ;
-   TEST(sema.sys_sema != sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema != sys_semaphore_FREE) ;
    for (int i = 0; i < 13; ++i) {
       TEST(0 == wait_semaphore(&sema)) ;
    }
@@ -173,7 +173,7 @@ static int test_semaphore_init(void)
    }
    TEST(EAGAIN == wait_semaphore(&sema)) ;
    TEST(0 == free_semaphore(&sema)) ;
-   TEST(sema.sys_sema == sys_semaphore_INIT_FREEABLE) ;
+   TEST(sema.sys_sema == sys_semaphore_FREE) ;
 
    // TEST signal, wait
    TEST(0 == init_semaphore(&sema, 0)) ;
@@ -241,7 +241,7 @@ ONABORT:
 static int test_semaphore_threads(void)
 {
    bool              isMutex = false ;
-   semathread_arg_t  startarg = { .sema = semaphore_INIT_FREEABLE } ;
+   semathread_arg_t  startarg = { .sema = semaphore_FREE } ;
    unsigned          valid_thread_index = 0 ;
    pthread_t         threads[100];
 
@@ -333,7 +333,7 @@ ONABORT:
 
 static int test_overflow(void)
 {
-   sys_semaphore_t   sema = sys_semaphore_INIT_FREEABLE ;
+   sys_semaphore_t   sema = sys_semaphore_FREE ;
    int               size ;
    uint64_t          value ;
 
@@ -351,7 +351,7 @@ static int test_overflow(void)
    TEST(sizeof(uint64_t) == size) ;
    TEST(0x0fffffffffffffff == value) ;
    TEST(0 == free_iochannel(&sema)) ;
-   sema = sys_semaphore_INIT_FREEABLE ;
+   sema = sys_semaphore_FREE ;
 
    return 0 ;
 ONABORT:
@@ -361,7 +361,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage = resourceusage_FREE ;
 
    // allocate possible additional (internal) malloc memory !
    if (test_semaphore_threads())       goto ONABORT ;

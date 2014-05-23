@@ -79,9 +79,9 @@ struct binarystack_t {
 
 // group: lifetime
 
-/* define: binarystack_INIT_FREEABLE
+/* define: binarystack_FREE
  * Static initializer. */
-#define binarystack_INIT_FREEABLE         { 0, 0, 0 }
+#define binarystack_FREE { 0, 0, 0 }
 
 /* function: init_binarystack
  * Initializes stack object and reserves at least preallocate_size bytes. */

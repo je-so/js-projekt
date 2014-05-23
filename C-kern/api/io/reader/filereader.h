@@ -94,13 +94,13 @@ struct filereader_t {
  * The sum of the size the two allocated buffers.
  * Every buffer is allocated half the size in bytes of this value.
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
-#define filereader_SYS_BUFFER_SIZE     (4*4096)
+#define filereader_SYS_BUFFER_SIZE (4*4096)
 
 // group: lifetime
 
-/* define: filereader_INIT_FREEABLE
+/* define: filereader_FREE
  * Static initializer. */
-#define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_iochannel_INIT_FREEABLE, { {0, 0}, {0, 0} } }
+#define filereader_FREE { 0, 0, 0, 0, 0, 0, sys_iochannel_FREE, { {0, 0}, {0, 0} } }
 
 /* function: initsingle_filereader
  * Opens file for reading into a single buffer.
@@ -136,7 +136,7 @@ int ioerror_filereader(const filereader_t * frd) ;
 bool iseof_filereader(const filereader_t * frd) ;
 
 /* function: isfree_filereader
- * Returns true in case frd == <filereader_INIT_FREEABLE>. */
+ * Returns true in case frd == <filereader_FREE>. */
 bool isfree_filereader(const filereader_t * frd) ;
 
 /* function: isnext_filereader

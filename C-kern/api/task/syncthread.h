@@ -87,9 +87,9 @@ struct syncthread_t {
 
 // group: lifetime
 
-/* define: syncthread_INIT_FREEABLE
+/* define: syncthread_FREE
  * Static initializer. */
-#define syncthread_INIT_FREEABLE \
+#define syncthread_FREE \
          { 0, 0 }
 
 /* define: syncthread_INIT
@@ -112,7 +112,7 @@ void free_syncthread(syncthread_t * sthread) ;
 // group: query
 
 /* function: isfree_syncthread
- * Returns true if sthread is intialized with <syncthread_INIT_FREEABLE>. */
+ * Returns true if sthread is intialized with <syncthread_FREE>. */
 bool isfree_syncthread(const syncthread_t * sthread) ;
 
 /* function: state_syncthread
@@ -222,7 +222,7 @@ int callabort_syncthread(syncthread_t * sthread) ;
 /* define: free_syncthread
  * Implements <syncthread_t.free_syncthread>. */
 #define free_syncthread(sthread) \
-         ((void)(*(sthread) = (syncthread_t) syncthread_INIT_FREEABLE))
+         ((void)(*(sthread) = (syncthread_t) syncthread_FREE))
 
 /* define: handlesignal_syncthread
  * Implements <syncthread_t.handlesignal_syncthread>. */

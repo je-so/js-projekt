@@ -100,10 +100,10 @@ struct thread_t {
 
 // group: lifetime
 
-/* define: thread_INIT_FREEABLE
+/* define: thread_FREE
  * Static initializer.
  * Used to initialize thread in <thread_tls_t>. */
-#define thread_INIT_FREEABLE              { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } }
+#define thread_FREE { 0, 0, 0, 0, 0, sys_thread_FREE, 0, { .uc_link = 0 } }
 
 /* function: initstartup_thread
  * Initializes main thread. Called from <startup_platform>.

@@ -173,7 +173,7 @@ int free_file(file_t * fileobj)
    int close_fd = *fileobj ;
 
    if (!isfree_file(close_fd)) {
-      *fileobj = file_INIT_FREEABLE ;
+      *fileobj = file_FREE ;
 
       err = close(close_fd) ;
       if (err) {
@@ -335,7 +335,7 @@ ONABORT:
 
 static int test_remove(directory_t * tempdir)
 {
-   file_t   file = file_INIT_FREEABLE ;
+   file_t   file = file_FREE ;
    off_t    filesize ;
 
    // TEST remove_file
@@ -359,9 +359,9 @@ ONABORT:
 
 static int test_query(directory_t * tempdir)
 {
-   file_t fd  = file_INIT_FREEABLE ;
-   file_t fd2 = file_INIT_FREEABLE ;
-   int    pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   file_t fd  = file_FREE ;
+   file_t fd2 = file_FREE ;
+   int    pipefd[2] = { file_FREE, file_FREE } ;
    off_t  filesize ;
 
    // prepare
@@ -373,7 +373,7 @@ static int test_query(directory_t * tempdir)
    TEST(2 == file_STDERR) ;
 
    // TEST isfree_file
-   fd = file_INIT_FREEABLE ;
+   fd = file_FREE ;
    TEST(1 == isfree_file(fd)) ;
    fd = file_STDIN ;
    TEST(0 == isfree_file(fd)) ;
@@ -383,7 +383,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == isfree_file(fd)) ;
 
    // TEST isvalid_file
-   TEST(0 == isvalid_file(file_INIT_FREEABLE)) ;
+   TEST(0 == isvalid_file(file_FREE)) ;
    TEST(0 == isvalid_file(100)) ;
    TEST(1 == isvalid_file(file_STDIN)) ;
    TEST(1 == isvalid_file(file_STDOUT)) ;
@@ -398,8 +398,8 @@ static int test_query(directory_t * tempdir)
    TEST(accessmode_READ == accessmode_file(fd2)) ;
    TEST(0 == free_file(&fd)) ;
    TEST(0 == free_file(&fd2)) ;
-   TEST(fd == file_INIT_FREEABLE) ;
-   TEST(fd2 == file_INIT_FREEABLE) ;
+   TEST(fd == file_FREE) ;
+   TEST(fd2 == file_FREE) ;
 
    // TEST accessmode_file: accessmode_WRITE
    fd = openat(io_directory(tempdir), "testfile", O_WRONLY|O_CLOEXEC) ;
@@ -410,8 +410,8 @@ static int test_query(directory_t * tempdir)
    TEST(accessmode_WRITE == accessmode_file(fd2)) ;
    TEST(0 == free_file(&fd)) ;
    TEST(0 == free_file(&fd2)) ;
-   TEST(fd == file_INIT_FREEABLE) ;
-   TEST(fd2 == file_INIT_FREEABLE) ;
+   TEST(fd == file_FREE) ;
+   TEST(fd2 == file_FREE) ;
 
    // TEST accessmode_file: accessmode_RDWR
    fd = openat(io_directory(tempdir), "testfile", O_RDWR|O_CLOEXEC) ;
@@ -420,14 +420,14 @@ static int test_query(directory_t * tempdir)
    TEST(accessmode_RDWR == accessmode_file(fd)) ;
    TEST(accessmode_RDWR == accessmode_file(fd2)) ;
    TEST(0 == free_file(&fd)) ;
-   TEST(fd == file_INIT_FREEABLE) ;
+   TEST(fd == file_FREE) ;
 
    // TEST accessmode_file: accessmode_NONE
    TEST(accessmode_NONE == accessmode_file(fd2)) ;
    TEST(accessmode_NONE == accessmode_file(fd2)) ;
    TEST(accessmode_NONE == accessmode_file(fd)) ;
    TEST(accessmode_NONE == accessmode_file(fd)) ;
-   fd2 = file_INIT_FREEABLE ;
+   fd2 = file_FREE ;
 
    // TEST size_file: regular file
    TEST(0 == initappend_file(&fd, "testfilesize", tempdir)) ;
@@ -461,7 +461,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == free_file(&pipefd[1])) ;
 
    // TEST EBADF
-   TEST(EBADF == size_file(file_INIT_FREEABLE, &filesize)) ;
+   TEST(EBADF == size_file(file_FREE, &filesize)) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "testfile")) ;
@@ -479,7 +479,7 @@ ONABORT:
 
 static int test_initfree(directory_t * tempdir)
 {
-   file_t   file = file_INIT_FREEABLE ;
+   file_t   file = file_FREE ;
    size_t   nropenfd ;
    size_t   nropenfd2 ;
 
@@ -499,12 +499,12 @@ static int test_initfree(directory_t * tempdir)
       TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd+1 == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
-      TEST(file == file_INIT_FREEABLE) ;
+      TEST(file == file_FREE) ;
       TEST(isfree_file(file)) ;
       TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
-      TEST(file == file_INIT_FREEABLE) ;
+      TEST(file == file_FREE) ;
       TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd == nropenfd2) ;
    }
@@ -519,11 +519,11 @@ static int test_initfree(directory_t * tempdir)
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == trypath_directory(tempdir, "init2")) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == removefile_directory(tempdir, "init2")) ;
@@ -537,18 +537,18 @@ static int test_initfree(directory_t * tempdir)
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == trypath_directory(tempdir, "init3")) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == removefile_directory(tempdir, "init3")) ;
 
    // TEST initmove_file
    for (int i = 0; i < 100; ++i) {
-      file_t destfile   = file_INIT_FREEABLE ;
+      file_t destfile   = file_FREE ;
       file_t sourcefile = i ;
       TEST(!isfree_file(sourcefile)) ;
       initmove_file(&destfile, &sourcefile) ;
@@ -565,7 +565,7 @@ static int test_initfree(directory_t * tempdir)
    // TEST EEXIST
    TEST(0 == makefile_directory(tempdir, "init1", 0)) ;
    TEST(EEXIST == initcreate_file(&file, "init1", tempdir)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    TEST(0 == removefile_directory(tempdir, "init1")) ;
 
    // TEST EINVAL
@@ -585,7 +585,7 @@ ONABORT:
 
 static int compare_file_content(directory_t * tempdir, const char * filename, unsigned times)
 {
-   file_t file = file_INIT_FREEABLE ;
+   file_t file = file_FREE ;
 
    TEST(0 == init_file(&file, filename, accessmode_READ, tempdir)) ;
 
@@ -609,7 +609,7 @@ ONABORT:
 
 static int test_create(directory_t * tempdir)
 {
-   file_t   file = file_INIT_FREEABLE ;
+   file_t   file = file_FREE ;
    size_t   bwritten ;
    uint8_t  buffer[256] ;
    off_t    size ;
@@ -629,7 +629,7 @@ static int test_create(directory_t * tempdir)
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(256 == size) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    if (compare_file_content(tempdir, "testcreate", 1)) goto ONABORT ;
 
    // TEST initcreate_file: EEXIST
@@ -637,7 +637,7 @@ static int test_create(directory_t * tempdir)
    TEST(EEXIST == initcreate_file(&file, "testcreate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(256 == size) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    if (compare_file_content(tempdir, "testcreate", 1)) goto ONABORT ;
 
    // unprepare
@@ -652,7 +652,7 @@ ONABORT:
 
 static int test_append(directory_t * tempdir)
 {
-   file_t   file = file_INIT_FREEABLE ;
+   file_t   file = file_FREE ;
    size_t   bwritten ;
    uint8_t  buffer[256] ;
    off_t    size ;
@@ -672,7 +672,7 @@ static int test_append(directory_t * tempdir)
    TEST(0 == filesize_directory(tempdir, "testappend", &size)) ;
    TEST(256 == size) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    if (compare_file_content(tempdir, "testappend", 1)) goto ONABORT ;
 
    // TEST initappend_file: file already exists
@@ -685,7 +685,7 @@ static int test_append(directory_t * tempdir)
    TEST(0 == filesize_directory(tempdir, "testappend", &size)) ;
    TEST(512 == size) ;
    TEST(0 == free_file(&file)) ;
-   TEST(file == file_INIT_FREEABLE) ;
+   TEST(file == file_FREE) ;
    if (compare_file_content(tempdir, "testappend", 2)) goto ONABORT ;
 
    // unprepare
@@ -753,9 +753,9 @@ static void siguser(int signr)
 
 static int test_readwrite(directory_t * tempdir)
 {
-   file_t            fd        = file_INIT_FREEABLE ;
-   file_t            pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
-   memblock_t        buffer    = memblock_INIT_FREEABLE ;
+   file_t            fd        = file_FREE ;
+   file_t            pipefd[2] = { file_FREE, file_FREE } ;
+   memblock_t        buffer    = memblock_FREE ;
    thread_t          * thread  = 0 ;
    uint8_t           byte ;
    size_t            bytes_read ;
@@ -927,9 +927,9 @@ ONABORT:
 
 static int test_allocate(directory_t * tempdir)
 {
-   file_t   file  = file_INIT_FREEABLE ;
-   file_t   file2 = file_INIT_FREEABLE ;
-   int      pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   file_t   file  = file_FREE ;
+   file_t   file2 = file_FREE ;
+   int      pipefd[2] = { file_FREE, file_FREE } ;
    size_t   bwritten ;
    size_t   bread ;
    uint32_t buffer[1024] ;
@@ -1071,8 +1071,8 @@ static int test_allocate(directory_t * tempdir)
    TEST(EBADF == truncate_file(oldfile, 4096))
    TEST(EBADF == allocate_file(oldfile, 4096))
    // invalid file descriptor
-   TEST(EBADF == truncate_file(file_INIT_FREEABLE, 4096))
-   TEST(EBADF == allocate_file(file_INIT_FREEABLE, 4096))
+   TEST(EBADF == truncate_file(file_FREE, 4096))
+   TEST(EBADF == allocate_file(file_FREE, 4096))
 
    // TEST ENOSPC
    TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir)) ;
@@ -1097,7 +1097,7 @@ ONABORT:
 
 static int test_advise(directory_t * tempdir)
 {
-   file_t         fd     = file_INIT_FREEABLE ;
+   file_t         fd     = file_FREE ;
    uint8_t        buffer[256] ;
    size_t         bytes_read ;
    size_t         bytes_written ;
@@ -1135,7 +1135,7 @@ static int test_advise(directory_t * tempdir)
 
    // TEST advisereadahead_file: EBADF
    TEST(EBADF == advisereadahead_file(badfd, 0, 0)) ;
-   TEST(EBADF == advisereadahead_file(file_INIT_FREEABLE, 0, 0)) ;
+   TEST(EBADF == advisereadahead_file(file_FREE, 0, 0)) ;
 
    // TEST advisedontneed_file: EINVAL
    TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir)) ;
@@ -1156,7 +1156,7 @@ static int test_advise(directory_t * tempdir)
 
    // TEST advisedontneed_file: EBADF
    TEST(EBADF == advisedontneed_file(badfd, 0, 0)) ;
-   TEST(EBADF == advisedontneed_file(file_INIT_FREEABLE, 0, 0)) ;
+   TEST(EBADF == advisedontneed_file(file_FREE, 0, 0)) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "advise1")) ;

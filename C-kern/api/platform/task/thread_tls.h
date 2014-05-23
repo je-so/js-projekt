@@ -60,9 +60,9 @@ struct thread_tls_t {
 
 // group: lifetime
 
-/* define: thread_tls_INIT_FREEABLE
+/* define: thread_tls_FREE
  * Static initializer. */
-#define thread_tls_INIT_FREEABLE          { 0 }
+#define thread_tls_FREE { 0 }
 
 /* function: init_threadtls
  * Allocates a memory block big enoug to hold all thread local storage data.
@@ -115,7 +115,7 @@ size_t size_threadtls(void) ;
 
 /* function: signalstack_threadtls
  * Returns in stackmem the signalstack from tls.
- * If tls is in a freed state stackmem is set to <memblock_INIT_FREEABLE>.
+ * If tls is in a freed state stackmem is set to <memblock_FREE>.
  * The signal stack is used in case of a signal (exceptions).
  * For example if the thread stack overflows SIGSEGV signal is thrown.
  * To handle this case the system must have an extra signal stack
@@ -124,7 +124,7 @@ void signalstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * 
 
 /* function: threadstack_threadtls
  * Returns in stackmem the thread stack from tls.
- * If tls is in a freed state stackmem is set to <memblock_INIT_FREEABLE>. */
+ * If tls is in a freed state stackmem is set to <memblock_FREE>. */
 void threadstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * stackmem) ;
 
 // group: generic

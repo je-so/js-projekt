@@ -96,9 +96,9 @@ struct @TYPENAME {\n\
 };\n\n\
 // group: lifetime\n\
 \n\
-/* define: @TYPENAME2_INIT_FREEABLE\n\
+/* define: @TYPENAME2_FREE\n\
  * Static initializer. */\n\
-#define @TYPENAME2_INIT_FREEABLE \\\n\
+#define @TYPENAME2_FREE \\\n\
          { 0 }\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
@@ -154,8 +154,8 @@ static const char * s_templatesource =
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\
 {\n\
-   @TYPENAME obj = @TYPENAME2_INIT_FREEABLE;\n\n\
-   // TEST @TYPENAME2_INIT_FREEABLE\n\
+   @TYPENAME obj = @TYPENAME2_FREE;\n\n\
+   // TEST @TYPENAME2_FREE\n\
    TEST(0 == obj.dummy);\n\n\
    return 0;\n\
 ONABORT:\n\
@@ -163,7 +163,7 @@ ONABORT:\n\
 }\n\n\
 static int childprocess_unittest(void)\n\
 {\n\
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;\n\n\
+   resourceusage_t   usage = resourceusage_FREE;\n\n\
    TEST(0 == init_resourceusage(&usage));\n\n\
    if (test_initfree())       goto ONABORT;\n\n\
    TEST(0 == same_resourceusage(&usage));\n\
@@ -344,7 +344,7 @@ ONABORT:
 static int generate_file(const char * filetemplate, const char * filepath)
 {
    int err ;
-   file_t outfile = file_INIT_FREEABLE ;
+   file_t outfile = file_FREE ;
 
    err = initcreate_file(&outfile, filepath, 0) ;
    if (err) goto ONABORT ;

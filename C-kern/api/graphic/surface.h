@@ -59,14 +59,14 @@ struct surface_t {
 
 // group: lifetime
 
-/* define: surface_INIT_FREEABLE
+/* define: surface_FREE
  * Static initializer. */
-#define surface_INIT_FREEABLE \
+#define surface_FREE \
          { 0 }
 
-/* define: surface_INIT_FREEABLE_EMBEDDED
+/* define: surface_FREE_EMBEDDED
  * Static initializer for types which inherit from <surface_t> with <surface_EMBED>. */
-#define surface_INIT_FREEABLE_EMBEDDED \
+#define surface_FREE_EMBEDDED \
          0
 
 // group: generic

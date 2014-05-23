@@ -96,7 +96,7 @@ typedef enum textresource_textatom_e   textresource_textatom_e ;
 
 // group: constants
 
-#define VERSION   "v4"
+#define VERSION "v4"
 
 // group: log
 
@@ -141,7 +141,7 @@ struct xmlattribute_t {
 /* define: xmlattribute_INIT
  * Static initializer. Sets <xmlattribute_t> name to parameter value name and
  * its value to undefined. */
-#define xmlattribute_INIT(name)        { (name), string_INIT_FREEABLE }
+#define xmlattribute_INIT(name)        { (name), string_FREE }
 
 
 /* struct: outconfig_fctparam_t
@@ -204,13 +204,13 @@ struct outconfig_t {
    } ;
 } ;
 
-#define outconfig_INIT_FREEABLE        { outconfig_NONE, { .C = { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, (arraystf_t*)0 } } }
+#define outconfig_FREE { outconfig_NONE, { .C = { string_FREE, string_FREE, string_FREE, string_FREE, string_FREE, string_FREE, (arraystf_t*)0 } } }
 
 int init_outconfig(/*out*/outconfig_t * outconfig, outconfig_e type)
 {
    int err ;
 
-   *outconfig = (outconfig_t) outconfig_INIT_FREEABLE ;
+   *outconfig = (outconfig_t) outconfig_FREE ;
 
    if (type == outconfig_C) {
       err = new_arrayfctparam(&outconfig->C.fctparam, 16) ;
@@ -234,7 +234,7 @@ int free_outconfig(outconfig_t * outconfig)
       if (err) goto ONABORT ;
    }
 
-   *outconfig = (outconfig_t) outconfig_INIT_FREEABLE ;
+   *outconfig = (outconfig_t) outconfig_FREE ;
 
    return 0 ;
 ONABORT:
@@ -280,9 +280,9 @@ static typeadapt_member_t  g_parameter_nodeadapter = typeadapt_member_INIT((type
 
 // group: lifetime
 
-/* define: textresource_parameter_INIT_FREEABLE
+/* define: textresource_parameter_FREE
  * Static initializer. */
-#define textresource_parameter_INIT_FREEABLE    { arraystf_node_INIT(0,0), 0, 0, typemodifier_PLAIN }
+#define textresource_parameter_FREE { arraystf_node_INIT(0,0), 0, 0, typemodifier_PLAIN }
 
 
 /* struct: textresource_textatom_t
@@ -364,7 +364,7 @@ slist_IMPLEMENT(_conditionlist, textresource_condition_t, next)
 static int copyobj_textresourcecondition(textresource_condition_adapt_t * typeadp, /*out*/textresource_condition_t ** condcopy, const textresource_condition_t * cond)
 {
    int err ;
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
 
    (void) typeadp ;
 
@@ -454,7 +454,7 @@ slist_IMPLEMENT(_langreflist, textresource_langref_t, next)
 static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /*out*/textresource_langref_t ** langcopy, const textresource_langref_t * lang)
 {
    int err ;
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
 
    (void) typeadp ;
 
@@ -570,7 +570,7 @@ static int init_textresourcetext(/*out*/textresource_text_t * text, const string
 static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/textresource_text_t ** textcopy, const textresource_text_t * text)
 {
    int err ;
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   memblock_t  mblock = memblock_FREE ;
 
    (void) typeadt ;
 
@@ -679,9 +679,9 @@ arraystf_IMPLEMENT(_arrayptype, textresource_paramtype_t, name.addr)
 
 // group: lifetime
 
-/* define: textresource_INIT_FREEABLE
+/* define: textresource_FREE
  * Static initializer. */
-#define textresource_INIT_FREEABLE     { 0, 0, 0, slist_INIT, slist_INIT, outconfig_INIT_FREEABLE }
+#define textresource_FREE { 0, 0, 0, slist_INIT, slist_INIT, outconfig_FREE }
 
 static int free_textresource(textresource_t * textres)
 {
@@ -741,7 +741,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
          ,textresource_paramtype_INIT("_err", typemodifier_RESERVED, "")
    } ;
 
-   *textres = (textresource_t) textresource_INIT_FREEABLE ;
+   *textres = (textresource_t) textresource_FREE ;
 
    textres->read_from_filename = read_from_filename ;
 
@@ -1159,7 +1159,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
       for (;;) {
 
          string_t                   name_type ;
-         textresource_parameter_t   textparam = textresource_parameter_INIT_FREEABLE ;
+         textresource_parameter_t   textparam = textresource_parameter_FREE ;
 
          do {
             err = match_identifier(reader, &name_type) ;
@@ -1444,7 +1444,7 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
          textresource_condition_t * condition ;
 
          {
-            textresource_condition_t  emptycond = textresource_condition_INIT(string_INIT_FREEABLE) ;
+            textresource_condition_t  emptycond = textresource_condition_INIT(string_FREE) ;
             err = addcondition_textresourcelangref(lang, &emptycond, &condition) ;
             if (err) goto ONABORT ;
          }
@@ -1979,9 +1979,9 @@ ONABORT:
 
 // group: lifetime
 
-/* define: textresource_reader_INIT_FREEABLE
+/* define: textresource_reader_FREE
  * Static initializer. */
-#define textresource_reader_INIT_FREEABLE       { textresource_INIT_FREEABLE, utf8reader_INIT_FREEABLE } ;
+#define textresource_reader_FREE { textresource_FREE, utf8reader_FREE } ;
 
 /* function: free_textresourcereader
  * Closes file and frees memory of <textresource_t>. */
@@ -2009,7 +2009,7 @@ ONABORT:
 static int init_textresourcereader(/*out*/textresource_reader_t * reader, const char * filename)
 {
    int err ;
-   textresource_reader_t new_reader = textresource_reader_INIT_FREEABLE ;
+   textresource_reader_t new_reader = textresource_reader_FREE ;
 
    err = init_textresource(&new_reader.txtres, filename) ;
    if (err) goto ONABORT ;
@@ -2047,9 +2047,9 @@ static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer) 
 
 // group: lifetime
 
-/* define: textresource_writer_INIT_FREEABLE
+/* define: textresource_writer_FREE
  * Static initializer. */
-#define textresource_writer_INIT_FREEABLE       { 0, file_INIT_FREEABLE }
+#define textresource_writer_FREE { 0, file_FREE }
 
 static int free_textresourcewriter(textresource_writer_t * writer)
 {
@@ -2070,7 +2070,7 @@ static int init_textresourcewriter(/*out*/textresource_writer_t * writer, textre
 {
    int err = EINVAL ;
 
-   *writer = (textresource_writer_t) textresource_writer_INIT_FREEABLE ;
+   *writer = (textresource_writer_t) textresource_writer_FREE ;
    writer->txtres = txtres ;
 
    switch (txtres->outconfig.type) {
@@ -2367,7 +2367,7 @@ ONABORT:
 static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
-   cstring_t                      filename = cstring_INIT_FREEABLE ;
+   cstring_t                      filename = cstring_FREE ;
    typeof(((outconfig_t*)0)->C) * progC    = &writer->txtres->outconfig.C ;
 
    // generate C source file
@@ -2521,7 +2521,7 @@ ONABORT:
 static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
-   cstring_t                           filename = cstring_INIT_FREEABLE ;
+   cstring_t                           filename = cstring_FREE ;
    typeof(((outconfig_t*)0)->Ctable) * Ctable   = &writer->txtres->outconfig.Ctable ;
 
    // generate C source file
@@ -2569,8 +2569,8 @@ ONABORT:
 static int main_thread(maincontext_t * maincontext)
 {
    int err ;
-   textresource_reader_t   reader = textresource_reader_INIT_FREEABLE ;
-   textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
+   textresource_reader_t   reader = textresource_reader_FREE ;
+   textresource_writer_t   writer = textresource_writer_FREE ;
    const char              * infile ;
 
    if (maincontext->argc != 2) {

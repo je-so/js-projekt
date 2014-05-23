@@ -72,18 +72,18 @@ struct textpos_t {
 
 /* define: textpos_INIT
  * Static initializer. Initializes position to start of text. */
-#define textpos_INIT                { 0, 1, 0 }
+#define textpos_INIT { 0, 1, 0 }
 
-/* define: textpos_INIT_FREEABLE
+/* define: textpos_FREE
  * Static initializer. */
-#define textpos_INIT_FREEABLE       { 0, 0, 0 }
+#define textpos_FREE { 0, 0, 0 }
 
 /* function: init_textpos
  * Sets column and line numbers to arbitrary values. */
 void init_textpos(/*out*/textpos_t * txtpos, size_t colnr, size_t linenr) ;
 
 /* function: free_textpos
- * Sets pos to <textpos_INIT_FREEABLE>. */
+ * Sets pos to <textpos_FREE>. */
 void free_textpos(textpos_t * txtpos) ;
 
 // group: query
@@ -131,7 +131,7 @@ void incrline_textpos(textpos_t * txtpos) ;
 
 /* define: free_textpos
  * Implements <textpos_t.free_textpos>. */
-#define free_textpos(txtpos)                       ((void)(*(txtpos) = (textpos_t)textpos_INIT_FREEABLE))
+#define free_textpos(txtpos)                       ((void)(*(txtpos) = (textpos_t)textpos_FREE))
 
 /* define: init_textpos
  * Implements <textpos_t.init_textpos>. */

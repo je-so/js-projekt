@@ -128,7 +128,7 @@ struct decimal_divstate_t {
 #ifdef KONFIG_UNITTEST
 /* variable: s_decimal_errtimer
  * Simulates an error in different functions. */
-static test_errortimer_t   s_decimal_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_decimal_errtimer = test_errortimer_FREE ;
 #endif
 
 static const bigint_fixed_DECLARE(1)   s_decimal_10raised9   = bigint_fixed_INIT(1, 0, 0x3b9aca00) ;
@@ -201,7 +201,7 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
 {
    int err ;
    decimal_frombigint_t * newobj  = 0 ;
-   memblock_t           objmem    = memblock_INIT_FREEABLE ;
+   memblock_t           objmem    = memblock_FREE ;
    const size_t         objsize   = sizeof(decimal_frombigint_t) ;
 
    static_assert(lengthof(s_decimal_powbase) == lengthof(newobj->state), "for every table entry a newobj->state entry") ;
@@ -285,13 +285,13 @@ ONABORT:
  * > for (unsigned i = 0; i < size_decimal(dec); ++i)
  * >    digit_value[i] = dec->digits[i] * pow(DIGITSBASE, i) * pow(10, dec->decimal_exponent) ;
  * */
-#define DIGITSBASE                     ((uint32_t)1000000000)
+#define DIGITSBASE ((uint32_t)1000000000)
 
 /* define: BIGINT_MAXSIZE
  * The number of digits of <bigint_t> which may be converted to <decimal_t> without overflow.
  * A <bigint_t> number whose size is bigger will overflow for sure.
  * A <bigint_t> number whose size is smaller will never overflow. */
-#define BIGINT_MAXSIZE                 ((uint32_t)119)
+#define BIGINT_MAXSIZE ((uint32_t)119)
 
 static inline uint32_t objectsize_decimal(uint8_t size_allocated)
 {
@@ -450,7 +450,7 @@ static int allocategroup_decimal(uint32_t nrobjects, /*out*/decimal_t * dec[nrob
       }
 
       // TODO: implement group allocate in memory manager
-      memblock_t  mblock = memblock_INIT_FREEABLE ;
+      memblock_t  mblock = memblock_FREE ;
       err = RESIZE_MM(objectsize_decimal((uint8_t)size), &mblock) ;
       if (err) goto ONABORT ;
 

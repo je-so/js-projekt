@@ -58,9 +58,9 @@ struct valuecache_t {
 
 // group: lifetime
 
-/* define: valuecache_INIT_FREEABLE
+/* define: valuecache_FREE
  * Static initializer. */
-#define valuecache_INIT_FREEABLE          { 0, 0 }
+#define valuecache_FREE { 0, 0 }
 
 /* function: init_valuecache
  * Sets values of valuecache. */

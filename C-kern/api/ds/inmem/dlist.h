@@ -71,9 +71,9 @@ struct dlist_iterator_t {
 
 // group: lifetime
 
-/* define: dlist_iterator_INIT_FREEABLE
+/* define: dlist_iterator_FREE
  * Static initializer. */
-#define dlist_iterator_INIT_FREEABLE   { 0, 0 }
+#define dlist_iterator_FREE { 0, 0 }
 
 /* function: initfirst_dlistiterator
  * Initializes an iterator for <dlist_t>. */
@@ -131,7 +131,7 @@ struct dlist_t {
 /* define: dlist_INIT
  * Static initializer. You can use it instead of <init_dlist>.
  * After assigning you can call <free_dlist> or any other function safely. */
-#define dlist_INIT                     { (void*)0 }
+#define dlist_INIT { (void*)0 }
 
 /* define: dlist_INIT_LAST
  * Static initializer. Sets the last pointer in <dlist_t> to lastnode. */

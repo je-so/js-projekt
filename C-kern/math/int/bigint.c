@@ -64,7 +64,7 @@ struct bigint_divstate_t {
 #ifdef KONFIG_UNITTEST
 /* variable: s_bigint_errtimer
  * Simulates an error in different functions. */
-static test_errortimer_t   s_bigint_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_bigint_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper

@@ -58,9 +58,9 @@ typedef struct opengl_display_t * egldisplay_t;
 
 // group: lifetime
 
-/* define: egldisplay_INIT_FREEABLE
+/* define: egldisplay_FREE
  * Static initializer. */
-#define egldisplay_INIT_FREEABLE    0
+#define egldisplay_FREE 0
 
 /* function: initdefault_egldisplay
  * Initializes egldisp with the default display connection.

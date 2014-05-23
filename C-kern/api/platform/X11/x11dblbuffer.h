@@ -63,9 +63,9 @@ struct x11dblbuffer_t {
 
 // group: lifetime
 
-/* define: x11dblbuffer_INIT_FREEABLE
+/* define: x11dblbuffer_FREE
  * Static initializer. */
-#define x11dblbuffer_INIT_FREEABLE \
+#define x11dblbuffer_FREE \
          { 0, 0, 0 }
 
 /* function: init_x11dblbuffer

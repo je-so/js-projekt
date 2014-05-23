@@ -53,9 +53,9 @@ struct wlistentry_t {
    syncevent_t    event ;
 } ;
 
-/* define: wlistentry_INIT_FREEABLE
+/* define: wlistentry_FREE
  * Static initializer. */
-#define wlistentry_INIT_FREEABLE          { 0, 0, syncevent_INIT_FREEABLE }
+#define wlistentry_FREE { 0, 0, syncevent_FREE }
 
 /* function: initmove_wlistentry
  * Moves src to dest. Consider src uninitialized after this operation. */
@@ -71,7 +71,7 @@ void initmove_wlistentry(/*out*/wlistentry_t * dest, wlistentry_t * src)
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t      s_syncwlist_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_syncwlist_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -141,7 +141,7 @@ int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
       // the reason is that initmove_wlistentry should not access waiting threads called from remove_syncqueue
       wlistentry_t * next = (wlistentry_t*)wlist->next ;
       while (next != (wlistentry_t*)wlist) {
-         next->event = (syncevent_t) syncevent_INIT_FREEABLE ;
+         next->event = (syncevent_t) syncevent_FREE ;
          next = next_wlist(next) ;
       }
 
@@ -196,7 +196,7 @@ int insert_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    insertbefore_wlist((wlistentry_t*)wlist, entry) ;
    ++ wlist->nrnodes ;
 
-   entry->event = (syncevent_t) syncevent_INIT_FREEABLE ;
+   entry->event = (syncevent_t) syncevent_FREE ;
 
    *newevent = &entry->event ;
 
@@ -357,11 +357,11 @@ bool next_syncwlistiterator(syncwlist_iterator_t * iter, /*out*/struct syncevent
 
 static int test_wlistentry(void)
 {
-   wlistentry_t   entry = wlistentry_INIT_FREEABLE ;
+   wlistentry_t   entry = wlistentry_FREE ;
    wlistentry_t   entries[2] ;
    syncwait_t     syncwait ;
 
-   // TEST wlistentry_INIT_FREEABLE
+   // TEST wlistentry_FREE
    TEST(0 == entry.next) ;
    TEST(0 == entry.prev) ;
    TEST(1 == isfree_syncevent(&entry.event)) ;
@@ -369,11 +369,11 @@ static int test_wlistentry(void)
    // TEST initmove_wlistentry
    entries[0].next = (dlist_node_t*)&entries[1] ;
    entries[0].prev = (dlist_node_t*)&entries[1] ;
-   entries[0].event = (syncevent_t) syncevent_INIT_FREEABLE ;
+   entries[0].event = (syncevent_t) syncevent_FREE ;
    entries[1].next = (dlist_node_t*)&entries[0] ;
    entries[1].prev = (dlist_node_t*)&entries[0] ;
-   entries[1].event = (syncevent_t) syncevent_INIT_FREEABLE ;
-   init_syncwait(&syncwait, &(syncthread_t)syncthread_INIT_FREEABLE, &entries[1].event, 0) ;
+   entries[1].event = (syncevent_t) syncevent_FREE ;
+   init_syncwait(&syncwait, &(syncthread_t)syncthread_FREE, &entries[1].event, 0) ;
    initmove_wlistentry(&entry, &entries[1]) ;
    TEST(entries[1].next == 0) ;
    TEST(entries[1].prev == 0) ;
@@ -418,10 +418,10 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   syncwlist_t    wlist = syncwlist_INIT_FREEABLE ;
+   syncwlist_t    wlist = syncwlist_FREE ;
    syncqueue_t    queue = syncqueue_INIT ;   // stores waitentry_t
 
-   // TEST syncwlist_INIT_FREEABLE
+   // TEST syncwlist_FREE
    TEST(1 == isfree_syncwlist(&wlist)) ;
 
    // TEST init_syncwlist
@@ -491,7 +491,7 @@ static int test_initfree(void)
    TEST(0 == len_syncqueue(&queue)) ;
 
    // TEST initmove_syncwlist: empty list
-   wlistcopy = (syncwlist_t) syncwlist_INIT_FREEABLE ;
+   wlistcopy = (syncwlist_t) syncwlist_FREE ;
    init_syncwlist(&wlist) ;
    initmove_syncwlist(&wlistcopy, &wlist) ;
    TEST(wlistcopy.next    == (dlist_node_t*)&wlistcopy) ;
@@ -512,7 +512,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   syncwlist_t    wlist = syncwlist_INIT_FREEABLE ;
+   syncwlist_t    wlist = syncwlist_FREE ;
    syncqueue_t    queue = syncqueue_INIT ;
 
    // TEST isempty_syncwlist
@@ -597,8 +597,8 @@ ONABORT:
 
 static int test_update(void)
 {
-   syncwlist_t    wlist     = syncwlist_INIT_FREEABLE ;
-   syncwlist_t    fromwlist = syncwlist_INIT_FREEABLE ;
+   syncwlist_t    wlist     = syncwlist_FREE ;
+   syncwlist_t    fromwlist = syncwlist_FREE ;
    syncqueue_t    queue     = syncqueue_INIT ;  // stores waitentry_t
    syncwait_t     syncwait[100] ;
    syncevent_t *  event = 0 ;
@@ -880,9 +880,9 @@ ONABORT:
 
 static int test_iterator(void)
 {
-   syncwlist_t          wlist = syncwlist_INIT_FREEABLE ;
+   syncwlist_t          wlist = syncwlist_FREE ;
    syncqueue_t          queue = syncqueue_INIT ;
-   syncwlist_iterator_t iter  = syncwlist_iterator_INIT_FREEABLE ;
+   syncwlist_iterator_t iter  = syncwlist_iterator_FREE ;
    syncevent_t *        events[129] ;
    syncevent_t *        nextevent ;
 
@@ -893,7 +893,7 @@ static int test_iterator(void)
       TEST(0 == insert_syncwlist(&wlist, &queue, &events[i])) ;
    }
 
-   // TEST syncwlist_iterator_INIT_FREEABLE
+   // TEST syncwlist_iterator_FREE
    TEST(iter.next  == 0) ;
    TEST(iter.wlist == 0) ;
 

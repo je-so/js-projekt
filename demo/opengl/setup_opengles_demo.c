@@ -189,7 +189,7 @@ int setup_opengles_demo(maincontext_t * maincontext)
    (void) maincontext;
    display_t         disp;
    uint32_t          snr;
-   demowindow_t      win = { .super = window_INIT_FREEABLE, .isClosed = false };
+   demowindow_t      win = { .super = window_FREE, .isClosed = false };
    gconfig_t         gconf;
    gcontext_t        gcontext;
    int32_t           conf_attribs[] = {

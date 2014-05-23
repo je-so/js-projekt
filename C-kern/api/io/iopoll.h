@@ -62,9 +62,9 @@ struct iopoll_t {
 
 // group: lifetime
 
-/* define: iopoll_INIT_FREEABLE
+/* define: iopoll_FREE
  * Static initializer. */
-#define iopoll_INIT_FREEABLE              { sys_iochannel_INIT_FREEABLE }
+#define iopoll_FREE { sys_iochannel_FREE }
 
 /* function: init_iopoll
  * Creates system specific event queue to query for io events (<ioevent_t>). */

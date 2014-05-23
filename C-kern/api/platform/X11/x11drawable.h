@@ -60,9 +60,9 @@ struct x11drawable_t {
 
 // group: lifetime
 
-/* define: x11drawable_INIT_FREEABLE
+/* define: x11drawable_FREE
  * Static initializer. */
-#define x11drawable_INIT_FREEABLE \
+#define x11drawable_FREE \
          { 0, 0, 0 }
 
 /* define: x11drawable_INIT

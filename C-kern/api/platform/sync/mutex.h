@@ -63,7 +63,7 @@ typedef sys_mutex_t                       mutex_t ;
  * 4. Unlocking an already unlocked mutex is unspecified. So never do it.
  * 5. Works only within a single process as inter thread mutex.
  */
-#define mutex_INIT_DEFAULT                sys_mutex_INIT_DEFAULT
+#define mutex_INIT_DEFAULT sys_mutex_INIT_DEFAULT
 
 /* function: init_mutex
  * Initializer for a mutex with error checking.

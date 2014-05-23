@@ -78,9 +78,9 @@ struct convert_wchar_t
  * > while(0 == next_convertwchar(&wconv, &wchar)) { ... } ; */
 #define convert_wchar_INIT(string_len, string)     { .len = (string_len), .next = (string) }
 
-/* define: convert_wchar_INIT_FREEABLE
+/* define: convert_wchar_FREE
  * Static initializer. */
-#define convert_wchar_INIT_FREEABLE                convert_wchar_INIT(0,0)
+#define convert_wchar_FREE convert_wchar_INIT(0,0)
 
 /* function: init_convertwchar
  * Inits <convert_wchar_t> with a pointer to a mbs string. */

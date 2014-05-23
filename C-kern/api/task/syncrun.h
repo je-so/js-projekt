@@ -164,10 +164,10 @@ struct syncrun_t {
 
 // group: lifetime
 
-/* define: syncrun_INIT_FREEABLE
+/* define: syncrun_FREE
  * Static initializer. */
-#define syncrun_INIT_FREEABLE    \
-         { { syncqueue_INIT_FREEABLE }, syncwlist_INIT_FREEABLE, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
+#define syncrun_FREE    \
+         { { syncqueue_FREE }, syncwlist_FREE, { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
 
 /* function: init_syncrun
  * Initializes a set of queues. The queues are used to store <syncthread_t>.
@@ -185,7 +185,7 @@ int free_syncrun(syncrun_t * srun) ;
 // group: query
 
 /* function: isfree_syncrun
- * Returns true if *srun equals to <syncrun_INIT_FREEABLE>. */
+ * Returns true if *srun equals to <syncrun_FREE>. */
 bool isfree_syncrun(const syncrun_t * srun) ;
 
 /* function: leninitqueue_syncrun

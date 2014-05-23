@@ -366,7 +366,7 @@ static int test_speedcompare(void)
 {
    uint64_t   time_in_microseconds_slow = 0 ;
    uint64_t   time_in_microseconds_fast = 0 ;
-   systimer_t timer    = systimer_INIT_FREEABLE ;
+   systimer_t timer    = systimer_FREE ;
    uint32_t   sum_slow = 0 ;
    uint32_t   sum_fast = 0 ;
 

@@ -42,7 +42,7 @@
 
 // group: variable
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_egldisplay_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_egldisplay_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: lifetime
@@ -133,10 +133,10 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   egldisplay_t egldisp = egldisplay_INIT_FREEABLE;
+   egldisplay_t egldisp = egldisplay_FREE;
    EGLDisplay   olddisplay = 0;
 
-   // TEST egldisplay_INIT_FREEABLE
+   // TEST egldisplay_FREE
    TEST(0 == egldisp);
 
    // TEST initdefault_egldisplay
@@ -176,11 +176,11 @@ ONABORT:
 #if defined(KONFIG_USERINTERFACE_X11)
 static int test_initfree_x11(x11display_t * x11disp)
 {
-   egldisplay_t   egldisp = egldisplay_INIT_FREEABLE;
+   egldisplay_t   egldisp = egldisplay_FREE;
    EGLDisplay     olddisplay = 0;
 
    // TEST initx11_egldisplay: freed x11disp
-   TEST(EINVAL == initx11_egldisplay(&egldisp, & (x11display_t) x11display_INIT_FREEABLE));
+   TEST(EINVAL == initx11_egldisplay(&egldisp, & (x11display_t) x11display_FREE));
    TEST(0 == egldisp);
 
    // TEST initx11_egldisplay, free_egldisplay
@@ -233,8 +233,8 @@ static inline int test_initfree_x11(struct x11display_t * x11disp)
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
-   x11display_t      x11disp = x11display_INIT_FREEABLE;
+   resourceusage_t   usage = resourceusage_FREE;
+   x11display_t      x11disp = x11display_FREE;
 
    TEST(0 == INIT_x11display(&x11disp, 0));
 

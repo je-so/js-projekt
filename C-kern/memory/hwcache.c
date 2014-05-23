@@ -55,7 +55,7 @@ ONABORT:
 
 static int test_prefetch(void)
 {
-   vmpage_t       memblock = vmpage_INIT_FREEABLE ;
+   vmpage_t       memblock = vmpage_FREE ;
    const uint32_t blksize  = (256*1024*1024) ;
    int64_t        time_noprefetch = INT64_MAX ;
    int64_t        time_prefetch   = INT64_MAX ;

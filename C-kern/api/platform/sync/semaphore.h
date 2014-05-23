@@ -55,9 +55,9 @@ struct semaphore_t {
 
 // group: lifetime
 
-/* define: semaphore_INIT_FREEABLE
+/* define: semaphore_FREE
  * Static initializer. */
-#define semaphore_INIT_FREEABLE           { sys_semaphore_INIT_FREEABLE }
+#define semaphore_FREE { sys_semaphore_FREE }
 
 /* function: init_semaphore
  * Initializes a semaphore. The internal signal counter is set to init_signal_count.

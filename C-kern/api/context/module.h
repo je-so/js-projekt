@@ -56,9 +56,9 @@ struct module_t {
 
 // group: lifetime
 
-/* define: module_INIT_FREEABLE
+/* define: module_FREE
  * Static initializer. */
-#define module_INIT_FREEABLE              { 0, 0 }
+#define module_FREE { 0, 0 }
 
 /* function: init_module
  * Maps a file as binary executable into memory whose filename is modulename.

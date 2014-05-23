@@ -56,9 +56,9 @@ typedef sys_iochannel_t                   systimer_t ;
 
 // group: lifetime
 
-/* define: systimer_INIT_FREEABLE
+/* define: systimer_FREE
  * Static initializer. */
-#define systimer_INIT_FREEABLE         sys_iochannel_INIT_FREEABLE
+#define systimer_FREE sys_iochannel_FREE
 
 /* function: init_systimer
  * Allocates a new system timer.

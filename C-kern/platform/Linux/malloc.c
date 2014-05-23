@@ -313,7 +313,7 @@ ONABORT:
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage = resourceusage_FREE ;
 
    for (int i = 0; i < 3; ++i) {
       if (test_allocatedsize())  goto ONABORT ;

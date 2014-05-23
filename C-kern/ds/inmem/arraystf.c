@@ -48,7 +48,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_arraystf_errtimer
  * Simulates an error in different functions. */
-static test_errortimer_t   s_arraystf_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_arraystf_errtimer = test_errortimer_FREE ;
 #endif
 
 // group: helper
@@ -641,7 +641,7 @@ int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * a
 {
    int err ;
    size_t        objectsize = sizeof(binarystack_t) ;
-   memblock_t    objectmem  = memblock_INIT_FREEABLE ;
+   memblock_t    objectmem  = memblock_FREE ;
    binarystack_t * stack  = 0 ;
 
    (void) array ;
@@ -963,9 +963,9 @@ static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node
 static int test_initfree(void)
 {
    const size_t      nrnodes   = 10000 ;
-   memblock_t        memblock  = memblock_INIT_FREEABLE ;
+   memblock_t        memblock  = memblock_FREE ;
    arraystf_t  *     array     = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    testnode_t      * nodes ;
    arraystf_node_t * inserted_node ;
@@ -1283,8 +1283,8 @@ ONABORT:
 static int test_error(void)
 {
    const size_t      nrnodes   = 10000 ;
-   memblock_t        memblock  = memblock_INIT_FREEABLE ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   memblock_t        memblock  = memblock_FREE ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    arraystf_t      * array     = 0 ;
    testnode_t      * nodes ;
@@ -1363,8 +1363,8 @@ ONABORT:
 static int test_iterator(void)
 {
    const size_t      nrnodes  = 10000 ;
-   memblock_t        memblock = memblock_INIT_FREEABLE ;
-   arraystf_iterator_t iter   = arraystf_iterator_INIT_FREEABLE ;
+   memblock_t        memblock = memblock_FREE ;
+   arraystf_iterator_t iter   = arraystf_iterator_FREE ;
    arraystf_t      * array    = 0 ;
    testnode_t      * nodes ;
    arraystf_node_t * removed_node ;
@@ -1381,7 +1381,7 @@ static int test_iterator(void)
       TEST(0 == insert_arraystf(array, &nodes[i].node, 0, 0)) ;
    }
 
-   // TEST arraystf_iterator_INIT_FREEABLE
+   // TEST arraystf_iterator_FREE
    TEST(0 == iter.stack) ;
    TEST(0 == iter.array) ;
    TEST(0 == iter.ri) ;
@@ -1462,7 +1462,7 @@ ONABORT:
 static int test_zerokey(void)
 {
    arraystf_t *      array    = 0 ;
-   memblock_t        memblock = memblock_INIT_FREEABLE ;
+   memblock_t        memblock = memblock_FREE ;
    const uint16_t    nrkeys   = 256 ;
    const uint16_t    keylen   = 1024 ;
    testnode_t      * nodes ;
@@ -1520,10 +1520,10 @@ arraystf_IMPLEMENT(_arraytest2, testnode_t, node2)
 static int test_generic(void)
 {
    const size_t       nrnodes   = bitsof(((testnode_t*)0)->key) ;
-   memblock_t         memblock  = memblock_INIT_FREEABLE ;
+   memblock_t         memblock  = memblock_FREE ;
    arraystf_t         * array   = 0 ;
    arraystf_t         * array2  = 0 ;
-   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp1  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    typeadapt_member_t nodeadp2  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node2)) ;
    testnode_t         * nodes ;
@@ -1628,7 +1628,7 @@ static int test_generic(void)
    }
 
    // TEST initfirst_arraystfiterator
-   arraystf_iterator_t iter = arraystf_iterator_INIT_FREEABLE ;
+   arraystf_iterator_t iter = arraystf_iterator_FREE ;
    iter.ri = 1 ;
    TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
    TEST(iter.stack != 0) ;

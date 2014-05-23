@@ -242,8 +242,8 @@ ONABORT:
 
 static int test_base64(void)
 {
-   memblock_t     data    = memblock_INIT_FREEABLE ;
-   memblock_t     data2   = memblock_INIT_FREEABLE ;
+   memblock_t     data    = memblock_FREE ;
+   memblock_t     data2   = memblock_FREE ;
    wbuffer_t      result  = wbuffer_INIT_MEMBLOCK(&data) ;
    wbuffer_t      result2 = wbuffer_INIT_MEMBLOCK(&data2) ;
    const uint8_t* test ;
@@ -344,8 +344,8 @@ ONABORT:
 
 static int test_sizebase64(void)
 {
-   memblock_t  data    = memblock_INIT_FREEABLE ;
-   memblock_t  data2   = memblock_INIT_FREEABLE ;
+   memblock_t  data    = memblock_FREE ;
+   memblock_t  data2   = memblock_FREE ;
    wbuffer_t   result  = wbuffer_INIT_MEMBLOCK(&data) ;
    wbuffer_t   result2 = wbuffer_INIT_MEMBLOCK(&data2) ;
    uint8_t     buffer[256] ;

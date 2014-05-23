@@ -50,7 +50,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    size_t               mmtrans_endinit ;
    size_t               allocated ;
    size_t               allocated_endinit ;
-   memblock_t           memmapreg     = memblock_INIT_FREEABLE ;
+   memblock_t           memmapreg     = memblock_FREE ;
    vm_mappedregions_t * mappedregions = 0 ;
    signalstate_t *      signalstate   = 0 ;
 
@@ -71,7 +71,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    if (err) goto ONABORT ;
 
    mappedregions  = (vm_mappedregions_t*) memmapreg.addr ;
-   *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
+   *mappedregions = (vm_mappedregions_t) vm_mappedregions_FREE ;
 
    err = new_signalstate(&signalstate) ;
    if (err) goto ONABORT ;
@@ -136,7 +136,7 @@ ONABORT:
 int same_resourceusage(const resourceusage_t * usage)
 {
    int err ;
-   resourceusage_t usage2 = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage2 = resourceusage_FREE ;
 
    err = init_resourceusage(&usage2) ;
    if (err) goto ONABORT ;
@@ -198,7 +198,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage = resourceusage_FREE ;
 
    // TEST static initializer
    TEST(0 == usage.file_usage) ;
@@ -264,9 +264,9 @@ static int test_query(void)
    size_t          malloc_usage2 = 0 ;
    int             fd            = -1 ;
    void *          memblock      = 0 ;
-   vmpage_t        vmblock       = vmpage_INIT_FREEABLE ;
-   resourceusage_t usage         = resourceusage_INIT_FREEABLE ;
-   resourceusage_t usage2        = resourceusage_INIT_FREEABLE ;
+   vmpage_t        vmblock       = vmpage_FREE ;
+   resourceusage_t usage         = resourceusage_FREE ;
+   resourceusage_t usage2        = resourceusage_FREE ;
    bool            isoldsigmask  = false ;
    sigset_t        oldsigmask ;
 
@@ -307,7 +307,7 @@ static int test_query(void)
 
    // TEST same_resourceusage: ELEAK cause of pagecache
    TEST(0 == init_resourceusage(&usage)) ;
-   memblock_t page = memblock_INIT_FREEABLE ;
+   memblock_t page = memblock_FREE ;
    TEST(0 == allocpage_pagecache(pagecache_maincontext(), pagesize_4096, &page)) ;
    TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == releasepage_pagecache(pagecache_maincontext(), &page)) ;
@@ -364,7 +364,7 @@ ONABORT:
 
 static int test_update(void)
 {
-   resourceusage_t usage    = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage    = resourceusage_FREE ;
    void *          memblock = 0;
 
    // TEST acceptmallocleak_resourceusage: value is remembered in usage.malloc_acceptleak
@@ -408,7 +408,7 @@ ONABORT:
 
 int unittest_test_resourceusage()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE;
+   resourceusage_t usage = resourceusage_FREE;
 
    TEST(0 == init_resourceusage(&usage));
 

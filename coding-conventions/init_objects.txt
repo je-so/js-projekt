@@ -18,7 +18,7 @@ Example 1:
 
 Example 2:
 
-> memoryblock_t block = memoryblock_INIT_FREEABLE ;
+> memoryblock_t block = memoryblock_FREE ;
 > // can be called cause block is set to a state *free was already called*
 > free_memoryblock(&block) ;
 
@@ -39,16 +39,16 @@ not possible must be set to a state that a possible call to free_object does not
 Example 4:
 
 > int err ;
-> waitlist_t  waitlist = waitlist_INIT_FREEABLE ;
-> resource_t  resource = resource_INIT_FREEABLE ;
+> waitlist_t  waitlist = waitlist_FREE ;
+> resource_t  resource = resource_FREE ;
 >
 > // after return of init_waitlist
-> // waitlist keeps value waitlist_INIT_FREEABLE or is set to a freeable state
+> // waitlist keeps value waitlist_FREE or is set to a freeable state
 > err = init_waitlist(&waitlist) ;
 > if (err) goto FREE_RESOURCES ;
 >
 > // after return of init_resource
-> // resource keeps value resource_INIT_FREEABLE or is set to a freeable state
+> // resource keeps value resource_FREE or is set to a freeable state
 > err = init_resource(&resource)
 > if (err) goto FREE_RESOURCES
 >

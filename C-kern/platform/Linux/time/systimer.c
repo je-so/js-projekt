@@ -263,7 +263,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   systimer_t  systimer = systimer_INIT_FREEABLE ;
+   systimer_t  systimer = systimer_FREE ;
    size_t      openfds[2] ;
    uint64_t    expcount ;
    timevalue_t timeval ;
@@ -281,12 +281,12 @@ static int test_initfree(void)
    // TEST free_systimer
    TEST(0 == free_systimer(&systimer)) ;
    TEST(systimer == -1) ;
-   TEST(systimer == iochannel_INIT_FREEABLE) ;
+   TEST(systimer == iochannel_FREE) ;
    TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
    TEST(0 == free_systimer(&systimer)) ;
    TEST(systimer == -1) ;
-   TEST(systimer == iochannel_INIT_FREEABLE) ;
+   TEST(systimer == iochannel_FREE) ;
    TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
 
@@ -475,7 +475,7 @@ ONABORT:
 
 static int test_timing(void)
 {
-   systimer_t  systimer[3] = { systimer_INIT_FREEABLE, systimer_INIT_FREEABLE, systimer_INIT_FREEABLE } ;
+   systimer_t  systimer[3] = { systimer_FREE, systimer_FREE, systimer_FREE } ;
    sysclock_e  clocks[2]   = { sysclock_REAL, sysclock_MONOTONIC } ;
    unsigned    iclock      = 0 ;
    sysclock_e  clock_type ;

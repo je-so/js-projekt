@@ -55,9 +55,9 @@ typedef struct opengl_surface_t * eglwindow_t;
 
 // group: lifetime
 
-/* define: eglwindow_INIT_FREEABLE
+/* define: eglwindow_FREE
  * Static initializer. */
-#define eglwindow_INIT_FREEABLE  0
+#define eglwindow_FREE 0
 
 /* function: initx11_eglwindow
  * Initializes eglwin with x11win.

@@ -68,9 +68,9 @@ int free_errorcontext(errorcontext_t * errcontext)
 
 static int test_initfree(void)
 {
-   errorcontext_t errcontext = errorcontext_INIT_FREEABLE ;
+   errorcontext_t errcontext = errorcontext_FREE ;
 
-   // TEST errorcontext_INIT_FREEABLE
+   // TEST errorcontext_FREE
    TEST(0 == errcontext.stroffset) ;
    TEST(0 == errcontext.strdata) ;
 
@@ -80,7 +80,7 @@ static int test_initfree(void)
    TEST(errcontext.strdata   == g_errorcontext_strdata) ;
 
    // TEST init_errorcontext
-   errcontext = (errorcontext_t) errorcontext_INIT_FREEABLE ;
+   errcontext = (errorcontext_t) errorcontext_FREE ;
    TEST(0 == init_errorcontext(&errcontext)) ;
    TEST(errcontext.stroffset == g_errorcontext_stroffset) ;
    TEST(errcontext.strdata   == g_errorcontext_strdata) ;
@@ -118,7 +118,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   errorcontext_t errcontext = errorcontext_INIT_FREEABLE ;
+   errorcontext_t errcontext = errorcontext_FREE ;
 
    // prepare
    TEST(0 == init_errorcontext(&errcontext)) ;
@@ -239,7 +239,7 @@ ONABORT:
 
 static int test_initonce(void)
 {
-   errorcontext_t errcontext = errorcontext_INIT_FREEABLE ;
+   errorcontext_t errcontext = errorcontext_FREE ;
 
 
    // TEST initonce_errorcontext

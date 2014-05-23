@@ -211,9 +211,9 @@ const char * user_url(const url_t * url) ;
 
 // group: lifetime
 
-/* define: url_parts_INIT_FREEABLE
+/* define: url_parts_FREE
  * Static initializer. */
-#define url_parts_INIT_FREEABLE        { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE }
+#define url_parts_FREE { string_FREE, string_FREE, string_FREE, string_FREE, string_FREE, string_FREE, string_FREE }
 
 
 

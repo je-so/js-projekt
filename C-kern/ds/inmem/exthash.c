@@ -163,7 +163,7 @@ int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size
    int err ;
    uint8_t     level ;
    uint8_t     maxlevel ;
-   memblock_t  mem = memblock_INIT_FREEABLE ;
+   memblock_t  mem = memblock_FREE ;
 
    VALIDATE_INPARAM_TEST(initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*), ONABORT, ) ;
 
@@ -201,7 +201,7 @@ int free_exthash(exthash_t * htable)
       if (err2) err = err2 ;
 
       htable->hashtable = 0 ;
-      htable->nodeadp  = (typeadapt_member_t) typeadapt_member_INIT_FREEABLE ;
+      htable->nodeadp  = (typeadapt_member_t) typeadapt_member_FREE ;
       htable->level    = 0 ;
       htable->maxlevel = 0 ;
 
@@ -596,12 +596,12 @@ static int impl_delete_testadapt(testadapt_t * typeadp, struct testobject_t ** o
 
 static int test_initfree(void)
 {
-   exthash_t            htable    = exthash_INIT_FREEABLE ;
-   typeadapt_member_t   emptyadp  = typeadapt_member_INIT_FREEABLE ;
+   exthash_t            htable    = exthash_FREE ;
+   typeadapt_member_t   emptyadp  = typeadapt_member_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
    typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    exthash_node_t       node      = exthash_node_INIT ;
-   exthash_iterator_t   iter      = exthash_iterator_INIT_FREEABLE ;
+   exthash_iterator_t   iter      = exthash_iterator_FREE ;
    testobject_t         nodes[256] ;
 
    // prepare
@@ -611,7 +611,7 @@ static int test_initfree(void)
       nodes[i].node = (exthash_node_t) exthash_node_INIT ;
    }
 
-   // TEST exthash_iterator_INIT_FREEABLE
+   // TEST exthash_iterator_FREE
    TEST(0 == iter.next) ;
    TEST(0 == iter.htable) ;
    TEST(0 == iter.tableindex) ;
@@ -621,7 +621,7 @@ static int test_initfree(void)
    TEST(0 == node.left) ;
    TEST(0 == node.right) ;
 
-   // TEST exthash_INIT_FREEABLE
+   // TEST exthash_FREE
    TEST(0 == htable.hashtable) ;
    TEST(0 == htable.nr_nodes) ;
    TEST(1 == isequal_typeadaptmember(&htable.nodeadp, &emptyadp)) ;
@@ -711,7 +711,7 @@ ONABORT:
 
 static int test_privquery(void)
 {
-   exthash_t            htable    = exthash_INIT_FREEABLE ;
+   exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
    typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         node      = { 0, 0, exthash_node_INIT } ;
@@ -793,7 +793,7 @@ ONABORT:
 
 static int test_privchange(void)
 {
-   exthash_t            htable     = exthash_INIT_FREEABLE ;
+   exthash_t            htable     = exthash_FREE ;
    testadapt_t          typeadapt  = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
    typeadapt_member_t   nodeadp    = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] = { { 0, 0, exthash_node_INIT } } ;
@@ -868,11 +868,11 @@ ONABORT:
 
 static int test_findinsertremove(void)
 {
-   exthash_t            htable    = exthash_INIT_FREEABLE ;
+   exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
    typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    const size_t         MAXNODES  = 524288 ;
-   memblock_t           mem       = memblock_INIT_FREEABLE ;
+   memblock_t           mem       = memblock_FREE ;
    testobject_t         * nodes ;
    exthash_node_t       * found_node ;
 
@@ -983,7 +983,7 @@ static int test_findinsertremove(void)
    }
 
    // TEST initfirst_exthashiterator
-   exthash_iterator_t iter = exthash_iterator_INIT_FREEABLE ;
+   exthash_iterator_t iter = exthash_iterator_FREE ;
    exthash_node_t * old = htable.hashtable[0] ;
    htable.hashtable[0] = 0 ;
    TEST(0 == initfirst_exthashiterator(&iter, &htable)) ;
@@ -991,7 +991,7 @@ static int test_findinsertremove(void)
    TEST(iter.htable == &htable) ;
    TEST(iter.tableindex == 1) ;
    htable.hashtable[0] = (void*)(uintptr_t)-1 ;
-   iter = (exthash_iterator_t) exthash_iterator_INIT_FREEABLE ;
+   iter = (exthash_iterator_t) exthash_iterator_FREE ;
    TEST(0 == initfirst_exthashiterator(&iter, &htable)) ;
    TEST(iter.next   != 0) ;
    TEST(iter.htable == &htable) ;
@@ -1043,7 +1043,7 @@ exthash_IMPLEMENT(_testhash, testobject_t, uintptr_t, node)
 
 static int test_generic(void)
 {
-   exthash_t            htable    = exthash_INIT_FREEABLE ;
+   exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
    typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] ;
@@ -1066,7 +1066,7 @@ static int test_generic(void)
    TEST(1 == isempty_testhash(&htable)) ;
 
    // TEST free_exthash
-   typeadapt_member_t emptyadp = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_member_t emptyadp = typeadapt_member_FREE ;
    TEST(0 == free_testhash(&htable)) ;
    TEST(0 == htable.hashtable) ;
    TEST(0 == htable.nr_nodes) ;
