@@ -285,6 +285,27 @@ static int do_tests(int isFBO)
       return EINVAL;
    }
 
+   drawline(&(coordinates_t) { PIXELBUFFER_SIZE-1, 0, 0, PIXELBUFFER_SIZE }, &viewport, &drawn);
+   if (drawn.height != PIXELBUFFER_SIZE || drawn.x != PIXELBUFFER_SIZE-1 || drawn.y != 0) {
+      printf("test7: drawline failed\n");
+      printf("drawn = (%d,%d,%d,%d)\n", drawn.x, drawn.y, drawn.width, drawn.height);
+      return EINVAL;
+   }
+
+   drawline(&(coordinates_t) { 0, PIXELBUFFER_SIZE, PIXELBUFFER_SIZE, 0 }, &viewport, &drawn);
+   if (drawn.width != 0 || drawn.height != 0) {
+      printf("test8: drawline failed\n");
+      printf("drawn = (%d,%d,%d,%d)\n", drawn.x, drawn.y, drawn.width, drawn.height);
+      return EINVAL;
+   }
+
+   drawline(&(coordinates_t) { 0, PIXELBUFFER_SIZE-1, PIXELBUFFER_SIZE, 0 }, &viewport, &drawn);
+   if (drawn.width != PIXELBUFFER_SIZE || drawn.x != 0 || drawn.y != PIXELBUFFER_SIZE-1)  {
+      printf("test9: drawline failed\n");
+      printf("drawn = (%d,%d,%d,%d)\n", drawn.x, drawn.y, drawn.width, drawn.height);
+      return EINVAL;
+   }
+
    printf("drawline experiments: OK\n");
 
    if (isFBO) {

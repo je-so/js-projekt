@@ -379,6 +379,7 @@ static int test_thread(display_t * disp)
                   };
    uint32_t       pixels[32*32] = { 0 };
    uint32_t       rgba;
+   resourceusage_t usage = resourceusage_INIT_FREEABLE;
 
    // prepare
    TEST(0 == init_gconfig(&gconf, disp, confattr));
@@ -396,6 +397,14 @@ static int test_thread(display_t * disp)
    TEST(0 == join_thread(thread));
    TEST(0 == returncode_thread(thread));
    TEST(0 == delete_thread(&thread));
+   // test resources are freed (first time thread allocates resources)
+   TEST(0 == init_resourceusage(&usage));
+   TEST(0 == newgeneric_thread(&thread, &thread_setcurrent_notok, &args));
+   TEST(0 == join_thread(thread));
+   TEST(0 == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
 
    // TEST releasecurrent_gcontext: context is unlocked
    TEST(0 == releasecurrent_gcontext(disp));
@@ -403,6 +412,14 @@ static int test_thread(display_t * disp)
    TEST(0 == join_thread(thread));
    TEST(0 == returncode_thread(thread));
    TEST(0 == delete_thread(&thread));
+   // test resources are freed (first time thread allocates resources)
+   TEST(0 == init_resourceusage(&usage));
+   TEST(0 == newgeneric_thread(&thread, &thread_setcurrent_ok, &args));
+   TEST(0 == join_thread(thread));
+   TEST(0 == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
    // other thread released context
    TEST(0 == setcurrent_gcontext(&gcont, disp, &pbuf, &pbuf));
 
