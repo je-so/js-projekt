@@ -35,10 +35,12 @@ struct demo_t {
 
 int setup_opengles_demo(maincontext_t * maincontext);
 int pixel_framebuffer_demo(maincontext_t * maincontext);
+int point_texture_demo(maincontext_t * maincontext);
 
 static demo_t s_demos[] = {
    { "setup_opengles", &setup_opengles_demo },
-   { "pixel_framebuffer", &pixel_framebuffer_demo }
+   { "pixel_framebuffer", &pixel_framebuffer_demo },
+   { "point_textures", &point_texture_demo }
 };
 
 // returns either a valid index into s_demos (return value >= 0) else -1

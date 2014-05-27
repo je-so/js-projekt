@@ -1,7 +1,11 @@
-/* title: Setup-Opengl-ES-Demo
+/* title: Point-Texture-Opengl-ES-Demo
 
-   Creates a native window, initializes an EGL context
-   and draws a triangle into the window.
+   Loads a texture and draws a rectangle
+   with the texture on it.
+   Draws points with size > 1 also with the texture
+   drawn on them.
+   This reduces the number of coordinates to send
+   to the vertex shader.
 
    about: Copyright
    This program is free software.
@@ -45,6 +49,10 @@ typedef struct demowindow_t demowindow_t;
 struct demowindow_t {
    window_t super;
    bool     isClosed;
+   unsigned textureid;
+   unsigned progid;
+   unsigned vertprocid;
+   unsigned fragprocid;
 };
 
 window_evh_DECLARE(demowindow_evh_t, demowindow_t);
@@ -61,44 +69,46 @@ static void ondestroy_demowindow(demowindow_t * win)
 
 static void onredraw_demowindow(demowindow_t * win)
 {
-   glClearColor(0, 0, 0, 0);
+   glClearColor(0, 0, 0.5f, 0);
    glClearDepthf(1);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
    static const float pos[] = {
-      0,     0,     1,
-      1,     0,     1,
-      0,     1,     1,
-      1,     1,     1,
+      -0.5f,  0.5f,     1,
+      0.7f,  0,     1,
+      0,     0.9f,     1,
+      0.8f,  0.8f,     1,
      -1,    -1,    -1,
       0.1f, -1,    -1,
      -1,     0.1f, -1,
       0.1f,  0.1f, -1,
    };
 
-   static const float color[] = {
-      1, 0, 0, 1,
-      0, 1, 0, 1,
-      0, 0, 1, 1,
-      1, 1, 0, 1,
-      1, 0, 1, 1,
-      0, 1, 0, 1,
-      0, 1, 1, 1,
-      1, 1, 1, 1,
+   static const float texcoord[] = {
+      0, 0,
+      1, 0,
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+      0, 1,
+      1, 1,
    };
 
-   glEnableVertexAttribArray(0/*p_pos*/);
-   glEnableVertexAttribArray(1/*p_color*/);
-   // set pointer to p_pos parameter array
-   glVertexAttribPointer(0/*p_pos*/, 3, GL_FLOAT, GL_FALSE, 0, pos);
-   // set pointer to p_color parameter array
-   glVertexAttribPointer(1/*p_color*/, 4, GL_FLOAT, GL_FALSE, 0, color);
+   glEnableVertexAttribArray(0/*a_pos*/);
+   glEnableVertexAttribArray(1/*a_texcoord*/);
+   glVertexAttribPointer(0/*a_pos*/, 3, GL_FLOAT, GL_FALSE, 0, pos);
+   glVertexAttribPointer(1/*a_texcoord*/, 2, GL_FLOAT, GL_FALSE, 0, texcoord);
    glDepthFunc(GL_LEQUAL);
    glEnable(GL_DEPTH_TEST);
-   // draw first rectangle (send parameter from index 4 to 7)
+   int ispointsprite = glGetUniformLocation(win->progid,  "u_ispointsprite");
+   TEST(-1 != ispointsprite);
+   glUniform1f(ispointsprite, 0.0);
+   // draw rectangle with texture
    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-   // draw 2nd rectangle (send parameter from index 0 to 3)
-   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+   // draw points of size 32.0 with texture
+   glUniform1f(ispointsprite, 1.0);
+   glDrawArrays(GL_POINTS, 0, 4);
    glDisableVertexAttribArray(0);
    glDisableVertexAttribArray(1);
    TEST(0 == swapbuffer_window(&win->super, display_window(&win->super)));
@@ -121,29 +131,34 @@ static void onvisible_demowindow(demowindow_t * win, bool isVisible)
    (void) isVisible;
 }
 
-static int create_opengles_program(void)
+static int create_opengles_program(demowindow_t * win)
 {
    const char * vertex_procedure =
-      "attribute mediump vec4 p_pos;\n"   // position parameter
-      "attribute lowp vec4 p_color;\n"    // color parameter
-      "varying lowp vec4 color;\n"        // color sent to fragment shader
+      "attribute mediump vec4 a_pos;\n"   // position parameter
+      "attribute mediump vec2 a_texcoord;\n" // texture coordinate parameter
+      "varying mediump vec2 v_texcoord;\n"   // texture coord. sent to fragment shader
       "void main(void)\n"
       "{\n"
-      "   gl_Position = p_pos;\n"         // set position
-      "   color = p_color;\n"             // attach color information
+      "   gl_Position = a_pos;\n"         // set position
+      "   gl_PointSize = 32.0;\n"
+      "   v_texcoord = a_texcoord;\n"     // attach texture information
       "}";
 
    const char * fragment_procedure =
-      "varying lowp vec4 color;\n"        // color parameter
+      "uniform sampler2D u_texunit;\n"       // active texture unit where the image is stored
+      "uniform float     u_ispointsprite;\n" // switch between point sprite tex coordinates and v_texcoord
+      "varying mediump vec2 v_texcoord;\n"   // texture coord parameter (0,0) left bottom, (1,1) right top
       "void main(void)\n"
       "{\n"
-      "   gl_FragColor = color;\n"        // set color of pixel
+      "   mediump vec2 texcoord;\n"
+      "   texcoord = (1.0-u_ispointsprite) * v_texcoord + u_ispointsprite * gl_PointCoord;\n"
+      "   gl_FragColor = texture2D(u_texunit, texcoord);\n"  // set color of pixel from texture image
       "}";
 
    // create program/procedure IDs
-   uint32_t vertprocid = glCreateShader(GL_VERTEX_SHADER);
-   uint32_t fragprocid = glCreateShader(GL_FRAGMENT_SHADER);
-   uint32_t progid     = glCreateProgram();
+   unsigned vertprocid = glCreateShader(GL_VERTEX_SHADER);
+   unsigned fragprocid = glCreateShader(GL_FRAGMENT_SHADER);
+   unsigned progid     = glCreateProgram();
    TEST(vertprocid != 0 && fragprocid != 0 && progid != 0);
    glAttachShader(progid, vertprocid);
    glAttachShader(progid, fragprocid);
@@ -164,26 +179,80 @@ static int create_opengles_program(void)
    TEST(isok);
 
    // link to program
-   glBindAttribLocation(progid, 0, "p_pos");
-   glBindAttribLocation(progid, 1, "p_color");
+   glBindAttribLocation(progid, 0, "a_pos");
+   glBindAttribLocation(progid, 1, "a_texcoord");
    glLinkProgram(progid);
    isok = 0;
    glGetProgramiv(progid, GL_LINK_STATUS, &isok);
    TEST(isok);
-   TEST(0 == glGetAttribLocation(progid,  "p_pos"));
-   TEST(1 == glGetAttribLocation(progid,  "p_color"));
+   TEST(0 == glGetAttribLocation(progid,  "a_pos"));
+   TEST(1 == glGetAttribLocation(progid,  "a_texcoord"));
 
    // activate program
    glGetError(); // clear error
    glUseProgram(progid);
    TEST(GL_NO_ERROR == glGetError()); // check error of glUseProgram
 
+   // set texture unit to 0
+   int texunit = glGetUniformLocation(progid,  "u_texunit");
+   TEST(-1 != texunit);
+   glUniform1i(texunit, 0);
+
+   int ispointsprite = glGetUniformLocation(progid,  "u_ispointsprite");
+   TEST(-1 != ispointsprite);
+   glUniform1f(ispointsprite, 1.0);
+
+   // set out values
+   win->progid = progid;
+   win->vertprocid = vertprocid;
+   win->fragprocid = fragprocid;
+
    return 0;
 ONABORT:
    return EINVAL;
 }
 
-int setup_opengles_demo(maincontext_t * maincontext)
+static int load_texture(demowindow_t * win)
+{
+   uint8_t image[32][32][4];
+   // draw texture image (double arrow head)
+   memset(image, 0, sizeof(image));
+   for (unsigned y = 0; y < 32; ++y) {
+      memset(image[y][y%16], 255, 4*2*(16-y%16));
+   }
+
+   // texcoord(0,0) == image[0][0]
+   // texcoord(1,0) == image[0][31]
+   // texcoord(0,1) == image[31][0]
+   // texcoord(1,1) == image[31][31]
+
+   // texutre unit 0 is also the default
+   glActiveTexture(GL_TEXTURE0);
+
+   // generate texture object and load image data into object
+   GLuint tid;
+   glGenTextures(1, &tid);
+   TEST(0 == glGetError());
+   glBindTexture(GL_TEXTURE_2D, tid);
+   TEST(0 == glGetError());
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 32, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+   glGenerateMipmap(GL_TEXTURE_2D);
+   TEST(0 == glGetError());
+
+   // ////
+   // if only 1 texture is used the default could be used
+   // glBindTexture(GL_TEXTURE_2D, 0) is the default and is active at program start
+   // ////
+
+   // set out values
+   win->textureid = tid;
+
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
+int point_texture_demo(maincontext_t * maincontext)
 {
    (void) maincontext;
    display_t         disp;
@@ -214,13 +283,23 @@ int setup_opengles_demo(maincontext_t * maincontext)
    TEST(0 == init_gcontext(&gcontext, &disp, &gconf, gcontext_api_OPENGLES));
    TEST(0 == setcurrent_gcontext(&gcontext, &disp, &win.super, &win.super));
 
-   TEST(0 == create_opengles_program());
+   TEST(0 == load_texture(&win));
+   TEST(0 == create_opengles_program(&win));
 
    TEST(0 == show_window(&win.super));
    while (!win.isClosed) {
       TEST(0 == nextevent_X11(os_display(&disp)));
    }
 
+   GLuint objectid;
+   glUseProgram(0);
+   glBindTexture(GL_TEXTURE_2D, 0);
+   glDeleteProgram(win.progid);
+   glDeleteShader(win.vertprocid);
+   glDeleteShader(win.fragprocid);
+   objectid = win.textureid;
+   glDeleteTextures(1, &objectid);
+   TEST(0 == glGetError());
    TEST(0 == releasecurrent_gcontext(&disp));
    TEST(0 == free_gcontext(&gcontext, &disp));
    TEST(0 == free_window(&win.super));

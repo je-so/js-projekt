@@ -31,8 +31,7 @@
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/platform/X11/x11window.h"
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
+#include "C-kern/api/graphic/gles2api.h"
 
 #define TEST(CONDITION) \
          if (!(CONDITION)) { \
