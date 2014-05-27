@@ -94,10 +94,6 @@ struct x11display_t {
          uint32_t    _NET_FRAME_EXTENTS;
          uint32_t    _NET_WM_WINDOW_OPACITY;
    }                    atoms;
-   /* variable: glx
-    * Check isSupported whether glx is supported.
-    * The name of the X11 extension which offers an OpenGL binding is "GLX". */
-   x11extension_t       glx;
    /* variable: xdbe
     * Check isSupported whether »Double Buffer extension« is supported.
     * <x11dblbuffer_t> works only if this extension is supported. */
@@ -115,7 +111,7 @@ struct x11display_t {
     * by the X11 server.
     *
     * See:
-    * <settransparency_glxwindow> and <GLX_ATTRIB_TRANSPARENT>
+    * <setopacity_x11window> and <windowconfig_TRANSPARENCY>.
     * */
    x11extension_t       xrender;
 } ;

@@ -42,7 +42,6 @@
         <File Name="../../C-kern/api/platform/Linux/sysoptimize.h"/>
         <VirtualDirectory Name="graphic">
           <File Name="../../C-kern/api/platform/Linux/graphic/sysegl.h"/>
-          <File Name="../../C-kern/api/platform/Linux/graphic/sysglx.h"/>
           <File Name="../../C-kern/api/platform/Linux/graphic/sysx11.h"/>
           <File Name="../../C-kern/api/platform/Linux/graphic/sysgl.h"/>
           <File Name="../../C-kern/api/platform/Linux/graphic/sysgles2.h"/>

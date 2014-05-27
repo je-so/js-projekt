@@ -1177,7 +1177,7 @@ static int test_exec(void)
       MEMSET0(&readbuffer) ;
       TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(2 >= strlen(readbuffer)) ;
-      // either 3 or more files (X11+GLX opens some fds which are inherited)
+      // either 3 or more files (X11 opens some fds which are inherited)
       TEST(3 <= atoi(readbuffer)) ;
    }
 

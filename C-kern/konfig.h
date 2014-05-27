@@ -85,13 +85,11 @@
  * Supported values are:
  * NONE  - No graphics support. This is the default value if you do not provide a value.
  * EGL   - Supports OpenGL binding to native (X11 and other) windowing system.
- * GLX   - Supports OpenGL binding to X11 windowing system.
  * X11   - X11 window system. */
 #define KONFIG_USERINTERFACE NONE
 #endif
 
 #define EGL 1
-#define GLX 2
 #define X11 4
 #define THREAD   8
 #define SYSUSER 16
@@ -116,24 +114,18 @@
  * Will be automatically defined if <KONFIG_USERINTERFACE> contains EGL. */
 #define KONFIG_USERINTERFACE_EGL
 #endif
-#if ((KONFIG_USERINTERFACE)&GLX)
-/* define: KONFIG_USERINTERFACE_GLX
- * Will be automatically defined if <KONFIG_USERINTERFACE> contains GLX. */
-#define KONFIG_USERINTERFACE_GLX
-#endif
 #if ((KONFIG_USERINTERFACE)&X11)
 /* define: KONFIG_USERINTERFACE_X11
  * Will be automatically defined if <KONFIG_USERINTERFACE> contains X11. */
 #define KONFIG_USERINTERFACE_X11
 #endif
-#if !((KONFIG_USERINTERFACE)&(X11|EGL|GLX))
+#if !((KONFIG_USERINTERFACE)&(X11|EGL))
 /* define: KONFIG_USERINTERFACE_NONE
  * Will be automatically defined if <KONFIG_USERINTERFACE> contains no other valid option. */
 #define KONFIG_USERINTERFACE_NONE
 #endif
 
 #undef EGL
-#undef GLX
 #undef X11
 #undef THREAD
 #undef SYSUSER

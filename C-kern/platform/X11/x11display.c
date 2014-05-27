@@ -37,9 +37,6 @@
 #include "C-kern/api/test/unittest.h"
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
-#if defined(KONFIG_USERINTERFACE_GLX)
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysglx.h)
-#endif
 
 
 typedef struct x11windowmap_entry_t x11windowmap_entry_t  ;
@@ -140,21 +137,6 @@ static int queryextensions_x11display(x11display_t * x11disp)
    int   minor ;
    int   dummy ;
    Bool  isSupported ;
-
-#if defined(KONFIG_USERINTERFACE_GLX)
-   isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->glx.eventbase, &x11disp->glx.errorbase) ;
-   if (isSupported) {
-      // glX implementation uses functionality supported only by version 1.3 or higher
-      isSupported = glXQueryVersion(x11disp->sys_display, &major, &minor) ;
-      if (  isSupported
-            && major == 1
-            && minor >= 3) {
-         x11disp->glx.isSupported   = true;
-         x11disp->glx.version_major = (uint16_t) major;
-         x11disp->glx.version_minor = (uint16_t) minor;
-      }
-   }
-#endif
 
    isSupported = XQueryExtension(x11disp->sys_display, "DOUBLE-BUFFER", &dummy, &x11disp->xdbe.eventbase, &x11disp->xdbe.errorbase) ;
    if (isSupported) {
@@ -641,20 +623,6 @@ static int test_extensions(x11display_t * x11disp)
 
    // prepare
    TEST(0 == init2_x11display(&x11disp_noext, ":0", false));
-
-   // TEST glx available / version
-#if defined(KONFIG_USERINTERFACE_GLX)
-   TEST(1 == x11disp->glx.isSupported) ;
-   TEST(1 == x11disp->glx.version_major) ;
-   TEST(3 <= x11disp->glx.version_minor) ;
-#else
-   TEST(0 == x11disp->glx.isSupported) ;
-   TEST(0 == x11disp->glx.version_major) ;
-   TEST(0 == x11disp->glx.version_minor) ;
-#endif
-   TEST(0 == x11disp_noext.glx.isSupported) ;
-   TEST(0 == x11disp_noext.glx.version_major) ;
-   TEST(0 == x11disp_noext.glx.version_minor) ;
 
    // TEST xrandr available / version
    TEST(1 == x11disp->xdbe.isSupported) ;

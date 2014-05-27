@@ -19,16 +19,16 @@ Header file:
 
 The header of a module contains a single test section
 which contains one or more unittest declarations of the
-form »extern int unittest_NAME_OF_TEST(void) ;«.
+form »int unittest_NAME_OF_TEST(void);«.
 See the following example
 
 (start code)
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_X11_glxwindow
+/* function: unittest_platform_X11_x11window
  * Tests opening a window on local display. */
-extern int unittest_platform_X11_glxwindow(void) ;
+int unittest_platform_X11_x11window(void);
 #endif
 (end code)
 
@@ -37,10 +37,9 @@ Source file:
 The implementation file must include the test macro TEST defined in
 file »C-kern/api/test/unittest.h«.
 
-It awaits one parameter
-which simply is the condition to test for
+It has a single parameter which is the condition to test for.
 
-For the abort label the German word »ONABORT« is used.
+For the abort label »ONABORT« is used.
 The unit test returns 0 in case of success or an error code (> 0).
 
 (start code)
@@ -71,14 +70,13 @@ int unittest_NAME_OF_TEST()
    ...
 
    // unit test success
-   return 0 ;
+   return 0;
 // If a test fails the macro TEST jumps to this label
 ONABORT:
    // free resource in case of abort
    (void) free_testtype(&t) ;
    // error occurred
-   // (return either 1 or a more specific error value like EINVAL or ENOSYS)
-   return 1 ;
+   return EINVAL;
 }
 #endif
 (end code)

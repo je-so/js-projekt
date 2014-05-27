@@ -978,7 +978,7 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
+   // increment open files to 8 to make logged fd number always the same (support debug && X11 which opens files)
    {
       size_t nrfdopen ;
       TEST(0 == nropen_iochannel(&nrfdopen)) ;

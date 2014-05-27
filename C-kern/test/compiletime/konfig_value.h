@@ -41,22 +41,20 @@
  * Test that <KONFIG_USERINTERFACE> is set to a valid value. */
 #define NONE 1
 #define EGL  2
-#define GLX  2
 #define X11  4
 #if (KONFIG_USERINTERFACE!=NONE) && \
     (KONFIG_USERINTERFACE!=X11)  && \
-    (KONFIG_USERINTERFACE!=(EGL|GLX|X11))
+    (KONFIG_USERINTERFACE!=(EGL|X11))
 #define KONFIG_de 1
 #if (KONFIG_LANG==KONFIG_de)
-#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [NONE,X11,(GLX|X11),(EGL|X11)]
+#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [NONE,X11,(EGL|X11)]
 #else
-#   error Choose KONFIG_USERINTERFACE from set of supported values [NONE,X11,(GLX|X11),(EGL|X11)]
+#   error Choose KONFIG_USERINTERFACE from set of supported values [NONE,X11,(EGL|X11)]
 #endif
 #undef KONFIG_de
 #endif
 #undef NONE
 #undef EGL
-#undef GLX
 #undef X11
 
 #endif
