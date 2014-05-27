@@ -66,16 +66,16 @@ int freesingleton_unittest(void);
 void logf_unittest(const char * format, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 /* function: logfailed_unittest
- * Logs "<filename>:<line_number>: <msg>\n".
+ * Logs "<filename>:<line_number>: TEST FAILED\n".
  * If msg is set to 0 the msg is set to its default value "TEST FAILED".
  * This is a thread-safe function! */
-void logfailed_unittest(const char * filename, unsigned line_number, const char * msg);
+void logfailed_unittest(const char * filename, unsigned line_number);
 
-/* function: logfailedunexpected_unittest
- * Logs "<filename>:<line_number>: UNEXPECTED VALUE <value>\n".
+/* function: logfailedf_unittest
+ * Logs "<filename>:<line_number>: TEST FAILED\n<filename>:<line_number>: <format>\n".
  * The format of the value is expected in format. The value is expected as last argument.
  * This is a thread-safe function! */
-void logfailedunexpected_unittest(const char * filename, unsigned line_number, const char * format, ...) __attribute__ ((__format__ (__printf__, 3, 4)));
+void logfailedf_unittest(const char * filename, unsigned line_number, const char * format, ...) __attribute__ ((__format__ (__printf__, 3, 4)));
 
 /* function: logresult_unittest
  * Logs "OK\n" or "FAILED\n".
@@ -112,7 +112,8 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
 /* define: TEST
  * Tests CONDITION and jumps to label ONABORT in case of false.
  * If CONDITION is false an error is printed and computation continues
- * at the label ONABORT.
+ * at label ONABORT.
+ * In case of CONDITION true nothing is done.
  *
  * Parameters:
  * CONDITION - Condition which is tested to be true.
@@ -132,20 +133,22 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  * > }
  * */
 #define TEST(CONDITION)  \
-         if ( !(CONDITION) ) {                           \
-            logfailed_unittest(__FILE__, __LINE__, 0);   \
-            goto ONABORT;                                \
+         if ( !(CONDITION) ) {      \
+            logfailed_unittest(     \
+               __FILE__, __LINE__); \
+            goto ONABORT;           \
          }
 
 /* define: TESTP
- * Tests (CMP FCTCALL) jumps to label ONABORT in case of false.
- * If (CMP FCTCALL) is false an error is printed and the value retured
- * by the function call and computation continues at label ONABORT.
+ * Tests CONDITION and jumps to label ONABORT in case of false.
+ * If CONDITION is false an error is printed and computation continues
+ * at label ONABORT. The printed error contains the formatted output string
+ * In case of CONDITION true nothing is done.
  *
  * Parameters:
- * PRIx    - printf format type string of the value returned by the function.
- * CMP     - Condition which is tested as (CMP FCTCALL) to be true.
- * FCTCALL - Call to function whose result is also stored in a temporary variable.
+ * CONDITION - Condition which is tested to be true.
+ * FORMAT    - printf format type string of the values to be printed.
+ * ARGS      - Parameter values matching the types in the format string.
  *
  * Usage:
  * The following demonstrates how this macro is used:
@@ -153,22 +156,21 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  * > int unittest_module()
  * > {
  * >    type_t type = type_FREE;
- * >    TESTP(d,0 ==,init_type(&type));
- * >    TESTP(d,0 ==,free_type(&type));
+ * >    int r;
+ * >    TESTP(0 == (r = init_type(&type)), "%d", r);
+ * >    TESTP(0 == (r = free_type(&type)), "%d", r);
  * >    return 0; // success
  * > ONABORT:
  * >    free_type(&type);
- * >    return EINVAL; // any error code
+ * >    return EINVAL;
  * > }
  * */
-#define TESTP(PRIx, CMP, FCTCALL)  \
-         {  typeof(FCTCALL) _r = FCTCALL;    \
-            if ( !(CMP _r) ) {               \
-               logfailedunexpected_unittest( \
-               __FILE__, __LINE__,           \
-               "%" PRIx, _r);                \
-               goto ONABORT;                 \
-            }                                \
-         }
+#define TESTP(CONDITION, FORMAT, ARGS) \
+         if ( !(CONDITION) ) {         \
+            logfailedf_unittest(       \
+            __FILE__, __LINE__,        \
+            FORMAT, ARGS);             \
+            goto ONABORT;              \
+         }                             \
 
 #endif

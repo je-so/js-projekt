@@ -36,21 +36,6 @@
 
 // group: lifetime
 
-int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last)
-{
-   int err ;
-
-   VALIDATE_INPARAM_TEST((uintptr_t)last+1 > (uintptr_t)last, ONABORT, ) ;
-
-   str->addr = first ;
-   str->size = last < first ? 0 : (size_t) (1 + last - first) ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
-}
-
 int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end)
 {
    int err ;
@@ -231,28 +216,6 @@ static int test_initfree(void)
    srcstr = (string_t) string_INIT(sizeof(buffer), buffer) ;
    TEST(EINVAL == initsubstr_string(&str, &srcstr, sizeof(buffer)+1, 0)) ;
    TEST(EINVAL == initsubstr_string(&str, &srcstr, 0, sizeof(buffer)+1)) ;
-
-   // TEST initfl_string
-   TEST(0 == initfl_string(&str, &buffer[21], &buffer[23])) ;
-   TEST(str.addr == &buffer[21]) ;
-   TEST(str.size == 3) ;
-   TEST(0 == initfl_string(&str, &buffer[24], &buffer[28])) ;
-   TEST(str.addr == &buffer[24]) ;
-   TEST(str.size == 5) ;
-   TEST(0 == initfl_string(&str, &buffer[1], &buffer[1])) ;
-   TEST(str.addr == &buffer[1]) ;
-   TEST(str.size == 1) ;
-
-   // TEST initfl_string: empty string
-   TEST(0 == initfl_string(&str, &buffer[1], &buffer[0])) ;
-   TEST(str.addr == &buffer[1]) ;
-   TEST(str.size == 0) ;
-
-   // TEST initfl_string: EINVAL
-   TEST(0 == initfl_string(&str, &buffer[1], &buffer[4])) ;
-   TEST(EINVAL == initfl_string(&str, (uint8_t*)(uintptr_t)-1, (uint8_t*)(uintptr_t)-1)) ;
-   TEST(str.addr == &buffer[1]) ;
-   TEST(str.size == 4) ;
 
    // TEST initse_string
    TEST(0 == initse_string(&str,  &buffer[21], &buffer[24])) ;

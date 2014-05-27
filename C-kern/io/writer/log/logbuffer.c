@@ -385,15 +385,32 @@ static int test_update(void)
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
    logbuf = (logbuffer_t) logbuffer_INIT(sizeof(buffer), buffer, pipefd[1]) ;
 
-   // TEST clear_logbuffer
-   logbuf.logsize = 10 ;
-   logbuf.addr[0] = 'a' ;
-   clear_logbuffer(&logbuf) ;
-   TEST(logbuf.addr == buffer) ;
-   TEST(logbuf.size == sizeof(buffer)) ;
-   TEST(logbuf.io == pipefd[1]) ;
-   TEST(logbuf.addr[0] == 0) ;
-   TEST(logbuf.logsize == 0) ;
+   // TEST truncate_logbuffer
+   for (unsigned i = 0; i < 32; ++i) {
+      logbuf.logsize = 32;
+      logbuf.addr[i] = 'a';
+      truncate_logbuffer(&logbuf, i);
+      TEST(logbuf.addr == buffer);
+      TEST(logbuf.size == sizeof(buffer));
+      TEST(logbuf.io == pipefd[1]);
+      TEST(logbuf.addr[i] == 0);
+      TEST(logbuf.logsize == i);
+   }
+
+   // TEST truncate_logbuffer: parameter with bigger or equal size are ignored
+   for (unsigned i = 0; i < 32; ++i) {
+      logbuf.logsize = i;
+      logbuf.addr[i]   = 'a';
+      logbuf.addr[i+1] = 'a';
+      truncate_logbuffer(&logbuf, i+1);
+      truncate_logbuffer(&logbuf, i);
+      TEST(logbuf.addr == buffer);
+      TEST(logbuf.size == sizeof(buffer));
+      TEST(logbuf.io == pipefd[1]);
+      TEST(logbuf.addr[i]   == 'a');
+      TEST(logbuf.addr[i+1] == 'a');
+      TEST(logbuf.logsize   == i);
+   }
 
    // TEST write_logbuffer
    memset(readbuffer,0 , sizeof(readbuffer)) ;

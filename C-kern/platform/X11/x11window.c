@@ -1134,10 +1134,10 @@ static int test_showhide(testwindow_t * testwin)
    // TEST show_x11window
    testwin->onvisible = 0;
    TEST(state_x11window(x11win) == x11window_state_HIDDEN) ;
-   TEST(0 == show_x11window(x11win)) ;
+   TEST(0 == show_x11window(x11win));
    WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_state_SHOWN);
-   TEST(state_x11window(x11win) == x11window_state_SHOWN) ;
-   TEST(1 == testwin->onvisible);
+   TEST(state_x11window(x11win) == x11window_state_SHOWN);
+   TEST(1 <= testwin->onvisible);
    TEST(1 == testwin->isVisible);
 
    return 0 ;
@@ -1216,8 +1216,8 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
       }
       if (0 == ti) {
          TEST(0 == frame_x11window(x11win, &x, &y, &w, &h)) ;
-         TEST(w > 200) ;
-         TEST(h > 100) ;
+         TEST(w >= 200) ;
+         TEST(h >  100) ;
          TEST(0 == size_x11window(x11win, &w, &h)) ;
       } else {
          TEST(0 == geometry_x11window(x11win, &x, &y, &w, &h)) ;

@@ -398,7 +398,7 @@ static int alignedexpandshift_decimalhelper(/*out*/alignedexpandshift_t * expshi
 /* function: allocate_decimalhelper
  * Does the real allocation / reallocation.
  * In case parameter *dec* does not point to a NULL pointer, it is considered
- * to point to a valid reference to a <decimal_t> previously allocated by this function.
+ * to point to a valid reference to <decimal_t> previously allocated by this function.
  * In this case a reallocation is done - if *allocate_digits* is higher than <decimal_t.size_allocated>. */
 static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_allocate)
 {
@@ -410,8 +410,8 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
       return 0 ;
    }
 
-   // check that size_allocate can be cast to int8_t
-   if (!size_allocate || size_allocate > INT8_MAX) {
+   // check that size_allocate will fit into sign_and_used_digits
+   if (!size_allocate || size_allocate > sizemax_decimal()) {
       err = EOVERFLOW ;
       goto ONABORT ;
    }
@@ -443,8 +443,8 @@ static int allocategroup_decimal(uint32_t nrobjects, /*out*/decimal_t * dec[nrob
    for (objectindex = 0; objectindex < nrobjects; ++objectindex) {
       uint32_t size = allocate_digits[objectindex] ;
 
-      // check that allocate_digits can be cast to int8_t
-      if (!size || size > INT8_MAX) {
+      // check that allocate_digits will fit into sign_and_used_digits
+      if (!size || size > sizemax_decimal()) {
          err = EOVERFLOW ;
          goto ONABORT ;
       }
@@ -607,8 +607,8 @@ static int add_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    size     -= (0 == carry) ;
    digits[0] = carry ;
 
-   (*result)->sign_and_used_digits = (int8_t)  (isNegSign ? - (int32_t) size : (int32_t) size) ;
-   (*result)->exponent             = (int16_t) (lexp < rexp ? lexp : rexp) ;
+   (*result)->sign_and_used_digits = (uint8_t) (size | (isNegSign ? 0x80 : 0));
+   (*result)->exponent             = (int16_t) (lexp < rexp ? lexp : rexp);
 
    return 0 ;
 ONABORT:
@@ -627,8 +627,8 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    uint8_t        lsize     = size_decimal(ldec) ;
    uint8_t        rsize     = size_decimal(rdec) ;
    bool           isNegSign = isnegative_decimal(ldec) ;
-   bool           carry ;
-   bool           isSwap ;
+   bool           carry;
+   bool           isSwap;
    int32_t        lexp      = ldec->exponent ;
    int32_t        rexp      = rdec->exponent ;
    const uint32_t * ldigits = ldec->digits ;
@@ -772,10 +772,12 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    /* handle leading part
     * */
    for (; carry && lsize; --lsize) {
-      int32_t diff = (int32_t)*(ldigits++) - carry ;
-      carry = (diff < 0) ;
-      diff += (int32_t)DIGITSBASE * carry ;
-      *(digits++) = (uint32_t) diff ;
+      uint32_t diff = *(ldigits++);
+      const bool carry2 = (diff == 0);
+      diff -= carry;
+      carry = carry2;
+      diff += (uint32_t)DIGITSBASE * carry;
+      *(digits++) = diff ;
    }
    for (; lsize; --lsize) {
       *(digits++) = *(ldigits++) ;
@@ -785,7 +787,7 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
       -- digits ;
       -- size ;
    }
-   (*result)->sign_and_used_digits = (int8_t)  (isNegSign ? - (int32_t) size : (int32_t) size) ;
+   (*result)->sign_and_used_digits = (uint8_t) (size | (isNegSign ? 0x80 : 0));
    (*result)->exponent             = (int16_t) (lexp < rexp ? lexp : rexp) ;
 
    return 0 ;
@@ -844,7 +846,7 @@ static void mult_decimalhelper(decimal_t * dec, uint8_t lsize, const uint32_t * 
    }
 
    size -= (0 == carry) ;  // if no carry occurred make result one digit smaller
-   dec->sign_and_used_digits = (int8_t) size ;
+   dec->sign_and_used_digits = (uint8_t) size;
    dec->exponent             = exponent ;
 
    return ;
@@ -914,7 +916,7 @@ static void addsplit_decimalhelper(decimal_t * restrict result, uint8_t digitsof
       digits[0] = 1 ;
    }
 
-   result->sign_and_used_digits = (int8_t) size ;
+   result->sign_and_used_digits = size;
 
    return ;
 }
@@ -1310,7 +1312,7 @@ static int div_decimalhelper(decimal_t *restrict result, bool isNegSign, int32_t
       resultdigits[--state.size] = state.nextdigit ;
    }
 
-   result->sign_and_used_digits = (int8_t)  (isNegSign ? - (int32_t)result_size : (int32_t)result_size) ;
+   result->sign_and_used_digits = (uint8_t) (result_size | (isNegSign ? 0x80 : 0));
    result->exponent             = (int16_t) (exponent) ;
 
    return 0 ;
@@ -1367,7 +1369,7 @@ static int divi32_decimalhelper(decimal_t *restrict result, bool isNegSign, int3
       result->digits[--size] = quotient ;
    }
 
-   result->sign_and_used_digits = (int8_t)  (isNegSign ? - (int32_t)result_size : (int32_t)result_size) ;
+   result->sign_and_used_digits = (uint8_t) (result_size | (isNegSign ? 0x80 : 0));
    result->exponent             = (int16_t) (exponent) ;
 
    return 0 ;
@@ -1600,7 +1602,7 @@ int32_t first9digits_decimal(decimal_t * dec, int32_t * decimal_exponent)
 
    *decimal_exponent = dec_expo ;
 
-   return (dec->sign_and_used_digits < 0) ? - (int32_t) digits : (int32_t) digits ;
+   return isnegative_decimal(dec) ? - (int32_t) digits : (int32_t) digits;
 }
 
 int64_t first18digits_decimal(decimal_t * dec, int32_t * decimal_exponent)
@@ -1630,7 +1632,7 @@ int64_t first18digits_decimal(decimal_t * dec, int32_t * decimal_exponent)
 
    *decimal_exponent = dec_expo ;
 
-   return (dec->sign_and_used_digits < 0) ? - (int64_t) digits : (int64_t) digits ;
+   return isnegative_decimal(dec) ? - (int64_t) digits : (int64_t) digits;
 }
 
 uint16_t nrdigits_decimal(const decimal_t * dec)
@@ -1782,17 +1784,17 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
       err = allocate_decimalhelper(dec, 2) ;
       if (err) goto ONABORT ;
 
-      (*dec)->sign_and_used_digits = (int8_t) ((value > 0) ? +2 : -2) ;
+      (*dec)->sign_and_used_digits = (uint8_t) (2 | ((value < 0) ? 0x80 : 0));
       (*dec)->exponent             = alignshift.alignedexp ;
       (*dec)->digits[0] = digit ;
       (*dec)->digits[1] = shiftcarry ;
    } else if (digit) {
-      (*dec)->sign_and_used_digits = (int8_t)  ((value > 0) ? +1 : -1) ;
+      (*dec)->sign_and_used_digits = (uint8_t) (1 | ((value < 0) ? 0x80 : 0));
       (*dec)->exponent             = alignshift.alignedexp ;
       (*dec)->digits[0] = digit ;
    } else {
-      (*dec)->sign_and_used_digits = 0 ;
-      (*dec)->exponent             = 0 ;
+      (*dec)->sign_and_used_digits = 0;
+      (*dec)->exponent             = 0;
    }
 
    return 0 ;
@@ -1825,13 +1827,13 @@ int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decima
       err = allocate_decimalhelper(dec, size) ;
       if (err) goto ONABORT ;
 
-      memcpy((*dec)->digits, decdigit, sizeof((*dec)->digits[0]) * size) ;
-      (*dec)->sign_and_used_digits = (int8_t) ((value > 0) ? size : -size) ;
-      (*dec)->exponent             = alignshift.alignedexp ;
+      memcpy((*dec)->digits, decdigit, sizeof((*dec)->digits[0]) * size);
+      (*dec)->sign_and_used_digits = (uint8_t) (size | ((value < 0) ? 0x80 : 0));
+      (*dec)->exponent             = alignshift.alignedexp;
 
    } else {
-      (*dec)->sign_and_used_digits = 0 ;
-      (*dec)->exponent             = 0 ;
+      (*dec)->sign_and_used_digits = 0;
+      (*dec)->exponent             = 0;
    }
 
    return 0 ;
@@ -1866,7 +1868,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
          if (err) goto ONABORT ;
          decimal_t * dec2 = *dec ;
          dec2->digits[size-1]       = (uint32_t) integral ;
-         dec2->sign_and_used_digits = (int8_t)   (value < 0 ? - (int32_t) size : (int32_t) size) ;
+         dec2->sign_and_used_digits = (uint8_t)  (size | (value < 0 ? 0x80 : 0));
          dec2->exponent             = (int16_t) -(int32_t)(--size) ;
          do {
             ifraction  = (uint32_t) ifraction ;
@@ -1940,7 +1942,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
             -- size ;
          }
 
-         (*dec)->sign_and_used_digits = (int8_t)  (value < 0 ? - (int32_t) size : (int32_t) size) ;
+         (*dec)->sign_and_used_digits = (uint8_t) (size | (value < 0 ? 0x80 : 0));
          (*dec)->exponent             = (int16_t) exponent ;
 
          if (size_bigint(big[1]) > bigintfractionsize) {
@@ -2017,7 +2019,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
       err = allocate_decimalhelper(dec, size) ;
       if (err) goto ONABORT ;
 
-      (*dec)->sign_and_used_digits = (int8_t) (value < 0 ? - (int32_t) size : (int32_t) size) ;
+      (*dec)->sign_and_used_digits = (uint8_t) (size | (value < 0 ? 0x80 : 0));
       (*dec)->exponent             = 0 ;
 
       // 3. decompose integer into decimal parts
@@ -2214,8 +2216,8 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
       } while (digitindex) ;
    }
 
-   (*dec)->sign_and_used_digits = (int8_t)  (isNegSign ? - (int32_t) size : (int32_t) size) ;
-   (*dec)->exponent             = (int16_t) exponent ;
+   (*dec)->sign_and_used_digits = (uint8_t) (size | (size && isNegSign ? 0x80 : 0));
+   (*dec)->exponent             = (int16_t) exponent;
 
    return 0 ;
 ONABORT:
@@ -2300,13 +2302,13 @@ int mult_decimal(decimal_t *restrict* result, const decimal_t * ldec, const deci
    }
 
    err = allocate_decimalhelper(result, size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONABORT;
 
    err = multsplit_decimalhelper(result, lsize, ldigits, rsize, rdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONABORT;
 
-   (*result)->sign_and_used_digits = (int8_t)  (isNegSign ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
-   (*result)->exponent             = (int16_t) ((*result)->exponent + exponent) ;
+   (*result)->sign_and_used_digits = (uint8_t) ((*result)->sign_and_used_digits | (isNegSign ? 0x80 : 0));
+   (*result)->exponent             = (int16_t) ((*result)->exponent + exponent);
 
    return 0 ;
 ONABORT:
@@ -2772,20 +2774,20 @@ static int test_initfree(void)
 
    // TEST sign_decimal
    TEST(0 == new_decimal(&dec, 127*9)) ;
-   for (unsigned i = 0; i <= dec->size_allocated; ++i) {
-      dec->sign_and_used_digits = (int8_t) i ;
-      TEST((0 != i) == sign_decimal(dec)) ;
-      dec->sign_and_used_digits = (int8_t) -(int) i ;
-      TEST(-(0 != i) == sign_decimal(dec)) ;
+   for (uint8_t i = 0; i <= dec->size_allocated; ++i) {
+      dec->sign_and_used_digits = i;
+      TEST((0 != i) == sign_decimal(dec));
+      dec->sign_and_used_digits = (uint8_t) (i|(i?0x80:0));
+      TEST(-(0 != i) == sign_decimal(dec));
    }
    TEST(0 == delete_decimal(&dec)) ;
 
    // TEST size_decimal
    TEST(0 == new_decimal(&dec, 127*9)) ;
-   for (unsigned i = 0; i <= dec->size_allocated; ++i) {
-      dec->sign_and_used_digits = (int8_t) i ;
+   for (uint8_t i = 0; i <= dec->size_allocated; ++i) {
+      dec->sign_and_used_digits = i ;
       TEST(i == size_decimal(dec)) ;
-      dec->sign_and_used_digits = (int8_t) -(int) i ;
+      dec->sign_and_used_digits = (uint8_t) (i|0x80);
       TEST(i == size_decimal(dec)) ;
    }
    TEST(0 == delete_decimal(&dec)) ;
@@ -2794,16 +2796,16 @@ static int test_initfree(void)
    TEST(0 == new_decimal(&dec, 127*9)) ;
    dec->sign_and_used_digits = 0 ;
    TEST(0 == nrdigits_decimal(dec)) ;
-   for (unsigned i = 1; i <= dec->size_allocated; ++i) {
+   for (uint8_t i = 1; i <= dec->size_allocated; ++i) {
       for (uint32_t value = 1, ndigit = 1, nrdigit = 1; ndigit != 1000000000; ndigit *= 10, value += ndigit, ++ nrdigit) {
-         dec->sign_and_used_digits = (int8_t) i ;
+         dec->sign_and_used_digits = i ;
          dec->digits[i-1] = value ;
-         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1) + nrdigit) ;
+         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1u) + nrdigit) ;
          dec->digits[i-1] = 9 * value ;
-         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1) + nrdigit) ;
-         dec->sign_and_used_digits = (int8_t) -(int) i ;
+         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1u) + nrdigit) ;
+         dec->sign_and_used_digits = (uint8_t) (i|0x80);
          dec->digits[i-1] = ndigit ;
-         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1) + nrdigit) ;
+         TEST(nrdigits_decimal(dec) == digitsperint_decimal()*(i-1u) + nrdigit) ;
       }
    }
    TEST(0 == delete_decimal(&dec)) ;
@@ -2815,7 +2817,7 @@ static int test_initfree(void)
    }
    for (int i = 1; i < dec->size_allocated; ++i) {
       for (int s = -1; s <= +2; s += 2) {
-         dec->sign_and_used_digits = (int8_t)  (s * i) ;
+         dec->sign_and_used_digits = (uint8_t) (i | (s < 0 ? 0x80 : 0));
          dec->exponent             = (int16_t) (i * (-s)) ;
          TEST(size_decimal(dec)     == i) ;
          TEST(exponent_decimal(dec) == digitsperint_decimal() * i * (-s)) ;
@@ -2843,32 +2845,53 @@ static int test_signops(void)
 {
    decimal_t   * dec = 0 ;
 
-   // TEST negate_decimal, setnegative_decimal, setpositive_decimal
+   // prepare
    TEST(0 == new_decimal(&dec, 127*9)) ;
-   dec->sign_and_used_digits = 0 ;
-   negate_decimal(dec) ;
-   TEST(0 == dec->sign_and_used_digits) ;
+
+   // TEST negate_decimal: 0 keeps 0
+   dec->sign_and_used_digits = 0;
+   negate_decimal(dec);
+   TEST(0 == dec->sign_and_used_digits);
+
+   // TEST setnegative_decimal: 0 keeps 0
    setnegative_decimal(dec) ;
-   TEST(0 == dec->sign_and_used_digits) ;
-   setpositive_decimal(dec) ;
-   TEST(0 == dec->sign_and_used_digits) ;
+   TEST(0 == dec->sign_and_used_digits);
+
+   // TEST setpositive_decimal: 0 keeps 0
+   setpositive_decimal(dec);
+   TEST(0 == dec->sign_and_used_digits);
+
    for (unsigned i = 1; i <= dec->size_allocated; ++i) {
-      int8_t n =   (int8_t) - (int) i ;
-      int8_t p =   (int8_t) i ;
-      dec->sign_and_used_digits = p ;
+      uint8_t n =   (uint8_t) (i|0x80);
+      uint8_t p =   (uint8_t) i;
+      dec->sign_and_used_digits = p;
+
+      // TEST negate_decimal
       negate_decimal(dec) ;
       TEST(-1 == sign_decimal(dec)) ;
-      TEST(n  == dec->sign_and_used_digits) ;
+      TEST(n  == dec->sign_and_used_digits);
       negate_decimal(dec) ;
       TEST(+1 == sign_decimal(dec)) ;
-      TEST(p  == dec->sign_and_used_digits) ;
-      setnegative_decimal(dec) ;
-      TEST(-1 == sign_decimal(dec)) ;
-      TEST(n  == dec->sign_and_used_digits) ;
-      setpositive_decimal(dec) ;
-      TEST(+1 == sign_decimal(dec)) ;
-      TEST(p  == dec->sign_and_used_digits) ;
+      TEST(p  == dec->sign_and_used_digits);
+
+      // TEST setnegative_decimal
+      setnegative_decimal(dec);
+      TEST(-1 == sign_decimal(dec));
+      TEST(n  == dec->sign_and_used_digits);
+      setnegative_decimal(dec);
+      TEST(-1 == sign_decimal(dec));
+      TEST(n  == dec->sign_and_used_digits);
+
+      // TEST setpositive_decimal
+      setpositive_decimal(dec);
+      TEST(+1 == sign_decimal(dec));
+      TEST(p  == dec->sign_and_used_digits);
+      setpositive_decimal(dec);
+      TEST(+1 == sign_decimal(dec));
+      TEST(p  == dec->sign_and_used_digits);
    }
+
+   // unprepare
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
@@ -2896,7 +2919,7 @@ static int test_copy(void)
 
    // TEST copy_decimal
    struct {
-      const int8_t   nrdigits ;
+      const uint8_t  nrdigits ;
       const uint32_t digits[10] ;
    } testvalues[] = {
       { 1, { 1 } }
@@ -2914,7 +2937,7 @@ static int test_copy(void)
       for (int s = -1; s <= 1; s += 2) {
          for (int32_t e = -INT16_MAX; e <= INT16_MAX; e += INT16_MAX) {
             const int n = testvalues[tvi].nrdigits ;
-            dec->sign_and_used_digits = (int8_t) (s * n) ;
+            dec->sign_and_used_digits = (uint8_t) (n | (s < 0 ? 0x80 : 0));
             dec->exponent             = (int16_t) e ;
             for (int i = 0; i < n; ++i) {
                dec->digits[i] = testvalues[tvi].digits[i] ;
@@ -3008,7 +3031,7 @@ static int test_setfromint(void)
                   TEST(0 == setfromint64_decimal(&dec, s * testvalues[i], testexponent[ei])) ;
                }
                TEST(dec->size_allocated   == 1 + (shifteddigit > 999999999)) ;
-               TEST(dec->sign_and_used_digits == s * (1 + (shifteddigit > 999999999))) ;
+               TEST(dec->sign_and_used_digits == ((1 + (shifteddigit > 999999999))|(s < 0 ? 0x80 : 0)));
                TEST(size_decimal(dec)     == 1 + (shifteddigit > 999999999)) ;
                TEST(nrdigits_decimal(dec) == 1 + log10_int((uint32_t)testvalues[i]) + (uint32_t)expdiff) ;
                TEST(sign_decimal(dec)     == s) ;
@@ -3054,7 +3077,7 @@ static int test_setfromint(void)
             TEST(0 == new_decimal(&dec, 1)) ;
             TEST(0 == setfromint64_decimal(&dec, s * testvalues2[i], testexponent2[ei])) ;
             TEST(dec->size_allocated     == (2 + (0 != shifteddigit[2]))) ;
-            TEST(dec->sign_and_used_digits == s * (2 + (0 != shifteddigit[2]))) ;
+            TEST(dec->sign_and_used_digits == ((2 + (0 != shifteddigit[2]))|(s < 0 ? 0x80:0)));
             TEST(size_decimal(dec)     == 2 + (0 != shifteddigit[2])) ;
             TEST(nrdigits_decimal(dec) == 1 + log10_int((uint64_t)testvalues2[i]) + expdiff) ;
             TEST(sign_decimal(dec)     == s) ;
@@ -3321,7 +3344,7 @@ static int test_setfromchar(void)
          TEST(0 == setfromchar_decimal(&dec, strlen(str), str)) ;
          TEST(nrdigits_decimal(dec) == testvalues[tvi].nrdigits) ;
          TEST(size_decimal(dec)     == size) ;
-         TEST(sign_decimal(dec)     == s * (0 != testvalues[tvi].nrdigits)) ;
+         TEST(sign_decimal(dec)     == s*(0 != testvalues[tvi].nrdigits));
          TEST(exponent_decimal(dec) == testvalues[tvi].exponent10) ;
          for (uint32_t i = 0; i < size; ++i) {
             TEST(dec->digits[size-1-i] == testvalues[tvi].digits[i]) ;
@@ -3697,8 +3720,8 @@ static int test_mult(void)
       clear_decimal(dec[1]) ;
       clear_decimal(dec[2]) ;
       const uint8_t S = sizemax_decimal()/2 ;
-      dec[1]->sign_and_used_digits = (int8_t)S ;
-      dec[2]->sign_and_used_digits = (int8_t)S ;
+      dec[1]->sign_and_used_digits = S;
+      dec[2]->sign_and_used_digits = S;
       for (unsigned i = 0; i < S; ++i) {
          dec[1]->digits[i] = (uint32_t) random() % DIGITSBASE ;
          dec[2]->digits[i] = (uint32_t) random() % DIGITSBASE ;
@@ -3957,7 +3980,7 @@ static int test_tocstring(void)
       for (unsigned i = 0; i < sizemax_decimal(); ++i) {
          dec->digits[i] = testdigit ;
       }
-      dec->sign_and_used_digits = (int8_t) - (int32_t) sizemax_decimal() ;
+      dec->sign_and_used_digits = (uint8_t) (sizemax_decimal()|0x80);
       dec->exponent             = (int16_t) - INT16_MAX ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
       size_t L = 1 + nrdigitsmax_decimal() + 8 ;

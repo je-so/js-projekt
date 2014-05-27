@@ -1,50 +1,45 @@
-[1: 1375541636.134692s]
-initsubstr_string() C-kern/string/string.c:74
+[1: 1401034998.800974s]
+initsubstr_string() C-kern/string/string.c:59
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
 Function aborted
-[1: 1375541636.134701s]
-initsubstr_string() C-kern/string/string.c:74
+[1: 1401034998.800983s]
+initsubstr_string() C-kern/string/string.c:59
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
 Function aborted
-[1: 1375541636.134705s]
-initfl_string() C-kern/string/string.c:43
-Error 22 - Invalid argument
-Function input violates condition ((uintptr_t)last+1 > (uintptr_t)last)
-Function aborted
-[1: 1375541636.134708s]
-initse_string() C-kern/string/string.c:58
+[1: 1401034998.800987s]
+initse_string() C-kern/string/string.c:43
 Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
 Function aborted
-[1: 1375541636.135280s]
-substr_string() C-kern/string/string.c:121
+[1: 1401034998.804231s]
+substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
 Function aborted
-[1: 1375541636.135283s]
-substr_string() C-kern/string/string.c:121
+[1: 1401034998.804234s]
+substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
 Function aborted
-[1: 1375541636.135286s]
-substr_string() C-kern/string/string.c:121
+[1: 1401034998.804236s]
+substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
 Function aborted
-[1: 1375541636.135288s]
-substr_string() C-kern/string/string.c:121
+[1: 1401034998.804239s]
+substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
 Function aborted
-[1: 1375541636.135292s]
-shrinkleft_string() C-kern/string/string.c:136
+[1: 1401034998.804249s]
+shrinkleft_string() C-kern/string/string.c:121
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
 Function aborted
-[1: 1375541636.135297s]
-shrinkright_string() C-kern/string/string.c:151
+[1: 1401034998.804258s]
+shrinkright_string() C-kern/string/string.c:136
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))
 Function aborted

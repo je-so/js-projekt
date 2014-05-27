@@ -128,10 +128,12 @@ void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate);
 
 // group: change
 
-/* function: clearbuffer_logwriter
- * Clears log buffer (sets length of logbuffer to 0).
- * This call is ignored if the log is not configured to be in buffered mode. */
-void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel);
+/* function: truncatebuffer_logwriter
+ * Sets length of log buffer to size.
+ * Seting the length to 0 clears the whole buffer.
+ * This call is ignored if the log is not configured to be in buffered mode
+ * or if parameter size is bigger or equal than the size of the stored buffer. */
+void truncatebuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, size_t size);
 
 /* function: flushbuffer_logwriter
  * Writes content of buffer to STDERR or configured file descriptor and clears log buffer.

@@ -179,12 +179,12 @@ int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_byte
  * Returns the buffer size in bytes.
  * *queuesize_read* gives the number of bytes which can be received without reading.
  * *queuesize_write* gives the number of bytes which can be written without sending. */
-int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read, /*out*/size_t * queuesize_write) ;
+int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * queuesize_read, /*out*/uint32_t * queuesize_write) ;
 
 /* function: setqueuesize_ipsocket
  * Changes the size of the read and write queue.
  * To change only the read or write queue size set the other value to 0. */
-int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read/*0 => no change*/, size_t queuesize_write/*0 => no change*/) ;
+int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read/*0 => no change*/, uint32_t queuesize_write/*0 => no change*/) ;
 
 // group: connected io
 

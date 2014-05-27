@@ -54,19 +54,20 @@ ONABORT:
 
 int initfromstring_string(/*out*/stringstream_t * strstream, const struct string_t * str)
 {
-   int err ;
+   int err;
 
-   const uint8_t * end = addr_string(str) + size_string(str) ;
+   const uintptr_t next = (uintptr_t)addr_string(str);
+   const uintptr_t end  = next + size_string(str);
 
-   VALIDATE_INPARAM_TEST(addr_string(str) <= end, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(next <= end, ONABORT, );
 
-   strstream->next = addr_string(str) ;
-   strstream->end  = end ;
+   strstream->next = (const uint8_t*) next;
+   strstream->end  = (const uint8_t*) end;
 
-   return 0 ;
+   return 0;
 ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
+   TRACEABORT_ERRLOG(err);
+   return err;
 }
 
 // group: test

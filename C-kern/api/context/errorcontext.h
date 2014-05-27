@@ -168,7 +168,7 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
 /* define: maxsyserrnum_errorcontext
  * Implements <errorcontext_t.maxsyserrnum_errorcontext>. */
 #define maxsyserrnum_errorcontext() \
-         (132)
+         (133)
 
 /* define: str_errorcontext
  * Implements <errorcontext_t.str_errorcontext>. */

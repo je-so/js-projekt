@@ -1,12 +1,12 @@
-[1: 1375541656.134520s]
-initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:167
+[1: 1401099177.971799s]
+initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:168
 Error 38 - Function not implemented
 Function aborted
-[1: 1375541656.861901s]
-set_x11videomode() C-kern/platform/X11/x11videomode.c:222
+[1: 1401099178.434984s]
+set_x11videomode() C-kern/platform/X11/x11videomode.c:223
 Error 38 - Function not implemented
 Function aborted
-[1: 1375541657.277433s]
-initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:167
+[1: 1401099178.756064s]
+initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:168
 Error 38 - Function not implemented
 Function aborted

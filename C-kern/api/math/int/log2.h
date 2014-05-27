@@ -55,7 +55,7 @@ struct int_t ;
  *
  * Parameter:
  * i - The argument whose logarithm to base 2 is caclulated and returned. */
-unsigned log2_int(unsigned i) ;
+uint8_t log2_int(unsigned i);
 
 
 // section: inline implementation
@@ -87,7 +87,7 @@ unsigned log2_int(unsigned i) ;
                unsigned long long _i = (i) ;                      \
                _result = (_i != 0) * (127^ __builtin_clzll(_i)) ; \
             }                                                     \
-            (unsigned) _result ;                                  \
+            (uint8_t) _result;                                    \
          }))
 
 #endif

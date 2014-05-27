@@ -603,7 +603,7 @@ static int test_waitevents(void)
    TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttv)) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 40)) ;
    TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtv)) ;
-   uint64_t millisec = diffms_timevalue(&endtv, &starttv) ;
+   int64_t millisec = diffms_timevalue(&endtv, &starttv) ;
    TEST(30 <= millisec && millisec <= 50) ;
 
    // TEST EINVAL: queue size zero

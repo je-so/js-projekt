@@ -181,11 +181,13 @@ struct log_it {
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
     * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
    void  (*flushbuffer) (void * log, uint8_t channel);
-   /* variable: clearbuffer
-    * Clears log buffer (sets length of logbuffer to 0).
-    * This call is ignored if the log is not configured to be in buffered mode.
-    * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
-   void  (*clearbuffer) (void * log, uint8_t channel);
+   /* variable: truncatebuffer
+    * Sets length of logbuffer to size.
+    * This call is ignored if the log is not configured to be in buffered mode
+    * or if the current size of the buffered log is lower or equal to the value
+    * of the parameter size.
+    * See <logwriter_t.truncatebuffer_logwriter> for an implementation. */
+   void  (*truncatebuffer) (void * log, uint8_t channel, size_t size);
    // -- query --
    /* variable: getbuffer
     * Returns content of log buffer as C-string and its size in bytes.
@@ -278,9 +280,10 @@ struct log_header_t {
                && &((typeof(logif))0)->flushbuffer    \
                   == (void(**)(log_t*,uint8_t))       \
                         &((log_it*)0)->flushbuffer    \
-               && &((typeof(logif))0)->clearbuffer    \
-                  == (void(**)(log_t*,uint8_t))       \
-                        &((log_it*)0)->clearbuffer    \
+               && &((typeof(logif))0)->truncatebuffer \
+                  == (void(**)(log_t*,uint8_t,        \
+                               size_t))               \
+                        &((log_it*)0)->truncatebuffer \
                && &((typeof(logif))0)->getbuffer      \
                   == (void(**)(const log_t*,uint8_t,  \
                         uint8_t**,size_t*))           \
@@ -313,7 +316,7 @@ struct log_header_t {
       void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,               \
                             const log_header_t * header, log_text_f textf, ... );      \
       void  (*flushbuffer) (log_t * log, uint8_t channel);                             \
-      void  (*clearbuffer) (log_t * log, uint8_t channel);                             \
+      void  (*truncatebuffer) (log_t * log, uint8_t channel, size_t size);             \
       void  (*getbuffer)   (const log_t * log, uint8_t channel,                        \
                             /*out*/uint8_t ** buffer, /*out*/size_t * size);           \
       uint8_t (*getstate)  (const log_t * log, uint8_t channel);                       \

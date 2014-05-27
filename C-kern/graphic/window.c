@@ -157,6 +157,9 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
+#define WINPOS_INIT_X 250
+#define WINPOS_INIT_Y 100
+
 #if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 
 /* define: WAITFOR
@@ -172,7 +175,7 @@ ONABORT:
       sleepms_thread(5);                           \
    }
 
-static int compare_color(x11window_t * x11win, uint32_t w, uint32_t h, bool isRed, bool isGreen, bool isBlue)
+static int compare_color2(x11window_t * x11win, uint32_t w, uint32_t h, bool isRed, bool isGreen, bool isBlue)
 {
    XImage * ximg = 0;
    size_t   pixels;
@@ -198,6 +201,17 @@ static int compare_color(x11window_t * x11win, uint32_t w, uint32_t h, bool isRe
    XDestroyImage(ximg);
 
    return (pixels > ((uint64_t)x*y/2)) ? 0 : EINVAL;
+}
+
+static int compare_color(x11window_t * x11win, uint32_t w, uint32_t h, bool isRed, bool isGreen, bool isBlue)
+{
+   for (unsigned i = 0; i < 20; ++i) {
+      sleepms_thread(10); // wait for compositor
+      if (0 == compare_color2(x11win, w, h, isRed, isGreen, isBlue))
+         return 0;
+   }
+
+   return EINVAL;
 }
 
 static int test_transparentalpha(display_t * disp)
@@ -235,7 +249,6 @@ static int test_transparentalpha(display_t * disp)
    glClear(GL_COLOR_BUFFER_BIT);
    TEST(0 == swapbuffer_window(&bottom, disp));
    eglWaitGL();
-   sleepms_thread(100); // wait for compositor
    // red color
    TEST(0 == compare_color(os_window(&bottom), 100, 100, 1, 0, 0));
 
@@ -247,7 +260,6 @@ static int test_transparentalpha(display_t * disp)
    glClear(GL_COLOR_BUFFER_BIT);
    TEST(0 == swapbuffer_window(&top, disp));
    eglWaitGL();
-   sleepms_thread(100); // wait for compositor
    // resulting color is the combination of red and blue
    TEST(0 == compare_color(os_window(&bottom), 100, 100, 1, 0, 1));
 
@@ -291,7 +303,7 @@ static int init_test_window(/*out*/window_t * win, /*out*/EGLContext * eglcontex
                   gconfig_NONE
              };
    windowconfig_t winattr[] = {
-                     windowconfig_INIT_POS(50, 100),
+                     windowconfig_INIT_POS(WINPOS_INIT_X, WINPOS_INIT_Y),
                      windowconfig_INIT_SIZE(100, 100),
                      windowconfig_INIT_FRAME,
                      windowconfig_INIT_NONE
@@ -420,29 +432,33 @@ static int test_position(window_t * win, display_t * disp)
    // prepare
    TEST(0 == show_window(win));
    WAITFOR(disp, isvisible_window(win));
+   TEST(0 == setpos_window(win, WINPOS_INIT_X+10, WINPOS_INIT_Y+10));
+   TEST(0 == setpos_window(win, WINPOS_INIT_X, WINPOS_INIT_Y));
+   WAITFOR(disp, pos_window(win, &x, &y) == 0 && x >= WINPOS_INIT_X+10);
 
    TEST(0 == pos_window(win, &x, &y));
-   dx = x - 50;
-   dy = y - 100;
+   dx = x - WINPOS_INIT_X;
+   dy = y - WINPOS_INIT_Y;
    TEST(0 <= dx && dx <= 10);
    TEST(0 <= dy && dy <= 30);
 
    // TEST pos_window
    TEST(0 == pos_window(win, &x, &y));
-   TEST(50 == x - dx);
-   TEST(100 == y - dy);
+   TEST(WINPOS_INIT_X == x - dx);
+   TEST(WINPOS_INIT_Y == y - dy);
 
    // TEST setpos_window
-   TEST(0 == setpos_window(win, 200, 160));
+   TEST(0 == setpos_window(win, 200, 180));
    WAITFOR(disp, pos_window(win, &x, &y) == 0 && x == 200 + dx);
+   WAITFOR(disp, pos_window(win, &x, &y) == 0 && y == 180 + dy);
    TEST(0 == pos_window(win, &x, &y));
    TEST(200 == x - dx);
-   TEST(160 == y - dy);
-   TEST(0 == setpos_window(win, 50, 100));
-   WAITFOR(disp, pos_window(win, &x, &y) == 0 && x == 50 + dx);
+   TEST(180 == y - dy);
+   TEST(0 == setpos_window(win, WINPOS_INIT_X, WINPOS_INIT_Y));
+   WAITFOR(disp, pos_window(win, &x, &y) == 0 && x == WINPOS_INIT_X + dx);
    TEST(0 == pos_window(win, &x, &y));
-   TEST(50 == x - dx);
-   TEST(100 == y - dy);
+   TEST(WINPOS_INIT_X == x - dx);
+   TEST(WINPOS_INIT_Y == y - dy);
 
    return 0;
 ONABORT:
@@ -508,13 +524,21 @@ static int childprocess_unittest(void)
    TEST(0 == free_resourceusage(&usage));
 
    WAITFOR(&disp, false);
-   TEST(0 == init_resourceusage(&usage));
+   size_t    logsize;
+   uint8_t * logbuffer;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   for (unsigned i = 0; i <= 2; ++i) {
+      TEST(0 == init_resourceusage(&usage));
 
-   if (test_showhide(&win, &disp))     goto ONABORT;
-   if (test_position(&win, &disp))     goto ONABORT;
-   if (test_resize(&win, &disp))       goto ONABORT;
+      if (test_showhide(&win, &disp))     goto ONABORT;
+      if (test_position(&win, &disp))     goto ONABORT;
+      if (test_resize(&win, &disp))       goto ONABORT;
 
-   WAITFOR(&disp, false);
+      WAITFOR(&disp, false);
+      if (0 == same_resourceusage(&usage)) break;
+      TEST(0 == free_resourceusage(&usage));
+      TRUNCATEBUFFER_ERRLOG(logsize);
+   }
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 

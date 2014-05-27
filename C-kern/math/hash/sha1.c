@@ -283,8 +283,9 @@ sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1)
 
       memset(&sha1->block[blocksize], 0, 56 - blocksize) ;
       // length in bits
-      * (uint32_t*) &sha1->block[56] = htonl((uint32_t) (sha1->datalen >> 29)) ;
-      * (uint32_t*) &sha1->block[60] = htonl((uint32_t) (sha1->datalen << 3)) ;
+      uint32_t * bitlen = (uint32_t*)(&sha1->block[56]);
+      bitlen[0] = htonl((uint32_t) (sha1->datalen >> 29)) ;
+      bitlen[1] = htonl((uint32_t) (sha1->datalen << 3)) ;
       update_sha1hash(sha1, sha1->block) ;
 
       sha1->h[0] = htonl(sha1->h[0]) ;

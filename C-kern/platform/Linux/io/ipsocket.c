@@ -412,7 +412,7 @@ ONABORT:
    return err ;
 }
 
-int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read, /*out*/size_t * queuesize_write)
+int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * queuesize_read, /*out*/uint32_t * queuesize_write)
 {
    int err ;
    int         value ;
@@ -447,19 +447,19 @@ ONABORT:
    return err ;
 }
 
-int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t queuesize_write)
+int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t queuesize_write)
 {
    int err ;
-   int        rvalue = (int) (queuesize_read/2) ;
-   int        wvalue = (int) (queuesize_write/2) ;
-   socklen_t  len    = sizeof(rvalue) ;
+   int        value ;
+   socklen_t  len    = sizeof(int) ;
    int        fd     = *ipsock ;
 
    VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
                         && queuesize_write <= INT_MAX, ONABORT, PRINTSIZE_ERRLOG(queuesize_read); PRINTSIZE_ERRLOG(queuesize_write) ) ;
 
    if (queuesize_read)  {
-      if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rvalue, len)) {
+      value = (int) (queuesize_read/2);
+      if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value, len)) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setsockopt(SO_RCVBUF)", err) ;
          PRINTINT_ERRLOG(fd) ;
@@ -469,7 +469,8 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
    }
 
    if (queuesize_write)  {
-      if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &wvalue, len)) {
+      value = (int) (queuesize_write/2);
+      if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value, len)) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setsockopt(SO_SNDBUF)", err) ;
          PRINTINT_ERRLOG(fd) ;
@@ -1113,8 +1114,8 @@ static int test_buffersize(void)
    TEST(0 == ALLOC_MM(3 * 65536u, &buffer));
 
    for (unsigned i = 0; i < 3; ++i) {
-      const unsigned  buffer_size  = 65536u * (i+1);
-      const unsigned  sockbuf_size = 3 * buffer_size / 4;
+      const unsigned  buffer_size  = 3 * 65536u/4 * (i+1);
+      const unsigned  sockbuf_size = 65536u/2 * (i+1) ;
       TEST(buffer.size >= buffer_size);
 
          // connect TCP
@@ -1126,32 +1127,28 @@ static int test_buffersize(void)
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       TEST(0 == initaccept_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
-      {
-         // TEST setqueuesize_ipsocket( 0 ) does not change value
-         size_t rsize = 0 ;
-         size_t wsize = 0 ;
-         size_t size1 = 0 ;
-         size_t size2 = 0 ;
-         TEST(0 == queuesize_ipsocket( &ipsockCL, &rsize, &wsize)) ;
-         TEST(0 == setqueuesize_ipsocket( &ipsockCL, 0, wsize/2)) ;
-         TEST(0 == queuesize_ipsocket( &ipsockCL, &size1, &size2)) ;
-         TEST(size1 == rsize) ;
-         TEST(size2 == wsize/2) ;
-         TEST(0 == setqueuesize_ipsocket( &ipsockCL, rsize/2, 0)) ;
-         TEST(0 == queuesize_ipsocket( &ipsockCL, &size1, &size2)) ;
-         TEST(size1 == rsize/2) ;
-         TEST(size2 == wsize/2) ;
-      }
-      // TEST setqueuesize_ipsocket(sockbuf_size,sockbuf_size)
-      size_t rwsize[2] = { 0 } ;
-      TEST(0 == setqueuesize_ipsocket( &ipsockCL, sockbuf_size, sockbuf_size)) ;
-      TEST(0 == setqueuesize_ipsocket( &ipsockSV, sockbuf_size, sockbuf_size)) ;
-      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1])) ;
-      TEST(rwsize[0] == sockbuf_size) ;
+
+      // TEST setqueuesize_ipsocket: 0 does not change values
+      uint32_t rwsize[4] = { 0 };
+      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
+      TEST(0 == setqueuesize_ipsocket( &ipsockCL, 0, 0));
+      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[2], &rwsize[3]));
+      TEST(rwsize[0] == rwsize[2]);
+      TEST(rwsize[1] == rwsize[3]);
+
+      // TEST setqueuesize_ipsocket: sockbuf_size
+      TEST(0 == setqueuesize_ipsocket( &ipsockCL, sockbuf_size*2, sockbuf_size));
+      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
+      TEST(rwsize[0] == sockbuf_size*2) ;
       TEST(rwsize[1] == sockbuf_size) ;
-      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1])) ;
-      TEST(rwsize[0] == sockbuf_size) ;
-      TEST(rwsize[1] == sockbuf_size) ;
+      TEST(0 == setqueuesize_ipsocket( &ipsockCL, sockbuf_size, sockbuf_size));
+      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
+      TEST(rwsize[0] == sockbuf_size);
+      TEST(rwsize[1] == sockbuf_size);
+      TEST(0 == setqueuesize_ipsocket( &ipsockSV, sockbuf_size, sockbuf_size));
+      TEST(0 == queuesize_ipsocket( &ipsockSV, &rwsize[2], &rwsize[3]));
+      TEST(rwsize[2] == sockbuf_size);
+      TEST(rwsize[3] == sockbuf_size);
 
       // TEST bytestoread_ipsocket, bytestowrite_ipsocket on connected socket without data read/written
       size_t size = 0 ;
@@ -1167,10 +1164,10 @@ static int test_buffersize(void)
       // TEST write transfers less than buffer_size cause of size of write queue
       {
          TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer.addr, &size)) ;
-         TEST(0 < size && size < buffer_size) ;
+         TEST(0 < size && size < buffer_size);
          size_t writecount = size ;
          for (int si = 0; si < 100; ++si) {
-            TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
+            TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
             if (! unsend_bytes) break ;
             sleepms_thread(1) ;
          }
@@ -1188,29 +1185,32 @@ static int test_buffersize(void)
          TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
          TEST(unread_bytes == size);
          size_t readcount = size;
-         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
+         for (int si = 0; si < 1000; ++si) {
+            TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
+            if (0 < unread_bytes) break;
+            sleepms_thread(1);
+         }
          TEST(0 <  unread_bytes);
          TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
          TEST(unread_bytes == size) ;
          readcount += size ;  // 2nd
-         for (int si = 0; si < 100; ++si) {
+         for (int si = 0; si < 1000; ++si) {
             TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
             if (! unsend_bytes) break ;
             sleepms_thread(1) ;
          }
          // check write queue is empty
-         TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
-         TEST(0 == unsend_bytes) ;
+         TEST(0 == unsend_bytes);
          // check 3rd read transfers all data
-         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
+         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes));
          if (unread_bytes) {
-            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size)) ;
-            TEST(unread_bytes == size) ;
-            readcount += size ;
+            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
+            TEST(unread_bytes == size);
+            readcount += size;
          }
-         TEST(buffer_size == readcount) ;
+         TEST(buffer_size == readcount);
          // check read queue empty
-         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes)) ;
+         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
          TEST(0 == unread_bytes) ;
       }
 
@@ -1239,8 +1239,8 @@ static int test_buffersize(void)
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       // TEST setqueuesize_ipsocket(buffer_size,buffer_size)
       TEST(0 == setqueuesize_ipsocket(&ipsockCL, buffer_size, buffer_size));
-      TEST(0 == setqueuesize_ipsocket(&ipsockSV, buffer_size, buffer_size));
-      size_t rwsize[2] = { 0 } ;
+      TEST(0 == setqueuesize_ipsocket(&ipsockSV, buffer_size, buffer_size/2));
+      uint32_t rwsize[2] = { 0 } ;
       TEST(0 == queuesize_ipsocket(&ipsockCL, &rwsize[0], &rwsize[1]));
       TEST(rwsize[0] == buffer_size) ;
       TEST(rwsize[1] == buffer_size) ;

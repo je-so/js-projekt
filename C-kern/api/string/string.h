@@ -109,17 +109,6 @@ static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t
  * Only references are copied. The characters in memory are not copied. */
 static inline void initcopy_string(/*out*/string_t * str, const string_t * restrict srcstr) ;
 
-/* function: initfl_string
- * Assigns static string buffer to str.
- * To initialize as empty string set last to a value smaller first.
- * If first == last the size of the string is one.
- *
- * Expected parameter:
- * str    - pointer to <string_t> object which is initialized
- * first  - Address of first character.
- * last   - Address of last character. */
-int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last) ;
-
 /* function: initse_string
  * Assigns static string buffer to str.
  *

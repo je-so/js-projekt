@@ -71,8 +71,8 @@ struct logwriter_chan_t {
 static void flush_logwriterchan(logwriter_chan_t * chan)
 {
    // TODO: what to do in case of error during write ?
-   write_logbuffer(&chan->logbuf) ;
-   clear_logbuffer(&chan->logbuf) ;
+   write_logbuffer(&chan->logbuf);
+   truncate_logbuffer(&chan->logbuf, 0);
 }
 
 
@@ -92,7 +92,7 @@ static logwriter_it  s_logwriter_interface = {
                         &printf_logwriter,
                         &printtext_logwriter,
                         &flushbuffer_logwriter,
-                        &clearbuffer_logwriter,
+                        &truncatebuffer_logwriter,
                         &getbuffer_logwriter,
                         &getstate_logwriter,
                         &compare_logwriter,
@@ -224,7 +224,7 @@ void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate)
 
 // group: change
 
-void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
+void truncatebuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, size_t size)
 {
    int err ;
 
@@ -232,12 +232,12 @@ void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
-   clear_logbuffer(&chan->logbuf) ;
+   truncate_logbuffer(&chan->logbuf, size);
 
-   return ;
+   return;
 ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return ;
+   TRACEABORT_ERRLOG(err);
+   return;
 }
 
 void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
@@ -435,7 +435,7 @@ static int test_query(void)
 
    // TEST compare_logwriter
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      clear_logbuffer(&lgwrt.chan[i].logbuf);
+      truncate_logbuffer(&lgwrt.chan[i].logbuf, 0);
       printf_logbuffer(&lgwrt.chan[i].logbuf, "[1: XXX]\ntest\n");
       TEST(0 == compare_logwriter(&lgwrt, i, 14, (const uint8_t*)"[1: XXX]\ntest\n"));
       TEST(0 == compare_logwriter(&lgwrt, i, 14, (const uint8_t*)"[1: YYY]\ntest\n"));
@@ -544,14 +544,26 @@ static int test_write(void)
    TEST(STDOUT_FILENO == dup2(pipefd[0][1], STDOUT_FILENO)) ;
    TEST(STDERR_FILENO == dup2(pipefd[1][1], STDERR_FILENO)) ;
 
-   // TEST clearbuffer_logwriter
+   // TEST truncatebuffer_logwriter
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      lgwrt.chan[i].logbuf.logsize = 99 ;
-      lgwrt.chan[i].logbuf.addr[0] = 'x' ;
-      clearbuffer_logwriter(&lgwrt, i) ;
-      TEST(0 == lgwrt.chan[i].logbuf.logsize) ;
-      TEST(0 == lgwrt.chan[i].logbuf.addr[0]) ;
+      for (unsigned size = 0; size < 32; ++size) {
+         lgwrt.chan[i].logbuf.logsize      = size;
+         lgwrt.chan[i].logbuf.addr[size]   = 'x';
+         lgwrt.chan[i].logbuf.addr[size+1] = 'x';
+         // ignored if size >= logsize
+         truncatebuffer_logwriter(&lgwrt, i, size+1);
+         truncatebuffer_logwriter(&lgwrt, i, size);
+         TEST(size == lgwrt.chan[i].logbuf.logsize);
+         TEST('x'  == lgwrt.chan[i].logbuf.addr[size]);
+         TEST('x'  == lgwrt.chan[i].logbuf.addr[size+1]);
+         // executed if size < logsize
+         lgwrt.chan[i].logbuf.logsize = 32;
+         truncatebuffer_logwriter(&lgwrt, i, size);
+         TEST(size == lgwrt.chan[i].logbuf.logsize);
+         TEST(0    == lgwrt.chan[i].logbuf.addr[size]);
+         TEST('x'  == lgwrt.chan[i].logbuf.addr[size+1]);
+      }
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
@@ -971,10 +983,14 @@ static int test_initthread(void)
    TEST(genericcast_logit(&s_logwriter_interface, logwriter_t) == (log_it*)&s_logwriter_interface) ;
 
    // TEST s_logwriter_interface
-   TEST(s_logwriter_interface.printf      == &printf_logwriter)
-   TEST(s_logwriter_interface.flushbuffer == &flushbuffer_logwriter) ;
-   TEST(s_logwriter_interface.clearbuffer == &clearbuffer_logwriter) ;
-   TEST(s_logwriter_interface.getbuffer   == &getbuffer_logwriter) ;
+   TEST(s_logwriter_interface.printf         == &printf_logwriter);
+   TEST(s_logwriter_interface.printtext      == &printtext_logwriter);
+   TEST(s_logwriter_interface.flushbuffer    == &flushbuffer_logwriter);
+   TEST(s_logwriter_interface.truncatebuffer == &truncatebuffer_logwriter);
+   TEST(s_logwriter_interface.getbuffer      == &getbuffer_logwriter);
+   TEST(s_logwriter_interface.getstate       == &getstate_logwriter);
+   TEST(s_logwriter_interface.compare        == &compare_logwriter);
+   TEST(s_logwriter_interface.setstate       == &setstate_logwriter);
 
    // TEST interface_logwriter
    TEST(interface_logwriter() == genericcast_logit(&s_logwriter_interface, logwriter_t)) ;
@@ -1017,16 +1033,29 @@ static int test_logmacros(void)
    lgwrt->chan[log_channel_ERR].logstate = oldstate ;
    TEST(GETSTATE_LOG(log_channel_ERR) == oldstate) ;
 
-   // TEST CLEARBUFFER_LOG
-   logwriter_chan_t oldchan = lgwrt->chan[log_channel_ERR] ;
-   uint8_t          oldchr  = lgwrt->chan[log_channel_ERR].logbuf.addr[0] ;
-   CLEARBUFFER_LOG(log_channel_ERR) ;
-   GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
-   TEST(0 == logsize) ;
-   lgwrt->chan[log_channel_ERR] = oldchan ;
-   lgwrt->chan[log_channel_ERR].logbuf.addr[0] = oldchr ;
+   // TEST TRUNCATEBUFFER_LOG
+   logwriter_chan_t oldchan = lgwrt->chan[log_channel_ERR];
+   for (unsigned i = 0; i < 127; ++i) {
+      uint8_t buffer[128];
+      memset(buffer, 'a', sizeof(buffer));
+      lgwrt->chan[log_channel_ERR].logbuf.addr = buffer;
+      lgwrt->chan[log_channel_ERR].logbuf.size = sizeof(buffer);
+      lgwrt->chan[log_channel_ERR].logbuf.logsize = sizeof(buffer)-1;
+      TRUNCATEBUFFER_LOG(log_channel_ERR, i+sizeof(buffer));
+      TEST(0 == memchr(buffer, 0, sizeof(buffer)));
+      GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
+      TEST(buffer == logbuffer);
+      TEST(sizeof(buffer)-1 == logsize);
+      TRUNCATEBUFFER_LOG(log_channel_ERR, i);
+      GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize);
+      TEST(buffer == logbuffer);
+      TEST(i == logsize);
+      TEST(0 == buffer[i]);
+      lgwrt->chan[log_channel_ERR] = oldchan;
+   }
 
    // TEST FLUSHBUFFER_LOG
+   uint8_t oldchr = lgwrt->chan[log_channel_ERR].logbuf.addr[0];
    lgwrt->chan[log_channel_ERR].logbuf.addr[0] = 'X' ;
    lgwrt->chan[log_channel_ERR].logbuf.logsize = 1 ;
    FLUSHBUFFER_LOG(log_channel_ERR) ;

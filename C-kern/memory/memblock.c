@@ -104,7 +104,7 @@ ONABORT:
 
 static int test_resize(void)
 {
-   memblock_t  mblock = memblock_FREE ;
+   memblock_t  mblock = memblock_FREE;
 
    // TEST growleft_memblock with 0
    TEST(0 == growleft_memblock(&mblock, 0)) ;
@@ -112,6 +112,7 @@ static int test_resize(void)
 
    // TEST growleft_memblock
    for (unsigned i = 0; i <= 1000000; ++i) {
+      if (i == 1000) i = 1000000-1000;
       mblock = (memblock_t) memblock_INIT(0, (uint8_t*)1000000) ;
       TEST(0 == growleft_memblock(&mblock, i)) ;
       TEST(addr_memblock(&mblock) == (uint8_t*)(1000000-i)) ;

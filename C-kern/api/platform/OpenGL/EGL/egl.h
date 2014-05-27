@@ -42,15 +42,15 @@ int unittest_platform_opengl_egl_egl(void);
 
 // group: query
 
-/* function: eglerr_egl
+/* function: nativeerr_egl
  * Returns the an EGL specific error code of the last called EGL function.
  * This error code is a per thread value. The error code
  * is reset to EGL_SUCCESS before return. You need to convert this error code
  * into a system/application specific error code with <aserrcode_egl>. */
-int eglerr_egl(void);
+int nativeerr_egl(void);
 
 /* function: aserrcode_egl
- * Converts value returned by <eglerr_egl> into a system/application specific error code. */
+ * Converts value returned by <nativeerr_egl> into a system/application specific error code. */
 int aserrcode_egl(int eglerr);
 
 

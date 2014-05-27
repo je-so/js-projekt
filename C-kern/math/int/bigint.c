@@ -1285,7 +1285,7 @@ double todouble_bigint(const bigint_t * big)
    default:
       expadd  = 32 * (big->exponent + (int32_t)digits - 2) ;
       first   = big->digits[digits-1] ;
-      bits    = 31 - log2_int(first) ;
+      bits    = 31u - log2_int(first) ;
       expadd -= (int) bits ;
       ivalue  = ((uint64_t)first << 32) + big->digits[digits-2] ;
       if (bits) {
@@ -2065,13 +2065,13 @@ static int test_sign(void)
       TEST(+(int16_t)i == big->sign_and_used_digits) ;
       setnegative_bigint(big) ;
       TEST((int16_t)-i == big->sign_and_used_digits) ;
-      TEST(1 == isnegative_bigint(big)) ;
+      TEST(1 == isnegative_bigint(big));
       negate_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
-      TEST(+(int16_t)i == big->sign_and_used_digits) ;
+      TEST(i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
-      TEST((int16_t)-i == big->sign_and_used_digits) ;
+      TEST(-i == big->sign_and_used_digits) ;
    }
 
    return 0 ;

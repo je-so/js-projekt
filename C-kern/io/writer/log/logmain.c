@@ -46,7 +46,7 @@ struct logmain_t ;
 static void printf_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6))) ;
 static void printtext_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, log_text_f textf, ... ) ;
 static void flushbuffer_logmain(void * logmain, uint8_t channel) ;
-static void clearbuffer_logmain(void * logmain, uint8_t channel) ;
+static void truncatebuffer_logmain(void * logmain, uint8_t channel, size_t size) ;
 static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size) ;
 static uint8_t getstate_logmain(const void * logmain, uint8_t channel) ;
 static int compare_logmain(const void * logmain, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
@@ -60,7 +60,7 @@ log_it         g_logmain_interface  = {
                      &printf_logmain,
                      &printtext_logmain,
                      &flushbuffer_logmain,
-                     &clearbuffer_logmain,
+                     &truncatebuffer_logmain,
                      &getbuffer_logmain,
                      &getstate_logmain,
                      &compare_logmain,
@@ -111,14 +111,15 @@ static void printtext_logmain(void * logmain, uint8_t channel, uint8_t flags, co
 
 static void flushbuffer_logmain(void * logmain, uint8_t channel)
 {
-   (void) logmain ;
-   (void) channel ;
+   (void) logmain;
+   (void) channel;
 }
 
-static void clearbuffer_logmain(void * logmain, uint8_t channel)
+static void truncatebuffer_logmain(void * logmain, uint8_t channel, size_t size)
 {
-   (void) logmain ;
-   (void) channel ;
+   (void) logmain;
+   (void) channel;
+   (void) size;
 }
 
 static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size)
@@ -159,10 +160,14 @@ static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state)
 static int test_globalvar(void)
 {
    // TEST g_logmain_interface
-   TEST(g_logmain_interface.printf      == &printf_logmain) ;
-   TEST(g_logmain_interface.flushbuffer == &flushbuffer_logmain) ;
-   TEST(g_logmain_interface.clearbuffer == &clearbuffer_logmain) ;
-   TEST(g_logmain_interface.getbuffer   == &getbuffer_logmain) ;
+   TEST(g_logmain_interface.printf         == &printf_logmain);
+   TEST(g_logmain_interface.printtext      == &printtext_logmain);
+   TEST(g_logmain_interface.flushbuffer    == &flushbuffer_logmain);
+   TEST(g_logmain_interface.truncatebuffer == &truncatebuffer_logmain);
+   TEST(g_logmain_interface.getbuffer      == &getbuffer_logmain);
+   TEST(g_logmain_interface.getstate       == &getstate_logmain);
+   TEST(g_logmain_interface.compare        == &compare_logmain);
+   TEST(g_logmain_interface.setstate       == &setstate_logmain);
 
    return 0 ;
 ONABORT:
@@ -203,8 +208,8 @@ static int test_update(void)
 {
    int         pipefd[2] = { -1, -1 } ;
    int         oldstderr = -1 ;
-   char        readbuffer[log_config_MINSIZE+1] ;
-   char        maxstring[log_config_MINSIZE+1] ;
+   char        readbuffer[log_config_MINSIZE+1];
+   char        maxstring[log_config_MINSIZE+1];
 
    // prepare
    memset(maxstring, '$', sizeof(maxstring)-1) ;
@@ -214,8 +219,9 @@ static int test_update(void)
    TEST(0 < oldstderr) ;
    TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
 
-   // TEST clearbuffer_logmain: does nothing
-   clearbuffer_logmain(0, log_channel_ERR) ;
+   // TEST truncatebuffer_logmain: does nothing
+   truncatebuffer_logmain(0, log_channel_ERR, 0);
+   truncatebuffer_logmain(0, log_channel_ERR, (size_t)-1);
 
    // TEST flushbuffer_logmain: does nothing
    flushbuffer_logmain(0, log_channel_ERR) ;

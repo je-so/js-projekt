@@ -76,30 +76,30 @@ static int test_prefetch(void)
    for (unsigned i = 0; i < 4; ++i) {
       TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttm)) ;
       sum = 0 ;
-      for (uint32_t * next = (uint32_t*)memblock.addr; next < endmem; ) {
-         SUM_4_TIMES_NEXT ;
+      for (uint32_t * next = (uint32_t*)memblock.addr; next < endmem-8; ) {
+         SUM_4_TIMES_NEXT;
+         SUM_4_TIMES_NEXT;
       }
       TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtm)) ;
       int64_t time_in_ms = diffms_timevalue(&endtm, &starttm) ;
       if (time_in_ms < time_noprefetch) time_noprefetch = time_in_ms ;
-      if (sum2 == 0) sum2 = sum ;
-      TEST(sum == sum2) ;
+      if (sum2 == 0) sum2 = sum;
+      TEST(sum == sum2);
    }
 
    for (unsigned i = 0; i < 4; ++i) {
       TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttm)) ;
       sum = 0 ;
       prefetchdata_hwcache(memblock.addr) ;
-      for (uint32_t * next = (uint32_t*)memblock.addr; next < endmem-4; ) {
-         prefetchdata_hwcache(next+4) ;
-         SUM_4_TIMES_NEXT ;
+      for (uint32_t * next = (uint32_t*)memblock.addr; next < endmem-8; ) {
+         prefetchdata_hwcache(next+8) ;
+         SUM_4_TIMES_NEXT;
+         SUM_4_TIMES_NEXT;
       }
-      uint32_t * next = endmem-4 ;
-      SUM_4_TIMES_NEXT ;
       TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtm)) ;
       int64_t time_in_ms = diffms_timevalue(&endtm, &starttm) ;
       if (time_in_ms < time_prefetch) time_prefetch = time_in_ms ;
-      TEST(sum == sum2) ;
+      TEST(sum == sum2);
    }
 
    if (time_noprefetch <= time_prefetch) {

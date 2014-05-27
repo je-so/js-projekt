@@ -139,30 +139,35 @@ typedef struct native_types_t native_types_t;
 struct native_types_t {
    display_t      display;
    x11window_t    freeoswindow;
-   x11window_t    oswindow[5];
-   eglconfig_t    eglconfig[5];
-   int32_t        config_attr[5][5];
-   EGLContext     eglcontext;
+   x11window_t    oswindow[4];
+   eglconfig_t    eglconfig[4];
+   struct {
+      x11window_t    oswindow;
+      eglconfig_t    eglconfig;
+      EGLContext     eglcontext;
+      eglwindow_t    eglwin;
+   } draw;
 };
 
 #define native_types_FREE  \
          {  display_FREE,  \
             x11window_FREE, \
-            { x11window_FREE, x11window_FREE, x11window_FREE, x11window_FREE, x11window_FREE }, \
-            { eglconfig_FREE, eglconfig_FREE, eglconfig_FREE, eglconfig_FREE, eglconfig_FREE }, \
-            {  { gconfig_BITS_BUFFER, 32, gconfig_NONE, 0, 0 },   \
-               { gconfig_BITS_RED,    1,  gconfig_NONE, 0, 0 },   \
-               { gconfig_BITS_DEPTH,  1,  gconfig_NONE, 0, 0 },   \
-               { gconfig_BITS_ALPHA,  1,  gconfig_NONE, 0, 0 },   \
-               { gconfig_TRANSPARENT_ALPHA, 1, gconfig_BITS_BUFFER, 32, gconfig_NONE },   \
-            }, \
-            EGL_NO_CONTEXT, \
+            { x11window_FREE, x11window_FREE, x11window_FREE, x11window_FREE }, \
+            { eglconfig_FREE, eglconfig_FREE, eglconfig_FREE, eglconfig_FREE }, \
+            { x11window_FREE, eglconfig_FREE, EGL_NO_CONTEXT, eglwindow_FREE }, \
          }
 
 static int init_native(/*out*/native_types_t * native)
 {
+   int32_t     config_attr[4][5] = {
+      { gconfig_BITS_RED,    1,  gconfig_NONE, 0, 0 },
+      { gconfig_BITS_DEPTH,  1,  gconfig_NONE, 0, 0 },
+      { gconfig_BITS_ALPHA,  1,  gconfig_NONE, 0, 0 },
+      { gconfig_TRANSPARENT_ALPHA, 1, gconfig_BITS_BUFFER, 32, gconfig_NONE },
+   };
    uint32_t    snr = 0;
    gconfig_t   gconf = gconfig_FREE;
+   int32_t     visualid;
 
    windowconfig_t winattr[] = {
       windowconfig_INIT_TITLE("egl-test-window"),
@@ -175,15 +180,22 @@ static int init_native(/*out*/native_types_t * native)
    snr = defaultscreennr_display(&native->display);
 
    for (unsigned i = 0; i < lengthof(native->oswindow); ++i) {
-      TEST(0 == init_gconfig(&gconf, &native->display, native->config_attr[i]));
-      int32_t visualid;
+      TEST(0 == init_gconfig(&gconf, &native->display, config_attr[i]));
       TEST(0 == visualid_gconfig(&gconf, &native->display, &visualid));
       TEST(0 == initvid_x11window(&native->oswindow[i], os_display(&native->display), snr, 0, (uint32_t)visualid, winattr));
       native->eglconfig[i] = gl_gconfig(&gconf);
    }
 
-   native->eglcontext = eglCreateContext(gl_display(&native->display), native->eglconfig[0], EGL_NO_CONTEXT, 0);
-   TEST(EGL_NO_CONTEXT != native->eglcontext);
+   TEST(0 == init_gconfig(&gconf, &native->display, (int32_t[]){ gconfig_BITS_BUFFER, 32, gconfig_NONE }));
+   TEST(0 == visualid_gconfig(&gconf, &native->display, &visualid));
+   TEST(0 == initvid_x11window(&native->draw.oswindow, os_display(&native->display), snr, 0, (uint32_t)visualid, winattr));
+   native->draw.eglconfig  = gl_gconfig(&gconf);
+   native->draw.eglcontext = eglCreateContext(gl_display(&native->display), native->draw.eglconfig, EGL_NO_CONTEXT, 0);
+   TEST(EGL_NO_CONTEXT != native->draw.eglcontext);
+
+   TEST(0 == initx11_eglwindow(&native->draw.eglwin, gl_display(&native->display), native->draw.eglconfig, &native->draw.oswindow));
+
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), native->draw.eglwin, native->draw.eglwin, native->draw.eglcontext));
 
    return 0;
 ONABORT:
@@ -192,12 +204,16 @@ ONABORT:
 
 static int free_native(native_types_t * native)
 {
-	TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
-	TEST(EGL_TRUE == eglDestroyContext(gl_display(&native->display), native->eglcontext));
+	TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, native->draw.eglcontext));
+   TEST(0 == free_eglwindow(&native->draw.eglwin, gl_display(&native->display)));
+   TEST(0 == free_eglconfig(&native->draw.eglconfig));
+   TEST(0 == free_x11window(&native->draw.oswindow));
    for (unsigned i = 0; i < lengthof(native->oswindow); ++i) {
       TEST(0 == free_eglconfig(&native->eglconfig[i]));
       TEST(0 == free_x11window(&native->oswindow[i]));
    }
+	TEST(EGL_TRUE == eglDestroyContext(gl_display(&native->display), native->draw.eglcontext));
+	TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
    TEST(0 == free_display(&native->display));
    return 0;
 ONABORT:
@@ -244,16 +260,12 @@ static int compare_color(x11window_t * x11win, uint32_t w, uint32_t h, bool isRe
 
 static int test_draw(native_types_t * native)
 {
-   x11window_t *  oswin   = &native->oswindow[0];
-   eglconfig_t    eglcfg  = native->eglconfig[0];
-   eglwindow_t    eglwin  = eglwindow_FREE;
+   x11window_t *  oswin   = &native->draw.oswindow;
+   eglwindow_t    eglwin  = native->draw.eglwin;
 
    // prepare
-   TEST(0 == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglcfg, oswin));
    TEST(0 == show_x11window(oswin));
    WAITFOR(&native->display, oswin->state == x11window_state_SHOWN);
-   eglWaitNative(EGL_CORE_NATIVE_ENGINE);
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), eglwin, eglwin, native->eglcontext));
    glClearColor(1, 0, 1, 1);
    glClear(GL_COLOR_BUFFER_BIT);
 
@@ -263,17 +275,8 @@ static int test_draw(native_types_t * native)
    sleepms_thread(300); // wait for compositor
    TEST(0 == compare_color(oswin, 100, 100, 1, 0, 1));
 
-   // unprepare
-   TEST(0 == hide_x11window(oswin));
-   WAITFOR(&native->display, oswin->state == x11window_state_HIDDEN);
-   sleepms_thread(100); // wait for compositor
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
-   TEST(0 == free_eglwindow(&eglwin, gl_display(&native->display)));
-
    return 0;
 ONABORT:
-   eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-   free_eglwindow(&eglwin, gl_display(&native->display));
    return EINVAL;
 }
 
@@ -343,12 +346,32 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_native(&native));
 
-   if (test_draw(&native))       goto ONABORT;
+   for (unsigned i = 0; i <= 2; ++i) {
+      CLEARBUFFER_ERRLOG();
 
-   TEST(0 == init_resourceusage(&usage));
+      TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(&native))   goto ONABORT;
-   if (test_draw(&native))       goto ONABORT;
+      if (test_initfree(&native))   goto ONABORT;
+
+      if (0 == same_resourceusage(&usage)) break;
+      TEST(0 == free_resourceusage(&usage));
+   }
+
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
+
+   size_t    logsize;
+   uint8_t * logbuffer;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   for (unsigned i = 0; i <= 2; ++i) {
+      TEST(0 == init_resourceusage(&usage));
+
+      if (test_draw(&native))       goto ONABORT;
+
+      if (0 == same_resourceusage(&usage)) break;
+      TEST(0 == free_resourceusage(&usage));
+      TRUNCATEBUFFER_ERRLOG(logsize);
+   }
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));

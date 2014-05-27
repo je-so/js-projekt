@@ -52,12 +52,16 @@ struct logbuffer_t ;
 // group: change
 
 /* define: CLEARBUFFER_ERRLOG
- * See <CLEARBUFFER_LOG>. */
-#define CLEARBUFFER_ERRLOG()              CLEARBUFFER_LOG(log_channel_ERR)
+ * See <TRUNCATEBUFFER_LOG>. Parameter size is set to 0. */
+#define CLEARBUFFER_ERRLOG()              TRUNCATEBUFFER_LOG(log_channel_ERR, 0)
 
-/* define: FLUSHBUFFER_LOG
+/* define: FLUSHBUFFER_ERRLOG
  * See <FLUSHBUFFER_LOG>. */
 #define FLUSHBUFFER_ERRLOG()              FLUSHBUFFER_LOG(log_channel_ERR)
+
+/* define: TRUNCATEBUFFER_ERRLOG
+ * See <TRUNCATEBUFFER_LOG>. */
+#define TRUNCATEBUFFER_ERRLOG(size)       TRUNCATEBUFFER_LOG(log_channel_ERR, size)
 
 // group: log-text
 

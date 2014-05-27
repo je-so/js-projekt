@@ -28,8 +28,11 @@
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/graphic/gconfig.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/platform/OpenGL/EGL/egl.h"
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
+#include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
@@ -39,6 +42,14 @@
 
 
 // section: eglconfig_t
+
+// group: static variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_eglconfig_errtimer
+ * Simulates an error in different <initfiltered_eglconfig>. */
+static test_errortimer_t   s_eglconfig_errtimer = test_errortimer_FREE;
+#endif
 
 // group: helper
 
@@ -161,19 +172,27 @@ ONABORT:
 int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user)
 {
    int err;
-   EGLint   egl_attrib_list[2*gconfig_NROFELEMENTS];
+   EGLint      egl_attrib_list[2*gconfig_NROFELEMENTS];
+   EGLConfig * eglconfig = 0;
+   memblock_t  mblock;
 
    err = convertConfigListToEGL_eglconfig(&egl_attrib_list, config_attributes);
    if (err) goto ONABORT;
 
+   EGLint      num_config;
+   EGLBoolean  isOK = eglChooseConfig( egldisp, egl_attrib_list, 0, 0, &num_config);
+   if (!isOK) {
+      err = EINVAL;
+      goto ONABORT;
+   }
+
    // TODO: implement tempstack_memory_allocator
    //       allocate memory from tempstack instead of real stack
+   err = ALLOC_ERR_MM(&s_eglconfig_errtimer, sizeof(EGLConfig) * (unsigned)num_config, &mblock);
+   if (err) goto ONABORT;
 
-   EGLint      num_config;
-   EGLConfig   eglconfig[256];
-   EGLBoolean  isOK = eglChooseConfig( egldisp,
-                                       egl_attrib_list, eglconfig, lengthof(eglconfig), &num_config);
-
+   eglconfig = (EGLConfig *) mblock.addr;
+   isOK = eglChooseConfig( egldisp, egl_attrib_list, eglconfig, num_config, &num_config);
    if (!isOK) {
       err = EINVAL;
       goto ONABORT;
@@ -182,23 +201,22 @@ int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t
    EGLint i;
    for (i = 0; i < num_config; ++i) {
       EGLint visualid;
-      isOK = eglGetConfigAttrib( egldisp,
-                                 eglconfig[i], EGL_NATIVE_VISUAL_ID, &visualid);
-      if (filter(eglconfig[i], visualid, user)) break;
+      isOK = eglGetConfigAttrib( egldisp, eglconfig[i], EGL_NATIVE_VISUAL_ID, &visualid);
+      if (filter(eglconfig[i], visualid, user)) {
+         // set out param
+         *eglconf = eglconfig[i];
+         break;
+      }
    }
 
-   if (i == num_config) {
-      return ESRCH;
-   }
+   (void) FREE_ERR_MM(&s_eglconfig_errtimer, &mblock);
 
-   *eglconf = eglconfig[i];
-
-   // free possible memory (in case of tempstack)
+   if (i == num_config) return ESRCH;
 
    return 0;
 ONABORT:
+   if (eglconfig) (void) FREE_MM(&mblock);
    TRACEABORT_ERRLOG(err);
-   // free possible memory (in case of tempstack)
    return err;
 }
 
@@ -524,6 +542,30 @@ static int test_initfree(egldisplay_t egldisp)
          TEST(0 == free_eglconfig(&eglconf));
       }
    }
+
+   // TEST initfiltered_eglconfig: ENOMEM
+   size_t size_allocated = SIZEALLOCATED_MM();
+   attrlist[0] = gconfig_NONE;
+   init_testerrortimer(&s_eglconfig_errtimer, 1, ENOMEM);
+   TEST(ENOMEM == initfiltered_eglconfig(&eglconf, egldisp, attrlist, 0, 0));
+   TEST(0 == eglconf);
+   TEST(size_allocated == SIZEALLOCATED_MM());
+
+   // TEST initfiltered_eglconfig: EINVAL error in free is ignored
+   s_filter_display = egldisp;
+   s_filter_user    = 0;
+   s_filter_total_count = 0;
+   s_filter_valid_count = 0;
+   init_testerrortimer(&s_eglconfig_errtimer, 2, EINVAL);
+   TEST(ESRCH == initfiltered_eglconfig(&eglconf, egldisp, attrlist, &filter_test_count, 0));
+   TEST(0 == eglconf);
+   TEST(0 == isenabled_testerrortimer(&s_eglconfig_errtimer)); // fired
+   TEST(size_allocated == SIZEALLOCATED_MM());
+
+   // TEST initfiltered_eglconfig: EINVAL (egldisplay_t not initialized)
+   TEST(EINVAL == initfiltered_eglconfig(&eglconf, egldisplay_FREE, attrlist, 0, 0));
+   TEST(0 == eglconf);
+   TEST(size_allocated == SIZEALLOCATED_MM());
 
    // TEST initfromconfigid_eglconfig
    for (unsigned i = 0; i < lengthof(onoff); ++i) {

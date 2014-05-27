@@ -44,7 +44,7 @@
 
 // group: query
 
-int eglerr_egl(void)
+int nativeerr_egl(void)
 {
    return eglGetError();
 }
@@ -79,12 +79,12 @@ int aserrcode_egl(int eglerr)
 
 static int test_query(void)
 {
-   // TEST eglerr_egl
+   // TEST nativeerr_egl
    TEST(0 == eglTerminate(0));
-   TEST(EGL_BAD_DISPLAY == eglerr_egl());
+   TEST(EGL_BAD_DISPLAY == nativeerr_egl());
    // value was reset
-   TEST(EGL_SUCCESS == eglerr_egl());
-   TEST(EGL_SUCCESS == eglerr_egl());
+   TEST(EGL_SUCCESS == nativeerr_egl());
+   TEST(EGL_SUCCESS == nativeerr_egl());
 
    return 0;
 ONABORT:

@@ -1,10 +1,10 @@
-[1: 1376308535.212826s]
+[1: 1401034998.821087s]
 init_stringstream() C-kern/string/stringstream.c:44
 Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)startaddr <= (uintptr_t)endaddr)
 Function aborted
-[1: 1376308535.212833s]
-initfromstring_string() C-kern/string/stringstream.c:61
+[1: 1401034998.821103s]
+initfromstring_string() C-kern/string/stringstream.c:62
 Error 22 - Invalid argument
-Function input violates condition (addr_string(str) <= end)
+Function input violates condition (next <= end)
 Function aborted

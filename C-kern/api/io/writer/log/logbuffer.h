@@ -119,9 +119,9 @@ int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t 
 
 // group: update
 
-/* function: clear_logbuffer
- * Clears the buffer without writting it out. */
-void clear_logbuffer(logbuffer_t * logbuf) ;
+/* function: truncate_logbuffer
+ * Resets buffer length to smaller size without writting it out. */
+void truncate_logbuffer(logbuffer_t * logbuf, size_t size) ;
 
 /* function: write_logbuffer
  * Writes (flushes) the buffer to the configured io channel.
@@ -148,24 +148,28 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args) 
 
 // section: inline implementation
 
-/* define: clear_logbuffer
- * Implements <logbuffer_t.clear_logbuffer>. */
-#define clear_logbuffer(logbuf)     \
-         ( __extension__ ({         \
-            logbuffer_t * _lb ;     \
-            _lb = (logbuf) ;        \
-            _lb->addr[0] = 0 ;      \
-            _lb->logsize = 0 ;      \
-         }))
+/* define: truncate_logbuffer
+ * Implements <logbuffer_t.truncate_logbuffer>. */
+#define truncate_logbuffer(logbuf, size)  \
+         do {                             \
+            logbuffer_t * _lb;            \
+            size_t _sz;                   \
+            _lb = (logbuf);               \
+            _sz = (size);                 \
+            if (_sz < _lb->logsize) {     \
+               _lb->addr[_sz] = 0;        \
+               _lb->logsize   = _sz;      \
+            }                             \
+         } while(0)
 
 /* define: getbuffer_logbuffer
  * Implements <logbuffer_t.getbuffer_logbuffer>. */
 #define getbuffer_logbuffer(logbuf, _addr, _logsize)  \
          ( __extension__ ({                           \
-            const logbuffer_t * _lb ;                 \
-            _lb = (logbuf) ;                          \
-            *(_addr)    = _lb->addr ;                 \
-            *(_logsize) = _lb->logsize ;              \
+            const logbuffer_t * _lb;                  \
+            _lb = (logbuf);                           \
+            *(_addr)    = _lb->addr;                  \
+            *(_logsize) = _lb->logsize;               \
          }))
 
 

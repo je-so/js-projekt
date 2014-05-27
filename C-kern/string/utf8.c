@@ -1302,14 +1302,15 @@ static int test_speed(void)
    uint64_t    result[2]  = { UINT64_MAX, UINT64_MAX } ;
    union {
       uint32_t initval ;
-      uint8_t  buffer[1024]  ;
+      uint32_t buffer32[1024/4];
+      uint8_t  buffer[1024];
    }           data       = { .buffer = "\U0010FFFF" } ;
 
    // prepare
    TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
 
-   for (size_t i = 1; i < sizeof(data.buffer)/4; ++i) {
-      *(uint32_t*)(&data.buffer[4*i]) = data.initval ;
+   for (size_t i = 1; i < lengthof(data.buffer32); ++i) {
+      data.buffer32[i] = data.initval;
    }
 
    for (unsigned testrepeat = 0 ; testrepeat < 5; ++testrepeat) {

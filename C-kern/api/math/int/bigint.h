@@ -149,11 +149,11 @@ uint32_t firstdigit_bigint(const bigint_t * big) ;
 
 /* function: isnegative_bigint
  * Returns true if *big* is negative else false. */
-bool isnegative_bigint(const bigint_t * big) ;
+int isnegative_bigint(const bigint_t * big) ;
 
 /* function: iszero_bigint
  * Returns true in case big has value 0 else false. */
-bool iszero_bigint(const bigint_t * big) ;
+int iszero_bigint(const bigint_t * big) ;
 
 /* function: nrdigits_bigint
  * Returns the number of stored digits (32 bit words) of the big integer.

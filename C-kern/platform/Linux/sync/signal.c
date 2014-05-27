@@ -699,8 +699,9 @@ static int test_signalstate(void)
    TEST(0 == new_signalstate(&sigstate1)) ;
    TEST(0 != sigstate1) ;
    TEST(SIGRTMAX == sigstate1->nr_signal_handlers) ;
+   memset(&signalmask, 0, sizeof(signalmask));
    TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &signalmask)) ;
-   TEST(0 == memcmp(&signalmask, &sigstate1->signalmask, sizeof(&signalmask))) ;
+   TEST(0 == memcmp(&signalmask, &sigstate1->signalmask, sizeof(signalmask)));
    TEST(0 == delete_signalstate(&sigstate1)) ;
    TEST(0 == sigstate1) ;
    TEST(0 == delete_signalstate(&sigstate1)) ;

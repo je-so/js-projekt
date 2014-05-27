@@ -93,12 +93,12 @@ struct decimal_t {
     * This number is always lower or equal than 0x7f (INT8_MAX).
     * The reason is that <sign_and_used_digits> is signed and therefore
     * only 7 bits can be used to represent the magnitude. */
-   uint8_t     size_allocated ;
+   uint8_t     size_allocated;
    /* variable: sign_and_used_digits
-    * The sign of this variable is the sign of the number.
-    * The magnitude gives the number of used integers in <digits>.
+    * The sign bit (0x80) of this variable is the sign of the number.
+    * The lower 7 bits give the number of used integers in <digits>.
     * One such integer represents 9 decimal digits. */
-   int8_t      sign_and_used_digits ;
+   uint8_t     sign_and_used_digits;
    /* variable: exponent
     * The exponent of base number 1000000000.
     * To get a decimal exponent multiply this number with <digitsperint_decimal>.
@@ -205,7 +205,7 @@ uint16_t nrdigitsmax_decimal(void) ;
 
 /* function: sign_decimal
  * Returns -1, 0 or +1 if dec is negative, zero or positive. */
-int sign_decimal(const decimal_t * dec) ;
+int sign_decimal(const decimal_t * dec);
 
 /* function: size_decimal
  * Returns number of integers needed to store all decimal digits.
@@ -344,7 +344,7 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
 
 /* define: isnegative_decimal
  * Implements <decimal_t.isnegative_decimal>. */
-#define isnegative_decimal(dec)        ((dec)->sign_and_used_digits < 0)
+#define isnegative_decimal(dec)        (((dec)->sign_and_used_digits & 0x80) != 0)
 
 /* define: iszero_decimal
  * Implements <decimal_t.iszero_decimal>. */
@@ -352,7 +352,15 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
 
 /* define: negate_decimal
  * Implements <decimal_t.negate_decimal>. */
-#define negate_decimal(dec)            do { (dec)->sign_and_used_digits = (int8_t) ( - (dec)->sign_and_used_digits) ; } while (0)
+#define negate_decimal(dec) \
+         do {                                   \
+            decimal_t * _d = (dec);             \
+            _d->sign_and_used_digits =          \
+               (uint8_t) (                      \
+                  _d->sign_and_used_digits      \
+                  ^ (_d->sign_and_used_digits   \
+                     ? 0x80 : 0));              \
+         } while (0)
 
 /* define: nrdigitsmax_decimal
  * Implements <decimal_t.nrdigitsmax_decimal>. */
@@ -360,23 +368,44 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
 
 /* define: setnegative_decimal
  * Implements <decimal_t.setnegative_decimal>. */
-#define setnegative_decimal(dec)       do { (dec)->sign_and_used_digits = (int8_t) ( (dec)->sign_and_used_digits < 0 ? (dec)->sign_and_used_digits : - (dec)->sign_and_used_digits ) ; } while (0)
+#define setnegative_decimal(dec) \
+         do {                                   \
+            decimal_t * _d = (dec);             \
+            _d->sign_and_used_digits =          \
+               (uint8_t) (                      \
+                  _d->sign_and_used_digits      \
+                  | (_d->sign_and_used_digits   \
+                     ? 0x80 : 0));              \
+         } while (0)
 
 /* function: setpositive_decimal
  * Implements <decimal_t.setpositive_decimal>. */
-#define setpositive_decimal(dec)       do { (dec)->sign_and_used_digits = (int8_t) ( (dec)->sign_and_used_digits < 0 ? - (dec)->sign_and_used_digits : (dec)->sign_and_used_digits ) ; } while (0)
+#define setpositive_decimal(dec) \
+         do {                                   \
+            decimal_t * _d = (dec);             \
+            _d->sign_and_used_digits =          \
+               (uint8_t) (                      \
+                  _d->sign_and_used_digits      \
+                  & 0x7f);                      \
+         } while (0)
 
 /* define: sign_decimal
  * Implements <decimal_t.sign_decimal>. */
-#define sign_decimal(dec)              (((dec)->sign_and_used_digits > 0) - ((dec)->sign_and_used_digits < 0))
+#define sign_decimal(dec) \
+         ( __extension__ ({                        \
+            const decimal_t * _d = (dec);          \
+            (  0 < _d->sign_and_used_digits        \
+               && _d->sign_and_used_digits < 0x80) \
+            - (_d->sign_and_used_digits >= 0x80);  \
+         }))
 
 /* define: size_decimal
  * Implements <decimal_t.size_decimal>. */
-#define size_decimal(dec)              ((uint8_t)( (dec)->sign_and_used_digits < 0 ? - (dec)->sign_and_used_digits : (dec)->sign_and_used_digits))
+#define size_decimal(dec)              ((uint8_t)((dec)->sign_and_used_digits & 0x7f))
 
 /* define: sizemax_decimal
  * Implements <decimal_t.sizemax_decimal>. */
-#define sizemax_decimal()              ((uint8_t)127)
+#define sizemax_decimal()              ((uint8_t)0x7f)
 
 
 #endif

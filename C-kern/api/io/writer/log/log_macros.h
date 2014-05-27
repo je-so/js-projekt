@@ -63,10 +63,10 @@
 
 // group: change
 
-/* define: CLEARBUFFER_LOG
- * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define CLEARBUFFER_LOG(LOGCHANNEL)  \
-         log_maincontext().iimpl->clearbuffer(log_maincontext().object, LOGCHANNEL)
+/* define: TRUNCATEBUFFER_LOG
+ * Sets length of logbuffer to a smaller size. See also <truncatebuffer_logwriter>. */
+#define TRUNCATEBUFFER_LOG(LOGCHANNEL, /*size_t*/size)  \
+         log_maincontext().iimpl->truncatebuffer(log_maincontext().object, LOGCHANNEL, size)
 
 /* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
