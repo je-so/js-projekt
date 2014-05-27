@@ -1,2 +1,8 @@
 # graphic: Graphics Interface Facade to Native Graphics Interface
 Src += C-kern/graphic/*.c
+
+# add external libraries for graphic subsystem
+include        projekte/external-lib/freetype2
+Includes      += $(freetype2_includes)
+Libs          += $(freetype2_libs)
+Libpath       += $(freetype2_libpath)

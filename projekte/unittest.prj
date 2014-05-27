@@ -2,12 +2,15 @@
 # C-kern includes all system layers written in C99
 include        projekte/binary.gcc
 include        projekte/subsys/Linux
+# Begin includes graphic subsystem
 # include        projekte/subsys/X11
 # include        projekte/subsys/OpenGL-EGL
 # include        projekte/subsys/graphic
+# End includes graphic subsystem
 # Generate symbol.map
 Linker        += ; projekte/tools/generate_symbol_map.sh $(out)
 # Source files
+Includes      += .
 Src           += C-kern/main/test/unittest_main.c
 # Src           += C-kern/main/test/speedtest_main.c
 Src           += C-kern/cache/*.c
@@ -21,10 +24,11 @@ Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/task/*.c
 Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/*.c
-Includes       = .
-# No X11
+
+# No graphic subsystem
 Libs           = m pthread rt pam
-Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="NONE"
-# With X11 (uncomment include projekte/subsys/X11 + X11-opengl)
-#Libs           = m pthread rt pam X11 Xrandr Xrender Xext GL EGL GLESv2
-#Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_x11|KONFIG_opengl_egl|KONFIG_opengl_glx)"
+Defines        = KONFIG_UNITTEST
+
+# With graphic subsystem (also uncomment includes for graphic subsystem)
+#Libs          += m pthread rt pam X11 Xrandr Xrender Xext GL EGL GLESv2
+#Defines       += KONFIG_UNITTEST KONFIG_USERINTERFACE="(X11|EGL|GLX)"

@@ -47,16 +47,16 @@ const char*     g_programname = 0 ;
 
 /* predefined (readonly) variables */
 const char * g_predefinedIDs[] = {
-    "mode"              // $(mode) is replaced by name of current buildmode (Debug,...)
-   ,"projectname"       // $(projectname) is replaced by filename without path and extension
-   ,"cflags"            // $(cflags) is replaced by value of CFlags for current build mode (only  valid in Compiler=, CFlags_<mode>)
-   ,"lflags"            // $(lflags) is replaced by value of LFlags for current build mode (only  valid in Linker=, LFlags_<mode>)
-   ,"libs"              // $(libs) is replaced by list of libraries and corresponding search paths
-   ,"includes"          // $(includes) is replaced by list of include paths prefixed with $(CFlagInclude)
-   ,"defines"           // $(defines) is replaced by list of defines prefixed with $(CFlagDefine)
-   ,"in"                // $(in) is replaced with name of input file in (Compiler=) or object files in (Linker=)
-   ,"out"               // $(out) is replaced with name of object file (Compiler=) or target file in (Linker=)
-   , 0
+   "mode",              // $(mode) is replaced by name of current buildmode (Debug,...)
+   "projectname",       // $(projectname) is replaced by filename without path and extension
+   "cflags",            // $(cflags) is replaced by value of CFlags for current build mode (only  valid in Compiler=, CFlags_<mode>)
+   "lflags",            // $(lflags) is replaced by value of LFlags for current build mode (only  valid in Linker=, LFlags_<mode>)
+   "libs",              // $(libs) is replaced by list of libraries and corresponding search paths
+   "includes",          // $(includes) is replaced by list of include paths prefixed with $(CFlagInclude)
+   "defines",           // $(defines) is replaced by list of defines prefixed with $(CFlagDefine)
+   "in",                // $(in) is replaced with name of input file in (Compiler=) or object files in (Linker=)
+   "out",               // $(out) is replaced with name of object file (Compiler=) or target file in (Linker=)
+   0
 } ;
 
 const char * g_cmdInclude = "include" ;
@@ -654,9 +654,11 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
    return result ;
 }
 
-typedef enum MatchedCommand { CmdIgnore, CmdInclude, CmdLink, CmdAssign } command_e ;
-typedef struct parse_line_result parse_line_result_t ;
-struct parse_line_result
+typedef enum command_e {
+   CmdIgnore, CmdAssign, CmdInclude, CmdLink
+} command_e ;
+
+typedef struct parse_line_result_t
 {
    size_t idStart ;
    size_t idLen ;
@@ -665,7 +667,7 @@ struct parse_line_result
    size_t paramStart ;
    size_t paramLen ;
    stringarray_t * modemap ;
-} ;
+} parse_line_result_t;
 
 static int parse_line(parse_line_result_t* result, int lineNr, const char* linebuffer, const char* filename)
 {
@@ -1303,22 +1305,47 @@ static int read_projectfile(genmakeproject_t * genmake)
             if (err) break ;
             if (CmdInclude == parsed.command) {
                /* include filename */
-               project_file_t * include_file = (project_file_t*) malloc(sizeof(project_file_t)) ;
-               if (!include_file) {
+               char * incfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
+               if (!incfilename) {
+                  err = 1 ;
+                  break ;
+               }
+               size_t incfilename_len = strlen(incfilename);
+               char * inchashname = malloc(incfilename_len + 6);
+               if (!inchashname) {
                   print_err( "Out of memory!\n" ) ;
                   err = 1 ;
                   break ;
                }
-               char * incfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
-               if (!incfilename) {
-                  free(include_file) ;
-                  err = 1 ;
-                  break ;
+               strcpy(inchashname, ".inc.");
+               strcat(inchashname, incfilename);
+               hash_entry_subclass_t * hash_entry;
+               string_t  hashkey = string_INIT_CSTR(inchashname) ;
+               if (0 == find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hash_entry)) {
+                  // already included
+                  free(inchashname);
+                  free(incfilename);
+
+               } else {
+                  // not included before
+                  hash_entry = new_hashtableentry(&genmake->index, inchashname, strlen(inchashname));
+                  if (0 == hash_entry) {
+                     err = 1;
+                     break;
+                  }
+                  hash_entry->isUsed = 1;
+                  project_file_t * include_file = (project_file_t*) malloc(sizeof(project_file_t)) ;
+                  if (!include_file) {
+                     print_err( "Out of memory!\n" ) ;
+                     err = 1 ;
+                     break ;
+                  }
+                  prj_file_stack[0].lineNr = lineNr ; // remember position in file
+                  *include_file  = (project_file_t) { .file = NULL, .lineNr = 0, .name = incfilename, .included_from = prj_file_stack } ;
+                  prj_file_stack = include_file ;
+                  goto PROCESS_STACK ;
                }
-               prj_file_stack[0].lineNr = lineNr ; // remember position in file
-               *include_file  = (project_file_t) { .file = NULL, .lineNr = 0, .name = incfilename, .included_from = prj_file_stack } ;
-               prj_file_stack = include_file ;
-               goto PROCESS_STACK ;
+
             } else if (CmdLink == parsed.command) {
                /* read filename  defaultmode=> mode1=>modeX mode2=>modeY mode3=>* ...*/
                char* readfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;

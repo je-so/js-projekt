@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="6" Name="m_selectedTab"/>
+  <int Value="7" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="151" Name="FirstVisibleLine"/>
+      <int Value="154" Name="FirstVisibleLine"/>
       <int Value="152" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/window.h" Name="FileName"/>
-      <int Value="41" Name="FirstVisibleLine"/>
+      <int Value="44" Name="FirstVisibleLine"/>
       <int Value="42" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/graphic/window.c" Name="FileName"/>
-      <int Value="26" Name="FirstVisibleLine"/>
+      <int Value="74" Name="FirstVisibleLine"/>
       <int Value="72" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/pixelbuffer.h" Name="FileName"/>
-      <int Value="78" Name="FirstVisibleLine"/>
+      <int Value="75" Name="FirstVisibleLine"/>
       <int Value="76" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
@@ -47,9 +47,18 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/demo/opengl/pixel_framebuffer_demo.c" Name="FileName"/>
-      <int Value="300" Name="FirstVisibleLine"/>
-      <int Value="305" Name="CurrentLine"/>
+      <int Value="307" Name="FirstVisibleLine"/>
+      <int Value="325" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/main/tools/genmake.c" Name="FileName"/>
+      <int Value="1312" Name="FirstVisibleLine"/>
+      <int Value="1327" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="1307:3"/>
+      </wxArrayString>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>

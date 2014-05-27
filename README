@@ -118,10 +118,12 @@ about: Project Configuration
   and writes it to projekte/external-lib/freetype2.
 
   Edit projekte/unittest.prj:
-  If you want to build the tests with graphic subsystem
-  (X11/OpenGL/OpenGL ES) enables edit projekte/unittest.prj and
-  uncomment the includes for the graphic subsystem and at the bottom
-  of the file switch the comments for the Libs and Defines settings.
+  If you want to build the tests with graphic subsystem enabled
+  edit projekte/unittest.prj and uncomment the includes for the
+  graphic subsystem and at the bottom of the file switch the
+  comments for the Libs and Defines settings.
+  The system uses: native X11, portable EGL (OpenGL binding to native window sytem),
+  and portable OpenGL ES.
 
 about: Make Targets
 
@@ -165,6 +167,8 @@ about: Dependencies
      - libgles2: OpenGL GL ES 2 API development files to support OpenGL ES 2
 
 You do not need OpenGL and OpenGL ES support both at the same time. Choose one.
+But EGL (OpenGL binding to native window system) supports both (version >= 1.4)
+with eglBindAPI.
 
 about: Development Environment:
      * Git      (http://git-scm.com).
