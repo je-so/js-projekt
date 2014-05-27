@@ -44,9 +44,9 @@
  * Choose default language for compiletime/runtime text output.
  *
  * Supported language codes:
- * KONFIG_de - German
- * KONFIG_en - English */
-#define KONFIG_LANG                    KONFIG_en
+ * de - German
+ * en - English */
+#define KONFIG_LANG                    en
 /*define: KONFIG_MEMALIGN
  * Alignment of allocated memory.
  * Every allocated memory address must be aligned with this value.

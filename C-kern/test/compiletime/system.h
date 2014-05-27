@@ -25,18 +25,20 @@
 #ifndef CKERN_TEST_COMPILETIME_SYSTEM_HEADER
 #define CKERN_TEST_COMPILETIME_SYSTEM_HEADER
 
-#define  KONFIG_de    1
-#define  Linux        1
+#define  de     1
+#define  Linux  1
 
 /* about: Test architecture size
  * Only 32 Bits supported */
 
-#if   (!defined(INT_MAX) || (INT_MAX != 2147483647)) && (KONFIG_LANG==de)
-#  error  Momentan wird nur 32 Bit unterstützt
-#  error  TODO: Baue und teste 64 Bit Architektur
-#elif (!defined(INT_MAX) || (INT_MAX != 2147483647))
-#  error  only 32 Bit architecture supported
-#  error  TODO: Compile and test 64 bit architecture
+#if (!defined(INT_MAX) || (INT_MAX != 2147483647))
+#  if (KONFIG_LANG==de)
+#    error  Momentan wird nur 32 Bit unterstützt
+#    error  TODO: Baue und teste 64 Bit Architektur
+#  elif
+#    error  only 32 Bit architecture supported
+#    error  TODO: Compile and test 64 bit architecture
+#  endif
 #endif
 
 /* about: Filesize-64bit Test
@@ -46,7 +48,7 @@ static inline void compiletime_tests_system(void)
 {
 #if (KONFIG_OS == Linux)
    static_assert( sizeof(((struct stat*)0)->st_size) == sizeof(int64_t), "No 64bit file-system support" );
-#elif (KONFIG_OS != Linux) && (KONFIG_LANG==KONFIG_de)
+#elif (KONFIG_OS != Linux) && (KONFIG_LANG==de)
 #  error Baue Test für 64 bit Files
 #elif (KONFIG_OS != Linux)
 #  error Implement test for 64 bit filesize support
@@ -56,18 +58,18 @@ static inline void compiletime_tests_system(void)
 /* about: Treadsafe Test
  * Test (in os specific manner) system library is thread safe. */
 
-#if    (KONFIG_OS == Linux) && !defined(__USE_REENTRANT) && (KONFIG_LANG==KONFIG_de)
+#if    (KONFIG_OS == Linux) && !defined(__USE_REENTRANT) && (KONFIG_LANG==de)
 #  error Compiler unterstützt keine Threads
 #elsif (KONFIG_OS == Linux) && !defined(__USE_REENTRANT)
 #  error Compiler supports no threads
-#elsif (KONFIG_OS != Linux) && (KONFIG_LANG==KONFIG_de)
+#elsif (KONFIG_OS != Linux) && (KONFIG_LANG==de)
 #  error Baue Test für Threadsicherheit
 #elsif (KONFIG_OS != Linux)
 #  error Implement test for thread safety of libraries
 #endif
 
 
-#undef KONFIG_de
+#undef de
 #undef Linux
 
 #endif
