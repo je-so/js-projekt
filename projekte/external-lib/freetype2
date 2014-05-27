@@ -1,0 +1,4 @@
+# Defines include path and libraries for freetype2
+freetype2_includes = /usr/include/freetype2
+freetype2_libpath  = /usr/lib/i386-linux-gnu
+freetype2_libs     = freetype z

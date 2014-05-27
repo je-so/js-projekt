@@ -112,6 +112,17 @@ unittest_platform_sysuser:
   If you want to change the values edit C-kern/resource/config/modulevalues
   and change the values prefixed with module "sysuser_t".
 
+about: Project Configuration
+
+  Run ./configure which reads the system configuration of freetype2
+  and writes it to projekte/external-lib/freetype2.
+
+  Edit projekte/unittest.prj:
+  If you want to build the tests with graphic subsystem
+  (X11/OpenGL/OpenGL ES) enables edit projekte/unittest.prj and
+  uncomment the includes for the graphic subsystem and at the bottom
+  of the file switch the comments for the Libs and Defines settings.
+
 about: Make Targets
 
   all      - Builds »Debug« and »Release« version of every subproject except »html«.
@@ -146,6 +157,14 @@ about: Dependencies
      - libpam (Pluggable Authentication Modules) for authentication
        of user names and password secrets (installed on Linux by default)
        But you need to install libpam0g-dev (other distros than Ubuntu have other names) which contains all the C header development files for libpam.
+
+  Libraries for graphic subsystem:
+     - libfreetype: FreeType 2 font engine development files to support text in combination with OpenGL or OpenGL ES
+     - libgl: OpenGL API development files to support OpenGL
+     - libegl: OpenGL EGL API development files to support binding of OpenGL ES
+     - libgles2: OpenGL GL ES 2 API development files to support OpenGL ES 2
+
+You do not need OpenGL and OpenGL ES support both at the same time. Choose one.
 
 about: Development Environment:
      * Git      (http://git-scm.com).

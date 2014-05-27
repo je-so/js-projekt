@@ -620,7 +620,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
       hash_entry_subclass_t * hash_entry ;
       string_t  hashkey = string_INIT(varEnd-varStart, (const uint8_t*)&linebuffer[varStart]) ;
       if (find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
-         print_err( "line %d undefined value $(%s) used in file '%s'\n", lineNr, &linebuffer[varStart], filename ) ;
+         print_err( "line %d undefined value $(%.*s) used in file '%s'\n", lineNr, varEnd-varStart, &linebuffer[varStart], filename ) ;
          err = 1 ;
          break ;
       }

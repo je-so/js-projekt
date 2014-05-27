@@ -1,0 +1,54 @@
+#!/bin/bash
+# 1. Configures build parameter of projekte/external-lib/*
+#    1.1 freetype2
+#
+
+verbose=0
+if [ "$1" = "-v" ]; then
+verbose=1
+fi
+
+function write_externallib_config() {
+   if [ "$#" != 4 ]; then
+      echo "Usage $* <configfilename> <include> <libpath> <libs>"
+      exit 1
+   fi
+   if [ "$verbose" = 1 ]; then
+      echo "Configured $1 with:"
+      echo "   includes =$2"
+      echo "   libpath  =$3"
+      echo "   libs     =$4"
+   fi
+
+   configpath="projekte/external-lib/$1"
+
+   echo "# Defines include path and libraries for $1" > $configpath
+   echo "freetype2_includes =$2" >> $configpath
+   echo "freetype2_libpath  =$3" >> $configpath
+   echo "freetype2_libs     =$4" >> $configpath
+}
+
+########################################
+# freetype2
+version=`freetype-config --ftversion`
+if [ "${version:0:1}" != "2" ]; then
+   echo "Error: need freetype version 2; found $version"
+   exit 1
+fi
+libs=""
+libpath=''
+includes=''
+for flag in `freetype-config --libs`; do
+   if [ "${flag:0:1}" != "-" ];  then continue; fi
+   if [ "${flag:2:1}" = "/" ]; then
+      libpath="$libs ${flag:2}"
+   else
+      libs="$libs ${flag:2}"
+   fi
+done
+for flag in `freetype-config --cflags`; do
+   if [ "${flag:0:1}" != "-" ];  then continue; fi
+   includes="$includes ${flag:2}"
+done
+write_externallib_config freetype2 "$includes" "$libpath" "$libs"
+
