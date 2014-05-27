@@ -1,6 +1,6 @@
-/* title: PlatformStartup
+/* title: PlatformInit
 
-   Offers platform specific initialization function <startup_platform>.
+   Offers platform specific initialization function <platform_t.init_platform>.
 
    about: Copyright
    This program is free software.
@@ -17,11 +17,11 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/platform/startup.h
-    Header file <PlatformStartup>.
+   file: C-kern/api/platform/init.h
+    Header file <PlatformInit>.
 
-   file: C-kern/platform/Linux/startup.c
-    Implementation file <PlatformStartup Linuximpl>.
+   file: C-kern/platform/Linux/init.c
+    Implementation file <PlatformInit Linux>.
 */
 #ifndef CKERN_PLATFORM_STARTUP_HEADER
 #define CKERN_PLATFORM_STARTUP_HEADER
@@ -33,9 +33,22 @@ typedef int (* mainthread_f) (void * user);
 
 // section: Functions
 
-// group: startup
+// group: test
 
-/* function: startup_platform
+#ifdef KONFIG_UNITTEST
+/* function: unittest_platform_init
+ * Test <init_platform> functionality. */
+int unittest_platform_init(void);
+#endif
+
+
+/* struct: platform_t
+ * Dummy type which represents the operating system platform. */
+struct platform_t;
+
+// group: lifetime
+
+/* function: init_platform
  * Initialize system context and calls main_thread.
  * If the system context could be initialized and the main_thread was called
  * the return value is the value returned from main_thread. If an error occurs during
@@ -45,15 +58,7 @@ typedef int (* mainthread_f) (void * user);
  *
  * This function is implemented in a system specific way.
  * */
-int startup_platform(mainthread_f main_thread, void * user);
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_platform_startup
- * Test <startup_system> functionality. */
-int unittest_platform_startup(void);
-#endif
+int init_platform(mainthread_f main_thread, void * user);
 
 
 #endif

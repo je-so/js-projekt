@@ -75,7 +75,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
@@ -114,7 +114,7 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
@@ -160,7 +160,7 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
@@ -271,7 +271,7 @@ $(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c

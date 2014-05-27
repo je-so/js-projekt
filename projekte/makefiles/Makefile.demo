@@ -19,7 +19,7 @@ LFlags_Debug        := -g
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=NONE $(DefineFlag_Debug)KONFIG_USERINTERFACE="(X11|EGL)"
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)Xext $(LibraryFlag_Debug)EGL $(LibraryFlag_Debug)GLESv2
-Libpath_Debug       :=
+Libpath_Debug       := $(LibPathFlag_Debug)/usr/lib/i386-linux-gnu
 ObjectDir_Debug     := bin/Debug/demo
 TargetDir_Debug     := bin
 Target_Debug        := bin/demo_Debug
@@ -37,7 +37,7 @@ LFlags_Release        := -O2
 Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=NONE $(DefineFlag_Release)KONFIG_USERINTERFACE="(X11|EGL)"
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)Xext $(LibraryFlag_Release)EGL $(LibraryFlag_Release)GLESv2
-Libpath_Release       :=
+Libpath_Release       := $(LibPathFlag_Release)/usr/lib/i386-linux-gnu
 ObjectDir_Release     := bin/Release/demo
 TargetDir_Release     := bin
 Target_Release        := bin/demo
@@ -75,7 +75,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
@@ -126,7 +126,7 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
@@ -184,7 +184,7 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
@@ -331,7 +331,7 @@ $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c

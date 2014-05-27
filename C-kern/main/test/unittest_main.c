@@ -22,7 +22,7 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/startup.h"
+#include "C-kern/api/platform/init.h"
 // *** DO COMPILETIME tests (include is enough) ***
 #include "C-kern/api/test/assert.h"
 #include "C-kern/api/test/compiletime.h"
@@ -33,6 +33,6 @@ int main(int argc, const char* argv[])
 {
    (void) argc;
    int err;
-   err = startup_platform(run_unittest, argv);
+   err = init_platform(run_unittest, argv);
    return err;
 }

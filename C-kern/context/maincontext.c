@@ -29,7 +29,7 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/platform/startup.h"
+#include "C-kern/api/platform/init.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
@@ -112,7 +112,7 @@ static void initprogname_maincontext(const char ** progname, const char * argv0)
    }
 }
 
-static int startup_maincontext(void * user)
+static int run_maincontext(void * user)
 {
    const maincontext_startparam_t * startparam = user;
 
@@ -169,7 +169,7 @@ int initstart_maincontext(const maincontext_startparam_t * startparam)
       goto ONABORT ;
    }
 
-   err = startup_platform(&startup_maincontext, CONST_CAST(maincontext_startparam_t,startparam));
+   err = init_platform(&run_maincontext, CONST_CAST(maincontext_startparam_t,startparam));
 
 ONABORT:
    return err ;
@@ -190,7 +190,7 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
 
    VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONABORT, ) ;
 
-   // startup_platform has been called !!
+   // init_platform has been called !!
    VALIDATE_INPARAM_TEST(  self_maincontext() == &g_maincontext, ONABORT, ) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;

@@ -1,6 +1,6 @@
 # Minimal Linux
 Src  += C-kern/platform/Linux/locale.c
-Src  += C-kern/platform/Linux/startup.c
+Src  += C-kern/platform/Linux/init.c
 Src  += C-kern/platform/Linux/vm.c
 # Src  += C-kern/platform/Linux/io/file.c
 Src  += C-kern/platform/Linux/io/iochannel.c

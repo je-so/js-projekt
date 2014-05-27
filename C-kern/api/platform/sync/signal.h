@@ -81,7 +81,7 @@ struct signalhandler_t ;
 // group: init
 
 /* function: initonce_signalhandler
- * Sets up a process wide signal handler and signal masks at process startup.
+ * Sets up a process wide signal handler and signal masks at process initialization.
  * The configuration is read from "C-kern/resource/config/signalhandler"
  * during compilation time. */
 int initonce_signalhandler(void) ;

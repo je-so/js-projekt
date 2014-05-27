@@ -279,7 +279,7 @@ int run_unittest(void * argv)
       // other
       RUN(unittest_platform_locale);
       RUN(unittest_platform_malloc);
-      RUN(unittest_platform_startup);
+      RUN(unittest_platform_init);
       RUN(unittest_platform_sysuser);
       RUN(unittest_platform_vm);
       // user interface subsystem

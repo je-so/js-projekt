@@ -105,10 +105,10 @@ struct thread_t {
  * Used to initialize thread in <thread_tls_t>. */
 #define thread_FREE { 0, 0, 0, 0, 0, sys_thread_FREE, 0, { .uc_link = 0 } }
 
-/* function: initstartup_thread
- * Initializes main thread. Called from <startup_platform>.
+/* function: initmain_thread
+ * Initializes main thread. Called from <platform_t.init_platform>.
  * Returns EINVAL if thread is not the main thread. */
-int initstartup_thread(/*out*/thread_t * thread) ;
+int initmain_thread(/*out*/thread_t * thread) ;
 
 /* function: new_thread
  * Creates and starts a new system thread.

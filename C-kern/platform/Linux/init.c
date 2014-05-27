@@ -1,6 +1,6 @@
-/* title: PlatformStartup Linuximpl
+/* title: PlatformInit Linux
 
-   Implements <PlatformStartup>.
+   Implements <PlatformInit> in a Linux specific way.
 
    about: Copyright
    This program is free software.
@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/platform/startup.h
-    Header file <PlatformStartup>.
+   file: C-kern/api/platform/init.h
+    Header file <PlatformInit>.
 
-   file: C-kern/platform/Linux/startup.c
-    Implementation file <PlatformStartup Linuximpl>.
+   file: C-kern/platform/Linux/init.c
+    Implementation file <PlatformInit Linux>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/startup.h"
+#include "C-kern/api/platform/init.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
@@ -39,18 +39,22 @@
 #endif
 
 
-// section: Functions
+// section: platform_t
 
 // group: variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_platform_errtimer
- * Simulates an error in <startup_platform>. */
+ * Used to simulate an error in <platform_t.init_platform>. */
 static test_errortimer_t   s_platform_errtimer = test_errortimer_FREE;
 #endif
 
-// group: startup
+// group: helper
 
+/* function: callmain_platform
+ * Calls the main threads main function.
+ * An error is written to STDERR if the main thread
+ * aborts. */
 static void callmain_platform(void)
 {
    thread_t * thread = self_thread();
@@ -60,7 +64,7 @@ static void callmain_platform(void)
    bool is_abort;
    if (  setcontinue_thread(&is_abort)
          || is_abort) {
-      #define ERRSTR1 "startup_platform() "
+      #define ERRSTR1 "init_platform() "
       #define ERRSTR2 ":" STR(__LINE__) "\naborted\n"
       ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
                       + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
@@ -78,7 +82,7 @@ static void callmain_platform(void)
    setreturncode_thread(thread, retcode);
 }
 
-int startup_platform(mainthread_f main_thread, void * user)
+int init_platform(mainthread_f main_thread, void * user)
 {
    volatile int err;
    volatile int linenr;
@@ -92,7 +96,7 @@ int startup_platform(mainthread_f main_thread, void * user)
 
    linenr = __LINE__;
    ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
-   err = initstartup_threadtls(&tls, &threadstack, &signalstack);
+   err = initmain_threadtls(&tls, &threadstack, &signalstack);
    if (err) goto ONABORT;
 
    linenr = __LINE__;
@@ -132,7 +136,7 @@ int startup_platform(mainthread_f main_thread, void * user)
    thread_t * thread = thread_threadtls(&tls);
    settask_thread(thread, main_thread, user);
 #if defined(KONFIG_SUBSYS_THREAD)
-   initstartup_thread(thread);
+   initmain_thread(thread);
 #endif
 
    linenr = __LINE__;
@@ -150,10 +154,10 @@ ONABORT:
 
    if (!err) linenr = __LINE__;
    SETONERROR_testerrortimer(&s_platform_errtimer, &err);
-   err2 = freestartup_threadtls(&tls);
+   err2 = freemain_threadtls(&tls);
    if (err2 && !err) err = errno;
    if (err) {
-      #define ERRSTR1 "startup_platform() "
+      #define ERRSTR1 "init_platform() "
       #define ERRSTR2 ":%.4u\nError %.4u\n"
       char errstr2[sizeof(ERRSTR2)];
       snprintf(errstr2, sizeof(errstr2), ERRSTR2, (linenr&0x1FFF), (err&0x1FFF));
@@ -168,6 +172,8 @@ ONABORT:
    return retcode;
 }
 
+
+// section: Functions
 
 // group: test
 
@@ -192,14 +198,14 @@ static int mainabort_testthread(void * user)
    return 0;
 }
 
-static int child_startupabort(void * dummy)
+static int child_initabort(void * dummy)
 {
    (void) dummy;
-   startup_platform(&mainabort_testthread, 0);
+   init_platform(&mainabort_testthread, 0);
    return 0;
 }
 
-static int test_startup(void)
+static int test_init(void)
 {
    file_t      fd      = file_FREE;
    file_t      pfd[2]  = { file_FREE, file_FREE };
@@ -209,32 +215,32 @@ static int test_startup(void)
          && -1 != (fd = dup(STDERR_FILENO))
          && -1 != dup2(pfd[1], STDERR_FILENO));
 
-   // TEST startup_platform
+   // TEST init_platform
    s_retcode = 0;
    for (int i = 10; i >= 0; --i) {
-      TEST(0 == startup_platform(&main_testthread, (void*)i));
+      TEST(0 == init_platform(&main_testthread, (void*)i));
       TEST(i == (int) s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
 
-   // TEST startup_platform: return code
+   // TEST init_platform: return code
    for (int i = 10; i >= 0; --i) {
       s_retcode = i;
       s_userarg = (void*) 1;
-      TEST(i == startup_platform(&main_testthread, 0));
+      TEST(i == init_platform(&main_testthread, 0));
       TEST(0 == s_userarg);
    }
 
-   // TEST startup_platform: startup error
+   // TEST init_platform: init error
    for (unsigned i = 1; i <= 7; ++i) {
       init_testerrortimer(&s_platform_errtimer, i, 333);
       s_userarg = 0;
-      TEST(333 == startup_platform(&main_testthread, (void*)1));
+      TEST(333 == init_platform(&main_testthread, (void*)1));
       TEST((i > 5) == (int) s_userarg);
       uint8_t  buffer[80];
       ssize_t  len = 0;
       len = read(pfd[0], buffer, sizeof(buffer));
-      TEST(67 == len);
+      TEST(61 == len);
       buffer[len] = 0;
       PRINTF_ERRLOG("%s", buffer);
    }
@@ -242,19 +248,19 @@ static int test_startup(void)
    TEST(-1 != dup2(fd, STDERR_FILENO));
    TEST(0 == free_file(&fd));
 
-   // TEST startup_platform: abort
+   // TEST init_platform: abort
    {
       process_result_t  result;
       process_stdio_t   stdfd = process_stdio_INIT_DEVNULL;
       redirecterr_processstdio(&stdfd, pfd[1]);
-      TEST(0 == init_process(&process, &child_startupabort, 0, &stdfd));
+      TEST(0 == init_process(&process, &child_initabort, 0, &stdfd));
       TEST(0 == wait_process(&process, &result));
       TEST(process_state_ABORTED == result.state);
       TEST(0 == free_process(&process));
       uint8_t  buffer[80];
       ssize_t  len = 0;
       len = read(pfd[0], buffer, sizeof(buffer));
-      TEST(62 == len);
+      TEST(56 == len);
       buffer[len] = 0;
       PRINTF_ERRLOG("%s", buffer);
    }
@@ -274,7 +280,7 @@ ONABORT:
    return EINVAL;
 }
 
-int unittest_platform_startup()
+int unittest_platform_init()
 {
    bool     isold = false;
    stack_t  oldstack;
@@ -282,7 +288,7 @@ int unittest_platform_startup()
    TEST(0 == sigaltstack(0, &oldstack));
    isold = true;
 
-   if (test_startup())     goto ONABORT;
+   if (test_init())     goto ONABORT;
 
    TEST(0 == sigaltstack(&oldstack, 0));
 

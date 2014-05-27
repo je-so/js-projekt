@@ -131,7 +131,7 @@ ONABORT:
 
 // group: lifetime
 
-int initstartup_thread(/*out*/thread_t * thread)
+int initmain_thread(/*out*/thread_t * thread)
 {
    if (!ismain_thread(thread)) return EINVAL ;
    thread->sys_thread = pthread_self() ;
@@ -520,12 +520,12 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_startup(void)
+static int test_mainthread(void)
 {
    thread_t thread = thread_FREE ;
 
-   // TEST initstartup_thread
-   TEST(0 == initstartup_thread(&thread))
+   // TEST initmain_thread
+   TEST(0 == initmain_thread(&thread))
    TEST(thread.nextwait   == 0) ;
    TEST(thread.lockflag   == 0) ;
    TEST(thread.main_task  == 0) ;
@@ -534,13 +534,13 @@ static int test_startup(void)
    TEST(thread.sys_thread == pthread_self()) ;
    TEST(thread.tls_addr   == 0) ;
 
-   // TEST initstartup_thread: calling twice does no harm
-   TEST(0 == initstartup_thread(&thread))
+   // TEST initmain_thread: calling twice does no harm
+   TEST(0 == initmain_thread(&thread))
    TEST(thread.sys_thread == pthread_self()) ;
 
-   // TEST initstartup_thread: EINVAL
+   // TEST initmain_thread: EINVAL
    thread.tls_addr = (void*)1 ; // no main thread
-   TEST(EINVAL == initstartup_thread(&thread)) ;
+   TEST(EINVAL == initmain_thread(&thread)) ;
    TEST(thread.sys_thread == pthread_self()) ;
 
    return 0 ;
@@ -1501,7 +1501,7 @@ static int childprocess_unittest(void)
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())                goto ONABORT ;
-   if (test_startup())                 goto ONABORT ;
+   if (test_mainthread())              goto ONABORT ;
    if (test_query())                   goto ONABORT ;
    if (test_join())                    goto ONABORT ;
    if (test_sigaltstack())             goto ONABORT ;

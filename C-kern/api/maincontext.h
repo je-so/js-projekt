@@ -51,7 +51,7 @@ typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
  *
  * maincontext_STATIC -  An implementation which is configured by a static initializer.
  *                       Only the log service is supported.
- *                       This configuration is default at program startup and can not be
+ *                       This configuration is default after <platform_t.init_platform> has been called and can not be
  *                       set with a call to <init_maincontext>.
  * maincontext_DEFAULT - Default single or multi threading implementation.
  *                       All content logged to channel <log_channel_USERERR> is ignored.
@@ -129,14 +129,14 @@ struct maincontext_t {
 // group: lifetime
 
 /* function: initstart_maincontext
- * Calls <startup_platform>, <init_maincontext> and runs main_thread.
- * This is a convenience function so you do not have to remember the startup
- * sequence pattern. */
+ * Calls <platform_t.init_platform>, <init_maincontext> and runs main_thread.
+ * This is a convenience function so you do not have to remember the
+ * process initialization sequence pattern. */
 int initstart_maincontext(const maincontext_startparam_t * startparam);
 
 /* function: init_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
- * The main thread must be initialized with <startup_platform> before calling this function.
+ * The main thread must be initialized with <platform_t.init_platform> before calling this function.
  * EALREADY is returned if it is called more than once.
  * The only service which works without calling this function is logging.
  *

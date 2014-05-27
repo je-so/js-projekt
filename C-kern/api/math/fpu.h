@@ -28,10 +28,10 @@
 #define CKERN_MATH_FPU_HEADER
 
 /* enums: fpu_except_e
- * Exceptions a standard conforming fpu supports.
+ * Defines standard exceptions any fpu should support.
  * Exceptions are thrown by a system specific signaling mechanism.
  * Under Linux (Posix) the signal SIGFPE is generated if any <fpu_except_e>
- * occurs. At process startup the fpu configured to be silent, i.e. to ignore any
+ * occurs. At start of process the fpu is configured to be silent, i.e. to ignore any
  * exceptional conditions and only set flags which can be queried.
  *
  * fpu_except_INVALID   - The invalid exception is signaled if there is no well-defined result, such as zero divided by zero, infinity minus infinity, or sqrt(-1).
@@ -57,7 +57,7 @@ enum fpu_except_e {
    ,fpu_except_MASK_ERR  = fpu_except_INVALID|fpu_except_DIVBYZERO|fpu_except_OVERFLOW
 } ;
 
-typedef enum fpu_except_e              fpu_except_e ;
+typedef enum fpu_except_e              fpu_except_e;
 
 
 // section: Functions

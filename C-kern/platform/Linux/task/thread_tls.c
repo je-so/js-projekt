@@ -179,7 +179,7 @@ ONABORT:
    return err ;
 }
 
-int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack)
+int initmain_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack)
 {
    int err ;
    size_t   pagesize  = sys_pagesize_vm() ;
@@ -250,7 +250,7 @@ ONABORT:
    return err ;
 }
 
-int freestartup_threadtls(thread_tls_t * tls)
+int freemain_threadtls(thread_tls_t * tls)
 {
    int err ;
 
@@ -364,15 +364,15 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_startup(void)
+static int test_initmain(void)
 {
    thread_tls_t   tls  = thread_tls_FREE ;
    memblock_t     threadstack = memblock_FREE ;
    memblock_t     signalstack = memblock_FREE ;
    vmpage_t       vmpage ;
 
-   // TEST initstartup_threadtls
-   TEST(0 == initstartup_threadtls(&tls, &threadstack, &signalstack)) ;
+   // TEST initmain_threadtls
+   TEST(0 == initmain_threadtls(&tls, &threadstack, &signalstack)) ;
    TEST(0 != tls.addr) ;
    TEST(0 == (uintptr_t)tls.addr % size_threadtls()) ;   // aligned
    TEST(threadstack.addr == tls.addr + sizevars_threadtls(pagesize_vm()) + sizesignalstack_threadtls(pagesize_vm()) + 2 * pagesize_vm()) ;
@@ -383,14 +383,14 @@ static int test_startup(void)
    thread_vars_t *   tlsvars2 = (thread_vars_t*) tls.addr ;
    TEST(0 == memcmp(&tlsvars, tlsvars2, sizeof(tlsvars))) ;
 
-   // TEST freestartup_threadtls
-   TEST(0 == freestartup_threadtls(&tls)) ;
+   // TEST freemain_threadtls
+   TEST(0 == freemain_threadtls(&tls)) ;
    TEST(0 == tls.addr) ;
-   TEST(0 == freestartup_threadtls(&tls)) ;
+   TEST(0 == freemain_threadtls(&tls)) ;
    TEST(0 == tls.addr) ;
 
-   // TEST initstartup_threadtls: correct protection
-   TEST(0 == initstartup_threadtls(&tls, &threadstack, &signalstack)) ;
+   // TEST initmain_threadtls: correct protection
+   TEST(0 == initmain_threadtls(&tls, &threadstack, &signalstack)) ;
    // variables
    vmpage = (vmpage_t) vmpage_INIT(sizevars_threadtls(pagesize_vm()), tls.addr) ;
    TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE)) ;
@@ -415,27 +415,27 @@ static int test_startup(void)
    vmpage = (vmpage_t) vmpage_INIT(size_threadtls() - offset, tls.addr + offset) ;
    TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE)) ;
 
-   // TEST freestartup_threadtls: unmap pages
+   // TEST freemain_threadtls: unmap pages
    vmpage = (vmpage_t) vmpage_INIT(size_threadtls(), tls.addr) ;
-   TEST(0 == freestartup_threadtls(&tls)) ;
+   TEST(0 == freemain_threadtls(&tls)) ;
    TEST(1 == isunmapped_vm(&vmpage)) ;
 
-   // TEST initstartup_threadtls: ERROR
+   // TEST initmain_threadtls: ERROR
    threadstack = (memblock_t) memblock_FREE ;
    signalstack = (memblock_t) memblock_FREE ;
    for (unsigned i = 1; i <= 6; ++i) {
       init_testerrortimer(&s_threadtls_errtimer, i, ENOMEM) ;
-      TEST(ENOMEM == initstartup_threadtls(&tls, &threadstack, &signalstack)) ;
+      TEST(ENOMEM == initmain_threadtls(&tls, &threadstack, &signalstack)) ;
       TEST(0 == tls.addr) ;
       TEST(1 == isfree_memblock(&threadstack)) ;
       TEST(1 == isfree_memblock(&signalstack)) ;
    }
 
-   // TEST freestartup_threadtls: ERROR
-   TEST(0 == initstartup_threadtls(&tls, &threadstack, &signalstack)) ;
+   // TEST freemain_threadtls: ERROR
+   TEST(0 == initmain_threadtls(&tls, &threadstack, &signalstack)) ;
    init_testerrortimer(&s_threadtls_errtimer, 1, EINVAL) ;
    TEST(0 != tls.addr) ;
-   TEST(EINVAL == freestartup_threadtls(&tls)) ;
+   TEST(EINVAL == freemain_threadtls(&tls)) ;
    TEST(0 == tls.addr) ;
 
    return 0 ;
@@ -559,7 +559,7 @@ ONABORT:
 int unittest_platform_task_thread_tls()
 {
    if (test_initfree())    goto ONABORT ;
-   if (test_startup())     goto ONABORT ;
+   if (test_initmain())    goto ONABORT ;
    if (test_query())       goto ONABORT ;
    if (test_generic())     goto ONABORT ;
 

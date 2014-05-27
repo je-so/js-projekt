@@ -72,7 +72,6 @@
         <File Name="../../C-kern/api/platform/X11/x11window.h"/>
         <File Name="../../C-kern/api/platform/X11/x11dblbuffer.h"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/platform/startup.h"/>
       <VirtualDirectory Name="OpenGL">
         <VirtualDirectory Name="EGL">
           <File Name="../../C-kern/api/platform/OpenGL/EGL/egl.h"/>
@@ -83,6 +82,7 @@
           <File Name="../../C-kern/api/platform/OpenGL/EGL/eglcontext.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/platform/init.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
@@ -399,7 +399,7 @@
         <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
         <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/platform/Linux/startup.c"/>
+      <File Name="../../C-kern/platform/Linux/init.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="X11">
       <File Name="../../C-kern/platform/X11/x11.c"/>

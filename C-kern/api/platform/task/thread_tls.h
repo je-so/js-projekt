@@ -2,7 +2,7 @@
 
    Supports storage (variables and stack space)
    for every creatd thread and the main thread.
-   The main thread is initialized with <initstartup_threadtls>
+   The main thread is initialized with <initmain_threadtls>
    all other with <init_threadtls>.
 
    about: Copyright
@@ -77,16 +77,16 @@ int init_threadtls(/*out*/thread_tls_t * tls) ;
  * Changes protection of memory to normal and frees it. */
 int free_threadtls(thread_tls_t * tls) ;
 
-/* function: initstartup_threadtls
+/* function: initmain_threadtls
  * Same as <init_threadtls> but calls no other functions of C-kern system.
- * Called from <startup_platform>.
+ * Called from <platform_t.init_platform>.
  * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
-int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack) ;
+int initmain_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack) ;
 
-/* function: freestartup_threadtls
+/* function: freemain_threadtls
  * Same as <free_threadtls> but calls no other functions of C-kern system.
  * Especially no logging is done and no calls to <pagesize_vm> and <free_vmpage> are made. */
-int freestartup_threadtls(thread_tls_t * tls) ;
+int freemain_threadtls(thread_tls_t * tls) ;
 
 // group: query
 

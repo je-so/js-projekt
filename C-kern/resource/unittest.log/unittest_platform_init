@@ -1,0 +1,16 @@
+init_platform() C-kern/platform/Linux/init.c:0097
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0102
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0110
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0125
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0142
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0149
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:0155
+Error 0333
+init_platform() C-kern/platform/Linux/init.c:71
+aborted
