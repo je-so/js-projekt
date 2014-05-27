@@ -77,7 +77,8 @@ unsigned makepowerof2_int(unsigned i) ;
 
 /* define: ispowerof2_int
  * Implements <int_t.ispowerof2_int> as a generic function. */
-#define ispowerof2_int(i)              (!( (typeof(i)) (((i)-1) & (i)) ))
+#define ispowerof2_int(i) \
+         (!( (typeof(i)) (((i)-1) & (i)) ))
 
 /* define: makepowerof2_int
  * Implements <int_t.makepowerof2_int> as a generic function. */

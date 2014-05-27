@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Mai.27  14:18:47
+GenerationDate  := 2014.Mai.27  14:40:36
 GeneratedBy     := je-so
 
 ## Debug
@@ -180,7 +180,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o \
- $(ObjectDir_Debug)/C-kern!test!mm!mm_test.c.o \
+ $(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o
 
 Objects_Release := \
@@ -290,7 +290,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o \
- $(ObjectDir_Release)/C-kern!test!mm!mm_test.c.o \
+ $(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o
 
 $(Target_Debug): $(Objects_Debug)
@@ -617,7 +617,7 @@ $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!mm!mm_test.c.o: C-kern/test/mm/mm_test.c
+$(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c
@@ -941,7 +941,7 @@ $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!mm!mm_test.c.o: C-kern/test/mm/mm_test.c
+$(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c

@@ -49,8 +49,11 @@
 
 // section: eglwindow_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
+/* variable: s_eglwindow_errtimer
+ * Allows to introduce artificial errors during test. */
 static test_errortimer_t   s_eglwindow_errtimer = test_errortimer_FREE ;
 #endif
 

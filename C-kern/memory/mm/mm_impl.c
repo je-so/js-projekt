@@ -37,11 +37,15 @@
 #endif
 
 
-/* struct: mm_impl_it
+// section: mm_impl_t
+
+// group: types
+
+/* typedef: mm_impl_it
  * Adapts <mm_it> to <mm_impl_t>. See <mm_it_DECLARE>. */
 mm_it_DECLARE(mm_impl_it, mm_impl_t)
 
-// group: variables
+// group: static variables
 
 /* variable: s_mmimpl_interface
  * Contains single instance of interface <mm_impl_it>. */
@@ -51,9 +55,6 @@ static mm_impl_it    s_mmimpl_interface = mm_it_INIT(
                            &mfree_mmimpl,
                            &sizeallocated_mmimpl
                         ) ;
-
-
-// section: mm_impl_t
 
 // group: initthread
 

@@ -63,7 +63,7 @@
 #define maincontext_STATICTESTSIZE 0
 #endif
 
-// group: variables
+// group: global variables
 
 /* variable: g_maincontext
  * Reserve space for the global main context. */
@@ -76,13 +76,15 @@ maincontext_t              g_maincontext  = {
    0
 } ;
 
+// group: static variables
+
 /* variable: s_maincontext_staticmem
  * Static memory block used in in global <maincontext_t>. */
 static uint8_t             s_maincontext_staticmem[maincontext_STATICSIZE + maincontext_STATICTESTSIZE] = { 0 } ;
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_maincontext_errtimer
- * Simulates an error in <init_maincontext>. */
+ * Simulates an error in <maincontext_t.init_maincontext>. */
 static test_errortimer_t   s_maincontext_errtimer = test_errortimer_FREE ;
 #endif
 

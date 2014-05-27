@@ -84,11 +84,11 @@ static void flush_logwriterchan(logwriter_chan_t * chan)
  * Defines interface for <logwriter_t> - see <log_it_DECLARE>. */
 log_it_DECLARE(logwriter_it, logwriter_t)
 
-// group: variables
+// group: static variables
 
 /* variable: s_logwriter_interface
  * Contains single instance of interface <logwriter_it>. */
-logwriter_it      s_logwriter_interface = {
+static logwriter_it  s_logwriter_interface = {
                         &printf_logwriter,
                         &printtext_logwriter,
                         &flushbuffer_logwriter,
@@ -97,7 +97,7 @@ logwriter_it      s_logwriter_interface = {
                         &getstate_logwriter,
                         &compare_logwriter,
                         &setstate_logwriter
-                  } ;
+                     };
 
 // group: initthread
 

@@ -233,7 +233,7 @@ void yield_thread(void) ;
 /* function: exit_thread
  * Ends the calling thread and sets retcode as its return code.
  * If the caller is the main thread the value EPROTO is returned and
- * nothing is done. The main thread must calle <free_maincontext> and exit(retcode).
+ * nothing is done. The main thread must calle <maincontext_t.free_maincontext> and exit(retcode).
  * No cleanup handlers are executed. */
 int exit_thread(int retcode) ;
 
@@ -254,7 +254,7 @@ void abort_thread(void) ;
  * Parameter is_abort is set to true if <setcontinue_thread> returns as
  * a reaction to a call to <abort_thread>.
  * For any started thread <setcontinue_thread> is called before thread_main
- * (parameter in <new_thread>) will be called. The main thread which calls <init_maincontext>
+ * (parameter in <new_thread>) will be called. The main thread which calls <maincontext_t.init_maincontext>
  * must call <setcontinue_thread> explicitly. */
 int setcontinue_thread(bool * is_abort) ;
 

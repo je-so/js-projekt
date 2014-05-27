@@ -270,12 +270,12 @@ static inline wait2queue_entry_t * cast_wait2queueentry(syncwait_t * waitentry)
 // forward
 static int clearevents_syncrun(syncrun_t * srun) ;
 
-// group: variable
+// group: static variables
 
-/* variable: s_syncrun_errtimer
- * Defines local <test_errortimer_t> used in Unit Test.
- * Only defined if <KONFIG_UNITTEST> is defined. */
 #ifdef KONFIG_UNITTEST
+/* variable: s_syncrun_errtimer
+ * Allows to introduce artificial errors during test.
+ * Only defined if <KONFIG_UNITTEST> is defined. */
 static test_errortimer_t      s_syncrun_errtimer = test_errortimer_FREE ;
 #endif
 

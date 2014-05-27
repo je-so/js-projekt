@@ -46,7 +46,7 @@
  * becomes the result of CRC-32 computation.
  *
  * The first byte of the data is the most significant byte of the binary number.
- * But the bits of the bytes are reversed. Bit 0 of the first byte is therfore the most significand bit of the number.
+ * But the bits of the bytes are reversed. Bit 0 of the first byte is therefore the most significant bit of the number.
  * The next bit is bit 1 from the first byte. The 9th bit is bit 0 from the second data byte and so on.
  *
  * Then the number is divided by the divisor 0x104C11DB7 (polynomial). The calculation is done modulo 2 on every bit.
@@ -81,7 +81,7 @@
  *
  * To speed up the calculation we consider only one byte value at a time and set all following bits to 0.
  * After we have calculated the 32-bit remainder of this single byte we subtract it (xor) from the follwing bytes.
- * This works only cause of subtraction beeing the xor operation. Cause (data xor remainder) is the same as
+ * This works only cause of subtraction being the xor operation. Cause (data xor remainder) is the same as
  * (data xor (0 xor remainder)).
  *
  * > Division: (1111111100000000000000000 (+ 32 0 bits)) / 100000100110000010001110110110111 = (ignored)
@@ -99,7 +99,7 @@
  * >            ...
  *
  * To speed things up we do not reverse the input bytes but we can reverse the value of the divisor 0x104C11DB7.
- * The resulting remainder is the already reversed so we do not need to reverse it before returning it as the finit
+ * The resulting remainder is theirefore already reversed so we do not need to reverse it before returning it as the final
  * value.
  *
  * The next thing is to precompute the remainder of every possible input byte and store it in the tabe <s_precomputed_crc32>.
@@ -108,10 +108,10 @@
  *
  * */
 
-// group: variables
+// group: static variables
 
 /* variable: s_precomputed_crc32
- * Precomputed remainder for every possible input byte divided by revered polynomial 0x104C11DB7. */
+ * Precomputed remainder for every possible input byte divided by bit reversed polynomial 0x104C11DB7. */
 static uint32_t   s_precomputed_crc32[256] = {
    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
    0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,

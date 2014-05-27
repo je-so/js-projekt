@@ -35,13 +35,14 @@
 
 // section: display_t
 
-// group: variable
+// group: static variables
 #ifdef KONFIG_UNITTEST
 /* variable: s_display_errtimer
  * Allows to introduce artificial errors. */
 static test_errortimer_t   s_display_errtimer = test_errortimer_FREE;
+
 /* variable: s_display_noext
- * Allows to introduce an X11 display withou extensions. */
+ * Allows to initialize an X11 display without extensions. */
 static bool                s_display_noext = false;
 #else
 #define s_display_noext false

@@ -42,10 +42,14 @@
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
 
+
 // section: eglcontext_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
+/* variable: s_eglcontext_errtimer
+ * Allows to introduce artificial errors during test. */
 static test_errortimer_t   s_eglcontext_errtimer = test_errortimer_FREE ;
 #endif
 

@@ -52,7 +52,7 @@ static uint8_t getstate_logmain(const void * logmain, uint8_t channel) ;
 static int compare_logmain(const void * logmain, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
 static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state) ;
 
-// group: variables
+// group: global variables
 
 /* variable: g_logmain_interface
  * Contains single instance of interface <log_it>. */

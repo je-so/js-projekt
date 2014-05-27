@@ -52,7 +52,7 @@ typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
  * maincontext_STATIC -  An implementation which is configured by a static initializer.
  *                       Only the log service is supported.
  *                       This configuration is default after <platform_t.init_platform> has been called and can not be
- *                       set with a call to <init_maincontext>.
+ *                       set with a call to <maincontext_t.init_maincontext>.
  * maincontext_DEFAULT - Default single or multi threading implementation.
  *                       All content logged to channel <log_channel_USERERR> is ignored.
  * maincontext_CONSOLE - Default single or multi threading implementation for commandline tools.
@@ -89,9 +89,23 @@ int unittest_context_maincontext(void);
 /* struct: maincontext_startparam_t
  * Start parameters used in <initstart_maincontext>. */
 struct maincontext_startparam_t {
+   // group: struct fields
+   /* variable: context_type
+    * Set to a value of <maincontext_e>. It determines the type
+    * of <maincontext_t> the process wants ro initialize. */
    maincontext_e  context_type;
+   /* variable: argc
+    * The number of process arguments. Same value as received by
+    * > int main(int argc, const char * argv[]). */
    int            argc;
+   /* variable: argv
+    * An array of program arguments. The last argument argv[ærgc]
+    * should be set to 0. Same value as received by
+    * > int main(int argc, const char * argv[]). */
    const char **  argv;
+   /* variable: main_thread
+    * The main threads main function. It is started if the environment
+    * could be initialized successfully. */
    maincontext_thread_f main_thread;
 };
 
@@ -116,6 +130,7 @@ struct maincontext_startparam_t {
  *
  * */
 struct maincontext_t {
+   // group: struct fields
    processcontext_t  pcontext;
    maincontext_e     type;
    const char *      progname;
@@ -129,7 +144,7 @@ struct maincontext_t {
 // group: lifetime
 
 /* function: initstart_maincontext
- * Calls <platform_t.init_platform>, <init_maincontext> and runs main_thread.
+ * Calls <platform_t.init_platform>, <maincontext_t.init_maincontext> and runs main_thread.
  * This is a convenience function so you do not have to remember the
  * process initialization sequence pattern. */
 int initstart_maincontext(const maincontext_startparam_t * startparam);

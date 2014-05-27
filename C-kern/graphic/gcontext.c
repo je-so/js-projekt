@@ -1,6 +1,6 @@
-/* title: Graphic-OpenGL-Context impl
+/* title: Graphic-Context impl
 
-   Implements <Graphic-OpenGL-Context>.
+   Implements <Graphic-Context>.
 
    about: Copyright
    This program is free software.
@@ -18,10 +18,10 @@
    (C) 2014 Jörg Seebohn
 
    file: C-kern/api/graphic/gcontext.h
-    Header file <Graphic-OpenGL-Context>.
+    Header file <Graphic-Context>.
 
    file: C-kern/graphic/gcontext.c
-    Implementation file <Graphic-OpenGL-Context impl>.
+    Implementation file <Graphic-Context impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -41,8 +41,11 @@
 
 // section: gcontext_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
+/* variable: s_gcontext_errtimer
+ * Allows to introduce artificial errors during test. */
 static test_errortimer_t   s_gcontext_errtimer = test_errortimer_FREE ;
 #endif
 

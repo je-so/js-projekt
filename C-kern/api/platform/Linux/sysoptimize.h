@@ -42,11 +42,12 @@
 #if defined(__i386) || defined(__i686)
 /* define: sys_sqroot_int64
  * Replaces <sqroot_int64> with faster sqrtl (long double version).
- * The x86 fpu is faster than the standard integer algorithm for computing the square root. */
+ * The x86 fpu is faster than the standard integer algorithm for computing the square root.
+ * If no compiler specific version is defined <sqroot_int64> is used as default. */
 #define sys_sqroot_int64 sqrtl
 #endif
 
-// group: Unknown Compiler
+// == Unknown Compiler ==
 #else
 
 #define de 1
@@ -60,11 +61,10 @@
 #endif   // end compiler selection
 
 
-// group: Select Defaults
+// group: Default Definitions
 
 #ifndef sys_sqroot_int64
-/* define: sys_sqroot_int64
- * Use default implementation <sqroot_int64>. */
+/* Use <sqroot_int64> as default. */
 #define sys_sqroot_int64 sqroot_int64
 #endif
 

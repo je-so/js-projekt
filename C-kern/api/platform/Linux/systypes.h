@@ -70,7 +70,7 @@
 
 /* define: sys_iochannel_FREE
  * Choose Posix file descriptor type. */
-#define sys_iochannel_FREE    (-1)
+#define sys_iochannel_FREE             (-1)
 
 /* define: sys_mutex_t
  * Chooses Posix mutex type. Needs pthread support. */
@@ -91,7 +91,7 @@
 
 /* define: sys_process_FREE
  * Static initializer for <sys_process_t>. */
-#define sys_process_FREE      (0)
+#define sys_process_FREE               (0)
 
 /* define: sys_semaphore_t
  * Chooses Posix semaphore handle. */
@@ -99,7 +99,7 @@
 
 /* define: sys_semaphore_FREE
  * Static initializer for <sys_semaphore_t>. */
-#define sys_semaphore_FREE    (-1)
+#define sys_semaphore_FREE             (-1)
 
 /* define: sys_socketaddr_t
  * Chooses Posix socket address type. */
@@ -115,7 +115,7 @@
 
 /* define: sys_thread_FREE
  * Static initializer for <sys_thread_t>. */
-#define sys_thread_FREE       (0)
+#define sys_thread_FREE                (0)
 
 /* define: sys_userid_t
  * Chooses Posix system user id. */
@@ -123,6 +123,6 @@
 
 /* define: sys_userid_FREE
  * Static initializer for <sys_userid_t>. */
-#define sys_userid_FREE       ((uid_t)(-1))
+#define sys_userid_FREE                ((uid_t)(-1))
 
 #endif

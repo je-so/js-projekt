@@ -40,9 +40,9 @@
 
 /* struct: directory_t
  * Alias for POSIX specific DIR structure. */
-struct directory_t ;
+struct directory_t;
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_directory_errtimer

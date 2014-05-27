@@ -111,7 +111,7 @@ static inline int new_ptrblock(/*out*/ptrblock_t ** ptrblock, pagesize_e pagesiz
 
 // section: blockarray_t
 
-// group: variable
+// group: static variables
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t      s_blockarray_errtimer = test_errortimer_FREE ;
 #endif

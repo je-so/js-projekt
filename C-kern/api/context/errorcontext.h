@@ -69,13 +69,13 @@ struct errorcontext_t {
 // group: initonce
 
 /* function: initonce_errorcontext
- * Called from <init_maincontext>.
+ * Called from <maincontext_t.init_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>. */
 int initonce_errorcontext(/*out*/errorcontext_t * error) ;
 
 /* function: freeonce_errorcontext
- * Called from <free_maincontext>.
+ * Called from <maincontext_t.free_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>.
  * This operation is a no op. This ensures that errorcontext_t works

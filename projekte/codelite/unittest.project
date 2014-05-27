@@ -8,8 +8,8 @@
     <File Name="../../C-kern/api/maincontext.h"/>
     <VirtualDirectory Name="test">
       <VirtualDirectory Name="mm">
-        <File Name="../../C-kern/api/test/mm/mm_test.h"/>
         <File Name="../../C-kern/api/test/mm/testmm.h"/>
+        <File Name="../../C-kern/api/test/mm/err_macros.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="run">
         <File Name="../../C-kern/api/test/run/speedtest.h"/>
@@ -310,8 +310,8 @@
       <File Name="../../C-kern/test/compiletime/system.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="mm">
-      <File Name="../../C-kern/test/mm/mm_test.c"/>
       <File Name="../../C-kern/test/mm/testmm.c"/>
+      <File Name="../../C-kern/test/mm/err_macros.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="run">
       <File Name="../../C-kern/test/run/run_linuxsplice_speedtest.c"/>

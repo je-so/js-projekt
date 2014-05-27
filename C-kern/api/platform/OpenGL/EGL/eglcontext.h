@@ -3,9 +3,6 @@
    Wraps the creation of an OpenGL graphics context
    using the EGL api.
 
-   Includes:
-   You have to include <Graphic-OpenGL-Context> (C-kern/api/graphic/gcontext.h) before.
-
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify

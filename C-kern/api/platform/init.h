@@ -54,7 +54,7 @@ struct platform_t;
  * the return value is the value returned from main_thread. If an error occurs during
  * initialization only an error code (value > 0) is returned, main_thread is not called.
  *
- * You have to call this function before calling <init_maincontext>.
+ * You have to call this function before calling <maincontext_t.init_maincontext>.
  *
  * This function is implemented in a system specific way.
  * */

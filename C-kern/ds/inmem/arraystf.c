@@ -33,7 +33,7 @@
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/test/mm/mm_test.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/errortimer.h"
@@ -43,7 +43,7 @@
 
 // section: arraystf_node_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_arraystf_errtimer
@@ -416,7 +416,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    // prefix matches (add new branch layer after found.parent)
 
          memblock_t mblock ;
-         err = ALLOC_TEST(&s_arraystf_errtimer, sizeof(arraystf_mwaybranch_t), &mblock) ;
+         err = ALLOC_ERR_MM(&s_arraystf_errtimer, sizeof(arraystf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t *) mblock.addr ;

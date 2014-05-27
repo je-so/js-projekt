@@ -54,7 +54,7 @@ struct thread_vars_t {
 
 // section: thread_tls_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadtls_errtimer

@@ -40,7 +40,7 @@
 
 // section: eglconfig_t
 
-// group: variables
+// group: helper
 
 static inline int convertAttribToEGL_eglconfig(int attribute, int32_t value, /*out*/EGLint tuple[2])
 {

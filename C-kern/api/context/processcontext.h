@@ -94,12 +94,12 @@ struct processcontext_t {
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context
  * for the whole process. It is shared by all threads.
- * Function is called from <init_maincontext>. */
+ * Function is called from <maincontext_t.init_maincontext>. */
 int init_processcontext(/*out*/processcontext_t * pcontext) ;
 
 /* function: free_processcontext
  * Frees resources associated with <processcontext_t>.
- * This function is called from <free_maincontext> and you should never need to call it. */
+ * This function is called from <maincontext_t.free_maincontext> and you should never need to call it. */
 int free_processcontext(processcontext_t * pcontext) ;
 
 // group: query

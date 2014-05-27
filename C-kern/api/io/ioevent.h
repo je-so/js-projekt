@@ -71,7 +71,7 @@ typedef enum ioevent_e                    ioevent_e ;
  * The id can be stored as 3 different types. They use all the same memory address.
  * So only one type at any point in time is supported. */
 union ioevent_id_t {
-   // group: variables
+   // group: struct fields
    /* variable: ptr
     * Allows to store the id value as pointer type. */
    void        * ptr ;
@@ -92,7 +92,7 @@ union ioevent_id_t {
  * io objects. During polling <ioevents> contains the list of occurred events
  * and <eventid> contains the value which was set during registering. */
 struct ioevent_t {
-   // group: variables
+   // group: struct fields
    /* variable: ioevents
     * One or more <ioevent_e> values ored together in one event mask. */
    uint32_t       ioevents ;

@@ -62,6 +62,7 @@ Group: Api  {
    Group: Context  {
 
       File: ErrorContext  (api/context/errorcontext.h)
+      File: ErrorNumbers  (api/context/errornr.h)
       File: InterfaceableObject  (api/context/iobj.h)
       File: Module  (api/context/module.h)
       File: ProcessContext  (api/context/processcontext.h)
@@ -97,6 +98,7 @@ Group: Api  {
          File: SingleLinkedList  (api/ds/inmem/slist.h)
          File: Splaytree  (api/ds/inmem/splaytree.h)
          File: Suffix-Tree  (api/ds/inmem/suffixtree.h)
+         File: Trie  (api/ds/inmem/trie.h)
          }  # Group: InMemory
 
       Group: Typeadapt  {
@@ -112,6 +114,19 @@ Group: Api  {
       File: Foreach-Iterator  (api/ds/foreach.h)
       File: Typeadapt  (api/ds/typeadapt.h)
       }  # Group: Ds
+
+   Group: Graphic  {
+
+      File: Graphic-Context  (api/graphic/gcontext.h)
+      File: Graphic-Display  (api/graphic/display.h)
+      File: Graphic-Pixel-Buffer  (api/graphic/pixelbuffer.h)
+      File: Graphic-Surface  (api/graphic/surface.h)
+      File: Graphic-Surface-Configuration  (api/graphic/gconfig.h)
+      File: Graphic-Window  (api/graphic/window.h)
+      File: Graphic-Window-Configuration  (api/graphic/windowconfig.h)
+      File: OpenGLES2Header  (api/graphic/gles2api.h)
+      File: OpenGLHeader  (api/graphic/glapi.h)
+      }  # Group: Graphic
 
    Group: Io  {
 
@@ -198,6 +213,7 @@ Group: Api  {
       File: HWCache  (api/memory/hwcache.h)
       File: MemoryBlock  (api/memory/memblock.h)
       File: MemoryPageCache  (api/memory/pagecache_impl.h)
+      File: MemoryPointer  (api/memory/ptr.h)
       File: MemoryStream  (api/memory/memstream.h)
       File: PageCache-Object  (api/memory/pagecache.h)
       File: PageCacheMacros  (api/memory/pagecache_macros.h)
@@ -209,11 +225,29 @@ Group: Api  {
 
       Group: Linux  {
 
+         Group: Graphic  {
+
+            File: EGLSystemKonfig  (api/platform/Linux/graphic/sysegl.h)
+            File: GLESv2SystemKonfig  (api/platform/Linux/graphic/sysgles2.h)
+            File: GLSystemKonfig  (api/platform/Linux/graphic/sysgl.h)
+            File: X11SystemKonfig  (api/platform/Linux/graphic/sysx11.h)
+            }  # Group: Graphic
+
          File: LinuxSystemContext  (api/platform/Linux/syscontext.h)
          File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
          File: LinuxSystemOptimizations  (api/platform/Linux/sysoptimize.h)
          File: LinuxSystemTypes  (api/platform/Linux/systypes.h)
          }  # Group: Linux
+
+      Group: OpenGL  {
+
+         File: EGl-Context  (api/platform/OpenGL/EGL/eglcontext.h)
+         File: EGL-Display  (api/platform/OpenGL/EGL/egldisplay.h)
+         File: EGL-Framebuffer-Configuration  (api/platform/OpenGL/EGL/eglconfig.h)
+         File: EGL-OpenGL-Binding  (api/platform/OpenGL/EGL/egl.h)
+         File: EGl-PBuffer  (api/platform/OpenGL/EGL/eglpbuffer.h)
+         File: EGL-Window  (api/platform/OpenGL/EGL/eglwindow.h)
+         }  # Group: OpenGL
 
       Group: Sync  {
 
@@ -234,20 +268,18 @@ Group: Api  {
 
       Group: X11  {
 
-         File: X11-Attribute  (api/platform/X11/x11attribute.h)
          File: X11-Display  (api/platform/X11/x11display.h)
+         File: X11-DoubleBuffer  (api/platform/X11/x11dblbuffer.h)
          File: X11-Drawable  (api/platform/X11/x11drawable.h)
-         File: X11-OpenGL-Window  (api/platform/X11/glxwindow.h)
          File: X11-Screen  (api/platform/X11/x11screen.h)
          File: X11-Subsystem  (api/platform/X11/x11.h)
          File: X11-Videomode  (api/platform/X11/x11videomode.h)
          File: X11-Window  (api/platform/X11/x11window.h)
-         File: X11SystemKonfig  (api/platform/X11/x11syskonfig.h)
          }  # Group: X11
 
       File: Locale-support  (api/platform/locale.h)
       File: Malloc  (api/platform/malloc.h)
-      File: PlatformStartup  (api/platform/startup.h)
+      File: PlatformInit  (api/platform/init.h)
       File: SystemUser  (api/platform/sysuser.h)
       }  # Group: Platform
 
@@ -269,11 +301,13 @@ Group: Api  {
 
       File: AssertTest  (api/test/assert.h)
       File: Compiletime-Tests  (api/test/compiletime.h)
+      File: MemoryErrorTestMacros  (api/test/mm/err_macros.h)
       File: Resourceusage  (api/test/resourceusage.h)
+      File: Run-Unit-Test  (api/test/run/run_unittest.h)
       File: Speed Test  (api/test/run/speedtest.h)
       File: Test-Errortimer  (api/test/errortimer.h)
-      File: Test-MemoryManager  (api/test/testmm.h)
-      File: Unittest  (api/test/run/unittest.h)
+      File: Test-MemoryManager  (api/test/mm/testmm.h)
+      File: Unit-Test  (api/test/unittest.h)
       File: ValidationTest  (api/test/validate.h)
       }  # Group: Test
 
@@ -295,7 +329,6 @@ Group: Api  {
 
    File: ErrorHandling  (api/err.h)
    File: MainContext  (api/maincontext.h)
-   File: Test  (api/test.h)
    }  # Group: Api
 
 Group: Implementation  {
@@ -310,6 +343,7 @@ Group: Implementation  {
 
       File: Context-Oriented-Programming  (context/COP.txt)
       File: ErrorContext impl  (context/errorcontext.c)
+      File: ErrorNumbers impl  (context/errornr.c)
       File: InterfaceableObject impl  (context/iobj.c)
       File: MainContext impl  (context/maincontext.c)
       File: Module impl  (context/module.c)
@@ -333,6 +367,7 @@ Group: Implementation  {
          File: SingleLinkedList impl  (ds/inmem/slist.c)
          File: Splaytree impl  (ds/inmem/splaytree.c)
          File: Suffix-Tree impl  (ds/inmem/suffixtree.c)
+         File: Trie impl  (ds/inmem/trie.c)
          }  # Group: InMemory
 
       Group: Typeadapt  {
@@ -347,6 +382,17 @@ Group: Implementation  {
 
       File: Typeadapt impl  (ds/typeadapt.c)
       }  # Group: DataStructures
+
+   Group: Graphic  {
+
+      File: Graphic-Context impl  (graphic/gcontext.c)
+      File: Graphic-Display impl  (graphic/display.c)
+      File: Graphic-Pixel-Buffer impl  (graphic/pixelbuffer.c)
+      File: Graphic-Surface impl  (graphic/surface.c)
+      File: Graphic-Surface-Configuration impl  (graphic/gconfig.c)
+      File: Graphic-Window impl  (graphic/window.c)
+      File: Graphic-Window-Configuration impl  (graphic/windowconfig.c)
+      }  # Group: Graphic
 
    Group: Io  {
 
@@ -432,6 +478,7 @@ Group: Implementation  {
       File: MemoryBlock impl  (memory/memblock.c)
       File: MemoryManager-Object impl  (memory/mm/mm.c)
       File: MemoryPageCache impl  (memory/pagecache_impl.c)
+      File: MemoryPointer impl  (memory/ptr.c)
       File: MemoryStream impl  (memory/memstream.c)
       File: PageCache-Object impl  (memory/pagecache.c)
       File: PageCacheMacros impl  (memory/pagecache_macros.c)
@@ -467,10 +514,6 @@ Group: Implementation  {
             File: SysTimer Linux  (platform/Linux/time/systimer.c)
             }  # Group: Time
 
-         File: Locale-support Linux  (platform/Linux/locale.c)
-         File: Malloc impl  (platform/Linux/malloc.c)
-         File: PlatformStartup Linuximpl  (platform/Linux/startup.c)
-
          Group: Sync  {
 
             File: InterThreadMutex impl  (platform/Linux/sync/thrmutex.c)
@@ -481,20 +524,32 @@ Group: Implementation  {
             File: Waitlist Linuximpl  (platform/Linux/sync/waitlist.c)
             }  # Group: Sync
 
+         File: Locale-support Linux  (platform/Linux/locale.c)
+         File: Malloc impl  (platform/Linux/malloc.c)
+         File: PlatformInit Linux  (platform/Linux/init.c)
          File: SystemUser Linuximpl  (platform/Linux/sysuser.c)
          File: VirtualMemory Linux  (platform/Linux/vm.c)
          }  # Group: Linux
 
+      Group: OpenGL  {
+
+         File: EGl-Context impl  (platform/OpenGL/EGL/eglcontext.c)
+         File: EGL-Display impl  (platform/OpenGL/EGL/egldisplay.c)
+         File: EGL-Framebuffer-Configuration impl  (platform/OpenGL/EGL/eglconfig.c)
+         File: EGL-OpenGL-Binding impl  (platform/OpenGL/EGL/egl.c)
+         File: EGl-PBuffer impl  (platform/OpenGL/EGL/eglpbuffer.c)
+         File: EGL-Window impl  (platform/OpenGL/EGL/eglwindow.c)
+         }  # Group: OpenGL
+
       Group: X11  {
 
-         File: X11-Attribute impl  (platform/shared/X11/x11attribute.c)
-         File: X11-Display impl  (platform/shared/X11/x11display.c)
-         File: X11-Drawable impl  (platform/shared/X11/x11drawable.c)
-         File: X11-OpenGL-Window impl  (platform/shared/X11/glxwindow.c)
-         File: X11-Screen impl  (platform/shared/X11/x11screen.c)
-         File: X11-Subsystem impl  (platform/shared/X11/x11.c)
-         File: X11-Videomode impl  (platform/shared/X11/x11videomode.c)
-         File: X11-Window impl  (platform/shared/X11/x11window.c)
+         File: X11-Display impl  (platform/X11/x11display.c)
+         File: X11-DoubleBuffer impl  (platform/X11/x11dblbuffer.c)
+         File: X11-Drawable impl  (platform/X11/x11drawable.c)
+         File: X11-Screen impl  (platform/X11/x11screen.c)
+         File: X11-Subsystem impl  (platform/X11/x11.c)
+         File: X11-Videomode impl  (platform/X11/x11videomode.c)
+         File: X11-Window impl  (platform/X11/x11window.c)
          }  # Group: X11
 
       }  # Group: Platform
@@ -531,11 +586,12 @@ Group: Implementation  {
          File: CompiletimeTest System  (test/compiletime/system.h)
          }  # Group: Compiletime
 
-      File: Unittest impl  (test/run_unittest.c)
+      File: MemoryErrorTestMacros impl  (test/mm/err_macros.c)
       File: Resourceusage impl  (test/resourceusage.c)
-      File: Test impl  (test/test.c)
+      File: Run-Unit-Test impl  (test/run/run_unittest.c)
       File: Test-Errortimer impl  (test/errortimer.c)
-      File: Test-MemoryManager impl  (test/testmm.c)
+      File: Test-MemoryManager impl  (test/mm/testmm.c)
+      File: Unit-Test impl  (test/unittest.c)
       }  # Group: Test
 
    }  # Group: Implementation

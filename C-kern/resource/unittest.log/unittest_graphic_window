@@ -1,12 +1,12 @@
-[1: 1396696207.982372s]
+[1: 1398507154.687550s]
 initvid_x11window() C-kern/platform/X11/x11window.c:289
 Error 7 - Argument list too long
 Function aborted
-[1: 1396696207.983506s]
-free_window() C-kern/graphic/window.c:148
+[1: 1398507154.689407s]
+free_window() C-kern/graphic/window.c:149
 Error 12 - Cannot allocate memory
 Function aborted - one or more resources could not be freed
-[1: 1396696207.984168s]
-free_window() C-kern/graphic/window.c:148
+[1: 1398507154.690219s]
+free_window() C-kern/graphic/window.c:149
 Error 12 - Cannot allocate memory
 Function aborted - one or more resources could not be freed

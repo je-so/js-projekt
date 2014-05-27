@@ -1,10 +1,10 @@
-/* title: Graphic-OpenGL-Context
+/* title: Graphic-Context
 
    Abstracts the os specific way to create
    an OpenGL graphic context.
 
    Uses lower level of abstractions like <eglcontext_t>
-   in case of EGL to adapt OpenGL to the local windowing system.
+   in case of EGL adapting OpenGL to the local windowing system.
 
    about: Copyright
    This program is free software.
@@ -22,10 +22,10 @@
    (C) 2014 Jörg Seebohn
 
    file: C-kern/api/graphic/gcontext.h
-    Header file <Graphic-OpenGL-Context>.
+    Header file <Graphic-Context>.
 
    file: C-kern/graphic/gcontext.c
-    Implementation file <Graphic-OpenGL-Context impl>.
+    Implementation file <Graphic-Context impl>.
 */
 #ifndef CKERN_GRAPHIC_GCONTEXT_HEADER
 #define CKERN_GRAPHIC_GCONTEXT_HEADER

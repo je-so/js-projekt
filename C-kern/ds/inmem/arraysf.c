@@ -32,7 +32,7 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/test/mm/mm_test.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/pagecache_macros.h"
@@ -42,7 +42,7 @@
 
 // section: arraysf_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_arraysf_errtimer
@@ -273,7 +273,7 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
          unsigned shift = log2_int(posdiff) & ~0x01u ;
 
          memblock_t mblock ;
-         err = ALLOC_TEST(&s_arraysf_errtimer, sizeof(arraysf_mwaybranch_t), &mblock) ;
+         err = ALLOC_ERR_MM(&s_arraysf_errtimer, sizeof(arraysf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t *) mblock.addr ;

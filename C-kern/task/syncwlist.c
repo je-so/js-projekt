@@ -69,9 +69,12 @@ void initmove_wlistentry(/*out*/wlistentry_t * dest, wlistentry_t * src)
 
 // section: syncwlist_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t      s_syncwlist_errtimer = test_errortimer_FREE ;
+/* variable: s_syncwlist_errtimer
+ * Allows to introduce artificial errors during test. */
+static test_errortimer_t      s_syncwlist_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper

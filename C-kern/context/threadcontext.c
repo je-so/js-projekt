@@ -48,7 +48,7 @@
 
 // section: threadcontext_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadcontext_errtimer

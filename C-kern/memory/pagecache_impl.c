@@ -251,7 +251,7 @@ static inline void clear_pagecacheblockmap(pagecache_blockmap_t * blockmap, page
 
 // section: pagecache_block_t
 
-// group: variable
+// group: static variables
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t   s_pagecacheblock_errtimer = test_errortimer_FREE ;
 #endif
@@ -403,7 +403,7 @@ static int allocpage_pagecacheblock(struct pagecache_block_t * block, freepage_t
 
 // section: pagecache_impl_t
 
-// group: variables
+// group: static variables
 
 /* variable: s_pagecacheimpl_interface
  * Stores single instance of interface <pagecache_it>. */
@@ -415,7 +415,7 @@ static pagecache_impl_it   s_pagecacheimpl_interface = pagecache_it_INIT(
                               &freestatic_pagecacheimpl,
                               &sizestatic_pagecacheimpl,
                               &emptycache_pagecacheimpl
-                           ) ;
+                           );
 
 // group: init
 

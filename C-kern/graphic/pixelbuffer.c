@@ -40,10 +40,11 @@
 
 // section: pixelbuffer_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
 /* variable: s_pixelbuffer_errtimer
- * Allows to introduce artificial errors. */
+ * Allows to introduce artificial errors during test. */
 static test_errortimer_t   s_pixelbuffer_errtimer = test_errortimer_FREE;
 #endif
 

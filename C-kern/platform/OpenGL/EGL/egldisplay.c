@@ -40,9 +40,12 @@
 
 // section: egldisplay_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_egldisplay_errtimer = test_errortimer_FREE ;
+/* variable: s_egldisplay_errtimer
+ * Allows to introduce artificial errors during test. */
+static test_errortimer_t   s_egldisplay_errtimer = test_errortimer_FREE;
 #endif
 
 // group: lifetime

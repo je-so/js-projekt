@@ -46,10 +46,11 @@
 
 // section: window_t
 
-// group: variable
+// group: static variables
+
 #ifdef KONFIG_UNITTEST
 /* variable: s_window_errtimer
- * Allows to introduce artificial errors. */
+ * Allows to introduce artificial errors during test. */
 static test_errortimer_t   s_window_errtimer = test_errortimer_FREE;
 #endif
 

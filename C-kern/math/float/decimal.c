@@ -32,7 +32,7 @@
 #include "C-kern/api/math/int/log10.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/test/mm/mm_test.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #include "C-kern/api/string/cstring.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -123,7 +123,7 @@ struct decimal_divstate_t {
 
 // section: decimal_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_decimal_errtimer
@@ -421,7 +421,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)olddec) ;
 
    // TODO: implement resize in memory manager which does not preserve content
-   err = RESIZE_TEST(&s_decimal_errtimer, newobjsize, &mblock) ;
+   err = RESIZE_ERR_MM(&s_decimal_errtimer, newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    decimal_t     * newdec = (decimal_t*) mblock.addr ;
@@ -1491,7 +1491,7 @@ int delete_decimal(decimal_t ** dec)
 
       memblock_t  mblock = memblock_INIT(objectsize_decimal(del_dec->size_allocated), (uint8_t*) del_dec) ;
 
-      err = FREE_TEST(&s_decimal_errtimer, &mblock) ;
+      err = FREE_ERR_MM(&s_decimal_errtimer, &mblock) ;
       if (err) goto ONABORT ;
    }
 

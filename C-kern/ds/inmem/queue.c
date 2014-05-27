@@ -39,7 +39,7 @@
 
 // section: queue_page_t
 
-// group: variable
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t      s_queuepage_errtimer = test_errortimer_FREE ;

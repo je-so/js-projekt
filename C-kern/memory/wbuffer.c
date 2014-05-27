@@ -30,7 +30,7 @@
 #include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/test/mm/mm_test.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/ds/foreach.h"
@@ -39,7 +39,7 @@
 
 // section: wbuffer_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_wbuffer_errtimer
@@ -117,7 +117,7 @@ static int alloc_memblock_wbuffer(void * impl, size_t new_size, /*inout*/memstre
       goto ONABORT ;
    }
 
-   err = RESIZE_TEST(&s_wbuffer_errtimer, memsize, mb) ;
+   err = RESIZE_ERR_MM(&s_wbuffer_errtimer, memsize, mb) ;
    if (err) goto ONABORT ;
 
    *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + used, addr_memblock(mb) + size_memblock(mb)) ;
@@ -176,7 +176,7 @@ static size_t size_static_wbuffer(void * impl, const memstream_t * memstr)
    return (size_t) (memstr->next - (uint8_t*)impl) ;
 }
 
-// group: variables
+// group: global variables
 
 wbuffer_it  g_wbuffer_cstring  = { &alloc_cstring_wbuffer, &shrink_cstring_wbuffer, &size_cstring_wbuffer } ;
 

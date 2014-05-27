@@ -49,7 +49,7 @@ struct unittest_t {
    bool        isResult;
 };
 
-// group: variables
+// group: static variables
 
 /* variable: s_unittest_singleton
  * Holds the context for all running unit tests. */

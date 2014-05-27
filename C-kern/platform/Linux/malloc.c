@@ -35,7 +35,7 @@
 
 // section: malloc
 
-// group: variables
+// group: static variables
 
 /* variable: s_isprepared_malloc
  * Remembers if <prepare_malloc> was called already. */

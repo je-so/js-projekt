@@ -407,7 +407,7 @@ ONABORT:
 
 // section: testmm_t
 
-// group: variables
+// group: static variables
 
 /* variable: s_testmm_interface
  * Contains single instance of interface <testmm_it>. */

@@ -30,7 +30,7 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/test/mm/mm_test.h"
+#include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/math/fpu.h"
@@ -59,7 +59,7 @@ struct bigint_divstate_t {
 
 // section: bigint_t
 
-// group: variables
+// group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_bigint_errtimer
@@ -116,7 +116,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    uint32_t newobjsize = objectsize_bigint((uint16_t)allocate_digits) ;
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)oldbig) ;
 
-   err = RESIZE_TEST(&s_bigint_errtimer, newobjsize, &mblock) ;
+   err = RESIZE_ERR_MM(&s_bigint_errtimer, newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    bigint_t       * newbig      = (bigint_t*) mblock.addr ;
@@ -1182,7 +1182,7 @@ int delete_bigint(bigint_t ** big)
 
       memblock_t  mblock = memblock_INIT(objectsize_bigint(del_big->allocated_digits), (uint8_t*) del_big) ;
 
-      err = FREE_TEST(&s_bigint_errtimer, &mblock) ;
+      err = FREE_ERR_MM(&s_bigint_errtimer, &mblock) ;
       if (err) goto ONABORT ;
    }
 

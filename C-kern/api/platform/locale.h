@@ -33,11 +33,11 @@
 // group: initonce
 
 /* function: initonce_locale
- * Called from <init_maincontext>. */
+ * Called from <maincontext_t.init_maincontext>. */
 int initonce_locale(void) ;
 
 /* function: freeonce_locale
- * Called from <free_maincontext>. */
+ * Called from <maincontext_t.free_maincontext>. */
 int freeonce_locale(void) ;
 
 // group: query
@@ -80,7 +80,7 @@ int resetmsg_locale(void) ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_locale
- * Tests XXX_locale functions. */
+ * Tests all locale functions. */
 int unittest_platform_locale(void) ;
 #endif
 

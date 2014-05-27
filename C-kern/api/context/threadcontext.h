@@ -90,7 +90,7 @@ struct threadcontext_t {
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
  * These initializer ensures that in function main the global log service is available
- * even without calling <init_maincontext> first.
+ * even without calling <maincontext_t.init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
          { &g_maincontext.pcontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { 0, &g_logmain_interface }, 0, 0 }
@@ -99,12 +99,12 @@ struct threadcontext_t {
  * Creates all top level services which are bound to a single thread.
  * Services do *not* need to be multi thread safe cause a new one is created for every new thread.
  * If a service shares information between threads then it must be programmed in a thread safe manner.
- * This function is called from <init_maincontext>. The parameter context_type is of type <maincontext_e>. */
+ * This function is called from <maincontext_t.init_maincontext>. The parameter context_type is of type <maincontext_e>. */
 int init_threadcontext(/*out*/threadcontext_t * tcontext, struct processcontext_t * pcontext, uint8_t context_type) ;
 
 /* function: free_threadcontext
  * Frees all resources bound to this object.
- * This function is called from <free_maincontext>. */
+ * This function is called from <maincontext_t.free_maincontext>. */
 int free_threadcontext(threadcontext_t * tcontext) ;
 
 // group: query

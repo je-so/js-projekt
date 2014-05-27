@@ -1,4 +1,5 @@
 /* title: LinuxSystemKonfig
+
    System specific configuration for Linux.
 
    about: Copyright
@@ -40,7 +41,7 @@
  * Makes file api support of files with size of 2GB * 4GB. */
 #define _GNU_SOURCE
 
-// group: Unknown Compiler
+// == Unknown Compiler ==
 #else
 #define de 1
 #if (KONFIG_LANG==de)
@@ -55,11 +56,12 @@
 
 /* about: Linux Specific Includes
  * Include all C99, Posix and Linux specific header files.
- * This ensures that all files are compiled in the same way.
- * No system specific includes are used in any implmentation file.
+ * This ensures that all files are compiled with the same system headers.
+ * But system specific include files for X11, OpenGL and other graphic libraries
+ * are included only in the implementation files.
  *
  * May be changed:
- * This rule may be changed in the future to make up for faster compilation.
+ * This rule may be changed in the future to speed up compilation.
  *
  * libpam:
  * If you call functions of PAM (Pluggable Authentication Modules) included from

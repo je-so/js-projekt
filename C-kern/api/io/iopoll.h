@@ -54,7 +54,7 @@ int unittest_io_iopoll(void) ;
  * The underlying system I/O object associated with a file descriptor is the event
  * generating object. */
 struct iopoll_t {
-   // group: variables
+   // group: struct fields
    /* variable: sys_poll
     * Handle to the underlying system event queue. */
    sys_iochannel_t   sys_poll ;

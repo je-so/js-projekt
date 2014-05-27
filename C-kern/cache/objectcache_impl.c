@@ -37,16 +37,18 @@
 #include "C-kern/api/platform/task/process.h"
 #endif
 
-// group: variables
+// section: objectcacheimpl
+
+// group: static variables
 
 objectcache_it_DECLARE(objectcache_impl_it, objectcache_impl_t) ;
 
 /* variable: s_objectcacheimpl_interface
  * Contains single instance of interface <objectcache_it>. */
-objectcache_impl_it  s_objectcacheimpl_interface = {
-                        &lockiobuffer_objectcacheimpl,
-                        &unlockiobuffer_objectcacheimpl
-                     } ;
+static objectcache_impl_it  s_objectcacheimpl_interface = {
+   &lockiobuffer_objectcacheimpl,
+   &unlockiobuffer_objectcacheimpl
+};
 
 // group: initthread
 
