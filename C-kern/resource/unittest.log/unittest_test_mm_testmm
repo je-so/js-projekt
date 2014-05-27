@@ -1,4 +1,4 @@
-[1: 1385795868.918396s]
-new_testmmpage() C-kern/test/mm/testmm.c:197
+[1: 1399787443.025013s]
+new_testmmpage() C-kern/test/mm/testmm.c:227
 Error 12 - Cannot allocate memory
 Function aborted

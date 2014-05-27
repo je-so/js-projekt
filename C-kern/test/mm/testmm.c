@@ -36,17 +36,22 @@
 
 /* typedef: struct testmm_block_t
  * Shortcut for <testmm_block_t>. */
-typedef struct testmm_block_t testmm_block_t ;
+typedef struct testmm_block_t testmm_block_t;
+
+typedef struct testmm_blocktrailer_t testmm_blocktrailer_t;
 
 /* typedef: struct testmm_page_t
  * Shortcut for <testmm_page_t>. */
-typedef struct testmm_page_t testmm_page_t ;
+typedef struct testmm_page_t testmm_page_t;
 
 
 /* struct: testmm_it
  * Declares <testmm_it> as subtype of <mm_it>. See <mm_it_DECLARE>. */
 mm_it_DECLARE(testmm_it, testmm_t)
 
+struct testmm_blocktrailer_t {
+   testmm_block_t * header[2] ;
+};
 
 /* struct: testmm_block_t
  * Describes the header of an allocated memory block. */
@@ -61,10 +66,8 @@ struct testmm_block_t {
 
    // user data
 
-   struct {
-      testmm_block_t       * header[2] ;
-   } trailer ;
-} ;
+   struct testmm_blocktrailer_t  trailer;
+};
 
 /* function: alignsize_testmmblock
  * Aligns a value to the next multiple of KONFIG_MEMALIGN.
@@ -111,6 +114,33 @@ static void init_testmmblock(
    }
 }
 
+static bool isvalidtrailer_testmmblock(testmm_blocktrailer_t * trailer)
+{
+   testmm_block_t * block = trailer->header[0];
+   const size_t headersize  = alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize = alignsize_testmmblock(sizeof(block->trailer)) ;
+
+   for (unsigned i = 0; i < trailersize / sizeof(void*); ++i) {
+      if (trailer->header[i] != block) return false;
+   }
+
+   if (block->header.fillvalue != (uint8_t) ((uintptr_t)block / 128)) return false;
+
+   if ((uint8_t*)trailer != block->header.userdata + block->header.alignsize) return false;
+
+   for (unsigned i = 0; i <= (headersize - sizeof(block->header)) / sizeof(void*); ++i) {
+      if (block->header.fill[i] != trailer) return false;
+   }
+
+   if (block->header.datasize) {
+      for (size_t i = block->header.datasize; i < block->header.alignsize; ++i) {
+         if (block->header.userdata[i] != block->header.fillvalue) return false;
+      }
+   }
+
+   return true;
+}
+
 static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memblock)
 {
    const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
@@ -122,7 +152,7 @@ static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memb
    if (block->header.fillvalue != (uint8_t) ((uintptr_t)block / 128)) return false ;
    if (block->header.userdata  != memblock->addr)  return false ;
 
-   typeof(block->trailer) * trailer = (typeof(block->trailer)*) (block->header.userdata + alignsize) ;
+   testmm_blocktrailer_t * trailer = (testmm_blocktrailer_t*) (block->header.userdata + alignsize) ;
 
    for (unsigned i = 0; i <= (headersize - sizeof(block->header)) / sizeof(void*); ++i) {
       if (block->header.fill[i] != trailer) return false ;
@@ -259,7 +289,13 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
       // check if the block before is also free and use it as new border
       while ((uint8_t*)block > mmpage->datablock.addr + trailersize) {
          typeof(block->trailer) * trailer = (typeof(block->trailer)*) ((uint8_t*)block - trailersize) ;
-         testmm_block_t * block2 = trailer->header[0] ;
+
+         if (!isvalidtrailer_testmmblock(trailer)) {
+            err = EINVAL;
+            goto ONABORT;
+         }
+
+         testmm_block_t * block2 = trailer->header[0];
 
          if (  (uint8_t*)block2 < mmpage->datablock.addr
             || 0 != block2->header.datasize) {
