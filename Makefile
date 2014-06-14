@@ -69,7 +69,7 @@ html:
 test:	unittest testmodule
 	bin/unittest
 
-$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/shared.gcc projekte/subsys/context-mini | genmake_Release
+$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/shared.gcc | genmake_Release
 	@bin/genmake $< > "$(@)"
 
 pp-generrtab: generrtab_Release
@@ -87,3 +87,25 @@ $(patsubst %,%_clean,$(subst _,,$(PROJECTS))) \
 $(subst _,_Debug,$(filter %_,$(PROJECTS))) \
 $(subst _,_Release,$(filter %_,$(PROJECTS))):
 	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then echo make $(@) ; make SHELL=$(SHELL) -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
+
+## Dependencies for projekte/subsys
+
+projekte/subsys/graphic: projekte/external-lib/freetype2
+
+## Dependencies for projekte/*.prj
+
+$(MAKEFILES_PREFIX)demo:  projekte/subsys/Linux-mini projekte/subsys/context-mini projekte/subsys/graphic projekte/subsys/OpenGL-EGL projekte/subsys/X11
+
+$(MAKEFILES_PREFIX)generrtab: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)genfile: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)genmake: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)testchildprocess: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)textdb: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)textres2compiler: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic
