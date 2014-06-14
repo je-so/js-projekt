@@ -117,13 +117,15 @@ about: Project Configuration
   Run ./configure which reads the system configuration of freetype2
   and writes it to projekte/external-lib/freetype2.
 
-  Edit projekte/unittest.prj:
-  If you want to build the tests with graphic subsystem enabled
-  edit projekte/unittest.prj and uncomment the includes for the
-  graphic subsystem and at the bottom of the file switch the
-  comments for the Libs and Defines settings.
-  The system uses: native X11, portable EGL (OpenGL binding to native window sytem),
-  and portable OpenGL ES.
+  Graphic Subsystem:
+  To enable the graphic subsystem for the unit tests
+  uncomment the settings at bottom of file projekte/unittest.prj.
+
+  Include path for X11, EGL and OpenGL (ES) are hard coded
+  in include files C-kern/api/platform/Linux/graphic/sys*.h.
+  This enables for every platform different includes.
+  But in general the include files are expected be located
+  under the default /usr/include/{GL,EGL,GLES2,freetype2}.
 
 about: Make Targets
 
