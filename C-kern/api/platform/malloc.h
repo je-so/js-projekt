@@ -77,7 +77,7 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes) ;
 /* function: sizeusable_malloc
  * Returns number of usable bytes in the allocated memory block addr.
  * The parameter addr must the value returned by a call to malloc.
- * The returned value is equal or greater than parameter size in malloc(size).
+ * The returned value is equal or greater than parameter size in used in call to malloc.
  * The value 0 is returned in case addr is 0. */
 size_t sizeusable_malloc(void * addr) ;
 

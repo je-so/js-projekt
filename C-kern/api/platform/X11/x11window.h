@@ -280,7 +280,7 @@ int resize_x11window(x11window_t * x11win, uint32_t width, uint32_t height) ;
 
 /* function: sendclose_x11window
  * Sends a close request to a window. If the window has installed an event handler it should
- * free (destroy) the window after having received the request. */
+ * destroy the window after having received the request. */
 int sendclose_x11window(x11window_t * x11win) ;
 
 /* function: sendredraw_x11window
