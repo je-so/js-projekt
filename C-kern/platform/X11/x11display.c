@@ -553,6 +553,12 @@ static int test_query(void)
    x11disp.sys_display = 0;
    TEST(1 == isfree_x11display(&x11disp));
 
+   // TEST sysdisplay_x11display
+   for (uintptr_t i = 15; i <= 15; --i) {
+      x11disp.sys_display = (void*)i;
+      TEST((struct sys_display_t*)i == sysdisplay_x11display(&x11disp));
+   }
+
    // TEST io_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0"));
    TEST(0 == isfree_x11display(&x11disp));

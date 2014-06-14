@@ -174,6 +174,10 @@ bool isextxrandr_x11display(const x11display_t * x11disp) ;
  * Returns true if x11disp is set to <x11display_FREE>. */
 static inline bool isfree_x11display(const x11display_t * x11disp);
 
+/* function: sysdisplay_x11display
+ * Returns the x11 display handle castet into a generic system display handle. */
+struct sys_display_t * sysdisplay_x11display(const x11display_t * x11disp);
+
 // group: screen
 
 /* function: defaultscreen_x11display
@@ -228,5 +232,11 @@ static inline bool isfree_x11display(const x11display_t * x11disp)
 {
    return 0 == x11disp->idmap && 0 == x11disp->sys_display;
 }
+
+/* define: sysdisplay_x11display
+ * Implements <x11display_t.sysdisplay_x11display>. */
+#define sysdisplay_x11display(x11disp) \
+         ((struct sys_display_t*)(x11disp)->sys_display)
+
 
 #endif

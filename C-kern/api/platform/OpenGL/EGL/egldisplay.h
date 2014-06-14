@@ -31,6 +31,10 @@
 // forward
 struct x11display_t;
 
+/* typedef: sys_display_t
+ * Type which tags the native implementation of a system display handle. */
+typedef struct sys_display_t sys_display_t;
+
 /* typedef: opengl_display_t
  * Type which tags the native implementation of an OpenGL capable display. */
 typedef struct opengl_display_t  opengl_display_t;
@@ -68,12 +72,12 @@ typedef struct opengl_display_t * egldisplay_t;
  * or EALLOC if the egl specific part could not be initialized. */
 int initdefault_egldisplay(/*out*/egldisplay_t * egldisp);
 
-/* function: initx11_egldisplay
- * Initializes egldisp with x11disp.
- * Returns EINVAL if x11disp is not initialized or invalid
+/* function: init_egldisplay
+ * Initializes egldisp with sysdisp.
+ * Returns EINVAL if sysdisp is not initialized or invalid
  * or EALLOC if the egl specific part could not be initialized.
- * Do not free x11disp as long as egldisp is not freed. */
-int initx11_egldisplay(/*out*/egldisplay_t * egldisp, struct x11display_t * x11disp);
+ * Do not free sysdisp as long as egldisp is not freed. */
+int init_egldisplay(/*out*/egldisplay_t * egldisp, struct sys_display_t * sysdisp);
 
 /* function: free_egldisplay
  * Frees all associated resources with a display.

@@ -85,14 +85,13 @@ ONABORT:
    return err;
 }
 
-#if defined(KONFIG_USERINTERFACE_X11)
-int initx11_egldisplay(/*out*/egldisplay_t * egldisp, struct x11display_t * x11disp)
+int init_egldisplay(/*out*/egldisplay_t * egldisp, struct sys_display_t * sysdisp)
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(x11disp->sys_display != 0, ONABORT,);
+   VALIDATE_INPARAM_TEST(sysdisp != 0, ONABORT,);
 
-   EGLDisplay display = eglGetDisplay(x11disp->sys_display);
+   EGLDisplay display = eglGetDisplay((EGLNativeDisplayType)sysdisp);
 
    err = initshared_egldisplay(egldisp, display);
    if (err) goto ONABORT;
@@ -102,7 +101,6 @@ ONABORT:
    TRACEABORT_ERRLOG(err);
    return err;
 }
-#endif
 
 int free_egldisplay(egldisplay_t * egldisp)
 {
@@ -134,13 +132,48 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_initfree(void)
+static int test_initfree(sys_display_t * sysdisp, sys_display_t * freesysdisp)
 {
    egldisplay_t egldisp = egldisplay_FREE;
    EGLDisplay   olddisplay = 0;
 
    // TEST egldisplay_FREE
    TEST(0 == egldisp);
+
+   // TEST init_egldisplay: freed native display
+   TEST(EINVAL == init_egldisplay(&egldisp, freesysdisp));
+   TEST(0 == egldisp);
+
+   // TEST init_egldisplay, free_egldisplay
+   TEST(0 == init_egldisplay(&egldisp, sysdisp));
+   TEST(0 != egldisp);
+   olddisplay = egldisp;
+   TEST(0 == free_egldisplay(&egldisp));
+   TEST(0 == egldisp);
+
+   // TEST init_egldisplay: returns same display every time
+   TEST(0 == init_egldisplay(&egldisp, sysdisp));
+   TEST(0 != egldisp);
+   TEST(olddisplay == egldisp);
+   TEST(0 == free_egldisplay(&egldisp));
+
+   // TEST init_egldisplay: error
+   init_testerrortimer(&s_egldisplay_errtimer, 1, EINVAL);
+   TEST(EINVAL == init_egldisplay(&egldisp, sysdisp));
+   TEST(0 == egldisp);
+   init_testerrortimer(&s_egldisplay_errtimer, 2, EALLOC);
+   TEST(EALLOC == init_egldisplay(&egldisp, sysdisp));
+   TEST(0 == egldisp);
+
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
+static int test_initfree_default(void)
+{
+   egldisplay_t egldisp = egldisplay_FREE;
+   EGLDisplay   olddisplay = 0;
 
    // TEST initdefault_egldisplay
    TEST(0 == initdefault_egldisplay(&egldisp));
@@ -158,12 +191,12 @@ static int test_initfree(void)
    TEST(0 != egldisp);
    TEST(olddisplay == egldisp);
 
-   // TEST free_egldisplay: error
+   // TEST free_egldisplay: ERROR
    init_testerrortimer(&s_egldisplay_errtimer, 1, ENODATA);
    TEST(ENODATA == free_egldisplay(&egldisp));
    TEST(0 == egldisp);
 
-   // TEST initdefault_egldisplay: error
+   // TEST initdefault_egldisplay: ERROR
    init_testerrortimer(&s_egldisplay_errtimer, 1, EINVAL);
    TEST(EINVAL == initdefault_egldisplay(&egldisp));
    TEST(0 == egldisp);
@@ -177,87 +210,58 @@ ONABORT:
 }
 
 #if defined(KONFIG_USERINTERFACE_X11)
-static int test_initfree_x11(x11display_t * x11disp)
-{
-   egldisplay_t   egldisp = egldisplay_FREE;
-   EGLDisplay     olddisplay = 0;
 
-   // TEST initx11_egldisplay: freed x11disp
-   TEST(EINVAL == initx11_egldisplay(&egldisp, & (x11display_t) x11display_FREE));
-   TEST(0 == egldisp);
+#define osdisplay_t x11display_t
 
-   // TEST initx11_egldisplay, free_egldisplay
-   TEST(0 == initx11_egldisplay(&egldisp, x11disp));
-   TEST(0 != egldisp);
-   olddisplay = egldisp;
-   TEST(0 == free_egldisplay(&egldisp));
-   TEST(0 == egldisp);
+#define osdisplay_FREE x11display_FREE
 
-   // TEST initx11_egldisplay: returns same display every time
-   TEST(0 == initx11_egldisplay(&egldisp, x11disp));
-   TEST(0 != egldisp);
-   TEST(olddisplay == egldisp);
-   TEST(0 == free_egldisplay(&egldisp));
+#define init_osdisplay(osdisp, display_server_name) \
+         init_x11display(osdisp, display_server_name)
 
-   // TEST initx11_egldisplay: error
-   init_testerrortimer(&s_egldisplay_errtimer, 1, EINVAL);
-   TEST(EINVAL == initx11_egldisplay(&egldisp, x11disp));
-   TEST(0 == egldisp);
-   init_testerrortimer(&s_egldisplay_errtimer, 2, EALLOC);
-   TEST(EALLOC == initx11_egldisplay(&egldisp, x11disp));
-   TEST(0 == egldisp);
+#define free_osdisplay(osdisp) \
+         free_x11display(osdisp)
 
-   return 0;
-ONABORT:
-   return EINVAL;
-}
-
-#define INIT_x11display(x11disp, display_server_name) \
-         init_x11display(x11disp, display_server_name)
-
-#define FREE_x11display(x11disp) \
-         free_x11display(x11disp)
+#define sysdisplay_osdisplay(osdisp) \
+         sysdisplay_x11display(osdisp)
 
 #else
 
-static inline int test_initfree_x11(struct x11display_t * x11disp)
-{
-   (void) x11disp;
-   return 0;
-}
-
-#define INIT_x11display(x11disp, display_server_name) \
-         (0)
-
-#define FREE_x11display(x11disp) \
-         (0)
+   #error "Not implemented"
 
 #endif
 
 static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE;
-   x11display_t      x11disp = x11display_FREE;
+   osdisplay_t       osdisp = osdisplay_FREE;
+   struct sys_display_t * sysdisp = sysdisplay_osdisplay(&osdisp);
+   struct sys_display_t * freesysdisp = sysdisplay_osdisplay(&osdisp);
 
-   TEST(0 == INIT_x11display(&x11disp, 0));
+   TEST(0 == init_osdisplay(&osdisp, 0));
+   sysdisp = sysdisplay_osdisplay(&osdisp);
 
    // eglInitialize followed by eglTerminate has a resource leak
-   if (test_initfree())             goto ONABORT;
-   if (test_initfree_x11(&x11disp)) goto ONABORT;
+   if (test_initfree_default())     goto ONABORT;
+   if (test_initfree(sysdisp, freesysdisp))  goto ONABORT;
+
+   size_t    logsize;
+   uint8_t * logbuffer;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
 
    TEST(0 == init_resourceusage(&usage));
 
-   // no other tests
+   if (test_initfree(sysdisp, freesysdisp))  goto ONABORT;
+   TRUNCATEBUFFER_ERRLOG(logsize);
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
-   TEST(0 == FREE_x11display(&x11disp));
+   TEST(0 == free_osdisplay(&osdisp));
 
    return 0;
 ONABORT:
    (void) free_resourceusage(&usage);
-   (void) FREE_x11display(&x11disp);
+   (void) free_osdisplay(&osdisp);
    return EINVAL;
 }
 

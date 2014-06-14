@@ -69,7 +69,7 @@ static bool                s_display_noext = false;
 /* define: INIT_OPENGL
  * Initializes the OpenGL part of the graphic display in an OS specific way. */
 #define INIT_OPENGL(disp) \
-         initx11_egldisplay(&(disp)->gldisplay, &(disp)->osdisplay)
+         init_egldisplay(&(disp)->gldisplay, sysdisplay_x11display(&(disp)->osdisplay))
 
 /* define: FREE_OPENGL
  * Frees the OpenGL part of the graphic display in an OS specific way. */
