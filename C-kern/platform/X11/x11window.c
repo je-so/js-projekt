@@ -1033,6 +1033,14 @@ static int test_query(x11display_t * x11disp, testwindow_t * testwin, testwindow
       TEST(state_x11window(&dummy) == i) ;
    }
 
+   // TEST syswindow_x11window
+   dummy.sys_drawable = x11win->sys_drawable;
+   TEST(syswindow_x11window(&dummy) == (struct sys_window_t*)(uintptr_t)x11win->sys_drawable);
+   for (uintptr_t i = 15; i <= 15; --i) {
+      dummy.sys_drawable = i;
+      TEST(syswindow_x11window(&dummy) == (struct sys_window_t*)i);
+   }
+
    // TEST screen_x11window
    TEST(snr == screen_x11window(x11win));
 

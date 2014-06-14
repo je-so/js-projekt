@@ -70,13 +70,13 @@ static test_errortimer_t   s_window_errtimer = test_errortimer_FREE;
 
 /* define: INIT_GLWINDOW
  * Initializes the OpenGL part of win in an OS specific way. */
-#define INIT_GLWINDOW(win, disp, gconf) \
-         initx11_eglwindow(&gl_window(win), gl_display(disp), gl_gconfig(gconf), &win->oswindow)
+#define INIT_GLWINDOW(glwin, disp, gconf, oswindow) \
+         init_eglwindow(glwin, gl_display(disp), gl_gconfig(gconf), syswindow_x11window(oswindow))
 
 /* define: FREE_GLWINDOW
  * Frees the OpenGL part of the graphic display in an OS specific way. */
-#define FREE_GLWINDOW(win, disp) \
-         free_eglwindow(&gl_window(win), gl_display(disp))
+#define FREE_GLWINDOW(glwin, disp) \
+         free_eglwindow(glwin, gl_display(disp))
 
 /* define: ISFREE_OSWINDOW
  * Returns true in case the OS specific window is already freed. */
@@ -111,13 +111,13 @@ int init_window(
    err = visualid_gconfig(gconf, disp, &visualid);
    if (err) goto ONABORT;
 
-   err = INIT_OSWINDOW(&win->oswindow, disp, screennr, eventhandler, visualid, winattr);
+   err = INIT_OSWINDOW(os_window(win), disp, screennr, eventhandler, visualid, winattr);
    if (err) goto ONABORT;
    ++ isinit;
 
    ONERROR_testerrortimer(&s_window_errtimer, &err, ONABORT);
 
-   err = INIT_GLWINDOW(win, disp, gconf);
+   err = INIT_GLWINDOW(&gl_window(win), disp, gconf, os_window(win));
    if (err) goto ONABORT;
 
    return 0;
@@ -134,10 +134,10 @@ int free_window(window_t * win)
    int err2;
 
    if (0 != display_window(win)) {
-      err  = FREE_GLWINDOW(win, display_window(win));
+      err  = FREE_GLWINDOW(&gl_window(win), display_window(win));
       SETONERROR_testerrortimer(&s_window_errtimer, &err);
 
-      err2 = FREE_OSWINDOW(&win->oswindow);
+      err2 = FREE_OSWINDOW(os_window(win));
       SETONERROR_testerrortimer(&s_window_errtimer, &err2);
       if (err2) err = err2;
 

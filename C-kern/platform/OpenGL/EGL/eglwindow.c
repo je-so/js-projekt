@@ -59,15 +59,14 @@ static test_errortimer_t   s_eglwindow_errtimer = test_errortimer_FREE ;
 
 // group: lifetime
 
-#if defined(KONFIG_USERINTERFACE_X11)
-int initx11_eglwindow(/*out*/eglwindow_t * eglwin, egldisplay_t egldisp, eglconfig_t eglconf, struct x11window_t * x11win)
+int init_eglwindow(/*out*/eglwindow_t * eglwin, egldisplay_t egldisp, eglconfig_t eglconf, struct sys_window_t * syswin)
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(x11win->sys_drawable != 0, ONABORT, );
+   VALIDATE_INPARAM_TEST(syswin != 0, ONABORT, );
 
    EGLint     attrib[] = { EGL_NONE };
-   EGLSurface window   = eglCreateWindowSurface(egldisp, eglconf, x11win->sys_drawable, attrib);
+   EGLSurface window   = eglCreateWindowSurface(egldisp, eglconf, (EGLNativeWindowType) syswin, attrib);
 
    if (EGL_NO_SURFACE == window) {
       err = aserrcode_egl(eglGetError());
@@ -81,7 +80,6 @@ ONABORT:
    TRACEABORT_ERRLOG(err);
    return err;
 }
-#endif
 
 int free_eglwindow(eglwindow_t * eglwin, egldisplay_t egldisp)
 {
@@ -133,8 +131,6 @@ ONABORT:
 typedef struct native_types_t native_types_t;
 
 #if defined(KONFIG_USERINTERFACE_X11)
-
-#define INITOS_EGLWINDOW(...)    initx11_eglwindow(__VA_ARGS__)
 
 struct native_types_t {
    display_t      display;
@@ -193,7 +189,7 @@ static int init_native(/*out*/native_types_t * native)
    native->draw.eglcontext = eglCreateContext(gl_display(&native->display), native->draw.eglconfig, EGL_NO_CONTEXT, 0);
    TEST(EGL_NO_CONTEXT != native->draw.eglcontext);
 
-   TEST(0 == initx11_eglwindow(&native->draw.eglwin, gl_display(&native->display), native->draw.eglconfig, &native->draw.oswindow));
+   TEST(0 == init_eglwindow(&native->draw.eglwin, gl_display(&native->display), native->draw.eglconfig, syswindow_x11window(&native->draw.oswindow)));
 
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), native->draw.eglwin, native->draw.eglwin, native->draw.eglcontext));
 
@@ -295,27 +291,27 @@ static int test_initfree(native_types_t * native)
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized display
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, egldisplay_FREE, native->eglconfig[0], &native->oswindow[0]));
+   TEST(EINVAL == init_eglwindow(&eglwin, egldisplay_FREE, native->eglconfig[0], syswindow_x11window(&native->oswindow[0])));
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized config
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglconfig_FREE, &native->oswindow[0]));
+   TEST(EINVAL == init_eglwindow(&eglwin, gl_display(&native->display), eglconfig_FREE, syswindow_x11window(&native->oswindow[0])));
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: uninitialized os window
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), native->eglconfig[0], &native->freeoswindow));
+   TEST(EINVAL == init_eglwindow(&eglwin, gl_display(&native->display), native->eglconfig[0], syswindow_x11window(&native->freeoswindow)));
    TEST(0 == eglwin);
 
    // TEST init_eglwindow: config does not match
    const int32_t pixmap_attr[] = { gconfig_TYPE, gconfig_value_TYPE_PIXMAP_BIT, gconfig_NONE };
    TEST(0 == init_eglconfig(&eglconf, gl_display(&native->display), pixmap_attr));
-   TEST(EINVAL == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglconf, &native->oswindow[0]));
+   TEST(EINVAL == init_eglwindow(&eglwin, gl_display(&native->display), eglconf, syswindow_x11window(&native->oswindow[0])));
    TEST(0 == eglwin);
    TEST(0 == free_eglconfig(&eglconf));
 
    for (unsigned i = 0; i < lengthof(native->oswindow); ++i) {
       // TEST init_eglwindow: different configurations
-      TEST(0 == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), native->eglconfig[i], &native->oswindow[i]));
+      TEST(0 == init_eglwindow(&eglwin, gl_display(&native->display), native->eglconfig[i], syswindow_x11window(&native->oswindow[i])));
       TEST(0 != eglwin);
 
       // TEST free_eglwindow
@@ -326,7 +322,7 @@ static int test_initfree(native_types_t * native)
    }
 
    // TEST free_eglwindow: ERROR
-   TEST(0 == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), native->eglconfig[0], &native->oswindow[0]));
+   TEST(0 == init_eglwindow(&eglwin, gl_display(&native->display), native->eglconfig[0], syswindow_x11window(&native->oswindow[0])));
    TEST(0 != eglwin);
    init_testerrortimer(&s_eglwindow_errtimer, 1, ENOMEM);
    TEST(ENOMEM == free_eglwindow(&eglwin, gl_display(&native->display)));

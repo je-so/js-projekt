@@ -29,14 +29,13 @@
 #define CKERN_PLATFORM_X11_X11WINDOW_HEADER
 
 // forward
-struct cstring_t ;
+struct cstring_t;
 // x11
-struct x11display_t ;
-struct x11drawable_t ;
-struct x11screen_t ;
+struct x11display_t;
 // graphic
 struct gconfig_filter_t;
 struct windowconfig_t;
+struct sys_window_t;
 
 /* typedef: struct x11window_t
  * Export <x11window_t> into global namespace. */
@@ -226,7 +225,12 @@ x11window_flags_e flags_x11window(const x11window_t * x11win) ;
 /* function: state_x11window
  * Returns the state of the window as seen by the user. See <x11window_state_e>.
  * After calling <init_x11window> the state is set to <x11window_state_HIDDEN>. */
-x11window_state_e state_x11window(const x11window_t * x11win) ;
+x11window_state_e state_x11window(const x11window_t * x11win);
+
+/* function: syswindow_x11window
+ * Returns the x11 window id casted into a generic system window handle.
+ * A valid value (value != 0) is returned only if x11win is not freed. */
+struct sys_window_t * syswindow_x11window(const x11window_t * x11win);
 
 /* function: title_x11window
  * Returns the window title string in title encoded in UTF-8. */
@@ -413,6 +417,11 @@ static inline bool isfree_x11window(const x11window_t * x11win)
  * Implements <x11window_t.state_x11window>. */
 #define state_x11window(x11win) \
          ((x11window_state_e)(x11win)->state)
+
+/* define: syswindow_x11window
+ * Implements <x11window_t.syswindow_x11window>. */
+#define syswindow_x11window(x11win) \
+         ((struct sys_window_t*)(uintptr_t)(x11win)->sys_drawable)
 
 /* define: genericcast_x11window
  * Implements <x11window_t.genericcast_x11window>. */

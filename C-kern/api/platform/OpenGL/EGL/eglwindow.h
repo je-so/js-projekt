@@ -31,7 +31,10 @@
 // forward
 struct opengl_config_t;
 struct opengl_display_t;
-struct x11window_t;
+
+/* typedef: sys_window_t
+ * Type which tags the native implementation of a window handle. */
+typedef struct sys_window_t sys_window_t;
 
 /* typedef: struct eglwindow_t
  * Export <eglwindow_t> into global namespace. */
@@ -59,13 +62,13 @@ typedef struct opengl_surface_t * eglwindow_t;
  * Static initializer. */
 #define eglwindow_FREE 0
 
-/* function: initx11_eglwindow
- * Initializes eglwin with x11win.
+/* function: init_eglwindow
+ * Initializes eglwin with syswin.
  * Returns EINVAL if any parameter is not initialized or invalid
  * or EALLOC if the egl specific part of the window could not be initialized.
  * Parameter egldisp must be a valid egldisplay_t and parameter eglconf a valid eglconfig_t.
- * Do not free x11win as long as eglwin is not freed. */
-int initx11_eglwindow(/*out*/eglwindow_t * eglwin, struct opengl_display_t * egldisp, struct opengl_config_t * eglconf, struct x11window_t * x11win);
+ * Do not free syswin as long as eglwin is not freed. */
+int init_eglwindow(/*out*/eglwindow_t * eglwin, struct opengl_display_t * egldisp, struct opengl_config_t * eglconf, struct sys_window_t * syswin);
 
 /* function: free_eglwindow
  * Frees resources allocated by eglwin window surface.
