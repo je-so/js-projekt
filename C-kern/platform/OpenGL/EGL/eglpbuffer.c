@@ -357,14 +357,20 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE;
    egldisplay_t      disp  = egldisplay_FREE;
+   uint8_t         * logbuffer;
+   size_t            logsize;
 
    // prepare
    TEST(0 == initdefault_egldisplay(&disp));
+   if (test_initfree(disp))   goto ONABORT;
+   if (test_query(disp))      goto ONABORT;
 
    TEST(0 == init_resourceusage(&usage));
 
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
    if (test_initfree(disp))   goto ONABORT;
    if (test_query(disp))      goto ONABORT;
+   TRUNCATEBUFFER_ERRLOG(logsize);
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
