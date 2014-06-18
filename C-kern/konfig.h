@@ -146,6 +146,7 @@
 // - Include <LinuxSystemTypes>
 // - Include <LinuxSystemOptimizations>
 // - Include <LinuxSystemContext>
+//
 // Path:
 // The location of these system specific headers is "C-kern/api/platform/KONFIG_OS/".
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.

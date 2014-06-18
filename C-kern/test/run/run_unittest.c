@@ -166,6 +166,7 @@ int run_unittest(void * argv)
       RUN(unittest_ds_inmem_slist);
       RUN(unittest_ds_inmem_splaytree);
       RUN(unittest_ds_inmem_suffixtree);
+      RUN(unittest_ds_inmem_trie);
       RUN(unittest_ds_typeadapt);
       RUN(unittest_ds_typeadapt_comparator);
       RUN(unittest_ds_typeadapt_getkey);
