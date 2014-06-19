@@ -151,9 +151,4 @@
  * >  MEMSET0(&array) ; */
 #define MEMSET0(pointer)               memset((pointer), 0, sizeof(*(pointer)))
 
-/* define: SWAP
- * Swaps content of two local variables.
- * This works only for simple types. */
-#define SWAP(var1,var2)                { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
-
 #endif

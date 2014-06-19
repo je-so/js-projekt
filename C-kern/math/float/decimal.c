@@ -153,6 +153,13 @@ static const bigint_t          * s_decimal_powbase[7] = {
    ,(const bigint_t*) &s_decimal_10raised576
 } ;
 
+// group: macros
+
+/* define: SWAP
+ * Swaps content of two local variables.
+ * This works only for simple types. */
+#define SWAP(var1, var2)            { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
+
 // group: decimal_powbase
 
 /* function: tableindex_decimalpowbase

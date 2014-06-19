@@ -38,6 +38,11 @@
 #endif
 
 
+/* define: SWAP
+ * Swaps content of two local variables.
+ * This works only for simple types. */
+#define SWAP(var1, var2)            { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
+
 /* typedef: struct bigint_divstate_t
  * Export <bigint_divstate_t> into global namespace. */
 typedef struct bigint_divstate_t       bigint_divstate_t ;
