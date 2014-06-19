@@ -29,7 +29,6 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/ptr.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST

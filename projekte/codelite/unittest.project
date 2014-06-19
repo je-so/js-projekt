@@ -235,6 +235,9 @@
       <File Name="../../C-kern/api/graphic/glapi.h"/>
       <File Name="../../C-kern/api/graphic/gles2api.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="sort">
+      <File Name="../../C-kern/api/sort/mergesort.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -591,4 +594,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="sort">
+    <File Name="../../C-kern/sort/mergesort.c"/>
+    <File Name="../../C-kern/sort/mergesort_generic_impl.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

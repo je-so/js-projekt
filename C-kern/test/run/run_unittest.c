@@ -206,6 +206,10 @@ int run_unittest(void * argv)
       RUN(unittest_memory_mm_mmimpl);
 //}
 
+//{ sort algorithms
+      RUN(unittest_sort_mergesort);
+//}
+
 //{ string unittest
       RUN(unittest_string);
       RUN(unittest_string_convertwchar);
