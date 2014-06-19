@@ -119,11 +119,11 @@ struct vmpage_t {
 #define vmpage_INIT(size, addr)           { addr, size }
 
 /* function: init_vmpage
- * Map memory into the virtual address space of the calling process.
- * The memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
- * It is read and writeable. All the changed content is private to the current processes.
- * A child process can access its content after a fork but see no changes
- * the parent process also see no changes (COPY_ON_WRITE semantics). */
+ * Map memory of at least size_in_bytes bytes into the virtual address space of the calling process.
+ * The parameter size_in_bytes is rounded up to next multiple of <pagesize_vm>.
+ * The memory is read and writeable. All the changed content is private to the current process.
+ * A child process can access its content after a fork but does not see any changes afterwards.
+ * The parent process also see no changes (COPY_ON_WRITE semantics). */
 int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes) ;
 
 /* function: init2_vmpage
