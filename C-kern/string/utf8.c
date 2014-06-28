@@ -1344,7 +1344,7 @@ static int test_speed(void)
    }
 
    if (result[1] <= result[0]) {
-      logf_unittest("** decode_utf8 is not faster ** ") ;
+      logwarning_unittest("decode_utf8 is not faster") ;
    }
 
    TEST(0 == free_systimer(&timer)) ;

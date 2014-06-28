@@ -1893,11 +1893,11 @@ static int test_measuretime(mergesort_t * sort, const unsigned len, vmpage_t * v
    TEST(0 == expirationcount_systimer(timer, &qsorttime_ms));
    // mergesort needs less compares !!
    if (mergecount > s_compare_count) {
-      logf_unittest("** mergesort uses more compares than quicksort ** ") ;
+      logwarning_unittest("quicksort uses less compares") ;
    }
    // mergesort beats quicksort sometimes
    if (qsorttime_ms < mergetime_ms) {
-      logf_unittest("** mergesort is slower than quicksort ** ") ;
+      logwarning_unittest("quicksort is faster") ;
    }
 
    // unprepare

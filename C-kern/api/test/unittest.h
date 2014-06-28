@@ -59,7 +59,8 @@ int initsingleton_unittest(const char * log_files_directory);
  * Frees any resources allocated with the single object of type <unittest_t>. */
 int freesingleton_unittest(void);
 
-// group: report
+// group: log
+// Called from thread which executes the unit test.
 
 /* function: logf_unittest
  * Logs a formatted string. The output is truncated if the output exceeds 256 bytes. */
@@ -67,27 +68,38 @@ void logf_unittest(const char * format, ...) __attribute__ ((__format__ (__print
 
 /* function: logfailed_unittest
  * Logs "<filename>:<line_number>: TEST FAILED\n".
- * If msg is set to 0 the msg is set to its default value "TEST FAILED".
- * This is a thread-safe function! */
+ * This is a thread-safe function!
+ * Called from <TEST> macro. */
 void logfailed_unittest(const char * filename, unsigned line_number);
 
 /* function: logfailedf_unittest
  * Logs "<filename>:<line_number>: TEST FAILED\n<filename>:<line_number>: <format>\n".
- * The format of the value is expected in format. The value is expected as last argument.
+ * The format description of the value(s) is expected in format. The value(s) is expected as last argument.
  * This is a thread-safe function! */
 void logfailedf_unittest(const char * filename, unsigned line_number, const char * format, ...) __attribute__ ((__format__ (__printf__, 3, 4)));
 
-/* function: logresult_unittest
- * Logs "OK\n" or "FAILED\n".
- * This is a thread-safe function! */
-void logresult_unittest(bool isFailed);
+/* function: logwarning_unittest
+ * Logs "** <reason> ** " which should warn the user.
+ * Warnings are used to indicate wrong environment conditions for example. */
+void logwarning_unittest(const char * reason);
+
+// group: reporting
+// Called from unit-test engine.
 
 /* function: logrun_unittest
- * Logs "RUN %s: ". */
+ * Logs "RUN %s: ".
+ * Is called from <execsingle_unittest>. */
 void logrun_unittest(const char * testname);
 
+/* function: logresult_unittest
+ * Logs "OK\n" or "FAILED\n".
+ * This is a thread-safe function!
+ * Is called from <execsingle_unittest>. */
+void logresult_unittest(bool isFailed);
+
 /* function: logsummary_unittest
- * Logs how many tests passed and how many failed. */
+ * Logs how many tests passed and how many failed.
+ * Must be called from the unit-test execution engine. */
 void logsummary_unittest(void);
 
 // group: execute

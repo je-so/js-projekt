@@ -103,7 +103,7 @@ static int test_prefetch(void)
    }
 
    if (time_noprefetch <= time_prefetch) {
-      logf_unittest("** prefetch is not faster ** ") ;
+      logwarning_unittest("prefetch is not faster");
    }
 
    // unprepare

@@ -619,7 +619,7 @@ static int test_authenticate(bool iswarn)
       }
       TEST(0 == err) ;
    } else if (iswarn) {
-      logf_unittest("** Need root or guest setuid ** ") ;
+      logwarning_unittest("Need root or guest setuid") ;
    }
    TEST(0 == delete_sysuserinfo(&usrinfo[0])) ;
    TEST(0 == delete_sysuserinfo(&usrinfo[1])) ;
