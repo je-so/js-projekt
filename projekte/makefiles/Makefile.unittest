@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jun.19  17:50:11
+GenerationDate  := 2014.Jun.28  10:40:27
 GeneratedBy     := je-so
 
 ## Debug
@@ -110,6 +110,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!errornr.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o \
@@ -222,6 +223,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!errornr.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o \
@@ -409,6 +411,9 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
@@ -739,6 +744,9 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
