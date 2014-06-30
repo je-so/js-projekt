@@ -127,11 +127,11 @@ int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t ele
    static_assert(pagesize_NROFPAGESIZE < 255, "fits in uint8_t") ;
    static_assert(4 == sizeof(void*) || 8 == sizeof(void*), "ptr_per_block is power of two") ;
 
-   VALIDATE_INPARAM_TEST(pagesize < pagesize_NROFPAGESIZE, ONABORT,) ;
-   VALIDATE_INPARAM_TEST(0 < elementsize && elementsize <= blocksize_in_bytes, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(pagesize < pagesize_NROFPAGESIZE, ONERR,) ;
+   VALIDATE_INPARAM_TEST(0 < elementsize && elementsize <= blocksize_in_bytes, ONERR,) ;
 
    err = new_datablock(&datablock, pagesize);
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    size_t ptr_per_block = blocksize_in_bytes / sizeof(void*) ;
 
@@ -148,8 +148,8 @@ int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t ele
    barray->pagesize           = (uint8_t)pagesize ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -203,11 +203,11 @@ int free_blockarray(blockarray_t * barray)
 
    memset(barray, 0, sizeof(*barray)) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -288,9 +288,9 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
       if (depth > barray->depth) {
          // allocate new root at correct depth level
          if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
+         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
          err = adaptdepth_blockarray(barray, depth) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
@@ -308,9 +308,9 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
          if (! child) {
             // allocate new ptrblock_t
             if (!is_allocate) goto ONNODATA ;
-            ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
+            ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
             err = new_ptrblock(&child, barray->pagesize) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             ptrblock->childs[childindex] = child ;
          }
          ptrblock    = child ;
@@ -321,9 +321,9 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
       if (! ptrblock->childs[childindex]) {
          // allocate new datablock_t
          if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
+         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
          err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
 
       datablock = ptrblock->childs[childindex] ;
@@ -338,8 +338,8 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
 ONNODATA:
    *elemaddr = 0 ;
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -392,7 +392,7 @@ static int test_helpertypes(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (ptrblock) {
       delete_memoryblock(ptrblock, blocksize) ;
    }
@@ -428,7 +428,7 @@ static int build_test_node(void ** block, pagesize_e pgsize, uint8_t depth)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -446,7 +446,7 @@ static int build_test_tree(blockarray_t * barray, pagesize_e pgsize, uint8_t dep
    TEST(0 == build_test_node(&barray->root, pgsize, depth)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -542,7 +542,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -581,7 +581,7 @@ static int test_query(void)
    TEST(1 == isfree_blockarray(&barray)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -767,7 +767,7 @@ static int test_update(void)
    TEST(0 == free_blockarray(&barray)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_blockarray(&barray) ;
    return EINVAL ;
 }
@@ -812,7 +812,7 @@ static int test_read(void)
    TEST(0 == free_blockarray(&barray)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_blockarray(&barray) ;
    return EINVAL ;
 }
@@ -883,22 +883,22 @@ static int test_generic(void)
    TEST(sizeallocated_pagecache(pagecache_maincontext()) == oldsize) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_testarray(&barray) ;
    return EINVAL ;
 }
 
 int unittest_ds_inmem_blockarray()
 {
-   if (test_helpertypes()) goto ONABORT ;
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_update())      goto ONABORT ;
-   if (test_read())        goto ONABORT ;
-   if (test_generic())     goto ONABORT ;
+   if (test_helpertypes()) goto ONERR;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
+   if (test_read())        goto ONERR;
+   if (test_generic())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

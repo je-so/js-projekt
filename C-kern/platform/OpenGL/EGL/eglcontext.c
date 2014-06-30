@@ -61,7 +61,7 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
    EGLContext ctx;
    EGLenum eglapi = eglQueryAPI();
 
-   VALIDATE_INPARAM_TEST(api < gcontext_api_NROFELEMENTS, ONABORT2,);
+   VALIDATE_INPARAM_TEST(api < gcontext_api_NROFELEMENTS, ONERR_INPARAM,);
 
    static_assert( EGL_OPENGL_ES_API != 0
                   && EGL_OPENVG_API == EGL_OPENGL_ES_API+1
@@ -72,7 +72,7 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
                   && gcontext_api_NROFELEMENTS == 3, "simple conversion");
 
    if (EGL_FALSE == eglBindAPI((EGLenum)(EGL_OPENGL_ES_API + api))) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    const EGLint * attr = (api == gcontext_api_OPENGLES)
@@ -80,17 +80,17 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
                        : 0;
 
    ctx = eglCreateContext(egldisp, eglconf, EGL_NO_CONTEXT, attr);
-   if (ctx == EGL_NO_CONTEXT) goto ONABORT;
+   if (ctx == EGL_NO_CONTEXT) goto ONERR;
 
    *eglcont = ctx;
 
    (void) eglBindAPI(eglapi);
 
    return 0;
-ONABORT:
+ONERR:
    err = aserrcode_egl(eglGetError());
-ONABORT2:
-   TRACEABORT_ERRLOG(err);
+ONERR_INPARAM:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -105,15 +105,15 @@ int free_eglcontext(eglcontext_t * eglcont, egldisplay_t egldisp)
 
       if (EGL_FALSE == isDestoyed) {
          err = aserrcode_egl(eglGetError());
-         goto ONABORT;
+         goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglcontext_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_eglcontext_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -126,7 +126,7 @@ int api_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, /*out*/uint
 
    if (EGL_FALSE == eglQueryContext(egldisp, eglcont, EGL_CONTEXT_CLIENT_TYPE, &value)) {
       err = aserrcode_egl(eglGetError());
-      goto ONABORT;
+      goto ONERR;
    }
 
    static_assert( EGL_OPENGL_ES_API != 0
@@ -140,8 +140,8 @@ int api_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, /*out*/uint
    *api = (uint8_t) (value - EGL_OPENGL_ES_API);
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -153,14 +153,14 @@ int configid_eglcontext(const eglcontext_t eglcont, struct opengl_display_t * eg
 
    if (EGL_FALSE == eglQueryContext(egldisp, eglcont, EGL_CONFIG_ID, &value)) {
       err = aserrcode_egl(eglGetError());
-      goto ONABORT;
+      goto ONERR;
    }
 
    *configid = (uint32_t) value;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -201,31 +201,31 @@ int setcurrent_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, stru
    current_eglcontext(&old_eglcont, &old_egldisp, &old_drawsurf, &old_readsurf);
 
    if (EGL_FALSE == eglMakeCurrent(egldisp, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    EGLint contextapi = 0;
 
    if (EGL_FALSE == eglQueryContext(egldisp, eglcont, EGL_CONTEXT_CLIENT_TYPE, &contextapi)) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (EGL_FALSE == eglBindAPI((EGLenum)contextapi)) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (EGL_FALSE == eglMakeCurrent(egldisp, drawsurf, readsurf, eglcont)) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    return 0;
-ONABORT:
+ONERR:
    err = aserrcode_egl(eglGetError());
    if (old_egldisp != 0) {
       (void) eglBindAPI(eglapi);
       (void) eglMakeCurrent(old_egldisp, old_drawsurf, old_readsurf, old_eglcont);
    }
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -235,12 +235,12 @@ int releasecurrent_eglcontext(struct opengl_display_t * egldisp)
 
    if (EGL_FALSE == eglMakeCurrent(egldisp, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
       err = aserrcode_egl(eglGetError());
-      goto ONABORT;
+      goto ONERR;
    }
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -320,7 +320,7 @@ static int test_initfree(egldisplay_t disp)
    TEST(0 == cont);
 
    return 0;
-ONABORT:
+ONERR:
    eglBindAPI(EGL_OPENGL_ES_API);
    free_eglcontext(&cont, disp);
    return EINVAL;
@@ -366,7 +366,7 @@ static int test_query(egldisplay_t disp)
    TEST(EGL_OPENGL_ES_API == eglQueryAPI());
 
    return 0;
-ONABORT:
+ONERR:
    free_eglcontext(&cont, disp);
    return EINVAL;
 }
@@ -468,7 +468,7 @@ static int test_current(egldisplay_t disp)
    }
 
    return 0;
-ONABORT:
+ONERR:
    releasecurrent_eglcontext(disp);
    free_eglcontext(&cont, disp);
    free_eglcontext(&cont2, disp);
@@ -494,7 +494,7 @@ static int comparecurrent_thread(void * dummy)
    TEST(current_read == eglpbuffer_FREE);
 
    return 0;
-ONABORT:
+ONERR:
    CLEARBUFFER_ERRLOG();
    return EINVAL;
 }
@@ -523,7 +523,7 @@ static int setcurrent_thread(struct setcurrent_args_t * args)
 
    CLEARBUFFER_ERRLOG();
    return 0;
-ONABORT:
+ONERR:
    CLEARBUFFER_ERRLOG();
    return EINVAL;
 }
@@ -570,7 +570,7 @@ static int test_thread(egldisplay_t disp)
    TEST(0 == free_eglcontext(&cont, disp));
 
    return 0;
-ONABORT:
+ONERR:
    releasecurrent_eglcontext(disp);
    free_eglcontext(&cont, disp);
    free_eglpbuffer(&pbuf, disp);
@@ -585,10 +585,10 @@ static int childprocess_unittest(void)
    // prepare
    TEST(0 == initdefault_egldisplay(&disp));
 
-   if (test_initfree(disp))   goto ONABORT;
-   if (test_query(disp))      goto ONABORT;
-   if (test_current(disp))    goto ONABORT;
-   if (test_thread(disp))     goto ONABORT;
+   if (test_initfree(disp))   goto ONERR;
+   if (test_query(disp))      goto ONERR;
+   if (test_current(disp))    goto ONERR;
+   if (test_thread(disp))     goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
@@ -601,7 +601,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_egldisplay(&disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_egldisplay(&disp);
    return EINVAL;
@@ -614,7 +614,7 @@ int unittest_platform_opengl_egl_eglcontext()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

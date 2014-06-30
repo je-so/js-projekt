@@ -55,7 +55,7 @@ static int test_initfree(void)
    TEST(3 == (uintptr_t)memstr.end) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -71,7 +71,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -94,18 +94,18 @@ static int test_generic(void)
    TEST((memstream_t*)&gobj2.pre_next == genericcast_memstream(&gobj2, pre_)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_memory_memstream()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

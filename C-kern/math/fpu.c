@@ -43,12 +43,12 @@ int enable_fpuexcept(fpu_except_e exception_flags)
 
    if (-1 == feenableexcept(exception_flags)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -58,12 +58,12 @@ int disable_fpuexcept(fpu_except_e exception_flags)
 
    if (-1 == fedisableexcept(exception_flags)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -76,12 +76,12 @@ int signal_fpuexcept(fpu_except_e exception_flags)
 
    if (feraiseexcept(exception_flags)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -91,12 +91,12 @@ int clear_fpuexcept(fpu_except_e exception_flags)
 
    if (feclearexcept(exception_flags)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -221,7 +221,7 @@ static int test_fpuexcept_signalclear(void)
    TEST(0 == enable_fpuexcept(oldenabled)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
    enable_fpuexcept(oldenabled) ;
@@ -368,7 +368,7 @@ static int test_fpuexcept_enabledisable(void)
    TEST(0 == sigaction(SIGFPE, &oldact1, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
    enable_fpuexcept(oldenabled) ;
@@ -447,7 +447,7 @@ static int test_fpuexcept_thread(void)
    TEST(0 == enable_fpuexcept(oldenabled)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread1) ;
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
@@ -457,12 +457,12 @@ ONABORT:
 
 int unittest_math_fpu()
 {
-   if (test_fpuexcept_signalclear())      goto ONABORT ;
-   if (test_fpuexcept_enabledisable())    goto ONABORT ;
-   if (test_fpuexcept_thread())           goto ONABORT ;
+   if (test_fpuexcept_signalclear())      goto ONERR;
+   if (test_fpuexcept_enabledisable())    goto ONERR;
+   if (test_fpuexcept_thread())           goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

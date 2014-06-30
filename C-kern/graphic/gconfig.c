@@ -51,17 +51,17 @@ int init_gconfig(/*out*/gconfig_t * gconf, display_t * display, const int32_t co
 
 #if defined(KONFIG_USERINTERFACE_X11)
    err = configfilter_x11window(&filter, config_attributes);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 #else
    #error "Not implemented"
 #endif
 
    err = initfiltered_gconfig(gconf, display, config_attributes, &filter);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -70,11 +70,11 @@ int initfromconfigid_gconfig(/*out*/gconfig_t * gconf, struct display_t * displa
    int err;
 
    err = initfromconfigid_eglconfig(&gl_gconfig(gconf), gl_display(display), configid);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -96,11 +96,11 @@ int initfiltered_gconfig(/*out*/gconfig_t * gconf, display_t * display, const in
    struct eglfilter_param_t user = { display, filter };
 
    err = initfiltered_eglconfig(&gl_gconfig(gconf), gl_display(display), config_attributes, &eglconfig_filter, &user);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -163,7 +163,7 @@ static int test_configfilter(void)
    TEST(filter.accept == &dummy_filter);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -348,7 +348,7 @@ static int test_initfree(display_t * display)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -435,7 +435,7 @@ static int test_query(display_t * display)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -461,9 +461,9 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_configfilter())      goto ONABORT;
-   if (test_initfree(&display))  goto ONABORT;
-   if (test_query(&display))     goto ONABORT;
+   if (test_configfilter())      goto ONERR;
+   if (test_initfree(&display))  goto ONERR;
+   if (test_query(&display))     goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
@@ -471,7 +471,7 @@ static int childprocess_unittest(void)
    TEST(0 == FREE_DISPLAY(&display));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) FREE_DISPLAY(&display);
    return EINVAL;
@@ -484,7 +484,7 @@ int unittest_graphic_gconfig()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

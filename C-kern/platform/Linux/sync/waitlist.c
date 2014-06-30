@@ -180,7 +180,7 @@ static int test_initfree(void)
    TEST(0 == wlist.lockflag) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_waitlist(&wlist) ;
    return EINVAL ;
 }
@@ -213,7 +213,7 @@ static int test_query(void)
    TEST(0 == free_waitlist(&wlist)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_waitlist(&wlist) ;
    return EINVAL ;
 }
@@ -479,7 +479,7 @@ static int test_synchronize(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_waitlist(&wlist) ;
    (void) free_waitlist(&wlist) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
@@ -490,12 +490,12 @@ ONABORT:
 
 int unittest_platform_sync_waitlist()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_synchronize())    goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_synchronize())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

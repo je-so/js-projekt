@@ -48,15 +48,15 @@ int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const 
    int err ;
 
    err = init_mmfile(&utfread->mmfile, filepath, 0, 0, accessmode_READ, relative_to) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    utfread->pos  = (textpos_t) textpos_INIT ;
    utfread->next = addr_mmfile(&utfread->mmfile) ;
    utfread->end  = utfread->next + size_mmfile(&utfread->mmfile) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -70,11 +70,11 @@ int free_utf8reader(utf8reader_t * utfread)
    free_textpos(&utfread->pos) ;
 
    err = free_mmfile(&utfread->mmfile) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -179,7 +179,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "grow")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    removefile_directory(tempdir, "grow") ;
    return EINVAL ;
 }
@@ -208,7 +208,7 @@ static int test_query(void)
    // other query functions tested in test_read
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -380,7 +380,7 @@ static int test_read(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "illseq")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_utf8reader(&utfread) ;
    removefile_directory(tempdir, "text") ;
    removefile_directory(tempdir, "illseq") ;
@@ -421,7 +421,7 @@ static int test_skipline(directory_t * tempdir)
    TEST(0 == free_utf8reader(&utfread)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    remove_file("newline", tempdir) ;
    free_utf8reader(&utfread) ;
    return EINVAL ;
@@ -482,7 +482,7 @@ static int test_match(directory_t * tempdir)
    TEST(0 == remove_file("match", tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    remove_file("match", tempdir) ;
    free_utf8reader(&utfread) ;
    return EINVAL ;
@@ -497,11 +497,11 @@ int unittest_io_reader_utf8reader()
    TEST(0 == newtemp_directory(&tempdir, "utf8reader")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
-   if (test_initfree(tempdir))   goto ONABORT ;
-   if (test_query())             goto ONABORT ;
-   if (test_read(tempdir))       goto ONABORT ;
-   if (test_skipline(tempdir))   goto ONABORT ;
-   if (test_match(tempdir))      goto ONABORT ;
+   if (test_initfree(tempdir))   goto ONERR;
+   if (test_query())             goto ONERR;
+   if (test_read(tempdir))       goto ONERR;
+   if (test_skipline(tempdir))   goto ONERR;
+   if (test_match(tempdir))      goto ONERR;
 
    // unprepare
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
@@ -509,7 +509,7 @@ int unittest_io_reader_utf8reader()
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    removedirectory_directory(0, str_cstring(&tmppath)) ;
    free_cstring(&tmppath) ;
    delete_directory(&tempdir) ;

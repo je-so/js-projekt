@@ -134,7 +134,7 @@ static int initdiff_arraystfkeyval(/*out*/arraystf_keyval_t * keyval, arraystf_n
       goto DONE ;
    }
 
-   VALIDATE_INPARAM_TEST(size1 != size2, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(size1 != size2, ONERR, ) ;
 
    offset       = SIZE_MAX ;
    keyval->data = (size1 ^ size2) ;
@@ -143,8 +143,8 @@ DONE:
    keyval->offset = offset ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -174,7 +174,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
    int err ;
    arraystf_keyval_t keyval ;
 
-   VALIDATE_INPARAM_TEST(keynode->size < SIZE_MAX, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(keynode->size < SIZE_MAX, ONERR, ) ;
 
    uint32_t rootindex = 0 ;
 
@@ -241,8 +241,8 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
    // result->found_key  ! already set in case node != 0
 
    return err ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -256,12 +256,12 @@ int new_arraystf(/*out*/arraystf_t ** array, uint32_t toplevelsize)
    toplevelsize += (0 == toplevelsize) ;
    toplevelsize  = makepowerof2_int(toplevelsize) ;
 
-   VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONABORT, PRINTUINT32_ERRLOG(toplevelsize)) ;
+   VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONERR, PRINTUINT32_ERRLOG(toplevelsize)) ;
 
    const size_t objsize = objectsize_arraystf(toplevelsize) ;
 
    err = ALLOC_MM(objsize, &new_obj) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memset(new_obj.addr, 0, objsize) ;
    ((arraystf_t*)(new_obj.addr))->toplevelsize = 0xffffff & toplevelsize ;
@@ -270,8 +270,8 @@ int new_arraystf(/*out*/arraystf_t ** array, uint32_t toplevelsize)
    *array = ((arraystf_t*)(new_obj.addr)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -351,13 +351,13 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
       err2 = FREE_MM(&mblock) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -395,16 +395,16 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
 
    if (nodeadp) {
       err = callnewcopy_typeadaptmember(nodeadp, &copied_node, memberasobject_typeadaptmember(nodeadp, node)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       node = objectasmember_typeadaptmember(nodeadp, copied_node) ;
    }
 
-   VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ONERR, ) ;
 
    if (found.found_node) {
 
       err = initdiff_arraystfkeyval(&keydiff, found.found_key, node) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       shift = log2_int(keydiff.data) & ~0x01u ;
 
@@ -417,7 +417,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
 
          memblock_t mblock ;
          err = ALLOC_ERR_MM(&s_arraystf_errtimer, sizeof(arraystf_mwaybranch_t), &mblock) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t *) mblock.addr ;
 
@@ -458,12 +458,12 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
             }
 
             err = initdiff_arraystfkeyval(&keydiff, node_arraystfunode(branch->child[i]), node) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             break ;
          }
          if (!(i--)) {
             err = EINVAL ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
 
@@ -502,7 +502,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
 
    memblock_t mblock ;
    err = ALLOC_MM(sizeof(arraystf_mwaybranch_t), &mblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t*) mblock.addr ;
 
@@ -524,12 +524,12 @@ DONE:
    *inserted_or_existing_node = node ;
 
    return 0 ;
-ONABORT:
+ONERR:
    *inserted_or_existing_node = 0 ;
    if (copied_node) {
       (void) calldelete_typeadaptmember(nodeadp, &copied_node) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -574,7 +574,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
             }
             if (!(i--)) {
                err = EINVAL ;
-               goto ONABORT ;
+               goto ONERR;
             }
          }
 
@@ -591,8 +591,8 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
    *removed_node = node_arraystfunode(found.found_node) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -601,11 +601,11 @@ int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size]
    int err ;
 
    err = tryremove_arraystf(array, size, keydata, removed_node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -615,15 +615,15 @@ int insert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out*/st
    struct arraystf_node_t * inserted_or_existing_node ;
 
    err = tryinsert_arraystf(array, node, &inserted_or_existing_node, nodeadp) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (inserted_node) {
       *inserted_node = inserted_or_existing_node ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -647,21 +647,21 @@ int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * a
    (void) array ;
 
    err = ALLOC_MM(objectsize, &objectmem) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    stack  = (binarystack_t *) objectmem.addr ;
 
    err = init_binarystack(stack, (/*guessed depth*/16) * /*objectsize*/sizeof(arraystf_pos_t) ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    iter->stack = stack ;
    iter->array = array ;
    iter->ri    = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&objectmem) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -680,12 +680,12 @@ int free_arraystfiterator(arraystf_iterator_t * iter)
       err2 = FREE_MM(&objectmem) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -716,7 +716,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
          }
 
          err = push_binarystack(iter->stack, &pos) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          pos->branch = branch_arraystfunode(rootnode) ;
          pos->ci     = 0 ;
@@ -731,7 +731,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
          if (pos->ci >= lengthof(pos->branch->child)) {
             // pos becomes invalid
             err = pop_binarystack(iter->stack, sizeof(arraystf_pos_t)) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
 
             if (!childnode) break ;
          }
@@ -739,7 +739,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
          if (childnode) {
             if (isbranchtype_arraystfunode(childnode)) {
                err = push_binarystack(iter->stack, &pos) ;
-               if (err) goto ONABORT ;
+               if (err) goto ONERR;
                pos->branch = branch_arraystfunode(childnode) ;
                pos->ci     = 0 ;
                continue ;
@@ -753,11 +753,11 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
    }
 
    return false ;
-ONABORT:
+ONERR:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return false ;
 }
 
@@ -835,7 +835,7 @@ static int test_arraystfnode(void)
    TEST(1 == isbranchtype_arraystfunode(unode)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -915,7 +915,7 @@ static int test_arraystfkeyval(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1274,7 +1274,7 @@ static int test_initfree(void)
    TEST(0 == RELEASE_PAGECACHE(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) delete_arraystf(&array, 0) ;
    RELEASE_PAGECACHE(&memblock) ;
    return EINVAL ;
@@ -1354,7 +1354,7 @@ static int test_error(void)
    TEST(0 == RELEASE_PAGECACHE(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) delete_arraystf(&array, 0) ;
    RELEASE_PAGECACHE(&memblock) ;
    return EINVAL ;
@@ -1453,7 +1453,7 @@ static int test_iterator(void)
    TEST(0 == RELEASE_PAGECACHE(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) delete_arraystf(&array, 0) ;
    RELEASE_PAGECACHE(&memblock) ;
    return EINVAL ;
@@ -1508,7 +1508,7 @@ static int test_zerokey(void)
    TEST(0 == RELEASE_PAGECACHE(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) delete_arraystf(&array, 0) ;
    RELEASE_PAGECACHE(&memblock) ;
    return EINVAL ;
@@ -1692,7 +1692,7 @@ static int test_generic(void)
    TEST(0 == RELEASE_PAGECACHE(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    TEST(0 == delete_arraystf(&array, 0)) ;
    TEST(0 == delete_arraystf(&array2, 0)) ;
    RELEASE_PAGECACHE(&memblock) ;
@@ -1701,16 +1701,16 @@ ONABORT:
 
 int unittest_ds_inmem_arraystf()
 {
-   if (test_arraystfnode())   goto ONABORT ;
-   if (test_arraystfkeyval()) goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_error())          goto ONABORT ;
-   if (test_iterator())       goto ONABORT ;
-   if (test_zerokey())        goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_arraystfnode())   goto ONERR;
+   if (test_arraystfkeyval()) goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_error())          goto ONERR;
+   if (test_iterator())       goto ONERR;
+   if (test_zerokey())        goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

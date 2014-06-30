@@ -122,9 +122,9 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
 // group: macros
 
 /* define: TEST
- * Tests CONDITION and jumps to label ONABORT in case of false.
+ * Tests CONDITION and jumps to label ONERR in case of false.
  * If CONDITION is false an error is printed and computation continues
- * at label ONABORT.
+ * at label ONERR.
  * In case of CONDITION true nothing is done.
  *
  * Parameters:
@@ -139,7 +139,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  * >    TEST(0 == init_type(&type));
  * >    TEST(0 == free_type(&type));
  * >    return 0; // success
- * > ONABORT:
+ * > ONERR:
  * >    free_type(&type);
  * >    return EINVAL; // any error code
  * > }
@@ -148,13 +148,13 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
          if ( !(CONDITION) ) {      \
             logfailed_unittest(     \
                __FILE__, __LINE__); \
-            goto ONABORT;           \
+            goto ONERR;             \
          }
 
 /* define: TESTP
- * Tests CONDITION and jumps to label ONABORT in case of false.
+ * Tests CONDITION and jumps to label ONERR in case of false.
  * If CONDITION is false an error is printed and computation continues
- * at label ONABORT. The printed error contains the formatted output string
+ * at label ONERR. The printed error contains the formatted output string
  * In case of CONDITION true nothing is done.
  *
  * Parameters:
@@ -172,7 +172,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  * >    TESTP(0 == (r = init_type(&type)), "%d", r);
  * >    TESTP(0 == (r = free_type(&type)), "%d", r);
  * >    return 0; // success
- * > ONABORT:
+ * > ONERR:
  * >    free_type(&type);
  * >    return EINVAL;
  * > }
@@ -182,7 +182,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
             logfailedf_unittest(       \
             __FILE__, __LINE__,        \
             FORMAT, ARGS);             \
-            goto ONABORT;              \
+            goto ONERR;                \
          }                             \
 
 #endif

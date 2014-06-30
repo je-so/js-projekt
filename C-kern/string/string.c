@@ -40,14 +40,14 @@ int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * 
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST((uintptr_t)end >= (uintptr_t)start, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((uintptr_t)end >= (uintptr_t)start, ONERR, ) ;
 
    str->addr = start ;
    str->size = (size_t) (end - start) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -56,14 +56,14 @@ int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, 
    int err ;
    const size_t maxsize = size_string(fromstr) - start_offset ;
 
-   VALIDATE_INPARAM_TEST(start_offset <= size_string(fromstr) && size <= maxsize, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(start_offset <= size_string(fromstr) && size <= maxsize, ONERR, ) ;
 
    str->addr = fromstr->addr + start_offset ;
    str->size = size ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -103,14 +103,14 @@ int substr_string(string_t * str, size_t start_offset, size_t size)
    int err ;
    const size_t maxsize = size_string(str) - start_offset ;
 
-   VALIDATE_INPARAM_TEST(start_offset <= size_string(str) && size <= maxsize, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(start_offset <= size_string(str) && size <= maxsize, ONERR, ) ;
 
    str->addr += start_offset ;
    str->size  = size ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -118,14 +118,14 @@ int shrinkleft_string(string_t * str, size_t nr_bytes_removed_from_string_start)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr_bytes_removed_from_string_start <= size_string(str), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nr_bytes_removed_from_string_start <= size_string(str), ONERR, ) ;
 
    str->addr += nr_bytes_removed_from_string_start ;
    str->size -= nr_bytes_removed_from_string_start ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -133,13 +133,13 @@ int shrinkright_string(string_t * str, size_t nr_bytes_removed_from_string_end)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr_bytes_removed_from_string_end <= size_string(str), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nr_bytes_removed_from_string_end <= size_string(str), ONERR, ) ;
 
    str->size -= nr_bytes_removed_from_string_end ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -248,7 +248,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -307,7 +307,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -378,7 +378,7 @@ static int test_compare(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -455,7 +455,7 @@ static int test_change(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -472,20 +472,20 @@ static int test_generic(void)
    TEST((const string_t*)&str1.addr == genericcast_string(&str1)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_string()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_compare())        goto ONABORT ;
-   if (test_change())         goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_compare())        goto ONERR;
+   if (test_change())         goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

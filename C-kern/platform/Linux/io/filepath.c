@@ -153,7 +153,7 @@ static int test_filepathstatic(void)
    TEST(0 == delete_directory(&workdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&workpath) ;
    delete_directory(&workdir) ;
    return EINVAL ;
@@ -161,10 +161,10 @@ ONABORT:
 
 int unittest_io_filepath()
 {
-   if (test_filepathstatic())    goto ONABORT ;
+   if (test_filepathstatic())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

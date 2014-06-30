@@ -123,7 +123,7 @@ static int test_readwrite(void)
    TEST(0 == delete_thread(&threads[0])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
       TEST(0 == delete_thread(&threads[i])) ;
    }
@@ -296,7 +296,7 @@ static int test_addsubswap(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
       TEST(0 == delete_thread(&threads[i])) ;
    }
@@ -375,7 +375,7 @@ static int test_setclear(void)
    TEST(atomicread_int(&value) == lengthof(threads)*10000) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
       TEST(0 == delete_thread(&threads[i])) ;
    }
@@ -384,12 +384,12 @@ ONABORT:
 
 int unittest_math_int_atomic()
 {
-   if (test_readwrite())      goto ONABORT ;
-   if (test_addsubswap())     goto ONABORT ;
-   if (test_setclear())       goto ONABORT ;
+   if (test_readwrite())      goto ONERR;
+   if (test_addsubswap())     goto ONERR;
+   if (test_setclear())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

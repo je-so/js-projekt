@@ -1,13 +1,11 @@
-[1: 1375541633.003877s]
+[1: 1403500290.218721s]
 removenodes_redblacktree() C-kern/ds/inmem/redblacktree.c:708
 Error 8 - Exec format error
-Function aborted - one or more resources could not be freed
-[1: 1375541633.003882s]
+One or more resources could not be freed
+[1: 1403500290.218725s]
 free_redblacktree() C-kern/ds/inmem/redblacktree.c:205
 Error 8 - Exec format error
-Function aborted
-[1: 1375541633.004250s]
+[1: 1403500290.219032s]
 insert_redblacktree() C-kern/ds/inmem/redblacktree.c:532
 Error 22 - Invalid argument
 Function input violates condition (EVENADDRESS(new_node))
-Function aborted

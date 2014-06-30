@@ -214,7 +214,7 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
    static_assert(lengthof(s_decimal_powbase) == lengthof(newobj->state), "for every table entry a newobj->state entry") ;
 
    err = RESIZE_MM(objsize, &objmem) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    newobj = (decimal_frombigint_t*) objmem.addr ;
 
@@ -225,18 +225,18 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
    // For all 0 <= i < maxindex: size_bigint(newobj->state[i].big) > size_bigint(newobj->state[i+1].big)
    for (int i = maxindex; i >= 0; --i) {
       err = new_bigint(&newobj->state[maxindex-i].big, size_bigint(s_decimal_powbase[i])) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    for (int i = 1; i >= 0; --i) {
       err = new_bigint(&newobj->quotient[i], size_bigint(s_decimal_powbase[maxindex])) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    *converter = newobj ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (newobj) {
       for (int i = (int)maxindex; i >= 0; --i) {
          delete_bigint(&newobj->state[i].big) ;
@@ -245,7 +245,7 @@ ONABORT:
       delete_bigint(&newobj->quotient[1]) ;
    }
    FREE_MM(&objmem) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -273,12 +273,12 @@ int delete_decimalfrombigint(decimal_frombigint_t ** converter)
       err2 = FREE_MM(&objmem) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -420,7 +420,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    // check that size_allocate will fit into sign_and_used_digits
    if (!size_allocate || size_allocate > sizemax_decimal()) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint32_t oldobjsize = olddec ? objectsize_decimal(olddec->size_allocated) : 0 ;
@@ -429,7 +429,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
 
    // TODO: implement resize in memory manager which does not preserve content
    err = RESIZE_ERR_MM(&s_decimal_errtimer, newobjsize, &mblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    decimal_t     * newdec = (decimal_t*) mblock.addr ;
    newdec->size_allocated = (uint8_t)size_allocate ;
@@ -437,8 +437,8 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    *dec = newdec ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -453,13 +453,13 @@ static int allocategroup_decimal(uint32_t nrobjects, /*out*/decimal_t * dec[nrob
       // check that allocate_digits will fit into sign_and_used_digits
       if (!size || size > sizemax_decimal()) {
          err = EOVERFLOW ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       // TODO: implement group allocate in memory manager
       memblock_t  mblock = memblock_FREE ;
       err = RESIZE_MM(objectsize_decimal((uint8_t)size), &mblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       ((decimal_t*) mblock.addr)->size_allocated = (uint8_t)size ;
 
@@ -468,12 +468,12 @@ static int allocategroup_decimal(uint32_t nrobjects, /*out*/decimal_t * dec[nrob
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    while (objectindex) {
       err = delete_decimal(&dec[--objectindex]) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -557,7 +557,7 @@ static int add_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    if (expdiff > 0) size += (uint32_t)expdiff ;
 
    err = allocate_decimalhelper(result, size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    uint32_t * digits = (*result)->digits ;
 
@@ -618,8 +618,8 @@ static int add_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    (*result)->exponent             = (int16_t) (lexp < rexp ? lexp : rexp);
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -731,7 +731,7 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    if (expdiff > 0) size += (uint32_t)expdiff ;
 
    err = allocate_decimalhelper(result, size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    uint32_t * digits = (*result)->digits ;
 
@@ -798,8 +798,8 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
    (*result)->exponent             = (int16_t) (lexp < rexp ? lexp : rexp) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1017,31 +1017,31 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
    } ;
    static_assert(lengthof(tsize) == lengthof(t), "arrays must have same size") ;
    err = allocategroup_decimal(lengthof(t), t, tsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute t0
    err = multsplit_decimalhelper(&t[0], (uint8_t)(lsize - split), &ldigits[split], (uint8_t)(rsize - split), &rdigits[split]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    // compute t1
    err = multsplit_decimalhelper(&t[1], lsplit, ldigits, rsplit, rdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    // compute t2 (t[2]->baseexponent == 0)
    addsplit_decimalhelper(t[2], 0, (uint8_t)(lsize - split), &ldigits[split], lsplit, ldigits) ;
    // compute t3 (t[3]->baseexponent == 0)
    addsplit_decimalhelper(t[3], 0, (uint8_t)(rsize - split), &rdigits[split], rsplit, rdigits) ;
    // compute t4
    err = multsplit_decimalhelper(&t[4], (uint8_t)t[2]->sign_and_used_digits, t[2]->digits, (uint8_t)t[3]->sign_and_used_digits, t[3]->digits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    // compute t4 = (t4 - t0 - t1)
    err = sub_decimal(result, t[4], t[0]) ; // result->size_allocated >= lsize + rsize > 3u + rsize
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = sub_decimal(&t[4], *result, t[1]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute result = t0*X*X + t1 (t0 and t1 do not overlap, add_ is a simple copy)
    t[0]->exponent = (int16_t) (t[0]->exponent + ((int32_t)split + (int32_t)split)) ;
    err = add_decimal(result, t[0], t[1]) ; // result->size_allocated >= lsize + rsize == t[0]size + t[1]size
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute result += t4 * X
    uint8_t offset = (uint8_t) (t[4]->exponent + split/*X*/ - (*result)->exponent) ;
@@ -1052,18 +1052,18 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
    // free resources
    for (unsigned i = 0; i < lengthof(t); ++i) {
       err = delete_decimal(&t[i]) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (t[lengthof(t)-1]) {
       for (unsigned i = 0; i < lengthof(t); ++i) {
          (void) delete_decimal(&t[i]) ;
       }
    }
    clear_decimal(*result) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1473,10 +1473,10 @@ int new_decimal(/*out*/decimal_t ** dec, uint32_t nrdigits)
    decimal_t   * newobj      = 0 ;
    uint32_t    size_allocate = ((digitsperint_decimal()-1) + nrdigits) / digitsperint_decimal() ;
 
-   VALIDATE_INPARAM_TEST(nrdigits && nrdigits <= nrdigitsmax_decimal(), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nrdigits && nrdigits <= nrdigitsmax_decimal(), ONERR, ) ;
 
    err = allocate_decimalhelper(&newobj, size_allocate ? size_allocate : 1) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    newobj->sign_and_used_digits = 0 ;
    newobj->exponent             = 0 ;
@@ -1484,8 +1484,8 @@ int new_decimal(/*out*/decimal_t ** dec, uint32_t nrdigits)
    *dec = newobj ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1501,12 +1501,12 @@ int delete_decimal(decimal_t ** dec)
       memblock_t  mblock = memblock_INIT(objectsize_decimal(del_dec->size_allocated), (uint8_t*) del_dec) ;
 
       err = FREE_ERR_MM(&s_decimal_errtimer, &mblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -1693,7 +1693,7 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
       const size_t strsize = (isnegative_decimal(dec) + (uint32_t)expsize + (uint32_t)digitsize
                               + digitsperint_decimal() * (uint32_t)size) - (uint32_t)nrzeropos ;
       err = resize_cstring(cstr, strsize) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       str = (uint8_t*) str_cstring(cstr) ;
 
@@ -1732,18 +1732,18 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
       }
 
       err = truncate_cstring(cstr, (size_t) (str - (uint8_t*)str_cstring(cstr))) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
    } else {
       clear_cstring(cstr) ;
       err = append_cstring(cstr, 1, "0") ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    clear_cstring(cstr) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1761,15 +1761,15 @@ int copy_decimal(decimal_t *restrict* dec, const decimal_t * restrict copyfrom)
    const uint8_t copysize = size_decimal(copyfrom) ;
 
    err = allocate_decimalhelper(dec, copysize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    (*dec)->sign_and_used_digits = copyfrom->sign_and_used_digits ;
    (*dec)->exponent             = copyfrom->exponent ;
    memcpy((*dec)->digits, copyfrom->digits, copysize * sizeof(copyfrom->digits[0])) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1781,7 +1781,7 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
    alignedexpandshift_t alignshift ;
 
    err = alignedexpandshift_decimalhelper(&alignshift, decimal_exponent) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    static_assert((uint64_t)(INT32_MAX / DIGITSBASE) * (DIGITSBASE/10/*maxshift*/) < DIGITSBASE, "always fit in 2 digits" ) ;
 
@@ -1789,7 +1789,7 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
 
    if (shiftcarry) {
       err = allocate_decimalhelper(dec, 2) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       (*dec)->sign_and_used_digits = (uint8_t) (2 | ((value < 0) ? 0x80 : 0));
       (*dec)->exponent             = alignshift.alignedexp ;
@@ -1805,8 +1805,8 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1821,7 +1821,7 @@ int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decima
 
    if (value) {
       err = alignedexpandshift_decimalhelper(&alignshift, decimal_exponent) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       static_assert((INT64_MAX / ((int64_t)DIGITSBASE*DIGITSBASE)) * (DIGITSBASE/10/*maxshift*/) < DIGITSBASE, "always fits in 3 digits" ) ;
 
@@ -1832,7 +1832,7 @@ int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decima
       } while (digit || shiftcarry) ;
 
       err = allocate_decimalhelper(dec, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       memcpy((*dec)->digits, decdigit, sizeof((*dec)->digits[0]) * size);
       (*dec)->sign_and_used_digits = (uint8_t) (size | ((value < 0) ? 0x80 : 0));
@@ -1844,8 +1844,8 @@ int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decima
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1860,7 +1860,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
    float       integral ;
    int         fexp ;
 
-   VALIDATE_INPARAM_TEST(isfinite(value), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isfinite(value), ONERR, ) ;
 
    fraction = modff(fabsf(value), &integral) ;
 
@@ -1872,7 +1872,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
          uint64_t ifraction = (uint32_t) ldexpf(fraction, 32) ;
          size = 2u + (0 != (ifraction & 0x007fffff)) + (0 != (ifraction & 0x00003fff)) ;
          err = allocate_decimalhelper(dec, size) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          decimal_t * dec2 = *dec ;
          dec2->digits[size-1]       = (uint32_t) integral ;
          dec2->sign_and_used_digits = (uint8_t)  (size | (value < 0 ? 0x80 : 0));
@@ -1900,14 +1900,14 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
 
          size = calcfractionsize_decimalhelper(&leadingzerosize, nrleadingzerobits + mantissabits, nrleadingzerobits) ;
          err = allocate_decimalhelper(dec, size) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          int32_t        exponent           = - (int32_t) size ;
          const uint32_t fillbitsshift      = (nrleadingzerobits + mantissabits) % bitsperdigit_bigint() ;
          const uint32_t bigintfractionsize = (nrleadingzerobits + mantissabits) / bitsperdigit_bigint() + (0 != fillbitsshift) ;
          for (int i = 1; i >= 0; --i) {
             err = new_bigint(&big[i], 1/*leading int digit*/ + bigintfractionsize) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
 
          // multiplicate big to fill leading zero bits ?
@@ -1924,14 +1924,14 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
                ti = tableindexfromdecsize_decimalpowbase(leadingzerosize) ;
                leadingzerosize -= decsize_decimalpowbase(ti) ;
                err = mult_bigint(&big[0], mult, s_decimal_powbase[ti]) ;
-               if (err) goto ONABORT ;
+               if (err) goto ONERR;
                mult = big[0] ;
                bigint_t * tempbig ;
                tempbig = big[0], big[0] = big[1], big[1] = tempbig /* swap(&big[0],&big[1]) */ ;
             }
 
             err = multui32_bigint(&big[0], mult, ifraction) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          } else {
             setfromuint32_bigint(big[0], ifraction) ;
          }
@@ -1939,12 +1939,12 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
          // shift big to skip bits used to fill up to next multiple of bitsperdigit_bigint()
          if (fillbitsshift) {
             err = shiftleft_bigint(&big[0], bitsperdigit_bigint()-fillbitsshift) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
 
          // leadingzerosize could be one too small ; check it !
          err = multui32_bigint(&big[1], big[0], DIGITSBASE) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          if (size_bigint(big[1]) <= bigintfractionsize) {
             -- size ;
          }
@@ -1961,7 +1961,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
             bigint_t * tempbig ;
             tempbig = big[0], big[0] = big[1], big[1] = tempbig /* swap(&big[0],&big[1]) */ ;
             err = multui32_bigint(&big[1], big[0], DIGITSBASE) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             if (size_bigint(big[1]) > bigintfractionsize) {
                (*dec)->digits[--size] = firstdigit_bigint(big[1]) ;
                clearfirstdigit_bigint(big[1]) ;
@@ -1974,7 +1974,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
 
          for (int i = 1; i >= 0; --i) {
             err = delete_bigint(&big[i]) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
       }
    } else if (integral < DIGITSBASE) {
@@ -1983,18 +1983,18 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
       // decode only integral part
       bigint_fixed_DECLARE(3) fbig = bigint_fixed_INIT(3, 0, 0, 0, 0) ;
       err = setfromdouble_bigint((bigint_t*)&fbig, integral) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       // 1. determine size of result
       unsigned tabidx = tableindex_decimalpowbase(size_bigint(&fbig)) ;
 
       if ((unsigned)tabidx >= lengthof(s_decimal_powbase)) {
          err = EOVERFLOW ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = new_decimalfrombigint(&converter) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       if (cmpmagnitude_bigint((bigint_t*)&fbig, s_decimal_powbase[tabidx]) < 0) {
          // (fbig >= DIGITSBASE && DIGITSBASE == s_decimal_powbase[0]) ==> (tabidx > 0)
@@ -2002,7 +2002,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
       }
       converter->state[0].tabidx = tabidx ;
       err = divmod_bigint(&converter->quotient[0], &converter->state[0].big, (bigint_t*)&fbig, s_decimal_powbase[tabidx]) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       size = 1u + decsize_decimalpowbase(tabidx) ;
       bigint_t * quot1 = converter->quotient[0] ;
@@ -2016,7 +2016,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
          }
          converter->state[stateidx].tabidx = ti ;
          err = divmod_bigint(&quot2, &converter->state[stateidx].big, quot1, s_decimal_powbase[ti]) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          size += decsize_decimalpowbase(ti) ;
          tempquot = quot1, quot1 = quot2, quot2 = tempquot /* swap(&quot1,&quot2) */ ;
          ++ stateidx ;
@@ -2024,7 +2024,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
 
       // 2. allocate and check size
       err = allocate_decimalhelper(dec, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       (*dec)->sign_and_used_digits = (uint8_t) (size | (value < 0 ? 0x80 : 0));
       (*dec)->exponent             = 0 ;
@@ -2043,7 +2043,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
             (*dec)->digits[--size] = converter->state[stateidx].big->digits[0] ;
          } else {
             err = copy_bigint(&quot1, converter->state[stateidx].big) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             while (ti > 0) {
                if (cmpmagnitude_bigint(quot1, s_decimal_powbase[-- ti]) < 0) {
                   // fill dec digits with 0
@@ -2054,7 +2054,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
                }
                converter->state[stateidx].tabidx = ti ;
                err = divmod_bigint(&quot2, &converter->state[stateidx].big, quot1, s_decimal_powbase[ti]) ;
-               if (err) goto ONABORT ;
+               if (err) goto ONERR;
                tempquot = quot1, quot1 = quot2, quot2 = tempquot /* swap(&quot1,&quot2) */ ;
                ++ stateidx ;
             }
@@ -2063,17 +2063,17 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
       }
       assert(0 == size) ;
       err = delete_decimalfrombigint(&converter) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimalfrombigint(&converter) ;
    for (int i = 1; i >= 0; --i) {
       delete_bigint(&big[i]) ;
    }
    clear_decimal(*dec) ; // result computed digit by digit
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2124,7 +2124,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
    size_t nrdigits = (nrfractdigits + nrintdigits - leadzero - trailzero) ;
    if (nrdigits > nrdigitsmax_decimal()) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    const bool isExponentPart = (offset < nrchars && 'e' == decimalstr[offset]) ;
@@ -2147,7 +2147,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
 
             if (  exponent > (expmax_decimal() + nrdigitsmax_decimal())) {
                err = EOVERFLOW ;
-               goto ONABORT ;
+               goto ONERR;
             }
          }
          ++ offset ;
@@ -2163,7 +2163,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
          || (0 == nrexponentdigits && isExponentPart)
          || (offset != nrchars) /*additional characters at end of input*/) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint32_t size = 0 ;
@@ -2179,7 +2179,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
 
       uint32_t nr_additional_zerodigits ;
       err = alignexponent_decimalhelper(&nr_additional_zerodigits, exponent) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       exponent -= (int32_t) nr_additional_zerodigits ;
       exponent /= digitsperint_decimal() ;
@@ -2187,7 +2187,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
       size      = (uint32_t) (nrdigits + digitsperint_decimal()-1) / digitsperint_decimal() ;
 
       err = allocate_decimalhelper(dec, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       offset = isNegSign + leadzero + (nrintdigits <= leadzero) ;
 
@@ -2227,8 +2227,8 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
    (*dec)->exponent             = (int16_t) exponent;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2246,11 +2246,11 @@ int add_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
       err = sub_decimalhelper(result, ldec, rdec) ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2265,11 +2265,11 @@ int sub_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
    } else {
       err = add_decimalhelper(result, ldec, rdec) ;
    }
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2305,21 +2305,21 @@ int mult_decimal(decimal_t *restrict* result, const decimal_t * ldec, const deci
 
    if (  abs_int32(exponent) > INT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = allocate_decimalhelper(result, size) ;
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = multsplit_decimalhelper(result, lsize, ldigits, rsize, rdigits) ;
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    (*result)->sign_and_used_digits = (uint8_t) ((*result)->sign_and_used_digits | (isNegSign ? 0x80 : 0));
    (*result)->exponent             = (int16_t) ((*result)->exponent + exponent);
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2351,7 +2351,7 @@ int div_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
 
    if (!rsize) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (!lsize) {
@@ -2362,18 +2362,18 @@ int div_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
    exponent -= (int32_t)(result_size-1) ;
 
    err = allocate_decimalhelper(result, result_size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (rsize == 1) {
       err = divi32_decimalhelper(*result, isNegSign, exponent, lsize, ldigits, rdigits[0], result_size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       return 0 ;
    }
 
    maxsize = (uint8_t) (lsize > rsize ? lsize : rsize) ;
 
    err = allocate_decimalhelper(&intermediate, maxsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    uint32_t offset = (uint32_t)maxsize - (uint32_t)lsize ;
 
@@ -2383,15 +2383,15 @@ int div_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
    memcpy(&intermediate->digits[offset], ldigits, (uint32_t)lsize * sizeof(intermediate->digits[0])) ;
 
    err = div_decimalhelper(*result, isNegSign, exponent, maxsize, intermediate->digits, rsize, rdigits, result_size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = delete_decimal(&intermediate) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&intermediate) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2400,7 +2400,7 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
    int err ;
    uint32_t divisor = abs_int32(rdivisor) ;
 
-   VALIDATE_INPARAM_TEST(divisor != 0 && divisor <= DIGITSBASE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(divisor != 0 && divisor <= DIGITSBASE, ONERR, ) ;
 
    result_size = (uint8_t) (result_size + (0 == result_size)) ;
    if (result_size > sizemax_decimal()) result_size = sizemax_decimal() ;
@@ -2424,14 +2424,14 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
    }
 
    err = allocate_decimalhelper(result, result_size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = divi32_decimalhelper(*result, isNegSign, exponent, lsize, ldigits, divisor, result_size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2544,7 +2544,7 @@ static int test_decimaltables(void)
    TEST(0 == delete_bigint(&temp1)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&big) ;
    delete_bigint(&temp1) ;
    return EINVAL ;
@@ -2710,7 +2710,7 @@ static int test_helper(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -2843,7 +2843,7 @@ static int test_initfree(void)
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    return EINVAL ;
 }
@@ -2902,7 +2902,7 @@ static int test_signops(void)
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    return EINVAL ;
 }
@@ -2967,7 +2967,7 @@ static int test_copy(void)
    TEST(0 == delete_decimal(&copy)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    delete_decimal(&copy) ;
    return EINVAL ;
@@ -3140,7 +3140,7 @@ static int test_setfromint(void)
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    return EINVAL ;
 }
@@ -3306,7 +3306,7 @@ static int test_setfromfloat(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
@@ -3395,7 +3395,7 @@ static int test_setfromchar(void)
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_decimal(&dec) ;
    return EINVAL ;
 }
@@ -3476,7 +3476,7 @@ static int test_compare(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
@@ -3649,7 +3649,7 @@ static int test_addsub(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
@@ -3767,7 +3767,7 @@ static int test_mult(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
@@ -3914,7 +3914,7 @@ static int test_div(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
@@ -4030,7 +4030,7 @@ static int test_tocstring(void)
    TEST(0 == delete_decimal(&dec)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    delete_decimal(&dec) ;
    return EINVAL ;
@@ -4151,7 +4151,7 @@ static int test_example1(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
@@ -4161,23 +4161,23 @@ ONABORT:
 
 int unittest_math_float_decimal()
 {
-   if (test_decimaltables())  goto ONABORT ;
-   if (test_helper())         goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_signops())        goto ONABORT ;
-   if (test_copy())           goto ONABORT ;
-   if (test_setfromint())     goto ONABORT ;
-   if (test_setfromfloat())   goto ONABORT ;
-   if (test_setfromchar())    goto ONABORT ;
-   if (test_compare())        goto ONABORT ;
-   if (test_addsub())         goto ONABORT ;
-   if (test_mult())           goto ONABORT ;
-   if (test_div())            goto ONABORT ;
-   if (test_tocstring())      goto ONABORT ;
-   if (test_example1())       goto ONABORT ;
+   if (test_decimaltables())  goto ONERR;
+   if (test_helper())         goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_signops())        goto ONERR;
+   if (test_copy())           goto ONERR;
+   if (test_setfromint())     goto ONERR;
+   if (test_setfromfloat())   goto ONERR;
+   if (test_setfromchar())    goto ONERR;
+   if (test_compare())        goto ONERR;
+   if (test_addsub())         goto ONERR;
+   if (test_mult())           goto ONERR;
+   if (test_div())            goto ONERR;
+   if (test_tocstring())      goto ONERR;
+   if (test_example1())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

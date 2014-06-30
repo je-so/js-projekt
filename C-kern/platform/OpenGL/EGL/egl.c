@@ -87,7 +87,7 @@ static int test_query(void)
    TEST(EGL_SUCCESS == nativeerr_egl());
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -118,7 +118,7 @@ static int test_query2(void)
    TEST(EINVAL == aserrcode_egl(EGL_SUCCESS-1));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -126,17 +126,17 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE;
 
-   if (test_query())    goto ONABORT;
+   if (test_query())    goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_query2())                  goto ONABORT;
+   if (test_query2())                  goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    return EINVAL;
 }
@@ -148,7 +148,7 @@ int unittest_platform_opengl_egl_egl()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

@@ -47,11 +47,11 @@ int free_syncqueue(syncqueue_t * syncqueue)
 
    syncqueue->nrelements = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -78,23 +78,23 @@ int compact2_syncqueue(syncqueue_t * syncqueue, uint16_t elemsize, struct dlist_
       if (lastentry != firstfree) {
          dlist_node_t * lastfree ;
          err = removelast_dlist(freelist, &lastfree) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          initmove_elem(lastfree, lastentry) ;
       } else {
          err = removefirst_dlist(freelist, &firstfree) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          firstfree = first_dlist(freelist) ;
       }
 
       err = removelast_queue(genericcast_queue(syncqueue), elemsize) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       -- syncqueue->nrelements ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -142,7 +142,7 @@ static int test_initfree(void)
    TEST(1 == isfree_syncqueue(&syncqueue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -187,7 +187,7 @@ static int test_query(void)
    TEST(0 == free_syncqueue(&syncqueue2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&syncqueue2) ;
    return EINVAL ;
 }
@@ -578,7 +578,7 @@ static int test_update(void)
    TEST(0 == free_queue(&testelemlist)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&syncqueue) ;
    free_queue(&testelemlist) ;
    return EINVAL ;
@@ -586,12 +586,12 @@ ONABORT:
 
 int unittest_task_syncqueue()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_update())         goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_update())         goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

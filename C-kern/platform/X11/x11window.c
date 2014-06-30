@@ -138,10 +138,10 @@ static int matchvisual_x11window(
    }
 
    if (vinfo)     XFree(vinfo) ;
-   if (! isMatch) goto ONABORT ;
+   if (! isMatch) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return ESRCH ;
 }
 
@@ -176,7 +176,7 @@ int initvid_x11window(
    uint32_t    maxnr      = (uint32_t) ScreenCount(x11disp->sys_display);
    Display*    display    = x11disp->sys_display;
 
-   VALIDATE_INPARAM_TEST(screennr < maxnr, ONABORT, );
+   VALIDATE_INPARAM_TEST(screennr < maxnr, ONERR, );
 
    Window      parent_win = RootWindow(display, screennr);
    Visual *    visual;
@@ -190,7 +190,7 @@ int initvid_x11window(
 
       if (!vinfo){
          err = EINVAL;
-         goto ONABORT;
+         goto ONERR;
       }
 
       visual = vinfo->visual;
@@ -205,12 +205,12 @@ int initvid_x11window(
       for (windowconfig_e type; windowconfig_NONE != (type = readtype_windowconfig(winconf_attrib, &i)); ) {
          if (i > 3*windowconfig_NROFELEMENTS) {
             err = E2BIG;
-            goto ONABORT;
+            goto ONERR;
          }
          switch (type) {
          default:
             err= EINVAL;
-            goto ONABORT;
+            goto ONERR;
          case windowconfig_FRAME:
             isFrame = true;
             break;
@@ -269,7 +269,7 @@ int initvid_x11window(
    XSetWMProtocols(display, win, &wm_delete_window, 1);
 
    err = insertobject_x11display(x11disp, x11win, win);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    x11win->display      = x11disp;
    x11win->sys_drawable = win;
@@ -279,14 +279,14 @@ int initvid_x11window(
    x11win->flags        = flags;
 
    return 0;
-ONABORT:
+ONERR:
    if (0 != (flags & x11window_flags_OWNWINDOW)) {
       XDestroyWindow(display, win);
    }
    if (0 != (flags & x11window_flags_OWNCOLORMAP)) {
       XFreeColormap(display, colormap);
    }
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -296,21 +296,21 @@ int init_x11window(/*out*/x11window_t * x11win, x11display_t * x11disp, uint32_t
    uint32_t maxnr = (uint32_t) ScreenCount(x11disp->sys_display);
    VisualID visualid;
 
-   VALIDATE_INPARAM_TEST(screennr < maxnr, ONABORT, );
+   VALIDATE_INPARAM_TEST(screennr < maxnr, ONERR, );
 
    visualid = XVisualIDFromVisual(DefaultVisual(x11disp->sys_display, screennr));
 
    if (gconf_attrib) {
       err = matchvisual_x11window(&visualid, x11disp, screennr, gconf_attrib) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    err = initvid_x11window(x11win, x11disp, screennr, eventhandler, visualid, winconf_attrib) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -320,7 +320,7 @@ int initmove_x11window(/*out*/x11window_t * dest_x11win, x11window_t * src_x11wi
    int err;
 
    err = replaceobject_x11display(src_x11win->display, dest_x11win, src_x11win->sys_drawable);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    static_assert( sizeof(*dest_x11win) == sizeof(*src_x11win)
                   && sizeof(*src_x11win) == sizeof(x11window_t), "make memmove/memset safe");
@@ -328,8 +328,8 @@ int initmove_x11window(/*out*/x11window_t * dest_x11win, x11window_t * src_x11wi
    memset(src_x11win, 0, sizeof(x11window_t));
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -359,12 +359,12 @@ int free_x11window(x11window_t * x11win)
       x11win->state        = x11window_state_DESTROYED ;
       x11win->flags        = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -392,12 +392,12 @@ int title_x11window(const x11window_t * x11win, /*ret*/struct cstring_t * title)
    char **        textlist  = 0 ;
    int            textcount = 0 ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    if (  0 == XGetWMName(x11win->display->sys_display, x11win->sys_drawable, &textprop)
          || Success != Xutf8TextPropertyToTextList(x11win->display->sys_display, &textprop, &textlist, &textcount)) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = textcount ? append_cstring(title, strlen(textlist[0]), textlist[0]) : 0 ;
@@ -405,13 +405,13 @@ int title_x11window(const x11window_t * x11win, /*ret*/struct cstring_t * title)
    XFree(textprop.value) ;
    XFreeStringList(textlist) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (textprop.value)  XFree(textprop.value) ;
    if (textlist)        XFreeStringList(textlist) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -423,13 +423,13 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
    uint32_t udummy ;
    int32_t  idummy ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
 
    if (! XGetGeometry(x11win->display->sys_display, x11win->sys_drawable, &root, &idummy, &idummy,
                       width ? width : &udummy, height ? height : &udummy, &udummy, &udummy)) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (screen_x || screen_y) {
@@ -437,8 +437,8 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -449,10 +449,10 @@ int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out
    uint32_t    w, h ;
    uint32_t *  data = 0 ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    err = geometry_x11window(x11win, &x, &y, &w, &h) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    Atom           type ;
    int            format ;
@@ -478,9 +478,9 @@ int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out
    if (data) XFree(data) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (data) XFree(data) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -490,13 +490,13 @@ int show_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XMapRaised(x11win->display->sys_display, x11win->sys_drawable) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -504,13 +504,13 @@ int hide_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XUnmapWindow(x11win->display->sys_display, x11win->sys_drawable) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -518,7 +518,7 @@ int sendclose_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XEvent xevent ;
    xevent.xclient.type    = ClientMessage ;
@@ -529,8 +529,8 @@ int sendclose_x11window(x11window_t * x11win)
    XSendEvent(x11win->display->sys_display, x11win->sys_drawable, 1, 0, &xevent) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -538,14 +538,14 @@ int sendredraw_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    // the background is set to none => only Expose events are generated, background is not cleared !
    XClearArea(x11win->display->sys_display, x11win->sys_drawable, 0, 0, 0, 0, True) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -555,19 +555,19 @@ int settitle_x11window(const x11window_t * x11win, /*ret*/const char * title)
    XTextProperty textprop ;
    char  *       textlist = CONST_CAST(char, title) ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    if (Success != Xutf8TextListToTextProperty(x11win->display->sys_display, &textlist, 1, XUTF8StringStyle, &textprop)) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    XSetWMName(x11win->display->sys_display, x11win->sys_drawable, &textprop) ;
    XFree(textprop.value) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -575,16 +575,16 @@ int setopacity_x11window(x11window_t * x11win, double opacity)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(0 <=opacity && opacity <= 1, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(0 <=opacity && opacity <= 1, ONERR, ) ;
 
    uint32_t cardinal_opacity = (uint32_t) (opacity * UINT32_MAX) ;
 
    setwinopacity_x11window(x11win->display, x11win->sys_drawable, cardinal_opacity) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -592,13 +592,13 @@ int setpos_x11window(x11window_t * x11win, int32_t screen_x, int32_t screen_y)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XMoveWindow(x11win->display->sys_display, x11win->sys_drawable, screen_x, screen_y) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -606,13 +606,13 @@ int resize_x11window(x11window_t * x11win, uint32_t width, uint32_t height)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XResizeWindow(x11win->display->sys_display, x11win->sys_drawable, width, height) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -620,7 +620,7 @@ int swapbuffer_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONERR, ) ;
 
    XdbeSwapInfo swapInfo ;
    swapInfo.swap_window = x11win->sys_drawable ;
@@ -628,12 +628,12 @@ int swapbuffer_x11window(x11window_t * x11win)
 
    if (!XdbeSwapBuffers(x11win->display->sys_display, &swapInfo, 1)) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -807,7 +807,7 @@ static int test_interface(void)
    TEST(testwin.onvisible == 10) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -925,7 +925,7 @@ static int test_initfree(x11display_t * x11disp)
    TEST(0 == free_x11window(x11win)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_x11window(x11win) ;
    return EINVAL ;
 }
@@ -973,7 +973,7 @@ static int compare_visual(x11display_t * x11disp, uint32_t screennr, uint32_t vi
    XFree(vinfo) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (vinfodb)   XdbeFreeVisualInfo(vinfodb) ;
    if (vinfo)     XFree(vinfo) ;
    return EINVAL ;
@@ -1117,7 +1117,7 @@ static int test_query(x11display_t * x11disp, testwindow_t * testwin, testwindow
    WAITFOR(x11win->display, 1, false) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&title) ;
    return EINVAL ;
 }
@@ -1149,7 +1149,7 @@ static int test_showhide(testwindow_t * testwin)
    TEST(1 == testwin->isVisible);
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1189,7 +1189,7 @@ static int test_update(testwindow_t * testwin)
    WAITFOR(x11win->display, 10, false) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&title) ;
    return EINVAL ;
 }
@@ -1290,7 +1290,7 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
    } // repeat all test for other window
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1386,7 +1386,7 @@ static int test_config(x11display_t * x11disp)
    WAITFOR(x11disp, 1, false) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&title) ;
    free_x11window(&x11win) ;
    return EINVAL ;
@@ -1515,7 +1515,7 @@ static int test_opacity(testwindow_t * testwin1, testwindow_t * testwin2)
    WAITFOR(x11win1->display, 1, false) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1571,7 +1571,7 @@ static int test_configfilter(x11display_t * x11disp)
    XFree(vinfo);
 
    return 0 ;
-ONABORT:
+ONERR:
    if (vinfo) XFree(vinfo);
    return EINVAL ;
 }
@@ -1603,29 +1603,29 @@ static int childprocess_unittest(void)
    // without frame
    TEST(0 == init_x11window(&x11win2.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), gconf2, config2)) ;
 
-   if (test_initfree(&x11disp))           goto ONABORT ;
+   if (test_initfree(&x11disp))           goto ONERR;
    if (test_query(&x11disp, &x11win,
-                  &x11win2))              goto ONABORT ;
-   if (test_showhide(&x11win))            goto ONABORT ;
-   if (test_geometry(&x11win,&x11win2))   goto ONABORT ;
-   if (test_config(&x11disp))             goto ONABORT ;
-   if (test_opacity(&x11win, &x11win2))   goto ONABORT ;
+                  &x11win2))              goto ONERR;
+   if (test_showhide(&x11win))            goto ONERR;
+   if (test_geometry(&x11win,&x11win2))   goto ONERR;
+   if (test_config(&x11disp))             goto ONERR;
+   if (test_opacity(&x11win, &x11win2))   goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_interface())                  goto ONABORT ;
-   if (test_initfree(&x11disp))           goto ONABORT ;
+   if (test_interface())                  goto ONERR;
+   if (test_initfree(&x11disp))           goto ONERR;
    if (test_query(&x11disp, &x11win,
-                  &x11win2))              goto ONABORT ;
-   if (test_geometry(&x11win,&x11win2))   goto ONABORT ;
-   if (test_config(&x11disp))             goto ONABORT ;
-   if (test_opacity(&x11win, &x11win2))   goto ONABORT ;
-   if (test_configfilter(&x11disp))       goto ONABORT ;
+                  &x11win2))              goto ONERR;
+   if (test_geometry(&x11win,&x11win2))   goto ONERR;
+   if (test_config(&x11disp))             goto ONERR;
+   if (test_opacity(&x11win, &x11win2))   goto ONERR;
+   if (test_configfilter(&x11disp))       goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
-   if (test_update(&x11win))              goto ONABORT ;
+   if (test_update(&x11win))              goto ONERR;
 
    // unprepare
    TEST(0 == free_x11window(&x11win.x11win)) ;
@@ -1633,7 +1633,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_x11display(&x11disp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11window(&x11win.x11win) ;
    (void) free_x11window(&x11win2.x11win) ;
    (void) free_x11display(&x11disp) ;
@@ -1648,7 +1648,7 @@ int unittest_platform_X11_x11window()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

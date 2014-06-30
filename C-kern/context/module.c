@@ -63,19 +63,19 @@ int init_module(/*out*/module_t * mod, const char * modulename)
    mmfile_t       mmfile = mmfile_FREE ;
 
    err = new_directory(&dir, module_DIRECTORY, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = init_mmfile(&mmfile, modulename, 0, 0, accessmode_RDEX_SHARED, dir) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = delete_directory(&dir) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    initmove_mmfile(genericcast_mmfile(mod, code_, ), &mmfile) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_mmfile(&mmfile) ;
    delete_directory(&dir) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -84,11 +84,11 @@ int free_module(module_t * mod)
    int err ;
 
    err = free_mmfile(genericcast_mmfile(mod, code_, )) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -135,7 +135,7 @@ static int test_initfree(void)
    TEST(0 == delete_directory(&dir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_directory(&dir) ;
    free_module(&mod) ;
    return EINVAL ;
@@ -158,7 +158,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -173,7 +173,7 @@ static int test_generic(void)
    TEST((mmfile_t*)&mod == genericcast_mmfile(&mod, code_,)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -212,20 +212,20 @@ static int test_exec(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_module(&mod) ;
    return EINVAL ;
 }
 
 int unittest_context_module()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_generic())     goto ONABORT ;
-   if (test_exec())        goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_generic())     goto ONERR;
+   if (test_exec())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

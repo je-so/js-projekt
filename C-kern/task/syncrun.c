@@ -311,11 +311,11 @@ int free_syncrun(syncrun_t * srun)
    }
    memset((uint8_t*)srun + sizeof(srun->queues), 0, sizeof(syncrun_t) - sizeof(srun->queues)) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -360,22 +360,22 @@ void setstateexit_syncrun(syncrun_t * srun)
 {
    int err ;
 
-   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONABORT, ) ;
+   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONERR, ) ;
 
    srun->running.state = syncrun_state_EXIT ;
 
    return ;
-ONABORT:
+ONERR:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
 }
 
 void setstatewait_syncrun(syncrun_t * srun, struct syncevent_t * event, void * continuelabel)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(event && false == iswaiting_syncevent(event), ONABORT, ) ;
-   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(event && false == iswaiting_syncevent(event), ONERR, ) ;
+   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONERR, ) ;
 
    srun->waitinfo.wlist         = 0 ;
    srun->waitinfo.event         = event ;
@@ -384,9 +384,9 @@ void setstatewait_syncrun(syncrun_t * srun, struct syncevent_t * event, void * c
    srun->running.state          = syncrun_state_WAIT ;
 
    return ;
-ONABORT:
+ONERR:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
 }
 
 void setstatewaitlist_syncrun(syncrun_t * srun, struct syncwlist_t * wlist, void * continuelabel)
@@ -394,13 +394,13 @@ void setstatewaitlist_syncrun(syncrun_t * srun, struct syncwlist_t * wlist, void
    int err ;
    syncqueue_t * queue = queue_syncwlist(wlist) ;
 
-   VALIDATE_INPARAM_TEST(queue == 0 || queue == &srun->queues[syncrun_qid_WLIST], ONABORT, ) ;
-   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(queue == 0 || queue == &srun->queues[syncrun_qid_WLIST], ONERR, ) ;
+   VALIDATE_STATE_TEST(srun->running.state == syncrun_state_CONTINUE, ONERR, ) ;
 
    syncevent_t * event ;
-   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONERR);
    err = insert_syncwlist(wlist, &srun->queues[syncrun_qid_WLIST], &event) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    srun->waitinfo.wlist         = wlist ;
    srun->waitinfo.event         = event ;
@@ -409,9 +409,9 @@ void setstatewaitlist_syncrun(syncrun_t * srun, struct syncwlist_t * wlist, void
    srun->running.state          = syncrun_state_WAIT ;
 
    return ;
-ONABORT:
+ONERR:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
 }
 
 // group: thread-lifetime
@@ -421,17 +421,17 @@ int startthread_syncrun(syncrun_t * srun, syncrun_f mainfct, void * initarg)
    int err ;
    initqueue_entry_t * initentry ;
 
-   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONERR);
    err = insert_syncqueue(&srun->queues[syncrun_qid_INIT], &initentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    init_initqueueentry(initentry, mainfct, initarg) ;
 
    srun->running.laststarted = &initentry->exitevent ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -441,9 +441,9 @@ int startthread2_syncrun(syncrun_t * srun, syncrun_f mainfct, uint8_t initargsiz
    initqueue_entry_t *  initentry ;
    uint16_t             entrysize = sizeentry_initqueueentry(initargsize) ;
 
-   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONERR);
    err = insert2_syncqueue(&srun->queues[syncrun_qid_INIT], entrysize, &initentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    init2_initqueueentry(initentry, mainfct, initargsize) ;
 
@@ -452,8 +452,8 @@ int startthread2_syncrun(syncrun_t * srun, syncrun_f mainfct, uint8_t initargsiz
    *initarg = initentry->initarg ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -470,22 +470,22 @@ int signalevent_syncrun(syncrun_t * srun, struct syncevent_t * syncevent)
 
    // check that waiting_syncevent(syncevent) points to waitqueue or wait2queue
    VALIDATE_INPARAM_TEST(  queue == &srun->queues[syncrun_qid_WAIT]
-                           || queue == &srun->queues[syncrun_qid_WAIT2], ONABORT, ) ;
+                           || queue == &srun->queues[syncrun_qid_WAIT2], ONERR, ) ;
    // check that waiting_syncevent(syncevent) and syncevent match
-   VALIDATE_INPARAM_TEST(syncevent == event_syncwait(syncwait), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(syncevent == event_syncwait(syncwait), ONERR, ) ;
 
    syncevent_t * wakeupentry ;
-   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONERR);
    err = insert_syncqueue(&srun->queues[syncrun_qid_WAKEUP], &wakeupentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    initmove_syncevent(wakeupentry, syncevent) ;
    // remove waiting from syncevent; signal it only once
    *syncevent = (syncevent_t) syncevent_FREE ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -497,14 +497,14 @@ int signalfirst_syncrun(syncrun_t * srun, struct syncwlist_t * syncwlist)
 
    syncqueue_t * queue = queue_syncwlist(syncwlist) ;
 
-   VALIDATE_INPARAM_TEST(queue == &srun->queues[syncrun_qid_WLIST], ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(queue == &srun->queues[syncrun_qid_WLIST], ONERR, ) ;
 
    err = transferfirst_syncwlist(&srun->wakeup_list, syncwlist) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -516,14 +516,14 @@ int signalall_syncrun(syncrun_t * srun, struct syncwlist_t * syncwlist)
 
    syncqueue_t * queue = queue_syncwlist(syncwlist) ;
 
-   VALIDATE_INPARAM_TEST(queue == &srun->queues[syncrun_qid_WLIST], ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(queue == &srun->queues[syncrun_qid_WLIST], ONERR, ) ;
 
    err = transferall_syncwlist(&(srun)->wakeup_list, syncwlist) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -552,15 +552,15 @@ static inline int preparerun_syncrun(syncrun_t * srun, syncthread_t * running_th
       // remove empty entry if setstatewaitlist_syncrun called and an abort happened
       err = removeempty_syncwlist(srun->waitinfo.wlist, &srun->queues[syncrun_qid_WLIST]) ;
       srun->waitinfo.wlist = 0 ;
-      if (err) goto ONABORT ;
-      ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONABORT);
+      if (err) goto ONERR;
+      ONERROR_testerrortimer(&s_syncrun_errtimer, &err, ONERR);
    }
 
    srun->running.laststarted = 0 ;
    srun->running.thread = running_thread ;
    srun->running.state  = syncrun_state_CONTINUE ;
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -588,13 +588,13 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
             iswaitqueue = false ;
          } else {
             err = EINVAL ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
 
       preparewakeup_syncrun(srun, waiting->continuelabel, retcode) ;
       err = preparerun_syncrun(srun, &waiting->thread) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       retcode = callwakeup_syncthread(&waiting->thread) ;
 
       switch ((enum syncrun_state_e)srun->running.state) {
@@ -606,7 +606,7 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
             if (err) goto CASE_syncrun_state_ABORT ;
             init_runqueueentry(runentry, &waiting->thread) ;
             err = remove_syncqueue(&srun->queues[syncrun_qid_WAIT], cast_waitqueueentry(waiting), &initmove_waitqueueentry) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          } else {
             run2queue_entry_t  * run2entry = 0 ;
             ONERROR_testerrortimer(&s_syncrun_errtimer, &err, CASE_syncrun_state_ABORT);
@@ -614,7 +614,7 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
             if (err) goto CASE_syncrun_state_ABORT ;
             init_run2queueentry(run2entry, &waiting->thread, &cast_wait2queueentry(waiting)->exitevent) ;
             err = remove_syncqueue(&srun->queues[syncrun_qid_WAIT2], cast_wait2queueentry(waiting), &initmove_wait2queueentry) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
          break ;
       case syncrun_state_ABORT:
@@ -625,11 +625,11 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
       case syncrun_state_EXIT:
          if (iswaitqueue) {
             err = remove_syncqueue(&srun->queues[syncrun_qid_WAIT], cast_waitqueueentry(waiting), &initmove_waitqueueentry) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          } else {
             initmove_syncevent(&exitevent, &cast_wait2queueentry(waiting)->exitevent) ;
             err = remove_syncqueue(&srun->queues[syncrun_qid_WAIT2], cast_wait2queueentry(waiting), &initmove_wait2queueentry) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
 
             waiting = waiting_syncevent(&exitevent) ;
             continue ;  // wake up next waiting thread in chain !
@@ -644,8 +644,8 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -658,7 +658,7 @@ static int execinitqueue_syncrun(syncrun_t * srun)
       uint16_t            entrysize = sizeentry_initqueueentry(initentry->initargsize) ;
 
       err = preparerun_syncrun(srun, &initentry->thread) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       int retcode = callinit_syncthread(&initentry->thread) ;
 
       switch ((enum syncrun_state_e)srun->running.state) {
@@ -685,7 +685,7 @@ static int execinitqueue_syncrun(syncrun_t * srun)
       case syncrun_state_EXIT:
          if (!isfree_syncevent(&initentry->exitevent)) {
             err = execwaiting_syncrun(srun, waiting_syncevent(&initentry->exitevent), retcode) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
          break ;
       case syncrun_state_WAIT:
@@ -706,12 +706,12 @@ static int execinitqueue_syncrun(syncrun_t * srun)
       }
 
       err = removefirst_syncqueue(&srun->queues[syncrun_qid_INIT], entrysize) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -727,7 +727,7 @@ static int execrunqueue_syncrun(syncrun_t * srun)
       runqueue_entry_t * runentry = entry ;
 
       err = preparerun_syncrun(srun, &runentry->thread) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       (void) callrun_syncthread(&runentry->thread) ;
 
       switch ((enum syncrun_state_e)srun->running.state) {
@@ -751,12 +751,12 @@ static int execrunqueue_syncrun(syncrun_t * srun)
    }
 
    err = compact_syncqueue(&srun->queues[syncrun_qid_RUN], runqueue_entry_t, &freelist, &initmove_runqueueentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) compact_syncqueue(&srun->queues[syncrun_qid_RUN], runqueue_entry_t, &freelist, &initmove_runqueueentry) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -772,7 +772,7 @@ static int execrun2queue_syncrun(syncrun_t * srun)
       run2queue_entry_t * run2entry = entry ;
 
       err = preparerun_syncrun(srun, &run2entry->thread) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       int retcode = callrun_syncthread(&run2entry->thread) ;
 
       switch ((enum syncrun_state_e)srun->running.state) {
@@ -785,7 +785,7 @@ static int execrun2queue_syncrun(syncrun_t * srun)
          // fall through
       case syncrun_state_EXIT:
          err = execwaiting_syncrun(srun, waiting_syncevent(&run2entry->exitevent), retcode) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          addtofreelist_syncqueue(&srun->queues[syncrun_qid_RUN2], &freelist, run2entry) ;
          break ;
       case syncrun_state_WAIT:
@@ -799,12 +799,12 @@ static int execrun2queue_syncrun(syncrun_t * srun)
    }
 
    err = compact_syncqueue(&srun->queues[syncrun_qid_RUN2], run2queue_entry_t, &freelist, &initmove_run2queueentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) compact_syncqueue(&srun->queues[syncrun_qid_RUN2], run2queue_entry_t, &freelist, &initmove_run2queueentry) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -843,11 +843,11 @@ static int execabort_syncrun(syncrun_t * srun, enum syncrun_qid_e qid, uint16_t 
    if (err2) err = err2 ;
    init_syncqueue(&srun->queues[qid]) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -882,23 +882,23 @@ int runall_syncrun(syncrun_t * srun)
 
    if (srun->running.thread) {
       err = EINPROGRESS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    // - prepare -
    // (running.thread!=0) ==> indicates runall_syncrun "is in progress"
    err = preparerun_syncrun(srun, (void*)1/*dummy*/) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // - run queues -
    err = execrunqueue_syncrun(srun) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = execrun2queue_syncrun(srun) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // - init queue -
    err = execinitqueue_syncrun(srun) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // - wait queues -
 
@@ -912,10 +912,10 @@ int runall_syncrun(syncrun_t * srun)
    while (!isempty_syncwlist(&copylist)) {
       syncevent_t event ;
       err = remove_syncwlist(&copylist, &srun->queues[syncrun_qid_WLIST], &event) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       if (iswaiting_syncevent(&event)) {
          err = execwaiting_syncrun(srun, waiting_syncevent(&event), 0/*dummy*/) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
@@ -924,31 +924,31 @@ int runall_syncrun(syncrun_t * srun)
       syncevent_t * event = first_queue(genericcast_queue(&copyqueue), sizeof(syncevent_t)) ;
       if (!event) {
          err = EINVAL ;
-         goto ONABORT ;
+         goto ONERR;
       }
       // queue contains only initialized events
       err = execwaiting_syncrun(srun, waiting_syncevent(event), 0/*dummy*/) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = removefirst_syncqueue(&copyqueue, sizeof(syncevent_t)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    // - free copy -
    err = free_syncwlist(&copylist, &srun->queues[syncrun_qid_WLIST]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = free_syncqueue(&copyqueue) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // - unprepare -
    err = preparerun_syncrun(srun, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&copyqueue) ;
    free_syncwlist(&copylist, &srun->queues[syncrun_qid_WLIST]) ;
    preparerun_syncrun(srun, 0) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -984,11 +984,11 @@ int abortall_syncrun(syncrun_t * srun)
       if (err2) err = err2 ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1009,7 +1009,7 @@ static int test_initqueueentry(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1038,7 +1038,7 @@ static int test_initfree(void)
    TEST(1 == isfree_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1133,7 +1133,7 @@ static int test_query(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncrun(&srun) ;
    return EINVAL ;
 }
@@ -1323,7 +1323,7 @@ static int test_internal(void)
    TEST(1 == isfree_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncrun(&srun) ;
    return EINVAL ;
 }
@@ -1452,7 +1452,7 @@ static int test_threadlifetime(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncrun(&srun) ;
    return EINVAL ;
 }
@@ -1463,15 +1463,15 @@ static int call_waitforexit_syncrun(syncrun_t * srun)
 
    if (continuelabel_syncrun(srun)) {
       err = EINVAL ;
-      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONABORT, ONABORT, ONABORT) ;
-      goto ONABORT ;
+      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONERR, ONERR, ONERR);
+      goto ONERR;
    }
 
    err = waitforexit_syncrun(srun) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -1481,14 +1481,14 @@ static int call_waitforevent_syncrun(syncrun_t * srun, syncevent_t * syncevent)
 
    if (continuelabel_syncrun(srun)) {
       err = EINVAL ;
-      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONABORT, ONABORT, ONABORT) ;
-      goto ONABORT ;
+      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONERR, ONERR, ONERR);
+      goto ONERR;
    }
 
    waitforevent_syncrun(srun, syncevent) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -1498,14 +1498,14 @@ static int call_waitforlist_syncrun(syncrun_t * srun, syncwlist_t * syncwlist)
 
    if (continuelabel_syncrun(srun)) {
       err = EINVAL ;
-      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONABORT, ONABORT, ONABORT) ;
-      goto ONABORT ;
+      handlesignal_syncthread(syncthread_signal_WAKEUP, continuelabel_syncrun(srun), ONERR, ONERR, ONERR);
+      goto ONERR;
    }
 
    waitforlist_syncrun(srun, syncwlist) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -1754,7 +1754,7 @@ static int test_synchronize(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncwlist(&wlist, &srun.queues[syncrun_qid_WLIST]) ;
    free_syncrun(&srun) ;
    return EINVAL ;
@@ -2413,7 +2413,7 @@ static int test_run(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    s_test_srun = 0 ;
    free_syncrun(&srun) ;
    return EINVAL ;
@@ -2471,7 +2471,7 @@ static int maintestrun2_syncthread(syncthread_t * thread, uint32_t signalstate)
    if (signalstate == syncthread_signal_WAKEUP) {
       ++ state->wakeupcount ;
    }
-   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONABORT) ;
+   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONERR);
 
 ONINIT:
    ++ s_test_initcount ;
@@ -2506,7 +2506,7 @@ ONRUN:
    ++ state->runcount ;
    goto DOACTION ;
 
-ONABORT:
+ONERR:
    ++ state->abortcount ;
    return 0 ;
 
@@ -2566,7 +2566,7 @@ static int startthreads(syncrun_t * srun, testrun2state_t (*state) [3][100], uin
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -2880,7 +2880,7 @@ static int test_run2(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    s_test_srun   = 0 ;
    s_test_initcount = 0 ;
    s_test_execcount = 0 ;
@@ -2893,7 +2893,7 @@ static int mainwaitchain_syncrun(syncthread_t * thread, uint32_t signalstate)
    assert(s_test_srun) ;
    assert(s_test_srun->running.thread == thread) ;
    uintptr_t counter = (uintptr_t) state_syncthread(thread) ;
-   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONABORT) ;
+   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONERR);
 ONINIT:
    if (counter) {
       if (0 == startthread_syncrun(s_test_srun, &mainwaitchain_syncrun, (void*)(counter-1))) {
@@ -2906,7 +2906,7 @@ ONINIT:
 ONRUN:
    exitthread_syncrun(s_test_srun, (int)counter) ;
    return 0 ;
-ONABORT:
+ONERR:
    return 0 ;
 }
 
@@ -2915,7 +2915,7 @@ static int mainwaitchain2_syncrun(syncthread_t * thread, uint32_t signalstate)
    assert(s_test_srun) ;
    assert(s_test_srun->running.thread == thread) ;
    uintptr_t counter = (uintptr_t) state_syncthread(thread) ;
-   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONABORT) ;
+   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONERR);
 ONINIT:
    if (counter) {
       if (0 == startthread_syncrun(s_test_srun, &mainwaitchain2_syncrun, (void*)(counter-1))) {
@@ -2928,7 +2928,7 @@ ONINIT:
 ONRUN:
    abortthread_syncrun(s_test_srun) ;
    return 0 ;
-ONABORT:
+ONERR:
    return 0 ;
 }
 
@@ -2974,7 +2974,7 @@ static int test_runwaitchain(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    s_test_srun = 0 ;
    s_test_execcount = 0 ;
    free_syncrun(&srun) ;
@@ -2998,7 +2998,7 @@ static int maintestabort_syncthread(syncthread_t * thread, uint32_t signalstate)
    assert(s_test_srun) ;
    assert(s_test_srun->running.thread == thread) ;
    testabortparam_t * param = state_syncthread(thread) ;
-   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONABORT) ;
+   handlesignal_syncthread(signalstate, continuelabel_syncrun(s_test_srun), ONINIT, ONRUN, ONERR);
 ONINIT:
    if (param->isrunner) {
       // no wait
@@ -3017,7 +3017,7 @@ ONINIT:
    return 0 ;
 ONRUN:
    return 0 ;
-ONABORT:
+ONERR:
    ++ param->abortcount ;
    return 0 ;
 }
@@ -3178,7 +3178,7 @@ static int test_abort(void)
    TEST(0 == free_syncrun(&srun)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    s_test_srun = 0 ;
    free_syncqueue(&wlistqueue) ;
    free_syncrun(&srun) ;
@@ -3187,19 +3187,19 @@ ONABORT:
 
 int unittest_task_syncrun()
 {
-   if (test_initqueueentry()) goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_internal())       goto ONABORT ;
-   if (test_threadlifetime()) goto ONABORT ;
-   if (test_synchronize())    goto ONABORT ;
-   if (test_run())            goto ONABORT ;
-   if (test_run2())           goto ONABORT ;
-   if (test_runwaitchain())   goto ONABORT ;
-   if (test_abort())          goto ONABORT ;
+   if (test_initqueueentry()) goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_internal())       goto ONERR;
+   if (test_threadlifetime()) goto ONERR;
+   if (test_synchronize())    goto ONERR;
+   if (test_run())            goto ONERR;
+   if (test_run2())           goto ONERR;
+   if (test_runwaitchain())   goto ONERR;
+   if (test_abort())          goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

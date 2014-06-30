@@ -82,7 +82,7 @@ static int init_processstdio2(/*out*/process_stdfd2_t * stdfd2, process_stdio_t 
       if (-1 == devnull) {
          err = errno ;
          TRACESYSCALL_ERRLOG("open(/dev/null,O_RDWR)", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -95,9 +95,9 @@ static int init_processstdio2(/*out*/process_stdfd2_t * stdfd2, process_stdio_t 
    stdfd2->devnull = devnull ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&devnull) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -108,11 +108,11 @@ static int free_processstdio2(process_stdfd2_t * stdfd2)
    int err ;
 
    err = free_iochannel(&stdfd2->devnull) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -142,7 +142,7 @@ static int redirectstdfd_processstdio2(const process_stdfd2_t * stdfd2, int stdf
             TRACESYSCALL_ERRLOG("dup2(fd, stdfd)", err) ;
             PRINTINT_ERRLOG(fd) ;
             PRINTINT_ERRLOG(stdfd) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
       // dup2: FD_CLOEXEC is cleared
@@ -153,8 +153,8 @@ static int redirectstdfd_processstdio2(const process_stdfd2_t * stdfd2, int stdf
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -178,11 +178,11 @@ static int redirectstdio_processstdio2(const process_stdfd2_t * stdfd2)
    err2 = redirectstdfd_processstdio2(stdfd2, STDERR_FILENO, stdfd2->stdfd.std_err) ;
    if (err2) err = err2 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -210,7 +210,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
       flags = FLAGS ;
       break ;
    default:
-      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONABORT, PRINTINT_ERRLOG(option)) ;
+      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONERR, PRINTINT_ERRLOG(option)) ;
       flags = FLAGS ;
       break ;
    }
@@ -223,7 +223,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
          err = errno ;
          TRACESYSCALL_ERRLOG("waitid",err) ;
          PRINTINT_ERRLOG(pid) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -248,8 +248,8 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -261,7 +261,7 @@ static int childprocess_exec(childprocess_exec_t  * execparam)
    execvp( execparam->filename, execparam->arguments ) ;
    err = errno ;
 
-// ONABORT:
+// ONERR:
 
    do {
       write_err = write( execparam->errpipe, &err, sizeof(&err)) ;
@@ -282,13 +282,13 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
    if ( pipe2(pipefd,O_CLOEXEC) ) {
       err = errno ;
       TRACESYSCALL_ERRLOG("pipe2", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    execparam.errpipe = pipefd[1] ;
 
    err = initgeneric_process(&childprocess, &childprocess_exec, &execparam, stdfd) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // CHECK exec error
    err = free_iochannel(&pipefd[1]) ;
@@ -305,7 +305,7 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
    if (-1 == read_bytes) {
       err = errno ;
       TRACESYSCALL_ERRLOG("read", err) ;
-      goto ONABORT ;
+      goto ONERR;
    } else if (read_bytes) {
       // EXEC error
       err = exec_err ? exec_err : ENOEXEC ;
@@ -314,20 +314,20 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
       for (size_t i = 0; arguments[i]; ++i) {
          PRINTARRAYFIELD_ERRLOG("s", arguments, i) ;
       }
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = free_iochannel(&pipefd[0]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *process = childprocess ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&pipefd[1]) ;
    free_iochannel(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -346,14 +346,14 @@ static int fork_process(/*out*/pid_t * pid)
    if (-1 == newpid) {
       err = errno ;
       TRACESYSCALL_ERRLOG("fork", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *pid = newpid ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -365,16 +365,16 @@ static int preparechild_process(process_stdio_t * stdfd/*0 => /dev/null*/)
    // TODO: MULTITHREAD: system handler for freeing thread resources (i.e. clear log, ...) ?!?
 
    err = init_processstdio2(&stdfd2, stdfd) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = redirectstdio_processstdio2(&stdfd2) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = free_processstdio2(&stdfd2) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_processstdio2(&stdfd2) ;
    return err ;
 }
@@ -388,7 +388,7 @@ int init_process(/*out*/process_t   *  process,
    pid_t pid = 0 ;
 
    err = fork_process(&pid) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (0 == pid) {
       // NEW CHILD PROCESS
@@ -401,8 +401,8 @@ int init_process(/*out*/process_t   *  process,
    *process = pid ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -422,12 +422,12 @@ int free_process(process_t * process)
       process_result_t result ;
       err = queryresult_process(pid, &result, queryoption_WAIT_AND_FREE) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -444,7 +444,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("prctl(PR_GET_NAME)", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    size_t size = 1 + strlen(buffer) ;
@@ -463,7 +463,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -473,13 +473,13 @@ int state_process(process_t * process, /*out*/process_state_e * current_state)
    process_result_t result ;
 
    err = queryresult_process(*process, &result, queryoption_NOWAIT) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *current_state = result.state ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -491,7 +491,7 @@ int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/)
    pid_t pid = 0 ;
 
    err = fork_process(&pid) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (0 != pid) {
       // calling process
@@ -504,12 +504,12 @@ int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/)
    if (  (pid_t)-1 == setsid()
          || 0 != chdir("/")) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -524,7 +524,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
       process_result_t state ;
 
       err = queryresult_process(pid, &state, queryoption_WAIT) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       switch(state.state) {
       case process_state_RUNNABLE:
@@ -542,8 +542,8 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -646,7 +646,7 @@ static int test_redirect(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -779,7 +779,7 @@ static int test_redirect2(void)
    TEST(0 == free_iochannel(&pipefd2[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_processstdio2(&stdfd2) ;
    for (int i = 0; i < 3; ++i) {
       if (-1 != oldstdfd[i]) {
@@ -918,7 +918,7 @@ static int test_initfree(void)
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
    if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;
@@ -989,7 +989,7 @@ static int test_abnormalexit(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -1026,7 +1026,7 @@ static int test_assert(void)
    TEST(0 == free_process(&process)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -1125,7 +1125,7 @@ static int test_statequery(void)
    TEST(0 == free_iochannel(&pipefd[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_process(&process) ;
    free_iochannel(&pipefd[0]) ;
    free_iochannel(&pipefd[1]) ;
@@ -1198,7 +1198,7 @@ static int test_exec(void)
    TEST(0 == free_iochannel(&fd[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&fd[0]) ;
    free_iochannel(&fd[1]) ;
    (void) free_process(&process) ;
@@ -1287,7 +1287,7 @@ static int test_daemon(void)
    TEST(0 == free_iochannel(&fd[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&fd[0]) ;
    free_iochannel(&fd[1]) ;
    (void) free_process(&process) ;
@@ -1296,14 +1296,14 @@ ONABORT:
 
 int unittest_platform_task_process()
 {
-   if (test_redirect())       goto ONABORT ;
-   if (test_redirect2())      goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_abnormalexit())   goto ONABORT ;
-   if (test_assert())         goto ONABORT ;
-   if (test_statequery())     goto ONABORT ;
-   if (test_exec())           goto ONABORT ;
-   if (test_daemon())         goto ONABORT ;
+   if (test_redirect())       goto ONERR;
+   if (test_redirect2())      goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_abnormalexit())   goto ONERR;
+   if (test_assert())         goto ONERR;
+   if (test_statequery())     goto ONERR;
+   if (test_exec())           goto ONERR;
+   if (test_daemon())         goto ONERR;
 
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
    uint8_t *logbuffer = 0 ;
@@ -1325,7 +1325,7 @@ int unittest_platform_task_process()
    PRINTF_ERRLOG("%s", buffer2) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

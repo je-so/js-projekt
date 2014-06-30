@@ -1,69 +1,53 @@
-[1: 1375541633.001431s]
+[1: 1403500290.216090s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:298
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541633.001437s]
+[1: 1403500290.216096s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541633.001440s]
+[1: 1403500290.216098s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:282
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-Function aborted
-[1: 1375541633.001443s]
+[1: 1403500290.216101s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:282
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-Function aborted
-[1: 1375541633.001445s]
+[1: 1403500290.216103s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-Function aborted
-[1: 1375541633.001448s]
+[1: 1403500290.216105s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-Function aborted
-[1: 1375541633.001450s]
+[1: 1403500290.216108s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
 Error 61 - No data available
-Function aborted
-[1: 1375541633.001453s]
+[1: 1403500290.216110s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
 Error 61 - No data available
-Function aborted
-[1: 1375541633.001455s]
+[1: 1403500290.216112s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
 Error 61 - No data available
-Function aborted
-[1: 1375541633.001771s]
+[1: 1403500290.216433s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1375541633.001774s]
+[1: 1403500290.216435s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1375541633.001776s]
+[1: 1403500290.216437s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1375541633.001779s]
+[1: 1403500290.216439s]
 resizelast_queue() C-kern/ds/inmem/queue.c:379
 Error 22 - Invalid argument
 Function input violates condition (newsize <= 512)
-Function aborted
-[1: 1375541633.001782s]
+[1: 1403500290.216442s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541633.001784s]
+[1: 1403500290.216444s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541633.002791s]
+[1: 1403500290.217115s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
 Error 12 - Cannot allocate memory
-Function aborted

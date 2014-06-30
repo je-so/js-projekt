@@ -1,21 +1,17 @@
-[1: 1401168956.112987s]
+[1: 1403500319.675876s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:80
 Error 22 - Invalid argument
-Function aborted
-[1: 1401168956.112991s]
+[1: 1403500319.675880s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:80
 Error 22 - Invalid argument
-Function aborted
-[1: 1401168956.112993s]
+[1: 1403500319.675882s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:66
 Error 22 - Invalid argument
 Function input violates condition (syswin != 0)
-Function aborted
-[1: 1401168956.113923s]
+[1: 1403500319.676826s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:80
 Error 22 - Invalid argument
-Function aborted
-[1: 1401168956.114478s]
+[1: 1403500319.677408s]
 free_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:103
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
+One or more resources could not be freed

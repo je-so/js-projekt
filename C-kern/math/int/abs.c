@@ -96,16 +96,16 @@ static int test_abs(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_abs()
 {
-   if (test_abs())    goto ONABORT ;
+   if (test_abs())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

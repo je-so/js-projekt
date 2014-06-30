@@ -1,20 +1,16 @@
-[1: 1375541645.701194s]
+[1: 1403500306.228520s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541645.701205s]
+[1: 1403500306.228536s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541645.701212s]
+[1: 1403500306.228556s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541645.701222s]
+[1: 1403500306.228579s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541645.701237s]
+[1: 1403500306.228611s]
 free_threadtls() C-kern/platform/Linux/task/thread_tls.c:178
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
+One or more resources could not be freed

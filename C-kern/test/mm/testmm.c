@@ -202,11 +202,11 @@ static int new_testmmpage(/*out*/testmm_page_t ** mmpage, size_t minblocksize, t
 
    if (minblocksize >= 16*1024*1024) {
       err = ENOMEM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = init_vmpage(&vmblock, datasize + extrasize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    new_mmpage = (testmm_page_t*) vmblock.addr ;
    new_mmpage->vmblock   = vmblock ;
@@ -215,16 +215,16 @@ static int new_testmmpage(/*out*/testmm_page_t ** mmpage, size_t minblocksize, t
    new_mmpage->next      = next ;
 
    err = protect_vmpage(&(vmpage_t)vmpage_INIT(pagesize_vm(), new_mmpage->datablock.addr - pagesize_vm()), accessmode_NONE) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = protect_vmpage(&(vmpage_t)vmpage_INIT(pagesize_vm(), new_mmpage->datablock.addr + new_mmpage->datablock.size), accessmode_NONE) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *mmpage = new_mmpage ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmpage(&vmblock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -239,12 +239,12 @@ static int delete_testmmpage(testmm_page_t ** mmpage)
       vmpage_t  vmblock = del_mmpage->vmblock ;
       err = free_vmpage(&vmblock) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -277,7 +277,7 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
    const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
    const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONERR, ) ;
 
    block = (testmm_block_t*) (memblock->addr - headersize) ;
    block->header.datasize = 0 ;
@@ -292,7 +292,7 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
 
          if (!isvalidtrailer_testmmblock(trailer)) {
             err = EINVAL;
-            goto ONABORT;
+            goto ONERR;
          }
 
          testmm_block_t * block2 = trailer->header[0];
@@ -311,8 +311,8 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
    *memblock = (memblock_t) memblock_FREE ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -346,7 +346,7 @@ static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct
    const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
    const size_t alignsize   =  alignsize_testmmblock(newsize) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONERR, ) ;
 
    block = (testmm_block_t*) (memblock->addr - headersize) ;
 
@@ -370,8 +370,8 @@ static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct
    memblock->size = newsize ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -389,7 +389,7 @@ static int getblock_testmmpage(testmm_page_t * mmpage, size_t blockindex, /*out*
          if (!isblockvalid_testmmpage(mmpage, &temp)) {
             err = EINVAL ;
             PRINTSIZE_ERRLOG(blockindex) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
 
@@ -399,8 +399,8 @@ static int getblock_testmmpage(testmm_page_t * mmpage, size_t blockindex, /*out*
    *memblock = (memblock_t) memblock_INIT(block->header.datasize, ((uint8_t*)block) + headersize) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -528,19 +528,19 @@ int switchon_testmm()
       memblock_t  previous_mm;
 
       err = initasmm_testmm(&testmm);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
       err = malloc_mm(testmm, sizeof(mm_t), &previous_mm);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
       err = installnew_testmm(&testmm);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    freeasmm_testmm(&testmm) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -553,15 +553,15 @@ int switchoff_testmm()
       mm_t testmm;
 
       err = installold_testmm(&testmm);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
       err = freeasmm_testmm(&testmm);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -573,14 +573,14 @@ int init_testmm(/*out*/testmm_t * mman)
    testmm_page_t  * mmpage = 0 ;
 
    err = new_testmmpage(&mmpage, 0, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    mman->mmpage        = mmpage ;
    mman->sizeallocated = 0 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -602,12 +602,12 @@ int free_testmm(testmm_t * mman)
 
       mman->sizeallocated = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -619,19 +619,19 @@ int initasmm_testmm(/*out*/mm_t * testmm)
    const size_t   objsize   = sizeof(testmm_t) ;
 
    err = init_testmm(&testmmobj) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = malloc_testmm(&testmmobj, objsize, &memblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memcpy(memblock.addr, &testmmobj, objsize) ;
 
    *testmm = (mm_t) mm_INIT((struct mm_t*) memblock.addr, genericcast_mmit(&s_testmm_interface, testmm_t)) ;
 
    return err ;
-ONABORT:
+ONERR:
    free_testmm(&testmmobj) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -649,12 +649,12 @@ int freeasmm_testmm(mm_t * testmm)
 
       *testmm = (mm_t) mm_FREE ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -699,12 +699,12 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
 
    if (isfree_memblock(memblock)) {
       err = malloc_testmm(mman, newsize, memblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else {
       testmm_page_t * mmpage = findpage_testmm(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       size_t freesize = memblock->size ;
@@ -714,12 +714,12 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
          mman->sizeallocated += memblock->size ;
 
       } else {
-         if (ENOMEM != err) goto ONABORT ;
+         if (ENOMEM != err) goto ONERR;
 
          memblock_t newmemblock ;
 
          err = malloc_testmm(mman, newsize, &newmemblock) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          // copy content
          memcpy(newmemblock.addr, memblock->addr, memblock->size < newsize ? memblock->size : newsize) ;
@@ -727,7 +727,7 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
          err = freeblock_testmmpage(mmpage, memblock) ;
          if (err) {
             (void) freeblock_testmmpage(mman->mmpage, &newmemblock) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          *memblock = newmemblock ;
       }
@@ -736,11 +736,11 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (ENOMEM == err) {
       TRACEOUTOFMEM_ERRLOG(newsize, err) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -752,13 +752,13 @@ int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock)
       testmm_page_t * mmpage = findpage_testmm(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       size_t freesize = memblock->size ;
 
       err = freeblock_testmmpage(mmpage, memblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       *memblock = (memblock_t) memblock_FREE ;
       mman->sizeallocated -= freesize ;
@@ -770,15 +770,15 @@ int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock)
             mmpage = mman->mmpage;
             mman->mmpage = mman->mmpage->next ;
             err = delete_testmmpage(&mmpage) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
       }
 
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -949,7 +949,7 @@ static int test_testmmpage(void)
    TEST(0 == delete_testmmpage(&mmpage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_testmmpage(&mmpage) ;
    free_vmmappedregions(&mapping) ;
    return EINVAL ;
@@ -1005,7 +1005,7 @@ static int test_initfree(void)
    TEST(0 == mmobj.iimpl) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_testmm(&testmm) ;
    freeasmm_testmm(&mmobj) ;
    return EINVAL ;
@@ -1172,7 +1172,7 @@ static int test_allocate(void)
    TEST(0 == free_testmm(&testmm)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_testmm(&testmm) ;
    return EINVAL ;
 }
@@ -1213,7 +1213,7 @@ static int test_context(void * dummy)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    switchoff_testmm();
    if (istestmm) {
       installnew_testmm(&testmm) ;
@@ -1223,13 +1223,13 @@ ONABORT:
 
 int unittest_test_mm_testmm()
 {
-   if (test_testmmpage())  goto ONABORT ;
-   if (test_initfree())    goto ONABORT ;
-   if (test_allocate())    goto ONABORT ;
-   if (test_context(0))     goto ONABORT ;
+   if (test_testmmpage())  goto ONERR;
+   if (test_initfree())    goto ONERR;
+   if (test_allocate())    goto ONERR;
+   if (test_context(0))     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

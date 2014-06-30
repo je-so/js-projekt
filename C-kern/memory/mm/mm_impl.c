@@ -99,7 +99,7 @@ int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memb
       || !(addr = malloc(size))) {
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(size, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    memblock->addr = addr ;
@@ -108,8 +108,8 @@ int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memb
    mman->size_allocated += memblock->size ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -125,7 +125,7 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
       return mfree_mmimpl(mman, memblock) ;
    }
 
-   VALIDATE_INPARAM_TEST(isfree_memblock(memblock) || isvalid_memblock(memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isfree_memblock(memblock) || isvalid_memblock(memblock), ONERR, ) ;
 
    mman->size_allocated -= sizeusable_malloc(memblock->addr) ;
 
@@ -134,7 +134,7 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
       mman->size_allocated += sizeusable_malloc(memblock->addr) ;
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(newsize, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    memblock->addr = addr ;
@@ -143,8 +143,8 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
    mman->size_allocated += memblock->size ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -155,7 +155,7 @@ int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock)
 
    if (memblock->addr) {
 
-      VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONERR, ) ;
 
       mman->size_allocated -= sizeusable_malloc(memblock->addr) ;
 
@@ -167,8 +167,8 @@ int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -195,7 +195,7 @@ static int test_initfree(void)
    TEST(0 == mman.size_allocated) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -210,7 +210,7 @@ static int test_initthread(void)
    TEST(interface_mmimpl() == genericcast_mmit(&s_mmimpl_interface, mm_impl_t)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -231,7 +231,7 @@ static int test_query(void)
    TEST(2000 == sizeallocated_mmimpl(&mman)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -316,7 +316,7 @@ static int test_allocate(void)
    TEST(0 == free_mmimpl(&mman)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_mmimpl(&mman) ;
    return EINVAL ;
 }
@@ -385,7 +385,7 @@ static int test_mm_macros(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -393,21 +393,21 @@ static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_FREE ;
 
-   if (test_allocate())    goto ONABORT ;
+   if (test_allocate())    goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ONABORT ;
-   if (test_initthread())  goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_allocate())    goto ONABORT ;
-   if (test_mm_macros())   goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_initthread())  goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_allocate())    goto ONERR;
+   if (test_mm_macros())   goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -419,7 +419,7 @@ int unittest_memory_mm_mmimpl()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

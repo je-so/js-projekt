@@ -98,7 +98,7 @@ static int test_initfree_event(void)
    TEST(&event == waiting.event) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -128,7 +128,7 @@ static int test_query_event(void)
    TEST(waiting_syncevent(&event) == 0) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -172,7 +172,7 @@ static int test_initfree(void)
    TEST(event.waiting           == &waiting2) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -202,7 +202,7 @@ static int test_query(void)
    TEST(3 == (uintptr_t)continuelabel_syncwait(&waiting2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -226,20 +226,20 @@ static int test_update(void)
    TEST(waiting.continuelabel == (void*)11) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_task_syncwait()
 {
-   if (test_initfree_event()) goto ONABORT ;
-   if (test_query_event())    goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_update())         goto ONABORT ;
+   if (test_initfree_event()) goto ONERR;
+   if (test_query_event())    goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_update())         goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -66,7 +66,7 @@ static inline void initvariables_filereader(filereader_t * frd)
    frd->nextindex    = 0 ;
    frd->nrfreebuffer = 2 ;
    // fileoffset set or cleared in init_filereader or initsingle_filereader
-   // filesize set in initfile_filreader and cleared in ONABORT handler of init_filereader or initsingle_filereader
+   // filesize set in initfile_filreader and cleared in ONERR handler of init_filereader or initsingle_filereader
    frd->file      = (file_t) file_FREE ;
    frd->mmfile[0] = (filereader_mmfile_t) mmfile_FREE ;
    frd->mmfile[1] = (filereader_mmfile_t) mmfile_FREE ;
@@ -123,25 +123,25 @@ int init_filereader(/*out*/filereader_t * frd, const char * filepath, const stru
    initvariables_filereader(frd) ;
 
    err = initfile_filereader(&frd->file, &frd->filesize, filepath, relative_to) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (frd->filesize <= bufsize) {
       err = initsinglebuffer_filereader(frd->mmfile, frd->file, (size_t)frd->filesize) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       frd->unreadsize = (size_t) frd->filesize ;
       frd->fileoffset = frd->filesize ;
 
    } else {
       err = initdoublebuffer_filereader(frd->mmfile, frd->file, bufsize) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       frd->unreadsize = bufsize ;
       frd->fileoffset = bufsize ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_filereader(frd) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -152,24 +152,24 @@ int initsingle_filereader(/*out*/filereader_t * frd, const char * filepath, cons
    initvariables_filereader(frd) ;
 
    err = initfile_filereader(&frd->file, &frd->filesize, filepath, relative_to) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // check that filesize can be casted into type size_t without loss of information
    if (sizeof(frd->filesize) > sizeof(size_t) && frd->filesize >= (off_t)SIZE_MAX) {
       err = ENOMEM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = initsinglebuffer_filereader(frd->mmfile, frd->file, (size_t)frd->filesize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    frd->unreadsize = (size_t) frd->filesize ;
    frd->fileoffset = frd->filesize ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_filereader(frd) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -192,11 +192,11 @@ int free_filereader(filereader_t * frd)
    err2 = free_mmfile(genericcast_mmfile(&frd->mmfile[1],,)) ;
    if (err2) err = err2 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -238,7 +238,7 @@ static int readnextblock_filereader(filereader_t * frd, int nextindex)
    }
 
    err = seek_mmfile(genericcast_mmfile(&frd->mmfile[nextindex],,), frd->file, frd->fileoffset, accessmode_READ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    off_t  unreadsize = frd->filesize - frd->fileoffset ;
    size_t buffersize = frd->mmfile[nextindex].size ;
@@ -251,9 +251,9 @@ static int readnextblock_filereader(filereader_t * frd, int nextindex)
    frd->fileoffset += buffersize ;
 
    return 0 ;
-ONABORT:
+ONERR:
    frd->ioerror = err ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -270,7 +270,7 @@ int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffe
       // ENODATA is not logged
       if (frd->fileoffset == frd->filesize) return ENODATA ;
       err = ENOBUFS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    size_t    buffersize = frd->mmfile[frd->nextindex].size ;
@@ -288,8 +288,8 @@ int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffe
    frd->nextindex   = ! frd->nextindex ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -363,7 +363,7 @@ static int test_initfree(directory_t * tempdir)
       switch (ti) {
       case 1:  TEST(0 == init_filereader(&frd, "single", tempdir)) ; break ;
       case 2:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
-      default: goto ONABORT ;
+      default: goto ONERR;
       }
       TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) != 0) ;
       TEST(size_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) == ti*B) ;
@@ -418,7 +418,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "double")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    removefile_directory(tempdir, "big") ;
    removefile_directory(tempdir, "single") ;
    removefile_directory(tempdir, "double") ;
@@ -481,7 +481,7 @@ static int test_query(void)
    TEST(1 == isnext_filereader(&frd)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -496,7 +496,7 @@ static int test_setter(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -521,7 +521,7 @@ static int test_read(directory_t * tempdir)
       case 1:  TEST(0 == init_filereader(&frd, "single", tempdir)) ; break ;
       case 2:  TEST(0 == initsingle_filereader(&frd, "single", tempdir)) ; break ;
       case 3:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
-      default: goto ONABORT ;
+      default: goto ONERR;
       }
 
       // release_filereader: changes nothing if frd.nrfreebuffer == 2
@@ -653,7 +653,7 @@ static int test_read(directory_t * tempdir)
       switch (ti) {
       case 1:  TEST(0 == initsingle_filereader(&frd, "single", tempdir)) ; break ;
       case 2:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
-      default: goto ONABORT ;
+      default: goto ONERR;
       }
       // call ignored if frd.nrfreebuffer == 2
       unread_filereader(&frd) ;
@@ -759,7 +759,7 @@ static int test_read(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "double")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&mem) ;
    removefile_directory(tempdir, "single") ;
    removefile_directory(tempdir, "double") ;
@@ -775,10 +775,10 @@ int unittest_io_reader_filereader()
    TEST(0 == newtemp_directory(&tempdir, "filereader")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
-   if (test_initfree(tempdir))   goto ONABORT ;
-   if (test_query())             goto ONABORT ;
-   if (test_setter())            goto ONABORT ;
-   if (test_read(tempdir))       goto ONABORT ;
+   if (test_initfree(tempdir))   goto ONERR;
+   if (test_query())             goto ONERR;
+   if (test_setter())            goto ONERR;
+   if (test_read(tempdir))       goto ONERR;
 
    /* adapt log */
    uint8_t *logbuffer;
@@ -797,7 +797,7 @@ int unittest_io_reader_filereader()
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    return EINVAL ;

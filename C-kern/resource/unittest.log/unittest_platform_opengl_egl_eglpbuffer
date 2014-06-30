@@ -1,20 +1,16 @@
-[1: 1398507145.846413s]
+[1: 1403500319.613748s]
 free_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:97
 Error 13 - Permission denied
-Function aborted - one or more resources could not be freed
-[1: 1398507145.846638s]
+One or more resources could not be freed
+[1: 1403500319.614130s]
 size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:120
 Error 22 - Invalid argument
-Function aborted
-[1: 1398507145.846645s]
+[1: 1403500319.614134s]
 size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:120
 Error 22 - Invalid argument
-Function aborted
-[1: 1398507145.847302s]
+[1: 1403500319.615889s]
 configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:139
 Error 22 - Invalid argument
-Function aborted
-[1: 1398507145.847308s]
+[1: 1403500319.615891s]
 configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:139
 Error 22 - Invalid argument
-Function aborted

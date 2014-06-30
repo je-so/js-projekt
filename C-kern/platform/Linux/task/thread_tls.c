@@ -104,12 +104,12 @@ int init_threadtls(/*out*/thread_tls_t * tls)
                            + sizestack ;
    vmpage_t    mempage   = memblock_FREE ;
 
-   VALIDATE_STATE_TEST(size <= size_threadtls(), ONABORT, ) ;
+   VALIDATE_STATE_TEST(size <= size_threadtls(), ONERR, ) ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
 
    err = initaligned_vmpage(&mempage, size_threadtls()) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    /* -- memory block layout --
     * low :  thread local variables (1 page)
@@ -122,25 +122,25 @@ int init_threadtls(/*out*/thread_tls_t * tls)
     */
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
       vmpage_t protpage = vmpage_INIT(pagesize, mempage.addr + sizevars) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
       vmpage_t protpage = vmpage_INIT(pagesize, mempage.addr + sizevars + sizesigst + pagesize) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
       size_t   offset   = sizevars + sizesigst + sizestack + 2*pagesize ;
       vmpage_t protpage = vmpage_INIT(size_threadtls() - offset, mempage.addr + offset) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    static_assert(
@@ -152,9 +152,9 @@ int init_threadtls(/*out*/thread_tls_t * tls)
    tls->addr = mempage.addr ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmpage(&mempage) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -168,14 +168,14 @@ int free_threadtls(thread_tls_t * tls)
 
       err = free_vmpage(&mempage) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
-      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -189,51 +189,51 @@ int initmain_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * thr
    size_t   size      = 2*size_threadtls() - pagesize ;
    void *   addr      = MAP_FAILED ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
    if (addr == MAP_FAILED) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint8_t * aligned_addr = (uint8_t*) (((uintptr_t)addr + size_threadtls()-1) & ~(uintptr_t)(size_threadtls()-1)) ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    if ((uint8_t*)addr < aligned_addr) {
       if (munmap(addr, (size_t)(aligned_addr - (uint8_t*)addr))) {
          err = errno ;
-         goto ONABORT ;
+         goto ONERR;
       }
       size -= (size_t) (aligned_addr - (uint8_t*)addr) ;
       addr  = aligned_addr ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    if (size > size_threadtls()) {
       if (munmap((uint8_t*)addr + size_threadtls(), size - size_threadtls())) {
          err = errno ;
-         goto ONABORT ;
+         goto ONERR;
       }
       size = size_threadtls() ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    if (mprotect((uint8_t*)addr + sizevars, pagesize, PROT_NONE)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    if (mprotect((uint8_t*)addr + sizevars + sizesigst + pagesize, pagesize, PROT_NONE)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    size_t offset = sizevars + sizesigst + sizestack + 2*pagesize ;
    if (mprotect((uint8_t*)addr + offset, size_threadtls() - offset, PROT_NONE)) {
       err = errno ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    * (thread_vars_t*) addr = (thread_vars_t) thread_vars_INIT_STATIC ;
@@ -243,7 +243,7 @@ int initmain_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * thr
    *signalstack = (memblock_t) memblock_INIT(sizesigst, (uint8_t*)addr + sizevars + pagesize) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (addr != MAP_FAILED) {
       munmap(addr, size) ;
    }
@@ -260,13 +260,13 @@ int freemain_threadtls(thread_tls_t * tls)
 
       tls->addr = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
-      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONERR);
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -359,7 +359,7 @@ static int test_initfree(void)
    TEST(0 == tls.addr) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_threadtls(&tls) ;
    return EINVAL ;
 }
@@ -439,7 +439,7 @@ static int test_initmain(void)
    TEST(0 == tls.addr) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_threadtls(&tls) ;
    return EINVAL ;
 }
@@ -528,7 +528,7 @@ static int test_query(void)
    TEST(sys_thread_threadtls() == thread_threadtls(&current_threadtls(&tls))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_threadtls(&tls) ;
    return EINVAL ;
 }
@@ -551,20 +551,20 @@ static int test_generic(void)
    TEST(ptr == genericcast_threadtls(&tls2,prefix_)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_threadtls(&tls) ;
    return EINVAL ;
 }
 
 int unittest_platform_task_thread_tls()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_initmain())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_generic())     goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_initmain())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_generic())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

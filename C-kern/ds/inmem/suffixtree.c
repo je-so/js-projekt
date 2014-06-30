@@ -143,13 +143,13 @@ static suffixtree_iterator_t * pushnew_iterlist(slist_t * stack)
    suffixtree_iterator_t * iter ;
 
    err = new_suffixtreeiterator(&iter) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    iter->next = 0 ;
 
    insertfirst_iterlist(stack, iter) ;
 
    return iter ;
-ONABORT:
+ONERR:
    return 0 ;
 }
 
@@ -608,11 +608,11 @@ int free_suffixtree(suffixtree_t * tree)
    int err ;
 
    err = clear_suffixtree(tree) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -655,7 +655,7 @@ static int replacechild_suffixtree(suffixtree_t * tree, suffixtree_node_t * pare
    } else {
       while (node->next_child != old_child) {
          node = node->next_child ;
-         if (!node) goto ONABORT ;
+         if (!node) goto ONERR;
       }
 
       node->next_child = new_child ;
@@ -665,8 +665,8 @@ static int replacechild_suffixtree(suffixtree_t * tree, suffixtree_node_t * pare
    old_child->next_child = 0 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(EINVAL) ;
+ONERR:
+   TRACEEXIT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -689,7 +689,7 @@ static int splitnode_suffixtree(suffixtree_t * tree, suffixtree_pos_t * pos)
    suffixtree_node_t * node ;
 
    err = new_suffixtreenode(&node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    INIT_AS_NODE(node, pos->matched_len, STR_START(pos->node)) ;
    node->childs      = pos->node ;
@@ -698,7 +698,7 @@ static int splitnode_suffixtree(suffixtree_t * tree, suffixtree_pos_t * pos)
    err = replacechild_suffixtree(tree, pos->parent, /*old_child*/pos->node, /*new_child*/node) ;
    if (err) {
       delete_suffixtreenode(&node) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    SKIP_STR_BYTES(pos->node, pos->matched_len) ;
@@ -706,8 +706,8 @@ static int splitnode_suffixtree(suffixtree_t * tree, suffixtree_pos_t * pos)
    pos->node        = node ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -767,7 +767,7 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
 
          // next character does not match => split node + create leaf
          err = splitnode_suffixtree(tree, &state->pos) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          // if a previous split goes into this else part
          // this code to set the suffix pointer is always reached
          // cause the previous split node has at least two different childs so this node must also be split
@@ -780,12 +780,12 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
       if (state->pos.node || state->suffix.size) {
          suffixtree_leaf_t * leaf ;
          err = new_suffixtreeleaf(&leaf) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          INIT_AS_LEAF(leaf, state->suffix.size, state->suffix.addr) ;
          err = insertchild_suffixtree(tree, state->pos.node, (suffixtree_node_t*)leaf) ;
          if (err) {
             delete_suffixtreeleaf(&leaf) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
 
@@ -818,7 +818,7 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
          // go down tree until match.size bytes matched (if no child exists ! internal error !)
          for (;;) {
             err = findchild_suffixtree(tree, state->pos.parent, match.addr[0], &state->pos.node) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
 
             size_t nodelen = STR_SIZE(state->pos.node) ;
             if (  ISLEAF(state->pos.node) /* INFO: applies here (3) */
@@ -840,8 +840,8 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -853,17 +853,17 @@ int build_suffixtree(suffixtree_t * tree, size_t length, const uint8_t input_str
                            && length
                            /* One bit in <suffixtree_lead_t.str_size> is reserved
                             * (to discriminate between type LEAF or NODE). */
-                           && length <= ((size_t)-1)/2, ONABORT, ) ;
+                           && length <= ((size_t)-1)/2, ONERR, ) ;
 
    err = clear_suffixtree(tree) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    suffixtree_addstate_t addstate = suffixtree_addstate_INIT(length, input_string) ;
 
    while (!isempty_string(&addstate.suffix)) {
 
       err = addchar_suffixtree(tree, &addstate) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       skipbyte_string(&addstate.suffix) ;
    }
@@ -871,15 +871,15 @@ int build_suffixtree(suffixtree_t * tree, size_t length, const uint8_t input_str
    if (addstate.pos.node) {
       // add (end-marker) so all positions of suffixes are remembered in leaf nodes
       err = addchar_suffixtree(tree, &addstate) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    tree->maxlength = length ;
 
    return 0 ;
-ONABORT:
+ONERR:
    clear_suffixtree(tree) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -920,11 +920,11 @@ int clear_suffixtree(suffixtree_t * tree)
    }
 
    tree->maxlength = 0 ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -967,11 +967,11 @@ int dump_suffixtree(suffixtree_t * tree, cstring_t * cstr)
    clear_cstring(cstr) ;
 
    err = dumpnode_stree(tree, cstr, 0, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1094,7 +1094,7 @@ int matchall_suffixtree(
          suffixtree_iterator_t * nextpos = pushnew_iterlist(&posstack) ;
          if (!nextpos) {
             err = ENOMEM ;
-            goto ONABORT ;
+            goto ONERR;
          }
          nextpos->prefixlen  = prefixlen ;
          nextpos->next_child = node->childs ;
@@ -1110,7 +1110,7 @@ int matchall_suffixtree(
          if (!node) {
             removefirst_iterlist(&posstack, &nextpos) ;
             err = delete_suffixtreeiterator(&nextpos) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          } else {
             prefixlen = nextpos->prefixlen ;
             nextpos->next_child = node->next_child ;
@@ -1131,12 +1131,12 @@ int matchall_suffixtree(
 
    *matched_count = leaf_count ;
    err = free_iterlist(&posstack, genericcast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_iterlist(&posstack, genericcast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1175,7 +1175,7 @@ static int test_initfree(void)
    TEST(0 == tree.maxlength) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_suffixtree(&tree) ;
    return EINVAL ;
 }
@@ -1438,7 +1438,7 @@ static int test_suffixtree(void)
    TEST(0 == free_suffixtree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_suffixtree(&tree) ;
    return EINVAL ;
 }
@@ -1452,7 +1452,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3405,3478,3607,3678,3792,4075,4162,4276,4393,4478,4591,4756,4835,4911,4989,5065,44188,44466,45289,45472,60047,60171,60284,60339};
+   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3405,3478,3607,3678,3792,4075,4162,4276,4393,4478,4591,4756,4835,4911,4989,5065,44115,44390,45210,45388,59957,60081,60194,60249};
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;
@@ -1484,7 +1484,7 @@ static int test_matchfile(void)
    TEST(0 == free_suffixtree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_mmfile(&sourcefile) ;
    free_suffixtree(&tree) ;
    return EINVAL ;
@@ -1545,7 +1545,7 @@ static int test_dump(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    return EINVAL ;
 }
@@ -1554,20 +1554,20 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE ;
 
-   if (test_dump())           goto ONABORT ;
+   if (test_dump())           goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ONABORT ;
-   if (test_suffixtree())     goto ONABORT ;
-   if (test_matchfile())      goto ONABORT ;
-   if (test_dump())           goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_suffixtree())     goto ONERR;
+   if (test_matchfile())      goto ONERR;
+   if (test_dump())           goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -1579,7 +1579,7 @@ int unittest_ds_inmem_suffixtree()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

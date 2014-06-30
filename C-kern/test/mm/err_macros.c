@@ -89,7 +89,7 @@ static int test_mm_macros(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -136,18 +136,18 @@ static int test_releasemode(void)
    TEST(1 == errtimer.timercount) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 
 int unittest_test_mm_mm_test()
 {
-   if (test_mm_macros())      goto ONABORT ;
-   if (test_releasemode())    goto ONABORT ;
+   if (test_mm_macros())      goto ONERR;
+   if (test_releasemode())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

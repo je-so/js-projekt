@@ -55,14 +55,14 @@ int skip_convertwchar(convert_wchar_t * conv, size_t char_count)
 
       if (!conv->len) {
          err = ENODATA ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       size_t bytes = mbrtowc( &dummy, conv->next, conv->len, &conv->internal_state) ;
 
       if (bytes > conv->len) {
          err = EILSEQ ;
-         goto ONABORT ;
+         goto ONERR;
       } else {
          conv->len  -= bytes ;
          conv->next += bytes ;
@@ -70,8 +70,8 @@ int skip_convertwchar(convert_wchar_t * conv, size_t char_count)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -93,7 +93,7 @@ int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t *
 
       if (bytes > conv2.len) {
          err = EILSEQ ;
-         goto ONABORT ;
+         goto ONERR;
       } else {
          conv2.len  -= bytes ;
          conv2.next += bytes ;
@@ -101,8 +101,8 @@ int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t *
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -273,7 +273,7 @@ static int test_fromutf8(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_convertwchar(&conv) ;
    return EINVAL ;
 }
@@ -282,17 +282,17 @@ static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_FREE ;
 
-   if (test_fromutf8()) goto ONABORT ;
+   if (test_fromutf8()) goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_fromutf8()) goto ONABORT ;
+   if (test_fromutf8()) goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -304,7 +304,7 @@ int unittest_string_convertwchar()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

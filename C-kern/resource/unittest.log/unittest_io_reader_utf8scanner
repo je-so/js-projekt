@@ -1,73 +1,55 @@
-[1: 1376308494.575758s]
+[1: 1403500287.242650s]
 unread_utf8scanner() C-kern/io/reader/utf8scanner.c:315
 Error 22 - Invalid argument
-Function aborted
-[1: 1376308494.575892s]
+[1: 1403500287.242812s]
 unread_utf8scanner() C-kern/io/reader/utf8scanner.c:315
 Error 22 - Invalid argument
-Function aborted
-[1: 1376308494.576015s]
+[1: 1403500287.242992s]
 unread_utf8scanner() C-kern/io/reader/utf8scanner.c:315
 Error 22 - Invalid argument
-Function aborted
-[1: 1376308494.576145s]
+[1: 1403500287.243159s]
 unread_utf8scanner() C-kern/io/reader/utf8scanner.c:315
 Error 22 - Invalid argument
-Function aborted
-[1: 1376308494.581957s]
+[1: 1403500287.248875s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581961s]
+[1: 1403500287.248878s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581964s]
+[1: 1403500287.248880s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581966s]
+[1: 1403500287.248882s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581968s]
+[1: 1403500287.248884s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581970s]
+[1: 1403500287.248886s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581971s]
+[1: 1403500287.248888s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581973s]
+[1: 1403500287.248890s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581975s]
+[1: 1403500287.248891s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581977s]
+[1: 1403500287.248893s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581979s]
+[1: 1403500287.248895s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.581989s]
+[1: 1403500287.248907s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.582067s]
+[1: 1403500287.248989s]
 nextchar_utf8scanner() C-kern/io/reader/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
-Function aborted
-[1: 1376308494.588651s]
+[1: 1403500287.255170s]
 skipuntilafter_utf8scanner() C-kern/io/reader/utf8scanner.c:159
 Error 22 - Invalid argument
 Function input violates condition (utf8len != 0)
-Function aborted

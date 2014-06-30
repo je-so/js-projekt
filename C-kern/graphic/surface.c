@@ -61,7 +61,7 @@ static int test_initfree(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -88,17 +88,17 @@ static int test_generic(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
 int unittest_graphic_surface()
 {
-   if (test_initfree())    goto ONABORT;
-   if (test_generic())     goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_generic())     goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

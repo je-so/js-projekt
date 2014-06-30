@@ -74,7 +74,7 @@ static int test_initfree(void)
    TEST(0 == isvalid_memblock(&mblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -98,7 +98,7 @@ static int test_fill(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -193,7 +193,7 @@ static int test_resize(void)
    TEST(size_memblock(&mblock) == 10000) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -224,19 +224,19 @@ static int test_generic(void)
    TEST(mblock2.size    == sizeof(buffer)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_memory_memblock()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_fill())        goto ONABORT ;
-   if (test_resize())      goto ONABORT ;
-   if (test_generic())     goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_fill())        goto ONERR;
+   if (test_resize())      goto ONERR;
+   if (test_generic())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

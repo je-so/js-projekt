@@ -45,7 +45,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
 
    if (preallocate_size) {
       err = RESIZE_MM(preallocate_size, &strmem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    cstr->size           = 0 ;
@@ -53,8 +53,8 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
    cstr->chars          = strmem.addr ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -64,18 +64,18 @@ int initfromstring_cstring(/*out*/cstring_t * cstr, const struct string_t * copi
 
    if (copiedfrom->size) {
       err = init_cstring(cstr, copiedfrom->size + 1) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       err = append_cstring(cstr, copiedfrom->size, (const char*) copiedfrom->addr) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else {
       err = init_cstring(cstr, copiedfrom->size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -88,12 +88,12 @@ int free_cstring(cstring_t * cstr)
       MEMSET0(cstr) ;
 
       err = FREE_MM(&strmem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -114,7 +114,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
       }
 
       err = RESIZE_MM(new_size, &strmem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       if (!cstr->chars) {
          // allocation done for first time => add trailing '\0' byte
@@ -126,8 +126,8 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -137,11 +137,11 @@ ONABORT:
       if (allocate_size < append_size) {                       \
          err = ENOMEM ;                                        \
          TRACEOUTOFMEM_ERRLOG(SIZE_MAX, err) ;                 \
-         goto ONABORT ;                                        \
+         goto ONERR;                                           \
       }                                                        \
                                                                \
       err = allocate_cstring(cstr, allocate_size) ;            \
-      if (err) goto ONABORT ;                                  \
+      if (err) goto ONERR;                                     \
    }
 
 int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
@@ -159,8 +159,8 @@ int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
    cstr->chars[cstr->size]  = 0 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -183,7 +183,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
          if (append_size_ < 0) {
             err = ENOMEM ;
             TRACEOUTOFMEM_ERRLOG(SIZE_MAX, err) ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          append_size  = (size_t) append_size_ ;
@@ -198,9 +198,9 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (cstr->allocated_size) cstr->chars[cstr->size] = 0 ;
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -210,7 +210,7 @@ int resize_cstring(cstring_t * cstr, size_t new_size)
 
    if (new_size < cstr->size) {
       err = truncate_cstring(cstr, new_size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else if (new_size > cstr->size) {
       size_t append_size = new_size - cstr->size ;
       EXPAND_cstring(cstr, append_size) ;
@@ -219,8 +219,8 @@ int resize_cstring(cstring_t * cstr, size_t new_size)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -228,7 +228,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_size)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(new_size <= cstr->size, ONABORT, PRINTSIZE_ERRLOG(cstr->size) ; PRINTSIZE_ERRLOG(new_size)) ;
+   VALIDATE_INPARAM_TEST(new_size <= cstr->size, ONERR, PRINTSIZE_ERRLOG(cstr->size) ; PRINTSIZE_ERRLOG(new_size)) ;
 
    if (new_size < cstr->size) {
       cstr->size            = new_size ;
@@ -236,8 +236,8 @@ int truncate_cstring(cstring_t * cstr, size_t new_size)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -328,7 +328,7 @@ static int test_initfree(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    free_cstring(&cstr2) ;
    return EINVAL ;
@@ -474,7 +474,7 @@ static int test_changeandquery(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    free_cstring(&cstr2) ;
    return EINVAL ;
@@ -505,7 +505,7 @@ static int test_clear(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    return EINVAL ;
 }
@@ -565,20 +565,20 @@ static int test_resize(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    return EINVAL ;
 }
 
 int unittest_string_cstring()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_changeandquery()) goto ONABORT ;
-   if (test_clear())          goto ONABORT ;
-   if (test_resize())         goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_changeandquery()) goto ONERR;
+   if (test_clear())          goto ONERR;
+   if (test_resize())         goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

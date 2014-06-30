@@ -43,7 +43,7 @@ int init_logbuffer(/*out*/logbuffer_t * logbuf, uint32_t buffer_size, uint8_t bu
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(buffer_size > log_config_MINSIZE, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(buffer_size > log_config_MINSIZE, ONERR,) ;
 
    logbuf->addr = buffer_addr ;
    logbuf->size = buffer_size ;
@@ -52,8 +52,8 @@ int init_logbuffer(/*out*/logbuffer_t * logbuf, uint32_t buffer_size, uint8_t bu
    logbuf->addr[0] = 0 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -70,12 +70,12 @@ int free_logbuffer(logbuffer_t * logbuf)
       logbuf->io = iochannel_FREE ;
    } else {
       err = free_iochannel(&logbuf->io) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -175,6 +175,24 @@ void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
    va_end(args) ;
 }
 
+// convert parameter list from LOGENTRY_HEADER_ERRLOG to vLOGENTRY_HEADER_ERRLOG
+static inline void _LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuf, ...)
+{
+   va_list args;
+   va_start(args, logbuf);
+   vLOGENTRY_HEADER_ERRLOG(logbuf, args);
+   va_end(args);
+}
+
+// convert parameter list from LOGENTRY_HEADER_ERROR_ERRLOG to vLOGENTRY_HEADER_ERROR_ERRLOG
+static inline void _LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuf, ...)
+{
+   va_list args;
+   va_start(args, logbuf);
+   vLOGENTRY_HEADER_ERROR_ERRLOG(logbuf, args);
+   va_end(args);
+}
+
 void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header)
 {
    struct timeval tv ;
@@ -185,8 +203,16 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
    static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
    static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
 
-   LOGENTRY_HEADER_ERRLOG(logbuf, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr) ;
-   LOGENTRY_HEADER_ERROR_ERRLOG(logbuf, header->err, (const char*)str_errorcontext(error_maincontext(), header->err)) ;
+#define CALL(NAME, ...) \
+   if (0) {                               \
+      /* check correct parameter type */  \
+      NAME(logbuf, __VA_ARGS__);          \
+   } else {                               \
+      _ ## NAME(logbuf, __VA_ARGS__);     \
+   }
+   CALL(LOGENTRY_HEADER_ERRLOG, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
+   CALL(LOGENTRY_HEADER_ERROR_ERRLOG, header->err, (const char*)str_errorcontext(error_maincontext(), header->err));
+#undef CALL
 }
 
 
@@ -260,7 +286,7 @@ static int test_initfree(void)
    TEST(sys_iochannel_FREE == logbuf.io) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -333,7 +359,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -356,7 +382,7 @@ static int compare_header(size_t buffer_size, uint8_t buffer_addr[buffer_size], 
    TEST(0 == memcmp(buffer, buffer_addr, strlen(buffer))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -368,7 +394,7 @@ static int thread_printheader(logbuffer_t * logbuf)
    TEST(0 == compare_header(logbuf->logsize, logbuf->addr, "thread_printheader", __FILE__, 100, ENOMEM)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    CLEARBUFFER_ERRLOG() ;
    return EINVAL ;
 }
@@ -489,12 +515,18 @@ static int test_update(void)
    TEST(0 == memcmp(logbuf.addr + logbuf.size - sizeof(strtoobig), strtoobig, sizeof(strtoobig)-5)) ;
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 5, " ...", 5)) ;
 
+   // TEST vprintf_logbuffer: format == 0
+   logbuf.logsize = 0 ;
+   printf_logbuffer(&logbuf, 0);
+   // nothing printed
+   TEST(0 == logbuf.logsize);
+
    // unprepare
    free_iochannel(&pipefd[0]) ;
    free_iochannel(&pipefd[1]) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread) ;
    free_iochannel(&pipefd[0]) ;
    free_iochannel(&pipefd[1]) ;
@@ -505,19 +537,19 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE ;
 
-   if (test_update())      goto ONABORT ;
+   if (test_update())      goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_update())      goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -529,7 +561,7 @@ int unittest_io_writer_log_logbuffer()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

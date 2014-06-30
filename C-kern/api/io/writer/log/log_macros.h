@@ -120,15 +120,15 @@
 #define PRINTTEXT_LOG(LOGCHANNEL, FLAGS, HEADER, TEXTID, ... )  \
          do {                                   \
             if (0) {                            \
-            /* test for correct parameter */    \
-            TEXTID(                             \
-               (struct logbuffer_t*)0           \
-               , ## __VA_ARGS__) ;              \
+               /* test for correct parameter */ \
+               TEXTID(                          \
+                  (struct logbuffer_t*)0,       \
+                  ## __VA_ARGS__);              \
             }                                   \
             log_maincontext().iimpl->printtext( \
                log_maincontext().object,        \
                LOGCHANNEL, FLAGS, HEADER,       \
-               & v ## TEXTID, __VA_ARGS__) ;    \
+               & v ## TEXTID, __VA_ARGS__);     \
          } while(0)
 
 /* define: PRINTTEXT_NOARG_LOG

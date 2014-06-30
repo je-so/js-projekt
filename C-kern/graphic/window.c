@@ -106,22 +106,22 @@ int init_window(
 
    static_assert(win == (void*)&win->oswindow, "window_t is subtype of oswindow type");
 
-   ONERROR_testerrortimer(&s_window_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_window_errtimer, &err, ONERR);
 
    err = visualid_gconfig(gconf, disp, &visualid);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = INIT_OSWINDOW(os_window(win), disp, screennr, eventhandler, visualid, winattr);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    ++ isinit;
 
-   ONERROR_testerrortimer(&s_window_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_window_errtimer, &err, ONERR);
 
    err = INIT_GLWINDOW(&gl_window(win), disp, gconf, os_window(win));
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    if (isinit) {
       FREE_OSWINDOW(&win->oswindow);
    }
@@ -141,12 +141,12 @@ int free_window(window_t * win)
       SETONERROR_testerrortimer(&s_window_errtimer, &err2);
       if (err2) err = err2;
 
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -273,7 +273,7 @@ static int test_transparentalpha(display_t * disp)
    eglReleaseThread();
 
    return 0;
-ONABORT:
+ONERR:
    eglMakeCurrent(gl_display(disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
    if (eglcontext != EGL_NO_CONTEXT) eglDestroyContext(gl_display(disp), eglcontext);
    free_gconfig(&gconf);
@@ -316,7 +316,7 @@ static int init_test_window(/*out*/window_t * win, /*out*/EGLContext * eglcontex
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(disp), (void*)gl_window(win), (void*)gl_window(win), *eglcontext));
 
    return 0;
-ONABORT:
+ONERR:
    free_gconfig(&gconf);
    return EINVAL;
 }
@@ -397,7 +397,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == free_gconfig(&gconf));
 
    return 0;
-ONABORT:
+ONERR:
    free_gconfig(&gconf);
    free_window(&win);
    return EINVAL;
@@ -418,7 +418,7 @@ static int test_showhide(window_t * win, display_t * disp)
    TEST(0 == isvisible_window(win));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -461,7 +461,7 @@ static int test_position(window_t * win, display_t * disp)
    TEST(WINPOS_INIT_Y == y - dy);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -497,7 +497,7 @@ static int test_resize(window_t * win, display_t * disp)
    TEST(0 == isvisible_window(win));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -513,11 +513,11 @@ static int childprocess_unittest(void)
    TEST(0 == initdefault_display(&disp))
    TEST(0 == init_test_window(&win, &eglcontext, &disp, &evhandler));
 
-   if (test_transparentalpha(&disp))   goto ONABORT;
+   if (test_transparentalpha(&disp))   goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(&disp))           goto ONABORT;
+   if (test_initfree(&disp))           goto ONERR;
 
    acceptleak_helper(&usage);
    TEST(0 == same_resourceusage(&usage));
@@ -530,9 +530,9 @@ static int childprocess_unittest(void)
    for (unsigned i = 0; i <= 2; ++i) {
       TEST(0 == init_resourceusage(&usage));
 
-      if (test_showhide(&win, &disp))     goto ONABORT;
-      if (test_position(&win, &disp))     goto ONABORT;
-      if (test_resize(&win, &disp))       goto ONABORT;
+      if (test_showhide(&win, &disp))     goto ONERR;
+      if (test_position(&win, &disp))     goto ONERR;
+      if (test_resize(&win, &disp))       goto ONERR;
 
       WAITFOR(&disp, false);
       if (0 == same_resourceusage(&usage)) break;
@@ -547,7 +547,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_display(&disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_window(&win);
    (void) free_display(&disp);
@@ -561,7 +561,7 @@ int unittest_graphic_window()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

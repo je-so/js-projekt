@@ -132,14 +132,14 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
 
    memblock_t  mem ;
 
-   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONERR);
 
    if (size <= 65536-headersize_blockheader()) {
       err = ALLOC_PAGECACHE(pagesize_65536, &mem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else if (size <= 1024*1024-headersize_blockheader()) {
       err = ALLOC_PAGECACHE(pagesize_1MB, &mem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else {
       return E2BIG ;
    }
@@ -160,7 +160,7 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
    stack->blockstart    = blockstart_blockheader(header) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -171,12 +171,12 @@ static inline int freeblock_binarystack(binarystack_t * stack, blockheader_t * b
    memblock_t mem = (memblock_t) memblock_INIT(block->size, (uint8_t*)block) ;
 
    err = RELEASE_PAGECACHE(&mem) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONERR);
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -189,11 +189,11 @@ int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size)
    *stack = (binarystack_t) binarystack_FREE ;
 
    err = allocateblock_binarystack(stack, preallocate_size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -218,12 +218,12 @@ int free_binarystack(binarystack_t * stack)
          header = next ;
       } while (header) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 
 }
@@ -256,15 +256,15 @@ int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** la
 
    if (size > stack->freeblocksize) {
       err = allocateblock_binarystack(stack, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    stack->freeblocksize -= size ;
    *lastpushed = &stack->blockstart[stack->freeblocksize] ;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -287,7 +287,7 @@ int pop2_binarystack(binarystack_t * stack, size_t size)
 
       if (!endheader) {
          err = EINVAL ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -310,11 +310,11 @@ int pop2_binarystack(binarystack_t * stack, size_t size)
    stack->blocksize     = blocksize_blockheader(header) ;
    stack->blockstart    = blockstart_blockheader(header) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -390,7 +390,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_testerrortimer(&s_binarystack_errtimer) ;
    free_binarystack(&stack) ;
    return EINVAL ;
@@ -461,7 +461,7 @@ static int test_query(void)
    TEST(0 == free_binarystack(&stack)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_binarystack(&stack) ;
    return EINVAL ;
 }
@@ -638,7 +638,7 @@ static int test_change(void)
    TEST(0 == free_binarystack(&stack)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_testerrortimer(&s_binarystack_errtimer) ;
    free_binarystack(&stack) ;
    return EINVAL ;
@@ -646,12 +646,12 @@ ONABORT:
 
 int unittest_ds_inmem_binarystack()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_change())         goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_change())         goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

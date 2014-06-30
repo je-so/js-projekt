@@ -1,48 +1,42 @@
-[1: 1398507146.784946s]
+[1: 1403500320.334517s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.788490s]
+[1: 1403500320.336074s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.795112s]
+[1: 1403500320.347593s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
-[1: 1398507146.798080s]
+One or more resources could not be freed
+[1: 1403500320.351865s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
-[1: 1398507146.803302s]
+One or more resources could not be freed
+[1: 1403500320.360212s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.804171s]
+[1: 1403500320.360932s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.809624s]
+[1: 1403500320.370529s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
-[1: 1398507146.812447s]
+One or more resources could not be freed
+[1: 1403500320.375624s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
-[1: 1398507146.816956s]
+One or more resources could not be freed
+[1: 1403500320.382967s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.818592s]
+[1: 1403500320.383482s]
 initdefault_display() C-kern/graphic/display.c:125
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1398507146.824358s]
+[1: 1403500320.392289s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
-[1: 1398507146.827025s]
+One or more resources could not be freed
+[1: 1403500320.398583s]
 free_display() C-kern/graphic/display.c:145
 Error 12 - Cannot allocate memory
-Function aborted - one or more resources could not be freed
+One or more resources could not be freed

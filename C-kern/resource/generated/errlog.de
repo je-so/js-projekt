@@ -5,136 +5,6 @@
  *
  */
 
-void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, const char * wrong_condition)
-{
-   PRINTF("Assertion '%s' fehlgeschlagen.\n", wrong_condition) ;
-}
-
-void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, size_t threadid, uint64_t sec, uint32_t usec, const char * funcname, const char * filename, int linenr)
-{
-   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
-}
-
-void LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * errdescription)
-{
-   PRINTF("Fehler %d - %s\n", err, errdescription) ;
-}
-
-void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, const char * filename)
-{
-   PRINTF("'%s' enthält kein Zeilenendezeichen\n", filename) ;
-}
-
-void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, const char * filename)
-{
-   PRINTF("Datei '%s' besitzt unbekanntes Format\n", filename) ;
-}
-
-void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, const char * workdir, const char * filename)
-{
-   PRINTF("Dateiname '%s%s'\n", workdir, filename) ;
-}
-
-void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Kann Datei '%s%s' nicht anlegen - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Kann Datei '%s%s' nicht öffnen - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Kann Datei '%s%s' nicht löschen - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FUNCTION_ABORT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Funktion beendet\n") ;
-}
-
-void FUNCTION_ABORT_FREE_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Funktion beendet - Freigabe von Ressourcen schlug fehl\n") ;
-}
-
-void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname)
-{
-   PRINTF("Funktionsaufruf '%s' fehlgeschlagen\n", funcname) ;
-}
-
-void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname)
-{
-   PRINTF("Systemaufruf '%s' fehlgeschlagen\n", funcname) ;
-}
-
-void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname, const char * wrong_value)
-{
-   PRINTF("Funktion '%s' liefert falschen Rückgabewert (%s)\n", funcname, wrong_value) ;
-}
-
-void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n") ;
-}
-
-void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, size_t size)
-{
-   PRINTF("Keine %zu Bytes Speicher mehr frei\n", size) ;
-}
-
-void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr, size_t colnr, const char * chr)
-{
-   PRINTF("Erwarte Zeichen '%s' in Zeile: %zu, Spalte: %zu\n", chr, linenr, colnr) ;
-}
-
-void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr, size_t colnr)
-{
-   PRINTF("Erwarte '(Zeilenende)' in Zeile: %zu, Spalte: %zu\n", linenr, colnr) ;
-}
-
-void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Programmabbruch wegen fatalem Fehler\n") ;
-}
-
-void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Ungleiche Anzahl benutzter Ressourcen\n") ;
-}
-
-void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Eingabewert verletzt Bedingung (%s)\n", violated_condition) ;
-}
-
-void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Interne Zustandsvariablen verletzen Bedingung (%s)\n", violated_condition) ;
-}
-
-void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Ausgabewert verletzt Bedingung (%s)\n", violated_condition) ;
-}
-
-void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Operation nur erlaubt im Zustand (%s)\n", violated_condition) ;
-}
-
-void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Name des X11 Display-Servers nicht bekannt\nBitte die Umgebungsvariable »DISPLAY« setzen\n") ;
-}
-
-void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, const char * display_server_name)
-{
-   PRINTF("Keine Verbindung zu X11 Display-Server '%s'\n", display_server_name) ;
-}
-
 void vASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * wrong_condition = va_arg(vargs, const char*) ;
@@ -211,18 +81,11 @@ void vFILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Kann Datei '%s%s' nicht löschen - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void vFUNCTION_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void vFUNCTION_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
-   PRINTF("Funktion beendet\n") ;
-}
-
-void vFUNCTION_ABORT_FREE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
-{
-   (void) vargs ;
-
-   PRINTF("Funktion beendet - Freigabe von Ressourcen schlug fehl\n") ;
+   PRINTF("Ressourcen-Freigabe schlug fehl\n") ;
 }
 
 void vFUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)

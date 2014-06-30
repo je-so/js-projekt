@@ -57,7 +57,7 @@ static int test_initfree(void)
    TEST(0 == errtimer.errcode) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -87,7 +87,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -117,7 +117,7 @@ static int test_update(void)
    // TEST ONERROR_testerrortimer
    err = 0 ;
    init_testerrortimer(&errtimer, 2, 3) ;
-   ONERROR_testerrortimer(&errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&errtimer, &err, ONERR);
    TEST(0 == err) ;
    TEST(1 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
@@ -157,18 +157,18 @@ XXX2:
    TEST(4 == errtimer.errcode) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_test_errortimer()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_update())      goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

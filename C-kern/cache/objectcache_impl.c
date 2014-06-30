@@ -65,15 +65,15 @@ int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
    memblock_t  iobuffer = memblock_FREE ;
 
    err = ALLOC_PAGECACHE(pagesize_4096, &iobuffer) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    static_assert(sizeof(*cache) == sizeof(iobuffer), "only one cached object") ;
    *genericcast_memblock(&cache->iobuffer, ) = iobuffer ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) RELEASE_PAGECACHE(&iobuffer) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -83,11 +83,11 @@ int free_objectcacheimpl(objectcache_impl_t * cache)
 
    err = RELEASE_PAGECACHE(genericcast_memblock(&cache->iobuffer, )) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -97,13 +97,13 @@ static int lockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, /*out
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == *iobuffer, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == *iobuffer, ONERR, ) ;
 
    *iobuffer = genericcast_memblock(&objectcache->iobuffer,) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -112,13 +112,13 @@ static int unlockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, mem
    int err ;
 
    if (*iobuffer) {
-      VALIDATE_INPARAM_TEST(genericcast_memblock(&objectcache->iobuffer,) == *iobuffer, ONABORT, ) ;
+      VALIDATE_INPARAM_TEST(genericcast_memblock(&objectcache->iobuffer,) == *iobuffer, ONERR, ) ;
       *iobuffer = 0 ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -165,7 +165,7 @@ static int test_initfree(void)
    TEST(0 == cache.iobuffer.size) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_objectcacheimpl(&cache) ;
    return EINVAL ;
 }
@@ -183,7 +183,7 @@ static int test_initthread(void)
    TEST(interface_objectcacheimpl() == (objectcache_it*)&s_objectcacheimpl_interface) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -289,7 +289,7 @@ static int test_iobuffer(void)
    TEST(0 == free_file(&pipefd[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_file(&pipefd[0]) ;
    (void) free_file(&pipefd[1]) ;
    (void) free_objectcacheimpl(&cache) ;
@@ -298,12 +298,12 @@ ONABORT:
 
 int unittest_cache_objectcacheimpl()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_initthread())     goto ONABORT ;
-   if (test_iobuffer())       goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_initthread())     goto ONERR;
+   if (test_iobuffer())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

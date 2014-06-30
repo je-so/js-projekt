@@ -32,13 +32,13 @@ int main_module(/*out*/testmodule_functable_t * functable, threadcontext_t * tco
 
    if (tcontext_maincontext() != tcontext) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = init_testmodulefunctable(functable) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }

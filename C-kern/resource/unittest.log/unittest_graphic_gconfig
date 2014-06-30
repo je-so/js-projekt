@@ -1,72 +1,54 @@
-[1: 1401101407.148678s]
+[1: 1403500320.437195s]
 initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:219
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148690s]
+[1: 1403500320.437207s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148692s]
+[1: 1403500320.437211s]
 init_gconfig() C-kern/graphic/gconfig.c:64
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148695s]
+[1: 1403500320.437214s]
 initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:219
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148697s]
+[1: 1403500320.437216s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148698s]
+[1: 1403500320.437218s]
 init_gconfig() C-kern/graphic/gconfig.c:64
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101407.148700s]
+[1: 1403500320.437220s]
 initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:219
 Error 7 - Argument list too long
-Function aborted
-[1: 1401101407.148703s]
+[1: 1403500320.437222s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 7 - Argument list too long
-Function aborted
-[1: 1401101407.148710s]
+[1: 1403500320.437228s]
 init_gconfig() C-kern/graphic/gconfig.c:64
 Error 7 - Argument list too long
-Function aborted
-[1: 1401101407.148786s]
+[1: 1403500320.437303s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.148788s]
+[1: 1403500320.437305s]
 init_gconfig() C-kern/graphic/gconfig.c:64
 Error 3 - No such process
-Function aborted
-[1: 1401101407.151570s]
+[1: 1403500320.439866s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.777988s]
+[1: 1403500321.038181s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.778858s]
+[1: 1403500321.038988s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.780609s]
+[1: 1403500321.040559s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.781979s]
+[1: 1403500321.041784s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.783724s]
+[1: 1403500321.043339s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted
-[1: 1401101407.784619s]
+[1: 1403500321.044167s]
 initfiltered_gconfig() C-kern/graphic/gconfig.c:103
 Error 3 - No such process
-Function aborted

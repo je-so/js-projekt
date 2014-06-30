@@ -358,7 +358,7 @@ static int test_squareroot(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -395,18 +395,18 @@ static int test_speedcompare(void)
    TEST(time_in_microseconds_slow > time_in_microseconds_fast) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_systimer(&timer) ;
    return EINVAL ;
 }
 
 int unittest_math_int_sqroot()
 {
-   if (test_squareroot())     goto ONABORT ;
-   if (test_speedcompare())   goto ONABORT ;
+   if (test_squareroot())     goto ONERR;
+   if (test_speedcompare())   goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -89,14 +89,14 @@ int init_systimer(/*out*/systimer_t* timer, sysclock_e clock_type)
       err = errno ;
       TRACESYSCALL_ERRLOG("timerfd_create", err) ;
       PRINTINT_ERRLOG(clock_type) ;
-      goto ONABORT ;
+      goto ONERR;
    } else {
       *timer = fd ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -105,11 +105,11 @@ int free_systimer(systimer_t * timer)
    int err ;
 
    err = free_iochannel(timer) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -117,8 +117,8 @@ int start_systimer(systimer_t timer, timevalue_t * relative_time)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(isvalid_timevalue(relative_time), ONABORT, ) ;
-   VALIDATE_INPARAM_TEST((uint64_t)relative_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_timevalue(relative_time), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((uint64_t)relative_time->seconds < timespec_MAXSECONDS(), ONERR, ) ;
 
    struct itimerspec new_timeout = {
        .it_interval = { 0, 0 }
@@ -129,12 +129,12 @@ int start_systimer(systimer_t timer, timevalue_t * relative_time)
       err = errno ;
       TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
       PRINTINT_ERRLOG(timer) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -142,8 +142,8 @@ int startinterval_systimer(systimer_t timer, timevalue_t * interval_time)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(isvalid_timevalue(interval_time), ONABORT, ) ;
-   VALIDATE_INPARAM_TEST((uint64_t)interval_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_timevalue(interval_time), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((uint64_t)interval_time->seconds < timespec_MAXSECONDS(), ONERR, ) ;
 
    struct itimerspec new_timeout = {
        .it_interval = { .tv_sec = (time_t) interval_time->seconds, .tv_nsec = interval_time->nanosec }
@@ -154,12 +154,12 @@ int startinterval_systimer(systimer_t timer, timevalue_t * interval_time)
       err = errno ;
       TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
       PRINTINT_ERRLOG(timer) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -175,12 +175,12 @@ int stop_systimer(systimer_t timer)
       err = errno ;
       TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
       PRINTINT_ERRLOG(timer) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -191,7 +191,7 @@ int wait_systimer(systimer_t timer)
    timevalue_t remaining_time ;
 
    err = remainingtime_systimer(timer, &remaining_time) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    do {
       err = poll(pfds, 1, (remaining_time.nanosec || remaining_time.seconds) ? -1/*wait indefinitely*/ : 1/*msec*/) ;
@@ -201,16 +201,16 @@ int wait_systimer(systimer_t timer)
       err = errno ;
       TRACESYSCALL_ERRLOG("poll", err) ;
       PRINTINT_ERRLOG(timer) ;
-      goto ONABORT ;
+      goto ONERR;
    } else if (1 != err) {
       // !! timer already expired !!
       err = ETIME ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -223,14 +223,14 @@ int remainingtime_systimer(systimer_t timer, timevalue_t * remaining_time)
       err = errno ;
       TRACESYSCALL_ERRLOG("timerfd_gettime", err) ;
       PRINTINT_ERRLOG(timer) ;
-      goto ONABORT ;
+      goto ONERR;
    } else {
       timespec2timevalue_systimer(remaining_time, &next_timeout.it_value) ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -245,14 +245,14 @@ int expirationcount_systimer(systimer_t timer, /*out*/uint64_t * expiration_coun
          err = errno ;
          TRACESYSCALL_ERRLOG("read", err) ;
          PRINTINT_ERRLOG(timer) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       *expiration_count = 0 ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -468,7 +468,7 @@ static int test_initfree(void)
    TEST(-1 == systimer) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_systimer(&systimer) ;
    return EINVAL ;
 }
@@ -576,7 +576,7 @@ RESTART_TEST:
    if (iclock < lengthof(clocks)) goto RESTART_TEST ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(systimer); ++i) {
       (void) free_systimer(systimer + i) ;
    }
@@ -585,11 +585,11 @@ ONABORT:
 
 int unittest_time_systimer()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_timing())      goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_timing())      goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

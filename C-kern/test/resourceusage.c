@@ -57,7 +57,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    EMPTYCACHE_PAGECACHE() ;
 
    err = nropen_iochannel(&fds) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    pagecache_usage       = sizeallocated_pagecache(pagecache_maincontext()) ;
    pagecache_staticusage = sizestatic_pagecache(pagecache_maincontext()) ;
@@ -65,22 +65,22 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    mmtrans_usage = sizeallocated_mm(mm_maincontext()) ;
 
    err = allocatedsize_malloc(&allocated) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = RESIZE_MM(sizeof(vm_mappedregions_t), &memmapreg) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    mappedregions  = (vm_mappedregions_t*) memmapreg.addr ;
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_FREE ;
 
    err = new_signalstate(&signalstate) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = init_vmmappedregions(mappedregions) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = allocatedsize_malloc(&allocated_endinit) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    mmtrans_endinit   = sizeallocated_mm(mm_maincontext()) ;
    pagecache_endinit = sizeallocated_pagecache(pagecache_maincontext()) ;
 
@@ -96,11 +96,11 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    usage->virtualmemory_usage  = mappedregions ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (mappedregions) (void) free_vmmappedregions(mappedregions) ;
    FREE_MM(&memmapreg) ;
    delete_signalstate(&signalstate) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -124,12 +124,12 @@ int free_resourceusage(resourceusage_t * usage)
 
       memset(usage, 0, sizeof(resourceusage_t));
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -139,18 +139,18 @@ int same_resourceusage(const resourceusage_t * usage)
    resourceusage_t usage2 = resourceusage_FREE ;
 
    err = init_resourceusage(&usage2) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = ELEAK ;
 
    if (usage2.file_usage != usage->file_usage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if ((usage2.mmtrans_usage - usage->mmtrans_correction) != usage->mmtrans_usage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if ( (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage) > usage->malloc_acceptleak) {
@@ -158,36 +158,36 @@ int same_resourceusage(const resourceusage_t * usage)
       size_t leaked_malloc_bytes = (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage)
                               - usage->malloc_acceptleak;
       PRINTSIZE_ERRLOG(leaked_malloc_bytes);
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if ((usage2.pagecache_usage - usage->pagecache_correction) != usage->pagecache_usage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (usage2.pagecache_staticusage != usage->pagecache_staticusage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (compare_signalstate(usage2.signalstate, usage->signalstate)) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = free_resourceusage(&usage2) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage2) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -253,7 +253,7 @@ static int test_initfree(void)
    TEST(0 == usage.malloc_acceptleak) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -353,7 +353,7 @@ static int test_query(void)
    TEST(malloc_usage == malloc_usage2) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free(memblock) ;
    free_iochannel(&fd) ;
    (void) free_vmpage(&vmblock) ;
@@ -400,7 +400,7 @@ static int test_update(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free(memblock) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
@@ -412,15 +412,15 @@ int unittest_test_resourceusage()
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree())    goto ONABORT;
-   if (test_query())       goto ONABORT;
-   if (test_update())      goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    return EINVAL;
 }

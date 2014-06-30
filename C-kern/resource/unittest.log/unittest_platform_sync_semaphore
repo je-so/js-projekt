@@ -1,18 +1,15 @@
-[1: 1385288275.399045s]
+[1: 1403500301.247286s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:130
 Error 11 - Resource temporarily unavailable
 System call 'read' failed
 semaobj->sys_sema=5
-Function aborted
-[1: 1385288275.399112s]
+[1: 1403500301.247363s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:130
 Error 11 - Resource temporarily unavailable
 System call 'read' failed
 semaobj->sys_sema=5
-Function aborted
-[1: 1385288275.399132s]
+[1: 1403500301.247387s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:130
 Error 11 - Resource temporarily unavailable
 System call 'read' failed
 semaobj->sys_sema=5
-Function aborted

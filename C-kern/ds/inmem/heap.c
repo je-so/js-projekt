@@ -139,7 +139,7 @@ int invariant_heap(const heap_t * heap)
 
    return 0;
 ONERR:
-   TRACEABORT_ERRLOG(EINVARIANT);
+   TRACEEXIT_ERRLOG(EINVARIANT);
    return EINVARIANT;
 }
 
@@ -336,7 +336,7 @@ int init_heap(/*out*/heap_t * heap, uint8_t elemsize, size_t nrofelem, size_t ma
 
    return 0;
 ONERR:
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -529,7 +529,7 @@ static int test_initfree(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -647,7 +647,7 @@ static int test_query(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -827,7 +827,7 @@ static int test_update(void)
    TEST(0 == free_heap(&heap));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -892,7 +892,7 @@ static int test_time(void)
    TEST(0 == FREE_MM(&mblock));
 
    return 0;
-ONABORT:
+ONERR:
    FREE_MM(&mblock);
    free_systimer(&timer);
    return EINVAL;
@@ -900,13 +900,13 @@ ONABORT:
 
 int unittest_ds_inmem_heap()
 {
-   if (test_initfree())    goto ONABORT;
-   if (test_query())       goto ONABORT;
-   if (test_update())      goto ONABORT;
-   if (test_time())        goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
+   if (test_time())        goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

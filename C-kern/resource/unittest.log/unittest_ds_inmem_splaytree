@@ -1,8 +1,6 @@
-[1: 1375541633.109354s]
+[1: 1403500290.317328s]
 removenodes_splaytree() C-kern/ds/inmem/splaytree.c:529
 Error 24 - Too many open files
-Function aborted
-[1: 1375541633.109359s]
+[1: 1403500290.317334s]
 free_splaytree() C-kern/ds/inmem/splaytree.c:164
 Error 24 - Too many open files
-Function aborted

@@ -85,13 +85,13 @@ static void * main_thread(thread_startargument_t * startarg)
    err = init_threadcontext(tcontext_maincontext(), startarg->pcontext, type_maincontext()) ;
    if (err) {
       TRACECALL_ERRLOG("init_threadcontext", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (sys_thread_FREE == pthread_self()) {
       err = EINVAL ;
       TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_FREE)) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    // do not access startarg after sigaltstack (startarg is stored on this stack)
@@ -99,14 +99,14 @@ static void * main_thread(thread_startargument_t * startarg)
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigaltstack", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
    startarg = 0 ;
 
    if (0 != getcontext(&thread->continuecontext)) {
       err = errno ;
       TRACESYSCALL_ERRLOG("getcontext", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    thread = self_thread() ;
@@ -119,12 +119,12 @@ static void * main_thread(thread_startargument_t * startarg)
    err = free_threadcontext(sys_context_threadtls()) ;
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return (void*)0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    abort_maincontext(err) ;
    return (void*)err ;
 }
@@ -152,12 +152,12 @@ int delete_thread(thread_t ** threadobj)
       err2 = free_threadtls(genericcast_threadtls(delobj, tls_)) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -170,9 +170,9 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    thread_tls_t      tls               = thread_tls_FREE ;
    bool              isThreadAttrValid = false ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    err = init_threadtls(&tls) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memblock_t signalstack ;
    memblock_t stack       ;
@@ -190,30 +190,30 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    startarg->pcontext    = pcontext_maincontext() ;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size } ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_init",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
    isThreadAttrValid = true ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    err = pthread_attr_setstack(&thread_attr, stack.addr, stack.size) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_setstack",err) ;
       PRINTPTR_ERRLOG(stack.addr) ;
       PRINTSIZE_ERRLOG(stack.size) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    sys_thread_t sys_thread ;
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&main_thread))0, "main_thread has argument of type startarg") ;
    err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_create",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    thread->sys_thread = sys_thread ;
@@ -222,13 +222,13 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    isThreadAttrValid = false ;
    if (err2) {
       TRACESYSCALL_ERRLOG("pthread_attr_destroy",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *threadobj = thread ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (err2) {
       abort_maincontext(err2) ;
    }
@@ -236,7 +236,7 @@ ONABORT:
       (void) pthread_attr_destroy(&thread_attr) ;
    }
    (void) free_threadtls(&tls) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -251,12 +251,12 @@ int join_thread(thread_t * threadobj)
       err = pthread_join(threadobj->sys_thread, 0) ;
       threadobj->sys_thread = sys_thread_FREE ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -271,14 +271,14 @@ void suspend_thread()
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = sigaddset(&signalmask, SIGINT) ;
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigaddset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    do {
@@ -288,11 +288,11 @@ void suspend_thread()
    if (-1 == err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigwaitinfo", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return ;
-ONABORT:
+ONERR:
    abort_maincontext(err) ;
 }
 
@@ -305,14 +305,14 @@ int trysuspend_thread(void)
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = sigaddset(&signalmask, SIGINT) ;
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("sigaddset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    struct timespec   ts = { 0, 0 } ;
@@ -320,7 +320,7 @@ int trysuspend_thread(void)
    if (-1 == err) return EAGAIN ;
 
    return 0 ;
-ONABORT:
+ONERR:
    abort_maincontext(err) ;
    return err ;
 }
@@ -333,11 +333,11 @@ void resume_thread(thread_t * threadobj)
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_kill", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return ;
-ONABORT:
+ONERR:
    abort_maincontext(err) ;
 }
 
@@ -352,13 +352,13 @@ void sleepms_thread(uint32_t msec)
       err = errno ;
       if (err != EINTR) {
          TRACESYSCALL_ERRLOG("nanosleep", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    return ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -367,7 +367,7 @@ int exit_thread(int retcode)
    int err ;
    thread_t * thread = self_thread() ;
 
-   VALIDATE_STATE_TEST(! ismain_thread(thread), ONABORT, ) ;
+   VALIDATE_STATE_TEST(! ismain_thread(thread), ONERR, ) ;
 
    setreturncode_thread(thread, retcode) ;
 
@@ -379,8 +379,8 @@ int exit_thread(int retcode)
 
    pthread_exit(0) ;
 
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -514,7 +514,7 @@ static int test_initfree(void)
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    atomicwrite_int(&s_thread_signal, 1) ;
    delete_thread(&thread) ;
    return EINVAL ;
@@ -544,7 +544,7 @@ static int test_mainthread(void)
    TEST(thread.sys_thread == pthread_self()) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -583,7 +583,7 @@ static int test_query(void)
    TEST(1 == ismain_thread(mainthread)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -652,7 +652,7 @@ static int test_join(void)
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    atomicwrite_int(&s_thread_signal, 1) ;
    delete_thread(&thread) ;
    return EINVAL ;
@@ -685,7 +685,7 @@ static int thread_sigaltstack(intptr_t dummy)
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
    TEST(0 == s_sigaltstack_returncode) ;
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -745,7 +745,7 @@ static int test_sigaltstack(void)
    TEST(0 == RELEASE_PAGECACHE(&altstack)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread) ;
    if (isStack)      sigaltstack(&oldst, 0) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
@@ -809,7 +809,7 @@ static int test_abort(void)
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -883,7 +883,7 @@ static int test_stackoverflow(void)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isAction)     sigaction(SIGSEGV, &oldact, 0) ;
@@ -908,7 +908,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
 
    if (  0 != sigaltstack(0, &current_sigaltstack)
          || 0 != current_sigaltstack.ss_flags) {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    while (! startarg->isvalid) {
@@ -918,7 +918,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    for (unsigned i = 0; i < lengthof(startarg->isValid); ++i) {
       if (  startarg->thread[i]->sys_thread == pthread_self()
             && startarg->thread[i] != self_thread()) {
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -932,21 +932,21 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    }
 
    if (tid == lengthof(startarg->isValid)) {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (  startarg->signalstack[tid].addr != current_sigaltstack.ss_sp
          || startarg->signalstack[tid].size != current_sigaltstack.ss_size) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (  startarg->threadstack[tid].addr >= (uint8_t*)&startarg
          || (uint8_t*)&startarg >= startarg->threadstack[tid].addr + startarg->threadstack[tid].size) {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -976,7 +976,7 @@ static int test_manythreads(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(startarg.isValid); ++i) {
       delete_thread(&startarg.thread[i]) ;
    }
@@ -1171,7 +1171,7 @@ static int test_signal(void)
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
    while (0 < sigtimedwait(&signalmask, 0, &ts)) ; // empty signal queue
@@ -1282,7 +1282,7 @@ static int test_suspendresume(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
    return EINVAL ;
@@ -1313,7 +1313,7 @@ int test_sleep(void)
    TEST(msec < 120) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1381,7 +1381,7 @@ static int test_yield(void)
    TEST(0 == delete_thread(&thread_yield)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    s_countyield_exit = 1 ;
    delete_thread(&thread_noyield) ;
    delete_thread(&thread_yield) ;
@@ -1418,7 +1418,7 @@ static int test_exit(void)
    TEST(EPROTO == exit_thread(0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (int i = 0; i < (int)lengthof(thread); ++i) {
       delete_thread(&thread[i]) ;
    }
@@ -1487,7 +1487,7 @@ static int test_update(void)
    TEST(0 == delete_thread(&thread2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_thread(&thread2) ;
    return EINVAL ;
 }
@@ -1496,30 +1496,30 @@ static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_FREE ;
 
-   if (test_exit())                    goto ONABORT ;
+   if (test_exit())                    goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())                goto ONABORT ;
-   if (test_mainthread())              goto ONABORT ;
-   if (test_query())                   goto ONABORT ;
-   if (test_join())                    goto ONABORT ;
-   if (test_sigaltstack())             goto ONABORT ;
-   if (test_abort())                   goto ONABORT ;
-   if (test_stackoverflow())           goto ONABORT ;
-   if (test_manythreads())             goto ONABORT ;
-   if (test_signal())                  goto ONABORT ;
-   if (test_suspendresume())           goto ONABORT ;
-   if (test_sleep())                   goto ONABORT ;
-   if (test_yield())                   goto ONABORT ;
-   if (test_exit())                    goto ONABORT ;
-   if (test_update())                  goto ONABORT ;
+   if (test_initfree())                goto ONERR;
+   if (test_mainthread())              goto ONERR;
+   if (test_query())                   goto ONERR;
+   if (test_join())                    goto ONERR;
+   if (test_sigaltstack())             goto ONERR;
+   if (test_abort())                   goto ONERR;
+   if (test_stackoverflow())           goto ONERR;
+   if (test_manythreads())             goto ONERR;
+   if (test_signal())                  goto ONERR;
+   if (test_suspendresume())           goto ONERR;
+   if (test_sleep())                   goto ONERR;
+   if (test_yield())                   goto ONERR;
+   if (test_exit())                    goto ONERR;
+   if (test_update())                  goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -1531,7 +1531,7 @@ int unittest_platform_task_thread()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

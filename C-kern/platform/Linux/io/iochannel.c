@@ -56,14 +56,14 @@ int initcopy_iochannel(/*out*/iochannel_t * ioc, iochannel_t from_ioc)
       err = errno ;
       TRACESYSCALL_ERRLOG("fcntl", err) ;
       PRINTINT_ERRLOG(from_ioc) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *ioc = fd ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -80,13 +80,13 @@ int free_iochannel(iochannel_t * ioc)
          err = errno ;
          TRACESYSCALL_ERRLOG("close", err) ;
          PRINTINT_ERRLOG(close_ioc) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -104,14 +104,14 @@ int nropen_iochannel(/*out*/size_t * number_open)
    if (-1 == fd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("open(/proc/self/fd)", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    procself = fdopendir(fd) ;
    if (!procself) {
       err = errno ;
       TRACESYSCALL_ERRLOG("fdopendir", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
    fd = iochannel_FREE ;
 
@@ -124,7 +124,7 @@ int nropen_iochannel(/*out*/size_t * number_open)
       if (!name) {
          if (errno) {
             err = errno ;
-            goto ONABORT ;
+            goto ONERR;
          }
          break ;
       }
@@ -135,7 +135,7 @@ int nropen_iochannel(/*out*/size_t * number_open)
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("closedir", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    /* adapt open_iocs for
@@ -147,12 +147,12 @@ int nropen_iochannel(/*out*/size_t * number_open)
    *number_open = open_iocs >= 4 ? open_iocs-4 : 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&fd) ;
    if (procself) {
       closedir(procself) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -166,7 +166,7 @@ uint8_t accessmode_iochannel(const iochannel_t ioc)
       err = errno ;
       TRACESYSCALL_ERRLOG("fcntl", err) ;
       PRINTINT_ERRLOG(ioc) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    static_assert((O_RDONLY+1) == accessmode_READ, "simple conversion") ;
@@ -175,8 +175,8 @@ uint8_t accessmode_iochannel(const iochannel_t ioc)
    static_assert(O_ACCMODE    == (O_RDWR|O_WRONLY|O_RDONLY), "simple conversion") ;
 
    return (uint8_t) (1 + (flags & O_ACCMODE)) ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return accessmode_NONE ;
 }
 
@@ -206,7 +206,7 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
          TRACESYSCALL_ERRLOG("read", err) ;
          PRINTINT_ERRLOG(ioc) ;
          PRINTSIZE_ERRLOG(size) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       break ;
@@ -217,8 +217,8 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -227,7 +227,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
    int err ;
    ssize_t bytes ;
 
-   VALIDATE_INPARAM_TEST(size <= SSIZE_MAX, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(size <= SSIZE_MAX, ONERR, ) ;
 
    for (;;) {
       bytes = write(ioc, buffer, size) ;
@@ -242,7 +242,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
          TRACESYSCALL_ERRLOG("write", err) ;
          PRINTINT_ERRLOG(ioc) ;
          PRINTSIZE_ERRLOG(size) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       break ;
@@ -253,8 +253,8 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -299,7 +299,7 @@ static int test_nropen(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(ioc); ++i) {
       free_iochannel(&ioc[i]) ;
    }
@@ -351,7 +351,7 @@ static int test_initfree(void)
    TEST(0 == free_iochannel(&pipeioc[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&ioc) ;
    free_iochannel(&pipeioc[0]) ;
    free_iochannel(&pipeioc[1]) ;
@@ -447,7 +447,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == free_ipsocket(&ssock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&ioc) ;
    free_iochannel(&pipeioc[0]) ;
    free_iochannel(&pipeioc[1]) ;
@@ -491,7 +491,7 @@ static int thread_reader(threadarg_t * arg)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    s_thread_isrunning = false ;
    return EINVAL ;
 }
@@ -513,7 +513,7 @@ static int thread_writer(threadarg_t * arg)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    s_thread_isrunning = false ;
    return EINVAL ;
 }
@@ -811,7 +811,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isoldsignalmask) {
       sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    }
@@ -836,15 +836,15 @@ int unittest_io_iochannel()
 
    TEST(0 == newtemp_directory(&tempdir, "iochanneltest"));
 
-   if (test_nropen())            goto ONABORT;
-   if (test_initfree())          goto ONABORT;
-   if (test_query(tempdir))      goto ONABORT;
-   if (test_readwrite(tempdir))  goto ONABORT;
+   if (test_nropen())            goto ONERR;
+   if (test_initfree())          goto ONERR;
+   if (test_query(tempdir))      goto ONERR;
+   if (test_readwrite(tempdir))  goto ONERR;
 
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
-ONABORT:
+ONERR:
    delete_directory(&tempdir);
    return EINVAL;
 }

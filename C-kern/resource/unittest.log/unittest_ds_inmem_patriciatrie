@@ -1,43 +1,35 @@
-[1: 1375541632.826050s]
+[1: 1403500290.035191s]
 removenodes_patriciatrie() C-kern/ds/inmem/patriciatrie.c:458
 Error 2 - No such file or directory
-Function aborted - one or more resources could not be freed
-[1: 1375541632.826056s]
+One or more resources could not be freed
+[1: 1403500290.035197s]
 free_patriciatrie() C-kern/ds/inmem/patriciatrie.c:54
 Error 2 - No such file or directory
-Function aborted
-[1: 1375541632.826404s]
+[1: 1403500290.035541s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:184
 Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826409s]
+[1: 1403500290.035546s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:184
 Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826411s]
+[1: 1403500290.035548s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:184
 Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826414s]
+[1: 1403500290.035550s]
 remove_patriciatrie() C-kern/ds/inmem/patriciatrie.c:302
 Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826417s]
+[1: 1403500290.035553s]
 remove_patriciatrie() C-kern/ds/inmem/patriciatrie.c:302
 Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826419s]
+[1: 1403500290.035555s]
 insert_patriciatrie() C-kern/ds/inmem/patriciatrie.c:212
 Error 22 - Invalid argument
 Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
-Function aborted
-[1: 1375541632.826421s]
+[1: 1403500290.035557s]
 insert_patriciatrie() C-kern/ds/inmem/patriciatrie.c:212
 Error 22 - Invalid argument
 Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
-Function aborted

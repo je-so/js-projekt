@@ -133,7 +133,7 @@ int run_unittest(void * argv)
       if (init_maincontext(test_context_type[type_nr], 0, argv)) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
          logf_unittest("init_maincontext FAILED\n");
-         goto ONABORT;
+         goto ONERR;
       }
 
       prepare_test();
@@ -325,12 +325,12 @@ int run_unittest(void * argv)
       if (free_maincontext()) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
          logf_unittest("free_maincontext FAILED\n");
-         goto ONABORT;
+         goto ONERR;
       }
 
    }
 
-ONABORT:
+ONERR:
 
    logsummary_unittest();
 

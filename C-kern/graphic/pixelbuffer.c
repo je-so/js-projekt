@@ -58,23 +58,23 @@ int init_pixelbuffer(/*out*/pixelbuffer_t * pbuf, struct display_t * disp, struc
    uint32_t maxpixels = 0;
 
    err = maxpbuffer_gconfig(gconf, disp, &maxwidth, &maxheight, &maxpixels);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    if (width > maxwidth || height > maxheight || (width > 0 && maxpixels/width < height)) {
       err = EALLOC;
-      goto ONABORT;
+      goto ONERR;
    }
 
 #ifdef KONFIG_USERINTERFACE_EGL
    err = init_eglpbuffer(&gl_pixelbuffer(pbuf), gl_display(disp), gl_gconfig(gconf), width, height);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 #else
    #error "Not implemented"
 #endif
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -90,13 +90,13 @@ int free_pixelbuffer(pixelbuffer_t * pbuf, struct display_t * disp)
       #error "Not implemented"
 #endif
 
-      if (err) goto ONABORT;
-      ONERROR_testerrortimer(&s_pixelbuffer_errtimer, &err, ONABORT);
+      if (err) goto ONERR;
+      ONERROR_testerrortimer(&s_pixelbuffer_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -173,7 +173,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == free_gconfig(&gconf));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_gconfig(&gconf);
    return EINVAL;
 }
@@ -191,7 +191,7 @@ static int test_query(void)
    TEST(0 == gl_pixelbuffer(&pbuf));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -230,7 +230,7 @@ static int test_draw(display_t * disp)
    TEST(0 == free_gcontext(&gcont, disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) releasecurrent_gcontext(disp);
    (void) free_gconfig(&gconf);
    (void) free_pixelbuffer(&pbuf, disp);
@@ -248,19 +248,19 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(&disp))  goto ONABORT;
-   if (test_query())          goto ONABORT;
+   if (test_initfree(&disp))  goto ONERR;
+   if (test_query())          goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
-   if (test_draw(&disp))      goto ONABORT;
+   if (test_draw(&disp))      goto ONERR;
 
    // unprepare
    TEST(0 == free_display(&disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_display(&disp);
    return EINVAL;
@@ -273,7 +273,7 @@ int unittest_graphic_pixelbuffer()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

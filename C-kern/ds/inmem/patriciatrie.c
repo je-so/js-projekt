@@ -47,11 +47,11 @@ int free_patriciatrie(patriciatrie_t * tree)
 
    tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -181,7 +181,7 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
    patriciatrie_node_t * node ;
    patriciatrie_node_t * parent ;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, ) ;
 
    err = findnode(tree, keylength, searchkey, &parent, &node) ;
    if (err) return err ;
@@ -195,8 +195,8 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
    *found_node = node ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -209,7 +209,7 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
 
    callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, newnode), &insertkey) ;
 
-   VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONERR, ) ;
 
    if (!tree->root) {
       tree->root = newnode ;
@@ -288,8 +288,8 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -299,7 +299,7 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
    patriciatrie_node_t * node ;
    patriciatrie_node_t * parent ;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, ) ;
 
    err = findnode(tree, keylength, searchkey, &parent, &node) ;
    if (err) return err ;
@@ -398,8 +398,8 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
    *removed_node = delnode ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -450,12 +450,12 @@ int removenodes_patriciatrie(patriciatrie_t * tree)
          }
       }
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -772,7 +772,7 @@ static int test_firstdiffbit(void)
    }
 
    err = 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -905,7 +905,7 @@ static int test_initfree(void)
    TEST(1 == isempty_patriciatrie(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1289,7 +1289,7 @@ static int test_insertremove(void)
    nodes = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
@@ -1466,7 +1466,7 @@ static int test_iterator(void)
    nodes = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
@@ -1576,20 +1576,20 @@ static int test_generic(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_inmem_patriciatrie()
 {
-   if (test_firstdiffbit())      goto ONABORT ;
-   if (test_initfree())          goto ONABORT ;
-   if (test_insertremove())      goto ONABORT ;
-   if (test_iterator())          goto ONABORT ;
-   if (test_generic())           goto ONABORT ;
+   if (test_firstdiffbit())      goto ONERR;
+   if (test_initfree())          goto ONERR;
+   if (test_insertremove())      goto ONERR;
+   if (test_iterator())          goto ONERR;
+   if (test_generic())           goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

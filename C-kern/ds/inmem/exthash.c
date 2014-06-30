@@ -165,14 +165,14 @@ int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size
    uint8_t     maxlevel ;
    memblock_t  mem = memblock_FREE ;
 
-   VALIDATE_INPARAM_TEST(initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*), ONERR, ) ;
 
    static_assert(sizeof(size_t) <= 8, "uint8_t supports 128 bits") ;
    level    = (uint8_t) log2_int(initial_size) ;
    maxlevel = (uint8_t) log2_int(max_size) ;
 
    err = RESIZE_MM(sizeoftable_exthash(level), &mem) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    clear_memblock(&mem) ;  // no sharing of entries
 
@@ -183,8 +183,8 @@ int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size
    htable->maxlevel = maxlevel ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -205,12 +205,12 @@ int free_exthash(exthash_t * htable)
       htable->level    = 0 ;
       htable->maxlevel = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -278,12 +278,12 @@ int find_exthash(exthash_t * htable, const void * key, /*out*/exthash_node_t ** 
 
    redblacktree_t tree = redblacktree_INIT(htable->hashtable[tabidx], htable->nodeadp) ;
    err = find_redblacktree(&tree, key, found_node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (err != ESRCH) {
-      TRACEABORT_ERRLOG(err) ;
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -301,7 +301,7 @@ static int doubletablesize_exthash(exthash_t * htable)
       memblock_t  mem = memblock_INIT(tablesize, (uint8_t*)htable->hashtable) ;
 
       err = RESIZE_MM(newtablesize, &mem) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       ++ htable->level ;
       htable->hashtable = (exthash_node_t**) addr_memblock(&mem) ;
@@ -312,8 +312,8 @@ static int doubletablesize_exthash(exthash_t * htable)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -366,11 +366,11 @@ static int unsharebucket_exthash(exthash_t * htable, size_t tabidx)
    getinistate_redblacktree(&tree, &htable->hashtable[tabidx], 0) ;
    getinistate_redblacktree(&tree2, &htable->hashtable[splitidx], 0) ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -386,27 +386,27 @@ int insert_exthash(exthash_t * htable, exthash_node_t * new_node)
 
    if (isEntryShared) {
       err = unsharebucket_exthash(htable, tabidx) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       if (0 != ~(uintptr_t)htable->hashtable[sharedidx]) {
          // sharedidx is unshared ==> it was the bucket at the next higher level
          tabidx = sharedidx ;
       }
    } else if (htable->hashtable[tabidx] && htable->hashtable[tabidx]->left && htable->hashtable[tabidx]->right/*>= 3 elements*/) {
       err = doubletablesize_exthash(htable) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    redblacktree_t tree = redblacktree_INIT(htable->hashtable[tabidx], htable->nodeadp) ;
    err = insert_redblacktree(&tree, new_node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    getinistate_redblacktree(&tree, &htable->hashtable[tabidx], 0) ;
 
    ++ htable->nr_nodes ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (err != EEXIST) {
-      TRACEABORT_ERRLOG(err) ;
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -421,14 +421,14 @@ int remove_exthash(exthash_t * htable, exthash_node_t * node)
 
    redblacktree_t tree = redblacktree_INIT(htable->hashtable[tabidx], htable->nodeadp) ;
    err = remove_redblacktree(&tree, node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    getinistate_redblacktree(&tree, &htable->hashtable[tabidx], 0) ;
 
    -- htable->nr_nodes ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -451,11 +451,11 @@ int removenodes_exthash(exthash_t * htable)
 
    htable->nr_nodes = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -473,13 +473,13 @@ int invariant_exthash(const exthash_t * htable)
             && 0 != ~(uintptr_t)htable->hashtable[i]) {
          tree.root = htable->hashtable[i] ;
          err = invariant_redblacktree(&tree) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -705,7 +705,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -787,7 +787,7 @@ static int test_privquery(void)
    TEST(0 == free_exthash(&htable)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -862,7 +862,7 @@ static int test_privchange(void)
    TEST(0 == free_exthash(&htable)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1034,7 +1034,7 @@ static int test_findinsertremove(void)
    TEST(0 == FREE_MM(&mem)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&mem) ;
    return EINVAL ;
 }
@@ -1123,20 +1123,20 @@ static int test_generic(void)
    TEST(0 == free_testhash(&htable)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_inmem_exthash()
 {
-   if (test_initfree())          goto ONABORT ;
-   if (test_privquery())         goto ONABORT ;
-   if (test_privchange())        goto ONABORT ;
-   if (test_findinsertremove())  goto ONABORT ;
-   if (test_generic())           goto ONABORT ;
+   if (test_initfree())          goto ONERR;
+   if (test_privquery())         goto ONERR;
+   if (test_privchange())        goto ONERR;
+   if (test_findinsertremove())  goto ONERR;
+   if (test_generic())           goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

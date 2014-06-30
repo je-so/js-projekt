@@ -1,34 +1,27 @@
-[1: 1403445890.035550s]
+[1: 1403500286.538025s]
 init_heap() C-kern/ds/inmem/heap.c:325
 Error 22 - Invalid argument
 Function input violates condition (cmp != 0 && elemsize > 0 && nrofelem <= maxnrofelem && 0 < maxnrofelem)
-Function aborted
-[1: 1403445890.035557s]
+[1: 1403500286.538031s]
 init_heap() C-kern/ds/inmem/heap.c:325
 Error 22 - Invalid argument
 Function input violates condition (cmp != 0 && elemsize > 0 && nrofelem <= maxnrofelem && 0 < maxnrofelem)
-Function aborted
-[1: 1403445890.035560s]
+[1: 1403500286.538035s]
 init_heap() C-kern/ds/inmem/heap.c:325
 Error 22 - Invalid argument
 Function input violates condition (cmp != 0 && elemsize > 0 && nrofelem <= maxnrofelem && 0 < maxnrofelem)
-Function aborted
-[1: 1403445890.035562s]
+[1: 1403500286.538037s]
 init_heap() C-kern/ds/inmem/heap.c:325
 Error 22 - Invalid argument
 Function input violates condition (cmp != 0 && elemsize > 0 && nrofelem <= maxnrofelem && 0 < maxnrofelem)
-Function aborted
-[1: 1403445890.035564s]
+[1: 1403500286.538040s]
 init_heap() C-kern/ds/inmem/heap.c:326
 Error 22 - Invalid argument
 Function input violates condition (maxnrofelem <= (size_t)-1 / elemsize && (uintptr_t)array + maxnrofelem * elemsize > (uintptr_t)array)
-Function aborted
-[1: 1403445890.035569s]
+[1: 1403500286.538044s]
 init_heap() C-kern/ds/inmem/heap.c:326
 Error 22 - Invalid argument
 Function input violates condition (maxnrofelem <= (size_t)-1 / elemsize && (uintptr_t)array + maxnrofelem * elemsize > (uintptr_t)array)
-Function aborted
-[1: 1403445890.076107s]
+[1: 1403500286.578792s]
 invariant_heap() C-kern/ds/inmem/heap.c:142
 Error 257 - Internal invariant violated - (software bug or corrupt memory)
-Function aborted

@@ -158,18 +158,18 @@ static int test_initfree(void)\n\
    // TEST @TYPENAME2_FREE\n\
    TEST(0 == obj.dummy);\n\n\
    return 0;\n\
-ONABORT:\n\
+ONERR:\n\
    return EINVAL;\n\
 }\n\n\
 static int childprocess_unittest(void)\n\
 {\n\
    resourceusage_t   usage = resourceusage_FREE;\n\n\
    TEST(0 == init_resourceusage(&usage));\n\n\
-   if (test_initfree())       goto ONABORT;\n\n\
+   if (test_initfree())       goto ONERR;\n\n\
    TEST(0 == same_resourceusage(&usage));\n\
    TEST(0 == free_resourceusage(&usage));\n\n\
    return 0;\n\
-ONABORT:\n\
+ONERR:\n\
    (void) free_resourceusage(&usage);\n\
    return EINVAL;\n\
 }\n\n\
@@ -181,9 +181,9 @@ int @UNITTESTNAME()\n\
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));\n\n\
    return err;\n\
    // select between (2)\n\
-   if (test_initfree())       goto ONABORT;\n\n\
+   if (test_initfree())       goto ONERR;\n\n\
    return 0;\n\
-ONABORT:\n\
+ONERR:\n\
    return EINVAL;\n\
 }\n\n\
 #endif\n";
@@ -216,7 +216,7 @@ static int construct_strings_frompath(const char * filepath, cstring_t * headert
    clear_cstring(unittestname) ;
 
    err = append_cstring(unittestname, 9, "unittest_") ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    for (size_t i = 0; i < filepath_len; ++i) {
       char c  = filepath[i] ;
@@ -227,18 +227,18 @@ static int construct_strings_frompath(const char * filepath, cstring_t * headert
          c = '_' ;
       }
       err = append_cstring(headertag, 1, &c) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       if ('A' <= c && c <= 'Z') {
          c = (char) (c + ('a' - 'A')) ;
       }
       err = append_cstring(unittestname, 1, &c) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -268,12 +268,12 @@ static int construct_strings_fromtypename(const char * typenamestr, cstring_t * 
       }
 
       err = append_cstring(fctsuffix, 1, &c) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -333,11 +333,11 @@ static int substitute_variable(file_t outfile, variable_e varindex)
       break ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -347,7 +347,7 @@ static int generate_file(const char * filetemplate, const char * filepath)
    file_t outfile = file_FREE ;
 
    err = initcreate_file(&outfile, filepath, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    for (size_t toff = 0; filetemplate[toff]; ++toff) {
       uint8_t c = (uint8_t) filetemplate[toff] ;
@@ -359,21 +359,21 @@ static int generate_file(const char * filetemplate, const char * filepath)
          if (0 == check_variable(&filetemplate[toff+1], &varindex, &varlength)) {
             toff += varlength ;
             err = substitute_variable(outfile, varindex) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             continue ;
          }
       }
 
       err = write_file(outfile, 1, &c, 0) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    err = free_file(&outfile) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    (void) free_file(&outfile) ;
    return err ;
 }
@@ -383,7 +383,7 @@ static int process_arguments(int argc, const char * argv[])
 {
    s_programname = strrchr(argv[0], '/') ? strrchr(argv[0], '/') + 1 : argv[0] ;
 
-   if (argc != 5) goto ONABORT ;
+   if (argc != 5) goto ONERR;
 
    s_filetitle  = argv[1] ;
    s_typename   = argv[2] ;
@@ -391,7 +391,7 @@ static int process_arguments(int argc, const char * argv[])
    s_sourcepath = argv[4] ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -410,16 +410,16 @@ static int main_thread(maincontext_t * maincontext)
 
    // parse templates => expand variables => write header + source files
    err = generate_file(s_templateheader, s_headerpath) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = generate_file(s_templatesource, s_sourcepath) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "Genfile version 0.1 - Copyright (c) 2012 Joerg Seebohn\n" ) ;
    dprintf(STDERR_FILENO, "\nDescription:\n Generates a simple header and source\n file skeleton for use in this project.\n" ) ;
    dprintf(STDERR_FILENO, "\nUsage:\n %s <filetitle> <typename> <headerfilename> <sourcefilename>\n", s_programname) ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 

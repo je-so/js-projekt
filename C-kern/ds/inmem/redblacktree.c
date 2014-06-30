@@ -116,14 +116,14 @@ int invariant_redblacktree(redblacktree_t * tree)
 
    if (  !ISBLACK(node)
          || PARENT(node) != 0) {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    // determine height of tree
 
    size_t height = 1 ;  // black height of root node
    while (node->left) {
-      if (PARENT(node->left) != node) goto ONABORT ;
+      if (PARENT(node->left) != node) goto ONERR;
       node = node->left ;
       if (ISBLACK(node)) {
          ++ height ;
@@ -134,24 +134,24 @@ int invariant_redblacktree(redblacktree_t * tree)
 
    do {
 
-      if (node->left  && NODECOMPARE(node->left,  node) >= 0) goto ONABORT ;
-      if (node->right && NODECOMPARE(node->right, node) <= 0) goto ONABORT ;
+      if (node->left  && NODECOMPARE(node->left,  node) >= 0) goto ONERR;
+      if (node->right && NODECOMPARE(node->right, node) <= 0) goto ONERR;
 
       if (ISRED(node)) {
-         if (node->left  && ISRED(node->left))  goto ONABORT ;
-         if (node->right && ISRED(node->right)) goto ONABORT ;
+         if (node->left  && ISRED(node->left))  goto ONERR;
+         if (node->right && ISRED(node->right)) goto ONERR;
       }
 
       if (prev) {
-         if (NODECOMPARE(node, prev) <= 0) goto ONABORT ;
-         if (NODECOMPARE(prev, node) >= 0) goto ONABORT ;
+         if (NODECOMPARE(node, prev) <= 0) goto ONERR;
+         if (NODECOMPARE(prev, node) >= 0) goto ONERR;
       }
 
       prev = node ;
 
       if (  (!node->left || !node->right) // is leaf
             && const_height != height) {
-         goto ONABORT ;
+         goto ONERR;
       }
 
       if (!node->right) {
@@ -167,12 +167,12 @@ int invariant_redblacktree(redblacktree_t * tree)
          }
          node = parent ;
       } else {
-         if (PARENT(node->right) != node) goto ONABORT ;
+         if (PARENT(node->right) != node) goto ONERR;
          node = node->right ;
          if (ISBLACK(node)) ++ height ;
 
          while (node->left) {
-            if (PARENT(node->left) != node) goto ONABORT ;
+            if (PARENT(node->left) != node) goto ONERR;
             node = node->left ;
             if (ISBLACK(node)) {
                ++ height ;
@@ -182,11 +182,11 @@ int invariant_redblacktree(redblacktree_t * tree)
 
    } while (node) ;
 
-   if (height != 0) goto ONABORT ;
+   if (height != 0) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(EINVAL) ;
+ONERR:
+   TRACEEXIT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -198,11 +198,11 @@ int free_redblacktree(redblacktree_t * tree)
 
    tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -529,7 +529,7 @@ int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(EVENADDRESS(new_node), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(EVENADDRESS(new_node), ONERR, ) ;
 
    if (!tree->root) {
 
@@ -578,8 +578,8 @@ int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node)
    }
 
    return  0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -700,12 +700,12 @@ int removenodes_redblacktree(redblacktree_t * tree)
 
       } while (node) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -997,7 +997,7 @@ static int test_initfree(void)
    TEST(1 == isempty_redblacktree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1248,7 +1248,7 @@ static int test_insertconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1386,7 +1386,7 @@ static int test_removeconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1573,7 +1573,7 @@ static int test_insertremove(void)
    nodes = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
@@ -1689,7 +1689,7 @@ static int test_iterator(void)
    TEST(isempty_redblacktree(&tree)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1798,21 +1798,21 @@ static int test_generic(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_inmem_redblacktree()
 {
-   if (test_initfree())          goto ONABORT ;
-   if (test_insertconditions())  goto ONABORT ;
-   if (test_removeconditions())  goto ONABORT ;
-   if (test_insertremove())      goto ONABORT ;
-   if (test_iterator())          goto ONABORT ;
-   if (test_generic())           goto ONABORT ;
+   if (test_initfree())          goto ONERR;
+   if (test_insertconditions())  goto ONERR;
+   if (test_removeconditions())  goto ONERR;
+   if (test_insertremove())      goto ONERR;
+   if (test_iterator())          goto ONERR;
+   if (test_generic())           goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

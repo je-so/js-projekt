@@ -519,7 +519,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
 
    if (!genmake || init_exthash(&hashindex, 1024, 65536, &s_hashnodeadapt)) {
       print_err( "Out of memory!\n" ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    memset( genmake, 0, sizeof(*genmake)) ;
@@ -539,7 +539,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
       entry->data      = malloc( strlen(g_predefinedIDs[i]) + 4 ) ;
       if (!entry->data) {
          print_err("Out of memory!\n") ;
-         goto ONABORT ;
+         goto ONERR;
       }
       strcpy(entry->data, "$(") ;
       strcat(entry->data, g_predefinedIDs[i]) ;
@@ -549,7 +549,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
    *result = genmake ;
    return 0 ;
 
-ONABORT:
+ONERR:
    free(genmake) ;
    free_exthash(&hashindex) ;
    return 1 ;
@@ -877,7 +877,7 @@ static int set_compiler_predefinedIDs(genmakeproject_t * genmake, char * mode)
       string_t              hashkey = string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       free(hashentry->data) ;
       char * value ;
@@ -885,7 +885,7 @@ static int set_compiler_predefinedIDs(genmakeproject_t * genmake, char * mode)
       value = malloc( strlen(values[i]) + (isMode ? strlen(mode) + 2 : 1) ) ;
       if (!value) {
          print_err( "Out of memory!\n" ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       strcpy( value, values[i]) ;
       if (isMode) { strcat( value, mode ) ; strcat( value, ")" ) ; }
@@ -893,7 +893,7 @@ static int set_compiler_predefinedIDs(genmakeproject_t * genmake, char * mode)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -902,14 +902,14 @@ static int set_linker_predefinedIDs(genmakeproject_t * genmake, char * mode)
    const char * ids[]    = { "in", "out", 0 } ;
    const char * values[] = { "$(foreach obj,$^,'$(obj)')", "'$@'", 0 } ;
 
-   if (set_compiler_predefinedIDs(genmake,mode)) goto ONABORT ;
+   if (set_compiler_predefinedIDs(genmake,mode)) goto ONERR;
 
    for (int i = 0; ids[i]; ++i) {
       hash_entry_subclass_t * hashentry = 0 ;
       string_t              hashkey = string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       free(hashentry->data) ;
       char * value ;
@@ -917,7 +917,7 @@ static int set_linker_predefinedIDs(genmakeproject_t * genmake, char * mode)
       value = malloc( strlen(values[i]) + (isMode ? strlen(mode) + 2 : 1) ) ;
       if (!value) {
          print_err( "Out of memory!\n" ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       strcpy( value, values[i]) ;
       if (isMode) { strcat( value, mode ) ; strcat( value, ")" ) ; }
@@ -925,7 +925,7 @@ static int set_linker_predefinedIDs(genmakeproject_t * genmake, char * mode)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -946,19 +946,19 @@ static int set_other_predefinedIDs(genmakeproject_t * genmake)
       }
       if (!value) {
          print_err("Out of memory!\n") ;
-         goto ONABORT ;
+         goto ONERR;
       }
       hashkey = (string_t) string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       free(hashentry->data) ;
       hashentry->data = value ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -968,10 +968,10 @@ int build_konfiguration(genmakeproject_t * genmake)
 
    {  stringarray_t * modes = 0 ;
       const char * modesvalue = get_varvalue(&genmake->index, g_varModes, 0, genmake->filename) ;
-      if (!modesvalue) goto ONABORT ;
+      if (!modesvalue) goto ONERR;
       if (modesvalue[0] == 0) modesvalue = "default" ;
-      if (new_stringarray( modesvalue, " \t", &modes)) goto ONABORT ;
-      if (new_konfigvalues( modes, &konfig)) goto ONABORT ;
+      if (new_stringarray( modesvalue, " \t", &modes)) goto ONERR;
+      if (new_konfigvalues( modes, &konfig)) goto ONERR;
 
       for (size_t i = 0; i < modes->size; ++i) {
          assert(konfig->modes[i]) ;
@@ -983,45 +983,45 @@ int build_konfiguration(genmakeproject_t * genmake)
    string_t              hashkey     = string_INIT_CSTR("projectname") ;
    if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
       print_err("internal error search_hashtable(,'projectname',)\n") ;
-      goto ONABORT ;
+      goto ONERR;
    }
    free(hashentry->data) ;
    hashentry->data = strdup(genmake->name) ;
    if (!hashentry->data) {
       print_err( "Out of memory!\n" ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (size_t m = 0; m < konfig->modecount; ++m) {
       hashkey = (string_t) string_INIT_CSTR("mode") ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'mode',)\n") ;
-         goto ONABORT ;
+         goto ONERR;
       }
       free(hashentry->data) ;
       hashentry->data = strdup(konfig->modes[m]) ;
       if (!hashentry->data) {
          print_err( "Out of memory!\n" ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
-      if (set_compiler_predefinedIDs(genmake, konfig->modes[m])) goto ONABORT ;
+      if (set_compiler_predefinedIDs(genmake, konfig->modes[m])) goto ONERR;
       {  const char * value = get_varvalue(&genmake->index, g_varCompiler, konfig->modes[m], genmake->filename) ;
          konfig->compiler[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->compiler[m]) goto ONABORT ; }
+         if (!konfig->compiler[m]) goto ONERR; }
 
-      if (set_other_predefinedIDs(genmake)) goto ONABORT ;
+      if (set_other_predefinedIDs(genmake)) goto ONERR;
       {  const char * value = get_varvalue(&genmake->index, g_varCFlags, konfig->modes[m], genmake->filename) ;
          konfig->compiler_flags[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->compiler_flags[m]) goto ONABORT ; }
+         if (!konfig->compiler_flags[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varDefines, konfig->modes[m], genmake->filename) ;
          stringarray_t * strarray = 0 ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
+         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
          free(value2) ;
          konfig->defines[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_definesprefix)+strlen(konfig->modes[m]))) ;
-         if (!konfig->defines[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
+         if (!konfig->defines[m]) { print_err("Out of memory!\n") ; goto ONERR; }
          int size = 0 ;
          for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf(konfig->defines[m]+size, g_definesprefix, konfig->modes[m]) ;
@@ -1034,15 +1034,15 @@ int build_konfiguration(genmakeproject_t * genmake)
 
       {  const char * value = get_varvalue(&genmake->index, g_varCFlagDefine, konfig->modes[m], genmake->filename) ;
          konfig->define_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->define_flag[m]) goto ONABORT ; }
+         if (!konfig->define_flag[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varIncludes, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
+         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
          free(value2) ;
          konfig->includes[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_includesprefix)+strlen(konfig->modes[m]))) ;
-         if (!konfig->includes[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
+         if (!konfig->includes[m]) { print_err("Out of memory!\n") ; goto ONERR; }
          int size = 0 ;
          for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf(konfig->includes[m]+size, g_includesprefix, konfig->modes[m]) ;
@@ -1055,15 +1055,15 @@ int build_konfiguration(genmakeproject_t * genmake)
 
       {  const char * value = get_varvalue(&genmake->index, g_varCFlagInclude, konfig->modes[m], genmake->filename) ;
          konfig->include_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->include_flag[m]) goto ONABORT ; }
+         if (!konfig->include_flag[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varLibs, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
+         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
          free(value2) ;
          konfig->libs[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libsprefix)+strlen(konfig->modes[m]))) ;
-         if (!konfig->libs[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
+         if (!konfig->libs[m]) { print_err("Out of memory!\n") ; goto ONERR; }
          int size = 0 ;
          for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf( konfig->libs[m]+size, g_libsprefix, konfig->modes[m]) ;
@@ -1076,15 +1076,15 @@ int build_konfiguration(genmakeproject_t * genmake)
 
       {  const char * value = get_varvalue(&genmake->index, g_varLFlagLib, konfig->modes[m], genmake->filename) ;
          konfig->lib_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->lib_flag[m]) goto ONABORT ; }
+         if (!konfig->lib_flag[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varLibpath, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
+         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
          free(value2) ;
          konfig->libpath[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libpathprefix)+strlen(konfig->modes[m]))) ;
-         if (!konfig->libpath[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
+         if (!konfig->libpath[m]) { print_err("Out of memory!\n") ; goto ONERR; }
          konfig->libpath[m][0] = 0 ;
          for (uint16_t i = 0; i < strarray->size; ++i) {
             sprintf( konfig->libpath[m]+strlen(konfig->libpath[m]), g_libpathprefix, konfig->modes[m]) ;
@@ -1095,37 +1095,37 @@ int build_konfiguration(genmakeproject_t * genmake)
 
       {  const char * value = get_varvalue(&genmake->index, g_varLFlagLibpath, konfig->modes[m], genmake->filename) ;
          konfig->libpath_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->libpath_flag[m]) goto ONABORT ; }
+         if (!konfig->libpath_flag[m]) goto ONERR; }
 
-      if (set_linker_predefinedIDs(genmake, konfig->modes[m])) goto ONABORT ;
+      if (set_linker_predefinedIDs(genmake, konfig->modes[m])) goto ONERR;
       {  const char * value = get_varvalue(&genmake->index, g_varLinker, konfig->modes[m], genmake->filename) ;
          konfig->linker[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->linker[m]) goto ONABORT ; }
+         if (!konfig->linker[m]) goto ONERR; }
 
-      if (set_other_predefinedIDs(genmake)) goto ONABORT ;
+      if (set_other_predefinedIDs(genmake)) goto ONERR;
       {  const char * value = get_varvalue(&genmake->index, g_varLFlags, konfig->modes[m], genmake->filename) ;
          konfig->linker_flags[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->linker_flags[m]) goto ONABORT ; }
+         if (!konfig->linker_flags[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varObjectdir, konfig->modes[m], genmake->filename) ;
          size_t len = 0 ; if (value) len = strlen(value) ; while (len && value[len-1] == '/') --len ;
          konfig->objectfiles_directory[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, len, genmake->filename) ;
-         if (!konfig->objectfiles_directory[m]) goto ONABORT ; }
+         if (!konfig->objectfiles_directory[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varSrc, konfig->modes[m], genmake->filename) ;
          konfig->src[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (!konfig->src[m]) goto ONABORT ; }
+         if (!konfig->src[m]) goto ONERR; }
 
       {  const char * value = get_varvalue(&genmake->index, g_varTarget, konfig->modes[m], genmake->filename) ;
          konfig->target_filename[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          konfig->target_directory[m] = get_directory( konfig->target_filename[m] ) ;
-         if (!konfig->target_filename[m])  goto ONABORT ;
-         if (!konfig->target_directory[m]) goto ONABORT ; }
+         if (!konfig->target_filename[m])  goto ONERR;
+         if (!konfig->target_directory[m]) goto ONERR; }
 
       // scan directories and build array of files
       {  stringarray_t * searchpatterns = 0 ;
          int errflag = 0 ;
-         if (new_stringarray( konfig->src[m], " \t", &searchpatterns)) goto ONABORT ;
+         if (new_stringarray( konfig->src[m], " \t", &searchpatterns)) goto ONERR;
          glob_t foundfiles = { .gl_pathc = 0, .gl_pathv= 0 } ;
          for (size_t pi=0; !errflag && pi < searchpatterns->size; ++pi) {
             char * pattern = searchpatterns->strings[pi] ;
@@ -1145,7 +1145,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, &konfig->src_files[m])) errflag = 1 ;
          if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, &konfig->obj_files[m])) errflag = 1 ;
          if (foundfiles.gl_pathv) globfree(&foundfiles) ;
-         if (errflag) goto ONABORT ;
+         if (errflag) goto ONERR;
       }
 
       {  assert(konfig->obj_files[m]) ;
@@ -1158,7 +1158,7 @@ int build_konfiguration(genmakeproject_t * genmake)
                else if (*unsupported_character == '\t') str = "\t" ;
                else if (*unsupported_character == '\'') str = "\'" ;
                print_err( "Filename '%s' contains unsupported character ('%s')!\n", konfig->obj_files[m]->strings[f], str ) ;
-               goto ONABORT ;
+               goto ONERR;
             }
          }
       }
@@ -1179,7 +1179,7 @@ int build_konfiguration(genmakeproject_t * genmake)
             free(linktargets) ;
             free(linkmodefrom) ;
             print_err( "Out of memory!\n" ) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          // (1) find corresponding targets for every link command
          linkcommand_t * linkcmd = genmake->links ;
@@ -1199,14 +1199,14 @@ int build_konfiguration(genmakeproject_t * genmake)
                print_err( "'link %s' defines no mapping for mode '%s' in file '%s')\n", linkcmd->filename, konfig->modes[m], genmake->filename) ;
                free(linktargets) ;
                free(linkmodefrom) ;
-               goto ONABORT ;
+               goto ONERR;
             }
          }
          if (  ccopy_stringarray(genmake->links_count, linktargets, &konfig->linktargets[m])
             || ccopy_stringarray(genmake->links_count, linkmodefrom, &konfig->linkmodefrom[m])) {
             free(linktargets) ;
             free(linkmodefrom) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          free(linkmodefrom) ;
          free(linktargets) ;
@@ -1238,13 +1238,13 @@ int build_konfiguration(genmakeproject_t * genmake)
          errflag = 1 ;
       }
    }
-   if (errflag) goto ONABORT ;
+   if (errflag) goto ONERR;
 
    free_konfigvalues(&genmake->konfig) ;
    genmake->konfig = konfig ;
    return 0 ;
 
-ONABORT:
+ONERR:
    free_konfigvalues(&konfig) ;
    return 1 ;
 }
@@ -1514,7 +1514,7 @@ int write_makefile(
             constructed_filename = malloc( 1 + cfnamelen ) ;
             if (!constructed_filename) {
                print_err( "Out of memory!\n" ) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             strcpy( constructed_filename, makefilename) ;
             if (constructed_filename[strlen(makefilename)-1] == '/') constructed_filename[strlen(makefilename)-1] = 0 ;
@@ -1522,21 +1522,21 @@ int write_makefile(
             strcat( constructed_filename, genmake->name ) ;
             if (0==stat( constructed_filename, &makefilestat)) {
                print_err("Won't overwrite existing file '%s' with generated Makefile.\n Delete old file manually.\n", constructed_filename) ;
-               goto ONABORT ;
+               goto ONERR;
             }
          } else {
             print_err("Won't overwrite existing file '%s' with generated Makefile.\n Delete old file manually.\n", makefilename) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       } else if (!isDirectory) {
          constructed_filename = strdup(makefilename) ;
          if (!constructed_filename) {
             print_err( "Out of memory!\n" ) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       } else {
          print_err( "Directory '%s' does not exist (argument of -o)\n", makefilename ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -1544,7 +1544,7 @@ int write_makefile(
       makefile = fopen(constructed_filename, "w") ;
       if (!makefile) {
          print_err("Could not open '%s' for writing.\n", constructed_filename) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -1647,7 +1647,7 @@ int write_makefile(
 
    err = 0 ;
 
-ONABORT:
+ONERR:
    if (makefile && makefile != stdout) fclose(makefile) ;
    free(constructed_filename) ;
    return err ;
@@ -1695,10 +1695,10 @@ static int main_thread(maincontext_t * maincontext)
       free_genmakeproject(&genmake) ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 
 PRINT_USAGE:

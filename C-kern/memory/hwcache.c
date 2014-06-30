@@ -49,7 +49,7 @@ static int test_query(void)
    TEST(sizedataprefetch_hwcache() == 16) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -110,18 +110,18 @@ static int test_prefetch(void)
    TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmpage(&memblock) ;
    return EINVAL ;
 }
 
 int unittest_memory_hwcache()
 {
-   if (test_query())          goto ONABORT ;
-   if (test_prefetch())       goto ONABORT ;
+   if (test_query())          goto ONERR;
+   if (test_prefetch())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

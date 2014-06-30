@@ -168,15 +168,15 @@ int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap)
    int err ;
 
    err = init_vmpage(genericcast_vmpage(blockmap, array_), pagecache_blockmap_ARRAYSIZE) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memset(blockmap->array_addr, 0, blockmap->array_size) ;
    blockmap->array_len = blockmap->array_size / sizeof(pagecache_block_t) ;
    blockmap->indexmask = makepowerof2_int(blockmap->array_len) - 1 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -190,12 +190,12 @@ int free_pagecacheblockmap(pagecache_blockmap_t * blockmap)
       blockmap->array_len = 0 ;
       blockmap->indexmask = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -210,11 +210,11 @@ static inline pagecache_block_t * at_pagecacheblockmap(pagecache_blockmap_t * bl
 
    if (  idx >= blockmap->array_len
          || tcontext_maincontext() != (threadcontext_t*)atomicread_int((uintptr_t*)&blockentry->threadcontext)) {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return blockentry ;
-ONABORT:
+ONERR:
    return 0 ;
 }
 
@@ -231,13 +231,13 @@ static inline int assign_pagecacheblockmap(pagecache_blockmap_t * blockmap, cons
    if (  idx >= blockmap->array_len
          || 0 != atomicswap_int((uintptr_t*)&blockentry->threadcontext, 0, (uintptr_t)tcontext_maincontext())) {
       err = ENOMEM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *block = blockentry ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -310,13 +310,13 @@ static int new_pagecacheblock(
                   && pagesize_1MB + 1u == pagesize_NROFPAGESIZE,
                   "pagecache_block_BLOCKSIZE supports the largest value of pagesize_e") ;
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
    err = initpageblock_pagecacheblock(&pageblock, pagecache_block_BLOCKSIZE) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
    err = assign_pagecacheblockmap(blockmap, arrayindex_pagecacheblock(pageblock.addr), &newblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // Member newblock->threadcontext is set in assign_pagecacheblockmap
    newblock->pageblock    = pageblock ;
@@ -336,9 +336,9 @@ static int new_pagecacheblock(
    *block = newblock ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmpage(&pageblock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -357,11 +357,11 @@ static int free_pagecacheblock(pagecache_block_t * block, pagecache_blockmap_t *
    if (err2) err = err2 ;
 #endif
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -425,13 +425,13 @@ int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache)
    pagecache_impl_t  temppagecache = pagecache_impl_FREE ;
    memblock_t        memobject ;
 
-   VALIDATE_INPARAM_TEST(0 == pagecache->object, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == pagecache->object, ONERR, ) ;
 
    err = init_pagecacheimpl(&temppagecache) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = allocstatic_pagecacheimpl(&temppagecache, sizeof(temppagecache), &memobject) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memcpy(memobject.addr, &temppagecache, sizeof(temppagecache)) ;
 
@@ -441,9 +441,9 @@ int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache)
                ) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheimpl(&temppagecache) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -465,12 +465,12 @@ int freethread_pagecacheimpl(pagecache_t * pagecache)
       int err2 = free_pagecacheimpl(&temppagecache) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -548,12 +548,12 @@ int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache)
    pagecache_block_t * block ;
 
    err = allocblock_pagecacheimpl(pgcache, pagesize_4096, &block) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheimpl(pgcache) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -580,11 +580,11 @@ int free_pagecacheimpl(pagecache_impl_t * pgcache)
 
    *pgcache = (pagecache_impl_t) pagecache_impl_FREE ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -620,7 +620,7 @@ int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/s
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(pgsize < pagesize_NROFPAGESIZE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(pgsize < pagesize_NROFPAGESIZE, ONERR, ) ;
 
    pagecache_block_t * freeblock ;
 
@@ -628,15 +628,15 @@ int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/s
    if (err == ESRCH) {
       err = allocblock_pagecacheimpl(pgcache, pgsize, &freeblock) ;
    }
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    freepage_t * freepage ;
    err = allocpage_pagecacheblock(freeblock, &freepage) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    if (isempty_dlist(&freeblock->freepagelist)) {
       // freeblock is full => remove it from list of free blocks
       err = remove_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[pgsize]), freeblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    size_t pgsizeinbytes = pagesizeinbytes_pagecacheit(pgsize) ;
@@ -644,8 +644,8 @@ int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/s
    *page = (memblock_t) memblock_INIT(pgsizeinbytes, (uint8_t*)freepage) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -659,7 +659,7 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
             || block->pagesize != page->size
             || 0 != (((uintptr_t)page->addr) & ((uintptr_t)block->pagesize-1))) {
          err = EINVAL ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       freepage_t * freepage = (freepage_t*) page->addr ;
@@ -668,7 +668,7 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
       *page = (memblock_t) memblock_FREE ;
 
       err = releasepage_pagecacheblock(block, freepage) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       pgcache->sizeallocated -= block->pagesize ;
       if (!isinlist_freeblocklist(block)) {
@@ -681,14 +681,14 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
          pagecache_block_t * lastblock  = first_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[block->freelistidx])) ;
          if (firstblock != lastblock) {
             err = freeblock_pagecacheimpl(pgcache, block) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -698,14 +698,14 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
    size_t         alignedsize = (bytesize + KONFIG_MEMALIGN-1u) & (~(KONFIG_MEMALIGN-1u)) ;
    staticpage_t * staticpage  = last_staticpagelist(genericcast_dlist(&pgcache->staticpagelist)) ;
 
-   VALIDATE_INPARAM_TEST(0 < alignedsize && alignedsize <= 128, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 < alignedsize && alignedsize <= 128, ONERR, ) ;
 
    if (  !staticpage
          || staticpage->memblock.size < alignedsize) {
       // waste staticpage->memblock.size bytes !
       memblock_t page ;
       err = allocpage_pagecacheimpl(pgcache, pagesize_4096, &page) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       init_staticpage(&staticpage, &page) ;
       insertlast_staticpagelist(genericcast_dlist(&pgcache->staticpagelist), staticpage) ;
    }
@@ -718,8 +718,8 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
    pgcache->sizestatic       += alignedsize ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -734,7 +734,7 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
       VALIDATE_INPARAM_TEST(  staticpage
                               && memblock->addr < staticpage->memblock.addr
                               && memblock->addr + alignedsize == staticpage->memblock.addr
-                              && memblock->addr >= startaddr_staticpage(staticpage), ONABORT,) ;
+                              && memblock->addr >= startaddr_staticpage(staticpage), ONERR,) ;
 
       staticpage->memblock.addr -= alignedsize ;
       staticpage->memblock.size += alignedsize ;
@@ -742,18 +742,18 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
 
       if (isempty_staticpage(staticpage)) {
          err = remove_staticpagelist(genericcast_dlist(&pgcache->staticpagelist), staticpage) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          memblock_t page = memblock_INIT(4096, (uint8_t*)staticpage) ;
          err = releasepage_pagecacheimpl(pgcache, &page) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
 
       *memblock = (memblock_t) memblock_FREE ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -767,14 +767,14 @@ int emptycache_pagecacheimpl(pagecache_impl_t * pgcache)
       foreach (_freeblocklist, block, genericcast_dlist(&pgcache->freeblocklist[pgsize])) {
          if (! block->usedpagecount) {
             err = freeblock_pagecacheimpl(pgcache, block) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -853,7 +853,7 @@ static int test_blockmap(void)
    TEST(0 == free_pagecacheblockmap(&blockmap)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheblockmap(&blockmap) ;
    return EINVAL ;
 }
@@ -1004,7 +1004,7 @@ static int test_block(void)
    TEST(0 == free_pagecacheblockmap(&blockmap)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(block); ++i) {
       if (block[i]) free_pagecacheblock(block[i], &blockmap) ;
    }
@@ -1089,7 +1089,7 @@ static int test_initfree(void)
    TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheimpl(&pgcache) ;
    return EINVAL ;
 }
@@ -1198,7 +1198,7 @@ static int test_helper(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (uint8_t i = 0; i < lengthof(block); ++i) {
       if (block[i]) free_pagecacheblock(block[i], blockmap_maincontext()) ;
    }
@@ -1248,7 +1248,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1516,7 +1516,7 @@ static int test_alloc(void)
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheimpl(&pgcache) ;
    return EINVAL ;
 }
@@ -1552,7 +1552,7 @@ static int test_cache(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_pagecacheimpl(&pgcache) ;
    return EINVAL ;
 }
@@ -1597,24 +1597,24 @@ static int test_initthread(void)
    TEST(0 == pgcache.iimpl) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) freethread_pagecacheimpl(&pgcache) ;
    return EINVAL ;
 }
 
 int unittest_memory_pagecacheimpl()
 {
-   if (test_blockmap())    goto ONABORT ;
-   if (test_block())       goto ONABORT ;
-   if (test_initfree())    goto ONABORT ;
-   if (test_helper())      goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_alloc())       goto ONABORT ;
-   if (test_cache())       goto ONABORT ;
-   if (test_initthread())  goto ONABORT ;
+   if (test_blockmap())    goto ONERR;
+   if (test_block())       goto ONERR;
+   if (test_initfree())    goto ONERR;
+   if (test_helper())      goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_alloc())       goto ONERR;
+   if (test_cache())       goto ONERR;
+   if (test_initthread())  goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

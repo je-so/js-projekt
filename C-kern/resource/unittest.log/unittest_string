@@ -1,45 +1,36 @@
-[1: 1401034998.800974s]
+[1: 1403500294.841220s]
 initsubstr_string() C-kern/string/string.c:59
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-Function aborted
-[1: 1401034998.800983s]
+[1: 1403500294.841228s]
 initsubstr_string() C-kern/string/string.c:59
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-Function aborted
-[1: 1401034998.800987s]
+[1: 1403500294.841231s]
 initse_string() C-kern/string/string.c:43
 Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
-Function aborted
-[1: 1401034998.804231s]
+[1: 1403500294.841989s]
 substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-Function aborted
-[1: 1401034998.804234s]
+[1: 1403500294.841991s]
 substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-Function aborted
-[1: 1401034998.804236s]
+[1: 1403500294.841994s]
 substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-Function aborted
-[1: 1401034998.804239s]
+[1: 1403500294.841996s]
 substr_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-Function aborted
-[1: 1401034998.804249s]
+[1: 1403500294.841998s]
 shrinkleft_string() C-kern/string/string.c:121
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
-Function aborted
-[1: 1401034998.804258s]
+[1: 1403500294.842000s]
 shrinkright_string() C-kern/string/string.c:136
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))
-Function aborted

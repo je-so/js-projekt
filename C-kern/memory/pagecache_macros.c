@@ -68,7 +68,7 @@ static int test_query(void)
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -116,7 +116,7 @@ static int test_alloc(void)
    TEST(page[1].size == 0) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -145,7 +145,7 @@ static int test_cache(void)
    TEST(0 == freethread_pagecacheimpl(&testpagecache)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (oldpagecache.object) {
       initcopy_iobj(&pagecache_maincontext(), &oldpagecache) ;
    }
@@ -155,12 +155,12 @@ ONABORT:
 
 int unittest_memory_pagecache_macros()
 {
-   if (test_query())       goto ONABORT ;
-   if (test_alloc())       goto ONABORT ;
-   if (test_cache())       goto ONABORT ;
+   if (test_query())       goto ONERR;
+   if (test_alloc())       goto ONERR;
+   if (test_cache())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

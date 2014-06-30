@@ -58,11 +58,11 @@ int prepare_malloc()
    free(dummy) ;
 
    err = trimmemory_malloc() ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -114,26 +114,26 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
 
    if (!s_isprepared_malloc) {
       err = prepare_malloc() ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    if (pipe2(pfd, O_CLOEXEC|O_NONBLOCK)) {
       err = errno ;
       TRACESYSCALL_ERRLOG("pipe2", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    fd = dup(STDERR_FILENO) ;
    if (fd == -1) {
       err = errno ;
       TRACESYSCALL_ERRLOG("dup", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (-1 == dup2(pfd[1], STDERR_FILENO)) {
       err = errno ;
       TRACESYSCALL_ERRLOG("dup2", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    malloc_stats() ;
@@ -144,7 +144,7 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
    if (slen < 0) {
       err = errno ;
       TRACESYSCALL_ERRLOG("read", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    size_t len = (size_t)slen ;
@@ -159,7 +159,7 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
             break ;
          }
          TRACESYSCALL_ERRLOG("read", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       len += (size_t) slen ;
    }
@@ -186,7 +186,7 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
    if (-1 == dup2(fd, STDERR_FILENO)) {
       err = errno ;
       TRACESYSCALL_ERRLOG("dup2",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    close(fd) ;
@@ -196,14 +196,14 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
    *number_of_allocated_bytes = used_bytes ;
 
    return 0;
-ONABORT:
+ONERR:
    if (pfd[0] != -1) close(pfd[0]) ;
    if (pfd[1] != -1) close(pfd[1]) ;
    if (fd != -1) {
       dup2(fd, STDERR_FILENO) ;
       close(fd) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -260,7 +260,7 @@ static int test_allocatedsize(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    while (fdcount > 0) {
       -- fdcount ;
       close(fd[fdcount]) ;
@@ -303,7 +303,7 @@ static int test_usablesize(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(addr); ++i) {
       if (addr[i]) free(addr[i]) ;
       addr[i] = 0 ;
@@ -316,21 +316,21 @@ static int childprocess_unittest(void)
    resourceusage_t usage = resourceusage_FREE ;
 
    for (int i = 0; i < 3; ++i) {
-      if (test_allocatedsize())  goto ONABORT ;
-      if (test_usablesize())     goto ONABORT ;
+      if (test_allocatedsize())  goto ONERR;
+      if (test_usablesize())     goto ONERR;
    }
    CLEARBUFFER_ERRLOG() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_allocatedsize())  goto ONABORT ;
-   if (test_usablesize())     goto ONABORT ;
+   if (test_allocatedsize())  goto ONERR;
+   if (test_usablesize())     goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -342,7 +342,7 @@ int unittest_platform_malloc()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

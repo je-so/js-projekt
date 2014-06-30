@@ -102,7 +102,7 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
    size_t size = sizeunread_utf8scanner(scan) ;
    if (! size) {
       err = readbuffer_utf8scanner(scan, frd) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       size = sizeunread_utf8scanner(scan) ;
       // size > 0 is guaranteed
    }
@@ -115,7 +115,7 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
       if (0 == chrsize) {
          ++ scan->next ;   // skip illegal (should never occur)
          err = EILSEQ ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
    } else {
@@ -126,13 +126,13 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
       err = readbuffer_utf8scanner(scan, frd) ;
       if (err) {
          if (err == ENODATA) err = EILSEQ ; // should never occur
-         goto ONABORT ;
+         goto ONERR;
       }
       size_t size2 = sizeunread_utf8scanner(scan) ;
       if (size2 < nrmissing) {
          scan->next = scan->end ;   // skip illegal (should never occur)
          err = EILSEQ ;
-         goto ONABORT ;
+         goto ONERR;
       }
       memcpy(mbsbuf+size, scan->next, nrmissing) ;
       scan->next += nrmissing ;
@@ -140,10 +140,10 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (  err != ENODATA
          && err != ENOBUFS) {
-      TRACEABORT_ERRLOG(err) ;
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -156,13 +156,13 @@ int skipuntilafter_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, 
    uint8_t utf8len   = encodechar_utf8(sizeof(utf8buf), utf8buf, uchar) ;
    uint8_t nrmissing = 0 ;
 
-   VALIDATE_INPARAM_TEST(utf8len != 0, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(utf8len != 0, ONERR, ) ;
 
    for (;;) {
       size_t size = sizeunread_utf8scanner(scan) ;
       if (! size) {
          err = readbuffer_utf8scanner(scan, frd) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          size = sizeunread_utf8scanner(scan) ;
          // size > 0 is guaranteed
       }
@@ -204,10 +204,10 @@ int skipuntilafter_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, 
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (  err != ENODATA
          && err != ENOBUFS) {
-      TRACEABORT_ERRLOG(err) ;
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -252,15 +252,15 @@ int readbuffer_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
    }
 
    err = readnext_filereader(frd, genericcast_stringstream(scan)) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    uint8_t stridx = nrofparts_splitstring(&scan->scanned_token) ;
    setnrofparts_splitstring(&scan->scanned_token, (uint8_t) (stridx+1)) ;
    setstring_splitstring(&scan->scanned_token, stridx, 0, scan->next) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -278,7 +278,7 @@ int unread_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, uint8_t 
    uint8_t  stridx    = nrofparts_splitstring(&scan->scanned_token) ;
    if (!stridx) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
    -- stridx ;
 
@@ -289,7 +289,7 @@ int unread_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, uint8_t 
          if (!size) {
             if (!stridx) {
                err = EINVAL ;
-               goto ONABORT ;
+               goto ONERR;
             }
             isRelease = true ;
             -- stridx ;
@@ -311,8 +311,8 @@ int unread_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, uint8_t 
    setnrofparts_splitstring(&scan->scanned_token, (uint8_t)(stridx+1)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -389,7 +389,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "init")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_filereader(&freader) ;
    (void) removefile_directory(tempdir, "init") ;
    return EINVAL ;
@@ -450,7 +450,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -705,7 +705,7 @@ static int test_bufferio(directory_t * tempdir)
    FREE_MM(&mem) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_filereader(&freader) ;
    (void) removefile_directory(tempdir, "bufferio") ;
    FREE_MM(&mem) ;
@@ -1045,7 +1045,7 @@ static int test_read(directory_t * tempdir)
    FREE_MM(&mem) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_utf8scanner(&scan, &freader) ;
    (void) free_filereader(&freader) ;
    (void) FREE_MM(&mem) ;
@@ -1061,10 +1061,10 @@ int unittest_io_reader_utf8scanner()
    TEST(0 == newtemp_directory(&tempdir, "utf8scanner")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
-   if (test_initfree(tempdir))   goto ONABORT ;
-   if (test_query())             goto ONABORT ;
-   if (test_bufferio(tempdir))   goto ONABORT ;
-   if (test_read(tempdir))       goto ONABORT ;
+   if (test_initfree(tempdir))   goto ONERR;
+   if (test_query())             goto ONERR;
+   if (test_bufferio(tempdir))   goto ONERR;
+   if (test_read(tempdir))       goto ONERR;
 
    // unprepare
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
@@ -1072,7 +1072,7 @@ int unittest_io_reader_utf8scanner()
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    return EINVAL ;

@@ -41,14 +41,14 @@ int init_stringstream(/*out*/stringstream_t * strstream, const uint8_t * startad
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST((uintptr_t)startaddr <= (uintptr_t)endaddr, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((uintptr_t)startaddr <= (uintptr_t)endaddr, ONERR, ) ;
 
    strstream->next = startaddr ;
    strstream->end  = endaddr ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -59,14 +59,14 @@ int initfromstring_string(/*out*/stringstream_t * strstream, const struct string
    const uintptr_t next = (uintptr_t)addr_string(str);
    const uintptr_t end  = next + size_string(str);
 
-   VALIDATE_INPARAM_TEST(next <= end, ONABORT, );
+   VALIDATE_INPARAM_TEST(next <= end, ONERR, );
 
    strstream->next = (const uint8_t*) next;
    strstream->end  = (const uint8_t*) end;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -126,7 +126,7 @@ static int test_initfree(void)
    TEST(strstream.end  == buffer+1) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -179,7 +179,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -253,7 +253,7 @@ static int test_change(void)
    TEST(strstream.end  == buffer + sizeof(buffer)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -271,19 +271,19 @@ static int test_generic(void)
    TEST((stringstream_t*)&strstream.next == genericcast_stringstream(&strstream)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_string_stringstream()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_change())         goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_change())         goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

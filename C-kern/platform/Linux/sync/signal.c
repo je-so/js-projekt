@@ -102,8 +102,8 @@ static int clear_signalhandler(unsigned signr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_ERRLOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
 
    if (s_signalhandler[signr-1].isvalid) {
       s_signalhandler[signr-1].isvalid = false ;
@@ -112,13 +112,13 @@ static int clear_signalhandler(unsigned signr)
       if (err) {
          TRACESYSCALL_ERRLOG("sigaction", err) ;
          PRINTINT_ERRLOG(signr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -136,11 +136,11 @@ static int set_signalhandler(unsigned signr, signalhandler_f sighandler)
    int err ;
    struct sigaction  sigact ;
 
-   VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_ERRLOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
 
    err = clear_signalhandler(signr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (sighandler) {
       sigact.sa_flags     = SA_ONSTACK | SA_SIGINFO ;
@@ -149,22 +149,22 @@ static int set_signalhandler(unsigned signr, signalhandler_f sighandler)
       if (err) {
          err = EINVAL ;
          TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = sigaction((int)signr, &sigact, &s_signalhandler[signr-1].oldstate);
       if (err) {
          TRACESYSCALL_ERRLOG("sigaction", err) ;
          PRINTINT_ERRLOG(signr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       s_signalhandler[signr-1].handler = sighandler ;
       s_signalhandler[signr-1].isvalid = true ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -175,11 +175,11 @@ static int setignore_signalhandler(unsigned signr)
    int err ;
    struct sigaction  sighandler ;
 
-   VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_ERRLOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
 
    err = clear_signalhandler(signr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    sighandler.sa_flags     = SA_ONSTACK ;
    sighandler.sa_handler   = SIG_IGN ;
@@ -187,21 +187,21 @@ static int setignore_signalhandler(unsigned signr)
    if (err) {
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = sigaction((int)signr, &sighandler, &s_signalhandler[signr-1].oldstate) ;
    if (err) {
       TRACESYSCALL_ERRLOG("sigaction", err) ;
       PRINTINT_ERRLOG(signr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
    s_signalhandler[signr-1].handler = 0 /*ignored*/ ;
    s_signalhandler[signr-1].isvalid = true ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -212,14 +212,14 @@ int initonce_signalhandler()
    int err ;
    sigset_t signalmask ;
    int      signr ;
-   bool     isoldmask = false ;
+   bool     isoldmask = false;
 
    err = sigemptyset(&signalmask) ;
-   if (err) goto ONABORT_emptyset ;
+   if (err) goto ONERR_emptyset ;
 
 #define addrange(_MINSIGNR, _MAXSIGNR)  \
          for (signr = _MINSIGNR; signr <= _MAXSIGNR; ++signr) {   \
-            if (sigaddset(&signalmask, signr)) goto ONABORT_add ; \
+            if (sigaddset(&signalmask, signr)) goto ONERR_add;    \
          }
 
 // TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
@@ -230,7 +230,7 @@ int initonce_signalhandler()
 
 #define add(_SIGNR)  \
          signr = (_SIGNR) ;   \
-         if (sigaddset(&signalmask, signr)) goto ONABORT_add ;
+         if (sigaddset(&signalmask, signr)) goto ONERR_add;
 
 // TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
    // used to suspend and resume a single thread
@@ -238,23 +238,23 @@ int initonce_signalhandler()
 // TEXTDB:END
 
    err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_signalhandler_oldmask) ;
-   if (err) goto ONABORT_sigmask ;
+   if (err) goto ONERR_sigmask;
    isoldmask = true ;
 
    err = sigemptyset(&signalmask) ;
-   if (err) goto ONABORT_emptyset ;
+   if (err) goto ONERR_emptyset;
 
 // TEXTDB:SELECT("   // "description\n"   add("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
 // TEXTDB:END
    err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0) ;
-   if (err) goto ONABORT_sigmask ;
+   if (err) goto ONERR_sigmask;
 #undef add
 
 #define set(_SIGNR, _HANDLER) \
    static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
    "s_signalhandler must be big enough" ) ;                          \
    err = set_signalhandler(_SIGNR, _HANDLER) ;                       \
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
 // TEXTDB:SELECT("   // "description\n"   set("signal", "handler") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
 // TEXTDB:END
@@ -264,7 +264,7 @@ int initonce_signalhandler()
    static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
    "s_signalhandler must be big enough" ) ;                          \
    err = setignore_signalhandler(_SIGNR) ;                           \
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
 // TEXTDB:SELECT("   // "description\n"   ignore("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='ignore')
    // ensures that calls to write return EPIPE
@@ -273,22 +273,22 @@ int initonce_signalhandler()
 #undef ignore
 
    return 0 ;
-ONABORT_sigmask:
-   TRACESYSCALL_ERRLOG("pthread_sigmask", err) ;
-   goto ONABORT ;
-ONABORT_emptyset:
-   err = EINVAL ;
-   TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-   goto ONABORT ;
-ONABORT_add:
-   err = EINVAL ;
-   TRACESYSCALL_ERRLOG("sigaddset", err) ;
-   PRINTINT_ERRLOG(signr) ;
-   goto ONABORT ;
-ONABORT:
-   if (isoldmask) freeonce_signalhandler() ;
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
+ONERR_sigmask:
+   TRACESYSCALL_ERRLOG("pthread_sigmask", err);
+   goto ONERR;
+ONERR_emptyset:
+   err = EINVAL;
+   TRACESYSCALL_ERRLOG("sigemptyset", err);
+   goto ONERR;
+ONERR_add:
+   err = EINVAL;
+   TRACESYSCALL_ERRLOG("sigaddset", err);
+   PRINTINT_ERRLOG(signr);
+   goto ONERR;
+ONERR:
+   if (isoldmask) freeonce_signalhandler();
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 int freeonce_signalhandler()
@@ -304,7 +304,7 @@ int freeonce_signalhandler()
          if (err) {
             TRACESYSCALL_ERRLOG("sigaction", err) ;
             PRINTINT_ERRLOG(signr) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
    }
@@ -312,12 +312,12 @@ int freeonce_signalhandler()
    err = pthread_sigmask(SIG_SETMASK, &s_signalhandler_oldmask, 0) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_sigmask", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -335,11 +335,11 @@ int setsegv_signalhandler(signalhandler_segv_f segfault_handler)
    int err ;
 
    err = set_signalhandler(SIGSEGV, (signalhandler_f) segfault_handler) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -388,7 +388,7 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
    signalstate_t *   newsigstate        = 0 ;
 
    err = RESIZE_MM(objectsize, &mem) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    newsigstate = (signalstate_t*) mem.addr ;
    memset(newsigstate, 0, objectsize) ;
@@ -397,7 +397,7 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
    err = pthread_sigmask(SIG_SETMASK, 0, &newsigstate->signalmask) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_sigmask", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (int i = nr_signal_handlers; i > 0; --i) {
@@ -407,16 +407,16 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
          err = errno ;
          TRACESYSCALL_ERRLOG("sigaction(i,...)", err) ;
          PRINTINT_ERRLOG(i) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    *sigstate = newsigstate ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) delete_signalstate(&newsigstate) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -431,12 +431,12 @@ int delete_signalstate(signalstate_t ** sigstate)
 
       err = FREE_MM(&mem) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -483,21 +483,21 @@ int initrealtime_signalwait(/*out*/signalwait_t * signalwait, signalrt_t minrt, 
    int err ;
    sigset_t signalmask ;
 
-   VALIDATE_INPARAM_TEST(minrt <= maxrt, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(maxrt <= maxnr_signalrt(), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(minrt <= maxrt, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(maxrt <= maxnr_signalrt(), ONERR, ) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (int signr = minrt; signr <= maxrt; ++signr) {
       if (sigaddset(&signalmask, SIGRTMIN+signr)) {
          err = EINVAL ;
          TRACESYSCALL_ERRLOG("sigaddset", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -505,14 +505,14 @@ int initrealtime_signalwait(/*out*/signalwait_t * signalwait, signalrt_t minrt, 
    if (-1 == fd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("signalfd", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *signalwait = fd ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -524,11 +524,11 @@ int free_signalwait(signalwait_t * signalwait)
    int err ;
 
    err = free_iochannel(signalwait) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -549,18 +549,18 @@ int send_signalrt(signalrt_t nr, uintptr_t value)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONABORT, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
 
    err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } ) ;
    if (err) {
-      err = errno ;
+      err = errno;
       TRACESYSCALL_ERRLOG("sigqueue", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -568,18 +568,17 @@ int send2_signalrt(signalrt_t nr, uintptr_t value, const thread_t * thread)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONABORT, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
 
    err = pthread_sigqueue(thread->sys_thread, SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } ) ;
    if (err) {
-      err = errno ;
       TRACESYSCALL_ERRLOG("sigqueue", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -588,13 +587,13 @@ int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
    int err ;
    sigset_t signalmask ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONABORT, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = sigaddset(&signalmask, SIGRTMIN+nr) ;
@@ -602,7 +601,7 @@ int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigaddset", err) ;
       PRINTINT_ERRLOG(SIGRTMIN+nr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (;;) {
@@ -612,7 +611,7 @@ int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
          err = errno ;
          if (EINTR == err) continue ;
          TRACESYSCALL_ERRLOG("sigwaitinfo", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       if (value) {
          *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0 ;
@@ -621,8 +620,8 @@ int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -632,13 +631,13 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
    sigset_t          signalmask ;
    struct timespec   ts = { 0, 0 } ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONABORT, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = sigaddset(&signalmask, SIGRTMIN+nr) ;
@@ -646,7 +645,7 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("sigaddset", err) ;
       PRINTINT_ERRLOG(SIGRTMIN+nr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (;;) {
@@ -657,7 +656,7 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
          if (EAGAIN == err)   return err ;
          if (EINTR  == err)   continue ;
          TRACESYSCALL_ERRLOG("sigtimedwait", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       if (value) {
          *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0 ;
@@ -666,8 +665,8 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -777,7 +776,7 @@ static int test_signalstate(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isoldact) sigaction(oldsignr, &oldact, 0) ;
    if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0) ;
    (void) delete_signalstate(&sigstate1) ;
@@ -890,7 +889,7 @@ static int test_signalhandler_helper(void)
    TEST(EINVAL == setignore_signalhandler(lengthof(s_signalhandler)+1)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0) ;
    return EINVAL ;
 }
@@ -914,7 +913,7 @@ static int test_signalhandler_initonce(void)
    memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    memcpy(&s_signalhandler_oldmask, &old_signalmask, sizeof(old_signalmask)) ;
    memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
    return EINVAL ;
@@ -1015,7 +1014,7 @@ static int test_signalhandler(void)
    TEST(0 == setsegv_signalhandler(oldhandler)) ;
 
   return 0 ;
-ONABORT:
+ONERR:
    setsegv_signalhandler(oldhandler) ;
    (void) delete_thread(&thread) ;
    if (memaddr != MAP_FAILED) munmap(memaddr, 1) ;
@@ -1206,7 +1205,7 @@ static int test_signalrt(void)
    while (0 < sigtimedwait(&signalmask, 0, &ts)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(group);++i) {
       (void) delete_thread(&group[i]) ;
    }
@@ -1287,21 +1286,21 @@ static int test_signalwait(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_platform_sync_signal()
 {
-   if (test_signalstate())             goto ONABORT ;
-   if (test_signalhandler_helper())    goto ONABORT ;
-   if (test_signalhandler_initonce())  goto ONABORT ;
-   if (test_signalhandler())           goto ONABORT ;
-   if (test_signalrt())                goto ONABORT ;
-   if (test_signalwait())              goto ONABORT ;
+   if (test_signalstate())             goto ONERR;
+   if (test_signalhandler_helper())    goto ONERR;
+   if (test_signalhandler_initonce())  goto ONERR;
+   if (test_signalhandler())           goto ONERR;
+   if (test_signalrt())                goto ONERR;
+   if (test_signalwait())              goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

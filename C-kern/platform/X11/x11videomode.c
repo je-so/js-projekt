@@ -49,14 +49,14 @@ int init_x11videomodeiterator(/*out*/x11videomode_iterator_t * xvidit, x11screen
 
    if (!isextxrandr_x11display(display_x11screen(x11screen))) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    Display * sys_display = display_x11screen(x11screen)->sys_display ;
    screen_config = XRRGetScreenInfo(sys_display, RootWindow(sys_display, number_x11screen(x11screen))) ;
    if (!screen_config) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    int           sizes_count ;
@@ -64,7 +64,7 @@ int init_x11videomodeiterator(/*out*/x11videomode_iterator_t * xvidit, x11screen
    if (  !sizes
          || (UINT16_MAX < (unsigned)sizes_count)) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    xvidit->nextindex = 0 ;
@@ -72,11 +72,11 @@ int init_x11videomodeiterator(/*out*/x11videomode_iterator_t * xvidit, x11screen
    xvidit->config    = screen_config ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -133,14 +133,14 @@ int initcurrent_x11videomode(/*out*/x11videomode_t * current_xvidmode, x11screen
 
    if (!isextxrandr_x11display(display_x11screen(x11screen))) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    Display * sys_display = display_x11screen(x11screen)->sys_display ;
    screen_config = XRRGetScreenInfo(sys_display, RootWindow(sys_display, number_x11screen(x11screen))) ;
    if (!screen_config) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    Rotation current_rotation ;
@@ -151,7 +151,7 @@ int initcurrent_x11videomode(/*out*/x11videomode_t * current_xvidmode, x11screen
    if (  !sizes
          || (current_size >= sizes_count)) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    current_xvidmode->modeid          = current_size ;
@@ -161,11 +161,11 @@ int initcurrent_x11videomode(/*out*/x11videomode_t * current_xvidmode, x11screen
    XRRFreeScreenConfigInfo(screen_config) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -178,14 +178,14 @@ int set_x11videomode(const x11videomode_t * xvidmode, x11screen_t * x11screen)
 
    if (!isextxrandr_x11display(display_x11screen(x11screen))) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    Display * sys_display = display_x11screen(x11screen)->sys_display ;
    screen_config = XRRGetScreenInfo(sys_display, RootWindow(sys_display, number_x11screen(x11screen))) ;
    if (!screen_config) {
       err = ENOSYS ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    Rotation current_rotation ;
@@ -196,31 +196,31 @@ int set_x11videomode(const x11videomode_t * xvidmode, x11screen_t * x11screen)
    if (  !sizes
          || (current_size >= sizes_count)) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (  xvidmode->modeid > sizes_count
          || xvidmode->width_in_pixel  != (uint32_t) sizes[xvidmode->modeid].width
          || xvidmode->height_in_pixel != (uint32_t) sizes[xvidmode->modeid].height) {
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (XRRSetScreenConfig( sys_display, screen_config,
                            RootWindow(sys_display, number_x11screen(x11screen)),
                            xvidmode->modeid, current_rotation, CurrentTime)) {
       err = EOPNOTSUPP ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    XRRFreeScreenConfigInfo(screen_config) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -287,7 +287,7 @@ static int test_iterator(x11screen_t * x11screen)
    TEST(0 == free_x11videomodeiterator(&xvidit)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11videomodeiterator(&xvidit) ;
    return EINVAL ;
 }
@@ -337,7 +337,7 @@ static int test_initfree(x11screen_t * x11screen)
    display_x11screen(x11screen)->xrandr.isSupported = true ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11videomodeiterator(&xvidit) ;
    return EINVAL ;
 }
@@ -379,7 +379,7 @@ static int waitXRRScreenChangeNotify(x11screen_t * x11screen, x11videomode_t * x
    sleepms_thread(10) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -420,7 +420,7 @@ static int test_setvideomode(x11screen_t * x11screen)
    display_x11screen(x11screen)->xrandr.isSupported = true ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isWrongVideoMode) {
       set_x11videomode(&current_xvidmode, x11screen) ;
    }
@@ -438,14 +438,14 @@ static int childprocess_unittest(void)
    TEST(0 == init_x11display(&x11disp, ":0")) ;
    x11screen = defaultscreen_x11display(&x11disp) ;
 
-   if (test_iterator(&x11screen))      goto ONABORT ;
-   if (test_initfree(&x11screen))      goto ONABORT ;
-   if (test_setvideomode(&x11screen))  goto ONABORT ; // has memory leak
+   if (test_iterator(&x11screen))      goto ONERR;
+   if (test_initfree(&x11screen))      goto ONERR;
+   if (test_setvideomode(&x11screen))  goto ONERR; // has memory leak
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_iterator(&x11screen))      goto ONABORT ;
-   if (test_initfree(&x11screen))      goto ONABORT ;
+   if (test_iterator(&x11screen))      goto ONERR;
+   if (test_initfree(&x11screen))      goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -454,7 +454,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_x11display(&x11disp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    (void) free_x11display(&x11disp) ;
    return EINVAL ;
@@ -467,7 +467,7 @@ int unittest_platform_X11_x11videomode()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

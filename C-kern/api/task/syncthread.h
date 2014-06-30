@@ -45,8 +45,8 @@ typedef int /*err code (0 == OK)*/  (* syncthread_f) (syncthread_t * sthread, ui
  * syncthread_signal_INIT   - Initialization signal meaning <syncthread_t.state> contains a pointer to the function arguments.
  *                            A value of 0 means no arguments.
  * syncthread_signal_ABORT  - Abort signal. The syncthread should free all resources, clear variables and return.
- *                            After return its returned value should be zero else it is assumed abortion failed
- *                            and the whole process must therefore be aborted !
+ *                            After return its returned value is ignored. Instead <syncrun_returncode_ABORT>
+ *                            is used to indicate abnormal exit. See also <syncrun_t>.
  * */
 enum syncthread_signal_e {
    syncthread_signal_NULL   = 0,
@@ -159,7 +159,7 @@ void setstate_syncthread(syncthread_t * sthread, void * state) ;
  * syncthread_signal_ABORT  - The function jumps to onabortlabel.
  * undefined value          - The function jumps to onabortlabel.
  * */
-void handlesignal_syncthread(const uint32_t signalstate, void * continuelabel, IDNAME oninitlabel, IDNAME onrunlabel, IDNAME onabortlabel) ;
+void handlesignal_syncthread(const uint32_t signalstate, void * continuelabel, IDNAME oninitlabel, IDNAME onrunlabel, IDNAME onabortlabel);
 
 // group: call convention
 
@@ -231,15 +231,15 @@ int callabort_syncthread(syncthread_t * sthread) ;
             const syncthread_signal_e _sign = (signalstate) ;           \
             switch (_sign) {                                            \
             case syncthread_signal_NULL:                                \
-               goto onrunlabel ;                                        \
+               goto onrunlabel;                                         \
             case syncthread_signal_WAKEUP:                              \
-               goto * (continuelabel) ;                                 \
+               goto * (continuelabel);                                  \
             case syncthread_signal_INIT:                                \
-               goto oninitlabel ;                                       \
+               goto oninitlabel;                                        \
             case syncthread_signal_ABORT:                               \
-               goto onabortlabel ;                                      \
+               goto onabortlabel;                                       \
             }                                                           \
-            goto onabortlabel ;                                         \
+            goto onabortlabel;                                          \
          }))
 
 /* define: init_syncthread

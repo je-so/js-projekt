@@ -63,27 +63,27 @@ static test_errortimer_t   s_processcontext_errtimer = test_errortimer_FREE ;
          objtype_t * newobj = 0 ;                           \
                                                             \
          ONERROR_testerrortimer(                            \
-               &s_processcontext_errtimer, &err, ONABORT);  \
+               &s_processcontext_errtimer, &err, ONERR);    \
          newobj = allocstatic_maincontext(                  \
                            sizeof(objtype_t)) ;             \
          if (!newobj) {                                     \
             err = ENOMEM ;                                  \
-            goto ONABORT ;                                  \
+            goto ONERR;                                     \
          }                                                  \
                                                             \
          ONERROR_testerrortimer(                            \
-               &s_processcontext_errtimer, &err, ONABORT);  \
+               &s_processcontext_errtimer, &err, ONERR);    \
          err = init_##module(newobj) ;                      \
-         if (err) goto ONABORT ;                            \
+         if (err) goto ONERR;                               \
                                                             \
          (object) = newobj ;                                \
                                                             \
-         return 0 ;                                         \
-      ONABORT:                                              \
+         return 0;                                          \
+      ONERR:                                                \
          if (newobj) {                                      \
             freestatic_maincontext(sizeof(objtype_t)) ;     \
          }                                                  \
-         return err ;
+         return err;
 
 /* define: FREEOBJECT
  * Frees object. Calls freestatic_maincontext to free memory as last operation.
@@ -217,50 +217,50 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
 
    pcontext->initcount = 0 ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;"\n"   err = inithelper"row-id"_processcontext(pcontext) ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);"\n"   err = inithelper"row-id"_processcontext(pcontext) ;"\n"   if (err) goto ONERR;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper1_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper2_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper3_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper4_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper5_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper6_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    err = inithelper7_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    ++ pcontext->initcount ;
 // TEXTDB:END
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_processcontext(pcontext) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -302,11 +302,11 @@ int free_processcontext(processcontext_t * pcontext)
 
    pcontext->initcount = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -409,7 +409,7 @@ static int test_initfree(void)
    TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_processcontext(&pcontext) ;
    return EINVAL ;
 }
@@ -438,21 +438,21 @@ static int test_query(void)
    pcontext.initcount = 1 ;
    TEST(0 == isstatic_processcontext(&pcontext)) ;
    pcontext.initcount = 0 ;
-   TEST(1 == isstatic_processcontext(&pcontext)) ;
+   TEST(1 == isstatic_processcontext(&pcontext));
 
-   return 0 ;
-ONABORT:
-   return EINVAL ;
+   return 0;
+ONERR:
+   return EINVAL;
 }
 
 int unittest_context_processcontext()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
 
-   return 0 ;
-ONABORT:
-   return EINVAL ;
+   return 0;
+ONERR:
+   return EINVAL;
 }
 
 #endif

@@ -87,14 +87,14 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
    if (-1 == efd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("epoll_create1", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    iopoll->sys_poll = efd ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -105,11 +105,11 @@ int free_iopoll(iopoll_t * iopoll)
    int err ;
 
    err = free_iochannel(&iopoll->sys_poll) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -120,7 +120,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
    int err ;
    int resultsize ;
 
-   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONABORT, PRINTUINT32_ERRLOG(queuesize) );
+   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONERR, PRINTUINT32_ERRLOG(queuesize) );
 
    static_assert( sizeof(int) > sizeof(timeout_ms), "(int)timeout_ms is never -1");
    static_assert( sizeof(ioevent_t) == sizeof(struct epoll_event)
@@ -135,7 +135,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
       err = errno ;
       TRACESYSCALL_ERRLOG("epoll_wait", err) ;
       PRINTINT_ERRLOG(iopoll->sys_poll) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (int i = 0; i < resultsize; ++i) {
@@ -145,8 +145,8 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
    *nr_events = (unsigned) resultsize ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -158,7 +158,7 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioeven
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_ERRLOG(for_event->ioevents)) ;
+   VALIDATE_INPARAM_TEST(0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK), ONERR, PRINTUINT32_ERRLOG(for_event->ioevents)) ;
 
    struct epoll_event epevent ;
    convert2epollevent_iopoll(&epevent, for_event) ;
@@ -169,12 +169,12 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioeven
       TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_ADD)", err) ;
       PRINTINT_ERRLOG(iopoll->sys_poll) ;
       PRINTINT_ERRLOG(fd) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -184,7 +184,7 @@ int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_ERRLOG(updated_event->ioevents)) ;
+   VALIDATE_INPARAM_TEST(0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK), ONERR, PRINTUINT32_ERRLOG(updated_event->ioevents)) ;
 
    struct epoll_event epevent ;
    convert2epollevent_iopoll(&epevent, updated_event) ;
@@ -195,12 +195,12 @@ int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_
       TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_MOD)", err) ;
       PRINTINT_ERRLOG(iopoll->sys_poll) ;
       PRINTINT_ERRLOG(fd) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -217,12 +217,12 @@ int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd)
       TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_DEL)", err) ;
       PRINTINT_ERRLOG(iopoll->sys_poll) ;
       PRINTINT_ERRLOG(fd) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -251,7 +251,7 @@ static int test_ioevent(void)
    TEST(ioevent.eventid.val64 == 0x112233448123abcf) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -280,7 +280,7 @@ static int test_initfree(void)
    TEST(iopoll.sys_poll == sys_iochannel_FREE) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -383,7 +383,7 @@ static int test_registerfd(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iopoll(&iopoll) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
       free_iochannel(fd[i]) ;
@@ -630,7 +630,7 @@ static int test_waitevents(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iopoll(&iopoll) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
       free_iochannel(fd[i]) ;
@@ -641,13 +641,13 @@ ONABORT:
 
 int unittest_io_iopoll()
 {
-   if (test_ioevent())        goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_registerfd())     goto ONABORT ;
-   if (test_waitevents())     goto ONABORT ;
+   if (test_ioevent())        goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_registerfd())     goto ONERR;
+   if (test_waitevents())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

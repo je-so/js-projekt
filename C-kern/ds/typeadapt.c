@@ -273,7 +273,7 @@ static int test_initfree(void)
    TEST(0 == iscalldelete_typeadapt(&typeadp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -394,7 +394,7 @@ static int test_generic(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -529,18 +529,18 @@ static int test_typeadaptmember(void)
    TEST(&testobj.lifetime.is_delete  == objectasmember_typeadaptmember(&nodeadp8[7], (struct typeadapt_object_t*)&testobj)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_typeadapt()
 {
-   if (test_initfree())          goto ONABORT ;
-   if (test_generic())           goto ONABORT ;
-   if (test_typeadaptmember())   goto ONABORT ;
+   if (test_initfree())          goto ONERR;
+   if (test_generic())           goto ONERR;
+   if (test_typeadaptmember())   goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -109,7 +109,7 @@ static int test_initfreeit(void)
    TEST(pgcacheif.emptycache    == &emptycache1_dummy) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -127,7 +127,7 @@ static int test_initfree(void)
    TEST(5 == (uintptr_t)pgcacheobj.iimpl) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -142,7 +142,7 @@ static int test_query(void)
    TEST(0 == isobject_pagecache(&pgcache)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -158,7 +158,7 @@ static int test_queryit(void)
    TEST(1048576 == pagesizeinbytes_pagecacheit(pagesize_1MB)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -254,7 +254,7 @@ static int test_genericit(void)
    TEST((pagecache_it*)&pgcacheif == genericcast_pagecacheit(&pgcacheif, struct pagecachex_t)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -318,21 +318,21 @@ int test_call(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_memory_pagecache()
 {
-   if (test_initfreeit())     goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_queryit())        goto ONABORT ;
-   if (test_genericit())      goto ONABORT ;
-   if (test_call())           goto ONABORT ;
+   if (test_initfreeit())     goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_queryit())        goto ONERR;
+   if (test_genericit())      goto ONERR;
+   if (test_call())           goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

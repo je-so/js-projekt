@@ -121,7 +121,7 @@ static int test_tablepow10(void)
    TEST((last/10) < s_pow10[19]) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -161,17 +161,17 @@ static int test_log10(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_log10()
 {
-   if (test_tablepow10())  goto ONABORT ;
-   if (test_log10())       goto ONABORT ;
+   if (test_tablepow10())  goto ONERR;
+   if (test_log10())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

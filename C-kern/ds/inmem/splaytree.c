@@ -76,10 +76,10 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
    if (tree->root) {
 
       err = init_binarystack(&parents, 64*sizeof(struct state_t)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       err = push_binarystack(&parents, &state) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       *state = (struct state_t) { .parent = tree->root, .lowerbound = 0, .upperbound = 0 } ;
 
@@ -94,7 +94,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
                || (  state->upperbound
                      && callcmpobj_typeadapt(typeadp, state->upperbound, stateobj) <= 0)) {
             err = EINVAL ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          if (  leftchild
@@ -103,7 +103,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
             prevstate = state ;
 
             err = push_binarystack(&parents, &state) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
 
             if (leftchild) {
                state->parent     = leftchild ;
@@ -120,7 +120,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
                const splaytree_node_t * child = state->parent ;
 
                err = pop_binarystack(&parents, sizeof(struct state_t)) ;
-               if (err) goto ONABORT ;
+               if (err) goto ONERR;
 
                if (isempty_binarystack(&parents)) break ;
 
@@ -130,7 +130,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
                if (state->parent->left == child && state->parent->right) {
                   prevstate = state ;
                   err = push_binarystack(&parents, &state) ;
-                  if (err) goto ONABORT ;
+                  if (err) goto ONERR;
                   state->parent     = prevstate->parent->right ;
                   state->lowerbound = memberasobject_typeadaptnodeoffset(nodeoffset, prevstate->parent) ;
                   state->upperbound = prevstate->upperbound ;
@@ -143,11 +143,11 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
    }
 
    err = free_binarystack(&parents) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    (void) free_binarystack(&parents) ;
    return err ;
 }
@@ -157,11 +157,11 @@ ONABORT:
 int free_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp)
 {
    int err = removenodes_splaytree(tree, nodeoffset, typeadp) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -400,7 +400,7 @@ int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node, uint16_t n
       int cmp ;
 
       err = splaynode_splaytree(tree, new_node, &cmp, nodeoffset, typeadp) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       if (cmp == 0)  {
          return EEXIST ;
@@ -424,8 +424,8 @@ int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node, uint16_t n
    tree->root = new_node ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -437,7 +437,7 @@ int remove_splaytree(splaytree_t * tree, splaytree_node_t * node, uint16_t nodeo
 
    int cmp ;
    int err = splaynode_splaytree(tree, node, &cmp, nodeoffset, typeadp) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    splaytree_node_t * const root = tree->root ;
 
@@ -475,8 +475,8 @@ int remove_splaytree(splaytree_t * tree, splaytree_node_t * node, uint16_t nodeo
    root->right = 0 ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -521,12 +521,12 @@ int removenodes_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t *
 
       } while (node) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -539,7 +539,7 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
    }
 
    int err = splaykey_splaytree(tree, key, nodeoffset, typeadp) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (0 != KEYCOMPARE(key, tree->root)) {
       return ESRCH ;
@@ -548,8 +548,8 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
    *found_node = tree->root ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -824,7 +824,7 @@ static int test_initfree(void)
    nodes1 = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&memblock1) ;
    return EINVAL ;
 }
@@ -1077,7 +1077,7 @@ static int test_insertremove(void)
    nodes2 = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&memblock1) ;
    FREE_MM(&memblock2) ;
    return EINVAL ;
@@ -1217,7 +1217,7 @@ static int test_iterator(void)
    nodes1 = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&memblock1) ;
    return EINVAL ;
 }
@@ -1335,20 +1335,20 @@ static int test_generic(void)
    nodes1 = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&memblock1) ;
    return EINVAL ;
 }
 
 int unittest_ds_inmem_splaytree()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_insertremove())   goto ONABORT ;
-   if (test_iterator())       goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_insertremove())   goto ONERR;
+   if (test_iterator())       goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -72,16 +72,16 @@ static int test_errorstr(void)
 #undef CHECK
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_context_errornr()
 {
-   if (test_errorstr())    goto ONABORT ;
+   if (test_errorstr())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

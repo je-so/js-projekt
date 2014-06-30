@@ -57,14 +57,14 @@ int init_gcontext(/*out*/gcontext_t * cont, struct display_t * disp, struct gcon
 
 #if defined(KONFIG_USERINTERFACE_EGL)
    err = init_eglcontext(&gl_gcontext(cont), gl_display(disp), gl_gconfig(gconf), api);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 #else
    #error "No implementation defined"
 #endif
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -79,13 +79,13 @@ int free_gcontext(gcontext_t * cont, struct display_t * disp)
    #error "No implementation defined"
 #endif
 
-      if  (err) goto ONABORT;
-      ONERROR_testerrortimer(&s_gcontext_errtimer, &err, ONABORT);
+      if  (err) goto ONERR;
+      ONERROR_testerrortimer(&s_gcontext_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -146,7 +146,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == free_gconfig(&conf))
 
    return 0;
-ONABORT:
+ONERR:
    free_gconfig(&conf);
    free_gcontext(&cont, disp);
    return EINVAL;
@@ -192,7 +192,7 @@ static int test_query(display_t * disp)
    }
 
    return 0;
-ONABORT:
+ONERR:
    free_gconfig(&conf);
    free_gcontext(&cont, disp);
    return EINVAL;
@@ -290,7 +290,7 @@ static int test_current(display_t * disp)
    TEST(0 == free_gcontext(&gcont, disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) releasecurrent_gcontext(disp);
    (void) free_gconfig(&gconf);
    (void) free_pixelbuffer(&pbuf, disp);
@@ -335,7 +335,7 @@ static int thread_setcurrent_notok(struct threadarg_t * arg)
 
    CLEARBUFFER_ERRLOG();
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -367,7 +367,7 @@ static int thread_setcurrent_ok(struct threadarg_t * arg)
    TEST(0 == releasecurrent_gcontext(arg->disp));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -433,7 +433,7 @@ static int test_thread(display_t * disp)
    TEST(0 == free_gcontext(&gcont, disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) delete_thread(&thread);
    (void) releasecurrent_gcontext(disp);
    (void) free_gconfig(&gconf);
@@ -451,10 +451,10 @@ static int childprocess_unittest(void)
    // prepare
    TEST(0 == initdefault_display(&disp));
 
-   if (test_initfree(&disp))     goto ONABORT;
-   if (test_query(&disp))        goto ONABORT;
-   if (test_current(&disp))      goto ONABORT;
-   if (test_thread(&disp))       goto ONABORT;
+   if (test_initfree(&disp))     goto ONERR;
+   if (test_query(&disp))        goto ONERR;
+   if (test_current(&disp))      goto ONERR;
+   if (test_thread(&disp))       goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
@@ -467,7 +467,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_display(&disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_display(&disp);
    return EINVAL;
@@ -480,7 +480,7 @@ int unittest_graphic_gcontext()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

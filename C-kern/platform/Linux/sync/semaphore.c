@@ -49,15 +49,15 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
       err = errno ;
       TRACESYSCALL_ERRLOG("eventfd", err) ;
       PRINTUINT32_ERRLOG(init_signal_count) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    static_assert(sizeof(fd) == sizeof(semaobj), "init all fields of struct") ;
    semaobj->sys_sema = fd ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -86,12 +86,12 @@ int free_semaphore(semaphore_t * semaobj)
       err2 = free_iochannel(&semaobj->sys_sema) ;
       if (err2) err = err2 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -108,14 +108,14 @@ int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
       TRACESYSCALL_ERRLOG("write", err) ;
       PRINTINT_ERRLOG(semaobj->sys_sema) ;
       PRINTUINT32_ERRLOG(signal_count) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    assert(sizeof(uint64_t) == err) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -129,14 +129,14 @@ int wait_semaphore(semaphore_t * semaobj)
       err = errno ;
       TRACESYSCALL_ERRLOG("read", err) ;
       PRINTINT_ERRLOG(semaobj->sys_sema) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    assert(1 == decrement) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -207,7 +207,7 @@ static int test_semaphore_init(void)
    TEST(0 == free_semaphore(&sema)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_semaphore(&sema) ;
    return EINVAL ;
 }
@@ -223,18 +223,18 @@ static void * semathread(void * start_arg)
 {
    semathread_arg_t * startarg = (semathread_arg_t*)start_arg ;
 
-   if (pthread_mutex_lock(&startarg->mutex))      goto ONABORT ;
+   if (pthread_mutex_lock(&startarg->mutex))      goto ONERR;
    ++ startarg->count ;
-   if (pthread_mutex_unlock(&startarg->mutex))    goto ONABORT ;
+   if (pthread_mutex_unlock(&startarg->mutex))    goto ONERR;
 
-   if (wait_semaphore(&startarg->sema)) goto ONABORT ;
+   if (wait_semaphore(&startarg->sema)) goto ONERR;
 
-   if (pthread_mutex_lock(&startarg->mutex))      goto ONABORT ;
+   if (pthread_mutex_lock(&startarg->mutex))      goto ONERR;
    -- startarg->count ;
-   if (pthread_mutex_unlock(&startarg->mutex))    goto ONABORT ;
+   if (pthread_mutex_unlock(&startarg->mutex))    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return (void*) 1 ;
 }
 
@@ -319,7 +319,7 @@ static int test_semaphore_threads(void)
    TEST(0 == free_semaphore(&startarg.sema)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_semaphore(&startarg.sema) ; // also waking up waiting threads !
    while(valid_thread_index) {
       --valid_thread_index ;
@@ -354,7 +354,7 @@ static int test_overflow(void)
    sema = sys_semaphore_FREE ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&sema) ;
    return EINVAL ;
 }
@@ -364,21 +364,21 @@ static int childprocess_unittest(void)
    resourceusage_t usage = resourceusage_FREE ;
 
    // allocate possible additional (internal) malloc memory !
-   if (test_semaphore_threads())       goto ONABORT ;
+   if (test_semaphore_threads())       goto ONERR;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_overflow())                goto ONABORT ;
-   if (test_semaphore_init())          goto ONABORT ;
-   if (test_semaphore_threads())       goto ONABORT ;
+   if (test_overflow())                goto ONERR;
+   if (test_semaphore_init())          goto ONERR;
+   if (test_semaphore_threads())       goto ONERR;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
@@ -390,7 +390,7 @@ int unittest_platform_sync_semaphore()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

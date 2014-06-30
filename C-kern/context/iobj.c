@@ -64,7 +64,7 @@ static int test_initfree(void)
    TEST(iobj.iimpl  == 0) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -125,17 +125,17 @@ static int test_generic(void)
    TEST(testiobj3.iimpl  == 0) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_context_iobj()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

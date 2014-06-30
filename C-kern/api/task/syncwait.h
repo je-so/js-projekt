@@ -91,7 +91,7 @@ void initmovesafe_syncevent(/*out*/syncevent_t * destsyncevent, const syncevent_
 bool isfree_syncevent(const syncevent_t * syncevent) ;
 
 /* function: iswaiting_syncevent
- * Returns true if there is already a waiting thread. */
+ * Returns true if there is a waiting thread. */
 bool iswaiting_syncevent(const syncevent_t * syncevent) ;
 
 /* function: waiting_syncevent

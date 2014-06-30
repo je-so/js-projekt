@@ -1,160 +1,124 @@
-[1: 1403036413.769041s]
+[1: 1403500291.992201s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.769046s]
+[1: 1403500291.992207s]
 new_bigint() C-kern/math/int/bigint.c:1155
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.772546s]
+[1: 1403500291.995768s]
 setfromdouble_bigint() C-kern/math/int/bigint.c:1394
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
-Function aborted
-[1: 1403036413.772552s]
+[1: 1403500291.995773s]
 setfromdouble_bigint() C-kern/math/int/bigint.c:1394
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
-Function aborted
-[1: 1403036413.772558s]
+[1: 1403500291.995779s]
 setbigfirst_bigint() C-kern/math/int/bigint.c:1459
 Error 22 - Invalid argument
 Function input violates condition (sign != 0)
-Function aborted
-[1: 1403036413.772560s]
+[1: 1403500291.995782s]
 setbigfirst_bigint() C-kern/math/int/bigint.c:1504
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.772564s]
+[1: 1403500291.995786s]
 setlittlefirst_bigint() C-kern/math/int/bigint.c:1512
 Error 22 - Invalid argument
 Function input violates condition (sign != 0)
-Function aborted
-[1: 1403036413.772567s]
+[1: 1403500291.995789s]
 setlittlefirst_bigint() C-kern/math/int/bigint.c:1554
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865163s]
+[1: 1403500292.088152s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865167s]
+[1: 1403500292.088157s]
 multui32_bigint() C-kern/math/int/bigint.c:1812
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865169s]
+[1: 1403500292.088159s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865171s]
+[1: 1403500292.088161s]
 mult_bigint() C-kern/math/int/bigint.c:1865
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865173s]
+[1: 1403500292.088163s]
 mult_bigint() C-kern/math/int/bigint.c:1865
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.865175s]
+[1: 1403500292.088165s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.865177s]
+[1: 1403500292.088167s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:697
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.865179s]
+[1: 1403500292.088169s]
 mult_bigint() C-kern/math/int/bigint.c:1865
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.865203s]
+[1: 1403500292.088193s]
 delete_bigint() C-kern/math/int/bigint.c:1196
 Error 71 - Protocol error
-Function aborted - one or more resources could not be freed
-[1: 1403036413.865211s]
+One or more resources could not be freed
+[1: 1403500292.088200s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:697
 Error 71 - Protocol error
-Function aborted
-[1: 1403036413.865213s]
+[1: 1403500292.088202s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:697
 Error 71 - Protocol error
-Function aborted
-[1: 1403036413.865215s]
+[1: 1403500292.088204s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:697
 Error 71 - Protocol error
-Function aborted
-[1: 1403036413.865216s]
+[1: 1403500292.088206s]
 mult_bigint() C-kern/math/int/bigint.c:1865
 Error 71 - Protocol error
-Function aborted
-[1: 1403036413.865236s]
+[1: 1403500292.088226s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1878
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865239s]
+[1: 1403500292.088228s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1878
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865241s]
+[1: 1403500292.088231s]
 divmod_bigint() C-kern/math/int/bigint.c:1929
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865243s]
+[1: 1403500292.088233s]
 divmod_bigint() C-kern/math/int/bigint.c:1929
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865245s]
+[1: 1403500292.088235s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1878
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865247s]
+[1: 1403500292.088237s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1878
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865249s]
+[1: 1403500292.088239s]
 divmod_bigint() C-kern/math/int/bigint.c:1929
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.865251s]
+[1: 1403500292.088242s]
 divmod_bigint() C-kern/math/int/bigint.c:1929
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-Function aborted
-[1: 1403036413.866993s]
+[1: 1403500292.089960s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1651
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.866995s]
+[1: 1403500292.089962s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1651
 Error 75 - Value too large for defined data type
-Function aborted
-[1: 1403036413.866998s]
+[1: 1403500292.089965s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.866999s]
+[1: 1403500292.089966s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1651
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.867464s]
+[1: 1403500292.090430s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.867471s]
+[1: 1403500292.090432s]
 shiftright_bigint() C-kern/math/int/bigint.c:1724
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036413.867477s]
+[1: 1403500292.090438s]
 allocate_bigint() C-kern/math/int/bigint.c:136
 Error 22 - Invalid argument
-Function aborted
-[1: 1403036413.867479s]
+[1: 1403500292.090440s]
 multui32_bigint() C-kern/math/int/bigint.c:1812
 Error 22 - Invalid argument
-Function aborted

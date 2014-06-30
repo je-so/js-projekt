@@ -1,48 +1,38 @@
-[1: 1375541637.056129s]
+[1: 1403500296.013776s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:146
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541637.056150s]
+[1: 1403500296.013787s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:121
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541637.056153s]
+[1: 1403500296.013795s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:146
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541637.056156s]
+[1: 1403500296.013800s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:121
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541637.056158s]
+[1: 1403500296.013804s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:145
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(interval_time))
-Function aborted
-[1: 1375541637.056161s]
+[1: 1403500296.013815s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:120
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-Function aborted
-[1: 1375541637.056163s]
+[1: 1403500296.013820s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:145
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(interval_time))
-Function aborted
-[1: 1375541637.056165s]
+[1: 1403500296.013824s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:120
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-Function aborted
-[1: 1375541637.057365s]
+[1: 1403500296.015030s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:213
 Error 62 - Timer expired
-Function aborted
-[1: 1375541637.058463s]
+[1: 1403500296.016133s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:213
 Error 62 - Timer expired
-Function aborted

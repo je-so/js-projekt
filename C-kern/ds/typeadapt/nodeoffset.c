@@ -81,7 +81,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -112,17 +112,17 @@ static int test_objectnodeconversion(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_typeadapt_nodeoffset()
 {
-   if (test_initfree())             goto ONABORT ;
-   if (test_objectnodeconversion()) goto ONABORT ;
+   if (test_initfree())             goto ONERR;
+   if (test_objectnodeconversion()) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

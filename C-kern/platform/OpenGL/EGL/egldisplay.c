@@ -77,11 +77,11 @@ int initdefault_egldisplay(/*out*/egldisplay_t * egldisp)
    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
    err = initshared_egldisplay(egldisp, display);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -89,16 +89,16 @@ int init_egldisplay(/*out*/egldisplay_t * egldisp, struct sys_display_t * sysdis
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(sysdisp != 0, ONABORT,);
+   VALIDATE_INPARAM_TEST(sysdisp != 0, ONERR,);
 
    EGLDisplay display = eglGetDisplay((EGLNativeDisplayType)sysdisp);
 
    err = initshared_egldisplay(egldisp, display);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -113,15 +113,15 @@ int free_egldisplay(egldisplay_t * egldisp)
 
       if (EGL_FALSE == isTerminate) {
          err = aserrcode_egl(eglGetError());
-         goto ONABORT;
+         goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_egldisplay_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_egldisplay_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -166,7 +166,7 @@ static int test_initfree(sys_display_t * sysdisp, sys_display_t * freesysdisp)
    TEST(0 == egldisp);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -205,7 +205,7 @@ static int test_initfree_default(void)
    TEST(0 == egldisp);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -241,8 +241,8 @@ static int childprocess_unittest(void)
    sysdisp = sysdisplay_osdisplay(&osdisp);
 
    // eglInitialize followed by eglTerminate has a resource leak
-   if (test_initfree_default())     goto ONABORT;
-   if (test_initfree(sysdisp, freesysdisp))  goto ONABORT;
+   if (test_initfree_default())     goto ONERR;
+   if (test_initfree(sysdisp, freesysdisp))  goto ONERR;
 
    size_t    logsize;
    uint8_t * logbuffer;
@@ -250,7 +250,7 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(sysdisp, freesysdisp))  goto ONABORT;
+   if (test_initfree(sysdisp, freesysdisp))  goto ONERR;
    TRUNCATEBUFFER_ERRLOG(logsize);
 
    TEST(0 == same_resourceusage(&usage));
@@ -259,7 +259,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_osdisplay(&osdisp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_osdisplay(&osdisp);
    return EINVAL;
@@ -272,7 +272,7 @@ int unittest_platform_opengl_egl_egldisplay()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

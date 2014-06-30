@@ -43,14 +43,14 @@ int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, uint3
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nrscreen < nrofscreens_x11display(display), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nrscreen < nrofscreens_x11display(display), ONERR, ) ;
 
    x11screen->display  = display ;
    x11screen->nrscreen = nrscreen ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -85,7 +85,7 @@ static int test_initfree(x11display_t * x11disp)
    TEST(EINVAL == init_x11screen(&x11screen, x11disp, nrofscreens_x11display(x11disp))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -119,7 +119,7 @@ static int test_query(void)
    TEST(isequal_x11screen(&rx11screen, &lx11screen)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -132,8 +132,8 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree(&x11disp))     goto ONABORT ;
-   if (test_query())                goto ONABORT ;
+   if (test_initfree(&x11disp))     goto ONERR;
+   if (test_query())                goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -141,7 +141,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_x11display(&x11disp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11display(&x11disp) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
@@ -154,7 +154,7 @@ int unittest_platform_X11_x11screen()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

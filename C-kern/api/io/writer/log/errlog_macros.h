@@ -101,24 +101,24 @@ struct logbuffer_t ;
                __VA_ARGS__) ;          \
          }  while(0)
 
-/* define: TRACEABORT_ERRLOG
+/* define: TRACEEXIT_ERRLOG
  * Logs the abortion of a function and the its corresponding error code.
  * If a function encounters an error from which it cannot recover
  * it should roll back the system to its previous state before it was
  * called and use
- * > TRACEABORT_ERRLOG(return_error_code)
+ * > TRACEEXIT_ERRLOG(return_error_code)
  * to signal this fact. */
-#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_ABORT, err)
+#define TRACEEXIT_ERRLOG(err)             TRACE_HEADER_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, err)
 
-/* define: TRACEABORTFREE_ERRLOG
+/* define: TRACEEXITFREE_ERRLOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_ABORT_FREE, err)
+#define TRACEEXITFREE_ERRLOG(err)         TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_FREE_RESOURCE, err)
 
 /* define: TRACECALL_ERRLOG
- * Logs reason of failure and name of called app function.
- * Use this function to log an error in a function which calls a library
+ * Log name of called function and error code.
+ * Use this macro to log an error of a called library
  * function which does no logging on its own.
  *
  * TODO: Support own error IDs */
@@ -130,7 +130,7 @@ struct logbuffer_t ;
  * If a function could not allocate memory of size bytes and therefore aborts
  * with an error code
  * > TRACEOUTOFMEM_ERRLOG(size_of_memory_in_bytes)
- * should be called before <TRACEABORT_ERRLOG> to document the event leading to an abort. */
+ * should be called before <TRACEEXIT_ERRLOG> to document the event leading to an abort. */
 #define TRACEOUTOFMEM_ERRLOG(size, err)   \
          TRACE_ERRLOG(log_flags_START, MEMORY_OUT_OF, err, size)
 
@@ -184,6 +184,20 @@ struct logbuffer_t ;
             PRINTTEXT_NOARG_LOG(                \
                log_channel_ERR, FLAGS,          \
                &_header, TEXTID ## _ERRLOG) ;   \
+         }  while(0)
+
+/* define: TRACE_HEADER_ERRLOG
+ * Logs possible header and error number err.
+ * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
+ * There are no additional arguments. */
+#define TRACE_HEADER_ERRLOG(FLAGS, err)         \
+         do {                                   \
+            log_header_t _header =              \
+               log_header_INIT(__FUNCTION__,    \
+                  __FILE__, __LINE__, err);     \
+            PRINTF_LOG(                         \
+               log_channel_ERR, FLAGS,          \
+               &_header, 0);                    \
          }  while(0)
 
 // group: log-variables

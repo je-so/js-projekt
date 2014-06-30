@@ -1,100 +1,87 @@
-[1: 1375541639.489337s]
+[1: 1403500297.617749s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
 Error 22 - Invalid argument
 Function input violates condition (column < csvfile->nrcolumns)
 column=4
 csvfile->nrcolumns=4
-Function aborted
-[1: 1375541639.489351s]
+[1: 1403500297.617761s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
 Error 22 - Invalid argument
 Function input violates condition (column < csvfile->nrcolumns)
 column=4294967295
 csvfile->nrcolumns=4
-Function aborted
-[1: 1375541639.489358s]
+[1: 1403500297.617768s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:352
 Error 22 - Invalid argument
 Function input violates condition (row < csvfile->nrrows)
 row=3
 csvfile->nrrows=3
-Function aborted
-[1: 1375541639.489365s]
+[1: 1403500297.617774s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:352
 Error 22 - Invalid argument
 Function input violates condition (row < csvfile->nrrows)
 row=4294967295
 csvfile->nrrows=3
-Function aborted
-[1: 1375541639.489820s]
+[1: 1403500297.618223s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:108
 Error 22 - Invalid argument
 Expect character ',' in line: 1, column: 12
-[1: 1375541639.489837s]
+[1: 1403500297.618237s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.489972s]
+[1: 1403500297.618377s]
 parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:171
 Error 22 - Invalid argument
 Expect character '"' in line: 1, column: 12
-[1: 1375541639.489987s]
+[1: 1403500297.618389s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490085s]
+[1: 1403500297.618526s]
 parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:171
 Error 22 - Invalid argument
 Expect character '"' in line: 1, column: 12
-[1: 1375541639.490098s]
+[1: 1403500297.618539s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490196s]
+[1: 1403500297.618666s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:108
 Error 22 - Invalid argument
 Expect character '"' in line: 1, column: 14
-[1: 1375541639.490208s]
+[1: 1403500297.618681s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490307s]
+[1: 1403500297.618817s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:243
 Error 22 - Invalid argument
 Expect '(newline)' in line: 2, column: 12
-[1: 1375541639.490320s]
+[1: 1403500297.618831s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490418s]
+[1: 1403500297.618962s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:257
 Error 22 - Invalid argument
 Expect character ',' in line: 2, column: 5
-[1: 1375541639.490432s]
+[1: 1403500297.618979s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490529s]
+[1: 1403500297.619107s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:268
 Error 22 - Invalid argument
 Expect character '"' in line: 2, column: 6
-[1: 1375541639.490542s]
+[1: 1403500297.619123s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490640s]
+[1: 1403500297.619254s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:108
 Error 22 - Invalid argument
 Expect character '"' in line: 2, column: 10
-[1: 1375541639.490653s]
+[1: 1403500297.619271s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted
-[1: 1375541639.490749s]
+[1: 1403500297.619404s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:108
 Error 22 - Invalid argument
 Expect character '"' in line: 1, column: 3
-[1: 1375541639.490762s]
+[1: 1403500297.619415s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:317
 Error 22 - Invalid argument
-Function aborted

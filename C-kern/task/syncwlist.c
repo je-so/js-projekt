@@ -163,11 +163,11 @@ int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
    wlist->prev  = 0 ;
    wlist->nrnodes = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -192,9 +192,9 @@ int insert_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    int err ;
    wlistentry_t * entry ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONERR);
    err = insert_syncqueue(queue, &entry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    insertbefore_wlist((wlistentry_t*)wlist, entry) ;
    ++ wlist->nrnodes ;
@@ -204,8 +204,8 @@ int insert_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    *newevent = &entry->event ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -218,24 +218,24 @@ int remove_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    dlist_t        dlist = dlist_INIT_LAST(genericcast_dlistnode(wlist)) ;
    wlistentry_t * entry ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONERR);
    err = removefirst_wlist(&dlist, &entry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    -- wlist->nrnodes ;
 
    syncevent_t event = entry->event ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONERR);
    err = remove_syncqueue(queue, entry, &initmove_wlistentry) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // do not call initmove_syncevent
    // this function should work in any case
    *removedevent = event ;
 
    return 0 ;
-ONABORT:
+ONERR:
    // list could have been changed
    // but if remove_syncqueue fails there is an internal error
    // TODO: introduce error classes (if remove_syncqueue fails ==> change error class to unexpected
@@ -243,7 +243,7 @@ ONABORT:
    // it may be possible to introduce concepts which allow to overcome certain classes of internal errors
    // at least it is possible to restart the process and if that fails to reboot the hardware
    // but there might be something better !
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -256,21 +256,21 @@ int removeempty_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
       wlistentry_t * entry = prev_wlist((wlistentry_t*)wlist) ;
 
       if (!iswaiting_syncevent(&entry->event)) {
-         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
+         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONERR);
          err = remove_wlist(&dlist, entry) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          -- wlist->nrnodes ;
 
-         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
+         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONERR);
          err = remove_syncqueue(queue, entry, &initmove_wlistentry) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -283,7 +283,7 @@ int transferfirst_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
       wlistentry_t * entry ;
 
       err = removefirst_wlist(&dlist, &entry) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       -- fromwlist->nrnodes ;
       ++ towlist->nrnodes ;
@@ -292,8 +292,8 @@ int transferfirst_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -306,7 +306,7 @@ int transferall_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
       dlist_t        todlist   = dlist_INIT_LAST(genericcast_dlistnode(towlist)) ;
 
       err = remove_wlist(&todlist, (wlistentry_t*)towlist) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       transfer_wlist(&todlist, &fromdlist) ;
       replacenode_wlist(&todlist, (wlistentry_t*)towlist, (wlistentry_t*)fromwlist) ;
@@ -317,8 +317,8 @@ int transferall_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -415,7 +415,7 @@ static int test_wlistentry(void)
    TEST(syncwait.event  == &entries[1].event/*not changed*/) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -508,7 +508,7 @@ static int test_initfree(void)
    TEST(0 == free_syncqueue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&queue) ;
    return EINVAL ;
 }
@@ -593,7 +593,7 @@ static int test_query(void)
    TEST(0 == free_syncqueue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&queue) ;
    return EINVAL ;
 }
@@ -874,7 +874,7 @@ static int test_update(void)
    TEST(0 == free_syncqueue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncwlist(&wlist, &queue) ;
    free_syncwlist(&fromwlist, &queue) ;
    free_syncqueue(&queue) ;
@@ -948,21 +948,21 @@ static int test_iterator(void)
    TEST(0 == free_syncqueue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_syncqueue(&queue) ;
    return EINVAL ;
 }
 
 int unittest_task_syncwlist()
 {
-   if (test_wlistentry())     goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_update())         goto ONABORT ;
-   if (test_iterator())       goto ONABORT ;
+   if (test_wlistentry())     goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_update())         goto ONERR;
+   if (test_iterator())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

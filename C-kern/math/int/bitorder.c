@@ -130,16 +130,16 @@ static int test_reverse(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_bitorder()
 {
-   if (test_reverse())     goto ONABORT ;
+   if (test_reverse())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

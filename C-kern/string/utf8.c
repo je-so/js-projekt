@@ -89,11 +89,11 @@ uint8_t decodechar_utf8(const uint8_t strstart[], /*out*/char32_t * uchar)
    case 178: case 179: case 180: case 181: case 182: case 183: case 184: case 185: case 186: case 187:
    case 188: case 189: case 190: case 191:
       // used for encoding following bytes
-      goto ONABORT ;
+      goto ONERR;
 
    case 192: case 193:
       // not used in two byte sequence (value < 0x80)
-      goto ONABORT ;
+      goto ONERR;
 
    case 194: case 195: case 196: case 197: case 198: case 199: case 200: case 201:
    case 202: case 203: case 204: case 205: case 206: case 207: case 208: case 209: case 210: case 211:
@@ -152,10 +152,10 @@ uint8_t decodechar_utf8(const uint8_t strstart[], /*out*/char32_t * uchar)
    case 245: case 246: case 247:
    case 248: case 249: case 250: case 251: case 252: case 253: case 254: case 255:
       // not used for encoding to make it compatible with UTF-16
-      goto ONABORT ;
+      goto ONERR;
    }
 
-ONABORT:
+ONERR:
    return 0 ;  /*EILSEQ or not enough data*/
 }
 
@@ -394,11 +394,11 @@ VALIDATE:
       case 178: case 179: case 180: case 181: case 182: case 183: case 184: case 185: case 186: case 187:
       case 188: case 189: case 190: case 191:
          // used for encoding following bytes
-         goto ONABORT ;
+         goto ONERR;
 
       case 192: case 193:
          // not used in two byte sequence (value < 0x80)
-         goto ONABORT ;
+         goto ONERR;
 
       case 194: case 195: case 196: case 197: case 198: case 199: case 200: case 201:
       case 202: case 203: case 204: case 205: case 206: case 207: case 208: case 209: case 210: case 211:
@@ -406,7 +406,7 @@ VALIDATE:
       case 222: case 223:
          // 2 byte sequence
          flags = data_to_validate[1] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 2 ;
          size_to_validate -= 2 ;
          continue;
@@ -414,9 +414,9 @@ VALIDATE:
       case 224:
          // 3 byte sequence
          flags = data_to_validate[1] ^ 0x80 ;
-         if (flags < 0x20) goto ONABORT ; /*too low*/
+         if (flags < 0x20) goto ONERR; /*too low*/
          flags |= data_to_validate[2] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 3 ;
          size_to_validate -= 3 ;
          continue;
@@ -426,7 +426,7 @@ VALIDATE:
          // 3 byte sequence
          flags = data_to_validate[1] ^ 0x80 ;
          flags |= data_to_validate[2] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 3 ;
          size_to_validate -= 3 ;
          continue;
@@ -434,10 +434,10 @@ VALIDATE:
       case 240:
          // 4 byte sequence
          flags = data_to_validate[1] ^ 0x80 ;
-         if (flags < 0x10) goto ONABORT ; /*too low*/
+         if (flags < 0x10) goto ONERR; /*too low*/
          flags |= data_to_validate[2] ^ 0x80 ;
          flags |= data_to_validate[3] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 4 ;
          size_to_validate -= 4 ;
          continue;
@@ -447,7 +447,7 @@ VALIDATE:
          flags = data_to_validate[1] ^ 0x80 ;
          flags |= data_to_validate[2] ^ 0x80 ;
          flags |= data_to_validate[3] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 4 ;
          size_to_validate -= 4 ;
          continue;
@@ -455,10 +455,10 @@ VALIDATE:
       case 244:
          // 4 byte sequence
          flags = data_to_validate[1] ^ 0x80 ;
-         if (flags > 0x0f) goto ONABORT ; /*too big*/
+         if (flags > 0x0f) goto ONERR; /*too big*/
          flags |= data_to_validate[2] ^ 0x80 ;
          flags |= data_to_validate[3] ^ 0x80 ;
-         if ((flags & 0xC0)) goto ONABORT ;
+         if ((flags & 0xC0)) goto ONERR;
          data_to_validate += 4 ;
          size_to_validate -= 4 ;
          continue;
@@ -466,13 +466,13 @@ VALIDATE:
       case 245: case 246: case 247:
       case 248: case 249: case 250: case 251: case 252: case 253: case 254: case 255:
          // not used for encoding to make it compatible with UTF-16
-         goto ONABORT ;
+         goto ONERR;
       }// switch (firstbyte)
 
    }// for(;;)
 
    return 0 ;
-ONABORT:
+ONERR:
    erroffset2 = erroffset_utf8validator(data_to_validate) ;
    // check that not the missing part of prefix generated the error (filled with 0) !
    if (utf8validator->size_of_prefix) {
@@ -597,11 +597,11 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
          found += 4 ;
       }
    } else {
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return found ;
-ONABORT:
+ONERR:
    // IGNORE ERROR uc > 0x10FFFF
    return 0 ;
 }
@@ -791,7 +791,7 @@ static int test_utf8(void)
    TEST(0 == encodechar_utf8(4, utf8buffer, 0x110000)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1040,7 +1040,7 @@ static int test_utf8validator(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1259,7 +1259,7 @@ static int test_readstrstream(void)
    TEST(strstream.next == illseq+7) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1291,7 +1291,7 @@ static int test_findstrstream(void)
    TEST(0 == findutf8_stringstream(&strstream, (char32_t)-1)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1350,21 +1350,21 @@ static int test_speed(void)
    TEST(0 == free_systimer(&timer)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_systimer(&timer) ;
    return EINVAL ;
 }
 
 int unittest_string_utf8()
 {
-   if (test_utf8())           goto ONABORT ;
-   if (test_utf8validator())  goto ONABORT ;
-   if (test_readstrstream())  goto ONABORT ;
-   if (test_findstrstream())  goto ONABORT ;
-   if (test_speed())          goto ONABORT ;
+   if (test_utf8())           goto ONERR;
+   if (test_utf8validator())  goto ONERR;
+   if (test_readstrstream())  goto ONERR;
+   if (test_findstrstream())  goto ONERR;
+   if (test_speed())          goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 #endif

@@ -49,21 +49,21 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd
    const size_t    pagesize  = pagesize_vm() ;
    void          * mem_start = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONABORT, PRINTUINT64_ERRLOG(file_offset)) ;
+   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONERR, PRINTUINT64_ERRLOG(file_offset)) ;
 
    VALIDATE_INPARAM_TEST(  (accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE))
                            && 0 != (mode & accessmode_READ)
                            && (  0 == (mode & accessmode_EXEC)
                                  || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED)))
                            && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)),
-                           ONABORT, PRINTINT_ERRLOG(mode)) ;
+                           ONERR, PRINTINT_ERRLOG(mode)) ;
 
    accessmode_e fdmode = accessmode_iochannel(fd) ;
 
    VALIDATE_INPARAM_TEST(  0 != (fdmode & accessmode_READ)
                            && (0 != (fdmode & accessmode_WRITE)
                                || 0 == (mode & accessmode_WRITE)),
-                           ONABORT, PRINTINT_ERRLOG(fdmode)) ;
+                           ONERR, PRINTINT_ERRLOG(fdmode)) ;
 
    if (size) {
       const int protection = ((mode & accessmode_WRITE) ? (PROT_READ|PROT_WRITE) : PROT_READ)
@@ -73,14 +73,14 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd
       if (MAP_FAILED == mem_start) {
          err = errno ;
          TRACESYSCALL_ERRLOG("mmap", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("madvise", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -88,11 +88,11 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd
    mfile->size = size ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (mem_start && MAP_FAILED != mem_start) {
       (void) munmap(mem_start, size) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -101,11 +101,11 @@ int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_of
    int err ;
 
    err = init2_mmfile(mfile, 0, fd, file_offset, size, mode) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -125,7 +125,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
       err = errno ;
       TRACESYSCALL_ERRLOG("openat", err) ;
       PRINTCSTR_ERRLOG(file_path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    struct stat file_info ;
@@ -133,12 +133,12 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("fstat", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (file_info.st_size < file_offset) {
       err = ENODATA ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    off_t filesize_remaining = file_info.st_size - file_offset ;
@@ -146,7 +146,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    if (!size) {
       if (filesize_remaining >= (size_t)-1) {
          err = ENOMEM ;
-         goto ONABORT ;
+         goto ONERR;
       }
       size = (size_t) filesize_remaining ;
    } else {
@@ -160,15 +160,15 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    }
 
    err = init2_mmfile(mfile, 0, fd, file_offset, size, mode) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // do not check for error (should always work)
    (void) close(fd) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (fd != -1) close(fd) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -177,7 +177,7 @@ int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttail
    int err ;
    const size_t pagesize = pagesize_vm() ;
 
-   VALIDATE_INPARAM_TEST(0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize), ONABORT, PRINTSIZE_ERRLOG(headsize); PRINTSIZE_ERRLOG(size_mmfile(sourcemfile))) ;
+   VALIDATE_INPARAM_TEST(0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize), ONERR, PRINTSIZE_ERRLOG(headsize); PRINTSIZE_ERRLOG(size_mmfile(sourcemfile))) ;
 
    destheadmfile->addr = sourcemfile->addr ;
    desttailmfile->addr = sourcemfile->addr + headsize ;
@@ -189,8 +189,8 @@ int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttail
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -210,12 +210,12 @@ int free_mmfile(mmfile_t * mfile)
       mfile->addr = 0 ;
       mfile->size = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -226,11 +226,11 @@ int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessm
    int err ;
 
    err = init2_mmfile(mfile, mfile->addr, fd, file_offset, mfile->size, mode) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -279,7 +279,7 @@ static int test_query(void)
    TEST(0 == size_mmfile(&mfile)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -591,7 +591,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
@@ -638,7 +638,7 @@ static int test_fileoffset(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "mmfile")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
@@ -748,7 +748,7 @@ static int test_seek(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "mmfile")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isoldact) sigaction(SIGBUS, &oldact, 0) ;
    (void) free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
@@ -781,7 +781,7 @@ static int test_generic(void)
    TEST((const mmfile_t*)(&cobj.preFX_addr)     == genericcast_mmfile(&cobj,preFX_,const)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -796,11 +796,11 @@ int unittest_io_mmfile()
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
    tmpstr = str_cstring(&tmppath) ;
 
-   if (test_query())                      goto ONABORT ;
-   if (test_initfree(tempdir, tmpstr))    goto ONABORT ;
-   if (test_fileoffset(tempdir))          goto ONABORT ;
-   if (test_seek(tempdir))                goto ONABORT ;
-   if (test_generic())                    goto ONABORT ;
+   if (test_query())                      goto ONERR;
+   if (test_initfree(tempdir, tmpstr))    goto ONERR;
+   if (test_fileoffset(tempdir))          goto ONERR;
+   if (test_seek(tempdir))                goto ONERR;
+   if (test_generic())                    goto ONERR;
 
    // unprepare
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
@@ -808,7 +808,7 @@ int unittest_io_mmfile()
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    return EINVAL ;

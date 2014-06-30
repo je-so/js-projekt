@@ -1,30 +1,25 @@
-[1: 1378295360.132190s]
+[1: 1403500302.325791s]
 queryresult_process() C-kern/platform/Linux/task/process.c:224
 Error 10 - No child processes
 System call 'waitid' failed
 pid=?
-Function aborted
-[1: 1378295360.132228s]
+[1: 1403500302.325808s]
 state_process() C-kern/platform/Linux/task/process.c:482
 Error 10 - No child processes
-Function aborted
-[1: 1378295360.132234s]
+[1: 1403500302.325811s]
 queryresult_process() C-kern/platform/Linux/task/process.c:224
 Error 10 - No child processes
 System call 'waitid' failed
 pid=?
-Function aborted
-[1: 1378295360.132241s]
+[1: 1403500302.325814s]
 wait_process() C-kern/platform/Linux/task/process.c:546
 Error 10 - No child processes
-Function aborted
-[1: 1378295360.132249s]
+[1: 1403500302.325817s]
 queryresult_process() C-kern/platform/Linux/task/process.c:224
 Error 10 - No child processes
 System call 'waitid' failed
 pid=?
-Function aborted
-[1: 1378295360.132254s]
+[1: 1403500302.325819s]
 free_process() C-kern/platform/Linux/task/process.c:430
 Error 10 - No child processes
-Function aborted - one or more resources could not be freed
+One or more resources could not be freed

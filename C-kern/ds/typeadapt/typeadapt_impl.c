@@ -45,15 +45,15 @@ int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct 
    memblock_t destblock = memblock_FREE ;
 
    err = RESIZE_MM(typeadp->objectsize, &destblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memcpy(destblock.addr, srcobject, typeadp->objectsize) ;
 
    *destobject = (struct typeadapt_object_t*)destblock.addr ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -67,12 +67,12 @@ int lifetime_deleteobj_typeadaptimpl(typeadapt_impl_t * typeadp, struct typeadap
       *object = 0 ;
 
       err = FREE_MM(&mblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -129,7 +129,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -166,17 +166,17 @@ static int test_lifetime(void)
    TEST(0 == free_typeadaptimpl(&typeadp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_typeadapt_typeadaptimpl()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_lifetime())       goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_lifetime())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

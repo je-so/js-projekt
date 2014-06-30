@@ -145,7 +145,7 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, opengl_display_t * egldisp, con
    EGLint   egl_attrib_list[2*gconfig_NROFELEMENTS];
 
    err = convertConfigListToEGL_eglconfig(&egl_attrib_list, config_attributes);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    EGLint      num_config;
    EGLConfig   eglconfig;
@@ -154,7 +154,7 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, opengl_display_t * egldisp, con
 
    if (!isOK) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (!num_config) {
@@ -164,8 +164,8 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, opengl_display_t * egldisp, con
    *eglconf = eglconfig;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -177,25 +177,25 @@ int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t
    memblock_t  mblock;
 
    err = convertConfigListToEGL_eglconfig(&egl_attrib_list, config_attributes);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    EGLint      num_config;
    EGLBoolean  isOK = eglChooseConfig( egldisp, egl_attrib_list, 0, 0, &num_config);
    if (!isOK) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    // TODO: implement tempstack_memory_allocator
    //       allocate memory from tempstack instead of real stack
    err = ALLOC_ERR_MM(&s_eglconfig_errtimer, sizeof(EGLConfig) * (unsigned)num_config, &mblock);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    eglconfig = (EGLConfig *) mblock.addr;
    isOK = eglChooseConfig( egldisp, egl_attrib_list, eglconfig, num_config, &num_config);
    if (!isOK) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    EGLint i;
@@ -214,9 +214,9 @@ int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t
    if (i == num_config) return ESRCH;
 
    return 0;
-ONABORT:
+ONERR:
    if (eglconfig) (void) FREE_MM(&mblock);
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -235,7 +235,7 @@ int initfromconfigid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_displ
 
    if (!isOK) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (0 == num_config) {
@@ -245,8 +245,8 @@ int initfromconfigid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_displ
    *eglconf = eglconfig[0];
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -258,7 +258,7 @@ ONABORT:
             EGLBoolean isOK = eglGetConfigAttrib(egldisp, eglconf, attr, value); \
             if (!isOK) {                                          \
                err = aserrcode_egl(eglGetError());                \
-               goto ONABORT;                                      \
+               goto ONERR;                                        \
             }                                                     \
          }
 
@@ -268,7 +268,7 @@ int value_eglconfig(eglconfig_t eglconf, opengl_display_t * egldisp, const int32
    int err;
 
    err = convertAttribToEGL_eglconfig(attribute, 1, eglattrib);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    GETVALUE(eglconf, egldisp, eglattrib[0], value);
 
@@ -282,8 +282,8 @@ int value_eglconfig(eglconfig_t eglconf, opengl_display_t * egldisp, const int32
    }
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -294,8 +294,8 @@ int visualconfigid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egld
    GETVALUE(eglconf, egldisp, EGL_NATIVE_VISUAL_ID, visualid);
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -306,8 +306,8 @@ int configid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /
    GETVALUE(eglconf, egldisp, EGL_CONFIG_ID, (int32_t*)id);
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -328,8 +328,8 @@ int maxpbuffer_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp,
    }
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -590,7 +590,7 @@ static int test_initfree(egldisplay_t egldisp)
    TEST(ESRCH == initfromconfigid_eglconfig(&eglconf, egldisp, INT32_MAX));
 
    return 0;
-ONABORT:
+ONERR:
    free_eglconfig(&eglconf);
    return EINVAL;
 }
@@ -672,7 +672,7 @@ static int test_query(egldisplay_t egldisp)
 
 
    return 0;
-ONABORT:
+ONERR:
    free_eglconfig(&eglconf);
    return EINVAL;
 }
@@ -686,8 +686,8 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(egldisp))   goto ONABORT;
-   if (test_query(egldisp))      goto ONABORT;
+   if (test_initfree(egldisp))   goto ONERR;
+   if (test_query(egldisp))      goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
@@ -695,7 +695,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_egldisplay(&egldisp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_egldisplay(&egldisp);
    return EINVAL;
@@ -708,7 +708,7 @@ int unittest_platform_opengl_egl_eglconfig()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

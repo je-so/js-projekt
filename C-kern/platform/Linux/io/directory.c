@@ -88,13 +88,13 @@ int filesize_directory(const directory_t * dir, const char * file_path, /*out*/o
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("fstatat", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *file_size = stat_result.st_size ;
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -108,23 +108,23 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    size_t      rpath_offset = sys_path_MAXSIZE;
    uint8_t     rpath[sys_path_MAXSIZE];
 
-   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
    err = stat("/", &filestat) ;
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("stat('/',...)", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    const ino_t  rootinode = filestat.st_ino ;
 
    for (;;) {
-      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
       err = fstat(dfd, &filestat) ;
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("fstat", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       if (rootinode == filestat.st_ino) {
          break ;  // root directory ==> DONE
@@ -133,44 +133,44 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
       if (-1 == dfd2) {
          err = errno ;
          TRACESYSCALL_ERRLOG("openat('..')", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       if (sysdir && closedir(sysdir)) {
          sysdir = 0 ;   // (sysdir == 0) ==> dfd2 closed
          err = errno ;
          TRACESYSCALL_ERRLOG("closedir", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       #ifdef KONFIG_UNITTEST
       sysdir = 0 ;
-      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
       #endif
       sysdir = fdopendir(dfd2) ;
       if (!sysdir) {
          // (sysdir == 0) ==> dfd2 closed
          err = errno ;
          TRACESYSCALL_ERRLOG("fdopendir", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       dfd = dfd2 ;
       for (;;) {
-         ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
+         ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
          errno  = 0 ;
          struct dirent * direntry = readdir(sysdir) ;
          if (!direntry) {
             if (errno) {
                err = errno ;
                TRACESYSCALL_ERRLOG("readdir", err) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             err = ENOENT ;
-            goto ONABORT ;
+            goto ONERR;
          }
          if (filestat.st_ino == direntry->d_ino) {
             size_t namesize = strlen(direntry->d_name) ;
             if (rpath_offset < namesize + 1) {
                err = ENAMETOOLONG ;
-               goto ONABORT ;
+               goto ONERR;
             }
             rpath_offset -= namesize ;
             memcpy(rpath + rpath_offset, direntry->d_name, namesize) ;
@@ -181,26 +181,26 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    }
 
    // copy rpath into path
-   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
    size_t path_size = sys_path_MAXSIZE - rpath_offset ;
    if (0 == path_size) {
       err = appendbyte_wbuffer(path, '/') ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    } else {
       err = appendcopy_wbuffer(path, path_size, rpath + rpath_offset) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    if (sysdir) (void) closedir(sysdir) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (sysdir) {
       closedir(sysdir) ;
    } else if (-1 != dfd2) {
       close(dfd2) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -226,7 +226,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       err = errno ;
       TRACESYSCALL_ERRLOG("openat", err) ;
       PRINTCSTR_ERRLOG(path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    sysdir = fdopendir(fdd) ;
@@ -234,20 +234,20 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       err = errno ;
       TRACESYSCALL_ERRLOG("fdopendir", err) ;
       PRINTCSTR_ERRLOG(path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
    fdd = iochannel_FREE ; // is used internally
 
    *(DIR**)dir = sysdir ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_iochannel(&fdd) ;
    if (sysdir) {
       (void) closedir(sysdir) ;
    }
    free(cwd) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -262,40 +262,40 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix)
    cstring_t      tmppath  = cstring_INIT ;
 
    err = allocate_cstring(&tmppath, tmpsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = append_cstring(&tmppath, dir_len, P_tmpdir) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = append_cstring(&tmppath, 1, "/") ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = append_cstring(&tmppath, name_len, name_prefix) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = append_cstring(&tmppath, 7, ".XXXXXX") ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    mkdpath = mkdtemp(str_cstring(&tmppath)) ;
    if (!mkdpath) {
       err = errno ;
       TRACESYSCALL_ERRLOG("mkdtemp",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = new_directory(&newdir, mkdpath, NULL) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = free_cstring(&tmppath) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *dir = newdir ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (mkdpath) {
       rmdir(mkdpath) ;
    }
    free_cstring(&tmppath) ;
    delete_directory(&newdir) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -313,12 +313,12 @@ int delete_directory(directory_t ** dir)
          TRACESYSCALL_ERRLOG("closedir", err) ;
       }
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -334,7 +334,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    if (!result && errno) {
       err = errno ;
       TRACESYSCALL_ERRLOG("readdir",err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (ftype) {
@@ -368,8 +368,8 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    *name = (result ? result->d_name : 0) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -377,12 +377,12 @@ int gofirst_directory(directory_t * dir)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(dir, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(dir, ONERR, ) ;
 
    rewinddir(asDIR_directory(dir)) ;
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -403,12 +403,12 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
       TRACESYSCALL_ERRLOG("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
       PRINTINT_ERRLOG(mkdiratfd) ;
       PRINTCSTR_ERRLOG(directory_path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -428,7 +428,7 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       TRACESYSCALL_ERRLOG("openat(openatfd, file_path)",err) ;
       PRINTINT_ERRLOG(openatfd) ;
       PRINTCSTR_ERRLOG(file_path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = ftruncate(fd, file_length) ;
@@ -437,18 +437,18 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       TRACESYSCALL_ERRLOG("ftruncate(file_path, file_length)",err) ;
       PRINTCSTR_ERRLOG(file_path) ;
       PRINTUINT64_ERRLOG(file_length) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    free_iochannel(&fd) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (! isfree_iochannel(fd)) {
       free_iochannel(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -467,12 +467,12 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
       TRACESYSCALL_ERRLOG("unlinkat(unlinkatfd, directory_path)",err) ;
       PRINTINT_ERRLOG(unlinkatfd) ;
       PRINTCSTR_ERRLOG(directory_path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -491,12 +491,12 @@ int removefile_directory(directory_t * dir, const char * file_path)
       TRACESYSCALL_ERRLOG("unlinkat(unlinkatfd, file_path)",err) ;
       PRINTINT_ERRLOG(unlinkatfd) ;
       PRINTCSTR_ERRLOG(file_path) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -537,7 +537,7 @@ static int test_checkpath(void)
    TEST(0 == delete_directory(&basedir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -581,7 +581,7 @@ static int test_directory_stream__nextdir(directory_t * dir, int test_flags_valu
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -777,7 +777,7 @@ static int test_initfree(void)
    TEST(0 == free_iochannel(&fd_oldwd)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    assert(0 == fchdir(fd_oldwd)) ;
    (void) delete_directory(&temp_dir) ;
    (void) delete_directory(&dir) ;
@@ -811,7 +811,7 @@ static int test_workingdir(void)
    TEST(0 == delete_directory(&local2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_directory(&local1) ;
    delete_directory(&local2) ;
    return EINVAL ;
@@ -872,7 +872,7 @@ static int test_filesize(void)
    TEST(0 == delete_directory(&workdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (workdir) {
       assert(0 == fchdir(io_directory(workdir))) ;
    }
@@ -960,7 +960,7 @@ static int test_query_path(void)
    TEST(0 == free_cstring(&parent)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&parent) ;
    delete_directory(&tempdir) ;
    delete_directory(&dir) ;
@@ -973,7 +973,7 @@ static int childprocess_unittest(void)
    unsigned          open_count = 0 ;
    iochannel_t       dummyfile[8] ;
 
-   if (test_initfree())          goto ONABORT ;
+   if (test_initfree())          goto ONERR;
    CLEARBUFFER_ERRLOG() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
@@ -987,11 +987,11 @@ static int childprocess_unittest(void)
       }
    }
 
-   if (test_checkpath())         goto ONABORT ;
-   if (test_initfree())          goto ONABORT ;
-   if (test_workingdir())        goto ONABORT ;
-   if (test_filesize())          goto ONABORT ;
-   if (test_query_path())        goto ONABORT ;
+   if (test_checkpath())         goto ONERR;
+   if (test_initfree())          goto ONERR;
+   if (test_workingdir())        goto ONERR;
+   if (test_filesize())          goto ONERR;
+   if (test_query_path())        goto ONERR;
 
    while (open_count) {
       TEST(0 == free_iochannel(&dummyfile[--open_count])) ;
@@ -1001,7 +1001,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    while (open_count) {
       free_iochannel(&dummyfile[--open_count]) ;
    }
@@ -1016,7 +1016,7 @@ int unittest_io_directory()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

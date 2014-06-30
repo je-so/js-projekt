@@ -85,14 +85,14 @@ int resolution_sysclock(sysclock_e clock_type, /*out*/timevalue_t * resolution)
       err = errno ;
       TRACESYSCALL_ERRLOG("clock_getres", err) ;
       PRINTINT_ERRLOG(clock_type) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    timespec2timevalue_sysclock(resolution, &tspec) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -106,14 +106,14 @@ int time_sysclock(sysclock_e clock_type, /*out*/timevalue_t * clock_time)
       err = errno ;
       TRACESYSCALL_ERRLOG("clock_gettime", err) ;
       PRINTINT_ERRLOG(clock_type) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    timespec2timevalue_sysclock(clock_time, &tspec) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -121,8 +121,8 @@ int sleep_sysclock(sysclock_e clock_type, const timevalue_t * relative_time)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(isvalid_timevalue(relative_time), ONABORT, ) ;
-   VALIDATE_INPARAM_TEST((uint64_t)relative_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_timevalue(relative_time), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((uint64_t)relative_time->seconds < timespec_MAXSECONDS(), ONERR, ) ;
 
    struct timespec   tspec   = { .tv_sec = (time_t) relative_time->seconds, .tv_nsec = relative_time->nanosec } ;
    clockid_t         clockid = convertclockid(clock_type) ;
@@ -132,12 +132,12 @@ int sleep_sysclock(sysclock_e clock_type, const timevalue_t * relative_time)
       if (EINTR == err) continue ;
       TRACESYSCALL_ERRLOG("clock_gettime", err) ;
       PRINTINT_ERRLOG(clock_type) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -152,12 +152,12 @@ int sleepms_sysclock(sysclock_e clock_type, uint32_t millisec)
       if (EINTR == err) continue ;
       TRACESYSCALL_ERRLOG("clock_gettime", err) ;
       PRINTINT_ERRLOG(clock_type) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -216,7 +216,7 @@ static int test_timevalue(void)
    TEST(-1998 == diffms_timevalue(&timeval2, &timeval)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -255,7 +255,7 @@ static int test_clockquery(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -316,18 +316,18 @@ static int test_clockwait(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_time_sysclock()
 {
-   if (test_timevalue())   goto ONABORT ;
-   if (test_clockquery())  goto ONABORT ;
-   if (test_clockwait())   goto ONABORT ;
+   if (test_timevalue())   goto ONERR;
+   if (test_clockquery())  goto ONERR;
+   if (test_clockwait())   goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

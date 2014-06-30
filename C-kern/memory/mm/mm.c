@@ -94,7 +94,7 @@ static int test_initfree(void)
    TEST(mminterface.sizeallocated == &sizeallocated_dummy) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -166,7 +166,7 @@ static int test_generic(void)
    TEST((mm_it*)&mmxif == genericcast_mmit(&mmxif, struct mmx_t)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -209,18 +209,18 @@ static int test_call(void)
    TEST(mmx.opid     == 4) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_memory_mm_mm()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_generic())     goto ONABORT ;
-   if (test_call())        goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_generic())     goto ONERR;
+   if (test_call())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

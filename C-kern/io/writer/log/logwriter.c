@@ -131,7 +131,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
    int err ;
 
    err = allocatebuffer_logwriter(genericcast_memblock(lgwrt, )) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    lgwrt->chan = (logwriter_chan_t*) lgwrt->addr ;
 
    const size_t arraysize = log_channel_NROFCHANNEL * sizeof(logwriter_chan_t) ;
@@ -147,8 +147,8 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -160,11 +160,11 @@ int free_logwriter(logwriter_t * lgwrt)
 
    lgwrt->chan = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -174,15 +174,15 @@ void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONERR,) ;
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    getbuffer_logbuffer(&chan->logbuf, buffer, size) ;
 
    return ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -200,13 +200,13 @@ int compare_logwriter(const logwriter_t * lgwrt, uint8_t channel, size_t logsize
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONERR,) ;
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    return compare_logbuffer(&chan->logbuf, logsize, logbuffer) ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -228,15 +228,15 @@ void truncatebuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, size_t size)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONERR,) ;
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    truncate_logbuffer(&chan->logbuf, size);
 
    return;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return;
 }
 
@@ -244,15 +244,15 @@ void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONERR,) ;
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    flush_logwriterchan(chan) ;
 
    return ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -260,7 +260,7 @@ ONABORT:
             /*logwriter_t* */lgwrt,    \
             /*log_channel_e*/channel,  \
             /*out*/chan)               \
-         VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;       \
+         VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONERR,) ;       \
          chan = &lgwrt->chan[channel] ;                                             \
          if (chan->logstate == log_state_IGNORED) return ;
 
@@ -311,8 +311,8 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
    endwrite_logwriter(chan) ;
 
    return ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -342,8 +342,8 @@ void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, co
    endwrite_logwriter(chan) ;
 
    return ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -389,7 +389,7 @@ static int test_initfree(void)
    TEST(1 == isvalid_iochannel(iochannel_STDERR)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
@@ -451,7 +451,7 @@ static int test_query(void)
    TEST(0 == free_logwriter(&lgwrt));
 
    return 0;
-ONABORT:
+ONERR:
    free_logwriter(&lgwrt);
    return EINVAL;
 }
@@ -492,7 +492,7 @@ static int test_config(void)
    TEST(0 == free_logwriter(&lgwrt)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
@@ -516,7 +516,7 @@ static int compare_header(size_t buffer_size, uint8_t buffer_addr[buffer_size], 
    TEST(0 == memcmp(buffer, buffer_addr, strlen(buffer))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -859,6 +859,16 @@ static int test_write(void)
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
+   // TEST printf_logwriter: format == 0
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      TEST(lgwrt.chan[i].logbuf.logsize == 0);
+      printf_logwriter(&lgwrt, i, log_flags_NONE, 0, 0);
+      // nothing is written
+      TEST(lgwrt.chan[i].logbuf.logsize == 0);
+   }
+   TEST(0 == free_logwriter(&lgwrt)) ;
+
    // TEST printf_logwriter: EINVAL
    TEST(0 == init_logwriter(&lgwrt)) ;
    printf_logwriter(&lgwrt, log_channel_NROFCHANNEL, log_flags_NONE, 0, "123") ;
@@ -958,7 +968,7 @@ static int test_write(void)
    RELEASE_PAGECACHE(&mem) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (oldstdout > 0) dup2(oldstdout, STDOUT_FILENO) ;
    if (oldstderr > 0) dup2(oldstderr, STDERR_FILENO) ;
    int bytes = 0 ;
@@ -996,7 +1006,7 @@ static int test_initthread(void)
    TEST(interface_logwriter() == genericcast_logit(&s_logwriter_interface, logwriter_t)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1086,7 +1096,7 @@ static int test_logmacros(void)
    TEST(0 == close(oldfd)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (oldfd >= 0) dup2(oldfd, lgwrt->chan[log_channel_ERR].logbuf.io) ;
    close(pipefd[0]) ;
    close(pipefd[1]) ;
@@ -1096,15 +1106,15 @@ ONABORT:
 
 int unittest_io_writer_log_logwriter()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_config())         goto ONABORT ;
-   if (test_write())          goto ONABORT ;
-   if (test_initthread())     goto ONABORT ;
-   if (test_logmacros())      goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_config())         goto ONERR;
+   if (test_write())          goto ONERR;
+   if (test_initthread())     goto ONERR;
+   if (test_logmacros())      goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

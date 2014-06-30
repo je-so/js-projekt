@@ -55,13 +55,13 @@ int initonce_X11()
       if (! XInitThreads()) {
          err = ENOSYS;
          TRACESYSCALL_ERRLOG("XInitThreads", err);
-         goto ONABORT;
+         goto ONERR;
       }
       s_X11_init = true;
    }
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -83,7 +83,7 @@ int dispatchevent_X11(x11display_t * x11disp)
 
       if (XNextEvent(x11disp->sys_display, &xevent)) {
          err = EINVAL;
-         goto ONABORT;
+         goto ONERR;
       }
 
       // process event
@@ -188,8 +188,8 @@ int dispatchevent_X11(x11display_t * x11disp)
    }
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -227,7 +227,7 @@ static int test_initonce(void)
    TEST(s_X11_init);
 
    return 0;
-ONABORT:
+ONERR:
    initonce_X11();
    return EINVAL;
 }
@@ -241,13 +241,13 @@ int unittest_platform_X11()
    TEST(disp);
 
 
-   if (test_initonce())    goto ONABORT;
+   if (test_initonce())    goto ONERR;
 
    // restore
    XCloseDisplay(disp);
 
    return 0;
-ONABORT:
+ONERR:
    if (disp) {
       XCloseDisplay(disp);
    }

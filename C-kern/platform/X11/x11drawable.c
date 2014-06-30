@@ -68,7 +68,7 @@ static int test_initfree(void)
    TEST(x11draw.sys_colormap == 3);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -80,17 +80,17 @@ static int test_query(void)
    TEST(&x11draw == genericcast_x11drawable(&x11draw));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
 int unittest_platform_X11_x11drawable()
 {
-   if (test_initfree())    goto ONABORT;
-   if (test_query())       goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

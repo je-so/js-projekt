@@ -68,7 +68,7 @@ int init_x11dblbuffer(/*out*/x11dblbuffer_t * dblbuf, struct x11window_t * x11wi
          || 0 == (vinfodb = XdbeGetVisualInfo(x11win->display->sys_display, &screens, &nrscreen))
          || 0 == XGetWindowAttributes(x11win->display->sys_display, x11win->sys_drawable, &winattr)) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    for (int dbi = 0; dbi < vinfodb[0].count; ++dbi) {
@@ -80,7 +80,7 @@ int init_x11dblbuffer(/*out*/x11dblbuffer_t * dblbuf, struct x11window_t * x11wi
 
    if (XdbeBadBuffer == backbuffer) {
       err = EINVAL;
-      goto ONABORT;
+      goto ONERR;
    }
 
    XdbeFreeVisualInfo(vinfodb);
@@ -88,9 +88,9 @@ int init_x11dblbuffer(/*out*/x11dblbuffer_t * dblbuf, struct x11window_t * x11wi
    *dblbuf = (x11dblbuffer_t) x11drawable_INIT(x11win->display, backbuffer, x11win->sys_colormap);
 
    return 0 ;
-ONABORT:
+ONERR:
    if (vinfodb) XdbeFreeVisualInfo(vinfodb) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -106,13 +106,13 @@ int free_x11dblbuffer(x11dblbuffer_t * dblbuf)
 
       if (isErr) {
          err = EINVAL ;
-         goto ONABORT;
+         goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -158,7 +158,7 @@ static int test_initfree(x11window_t * x11win)
    TEST(0 == dblbuf.sys_colormap);
 
    return 0 ;
-ONABORT:
+ONERR:
    free_x11dblbuffer(&dblbuf);
    return EINVAL ;
 }
@@ -228,7 +228,7 @@ static int test_draw(x11window_t * x11win)
    WAITFOR(x11win->display, 1, false) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (gc) XFreeGC(x11win->display->sys_display, gc) ;
    free_x11dblbuffer(&dblbuf);
    return EINVAL ;
@@ -257,14 +257,14 @@ static int childprocess_unittest(void)
    TEST(0 == init_x11window(&x11win, &x11disp, snr, 0, 0, config)) ;
    TEST(0 == init_x11window(&x11win2, &x11disp, snr, 0, 0, config2)) ;
 
-   if (test_initfree(&x11win))   goto ONABORT ;
-   if (test_draw(&x11win))       goto ONABORT ;
+   if (test_initfree(&x11win))   goto ONERR;
+   if (test_draw(&x11win))       goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree(&x11win))   goto ONABORT ;
-   if (test_draw(&x11win))       goto ONABORT ;
-   if (test_draw(&x11win2))      goto ONABORT ;
+   if (test_initfree(&x11win))   goto ONERR;
+   if (test_draw(&x11win))       goto ONERR;
+   if (test_draw(&x11win2))      goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -275,7 +275,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_x11display(&x11disp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11window(&x11win) ;
    (void) free_x11window(&x11win2) ;
    (void) free_x11display(&x11disp) ;
@@ -290,7 +290,7 @@ int unittest_platform_X11_x11dblbuffer()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

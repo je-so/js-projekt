@@ -106,16 +106,16 @@ static int test_powerof2(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_power2()
 {
-   if (test_powerof2())    goto ONABORT ;
+   if (test_powerof2())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

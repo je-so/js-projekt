@@ -1,28 +1,21 @@
-[1: 1401101370.636116s]
+[1: 1403500318.768378s]
 init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:168
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101370.636136s]
+[1: 1403500318.768392s]
 init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:168
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101370.636138s]
+[1: 1403500318.768395s]
 init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:168
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101370.636140s]
+[1: 1403500318.768397s]
 init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:168
 Error 22 - Invalid argument
-Function aborted
-[1: 1401101370.636142s]
+[1: 1403500318.768399s]
 init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:168
 Error 7 - Argument list too long
-Function aborted
-[1: 1401101371.279652s]
+[1: 1403500319.404407s]
 initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:219
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1401101371.281397s]
+[1: 1403500319.405994s]
 initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:219
 Error 22 - Invalid argument
-Function aborted

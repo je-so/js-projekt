@@ -1,20 +1,16 @@
-[1: 1375541664.267468s]
+[1: 1403500295.983639s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:125
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541664.267482s]
+[1: 1403500295.983653s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:125
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-Function aborted
-[1: 1375541664.267485s]
+[1: 1403500295.983659s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:124
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-Function aborted
-[1: 1375541664.267487s]
+[1: 1403500295.983665s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:124
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-Function aborted

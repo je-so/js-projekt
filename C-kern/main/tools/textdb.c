@@ -208,7 +208,7 @@ static int appendvalue_textdbcolumn(textdb_column_t * column, const char * str, 
       void * temp = realloc(column->value, column->allocated_memory_size) ;
       if (!temp) {
          print_err("Out of memory") ;
-         goto ONABORT ;
+         goto ONERR;
       }
       column->value = (char*) temp ;
    }
@@ -218,7 +218,7 @@ static int appendvalue_textdbcolumn(textdb_column_t * column, const char * str, 
    column->value[column->length] = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return ENOMEM ;
 }
 
@@ -252,7 +252,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
    while (input_len) {
       if ('\'' != *next_char && '"' != *next_char) {
          print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       char end_of_string = *next_char ;
@@ -267,13 +267,13 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
                   ||  '_' == *next_char
                   ||  '-' == *next_char)) {
             print_err( "Header name contains wrong character '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
 
       if (!input_len) {
          print_err( "Expected closing '%c' in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       for (--input_len, ++next_char; input_len ; --input_len, ++next_char) {
@@ -290,7 +290,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
       if (',' != *next_char) {
          print_err( "Expected ',' not '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       ++ nr_cols ;
@@ -304,14 +304,14 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
       if (  !input_len
             || '\n' == *next_char) {
          print_err( "No data after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    *number_of_cols = nr_cols ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -341,7 +341,7 @@ static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /
          if (!nr_rows) {
             // found header
             err = scanheader_textdb(txtdb, next_char, input_len, &nr_cols) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
          ++ nr_rows ;
       }
@@ -359,7 +359,7 @@ static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /
    *number_of_cols = nr_cols ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -417,7 +417,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
             if (column_index >= txtdb->column_count) {
                err = E2BIG ;
                print_err( "Expected only %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             -- input_len ;
             ++ next_char ;
@@ -426,7 +426,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
          if ('\'' != *next_char && '\"' != *next_char) {
             err = EINVAL ;
             print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          char end_of_string = *next_char ;
          isExpectData = false ;
@@ -446,13 +446,13 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
          if (!input_len || end_of_string != *next_char) {
             err = EINVAL ;
             print_err( "Expected closing %c in in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          size_t str_len = (size_t) (next_char - str) ;
          -- input_len ;
          ++ next_char ;
          err = appendvalue_textdbcolumn( &txtdb->rows[row_index * txtdb->column_count + column_index], str, str_len) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
 
       if (     isExpectData
@@ -463,14 +463,14 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
          } else {
             print_err( "Expected %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
          }
-         goto ONABORT ;
+         goto ONERR;
       }
 
       ++ row_index ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -493,9 +493,9 @@ static int free_textdb(textdb_t * txtdb)
    err2 = free_mmfile(&txtdb->input_file) ;
    if (err2) err = err2 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -508,22 +508,22 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
    if (!txtdb.filename) {
       err = ENOMEM ;
       print_err( "Out of memory") ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = init_mmfile( &txtdb.input_file, filename, 0, 0, accessmode_READ, 0) ;
    if (err) {
       print_err( "Can not open textdb file '%s' for reading: %s", filename, strerror(err)) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = tablesize_textdb( &txtdb, &txtdb.row_count, &txtdb.column_count) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (! txtdb.row_count) {
       err = ENODATA ;
       print_err( "Expected text line with header names in textdb file '%s'", txtdb.filename) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    txtdb.column_count += 2 ; /*special columns row-id, row-nr*/
@@ -532,23 +532,23 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
    if (!txtdb.rows) {
       err = ENOMEM ;
       print_err( "Out of memory") ;
-      goto ONABORT ;
+      goto ONERR;
    }
    memset( txtdb.rows, 0, rows_size) ;
 
    err = appendvalue_textdbcolumn( &txtdb.rows[0], "row-id", 6) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = appendvalue_textdbcolumn( &txtdb.rows[1], "row-nr", 6) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = readrows_textdb( &txtdb, 2/*start after special columns*/) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    memcpy( result, &txtdb, sizeof(txtdb)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_textdb( &txtdb) ;
    return err ;
 }
@@ -600,7 +600,7 @@ static int new_expression(/*out*/expression_t ** expr, expression_type_e type)
    new_expr = (expression_t*) malloc(sizeof(expression_t)) ;
    if (!new_expr) {
       print_err("Out of memory") ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    MEMSET0(new_expr) ;
@@ -608,7 +608,7 @@ static int new_expression(/*out*/expression_t ** expr, expression_type_e type)
 
    *expr = new_expr ;
    return 0 ;
-ONABORT:
+ONERR:
    return ENOMEM ;
 }
 
@@ -634,11 +634,11 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
 
    if (start_expr == start_name) {
       print_err( "Expected column-name in WHERE() in line: %d", start_linenr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = new_expression( &name_node, exprtypeNAME) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    name_node->value  = start_name ;
    name_node->length = (size_t) (start_expr - start_name) ;
 
@@ -649,11 +649,11 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
                && (     start_expr[0] != '='
                      || start_expr[1] != '='))) {
       print_err( "Expected '==' or '!=' after column-name in WHERE() in line: %d", start_linenr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = new_expression( &compare_node, start_expr[0] == '=' ? exprtypeCOMPARE_EQUAL : exprtypeCOMPARE_NOTEQUAL) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    start_expr += 2 ;
    skip_space(&start_expr, end_macro) ;
@@ -662,7 +662,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
          || (     start_value[0] != '\''
                && start_value[0] != '"')) {
       print_err( "Expected 'value' after compare in WHERE() in line: %d", start_linenr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    ++ start_expr ;
@@ -673,11 +673,11 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
 
    if (start_expr >= end_macro) {
       print_err( "Expected closing %c in line: %d", start_value[0], start_linenr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = new_expression( &value_node, exprtypeSTRING) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    value_node->value  =  ( ++ start_value) ;
    value_node->length =  (size_t) (start_expr - start_value) ;
 
@@ -689,7 +689,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
    *result    = compare_node ;
    *end_param = start_expr ;
    return 0 ;
-ONABORT:
+ONERR:
    delete_expression(&name_node) ;
    delete_expression(&value_node) ;
    delete_expression(&compare_node) ;
@@ -708,7 +708,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
    if (  start_expr >= end_macro
          || '(' != start_expr[0]) {
       print_err( "Expected '(' after WHERE in line: %d", start_linenr) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (;;) {
@@ -718,10 +718,10 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
       if (     start_expr < end_macro
             && '(' == start_expr[0]) {
          err = parse_expression(&expr_node, &start_expr, start_expr, end_macro, start_linenr) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       } else {
          err = parse_exprcompare(&expr_node, &start_expr, start_expr, end_macro, start_linenr) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
 
       ++ start_expr ;
@@ -729,7 +729,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
 
       if ( start_expr >= end_macro) {
          print_err( "Expected ')' after WHERE(... in line: %d", start_linenr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       if (andor_node) {
@@ -748,11 +748,11 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
                         && (     '|' != start_expr[0]
                               || '|' != start_expr[1]))) {
          print_err( "Expected ')' after WHERE(... in line: %d", start_linenr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = new_expression( &andor_node, (start_expr[0] == '&') ? exprtypeAND : exprtypeOR) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       andor_node->left  = expr_node ;
       expr_node->parent = andor_node ;
       expr_node = 0 ;
@@ -763,7 +763,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
    *end_param = start_expr ;
    *result    = expr_node ;
    return 0 ;
-ONABORT:
+ONERR:
    delete_expression(&andor_node) ;
    delete_expression(&expr_node) ;
    return 1 ;
@@ -778,10 +778,10 @@ int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, c
    }
 
    err = matchnames_expression(where_expr->left, dbfile, start_linenr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = matchnames_expression(where_expr->right, dbfile, start_linenr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (where_expr->type == exprtypeNAME) {
       // search matching header
@@ -796,12 +796,12 @@ int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, c
       }
       if (!isMatch) {
          print_err( "Unknown column name '%.*s' in WHERE() in line: %d", where_expr->length, where_expr->value, start_linenr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -891,11 +891,11 @@ int delete_iffunction(iffunction_t ** iffunc)
 
       *iffunc = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -944,7 +944,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
 
    // parse expression
    err = parse_expression( &expr, &next, start_fct, end_macro, start_linenr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    ++ next ;
    skip_space(&next, end_macro) ;
@@ -954,7 +954,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
          && next[0] == '(') {
 
       err = parse_select_parameter(&ifstring2, &next, next, end_macro, start_linenr, "if" ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
    } else {
 
@@ -962,7 +962,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
             || (  next[0] != '\''
                   && next[0] != '"')) {
          print_err( "Expected string after <(if () > in line: %d", start_linenr ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       ++ next ;
       while (next < end_macro && next[0] != *start_ifstr)
@@ -970,7 +970,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
 
       if (next >= end_macro) {
          print_err( "Expected closing %c after <(if () %c> in line: %d", *start_ifstr, *start_ifstr, start_linenr ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       ++ start_ifstr ;
       len_ifstr = (size_t) ( next - start_ifstr ) ;
@@ -989,7 +989,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
             || (     next[0] != '\''
                   && next[0] != '"' )) {
          print_err( "Expected string after <(if () '' else> in line: %d", start_linenr ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       ++ next ;
@@ -997,7 +997,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
          ++ next ;
       if (next >= end_macro) {
          print_err( "Expected closing %c after <(if () '' else %c> in line: %d", *start_elsestr, *start_elsestr, start_linenr ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       ++ start_elsestr ;
       len_elsestr = (size_t) ( next - start_elsestr ) ;
@@ -1008,17 +1008,17 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
 
    if (next >= end_macro || ')' != next[0]) {
       print_err( "Expected closing ) after <(if () '' else ''> in line: %d", start_linenr ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = new_iffunction( &iffunc, expr, start_ifstr, len_ifstr, ifstring2, start_elsestr, len_elsestr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *funcobj = &iffunc->funcobj ;
    *end_fct = next ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_expression(&expr) ;
    delete_iffunction(&iffunc) ;
    return EINVAL ;
@@ -1066,7 +1066,7 @@ static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
 
    if (!new_param) {
       print_err("Out of memory") ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (!(*next_param)) {
@@ -1084,7 +1084,7 @@ static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
    new_param->type      = seltypeFIELD ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -1097,17 +1097,17 @@ static int process_select_parameter(select_parameter_t * select_param, const siz
    for (const select_parameter_t * p = select_param; p; p = p->next) {
       if (seltypeSTRING == p->type) {
          err = write_outfile( g_outfd, p->value, p->length ) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       } else if (seltypeFIELD == p->type) {
          err = write_outfile( g_outfd, data[p->col_index].value, data[p->col_index].length ) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       } else if (seltypeFUNCTION == p->type) {
          p->funcobj->process(p->funcobj, row, dbfile, start_linenr) ;
       }
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -1131,16 +1131,16 @@ static int prepare_select_parameter(select_parameter_t * select_param, const tex
          if (!isMatch) {
             err = EINVAL ;
             print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr ) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       } else if (seltypeFUNCTION == p->type) {
          err = p->funcobj->prepare( p->funcobj, dbfile, start_linenr) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -1159,7 +1159,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
    if (  start_param >= end_macro
          || '(' != start_param[0] ) {
       print_err( "Expected '(' after %s in line: %d", cmd, start_linenr ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    char * next = start_param ;
@@ -1183,7 +1183,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
       size_t field_len = (size_t) (next - start_field) ;
       if (field_len) {
          err = extend_select_parameter(&next_param) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          next_param->value    = start_field ;
          next_param->length   = field_len ;
       }
@@ -1195,13 +1195,13 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
             err = parse_iffunction( &funcobj, &next, next+strlen("(if "), end_macro, start_linenr) ;
          } else {
             print_err( "Unknown function '%.4s' in line: %d", start_func, start_linenr ) ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          err = extend_select_parameter(&next_param) ;
          if (err) {
             funcobj->free( &funcobj ) ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          next_param->value    = start_func ;
@@ -1218,7 +1218,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
             } while (next < end_macro && '"' != next[0]) ;
             if (next >= end_macro) {
                print_err( "Expected \" after %s(...\" in line: %d", cmd, start_linenr ) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             string_len = (size_t) (next - start_string) ;
          } else if ('\'' == next[0]) {
@@ -1227,20 +1227,20 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
             } while (next < end_macro && '\'' != next[0]) ;
             if (next >= end_macro) {
                print_err( "Expected ' after %s(...' in line: %d", cmd, start_linenr ) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             string_len = (size_t) (next - start_string) ;
          } else if ('\\' == next[0]) {
             ++ next ;
             if (next >= end_macro) {
                print_err( "Expected no endofline after \\ in line: %d", start_linenr ) ;
-               goto ONABORT ;
+               goto ONERR;
             }
             switch (next[0]) {
             case 'n':   start_string = "\n" ;
                         break ;
             default:    print_err( "Unsupported escaped character \\%c in line: %d", next[0], start_linenr ) ;
-                        goto ONABORT ;
+                        goto ONERR;
             }
             string_len = strlen(start_string) ;
          } else {
@@ -1250,7 +1250,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
          }
 
          err = extend_select_parameter(&next_param) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          next_param->value    = start_string ;
          next_param->length   = string_len ;
@@ -1260,12 +1260,12 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
 
    if ( next >= end_macro ) {
       print_err( "Expected ')' after %s( in line: %d", cmd, start_linenr ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *param = first_param.next ;
    return 0 ;
-ONABORT:
+ONERR:
    delete_select_parameter(&first_param.next) ;
    return EINVAL ;
 }
@@ -1282,7 +1282,7 @@ static int tostring_select_parameter(const select_parameter_t * param, /*out*/ch
    buffer= malloc(length+1) ;
    if (!buffer) {
       print_err("Out of memory") ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    size_t offset = 0 ;
@@ -1295,7 +1295,7 @@ static int tostring_select_parameter(const select_parameter_t * param, /*out*/ch
    buffer[length] = 0 ;
    *string = buffer ;
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -1312,7 +1312,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    char   * end_param = start_param ;
 
    err = parse_select_parameter( &select_param, &end_param, start_param, end_macro, start_linenr, "SELECT" ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    char * start_from = end_param + 1 ;
    while (start_from < end_macro && ' ' == start_from[0]) {
@@ -1323,11 +1323,11 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
          || strncmp( start_from, "FROM", 4) ) {
       err = EINVAL ;
       print_err( "Expected 'FROM' after SELECT() in line: %d", start_linenr ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = parse_select_parameter( &from_param, &end_param, start_from+4, end_macro, start_linenr, "FROM" ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    ++ end_param ;
    skip_space( &end_param, end_macro ) ;
@@ -1337,7 +1337,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    if (     (end_macro - start_where) > 5
          && 0 == strncmp( start_where, "WHERE", 5) ) {
       err = parse_expression( &where_expr, &end_param, start_where+5, end_macro, start_linenr ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       ++ end_param ;
       skip_space( &end_param, end_macro ) ;
    }
@@ -1359,32 +1359,32 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    if (end_param < end_macro) {
       err = EINVAL ;
       print_err( "Expected nothing after SELECT()FROM()WHERE()\\(ASCENDING\\|DESCENDING\\) in line: %d", start_linenr ) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = tostring_select_parameter( from_param, &filename ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // open text database and parse header (CSV format)
    err = init_textdb( &dbfile, filename ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (  g_depencyfile
       && 0 != find_depfilenamewritten(filename)) {
       err = insert_depfilenamewritten(filename) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = write_outfile( g_depfd, " \\\n ", strlen(" \\\n ") ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = write_outfile( g_depfd, filename, strlen(filename) ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    // match select parameter to header of textdb
    err = prepare_select_parameter(select_param, &dbfile, start_linenr) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = matchnames_expression( where_expr, &dbfile, start_linenr ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // determine row-id, row-nr
    for (size_t row = 1/*skip header*/, rownr = 1; row < dbfile.row_count; ++row) {
@@ -1395,14 +1395,14 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
       data = &dbfile.rows[row * dbfile.column_count] ;
       snprintf(buffer, sizeof(buffer), "%u", (int)row) ;
       err = appendvalue_textdbcolumn( &data[0], buffer, strlen(buffer)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       if (  ismatch_expression(where_expr, row, &dbfile, start_linenr)) {
          // row-nr
          data = &dbfile.rows[row * dbfile.column_count + 1] ;
          snprintf(buffer, sizeof(buffer), "%u", (int)rownr) ;
          err = appendvalue_textdbcolumn( &data[0], buffer, strlen(buffer)) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          ++ rownr ;
       }
@@ -1416,10 +1416,10 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
       if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
 
          err = process_select_parameter(select_param, row, &dbfile, start_linenr) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
 
          err = write_outfile( g_outfd, "\n", 1 ) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
@@ -1429,7 +1429,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    delete_select_parameter(&from_param) ;
    delete_expression(&where_expr) ;
    return 0 ;
-ONABORT:
+ONERR:
    free_textdb( &dbfile ) ;
    free(filename) ;
    delete_select_parameter(&select_param) ;
@@ -1478,9 +1478,9 @@ static int process_macro(const mmfile_t * input_file)
       if (err) break ;
       size_t write_size = (size_t) (end_macro - next_input) ;
       err = write_outfile( g_outfd, next_input, write_size ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = write_outfile( g_outfd, "\n", 1) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       start_linenr = line_number ;
       input_size  -= write_size ;
       next_input   = end_macro ;
@@ -1488,7 +1488,7 @@ static int process_macro(const mmfile_t * input_file)
       if (     13 == end_macro - start_macro
             && strncmp(start_macro, "// TEXTDB:END", 13)) {
          print_err( "Found end of macro '// TEXTDB:END' without beginning of macro in line: %d", line_number ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       // find end "// TEXTDB:END"
@@ -1498,7 +1498,7 @@ static int process_macro(const mmfile_t * input_file)
       if (     err
             || strncmp( start_macro2, "// TEXTDB:END", (size_t) (end_macro2 - start_macro2)) ) {
          print_err( "Can not find end of macro '// TEXTDB:END' which starts at line: %d", start_linenr ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       input_size -= (size_t) (end_macro2 - next_input) ;
       next_input  = end_macro2 ;
@@ -1508,23 +1508,23 @@ static int process_macro(const mmfile_t * input_file)
       if (  macro_size > sizeof("// TEXTDB:SELECT")
             && (0 == strncmp( start_macro, "// TEXTDB:SELECT", sizeof("// TEXTDB:SELECT")-1)) ) {
          err = process_selectcmd( start_macro, end_macro, start_linenr) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       } else  {
          print_err( "Unknown macro '%.*s' in line: %"PRIuSIZE, macro_size > 16 ? 16 : macro_size, start_macro, start_linenr) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = write_outfile( g_outfd, "// TEXTDB:END", sizeof("// TEXTDB:END")-1) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    if ( input_size ) {
       err = write_outfile( g_outfd, next_input, input_size ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return 1 ;
 }
 
@@ -1544,7 +1544,7 @@ static int main_thread(maincontext_t * maincontext)
       g_outfd = open(g_outfilename, O_WRONLY|O_CREAT|exclflag|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
       if (g_outfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_outfilename, strerror(errno) ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    } else {
       g_outfd = STDOUT_FILENO ;
@@ -1555,7 +1555,7 @@ static int main_thread(maincontext_t * maincontext)
       g_depfilename = malloc( strlen(g_outfilename) + 3 ) ;
       if (!g_depfilename) {
          print_err("Out of memory") ;
-         goto ONABORT ;
+         goto ONERR;
       }
       strcpy(g_depfilename, g_outfilename) ;
       if (     strrchr(g_depfilename, '.')
@@ -1570,43 +1570,43 @@ static int main_thread(maincontext_t * maincontext)
       g_depfd = open(g_depfilename, O_WRONLY|O_CREAT|exclflag|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
       if (g_depfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_depfilename, strerror(errno) ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       err = write_outfile( g_depfd, g_outfilename, strlen(g_outfilename)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = write_outfile( g_depfd, ": ", strlen(": ")) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = write_outfile( g_depfd, g_infilename, strlen(g_infilename)) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    // open input file for reading
    err = init_mmfile(&input_file, g_infilename, 0, 0, accessmode_READ, 0) ;
    if (err) {
       print_err( "Can not open file '%s' for reading: %s", g_infilename, strerror(err)) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    // parse input => expand macros => write output
    err = process_macro( &input_file ) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // flush output to disk
    if (g_outfilename) {
       err = free_iochannel(&g_outfd) ;
       if (err) {
          print_err( "Can not write file '%s': %s", g_outfilename, strerror(errno) ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    if (-1 != g_depfd) {
       err = write_outfile( g_depfd, "\n", strlen("\n") ) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       err = free_iochannel(&g_depfd) ;
       if (err) {
          print_err( "Can not write file '%s': %s", g_depfilename, strerror(errno) ) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
@@ -1624,7 +1624,7 @@ PRINT_USAGE:
    dprintf(STDERR_FILENO, "Usage:   %s [[-f] [-d] -o <out.c>] <in.c>\n\n", g_programname ) ;
    dprintf(STDERR_FILENO, "Options: -d: Write makefile dependency rule to <out.d>\n") ;
    dprintf(STDERR_FILENO, "         -f: If output file exists force overwrite\n\n") ;
-ONABORT:
+ONERR:
    if (g_outfilename && g_outfd != -1) {
       free_iochannel(&g_outfd) ;
       unlink(g_outfilename) ;

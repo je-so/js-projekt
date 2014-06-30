@@ -92,7 +92,7 @@ static int test_initfree(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -168,17 +168,17 @@ static int test_query(void)
    TEST(18 == ai);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
 int unittest_graphic_windowconfig()
 {
-   if (test_initfree())    goto ONABORT;
-   if (test_query())       goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

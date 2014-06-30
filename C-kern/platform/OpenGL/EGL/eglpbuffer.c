@@ -63,15 +63,15 @@ int init_eglpbuffer(/*out*/eglpbuffer_t * eglpbuf, struct opengl_display_t * egl
    EGLSurface surface = eglCreatePbufferSurface(egldisp, eglconf, attr);
 
    if (EGL_NO_SURFACE == surface) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    *eglpbuf = surface;
 
    return 0;
-ONABORT:
+ONERR:
    err = aserrcode_egl(eglGetError());
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -86,15 +86,15 @@ int free_eglpbuffer(eglpbuffer_t * eglpbuf, struct opengl_display_t * egldisp)
 
       if (EGL_FALSE == isDestoyed) {
          err = aserrcode_egl(eglGetError());
-         goto ONABORT;
+         goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglpbuffer_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_eglpbuffer_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -106,18 +106,18 @@ int size_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * egldis
    EGLint attr_value;
    static_assert(sizeof(EGLint) <= sizeof(uint32_t), "attribute type can be converted to returned type");
    if (!eglQuerySurface(egldisp, eglpbuf, EGL_WIDTH, &attr_value)) {
-      goto ONABORT;
+      goto ONERR;
    }
    *width = (uint32_t) attr_value;
    if (!eglQuerySurface(egldisp, eglpbuf, EGL_HEIGHT, &attr_value)) {
-      goto ONABORT;
+      goto ONERR;
    }
    *height = (uint32_t) attr_value;
 
    return 0;
-ONABORT:
+ONERR:
    err = aserrcode_egl(eglGetError());
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -128,15 +128,15 @@ int configid_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * eg
    static_assert(sizeof(EGLint) <= sizeof(uint32_t), "attribute type can be converted to returned type");
 
    if (!eglQuerySurface(egldisp, eglpbuf, EGL_CONFIG_ID, &value)) {
-      goto ONABORT;
+      goto ONERR;
    }
 
    *configid = (uint32_t) value;
 
    return 0;
-ONABORT:
+ONERR:
    err = aserrcode_egl(eglGetError());
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -221,7 +221,7 @@ static int test_initfree(egldisplay_t disp)
    TEST(0 == free_eglconfig(&conf));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_eglpbuffer(&pbuf, disp);
    (void) free_eglconfig(&conf);
    return EINVAL;
@@ -297,7 +297,7 @@ static int test_query(egldisplay_t disp)
    TEST(0 == free_eglconfig(&conf));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_eglpbuffer(&pbuf, disp);
    (void) free_eglconfig(&conf);
    return EINVAL;
@@ -346,7 +346,7 @@ static int test_draw(egldisplay_t disp)
    TEST(0 == free_eglconfig(&conf));
 
    return 0;
-ONABORT:
+ONERR:
    (void) eglMakeCurrent(disp, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
    (void) free_eglpbuffer(&pbuf, disp);
    (void) free_eglconfig(&conf);
@@ -362,26 +362,26 @@ static int childprocess_unittest(void)
 
    // prepare
    TEST(0 == initdefault_egldisplay(&disp));
-   if (test_initfree(disp))   goto ONABORT;
-   if (test_query(disp))      goto ONABORT;
+   if (test_initfree(disp))   goto ONERR;
+   if (test_query(disp))      goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
-   if (test_initfree(disp))   goto ONABORT;
-   if (test_query(disp))      goto ONABORT;
+   if (test_initfree(disp))   goto ONERR;
+   if (test_query(disp))      goto ONERR;
    TRUNCATEBUFFER_ERRLOG(logsize);
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
-   if (test_draw(disp))       goto ONABORT;
+   if (test_draw(disp))       goto ONERR;
 
    // unprepare
    TEST(0 == free_egldisplay(&disp));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_egldisplay(&disp);
    return EINVAL;
@@ -394,7 +394,7 @@ int unittest_platform_opengl_egl_eglpbuffer()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

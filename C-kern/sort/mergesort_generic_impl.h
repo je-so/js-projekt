@@ -929,10 +929,10 @@ static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len,
 
    #if (mergesort_IMPL_TYPE == mergesort_TYPE_POINTER)
    err = setsortstate(sort, cmp, cmpstate, sizeof(void*), len);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    #else
    err = setsortstate(sort, cmp, cmpstate, elemsize, len);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    #endif
 
   /*
@@ -952,7 +952,7 @@ static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len,
          const uint8_t extlen = (uint8_t) ( nextlen <= minlen
                               ? nextlen : (unsigned)minlen);
          err = insertsort(sort, (uint8_t)slice_len, extlen, next);
-         if (err) goto ONABORT;
+         if (err) goto ONERR;
          slice_len = extlen;
       }
 
@@ -960,7 +960,7 @@ static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len,
       if (sort->stacksize == lengthof(sort->stack)) {
          // stack size chosen too small for size_t type
          err = merge_topofstack(sort, false);
-         if (err) goto ONABORT;
+         if (err) goto ONERR;
       }
       sort->stack[sort->stacksize].base = next;
       sort->stack[sort->stacksize].len  = slice_len;
@@ -968,7 +968,7 @@ static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len,
 
       /* merge sorted slices until stack invariant is established */
       err = establish_stack_invariant(sort);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
       /* advance */
       next    += slice_len * ELEMSIZE;
@@ -976,10 +976,10 @@ static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len,
    } while (nextlen);
 
    err = merge_all(sort);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }

@@ -152,12 +152,12 @@ int free_maincontext(void)
       g_maincontext.argv     = 0 ;
       g_maincontext.size_staticmem = 0 ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -168,12 +168,12 @@ int initstart_maincontext(const maincontext_startparam_t * startparam)
 
    if (is_already_initialized) {
       err = EALREADY ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = init_platform(&run_maincontext, CONST_CAST(maincontext_startparam_t,startparam));
 
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -184,18 +184,18 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
 
    if (is_already_initialized) {
       err = EALREADY ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    VALIDATE_INPARAM_TEST(  maincontext_STATIC  <  context_type
-                           && maincontext_CONSOLE >= context_type, ONABORT, ) ;
+                           && maincontext_CONSOLE >= context_type, ONERR, ) ;
 
-   VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONERR, ) ;
 
    // init_platform has been called !!
-   VALIDATE_INPARAM_TEST(  self_maincontext() == &g_maincontext, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(  self_maincontext() == &g_maincontext, ONERR, ) ;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
 
    g_maincontext.type     = context_type ;
    g_maincontext.progname = "" ;
@@ -207,22 +207,22 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
    }
 
    err = init_processcontext(&g_maincontext.pcontext) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
 
    err = init_threadcontext(tcontext_maincontext(), &g_maincontext.pcontext, context_type) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
 
    return 0 ;
-ONABORT:
+ONERR:
    if (!is_already_initialized) {
       free_maincontext() ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -254,7 +254,7 @@ void * allocstatic_maincontext(uint8_t size)
    if (sizeof(s_maincontext_staticmem) - g_maincontext.size_staticmem < size) {
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(size, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint16_t offset = g_maincontext.size_staticmem ;
@@ -262,8 +262,8 @@ void * allocstatic_maincontext(uint8_t size)
    g_maincontext.size_staticmem = (uint16_t) (g_maincontext.size_staticmem + size) ;
 
    return &s_maincontext_staticmem[offset] ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return 0 ;
 }
 
@@ -271,13 +271,13 @@ int freestatic_maincontext(uint8_t size)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(g_maincontext.size_staticmem >= size, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(g_maincontext.size_staticmem >= size, ONERR,) ;
 
    g_maincontext.size_staticmem = (uint16_t) (g_maincontext.size_staticmem - size) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -337,7 +337,7 @@ static int test_querymacros(void)
    TEST(&valuecache_maincontext()  == &pcontext_maincontext()->valuecache) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -456,7 +456,7 @@ static int test_initmain(void)
    TEST(0 == free_iochannel(&fdpipe[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
    free_iochannel(&fd_stderr) ;
    free_iochannel(&fdpipe[0]);
@@ -510,7 +510,7 @@ static int test_initerror(void)
    TEST(0 == free_maincontext()) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    CLEARBUFFER_ERRLOG() ;
    free_maincontext() ;
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
@@ -568,7 +568,7 @@ static int test_initstart(void)
    // unprepare
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -614,7 +614,7 @@ static int test_progname(void)
    TEST(0 == free_iochannel(&fdpipe[1])) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
    free_iochannel(&fd_stderr) ;
    free_iochannel(&fdpipe[0]);
@@ -667,7 +667,7 @@ static int test_staticmem(void)
    g_maincontext.size_staticmem = oldsize ;
 
    return 0 ;
-ONABORT:
+ONERR:
    g_maincontext.size_staticmem = oldsize ;
    return EINVAL ;
 }
@@ -677,20 +677,20 @@ int unittest_context_maincontext()
 
    if (maincontext_STATIC == type_maincontext()) {
 
-      if (test_querymacros())    goto ONABORT ;
-      if (test_initmain())       goto ONABORT ;
-      if (test_initerror())      goto ONABORT ;
-      if (test_initstart())      goto ONABORT ;
-      if (test_progname())       goto ONABORT ;
+      if (test_querymacros())    goto ONERR;
+      if (test_initmain())       goto ONERR;
+      if (test_initerror())      goto ONERR;
+      if (test_initstart())      goto ONERR;
+      if (test_progname())       goto ONERR;
 
    } else {
 
-      if (test_querymacros())    goto ONABORT ;
-      if (test_staticmem())      goto ONABORT ;
+      if (test_querymacros())    goto ONERR;
+      if (test_staticmem())      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

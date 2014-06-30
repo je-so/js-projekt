@@ -100,7 +100,7 @@ static int test_initfree(void)
    TEST(0 == errcontext.strdata) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -118,7 +118,7 @@ static int test_query_strerror(void * dummy)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -210,7 +210,7 @@ static int test_query(void)
    TEST(0 == free_errorcontext(&errcontext)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_errorcontext(&errcontext) ;
    return EINVAL ;
 }
@@ -239,7 +239,7 @@ static int test_generic(void)
    TEST(0 == init_errorcontext(genericcast_errorcontext(&errcontext2))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -259,20 +259,20 @@ static int test_initonce(void)
    TEST(errcontext.strdata   == g_errorcontext_strdata) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 
 int unittest_context_errorcontext()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
-   if (test_initonce())       goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_generic())        goto ONERR;
+   if (test_initonce())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

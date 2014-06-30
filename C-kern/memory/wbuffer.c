@@ -62,18 +62,18 @@ static int alloc_cstring_wbuffer(void * impl, size_t new_size, /*inout*/memstrea
    if (strsize <= used) {
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(new_size, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_wbuffer_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_wbuffer_errtimer, &err, ONERR);
    err = resize_cstring(cstr, strsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *memstr = (memstream_t) memstream_INIT((uint8_t*)str_cstring(cstr) + used, (uint8_t*)str_cstring(cstr) + allocatedsize_cstring(cstr)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -82,12 +82,12 @@ ONABORT:
 static int shrink_cstring_wbuffer(void * impl, size_t new_size, /*inout*/memstream_t * memstr)
 {
    cstring_t * cstr = impl ;
-   if ((size_t)(memstr->next - (uint8_t*)str_cstring(cstr)) < new_size) goto ONABORT;
+   if ((size_t)(memstr->next - (uint8_t*)str_cstring(cstr)) < new_size) goto ONERR;
    *memstr = (memstream_t) memstream_INIT((uint8_t*)str_cstring(cstr)+new_size, (uint8_t*)str_cstring(cstr)+allocatedsize_cstring(cstr)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(EINVAL) ;
+ONERR:
+   TRACEEXIT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -114,17 +114,17 @@ static int alloc_memblock_wbuffer(void * impl, size_t new_size, /*inout*/memstre
    if (memsize <= mb->size) {
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(new_size, err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = RESIZE_ERR_MM(&s_wbuffer_errtimer, memsize, mb) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + used, addr_memblock(mb) + size_memblock(mb)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -133,12 +133,12 @@ ONABORT:
 static int shrink_memblock_wbuffer(void * impl, size_t new_size, /*inout*/memstream_t * memstr)
 {
    memblock_t * mb = impl;
-   if ((size_t)(memstr->next - addr_memblock(mb)) < new_size) goto ONABORT;
+   if ((size_t)(memstr->next - addr_memblock(mb)) < new_size) goto ONERR;
    *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + new_size, addr_memblock(mb) + size_memblock(mb)) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(EINVAL) ;
+ONERR:
+   TRACEEXIT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -203,7 +203,7 @@ int appendcopy_wbuffer(wbuffer_t * wbuf, size_t buffer_size, const uint8_t * buf
       err = wbuf->iimpl->alloc(wbuf->impl, missing, (memstream_t*)wbuf) ;
       if (err) {
          wbuf->next -= reserved ;   // remove partially copied content
-         goto ONABORT ;
+         goto ONERR;
       }
 
       memcpy(wbuf->next, buffer + reserved, missing) ;
@@ -211,8 +211,8 @@ int appendcopy_wbuffer(wbuffer_t * wbuf, size_t buffer_size, const uint8_t * buf
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -240,7 +240,7 @@ static int test_variables(void)
    TEST(g_wbuffer_static.size   == &size_static_wbuffer) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -307,7 +307,7 @@ static int test_initfree(void)
    TEST(0 == FREE_MM(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    FREE_MM(&memblock) ;
    return EINVAL ;
@@ -391,7 +391,7 @@ static int test_cstring_adapter(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    return EINVAL ;
 }
@@ -470,7 +470,7 @@ static int test_memblock_adapter(void)
    TEST(0 == FREE_MM(&mb)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&mb) ;
    return EINVAL ;
 }
@@ -504,7 +504,7 @@ static int test_static_adapter(void)
    TEST(ENOMEM == alloc_static_wbuffer(wbuf.impl, 1, genericcast_memstream(&wbuf,)));
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -562,7 +562,7 @@ static int test_query(void)
    TEST(0 == FREE_MM(&memblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    FREE_MM(&memblock) ;
    return EINVAL ;
@@ -755,7 +755,7 @@ static int test_update(void)
    TEST(0 == FREE_MM(&mblock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&mblock) ;
    return EINVAL ;
 }
@@ -998,23 +998,23 @@ static int test_other_impl(void)
    TEST(1 == s_other_alloc) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_memory_wbuffer()
 {
-   if (test_variables())         goto ONABORT ;
-   if (test_initfree())          goto ONABORT ;
-   if (test_cstring_adapter())   goto ONABORT ;
-   if (test_memblock_adapter())  goto ONABORT ;
-   if (test_static_adapter())    goto ONABORT ;
-   if (test_query())             goto ONABORT ;
-   if (test_update())            goto ONABORT ;
-   if (test_other_impl())        goto ONABORT ;
+   if (test_variables())         goto ONERR;
+   if (test_initfree())          goto ONERR;
+   if (test_cstring_adapter())   goto ONERR;
+   if (test_memblock_adapter())  goto ONERR;
+   if (test_static_adapter())    goto ONERR;
+   if (test_query())             goto ONERR;
+   if (test_update())            goto ONERR;
+   if (test_other_impl())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

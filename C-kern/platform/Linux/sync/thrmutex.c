@@ -60,12 +60,12 @@ int free_thrmutex(thrmutex_t * mutex)
 
    if (! isFree) {
       err = EBUSY ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -130,7 +130,7 @@ int lock_thrmutex(thrmutex_t * mutex)
       // add to wait list
       if (self == mutex->lockholder) {
          err = EDEADLK ;
-         goto ONABORT ;
+         goto ONERR;
       }
       insertlast_thrmutexlist(genericcast_slist(mutex), self) ;
       unlockflag_thrmutex(mutex) ;
@@ -147,9 +147,9 @@ int lock_thrmutex(thrmutex_t * mutex)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_thrmutex(mutex) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -162,7 +162,7 @@ int unlock_thrmutex(thrmutex_t * mutex)
 
    if (self != mutex->lockholder) {
       err = EPERM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    thread_t * nextwait = 0 ;
@@ -178,9 +178,9 @@ int unlock_thrmutex(thrmutex_t * mutex)
    unlockflag_thrmutex(mutex) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_thrmutex(mutex) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -233,7 +233,7 @@ static int test_initfree(void)
    TEST(0 == free_thrmutex(&mutex)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -280,7 +280,7 @@ static int test_query(void)
    TEST(0 == lockholder_thrmutex(&mutex)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -463,7 +463,7 @@ static int test_synchronize(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_thrmutex(&mutex) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       atomicwrite_int((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
@@ -512,20 +512,20 @@ static int test_safesync(void)
    TEST(0 == free_process(&process)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_process(&process) ;
    return EINVAL ;
 }
 
 int unittest_platform_sync_thrmutex()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_synchronize())    goto ONABORT ;
-   if (test_safesync())       goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_synchronize())    goto ONERR;
+   if (test_safesync())       goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -105,7 +105,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
       static_assert( 0 > (typeof((*big)->sign_and_used_digits))-1
                      && 2 == sizeof((*big)->sign_and_used_digits), "Test sign_and_used_digits is of type INT16") ;
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    bigint_t * oldbig   = *big ;
@@ -115,14 +115,14 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
          && !oldbig->allocated_digits) {
       // bigint_fixed_t can not be reallocated
       err = EINVAL ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint32_t newobjsize = objectsize_bigint((uint16_t)allocate_digits) ;
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)oldbig) ;
 
    err = RESIZE_ERR_MM(&s_bigint_errtimer, newobjsize, &mblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    bigint_t       * newbig      = (bigint_t*) mblock.addr ;
    newbig->allocated_digits     = (uint16_t) allocate_digits ;
@@ -132,8 +132,8 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    *big = newbig ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -178,7 +178,7 @@ static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    if (lexp > UINT16_MAX && rexp > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (!rnrdigits) {
@@ -232,7 +232,7 @@ static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    if ((*result)->allocated_digits < size) {
       err = allocate_bigint(result, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    uint32_t * destdigits = (*result)->digits ;
@@ -289,8 +289,8 @@ static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
    (*result)->exponent             = (uint16_t) (lexp < rexp ? lexp : rexp) ; ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -326,7 +326,7 @@ static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    if (lexp > UINT16_MAX && rexp > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (!rnrdigits) {
@@ -410,7 +410,7 @@ static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    if ((*result)->allocated_digits < size) {
       err = allocate_bigint(result, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    uint32_t * destdigits = (*result)->digits ;
@@ -473,8 +473,8 @@ static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
    (*result)->exponent             = (uint16_t) (lexp < rexp ? lexp : rexp) ; ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -635,46 +635,46 @@ static int multsplit_biginthelper(bigint_t *restrict * result, uint16_t lnrdigit
    // compute t0
    uint32_t size = (uint32_t) ((lnrdigits - split) + (rnrdigits - split)) ;
    err = allocate_bigint(&t[0], size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = multsplit_biginthelper(&t[0], (uint16_t)(lnrdigits - split), &ldigits[split], (uint16_t)(rnrdigits - split), &rdigits[split]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute t1
    size = (uint32_t)lsplit + rsplit ;
    err = allocate_bigint(&t[1], size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = multsplit_biginthelper(&t[1], lsplit, ldigits, rsplit, rdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute t2 == (l0+l1)
    size = (uint32_t)lnrdigits - split + 1/*carry*/ ;
    err = allocate_bigint(&t[2], size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    addsplit_biginthelper(t[2], 0, (uint16_t)(lnrdigits - split), &ldigits[split], lsplit, ldigits) ;
 
    // compute t3 == (r0+r1)
    size = (uint32_t)rnrdigits - split + 1/*carry*/ ;
    err = allocate_bigint(&t[3], size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    addsplit_biginthelper(t[3], 0, (uint16_t)(rnrdigits - split), &rdigits[split], rsplit, rdigits) ;
 
    // compute t4 == (l0+l1) * (r0+r1)
    size = (uint32_t)t[2]->sign_and_used_digits + (uint32_t)t[3]->sign_and_used_digits ;
    err = allocate_bigint(&t[4], size) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = multsplit_biginthelper(&t[4], (uint16_t)t[2]->sign_and_used_digits, t[2]->digits, (uint16_t)t[3]->sign_and_used_digits, t[3]->digits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute t4 = (l0+l1) * (r0+r1) - t0 - t1
    err = sub_bigint(result, t[4], t[0]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    err = sub_bigint(&t[4], *result, t[1]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute *result = t0 *X*X + t1
    t[0]->exponent = (uint16_t) (t[0]->exponent + 2 * split) ;
    err = add_bigint(result, t[0], t[1]) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // compute *result = t0 *X*X + t1 + t4 * X
    uint16_t offset = (uint16_t) (t[4]->exponent + split/*X*/ - (*result)->exponent) ;
@@ -685,16 +685,16 @@ static int multsplit_biginthelper(bigint_t *restrict * result, uint16_t lnrdigit
    // free resources
    for (unsigned i = 0; i < lengthof(t); ++i) {
       err = delete_bigint(&t[i]) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(t); ++i) {
       delete_bigint(&t[i]) ;
    }
    clear_bigint(*result) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -726,13 +726,13 @@ static int divisorisbigger_biginthelper(bigint_t *restrict* divresult, bigint_t 
       }
       if (modresult) {
          err = copy_bigint(modresult, lbig) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1146,13 +1146,13 @@ int new_bigint(/*out*/bigint_t ** big, uint32_t nrdigits)
    bigint_t * new_big = 0 ;
 
    err = allocate_bigint(&new_big, nrdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *big = new_big ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1163,17 +1163,17 @@ int newcopy_bigint(/*out*/bigint_t ** big, const bigint_t * copyfrom)
    uint16_t    digits     = nrdigits_bigint(copyfrom) ;
 
    err = allocate_bigint(&new_big, (digits < 4 ? (uint32_t)4 : (uint32_t)digits)) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = copy_bigint(&new_big, copyfrom) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    *big = new_big ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&new_big) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1188,12 +1188,12 @@ int delete_bigint(bigint_t ** big)
       memblock_t  mblock = memblock_INIT(objectsize_bigint(del_big->allocated_digits), (uint8_t*) del_big) ;
 
       err = FREE_ERR_MM(&s_bigint_errtimer, &mblock) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -1324,7 +1324,7 @@ int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom)
    if (copy->allocated_digits < digits) {
 
       err = allocate_bigint(big, digits) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       copy = *big ;
    }
@@ -1337,8 +1337,8 @@ int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1391,7 +1391,7 @@ int setfromdouble_bigint(bigint_t * big, double value)
 
    assert(big->allocated_digits > 2 || (0 == big->allocated_digits && big->sign_and_used_digits > 2)) ;
 
-   VALIDATE_INPARAM_TEST(isfinite(value), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isfinite(value), ONERR, ) ;
 
    const int16_t  negativemult = (value < 0) ? -1 : 1 ;
    const double   magnitudeval = fabs(value) ;
@@ -1423,7 +1423,7 @@ int setfromdouble_bigint(bigint_t * big, double value)
 
          if (iscale > (UINT16_MAX*32)) {
             err = EOVERFLOW ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          int     digit_exp   = iscale / 32 ;
@@ -1447,8 +1447,8 @@ int setfromdouble_bigint(bigint_t * big, double value)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1456,7 +1456,7 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(sign != 0, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(sign != 0, ONERR, ) ;
 
    uint32_t expo2  = exponent ;
    uint16_t size2  = size ;
@@ -1474,7 +1474,7 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
 
    if (expo2 > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint16_t offset = 0 ;
@@ -1486,7 +1486,7 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
 
    if ((*big)->allocated_digits < size2) {
       err = allocate_bigint(big, size2) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    bigint_t * big2 = *big ;
@@ -1500,8 +1500,8 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
    } while (size2) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1509,7 +1509,7 @@ int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, cons
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(sign != 0, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(sign != 0, ONERR, ) ;
 
    uint32_t expo2  = exponent ;
    uint16_t size2  = size ;
@@ -1534,12 +1534,12 @@ int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, cons
 
    if (expo2 > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if ((*big)->allocated_digits < size2) {
       err = allocate_bigint(big, size2) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    bigint_t * big2 = *big ;
@@ -1550,8 +1550,8 @@ int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, cons
    memcpy(big2->digits, &numbers[offset], size2 * sizeof(big2->digits[0])) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1612,7 +1612,7 @@ int shiftleft_bigint(bigint_t ** result, uint32_t shift_count)
 
    if (new_exponent > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    // shift the whole number
@@ -1625,7 +1625,7 @@ int shiftleft_bigint(bigint_t ** result, uint32_t shift_count)
          uint32_t size = 1 + (uint32_t)nrdigits ;
          if ((*result)->allocated_digits < size) {
             err = allocate_bigint(result, size) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          }
 
          (*result)->digits[nrdigits]     = overflow_maxdigit ;
@@ -1647,8 +1647,8 @@ int shiftleft_bigint(bigint_t ** result, uint32_t shift_count)
    (*result)->exponent = (uint16_t) new_exponent ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1694,7 +1694,7 @@ int shiftright_bigint(bigint_t ** result, uint32_t shift_count)
             ++ new_nrdigits ;
             if ((*result)->allocated_digits < new_nrdigits) {
                err = allocate_bigint(result, new_nrdigits) ;
-               if (err) goto ONABORT ;
+               if (err) goto ONERR;
             }
 
             *(destdigits++) = rightbitsdigit ;
@@ -1720,8 +1720,8 @@ int shiftright_bigint(bigint_t ** result, uint32_t shift_count)
    (*result)->exponent             = (uint16_t) new_exponent ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1741,11 +1741,11 @@ int add_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t
       err = sub_biginthelper(result, lbig, rbig) ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1763,11 +1763,11 @@ int sub_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t
       err = add_biginthelper(result, lbig, rbig) ;
    }
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1786,7 +1786,7 @@ int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uin
 
    if ((*result)->allocated_digits < size) {
       err = allocate_bigint(result, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    bigint_t * big = *result ;
@@ -1808,8 +1808,8 @@ int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uin
    big->exponent             = lbig->exponent ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1846,23 +1846,23 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
 
    if (  exponent > UINT16_MAX) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if ((*result)->allocated_digits < size) {
       err = allocate_bigint(result, size) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    err = multsplit_biginthelper(result, lnrdigits, ldigits, rnrdigits, rdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    (*result)->sign_and_used_digits = (int16_t)  (xorsign < 0 ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
    (*result)->exponent             = (uint16_t) ((*result)->exponent + exponent) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1875,11 +1875,11 @@ int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresu
    const uint32_t * ldigits = lbig->digits ;
 
    const bool is_divisor_not_zero = (0 != divisor) ;
-   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONERR, ) ;
 
    if (0 == divsize) {
       err = divisorisbigger_biginthelper(divresult, modresult, lbig) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       return 0 ;
    }
 
@@ -1892,7 +1892,7 @@ int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresu
    if (  divresult) {
       if (  (*divresult)->allocated_digits < divsize) {
          err = allocate_bigint(divresult, divsize) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
       (*divresult)->exponent = 0 ;
    }
@@ -1905,8 +1905,8 @@ int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresu
    divmodui32_biginthelper(divresult, modresult, (uint16_t)divsize, divsign, lbig->sign_and_used_digits, lnrdigits, ldigits, divisor) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -1926,11 +1926,11 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    const uint32_t * rdigits = rbig->digits ;
 
    bool const is_divisor_not_zero = (0 != rnrdigits) ;
-   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONERR, ) ;
 
    if (  lsize < rsize) {
       err = divisorisbigger_biginthelper(divresult, modresult, lbig) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       return 0 ;
    }
 
@@ -1954,7 +1954,7 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    if (  divresult) {
       if (  (*divresult)->allocated_digits < divnrdigits) {
          err = allocate_bigint(divresult, divnrdigits) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
       (*divresult)->exponent = 0 ;
    }
@@ -1962,7 +1962,7 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    if (  modresult) {
       if (  (*modresult)->allocated_digits < modnrdigits) {
          err = allocate_bigint(modresult, modnrdigits) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
       (*modresult)->exponent = modexpo ;
    }
@@ -1984,7 +1984,7 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    // copy lbig into diff with additional digits set to 0
    maxnrdigits = (uint16_t) (lnrdigits > rnrdigits ? lnrdigits : rnrdigits) ;
    err = allocate_bigint(&diff, maxnrdigits) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    diff->sign_and_used_digits = (int16_t) maxnrdigits ;
 
    uint32_t offset = (uint32_t) (maxnrdigits - lnrdigits) ;
@@ -1997,12 +1997,12 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
                        lbig->sign_and_used_digits, maxnrdigits, diff->digits, rnrdigits, rdigits) ;
 
    err = delete_bigint(&diff) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&diff) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -2080,7 +2080,7 @@ static int test_sign(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -2123,7 +2123,7 @@ static int test_nrdigits(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -2217,7 +2217,7 @@ static int test_compare(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -2282,7 +2282,7 @@ static int cmpbig2double(bigint_t * big, int iscale, double value)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -2350,7 +2350,7 @@ static int test_initfree(void)
    TEST(0 == delete_bigint(&big)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&big) ;
    delete_bigint(&big2) ;
    return EINVAL ;
@@ -2455,7 +2455,7 @@ static int test_unaryops(void)
    TEST(0 == delete_bigint(&big)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&big) ;
    return EINVAL ;
 }
@@ -2836,7 +2836,7 @@ static int test_assign(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&big) ;
    delete_bigint(&big2) ;
    return EINVAL ;
@@ -2938,7 +2938,7 @@ static int test_addsub(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -3231,7 +3231,7 @@ static int test_mult(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -3400,7 +3400,7 @@ static int test_divhelper(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -3659,7 +3659,7 @@ static int test_div(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -3871,7 +3871,7 @@ static int test_shift(void)
    TEST(0 == delete_bigint(&big)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_bigint(&big) ;
    return EINVAL ;
 }
@@ -3925,7 +3925,7 @@ static int test_example1(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -3997,7 +3997,7 @@ static int test_fixedsize(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
@@ -4006,22 +4006,22 @@ ONABORT:
 
 int unittest_math_int_biginteger()
 {
-   if (test_sign())        goto ONABORT ;
-   if (test_nrdigits())    goto ONABORT ;
-   if (test_compare())     goto ONABORT ;
-   if (test_initfree())    goto ONABORT ;
-   if (test_unaryops())    goto ONABORT ;
-   if (test_assign())      goto ONABORT ;
-   if (test_addsub())      goto ONABORT ;
-   if (test_mult())        goto ONABORT ;
-   if (test_divhelper())   goto ONABORT ;
-   if (test_div())         goto ONABORT ;
-   if (test_shift())       goto ONABORT ;
-   if (test_example1())    goto ONABORT ;
-   if (test_fixedsize())   goto ONABORT ;
+   if (test_sign())        goto ONERR;
+   if (test_nrdigits())    goto ONERR;
+   if (test_compare())     goto ONERR;
+   if (test_initfree())    goto ONERR;
+   if (test_unaryops())    goto ONERR;
+   if (test_assign())      goto ONERR;
+   if (test_addsub())      goto ONERR;
+   if (test_mult())        goto ONERR;
+   if (test_divhelper())   goto ONERR;
+   if (test_div())         goto ONERR;
+   if (test_shift())       goto ONERR;
+   if (test_example1())    goto ONERR;
+   if (test_fixedsize())   goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

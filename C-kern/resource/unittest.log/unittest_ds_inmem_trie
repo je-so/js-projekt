@@ -1,145 +1,117 @@
-[1: 1403036412.544984s]
+[1: 1403500290.737412s]
 freeblock_testmmpage() C-kern/test/mm/testmm.c:280
 Error 22 - Invalid argument
 Function input violates condition (isblockvalid_testmmpage(mmpage, memblock))
-Function aborted
-[1: 1403036412.544993s]
+[1: 1403500290.737423s]
 mfree_testmm() C-kern/test/mm/testmm.c:781
 Error 22 - Invalid argument
-Function aborted
-[1: 1403036412.704386s]
+[1: 1403500290.897426s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.704509s]
+One or more resources could not be freed
+[1: 1403500290.897546s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.704628s]
+One or more resources could not be freed
+[1: 1403500290.897666s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.704744s]
+One or more resources could not be freed
+[1: 1403500290.897779s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.707707s]
+One or more resources could not be freed
+[1: 1403500290.900862s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 17 - File exists
-Function aborted
-[1: 1403036412.708371s]
+[1: 1403500290.901530s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708441s]
+[1: 1403500290.901596s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708451s]
+[1: 1403500290.901608s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708486s]
+[1: 1403500290.901642s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708492s]
+[1: 1403500290.901648s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708502s]
+[1: 1403500290.901658s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708504s]
+[1: 1403500290.901660s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708661s]
+[1: 1403500290.901817s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708668s]
+[1: 1403500290.901822s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708765s]
+[1: 1403500290.901918s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.708767s]
+[1: 1403500290.901921s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.709794s]
+[1: 1403500290.902959s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.717163s]
+[1: 1403500290.910598s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.717166s]
+[1: 1403500290.910604s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.720249s]
+[1: 1403500290.913762s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.720251s]
+[1: 1403500290.913765s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.720254s]
+[1: 1403500290.913773s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.729103s]
+[1: 1403500290.922750s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.729108s]
+[1: 1403500290.922755s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.729111s]
+[1: 1403500290.922758s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.733369s]
+[1: 1403500290.927119s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.733372s]
+[1: 1403500290.927122s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.733381s]
+[1: 1403500290.927130s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.733384s]
+[1: 1403500290.927133s]
 insert2_trie() C-kern/ds/inmem/trie.c:1730
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1403036412.733880s]
+[1: 1403500290.927621s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.733890s]
+One or more resources could not be freed
+[1: 1403500290.927630s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.733893s]
+One or more resources could not be freed
+[1: 1403500290.927634s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036412.733897s]
+One or more resources could not be freed
+[1: 1403500290.927638s]
 free_trie() C-kern/ds/inmem/trie.c:1381
 Error 22 - Invalid argument
-Function aborted - one or more resources could not be freed
-[1: 1403036413.230278s]
+One or more resources could not be freed
+[1: 1403500291.421421s]
 remove2_trie() C-kern/ds/inmem/trie.c:1858
 Error 3 - No such process
-Function aborted

@@ -63,12 +63,12 @@ int free_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp
          }
       } while (last != node) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -108,7 +108,7 @@ int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(! isempty_slist(list), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(! isempty_slist(list), ONERR, ) ;
 
    struct slist_node_t * const last  = list->last ;
    struct slist_node_t * const first = last->next ;
@@ -123,8 +123,8 @@ int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node)
    *removed_node  = first ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -132,7 +132,7 @@ int removeafter_slist(slist_t * list, struct slist_node_t * prev_node, struct sl
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 != prev_node->next && ! isempty_slist(list), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 != prev_node->next && ! isempty_slist(list), ONERR, ) ;
 
    struct slist_node_t * const next = prev_node->next ;
 
@@ -149,8 +149,8 @@ int removeafter_slist(slist_t * list, struct slist_node_t * prev_node, struct sl
    *removed_node = next ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -273,7 +273,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_slist(&slist, offsetof(testnode_t, next), typeadp) ;
    return EINVAL ;
 }
@@ -315,7 +315,7 @@ static int test_query(void)
    TEST(0 == isinlist_slist(&lastnode)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -375,7 +375,7 @@ static int test_iterate(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -562,7 +562,7 @@ static int test_insertremove(void)
    TEST(EINVAL == removeafter_slist(&slist, (slist_node_t*)&nodes[1].next, &node)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_slist(&slist, 0, 0) ;
    return EINVAL ;
 }
@@ -823,7 +823,7 @@ static int test_generic(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_slist1(&slist1, 0) ;
    free_slist2(&slist2, 0) ;
    return EINVAL ;
@@ -831,14 +831,14 @@ ONABORT:
 
 int unittest_ds_inmem_slist()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_iterate())        goto ONABORT ;
-   if (test_insertremove())   goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_iterate())        goto ONERR;
+   if (test_insertremove())   goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

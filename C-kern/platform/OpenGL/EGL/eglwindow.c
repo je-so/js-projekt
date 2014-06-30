@@ -63,21 +63,21 @@ int init_eglwindow(/*out*/eglwindow_t * eglwin, egldisplay_t egldisp, eglconfig_
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(syswin != 0, ONABORT, );
+   VALIDATE_INPARAM_TEST(syswin != 0, ONERR, );
 
    EGLint     attrib[] = { EGL_NONE };
    EGLSurface window   = eglCreateWindowSurface(egldisp, eglconf, (EGLNativeWindowType) syswin, attrib);
 
    if (EGL_NO_SURFACE == window) {
       err = aserrcode_egl(eglGetError());
-      goto ONABORT;
+      goto ONERR;
    }
 
    *eglwin = window;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -92,15 +92,15 @@ int free_eglwindow(eglwindow_t * eglwin, egldisplay_t egldisp)
 
       if (EGL_FALSE == isDestoyed) {
          err = aserrcode_egl(eglGetError());
-         goto ONABORT;
+         goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglwindow_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_eglwindow_errtimer, &err, ONERR);
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -112,12 +112,12 @@ int swapbuffer_eglwindow(eglwindow_t eglwin, egldisplay_t egldisp)
 
    if (EGL_FALSE == eglSwapBuffers(egldisp, eglwin)) {
       err = aserrcode_egl(eglGetError());
-      goto ONABORT;
+      goto ONERR;
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -194,7 +194,7 @@ static int init_native(/*out*/native_types_t * native)
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), native->draw.eglwin, native->draw.eglwin, native->draw.eglcontext));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -212,7 +212,7 @@ static int free_native(native_types_t * native)
 	TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
    TEST(0 == free_display(&native->display));
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -272,7 +272,7 @@ static int test_draw(native_types_t * native)
    TEST(0 == compare_color(oswin, 100, 100, 1, 0, 1));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -329,7 +329,7 @@ static int test_initfree(native_types_t * native)
    TEST(0 == eglwin);
 
    return 0;
-ONABORT:
+ONERR:
    free_eglconfig(&eglconf);
    free_eglwindow(&eglwin, gl_display(&native->display));
    return EINVAL;
@@ -347,7 +347,7 @@ static int childprocess_unittest(void)
 
       TEST(0 == init_resourceusage(&usage));
 
-      if (test_initfree(&native))   goto ONABORT;
+      if (test_initfree(&native))   goto ONERR;
 
       if (0 == same_resourceusage(&usage)) break;
       TEST(0 == free_resourceusage(&usage));
@@ -362,7 +362,7 @@ static int childprocess_unittest(void)
    for (unsigned i = 0; i <= 2; ++i) {
       TEST(0 == init_resourceusage(&usage));
 
-      if (test_draw(&native))       goto ONABORT;
+      if (test_draw(&native))       goto ONERR;
 
       if (0 == same_resourceusage(&usage)) break;
       TEST(0 == free_resourceusage(&usage));
@@ -375,7 +375,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_native(&native));
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_resourceusage(&usage);
    (void) free_native(&native);
    return EINVAL;
@@ -388,7 +388,7 @@ int unittest_platform_opengl_egl_eglwindow()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

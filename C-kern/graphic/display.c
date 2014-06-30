@@ -94,19 +94,19 @@ static int init_display(/*out*/display_t * disp, void * display_name)
    int err;
    int isinit = 0;
 
-   ONERROR_testerrortimer(&s_display_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_display_errtimer, &err, ONERR);
 
    err = INIT_OSDISPLAY(disp, display_name);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    ++ isinit;
 
-   ONERROR_testerrortimer(&s_display_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_display_errtimer, &err, ONERR);
 
    err = INIT_OPENGL(disp);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    if (isinit) {
       FREE_OSDISPLAY(disp);
    }
@@ -118,11 +118,11 @@ int initdefault_display(/*out*/display_t * disp)
    int err;
 
    err = init_display(disp, OSDISPLAY_DEFAULTNAME);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -137,12 +137,12 @@ int free_display(display_t * disp)
       err2 = FREE_OSDISPLAY(disp);
       SETONERROR_testerrortimer(&s_display_errtimer, &err2);
       if (err2) err = err2;
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -222,7 +222,7 @@ static int test_initfree(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -262,7 +262,7 @@ static int test_query(void)
    TEST(&disp == castfromos_display(os_display(&disp)));
 
    return 0;
-ONABORT:
+ONERR:
    free_display(&disp);
    return EINVAL;
 }
@@ -272,17 +272,17 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE;
 
-   if (test_initfree())       goto ONABORT;
-   if (test_query())          goto ONABORT;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
    s_display_noext = true;
-   if (test_initfree())       goto ONABORT;
+   if (test_initfree())       goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
    s_display_noext = true;
 
-   if (test_initfree())       goto ONABORT;
-   if (test_query())          goto ONABORT;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
 
    acceptleak_helper(&usage);
    s_display_noext = false;
@@ -291,7 +291,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_resourceusage(&usage));
 
    return 0;
-ONABORT:
+ONERR:
    s_display_noext = false;
    (void) free_resourceusage(&usage);
    return EINVAL;
@@ -304,7 +304,7 @@ int unittest_graphic_display()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

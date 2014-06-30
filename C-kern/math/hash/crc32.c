@@ -169,7 +169,7 @@ static int test_checktable(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -196,7 +196,7 @@ static int test_initfree(void)
    // == no free ==
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -251,18 +251,18 @@ static int test_calculation(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_hash_crc32()
 {
-   if (test_checktable())     goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_calculation())    goto ONABORT ;
+   if (test_checktable())     goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_calculation())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

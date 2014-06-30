@@ -191,11 +191,11 @@ static int delete_triesubnode(trie_subnode_t ** subnode)
 
       memblock_t mblock = memblock_INIT(sizeof(trie_subnode_t), (uint8_t*)delnode);
       err = FREE_ERR_MM(&s_trie_errtimer, &mblock);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -208,14 +208,14 @@ static int new_triesubnode(/*out*/trie_subnode_t ** subnode)
    memblock_t mblock;
 
    err = ALLOC_ERR_MM(&s_trie_errtimer, sizeof(trie_subnode_t), &mblock);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    memset(mblock.addr, 0, sizeof(trie_subnode_t));
 
    // out param
    *subnode = (trie_subnode_t*)mblock.addr;
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -712,7 +712,7 @@ static int addsubnode_trienode(trie_node_t ** trienode, unsigned off3_digit, uin
    trie_node_t * newnode = node;
    if (newsize <= oldsize/2 && oldsize > MINSIZE) {
       err = shrinknode_trienode(&newnode, node->header, oldsize, newsize);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
       memcpy( memaddr_trienode(newnode) + sizeof(header_t),
               memaddr_trienode(node) + sizeof(header_t),
               off3_digit - sizeof(header_t));
@@ -742,7 +742,7 @@ static int addsubnode_trienode(trie_node_t ** trienode, unsigned off3_digit, uin
    }
 
    return 0;
-ONABORT:
+ONERR:
    (void) delete_triesubnode(&subnode);
    return err;
 }
@@ -902,7 +902,7 @@ static int delkeyprefix_trienode(trie_node_t ** trienode, unsigned off2_key, uns
    trie_node_t * newnode = node;
    if (newsize <= oldsize/2 && oldsize > MINSIZE) {
       err = shrinknode_trienode(&newnode, node->header, oldsize, newsize);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
       newnode->nrchild = node->nrchild;
    }
 
@@ -919,7 +919,7 @@ static int delkeyprefix_trienode(trie_node_t ** trienode, unsigned off2_key, uns
    }
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -1123,11 +1123,11 @@ static int delete_trienode(trie_node_t ** node)
       err2 = freememory_trienode(delnode, nodesize_trienode(delnode));
       if (err2) err = err2;
 
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -1174,7 +1174,7 @@ static int new_trienode(
       if (size > MAXSIZE) return EINVAL;
 
       err = new_triesubnode(&subnode);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
       for (unsigned i = 0; i < nrchild; ++i) {
          subnode->child[digit[i]] = child[i];
@@ -1208,7 +1208,7 @@ static int new_trienode(
 
    trie_node_t * newnode;
    err = allocmemory_trienode(&newnode, nodesize);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    header = addflags_header(header, (value != 0) ? header_VALUE : 0);
    header = addflags_header(header, subnode ? header_SUBNODE : 0);
@@ -1254,7 +1254,7 @@ static int new_trienode(
    *node = newnode;
 
    return 0;
-ONABORT:
+ONERR:
    (void) delete_triesubnode(&subnode);
    return err;
 }
@@ -1374,11 +1374,11 @@ int free_trie(trie_t * trie)
    // set inout param
    trie->root = 0;
 
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -1433,7 +1433,7 @@ static int restructnode_trie(trie_node_t ** trienode, /*out*/trie_node_t ** pare
 
       trie_node_t * oldnode = node;
       err = delkeyprefix_trienode(&node, off2_key, *off3_digit, (uint8_t) keylen, isChild ? sizeof(trie_node_t*)+sizeof(uint8_t) : sizeof(void*));
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
       *off3_digit = off3_digit_trienode(off2_key_trienode(0), 0);
       *off4_child = off4_child_trienode(
                               off3_digit_trienode(off2_key_trienode(0), 0),
@@ -1452,7 +1452,7 @@ static int restructnode_trie(trie_node_t ** trienode, /*out*/trie_node_t ** pare
    *parentchild = parent ? parent : node;
 
    return 0;
-ONABORT:
+ONERR:
    delete_trienode(&parent);
    return err;
 }
@@ -1481,14 +1481,14 @@ static int build_nodechain_trienode(/*out*/trie_node_t ** node, uint16_t keylen,
       splitlen = splitkeylen_trienode((uint16_t) offset);
       offset  -= splitlen;
       err = new_trienode(&head, (uint8_t) (splitlen-1), 1, key + offset, key+offset+splitlen-1/*digits*/, &head/*childs*/, 0);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    // set out
    *node = head;
 
    return 0;
-ONABORT: ;
+ONERR: ;
    trie_t undotrie = trie_INIT2(head);
    (void) free_trie(&undotrie);
    return err;
@@ -1592,7 +1592,7 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
    if (!node) {
       /* empty root */
       err = build_nodechain_trienode(&trie->root, keylen, key, value);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
 
    } else {
       parentchild = &trie->root;
@@ -1620,7 +1620,7 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
                // splitnode has child pointer to node with value
                ++ matched_keylen;
                err = build_nodechain_trienode(&child, (uint16_t) (keylen - matched_keylen), key + matched_keylen, value);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
                bool childidx = (lkey[splitkeylen] > rkey[splitkeylen]);
                uint8_t       digits[2];
                trie_node_t * childs[2];
@@ -1629,19 +1629,19 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
                childs[childidx]  = child;
                childs[!childidx] = node;
                err = build_splitnode_trienode(&child, &splitnodechild, (uint8_t)splitkeylen, rkey, digits, childs, 0);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
                splitnodechild += !childidx;
 
             } else {
                // splitnode contains value
                err = build_splitnode_trienode(&child, &splitnodechild, (uint8_t)splitkeylen, rkey, rkey+splitkeylen, &node, &value);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
             }
             // assert (*splitnodechild == node);
             err = delkeyprefix_trienode(splitnodechild, off2_key, off3_digit, (uint8_t)(splitkeylen+1), 0);
             if (err) {
                *splitnodechild = 0; // do not delete node in error handling
-               goto ONABORT;
+               goto ONERR;
             }
             *parentchild = child;
             return 0; // DONE
@@ -1656,16 +1656,16 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
             // found node which matches full key ==> add value to existing node
             if (isvalue_trienode(node)) {
                err = EEXIST;
-               goto ONABORT;
+               goto ONERR;
             }
             err = tryaddvalue_trienode(parentchild, off4_child, value);
             if (err) {
-               if (err != EINVAL) goto ONABORT;
+               if (err != EINVAL) goto ONERR;
                err = restructnode_trie(&node, parentchild, false, off2_key, &off3_digit, &off4_child);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
                // node will be not resized cause of reservedbytes==sizeof(void*)
                err = tryaddvalue_trienode(&node, off4_child, value);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
             }
             return 0; // DONE
          }
@@ -1681,7 +1681,7 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
             if (! *parentchild) {
                // insert child into subnode
                err = build_nodechain_trienode(parentchild, (uint16_t) (keylen - matched_keylen), key + matched_keylen, value);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
                ++ node->nrchild;
                return 0; // DONE
             }
@@ -1693,12 +1693,12 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
             if (!findchild_trienode(digit, nrchild_trienode(node), digits, &childidx)) {
                // insert child into child array (childidx is index of insert position)
                err = build_nodechain_trienode(&child, (uint16_t) (keylen - matched_keylen), key + matched_keylen, value);
-               if (err) goto ONABORT;
+               if (err) goto ONERR;
                err = tryaddchild_trienode(parentchild, off3_digit, off4_child, childidx, digit, child);
                if (err) {
-                  if (err != EINVAL) goto ONABORT;
+                  if (err != EINVAL) goto ONERR;
                   err = restructnode_trie(&node, parentchild, true, off2_key, &off3_digit, &off4_child);
-                  if (err) goto ONABORT;
+                  if (err) goto ONERR;
                   if (issubnode_trienode(node)) {
                      trie_subnode_t * subnode = subnode_trienode(node, off4_child);
                      setchild_triesubnode(subnode, digit, child);
@@ -1706,7 +1706,7 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
                   } else {
                      // node will be not resized cause of reservedbytes==sizeof(uint8_t)+sizeof(trie_node_t*)
                      err = tryaddchild_trienode(&node, off3_digit, off4_child, childidx, digit, child);
-                     if (err) goto ONABORT;
+                     if (err) goto ONERR;
                   }
                }
                return 0; // DONE
@@ -1721,13 +1721,13 @@ int insert2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], void
    }
 
    return 0;
-ONABORT: ;
+ONERR: ;
    if (child) {
       trie_t undotrie = trie_INIT2(child);
       (void) free_trie(&undotrie);
    }
    if (islog || err != EEXIST) {
-      TRACEABORT_ERRLOG(err);
+      TRACEEXIT_ERRLOG(err);
    }
    return err;
 }
@@ -1753,7 +1753,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
    node = trie->root;
    if (!node) {
       err = ESRCH;
-      goto ONABORT;
+      goto ONERR;
    }
 
    for (;;) {
@@ -1765,7 +1765,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
       if (  node_keylen + matched_keylen > keylen
             || 0 != memcmp(key+matched_keylen, memaddr_trienode(node) + off2_key, node_keylen)) {
          err = ESRCH;   // partial match
-         goto ONABORT;
+         goto ONERR;
       }
       matched_keylen += node_keylen;
 
@@ -1777,7 +1777,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
          // found node which matches full key
          if (! isvalue_trienode(node)) {
             err = ESRCH;
-            goto ONABORT;
+            goto ONERR;
          }
 
          unsigned off5_value = off5_value_trienode(off4_child, childsize_trienode(issubnode, nrchild_trienode(node)));
@@ -1824,7 +1824,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
          node = *parentchild;
          if (!node) {
             err = ESRCH;
-            goto ONABORT;
+            goto ONERR;
          }
 
       } else {          /* child array case */
@@ -1833,7 +1833,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
 
          if (!findchild_trienode(digit, nrchild_trienode(node), digits, &childidx)) {
             err = ESRCH;
-            goto ONABORT;
+            goto ONERR;
          }
 
          trie_node_t ** child = childs_trienode(node, off4_child) + childidx;
@@ -1853,9 +1853,9 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
    }
 
    return 0;
-ONABORT: ;
+ONERR: ;
    if (islog || err != ESRCH) {
-      TRACEABORT_ERRLOG(err);
+      TRACEEXIT_ERRLOG(err);
    }
    return err;
 }
@@ -2052,7 +2052,7 @@ static int test_header(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -2135,7 +2135,7 @@ static int test_subnode(void)
    TEST(0 == delete_triesubnode(&subnode));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -2457,7 +2457,7 @@ static int test_node_query(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -2662,7 +2662,7 @@ static int test_node_lifetime(void)
    TEST(size_allocated == SIZEALLOCATED_MM());
 
    return 0;
-ONABORT:
+ONERR:
    delete_trienode(&node);
    return EINVAL;
 }
@@ -2701,7 +2701,7 @@ static int compare_content(
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -3419,7 +3419,7 @@ static int test_node_change(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    if (node != (void*)buffer) {
       delete_trienode(&node);
    }
@@ -3448,7 +3448,7 @@ static int build_trie(/*out*/trie_node_t ** node, unsigned depth, unsigned type)
    TEST(0 == new_trienode(node, 3, (uint8_t) (type&1 ? 255 : type != 4 ? 6 : 0), (const uint8_t*)"key", digits, childs, type >= 2 ? &value : 0));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -3509,7 +3509,7 @@ static int test_initfree(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    free_trie(&trie);
    return EINVAL;
 }
@@ -3567,7 +3567,7 @@ static int compare_nodechain(
    TEST(nodesize == memorysize);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -3777,7 +3777,7 @@ static int test_inserthelper(void)
    TEST(0 == FREE_MM(&key));
 
    return 0;
-ONABORT:
+ONERR:
    (void) delete_trienode(&node);
    (void) free_trie(&trie);
    (void) FREE_MM(&key);
@@ -3826,7 +3826,7 @@ static int build_depthx_trie(/*out*/trie_t * trie, /*out*/trie_node_t *** parent
    trie->root = parent;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -4494,7 +4494,7 @@ static int test_insert(void)
    TEST(0 == FREE_MM(&key));
 
    return 0;
-ONABORT:
+ONERR:
    delete_trienode(&trie.root);
    FREE_MM(&key);
    return EINVAL;
@@ -4872,7 +4872,7 @@ static int test_remove(void)
    TEST(0 == FREE_MM(&key));
 
    return 0;
-ONABORT:
+ONERR:
    delete_trienode(&trie.root);
    FREE_MM(&key);
    return EINVAL;
@@ -4950,7 +4950,7 @@ static int test_query(void)
    TEST(0 == FREE_MM(&key));
 
    return 0;
-ONABORT:
+ONERR:
    free_trie(&trie);
    FREE_MM(&key);
    return EINVAL;
@@ -4959,22 +4959,22 @@ ONABORT:
 int unittest_ds_inmem_trie()
 {
    // header_t
-   if (test_header())         goto ONABORT;
+   if (test_header())         goto ONERR;
    // trie_subnode_t
-   if (test_subnode())        goto ONABORT;
+   if (test_subnode())        goto ONERR;
    // trie_node_t
-   if (test_node_query())     goto ONABORT;
-   if (test_node_lifetime())  goto ONABORT;
-   if (test_node_change())    goto ONABORT;
+   if (test_node_query())     goto ONERR;
+   if (test_node_lifetime())  goto ONERR;
+   if (test_node_change())    goto ONERR;
    // trie_t
-   if (test_initfree())       goto ONABORT;
-   if (test_inserthelper())   goto ONABORT;
-   if (test_insert())         goto ONABORT;
-   if (test_remove())         goto ONABORT;
-   if (test_query())          goto ONABORT;
+   if (test_initfree())       goto ONERR;
+   if (test_inserthelper())   goto ONERR;
+   if (test_insert())         goto ONERR;
+   if (test_remove())         goto ONERR;
+   if (test_query())          goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

@@ -95,38 +95,38 @@ int init_platform(mainthread_f main_thread, void * user)
    ucontext_t        context_mainthread;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
    err = initmain_threadtls(&tls, &threadstack, &signalstack);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
    stack_t altstack = { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
    if (sigaltstack(&altstack, 0)) {
       err = errno;
-      goto ONABORT;
+      goto ONERR;
    }
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
    if (getcontext(&context_caller)) {
       err = errno;
-      goto ONABORT;
+      goto ONERR;
    }
 
    if (is_exit) {
       volatile thread_t * thread = thread_threadtls(&tls);
       retcode = returncode_thread(thread);
-      goto ONABORT;
+      goto ONERR;
    }
 
    is_exit = 1;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
    if (getcontext(&context_mainthread)) {
       err = errno;
-      goto ONABORT;
+      goto ONERR;
    }
 
    context_mainthread.uc_link  = &context_caller;
@@ -140,12 +140,12 @@ int init_platform(mainthread_f main_thread, void * user)
 #endif
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
    // start callmain_platform and returns to first getcontext then if (is_exit) {} is executed
    setcontext(&context_mainthread);
    err = errno;
 
-ONABORT:
+ONERR:
    if (!err) linenr = __LINE__;
    SETONERROR_testerrortimer(&s_platform_errtimer, &err);
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
@@ -269,7 +269,7 @@ static int test_init(void)
    TEST(0 == free_file(&pfd[1]));
 
    return 0;
-ONABORT:
+ONERR:
    free_process(&process);
    if (fd != file_FREE) {
       dup2(fd, STDERR_FILENO);
@@ -288,12 +288,12 @@ int unittest_platform_init()
    TEST(0 == sigaltstack(0, &oldstack));
    isold = true;
 
-   if (test_init())     goto ONABORT;
+   if (test_init())     goto ONERR;
 
    TEST(0 == sigaltstack(&oldstack, 0));
 
    return 0;
-ONABORT:
+ONERR:
    if (isold) sigaltstack(&oldstack, 0);
    return EINVAL;
 }

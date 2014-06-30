@@ -1,92 +1,85 @@
-[1: 1375541632.012219s]
+[1: 1403500288.335564s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:130
 Error 22 - Invalid argument
 Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-Function aborted
-[1: 1375541632.012234s]
+[1: 1403500288.335575s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:130
 Error 22 - Invalid argument
 Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-Function aborted
-[1: 1375541632.012241s]
+[1: 1403500288.335578s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:131
 Error 22 - Invalid argument
 Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-Function aborted
-[1: 1375541632.012244s]
+[1: 1403500288.335580s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:131
 Error 22 - Invalid argument
 Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-Function aborted
-[1: 1375541632.147946s]
+[1: 1403500288.462943s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.147970s]
+One or more resources could not be freed
+[1: 1403500288.462965s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.147983s]
+One or more resources could not be freed
+[1: 1403500288.462984s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.147995s]
+One or more resources could not be freed
+[1: 1403500288.463002s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148007s]
+One or more resources could not be freed
+[1: 1403500288.463020s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148019s]
+One or more resources could not be freed
+[1: 1403500288.463037s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148031s]
+One or more resources could not be freed
+[1: 1403500288.463054s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148043s]
+One or more resources could not be freed
+[1: 1403500288.463071s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148055s]
+One or more resources could not be freed
+[1: 1403500288.463089s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148067s]
+One or more resources could not be freed
+[1: 1403500288.463106s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148079s]
+One or more resources could not be freed
+[1: 1403500288.463123s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148091s]
+One or more resources could not be freed
+[1: 1403500288.463140s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148103s]
+One or more resources could not be freed
+[1: 1403500288.463157s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148115s]
+One or more resources could not be freed
+[1: 1403500288.463174s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.148127s]
+One or more resources could not be freed
+[1: 1403500288.463191s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Bad address
-Function aborted - one or more resources could not be freed
-[1: 1375541632.550397s]
+One or more resources could not be freed
+[1: 1403500288.846448s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541632.550410s]
+[1: 1403500288.846460s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375541632.550412s]
+[1: 1403500288.846462s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Cannot allocate memory
-Function aborted

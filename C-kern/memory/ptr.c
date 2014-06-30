@@ -51,7 +51,7 @@ static int test_initfree(void)
    TEST(0 == ptr);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -114,7 +114,7 @@ static int test_query(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -167,7 +167,7 @@ static int test_update(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -197,19 +197,19 @@ static int test_generic(void)
    // TEST(&x2 == orlsbits_ptr(&x1, 1, 0));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
 int unittest_memory_ptr()
 {
-   if (test_initfree())    goto ONABORT;
-   if (test_query())       goto ONABORT;
-   if (test_update())      goto ONABORT;
-   if (test_generic())     goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
+   if (test_generic())     goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

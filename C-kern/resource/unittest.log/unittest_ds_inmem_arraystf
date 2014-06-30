@@ -1,36 +1,29 @@
-[1: 1383483209.024005s]
+[1: 1403500288.107984s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:137
 Error 22 - Invalid argument
 Function input violates condition (size1 != size2)
-Function aborted
-[1: 1383483209.187544s]
+[1: 1403500288.292681s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:259
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-Function aborted
-[1: 1383483209.187558s]
+[1: 1403500288.292694s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:177
 Error 22 - Invalid argument
 Function input violates condition (keynode->size < SIZE_MAX)
-Function aborted
-[1: 1383483209.187562s]
+[1: 1403500288.292697s]
 insert_arraystf() C-kern/ds/inmem/arraystf.c:626
 Error 17 - File exists
-Function aborted
-[1: 1383483209.187565s]
+[1: 1403500288.292700s]
 remove_arraystf() C-kern/ds/inmem/arraystf.c:608
 Error 3 - No such process
-Function aborted
-[1: 1383483209.189410s]
+[1: 1403500288.294539s]
 delete_arraystf() C-kern/ds/inmem/arraystf.c:360
 Error 12345 - Unknown error
-Function aborted - one or more resources could not be freed
-[1: 1383483209.211992s]
+One or more resources could not be freed
+[1: 1403500288.315070s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:532
 Error 12 - Cannot allocate memory
-Function aborted
-[1: 1383483209.211998s]
+[1: 1403500288.315078s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:532
 Error 12 - Cannot allocate memory
-Function aborted

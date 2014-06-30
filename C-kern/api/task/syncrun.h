@@ -60,7 +60,7 @@ typedef enum syncrun_returncode_e         syncrun_returncode_e ;
  * This state is stored in <syncrun_t.runningstate> and
  * checked after the thread returns (yields the processor).
  *
- * syncrun_state_CONTINUE - The thread needs to run at least one mroe time.
+ * syncrun_state_CONTINUE - The thread needs to run at least one more time.
  * syncrun_state_ABORT    - The thread has generated some error and should be aborted. This value is set internally
  *                          if something goes wrong.
  * syncrun_state_EXIT     - The thread has terminated, freed all resources, and wants to be removed from its run queue.

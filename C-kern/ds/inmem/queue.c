@@ -61,10 +61,10 @@ static int new_queuepage(/*out*/queue_page_t ** qpage, queue_t * queue)
    int err ;
    memblock_t page ;
 
-   ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONABORT);
+   ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONERR);
    static_assert(pagesizeinbytes_queue() == 4096u, "pagesizeinbytes_queue() matches pagesize_4096") ;
    err = ALLOC_PAGECACHE(pagesize_4096, &page) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    queue_page_t * new_qpage = (queue_page_t*) page.addr ;
 
@@ -78,7 +78,7 @@ static int new_queuepage(/*out*/queue_page_t ** qpage, queue_t * queue)
    *qpage = new_qpage ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -96,12 +96,12 @@ static int delete_queuepage(queue_page_t ** qpage)
 
       err = RELEASE_PAGECACHE(&page) ;
 
-      if (err) goto ONABORT ;
-      ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONABORT);
+      if (err) goto ONERR;
+      ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONERR);
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -264,12 +264,12 @@ int free_queue(queue_t * queue)
          if (err2) err = err2 ;
       } while (qpage) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -279,13 +279,13 @@ int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesiz
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nodesize <= 512, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, ) ;
 
    queue_page_t * first = first_pagelist(genericcast_dlist(queue)) ;
 
    if (!first || 0 != pushfirst_queuepage(first, nodeaddr, nodesize)) {
       err = addfirstpage_queue(queue) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       first = first_pagelist(genericcast_dlist(queue)) ;
 
@@ -294,8 +294,8 @@ int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesiz
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -303,13 +303,13 @@ int insertlast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nodesize <= 512, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, ) ;
 
    queue_page_t * last = last_pagelist(genericcast_dlist(queue)) ;
 
    if (!last || 0 != pushlast_queuepage(last, pagesizeinbytes_queue(), nodeaddr, nodesize)) {
       err = addlastpage_queue(queue) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       last = last_pagelist(genericcast_dlist(queue)) ;
 
@@ -318,8 +318,8 @@ int insertlast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -330,20 +330,20 @@ int removefirst_queue(queue_t * queue, uint16_t nodesize)
 
    if (!first) {
       err = ENODATA ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = removefirst_queuepage(first, nodesize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (isempty_queuepage(first)) {
       err = removefirstpage_queue(queue) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -354,20 +354,20 @@ int removelast_queue(queue_t * queue, uint16_t nodesize)
 
    if (!last) {
       err = ENODATA ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = removelast_queuepage(last, nodesize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (isempty_queuepage(last)) {
       err = removelastpage_queue(queue) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -376,15 +376,15 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
    int err ;
    queue_page_t * last = last_pagelist(genericcast_dlist(queue)) ;
 
-   VALIDATE_INPARAM_TEST(newsize <= 512, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(newsize <= 512, ONERR, ) ;
 
    if (!last) {
       err = ENODATA ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = removelast_queuepage(last, oldsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (0 != pushlast_queuepage(last, pagesizeinbytes_queue(), nodeaddr, newsize)) {
       void * oldcontent = end_queuepage(last) ;
@@ -397,7 +397,7 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
          if (err) {
             void * dummy ;
             (void) pushlast_queuepage(last, pagesizeinbytes_queue(), &dummy, oldsize) ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
       last = last_pagelist(genericcast_dlist(queue)) ;
@@ -407,8 +407,8 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -476,7 +476,7 @@ static int test_queuepage(void)
    TEST(0 == delete_queuepage(&qpage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_queuepage(&qpage) ;
    return EINVAL ;
 }
@@ -560,7 +560,7 @@ static int test_initfree(void)
    TEST(0 == free_queue(&queue2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_queue(&queue) ;
    return EINVAL ;
 }
@@ -639,7 +639,7 @@ static int test_query(void)
    TEST(0 == free_queue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_queue(&queue) ;
    return EINVAL ;
 }
@@ -814,7 +814,7 @@ static int test_iterator(void)
    TEST(0 == free_queue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_queue(&queue) ;
    return EINVAL ;
 }
@@ -1172,7 +1172,7 @@ static int test_update(void)
    TEST(0 == free_queue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_queue(&queue) ;
    return EINVAL ;
 }
@@ -1320,22 +1320,22 @@ static int test_generic(void)
    TEST(0 == free_queue(&queue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_queue(&queue) ;
    return EINVAL ;
 }
 
 int unittest_ds_inmem_queue()
 {
-   if (test_queuepage())      goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_iterator())       goto ONABORT ;
-   if (test_update())         goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_queuepage())      goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_iterator())       goto ONERR;
+   if (test_update())         goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

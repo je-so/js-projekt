@@ -52,36 +52,36 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    file_t   file    = file_FREE ;
 
    err = init_file(&file, filepath, accessmode_READ, relative_to) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = size_file(file, &loadsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (loadsize < 0 || (sizeof(size_t) < sizeof(off_t) && loadsize >= (off_t)SIZE_MAX)) {
       err = ENOMEM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    uint8_t* buffer;
    err = appendbytes_wbuffer(result, (size_t)loadsize, &buffer) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = read_file(file, (size_t)loadsize, buffer, &readsize) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (readsize != (size_t)loadsize) {
       err = EIO ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = free_file(&file) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    shrink_wbuffer(result, oldsize) ;
    (void) free_file(&file) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -93,28 +93,28 @@ int save_file(const char * filepath, size_t file_size, const void * file_content
    file_t file ;
 
    err = initcreate_file(&file, filepath, relative_to) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    is_created = true ;
 
    size_t bytes_written ;
    err = write_file(file, file_size, file_content, &bytes_written) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (bytes_written != file_size) {
       err = EIO ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = free_file(&file) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (is_created) {
       (void) remove_file(filepath, relative_to) ;
       (void) free_file(&file) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -180,7 +180,7 @@ static int test_loadsave(directory_t * tempdir)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&cstr) ;
    free_file(&file) ;
    FREE_MM(&datablock) ;
@@ -197,7 +197,7 @@ int unittest_io_fileutil()
    TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
-   if (test_loadsave(tempdir))   goto ONABORT ;
+   if (test_loadsave(tempdir))   goto ONERR;
 
    /* adapt log */
    uint8_t *logbuffer ;
@@ -214,7 +214,7 @@ int unittest_io_fileutil()
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    return EINVAL ;

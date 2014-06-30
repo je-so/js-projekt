@@ -43,7 +43,7 @@ typedef struct log_header_t log_header_t;
 
 /* typedef: log_text_f
  * Declare function pointer which writes a text resource into <logbuffer_t>. */
-typedef void (*log_text_f)(struct logbuffer_t * logbuffer, va_list vargs);
+typedef void (*log_text_f) (struct logbuffer_t * logbuffer, va_list vargs);
 
 
 /* enums: log_config_e
@@ -79,7 +79,7 @@ typedef enum log_config_e log_config_e;
  *                            The flag <log_flags_END> sets the remembered pointer to the function name to 0.
  *                            Set this flag on the last part of the log entry if another header could be written in the same function
  *                            with flag <log_flags_START>.
- *                            Both log macros <TRACEABORT_ERRLOG> and <TRACEABORTFREE_ERRLOG> set this flag. They do not know
+ *                            Both log macros <TRACEEXIT_ERRLOG> and <TRACEEXITFREE_ERRLOG> set this flag. They do not know
  *                            if another call to <TRACESYSCALL_ERRLOG> already printed a header.
  * */
 enum log_flags_e {

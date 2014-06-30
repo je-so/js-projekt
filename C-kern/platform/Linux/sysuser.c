@@ -104,7 +104,7 @@ int init_sysuser(/*out*/sysuser_t * sysusr)
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("setresuid", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    sysusr->current  = uid ;
@@ -112,8 +112,8 @@ int init_sysuser(/*out*/sysuser_t * sysusr)
    sysusr->privilegeduser = euid ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -126,15 +126,15 @@ int free_sysuser(sysuser_t * sysusr)
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setresuid", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       *sysusr = (sysuser_t) sysuser_FREE ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -158,15 +158,15 @@ int switchtoprivilege_sysuser(sysuser_t * sysusr)
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setresuid", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       sysusr->current = sysusr->privilegeduser ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -179,15 +179,15 @@ int switchtoreal_sysuser(sysuser_t * sysusr)
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setresuid", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       sysusr->current = sysusr->realuser ;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -197,13 +197,13 @@ int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t pri
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(realuser != sysuser_id_FREE && privilegeduser != sysuser_id_FREE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(realuser != sysuser_id_FREE && privilegeduser != sysuser_id_FREE, ONERR, ) ;
 
    err = setresuid(realuser, realuser, privilegeduser) ;
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("setresuid", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    sysusr->current  = realuser ;
@@ -211,8 +211,8 @@ int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t pri
    sysusr->privilegeduser = privilegeduser ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -263,20 +263,20 @@ static int authenticatecallback_sysuser(int num_msg, const struct pam_message **
 
    if (num_msg != 1 || msg[0]->msg_style != PAM_PROMPT_ECHO_OFF) {
       err = PAM_CONV_ERR ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    *resp = (struct pam_response*) malloc(sizeof(struct pam_response)) ;
    if (0 == (*resp)) {
       err = PAM_BUF_ERR ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    (*resp)[0].resp         = password ;
    (*resp)[0].resp_retcode = 0 ;
 
    return PAM_SUCCESS ;
-ONABORT:
+ONERR:
    free(password) ;
    return err ;
 }
@@ -289,38 +289,38 @@ int authenticate_sysuser(const char * username, const char * password)
 
    err = pam_start(sysuser_SYS_SERVICE_NAME, username, &pamconv, &pamhandle) ;
    err = pamerr2errno_sysuser(err) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = pam_authenticate(pamhandle, PAM_DISALLOW_NULL_AUTHTOK|PAM_SILENT) ;
    err = pamerr2errno_sysuser(err) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    err = pam_acct_mgmt(pamhandle, PAM_DISALLOW_NULL_AUTHTOK|PAM_SILENT) ;
    err = pamerr2errno_sysuser(err) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    const void * username2 = 0 ;
    err = pam_get_item(pamhandle, PAM_USER, &username2) ;
    err = pamerr2errno_sysuser(err) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
    if (  username2
          && strcmp((const char*)username2, username)) {
       // username changed
       err = EACCES ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    err = pam_end(pamhandle, 0) ;
    pamhandle = 0 ;
    err = pamerr2errno_sysuser(err) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (pamhandle) {
       (void) pam_end(pamhandle, 0) ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -337,7 +337,7 @@ int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
    memblock_t     mblock = memblock_FREE ;
 
    err = RESIZE_MM(size, &mblock) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    sysuser_info_t *  newobj  = (sysuser_info_t*)(mblock.addr) ;
    char *            straddr = (char*)          (mblock.addr + sizeof(sysuser_info_t)) ;
@@ -346,12 +346,12 @@ int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
    err = getpwuid_r(uid, &info, straddr, strsize, &result) ;
    if (err) {
       TRACESYSCALL_ERRLOG("getpwuid_r", err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    if (!result) {
       err = ENOENT ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    newobj->size  = size ;
@@ -360,10 +360,10 @@ int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
    *usrinfo = newobj ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&mblock) ;
    if (ENOENT != err) {
-      TRACEABORT_ERRLOG(err) ;
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -379,12 +379,12 @@ int delete_sysuserinfo(sysuser_info_t ** usrinfo)
       memblock_t mblock = memblock_INIT(delobj->size, (uint8_t*)delobj) ;
       err = FREE_MM(&mblock) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -416,7 +416,7 @@ static int test_userid(void)
    TEST(!isequal_sysuserid((sysuser_id_t)1234, sysuser_id_FREE)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -456,7 +456,7 @@ static int test_initfree(void)
    TEST(geteuid() == sysuser_maincontext()->realuser) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -509,7 +509,7 @@ static int test_query(void)
    TEST(1 == isequal_sysuser(&sysusr1, &sysusr2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -549,7 +549,7 @@ static int test_switchandset(void)
    TEST(sysuser_maincontext()->realuser       == geteuid()) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (!isequal_sysuser(sysuser_maincontext(), &oldusr)) {
       setusers_sysuser(sysuser_maincontext(), oldusr.realuser, oldusr.privilegeduser) ;
    }
@@ -585,7 +585,7 @@ static int test_userinfo(void)
    usrinfo = 0 ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_sysuserinfo(&usrinfo) ;
    return EINVAL ;
 }
@@ -631,7 +631,7 @@ static int test_authenticate(bool iswarn)
    closelog() ;   // opened by libpam
 
    return 0 ;
-ONABORT:
+ONERR:
    closelog() ;
    return EINVAL ;
 }
@@ -640,22 +640,22 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage    = resourceusage_FREE ;
 
-   if (test_authenticate(true))     goto ONABORT ;
+   if (test_authenticate(true))     goto ONERR;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_userid())               goto ONABORT ;
-   if (test_initfree())             goto ONABORT ;
-   if (test_query())                goto ONABORT ;
-   if (test_switchandset())         goto ONABORT ;
-   if (test_userinfo())             goto ONABORT ;
-   if (test_authenticate(false))    goto ONABORT ;
+   if (test_userid())               goto ONERR;
+   if (test_initfree())             goto ONERR;
+   if (test_query())                goto ONERR;
+   if (test_switchandset())         goto ONERR;
+   if (test_userinfo())             goto ONERR;
+   if (test_authenticate(false))    goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -666,7 +666,7 @@ int unittest_platform_sysuser()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

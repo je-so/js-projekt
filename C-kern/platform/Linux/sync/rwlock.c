@@ -60,12 +60,12 @@ int free_rwlock(rwlock_t * rwlock)
          || rwlock->nrofreader
          || rwlock->lockflag) {
       err = EBUSY ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -178,7 +178,7 @@ int lockreader_rwlock(rwlock_t * rwlock)
          || rwlock->writer) {
       if (self == rwlock->writer) {
          err = EDEADLK ;
-         goto ONABORT ;
+         goto ONERR;
       }
       insertandwait_rwlock(rwlock, genericcast_slist(&rwlock->readers), self) ;
 
@@ -188,15 +188,15 @@ int lockreader_rwlock(rwlock_t * rwlock)
       if (isOverflow) {
          -- rwlock->nrofreader ;
          err = EOVERFLOW ;
-         goto ONABORT ;
+         goto ONERR;
       }
       unlockflag_rwlock(rwlock) ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -211,7 +211,7 @@ int lockwriter_rwlock(rwlock_t * rwlock)
          || 0 != rwlock->nrofreader) {
       if (self == rwlock->writer) {
          err = EDEADLK ;
-         goto ONABORT ;
+         goto ONERR;
       }
       insertandwait_rwlock(rwlock, genericcast_slist(&rwlock->writers), self) ;
 
@@ -221,9 +221,9 @@ int lockwriter_rwlock(rwlock_t * rwlock)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -235,7 +235,7 @@ int unlockreader_rwlock(rwlock_t * rwlock)
 
    if (! rwlock->nrofreader) {
       err = EPERM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    -- rwlock->nrofreader ;
@@ -253,9 +253,9 @@ int unlockreader_rwlock(rwlock_t * rwlock)
    unlockflag_rwlock(rwlock) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -268,7 +268,7 @@ int unlockwriter_rwlock(rwlock_t * rwlock)
 
    if (rwlock->writer != self) {
       err = EPERM ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    rwlock->writer = 0 ;
@@ -282,9 +282,9 @@ int unlockwriter_rwlock(rwlock_t * rwlock)
    unlockflag_rwlock(rwlock) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -352,7 +352,7 @@ static int test_initfree(void)
    TEST(free_rwlock(&rwlock) == 0);
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -377,7 +377,7 @@ static int test_query(void)
    TEST(0 == iswriter_rwlock(&rwlock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -874,7 +874,7 @@ static int test_synchronize(void)
    TEST(0 == free_rwlock(&rwlock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       delete_thread(&threads[i]) ;
    }
@@ -980,7 +980,7 @@ static int test_safesync(void)
    TEST(0 == free_rwlock(&rwlock)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_process(&child) ;
    free_rwlock(&rwlock) ;
    return EINVAL ;
@@ -988,13 +988,13 @@ ONABORT:
 
 int unittest_platform_sync_rwlock()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_synchronize()) goto ONABORT ;
-   if (test_safesync())    goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_synchronize()) goto ONERR;
+   if (test_safesync())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

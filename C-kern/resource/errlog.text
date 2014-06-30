@@ -123,13 +123,9 @@ FILE_REMOVE(int err, const char * workdir, const char * filename)
 de: "Kann Datei '"workdir filename"' nicht löschen - "ERRSTR"\n"
 en: "Can not remove file '"workdir filename"' - "ERRSTR"\n"
 
-FUNCTION_ABORT()
-de: "Funktion beendet\n"
-en: "Function aborted\n"
-
-FUNCTION_ABORT_FREE()
-de: "Funktion beendet - Freigabe von Ressourcen schlug fehl\n"
-en: "Function aborted - one or more resources could not be freed\n"
+FUNCTION_FREE_RESOURCE()
+de: "Ressourcen-Freigabe schlug fehl\n"
+en: "One or more resources could not be freed\n"
 
 FUNCTION_CALL(const char * funcname)
 de: "Funktionsaufruf '"funcname"' fehlgeschlagen\n"

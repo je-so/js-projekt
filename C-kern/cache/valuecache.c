@@ -79,7 +79,7 @@ static int test_initfree(void)
    TEST(0 == valuecache.log2pagesize_vm) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_valuecache(&valuecache) ;
    return EINVAL ;
 }
@@ -95,18 +95,18 @@ static int test_queryvalues(void)
    TEST(&pagesize_vm() == &vc->pagesize_vm) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 
 int unittest_cache_valuecache()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_queryvalues()) goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_queryvalues()) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

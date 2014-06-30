@@ -123,10 +123,10 @@ int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto
          if (  except_char
             && c == except_char ) {
             err = appendbyte_wbuffer(result, changeto_char) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
          } else {
             err = appendbytes_wbuffer(result, 3, &encodedchar) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
 
             encodedchar[0] = '%' ;
             int nibble = (c / 16) + '0' ;
@@ -138,15 +138,15 @@ int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto
          }
       } else {
          err = appendbyte_wbuffer(result, c) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
 
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    shrink_wbuffer(result, oldsize) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -175,21 +175,21 @@ int urldecode_string(const string_t * str, uint8_t changefrom_char, uint8_t chan
          if (nibb1 > 15) nibb1 -= ('a' - 'A') ;
          if (nibb2 > 15) nibb2 -= ('a' - 'A') ;
          err = appendbyte_wbuffer(result, (uint8_t) (nibb1 * 16 + nibb2)) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       } else {
          if (changefrom_char == next[0]) {
             err = appendbyte_wbuffer(result, changeinto_char) ;
          } else {
             err = appendbyte_wbuffer(result, next[0]) ;
          }
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    shrink_wbuffer(result, oldsize);
-   TRACEABORT_ERRLOG(err);
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -275,7 +275,7 @@ static int test_urlencode(void)
    TEST(0 == FREE_MM(&data)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&data) ;
    return EINVAL ;
 }
@@ -350,18 +350,18 @@ static int test_urldecode(void)
    TEST(0 == FREE_MM(&data)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    FREE_MM(&data) ;
    return EINVAL ;
 }
 
 int unittest_string_urlencode()
 {
-   if (test_urlencode())   goto ONABORT ;
-   if (test_urldecode())   goto ONABORT ;
+   if (test_urlencode())   goto ONERR;
+   if (test_urldecode())   goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

@@ -150,7 +150,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
          if (buffer_offset) {
             err = EINVAL ;
             TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_MISSING_ENDOFLINE, err, PROC_SELF_MAPS) ;
-            goto ONABORT ;
+            goto ONERR;
          }
          break ; // reached end of file
       }
@@ -158,7 +158,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
          err = errno ;
          if (err == EINTR) continue ;
          TRACESYSCALL_ERRLOG("read", err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       buffer_offset += (size_t)read_size ;
       do {
@@ -171,7 +171,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
    *buffer_size = buffer_offset ;
    *line_end    = index_newline ;
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -193,11 +193,11 @@ int free_vmmappedregions(vm_mappedregions_t * mappedregions)
 
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_FREE ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -220,7 +220,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    if (fd < 0) {
       err = ENOSYS ;
       TRACESYSCALL_ERRLOG("open(" PROC_SELF_MAPS ")", errno) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    for (size_t buffer_offset = 0;;) {
@@ -229,7 +229,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       size_t line_end = 0 ;
 
       err = read_buffer(fd, buffer_maxsize, buffer, buffer_offset, &buffer_size, &line_end) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       if (0 == buffer_size) break ;
 
       do {
@@ -246,13 +246,13 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
          if (scanned_items != 10) {
             err = EINVAL ;
             TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_WRONG, err, PROC_SELF_MAPS) ;
-            goto ONABORT ;
+            goto ONERR;
          }
 
          if (!free_region_count) {
             memblock_t mem = memblock_FREE ;
             err = RESIZE_MM(sizeof(vm_regionsarray_t), &mem) ;
-            if (err) goto ONABORT ;
+            if (err) goto ONERR;
             vm_regionsarray_t * next_array = (vm_regionsarray_t*) mem.addr ;
             free_region_count = sizeof(next_array->elements) / sizeof(next_array->elements[0]) ;
             next_region       = &next_array->elements[0] ;
@@ -295,7 +295,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    }
 
    err = free_iochannel(&fd) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
 
@@ -310,7 +310,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    gofirst_vmmappedregions(mappedregions) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    while (first_array) {
       memblock_t mem = memblock_INIT(sizeof(vm_regionsarray_t), (uint8_t*) first_array) ;
       first_array = first_array->next ;
@@ -318,7 +318,7 @@ ONABORT:
    }
    UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
    free_iochannel(&fd) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -459,9 +459,9 @@ int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes, accessmode_e ac
    const size_t   pgsize       = pagesize_vm() ;
    size_t         aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
 
-   VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)), ONABORT,) ;
-   VALIDATE_INPARAM_TEST(size_in_bytes > 0, ONABORT,) ;
-   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)), ONERR,) ;
+   VALIDATE_INPARAM_TEST(size_in_bytes > 0, ONERR,) ;
+   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,) ;
 
    SET_PROT(prot, access_mode)
 
@@ -472,15 +472,15 @@ int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes, accessmode_e ac
       err = errno ;
       TRACESYSCALL_ERRLOG("mmap", err) ;
       PRINTSIZE_ERRLOG(aligned_size) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    vmpage->addr = mapped_pages ;
    vmpage->size = aligned_size ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -490,18 +490,18 @@ int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes)
 
    *vmpage = (vmpage_t) vmpage_FREE ;
 
-   VALIDATE_INPARAM_TEST(powerof2_size_in_bytes >= pagesize_vm(), ONABORT,) ;
-   VALIDATE_INPARAM_TEST(ispowerof2_int(powerof2_size_in_bytes), ONABORT,) ;
-   VALIDATE_INPARAM_TEST(2*powerof2_size_in_bytes > powerof2_size_in_bytes, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(powerof2_size_in_bytes >= pagesize_vm(), ONERR,) ;
+   VALIDATE_INPARAM_TEST(ispowerof2_int(powerof2_size_in_bytes), ONERR,) ;
+   VALIDATE_INPARAM_TEST(2*powerof2_size_in_bytes > powerof2_size_in_bytes, ONERR,) ;
 
    err = init_vmpage(vmpage, powerof2_size_in_bytes) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    // align vmpage to boundary of powerof2_size_in_bytes
 
    if (0 != ((uintptr_t)vmpage->addr & (uintptr_t)(powerof2_size_in_bytes-1))) {
       err = movexpand_vmpage(vmpage, 2 * powerof2_size_in_bytes) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       uintptr_t offset = (uintptr_t)vmpage->addr & (uintptr_t)(powerof2_size_in_bytes-1) ;
       size_t    hdsize = offset ? powerof2_size_in_bytes - offset : 0 ;
@@ -510,18 +510,18 @@ int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes)
       vmpage->addr += hdsize ;
       vmpage->size -= hdsize ;
       err = free_vmpage(&header) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
 
       vmpage_t trailer = vmpage_INIT(vmpage->size - powerof2_size_in_bytes, vmpage->addr + powerof2_size_in_bytes) ;
       vmpage->size  = powerof2_size_in_bytes ;
       err = free_vmpage(&trailer) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmpage(vmpage) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -539,12 +539,12 @@ int free_vmpage(vmpage_t * vmpage)
       TRACESYSCALL_ERRLOG("munmap", err) ;
       PRINTPTR_ERRLOG(addr) ;
       PRINTSIZE_ERRLOG(size) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -564,12 +564,12 @@ int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode)
       PRINTPTR_ERRLOG(vmpage->addr) ;
       PRINTSIZE_ERRLOG(vmpage->size) ;
       PRINTINT_ERRLOG(access_mode) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -577,12 +577,12 @@ int tryexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(size_in_bytes >= vmpage->size, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(size_in_bytes >= vmpage->size, ONERR,) ;
 
    const size_t pgsize = pagesize_vm() ;
    size_t aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
 
-   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,) ;
 
    if (aligned_size > vmpage->size) {
       void * new_addr = mremap(vmpage->addr, vmpage->size, aligned_size, 0) ;
@@ -596,8 +596,8 @@ int tryexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -605,19 +605,19 @@ int movexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(size_in_bytes >= vmpage->size, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(size_in_bytes >= vmpage->size, ONERR,) ;
 
    const size_t pgsize = pagesize_vm() ;
    size_t aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
 
-   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,) ;
 
    if (aligned_size > vmpage->size) {
       void * new_addr = mremap(vmpage->addr, vmpage->size, aligned_size, MREMAP_MAYMOVE) ;
       if (MAP_FAILED == new_addr) {
          err = errno ;
          TRACEOUTOFMEM_ERRLOG(aligned_size, err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       vmpage->addr = new_addr ;
@@ -625,8 +625,8 @@ int movexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -634,7 +634,7 @@ int shrink_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(size_in_bytes <= vmpage->size, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(size_in_bytes <= vmpage->size, ONERR,) ;
 
    const size_t pgsize = pagesize_vm() ;
    size_t aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
@@ -646,7 +646,7 @@ int shrink_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
          TRACESYSCALL_ERRLOG("munmap", err) ;
          PRINTPTR_ERRLOG(vmpage->addr + aligned_size) ;
          PRINTSIZE_ERRLOG(vmpage->size - aligned_size) ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       if (! aligned_size) {
@@ -656,8 +656,8 @@ int shrink_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -722,7 +722,7 @@ static int test_functions(void)
    TEST(1 == isunmapped_vm(&vmpage)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -883,7 +883,7 @@ static int test_mappedregions(void)
    TEST(0 == free_vmmappedregions(&mappedregions)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmmappedregions(&mappedregions) ;
    return EINVAL ;
 }
@@ -1203,7 +1203,7 @@ static int test_vmpage(void)
    TEST(0 == free_vmpage(&page)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1288,7 +1288,7 @@ static int test_protection(void)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    (void) free_vmpage(&vmpage) ;
    return EINVAL;
@@ -1302,10 +1302,10 @@ int unittest_platform_vm()
    // store current mapping
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
-   if (test_functions())      goto ONABORT ;
-   if (test_mappedregions())  goto ONABORT ;
-   if (test_vmpage())         goto ONABORT ;
-   if (test_protection())     goto ONABORT ;
+   if (test_functions())      goto ONERR;
+   if (test_mappedregions())  goto ONERR;
+   if (test_vmpage())         goto ONERR;
+   if (test_protection())     goto ONERR;
 
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;
@@ -1324,7 +1324,7 @@ int unittest_platform_vm()
    TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_vmmappedregions(&mappedregions) ;
    free_vmmappedregions(&mappedregions2) ;
    return EINVAL ;

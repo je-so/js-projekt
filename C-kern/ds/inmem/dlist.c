@@ -66,12 +66,12 @@ int free_dlist(dlist_t *list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
          node = next ;
       } while (node) ;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -141,7 +141,7 @@ int removefirst_dlist(dlist_t * list, dlist_node_t ** removed_node)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(!isempty_dlist(list), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(!isempty_dlist(list), ONERR, ) ;
 
    dlist_node_t * const first = list->last->next ;
 
@@ -150,8 +150,8 @@ int removefirst_dlist(dlist_t * list, dlist_node_t ** removed_node)
    *removed_node = first ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -159,7 +159,7 @@ int removelast_dlist(dlist_t * list, dlist_node_t ** removed_node)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(!isempty_dlist(list), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(!isempty_dlist(list), ONERR, ) ;
 
    dlist_node_t * const last = list->last ;
    list->last = last->prev ;
@@ -169,8 +169,8 @@ int removelast_dlist(dlist_t * list, dlist_node_t ** removed_node)
    *removed_node = last ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -178,15 +178,15 @@ int remove_dlist(dlist_t * list, dlist_node_t * node)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(!isempty_dlist(list) && node->next, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(!isempty_dlist(list) && node->next, ONERR, ) ;
 
    if (node == list->last) list->last = node->prev ;
 
    removehelper_dlist(list, node) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -325,7 +325,7 @@ static int test_dlistnode(void)
    TEST(genericcast_dlistnode(&node2) == (dlist_node_t*)&node2.next) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -417,7 +417,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -455,7 +455,7 @@ static int test_query(void)
    TEST(0 == isinlist_dlist(&lastnode)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -649,7 +649,7 @@ static int test_dlistiterator(void)
    // ! removing of other nodes than the current is not supported !
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -1053,7 +1053,7 @@ static int test_insertremove(void)
    TEST(0 == remove_dlist(&list, &nodes[0].node)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_dlist(&list, 0, typeadp) ;
    return EINVAL ;
 }
@@ -1173,7 +1173,7 @@ static int test_setops(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_dlist(&list, 0, typeadp) ;
    return EINVAL ;
 }
@@ -1461,22 +1461,22 @@ static int test_generic(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_ds_inmem_dlist()
 {
-   if (test_dlistnode())      goto ONABORT ;
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_dlistiterator())  goto ONABORT ;
-   if (test_insertremove())   goto ONABORT ;
-   if (test_setops())         goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_dlistnode())      goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_dlistiterator())  goto ONERR;
+   if (test_insertremove())   goto ONERR;
+   if (test_setops())         goto ONERR;
+   if (test_generic())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

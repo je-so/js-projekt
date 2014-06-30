@@ -5,136 +5,6 @@
  *
  */
 
-void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, const char * wrong_condition)
-{
-   PRINTF("Assertion '%s' failed.\n", wrong_condition) ;
-}
-
-void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, size_t threadid, uint64_t sec, uint32_t usec, const char * funcname, const char * filename, int linenr)
-{
-   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
-}
-
-void LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * errdescription)
-{
-   PRINTF("Error %d - %s\n", err, errdescription) ;
-}
-
-void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, const char * filename)
-{
-   PRINTF("'%s' contains no newline\n", filename) ;
-}
-
-void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, const char * filename)
-{
-   PRINTF("File '%s' has unknown format\n", filename) ;
-}
-
-void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, const char * workdir, const char * filename)
-{
-   PRINTF("File name '%s%s'\n", workdir, filename) ;
-}
-
-void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Can not create file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Can not open file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, int err, const char * workdir, const char * filename)
-{
-   PRINTF("Can not remove file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
-}
-
-void FUNCTION_ABORT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Function aborted\n") ;
-}
-
-void FUNCTION_ABORT_FREE_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Function aborted - one or more resources could not be freed\n") ;
-}
-
-void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname)
-{
-   PRINTF("Function call '%s' failed\n", funcname) ;
-}
-
-void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname)
-{
-   PRINTF("System call '%s' failed\n", funcname) ;
-}
-
-void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, const char * funcname, const char * wrong_value)
-{
-   PRINTF("Function '%s' returned wrong value (%s)\n", funcname, wrong_value) ;
-}
-
-void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n") ;
-}
-
-void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, size_t size)
-{
-   PRINTF("Could not allocate %zu bytes of memory\n", size) ;
-}
-
-void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr, size_t colnr, const char * chr)
-{
-   PRINTF("Expect character '%s' in line: %zu, column: %zu\n", chr, linenr, colnr) ;
-}
-
-void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr, size_t colnr)
-{
-   PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", linenr, colnr) ;
-}
-
-void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Abort process with fatal error\n") ;
-}
-
-void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("The number of used resources is different\n") ;
-}
-
-void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Function input violates condition (%s)\n", violated_condition) ;
-}
-
-void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Internal state variables violate condition (%s)\n", violated_condition) ;
-}
-
-void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Function output violates condition (%s)\n", violated_condition) ;
-}
-
-void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition)
-{
-   PRINTF("Operation allowed only in state (%s)\n", violated_condition) ;
-}
-
-void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer)
-{
-   PRINTF("Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY«\n") ;
-}
-
-void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, const char * display_server_name)
-{
-   PRINTF("Can not connect to X11 display server '%s'\n", display_server_name) ;
-}
-
 void vASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * wrong_condition = va_arg(vargs, const char*) ;
@@ -211,18 +81,11 @@ void vFILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Can not remove file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void vFUNCTION_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void vFUNCTION_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
-   PRINTF("Function aborted\n") ;
-}
-
-void vFUNCTION_ABORT_FREE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
-{
-   (void) vargs ;
-
-   PRINTF("Function aborted - one or more resources could not be freed\n") ;
+   PRINTF("One or more resources could not be freed\n") ;
 }
 
 void vFUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)

@@ -65,16 +65,16 @@ static int test_sign(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_sign()
 {
-   if (test_sign())     goto ONABORT ;
+   if (test_sign())     goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

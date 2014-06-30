@@ -191,16 +191,16 @@ static int test_byteoperations(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_byteorder()
 {
-   if (test_byteoperations())    goto ONABORT ;
+   if (test_byteoperations())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

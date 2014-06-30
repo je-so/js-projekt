@@ -230,7 +230,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
    if (  (buffer_size & (~(((size_t)-1)>>1))) != 0
          || (sha1->datalen & 0xe000000000000000)) {
       err = EOVERFLOW ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    size_t datasize = blocksize + buffer_size ;
@@ -262,8 +262,8 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -334,7 +334,7 @@ static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
    TEST(0 == strncmp((char*)*sha1sum, (char*)value_sha1hash(&sha1), sizeof(*sha1sum))) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -434,17 +434,36 @@ static int test_sha1(void)
             "\n"
             "   TEST(0 == init_resourceusage(&usage)) ;\n"
             "\n"
-            "   if (test_sha1())     goto ONABORT ;\n"
+            "   if (test_sha1())     goto ONERR;\n"
             "\n"
             "   TEST(0 == same_resourceusage(&usage)) ;\n"
             "   TEST(0 == free_resourceusage(&usage)) ;\n"
             "\n"
             "   return 0 ;\n"
-            "ONABORT:\n"
+            "ONERR:\n"
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-   strncpy((char*)sha1sum, "\xdc\xac\x7e\x52\x6a\x45\xce\x10\xe5\x66\x32\xfc\x27\x61\x3d\x60\xe2\xaa\xd5\x49", 20) ;
+#if 0
+int unittest_math_hash_sha1()
+{
+   resourceusage_t usage = resourceusage_FREE ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   if (test_sha1())     goto ONERR;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ONERR:
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
+}
+#endif
+   // generated with sha1sum
+   strncpy((char*)sha1sum, "\xc5\x89\x38\xf0\xa3\xec\x94\x46\x7e\x81\x09\xbb\x0e\xb1\xdb\xd3\x7f\xd0\xab\x45", 20) ;
    TEST(0 == test_unevenaddr(&sha1sum, string)) ;
 
    // TEST EOVERFLOW
@@ -457,17 +476,17 @@ static int test_sha1(void)
    TEST(EOVERFLOW == calculate_sha1hash(&sha1, 1, (const uint8_t*)"")) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 
 int unittest_math_hash_sha1()
 {
-   if (test_sha1())        goto ONABORT ;
+   if (test_sha1())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

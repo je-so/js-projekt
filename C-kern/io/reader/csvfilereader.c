@@ -120,7 +120,7 @@ static int parsedatafield_csvfilereaderparsestate(csvfilereader_parsestate_t * s
    int err ;
 
    err = parsechar_csvfilereaderparsestate(state, (uint8_t)'"') ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    size_t start = state->offset ;
    while (  state->offset < state->length
@@ -131,14 +131,14 @@ static int parsedatafield_csvfilereaderparsestate(csvfilereader_parsestate_t * s
    size_t end = state->offset ;
 
    err = parsechar_csvfilereaderparsestate(state, (uint8_t)'"') ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (value) {
       *value = (string_t) string_INIT(end - start, state->data + start) ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -157,11 +157,11 @@ static int parsenrcolumns_csvfilereaderparsestate(csvfilereader_parsestate_t * s
       for (;;) {
          ++ nrc ;
          err = parsedatafield_csvfilereaderparsestate(&state2, 0) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          skipempty_csvfilereaderparsestate(&state2) ;
          if (state2.offset >= state2.length || state->linenr != state2.linenr) break ;
          err = parsechar_csvfilereaderparsestate(&state2, (uint8_t)',') ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          size_t erroffset = state2.offset ;
          skipempty_csvfilereaderparsestate(&state2) ;
          if (state2.offset >= state2.length || state->linenr != state2.linenr) {
@@ -169,7 +169,7 @@ static int parsenrcolumns_csvfilereaderparsestate(csvfilereader_parsestate_t * s
             state2.offset      = erroffset ;
             err = EINVAL ;
             TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, state->linenr, colnr_csvfilereaderparsestate(&state2), "\"") ;
-            goto ONABORT ;
+            goto ONERR;
          }
       }
    }
@@ -177,7 +177,7 @@ static int parsenrcolumns_csvfilereaderparsestate(csvfilereader_parsestate_t * s
    *nrcolumns = nrc ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -210,13 +210,13 @@ static int resizetable_csvfilereader(csvfilereader_t * csvfile, size_t nrrows)
       }
       if (err) {
          csvfile->allocated_rows = oldalloc ;
-         goto ONABORT ;
+         goto ONERR;
       }
       csvfile->tablevalues = (string_t*) addr_memblock(&mblock) ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -236,17 +236,17 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          } else { // if (alloc...==0) || (2*alloc... overflows)
             err = resizetable_csvfilereader(csvfile, nrrows) ;
          }
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
       if (oldlinenr == state->linenr) {
          err = EINVAL ;
          TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTNEWLINE, err, state->linenr, colnr_csvfilereaderparsestate(state)) ;
-         goto ONABORT ;
+         goto ONERR;
       }
       size_t startofline = state->startofline ;
       oldlinenr = state->linenr ;
       err = parsedatafield_csvfilereaderparsestate(state, &csvfile->tablevalues[tableindex ++]) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
       for (size_t i = 1; i < csvfile->nrcolumns; ++i) {
          size_t erroffset = state->offset ;
          skipempty_csvfilereaderparsestate(state) ;
@@ -255,10 +255,10 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
             state->offset      = erroffset ;
             err = EINVAL ;
             TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), ",") ;
-            goto ONABORT ;
+            goto ONERR;
          }
          err = parsechar_csvfilereaderparsestate(state, (uint8_t)',') ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
          erroffset = state->offset ;
          skipempty_csvfilereaderparsestate(state) ;
          if (oldlinenr != state->linenr) {
@@ -266,10 +266,10 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
             state->offset      = erroffset ;
             err = EINVAL ;
             TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), "\"") ;
-            goto ONABORT ;
+            goto ONERR;
          }
          err = parsedatafield_csvfilereaderparsestate(state, &csvfile->tablevalues[tableindex ++]) ;
-         if (err) goto ONABORT ;
+         if (err) goto ONERR;
       }
       skipempty_csvfilereaderparsestate(state) ;
    } while (state->offset < state->length) ;
@@ -277,7 +277,7 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
    csvfile->nrrows = nrrows ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return err ;
 }
 
@@ -290,12 +290,12 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
    *csvfile = (csvfilereader_t) csvfilereader_FREE ;
 
    err = init_mmfile(&csvfile->file, filepath, 0, 0, accessmode_READ, 0) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    csvfilereader_parsestate_t parsestate = csvfilereader_parsestate_INIT(size_mmfile(&csvfile->file), addr_mmfile(&csvfile->file)) ;
 
    err = parsenrcolumns_csvfilereaderparsestate(&parsestate, &csvfile->nrcolumns) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (csvfile->nrcolumns) {
       csvfile->allocated_rows = 1 ;
@@ -304,17 +304,17 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
 
       if (tablesize / csvfile->nrcolumns != sizeof(csvfile->tablevalues[0])) {
          err = EOVERFLOW ;
-         goto ONABORT ;
+         goto ONERR;
       }
 
       err = parsedata_csvfilereader(csvfile, &parsestate) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    free_csvfilereader(csvfile) ;
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -336,11 +336,11 @@ int free_csvfilereader(csvfilereader_t * csvfile)
    csvfile->nrrows    = 0 ;
    csvfile->allocated_rows = 0 ;
 
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -348,15 +348,15 @@ int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrow
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(column < csvfile->nrcolumns, ONABORT, PRINTSIZE_ERRLOG(column); PRINTSIZE_ERRLOG(csvfile->nrcolumns)) ;
-   VALIDATE_INPARAM_TEST(row < csvfile->nrrows, ONABORT, PRINTSIZE_ERRLOG(row); PRINTSIZE_ERRLOG(csvfile->nrrows)) ;
+   VALIDATE_INPARAM_TEST(column < csvfile->nrcolumns, ONERR, PRINTSIZE_ERRLOG(column); PRINTSIZE_ERRLOG(csvfile->nrcolumns)) ;
+   VALIDATE_INPARAM_TEST(row < csvfile->nrrows, ONERR, PRINTSIZE_ERRLOG(row); PRINTSIZE_ERRLOG(csvfile->nrrows)) ;
 
    const size_t offset = csvfile->nrcolumns * row + column ;
    *colvalue = (string_t) string_INIT(csvfile->tablevalues[offset].size, csvfile->tablevalues[offset].addr) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -418,7 +418,7 @@ static int test_initfree(void)
    TEST(0 == free_cstring(&filepath)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    delete_directory(&tmpdir) ;
    free_cstring(&tmppath) ;
    free_cstring(&filepath) ;
@@ -481,7 +481,7 @@ static int test_query(void)
    TEST(EINVAL == colvalue_csvfilereader(&csvfile, (size_t)-1, 0, &colvalue)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -613,7 +613,7 @@ static int test_reading(void)
    TEST(0 == free_cstring(&filepath)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_cstring(&tmppath) ;
    free_cstring(&filepath) ;
    free_file(&file) ;
@@ -624,12 +624,12 @@ ONABORT:
 
 int unittest_io_reader_csvfilereader()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_reading())        goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_reading())        goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

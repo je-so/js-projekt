@@ -170,7 +170,7 @@ static int test_globalvar(void)
    TEST(g_logmain_interface.setstate       == &setstate_logmain);
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -195,7 +195,7 @@ static int test_query(void)
    TEST(EINVAL == compare_logmain(0, 0, 1/*logsize > 0*/, 0));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -253,6 +253,14 @@ static int test_update(void)
       TEST(0 == strcmp("]\nfunc() file:10\nError 1 - Operation not permitted\nxxx", strchr((char*)readbuffer, ']'))) ;
    }
 
+   // TEST printf_logmain: format == 0
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      printf_logmain(0, i, log_flags_NONE, 0, 0);
+      // nothing written
+      TEST(-1 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(EAGAIN == errno);
+   }
+
    // TEST printtext_logmain: all channels flushed immediately
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
       // 2%c%s%d
@@ -294,7 +302,7 @@ static int test_update(void)
    TEST(0 == free_iochannel(&oldstderr)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
@@ -306,12 +314,12 @@ ONABORT:
 
 int unittest_io_writer_log_logmain()
 {
-   if (test_globalvar())   goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-   if (test_update())      goto ONABORT ;
+   if (test_globalvar())   goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

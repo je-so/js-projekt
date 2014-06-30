@@ -73,7 +73,7 @@ static int test_initfree(void)
    TEST(sthread.state   == 0) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -89,7 +89,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -133,7 +133,7 @@ TEST_JUMPFLAG:
    TEST(sthread.state   == (void*)1) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -145,7 +145,7 @@ static int test_signalstate(void)
    // TEST handlesignal_syncthread: syncthread_signal_NULL
    jumpflag    = 0 ;
    signalstate = syncthread_signal_NULL ;
-   handlesignal_syncthread(signalstate, 0, ONABORT, ONRUN0, ONABORT) ;
+   handlesignal_syncthread(signalstate, 0, ONERR, ONRUN0, ONERR);
    goto TEST0 ;
 ONRUN0:
    jumpflag = 99 ;
@@ -156,7 +156,7 @@ TEST0:
    void * wakeuplabel = (__extension__ ({ && ONWAKEUP1 ; })) ;
    jumpflag    = 0 ;
    signalstate = syncthread_signal_WAKEUP ;
-   handlesignal_syncthread(signalstate, wakeuplabel, ONABORT, ONRUN0, ONABORT) ;
+   handlesignal_syncthread(signalstate, wakeuplabel, ONERR, ONRUN0, ONERR);
    goto TEST1 ;
 ONWAKEUP1:
    jumpflag = 1 ;
@@ -166,41 +166,41 @@ TEST1:
    // TEST handlesignal_syncthread: syncthread_signal_INIT
    jumpflag    = 0 ;
    signalstate = syncthread_signal_INIT ;
-   handlesignal_syncthread(signalstate, 0, ONINIT2, ONABORT, ONABORT) ;
-   goto TEST2 ;
+   handlesignal_syncthread(signalstate, 0, ONINIT2, ONERR, ONERR);
+   goto TEST2;
 ONINIT2:
-   jumpflag = 2 ;
+   jumpflag = 2;
 TEST2:
    TEST(2 == jumpflag) ;
 
    // TEST handlesignal_syncthread: syncthread_signal_ABORT
    jumpflag    = 0 ;
    signalstate = syncthread_signal_ABORT ;
-   handlesignal_syncthread(signalstate, 0, ONABORT, ONABORT, ONABORT3) ;
-   goto TEST3 ;
-ONABORT3:
+   handlesignal_syncthread(signalstate, 0, ONERR, ONERR, ONERR3);
+   goto TEST3;
+ONERR3:
    jumpflag = 3 ;
 TEST3:
    TEST(3 == jumpflag) ;
 
    // TEST handlesignal_syncthread: invalid value same as syncthread_signal_ABORT
    jumpflag    = 0 ;
-   signalstate = UINT32_MAX ;
-   handlesignal_syncthread(signalstate, 0, ONABORT, ONABORT, ONABORT4) ;
-   goto TEST4 ;
-ONABORT4:
-   jumpflag = 4 ;
+   signalstate = UINT32_MAX;
+   handlesignal_syncthread(signalstate, 0, ONERR, ONERR, ONERR4);
+   goto TEST4;
+ONERR4:
+   jumpflag = 4;
 TEST4:
-   TEST(4 == jumpflag) ;
+   TEST(4 == jumpflag);
 
-   return 0 ;
-ONABORT:
-   return EINVAL ;
+   return 0;
+ONERR:
+   return EINVAL;
 }
 
 static int maintest_syncthread(syncthread_t * sthread, uint32_t signalstate)
 {
-   handlesignal_syncthread(signalstate, __extension__ && ONWAKEUP, ONINIT, ONRUN, ONABORT) ;
+   handlesignal_syncthread(signalstate, __extension__ && ONWAKEUP, ONINIT, ONRUN, ONERR);
 
 ONINIT:
    *(int*)state_syncthread(sthread) = *(int*)state_syncthread(sthread) + 1 ;
@@ -214,7 +214,7 @@ ONWAKEUP:
    *(int*)state_syncthread(sthread) = *(int*)state_syncthread(sthread) + 3 ;
    return 3 ;
 
-ONABORT:
+ONERR:
    *(int*)state_syncthread(sthread) = *(int*)state_syncthread(sthread) + 4 ;
    return 4 ;
 }
@@ -257,20 +257,20 @@ static int test_callconvention(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_task_syncthread()
 {
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
-   if (test_execstate())      goto ONABORT ;
-   if (test_signalstate())    goto ONABORT ;
-   if (test_callconvention()) goto ONABORT ;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_execstate())      goto ONERR;
+   if (test_signalstate())    goto ONERR;
+   if (test_callconvention()) goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

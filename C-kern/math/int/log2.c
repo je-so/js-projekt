@@ -82,16 +82,16 @@ static int test_log2(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_math_int_log2()
 {
-   if (test_log2())    goto ONABORT ;
+   if (test_log2())    goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

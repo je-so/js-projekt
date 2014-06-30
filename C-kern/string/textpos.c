@@ -76,7 +76,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -113,17 +113,17 @@ static int test_change(void)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
 int unittest_string_textpos()
 {
-   if (test_initfree())    goto ONABORT ;
-   if (test_change())      goto ONABORT ;
+   if (test_initfree())    goto ONERR;
+   if (test_change())      goto ONERR;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 

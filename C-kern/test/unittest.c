@@ -63,15 +63,15 @@ int initsingleton_unittest(const char * log_files_directory)
    int err;
 
    err = init_mutex(&s_unittest_singleton.mutex);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    s_unittest_singleton.log_files_directory = log_files_directory;
    s_unittest_singleton.okcount             = 0;
    s_unittest_singleton.errcount            = 0;
    s_unittest_singleton.isResult            = false;
 
    return 0;
-ONABORT:
-   TRACEABORT_ERRLOG(err);
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -80,15 +80,15 @@ int freesingleton_unittest(void)
    int err;
 
    err = free_mutex(&s_unittest_singleton.mutex);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    s_unittest_singleton.log_files_directory = 0;
    s_unittest_singleton.okcount             = 0;
    s_unittest_singleton.errcount            = 0;
    s_unittest_singleton.isResult            = false;
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -222,7 +222,7 @@ static int writelogfile_unittest(const char * testname)
    directory_t * dir = 0;
 
    err = new_directory(&dir, s_unittest_singleton.log_files_directory, 0);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    if (ENOENT == trypath_directory(dir, testname)) {
       uint8_t *logbuffer;
@@ -230,14 +230,14 @@ static int writelogfile_unittest(const char * testname)
       GETBUFFER_ERRLOG(&logbuffer, &size);
 
       err = save_file(testname, size, logbuffer, dir);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    err = delete_directory(&dir);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    logfailedf_unittest(__FILE__, __LINE__, "Can not write file '%s/%s'", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    return err;
@@ -253,22 +253,22 @@ static int comparelogfile_unittest(const char * testname)
    wbuffer_t      wbuffer         = wbuffer_INIT_MEMBLOCK(&logfile_content);
 
    err = new_directory(&dir, s_unittest_singleton.log_files_directory, 0);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = load_file(testname, &wbuffer, dir);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = COMPARE_ERRLOG(size_wbuffer(&wbuffer), logfile_content.addr);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = FREE_MM(&logfile_content);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    err = delete_directory(&dir);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    return 0;
-ONABORT:
+ONERR:
    logfailedf_unittest(__FILE__, __LINE__, "Errlog differs from file '%s/%s'", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    FREE_MM(&logfile_content);
@@ -333,7 +333,7 @@ static int childprocess_unittest(childprocess_t * param)
    TEST(written == size);
 
    return err;
-ONABORT:
+ONERR:
    return EIO;
 }
 
@@ -348,18 +348,18 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
    if (pipe2(fd, O_NONBLOCK|O_CLOEXEC)) {
       err = errno;
       TRACESYSCALL_ERRLOG("pipe2", err);
-      goto ONABORT;
+      goto ONERR;
    }
 
    param.pipefd = fd[1];
    param.test_f = test_f;
 
    err = init_process(&child, (int(*)(void*))&childprocess_unittest, &param, &(process_stdio_t)process_stdio_INIT_INHERIT);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    err = wait_process(&child, &result);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    err = free_process(&child);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    if (process_state_TERMINATED != result.state) {
       logfailedf_unittest(__FILE__, __LINE__, "Test process aborted (%02d)", result.returncode);
@@ -372,21 +372,21 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
       err = read_iochannel(fd[0], sizeof(buffer)-1, buffer, &size);
       if (err) {
          if (err == EAGAIN) break;
-         goto ONABORT;
+         goto ONERR;
       }
       buffer[size] = 0;
       PRINTF_ERRLOG("%s", (char*)buffer);
    }
 
    err = free_iochannel(&fd[0]);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
    err = free_iochannel(&fd[1]);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    *retcode = result.returncode;
 
    return 0;
-ONABORT:
+ONERR:
    (void) free_iochannel(&fd[0]);
    (void) free_iochannel(&fd[1]);
    (void) free_process(&child);
@@ -434,7 +434,7 @@ static int test_initfree(void)
    memcpy(&s_unittest_singleton, &old, sizeof(old));
 
    return 0;
-ONABORT:
+ONERR:
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    return EINVAL;
 }
@@ -512,7 +512,7 @@ static int test_report(void)
    TEST(0 == free_iochannel(&fd[1]));
 
    return 0;
-ONABORT:
+ONERR:
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
       dup2(oldstdout, iochannel_STDOUT);
@@ -599,7 +599,7 @@ static int test_log(void)
    TEST(0 == free_iochannel(&fd[1]));
 
    return 0;
-ONABORT:
+ONERR:
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
       dup2(oldstdout, iochannel_STDOUT);
@@ -676,7 +676,7 @@ static int test_logfile(void)
    TEST(0 == FREE_MM(&memblock));
 
    return 0;
-ONABORT:
+ONERR:
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
       dup2(oldstdout, iochannel_STDOUT);
@@ -836,7 +836,7 @@ static int test_exec(void)
    TEST(0 == free_iochannel(&fd[1]));
 
    return 0;
-ONABORT:
+ONERR:
    removefile_directory(0, "dummy_unittest_ok");
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
@@ -861,7 +861,7 @@ static void call_test_macro(void)
    bytes = write(STDOUT_FILENO, "Y", 1);
    (void) bytes;
    return;
-ONABORT:
+ONERR:
    bytes = write(STDOUT_FILENO, "Z", 1);
    (void) bytes;
    return;
@@ -877,7 +877,7 @@ static void call_testp_macro(void)
    bytes = write(STDOUT_FILENO, "Y", 1);
    (void) bytes;
    return;
-ONABORT:
+ONERR:
    bytes = write(STDOUT_FILENO, "Z", 1);
    (void) bytes;
    return;
@@ -918,7 +918,7 @@ static int test_macros(void)
    TEST(0 == free_iochannel(&fd[1]));
 
    return 0;
-ONABORT:
+ONERR:
    removefile_directory(0, "dummy_unittest_ok");
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
@@ -938,18 +938,18 @@ int unittest_test_unittest()
    size_t   oldokcount  = s_unittest_singleton.okcount;
    size_t   olderrcount = s_unittest_singleton.errcount;
 
-   if (test_initfree())    goto ONABORT;
-   if (test_report())      goto ONABORT;
-   if (test_log())         goto ONABORT;
-   if (test_logfile())     goto ONABORT;
-   if (test_exec())        goto ONABORT;
-   if (test_macros())      goto ONABORT;
+   if (test_initfree())    goto ONERR;
+   if (test_report())      goto ONERR;
+   if (test_log())         goto ONERR;
+   if (test_logfile())     goto ONERR;
+   if (test_exec())        goto ONERR;
+   if (test_macros())      goto ONERR;
 
    TEST(oldokcount  == s_unittest_singleton.okcount);
    TEST(olderrcount == s_unittest_singleton.errcount);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

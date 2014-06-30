@@ -195,12 +195,12 @@ int free_x11display(x11display_t * x11disp)
       x11disp->idmap = 0;
       x11disp->sys_display = 0;
 
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err ;
 }
 
@@ -215,14 +215,14 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
       if (!display_server_name) {
          err = EINVAL ;
          TRACE_NOARG_ERRLOG(log_flags_NONE, X11_DISPLAY_NOT_SET, err) ;
-         goto ONABORT ;
+         goto ONERR;
       }
    }
 
    // create new x11_display
 
    err = ALLOC_MM(sizeof(x11windowmap_t), &mblock);
-   if (err) goto ONABORT;
+   if (err) goto ONERR;
 
    newdisp.idmap       = (x11windowmap_t*) mblock.addr;
    memset(newdisp.idmap->entries, 0, sizeof(newdisp.idmap->entries));
@@ -230,7 +230,7 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
    if (!newdisp.sys_display) {
       err = ECONNREFUSED ;
       TRACE_ERRLOG(log_flags_NONE, X11_NO_CONNECTION, err, display_server_name) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
 #define SETATOM(NAME)   newdisp.atoms.NAME = XInternAtom(newdisp.sys_display, #NAME, False) ; \
@@ -243,13 +243,13 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
 
    if (isInitExtension) {
       err = queryextensions_x11display(&newdisp) ;
-      if (err) goto ONABORT ;
+      if (err) goto ONERR;
    }
 
    *x11disp = newdisp ;
 
    return 0 ;
-ONABORT:
+ONERR:
    free_x11display(&newdisp) ;
    return err ;
 }
@@ -259,11 +259,11 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    int  err ;
 
    err = initprivate_x11display(x11disp, display_server_name, true);
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -272,11 +272,11 @@ int init2_x11display(/*out*/x11display_t * x11disp, const char * display_server_
    int  err ;
 
    err = initprivate_x11display(x11disp, display_server_name, isInitExtension);
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -295,7 +295,7 @@ void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char 
    if (!buffer_size) {
       err = EINVAL ;
       PRINTUINT8_ERRLOG(buffer_size) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    x11_err = XGetErrorText(x11disp->sys_display, x11_errcode, buffer, buffer_size) ;
@@ -303,17 +303,17 @@ void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char 
       err = EINVAL ;
       TRACESYSCALL_ERRLOG("XGetErrorText", err) ;
       PRINTINT_ERRLOG(x11_err) ;
-      goto ONABORT ;
+      goto ONERR;
    }
 
    buffer[buffer_size-1] = 0 ;
    return ;
-ONABORT:
+ONERR:
    if (buffer_size) {
       snprintf(buffer, buffer_size, "%d", x11_errcode) ;
       buffer[buffer_size-1] = 0 ;
    }
-   TRACEABORT_ERRLOG(err) ;
+   TRACEEXIT_ERRLOG(err);
    return ;
 }
 
@@ -342,16 +342,16 @@ int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t *
    x11windowmap_entry_t * found_node ;
 
    err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    if (object) {
       *object = found_node->object ;
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    if (err != ESRCH) {
-      TRACEABORT_ERRLOG(err);
+      TRACEEXIT_ERRLOG(err);
    }
    return err ;
 }
@@ -360,14 +360,14 @@ int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object,
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(object != 0, ONABORT, );
+   VALIDATE_INPARAM_TEST(object != 0, ONERR, );
 
    err = insert_x11windowmap(x11disp->idmap, objectid, object);
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -376,11 +376,11 @@ int removeobject_x11display(x11display_t * x11disp, uint32_t objectid)
    int err ;
 
    err = remove_x11windowmap(x11disp->idmap, objectid) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -390,13 +390,13 @@ int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object
    x11windowmap_entry_t * found_node;
 
    err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
-   if (err) goto ONABORT ;
+   if (err) goto ONERR;
 
    found_node->object = object;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
    return err ;
 }
 
@@ -480,7 +480,7 @@ static int test_initfree(void)
    TEST(0 == x11disp.sys_display) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    if (!child) exit(1) ;
    (void) free_x11display(&x11disp) ;
    (void) free_x11display(&x11disp4) ;
@@ -513,7 +513,7 @@ static int childprocess_environment(void * dummy)
    TEST(0 == x11disp.sys_display) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    TEST(0 == free_x11display(&x11disp)) ;
    return EINVAL ;
 }
@@ -530,7 +530,7 @@ static int test_initfree_env(void)
    TEST(0 == result.returncode);
 
    return 0 ;
-ONABORT:
+ONERR:
    TEST(0 == free_process(&child));
    return EINVAL ;
 }
@@ -592,7 +592,7 @@ static int test_query(void)
    TEST(0 == free_x11display(&x11disp)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -619,7 +619,7 @@ static int test_screen(x11display_t * x11disp, x11display_t * x11disp2)
    }
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -649,7 +649,7 @@ static int test_extensions(x11display_t * x11disp)
    TEST(0 == free_x11display(&x11disp_noext));
 
    return 0 ;
-ONABORT:
+ONERR:
    free_x11display(&x11disp_noext);
    return EINVAL ;
 }
@@ -705,7 +705,7 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
    TEST(0 == removeobject_x11display(x11disp1, 99)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    return EINVAL ;
 }
 
@@ -724,11 +724,11 @@ static int childprocess_unittest(void)
    TEST(0 == free_resourceusage(&usage)) ;
 
    TEST(0 == init_resourceusage(&usage)) ;
-   if (test_initfree_env())     goto ONABORT ;
+   if (test_initfree_env())     goto ONERR;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ONABORT ;
+   if (test_initfree())    goto ONERR;
 
    TEST(0 == init_x11display(&x11disp1, ":0")) ;
    TEST(0 == init_x11display(&x11disp2, ":0")) ;
@@ -737,10 +737,10 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_query())                            goto ONABORT;
-   if (test_screen(&x11disp1, &x11disp2))       goto ONABORT;
-   if (test_extensions(&x11disp1))              goto ONABORT;
-   if (test_id_manager(&x11disp1, &x11disp2))   goto ONABORT;
+   if (test_query())                            goto ONERR;
+   if (test_screen(&x11disp1, &x11disp2))       goto ONERR;
+   if (test_extensions(&x11disp1))              goto ONERR;
+   if (test_id_manager(&x11disp1, &x11disp2))   goto ONERR;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -749,7 +749,7 @@ static int childprocess_unittest(void)
    TEST(0 == free_x11display(&x11disp2)) ;
 
    return 0 ;
-ONABORT:
+ONERR:
    (void) free_x11display(&x11disp1);
    (void) free_x11display(&x11disp2);
    (void) free_resourceusage(&usage);
@@ -763,7 +763,7 @@ int unittest_platform_X11_x11display()
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
    return err;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 

@@ -80,21 +80,21 @@ static int alloctemp_mergesort(mergesort_t * sort, size_t tempsize)
       sort->temp     = sort->tempmem;
       sort->tempsize = sizeof(sort->tempmem);
 
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    // TODO: replace call to init_vmpage with call to temporary stack memory manager
    //       == implement temporary stack memory manager ==
    if (tempsize) {
-      ONERROR_testerrortimer(&s_mergesort_errtimer, &err, ONABORT);
+      ONERROR_testerrortimer(&s_mergesort_errtimer, &err, ONERR);
       err = init_vmpage(&mblock, tempsize);
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
       sort->temp     = mblock.addr;
       sort->tempsize = mblock.size;
    }
 
    return 0;
-ONABORT:
+ONERR:
    return err;
 }
 
@@ -130,12 +130,12 @@ int free_mergesort(mergesort_t * sort)
       sort->tempsize  = 0;
       sort->stacksize = 0;
 
-      if (err) goto ONABORT;
+      if (err) goto ONERR;
    }
 
    return 0;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err);
+ONERR:
+   TRACEEXITFREE_ERRLOG(err);
    return err;
 }
 
@@ -291,7 +291,7 @@ static int test_stacksize(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -375,7 +375,7 @@ static int test_memhelper(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -429,7 +429,7 @@ static int test_initfree(void)
    TEST(0 == sort.stacksize);
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -538,7 +538,7 @@ static int test_query(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -570,7 +570,7 @@ static int test_set(void)
    TEST(EINVAL == setsortstate(&sort, &test_compare_ptr, (void*)1, 8, SIZE_MAX/8 + 1u));
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -698,7 +698,7 @@ static int test_searchgrequal(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -806,7 +806,7 @@ static int test_rsearchgrequal(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -916,7 +916,7 @@ static int test_searchgreater(void)
 
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -1025,7 +1025,7 @@ static int test_rsearchgreater(void)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -1049,7 +1049,7 @@ static int compare_value(int type, uintptr_t value, unsigned i, uint8_t * barray
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -1067,7 +1067,7 @@ static int compare_content(int type, uint8_t * barray, long * larray, void ** pa
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -1516,7 +1516,7 @@ static int test_merge(void)
    TEST(0 == free_mergesort(&sort));
 
    return 0;
-ONABORT:
+ONERR:
    free_mergesort(&sort);
    return EINVAL;
 }
@@ -1686,7 +1686,7 @@ static int test_presort(void)
    TEST(0 == free_mergesort(&sort));
 
    return 0;
-ONABORT:
+ONERR:
    free_mergesort(&sort);
    return EINVAL;
 }
@@ -1856,7 +1856,7 @@ static int test_sort(mergesort_t * sort, const unsigned len, vmpage_t * vmpage)
    }
 
    return 0;
-ONABORT:
+ONERR:
    return EINVAL;
 }
 
@@ -1904,7 +1904,7 @@ static int test_measuretime(mergesort_t * sort, const unsigned len, vmpage_t * v
    TEST(0 == free_systimer(&timer));
 
    return 0;
-ONABORT:
+ONERR:
    free_systimer(&timer);
    return EINVAL;
 }
@@ -2005,25 +2005,25 @@ int unittest_sort_mergesort()
    init_mergesort(&sort);
    TEST(0 == init_vmpage(&vmpage, len * (4*sizeof(void*))));
 
-   if (test_stacksize())      goto ONABORT;
-   if (test_memhelper())      goto ONABORT;
-   if (test_initfree())       goto ONABORT;
-   if (test_query())          goto ONABORT;
-   if (test_set())            goto ONABORT;
-   if (test_searchgrequal())  goto ONABORT;
-   if (test_rsearchgrequal()) goto ONABORT;
-   if (test_searchgreater())  goto ONABORT;
-   if (test_rsearchgreater()) goto ONABORT;
-   if (test_merge())          goto ONABORT;
-   if (test_presort())        goto ONABORT;
-   if (test_sort(&sort, len/10, &vmpage))       goto ONABORT;
-   if (test_measuretime(&sort, len, &vmpage))   goto ONABORT;
+   if (test_stacksize())      goto ONERR;
+   if (test_memhelper())      goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_set())            goto ONERR;
+   if (test_searchgrequal())  goto ONERR;
+   if (test_rsearchgrequal()) goto ONERR;
+   if (test_searchgreater())  goto ONERR;
+   if (test_rsearchgreater()) goto ONERR;
+   if (test_merge())          goto ONERR;
+   if (test_presort())        goto ONERR;
+   if (test_sort(&sort, len/10, &vmpage))       goto ONERR;
+   if (test_measuretime(&sort, len, &vmpage))   goto ONERR;
 
    TEST(0 == free_mergesort(&sort));
    TEST(0 == free_vmpage(&vmpage));
 
    return 0;
-ONABORT:
+ONERR:
    free_vmpage(&vmpage);
    free_mergesort(&sort);
    return EINVAL;
