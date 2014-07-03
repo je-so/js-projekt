@@ -89,7 +89,7 @@ enum syncrun_qid_e {
 /* struct: initqueue_entry_t
  * Helds all data needed to construct a new <syncthread_t>.
  * The structure contains a <syncthread_t> its possible unused exitevent (<syncevent_t>)
- * and the initargsize and initarg[] data of an possible allocated init argument. */
+ * and the initargsize and initarg[] data of a possible allocated init argument. */
 struct initqueue_entry_t {
    syncthread_t   thread ;
    syncevent_t    exitevent ;

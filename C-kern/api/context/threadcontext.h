@@ -62,7 +62,7 @@ struct threadcontext_t {
     * Thread local memory manager. */
    iobj_DECLARE(,mm)          mm ;
    /* variable: syncrun
-    * Thread local syncronous task support. */
+    * Thread local synchronous task support. */
    struct syncrun_t *         syncrun ;
    /* variable: objectcache
     * Thread local erorr object cache. */

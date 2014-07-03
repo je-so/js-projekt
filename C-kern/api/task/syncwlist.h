@@ -145,7 +145,7 @@ void initmove_syncwlist(/*out*/syncwlist_t * destwlist, syncwlist_t * srcwlist) 
  * Marks all listed nodes as free and removes them from the queue.
  * Waiting <syncwait_t> referenced by any stored <syncevent_t> are not changed.
  * After this operation all referenced <syncwait_t> contain invalid
- * <syncwait_t.event>. Therefore make sure that wlist is empty befroe calling free. */
+ * <syncwait_t.event>. Therefore make sure that wlist is empty before calling free. */
 int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue) ;
 
 // group: query
@@ -165,7 +165,6 @@ size_t len_syncwlist(const syncwlist_t * wlist) ;
 /* function: queue_syncwlist
  * Returns the queue of the first node.
  * If the list is empty 0 is returned.
- * Parameter queue is used to determine the pagesize of the queue.
  * Do not forget to include type <syncqueue_t> if you call this function - it is implemented as macro. */
 struct syncqueue_t * queue_syncwlist(const syncwlist_t * wlist) ;
 

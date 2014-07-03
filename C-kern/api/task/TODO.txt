@@ -1,0 +1,63 @@
+=============================================
+ TODO: Benenne Objekte in (Sync) task um
+
+ 1. synthread_t --->  syncfunc
+
+    typedef int /*0 == OK*/  (* syncfunc_f) (syncrunner_t * run, uint32_t cmdsignal);
+
+    Alle Argumente sind in  srun->active_func {
+                              -- additional arguments --
+                              (optional) continue-label (cmdsignal == WAKEUP)
+                              (optional) caller -> receives event after this thread exited (or terminated abnormally)
+                                                   the receiver gets the int returncode + either (COMPLETED or ERROR)
+                              ...
+                              cmdsignal -> (ERROR  (abnormal exit cause of error)
+                                                 (the func must execute a cleanup handler !)
+                                                 (run could trigger an error condition cause of an out of memory situation),
+                                                 (the func can signal itself an error condition to call the error handler)
+                                          RUN    (do what this syncfunc has to do repeatedly),
+                                          WAKEUP (continue execution at a place where some wait_for_condition was called ! ))
+                            }
+
+   NO INIT -> Init wird durch Initialisierungsfunktion ersetzt mit Argumenten,
+   die synfunc erzeugt und in run abelegt.
+
+   struct syncfunc_t {
+      syncfunc_f  mainfct;  // function called repeatedly
+                  flags;    // bits which indicate which optional fields are valid (3 bits) except waitfor
+      (optional)  state;    // pointer to state information function wants to preserve between repeated calls
+      (optional)  continue; // state where execution should continue in mainfct after the waited for event was signalled
+      (optional)  caller;   // receives event after this thread exited (or terminated abnormally)
+                            // the receiver gets the int returncode + either (COMPLETED or ERROR)
+                            // !! chain of caller is the call stack !!
+      (optional)  waitfor;  // points to sync_event_t (single event, list of waiting funcs, ...)
+                            // it is used in case synfunc_t is moved in memory to compact queue
+                            // then waitfor is used to adapt sync_even_t to correct its syncfunc_t pointer
+   };
+
+   // ====>
+
+   4 Run Queues                       <===>    4 Wait queues
+   0. (syncfunc_t)
+   1. (syncfunc_t) + 1. optional               + waitfor
+   2. (syncfunc_t) + 2. optional               + waitfor
+   3. (syncfunc_t) + 3. optional               + waitfor
+
+   // syncfunc_t->flags :  could be encoded by partitioning queue
+   //                      0 optional -> all 3 are invalid                               ==> no partitioning necessary
+   //                      1 optional -> either 1 valid / or 2 valid / or 3 valid        ==> 3 partitions
+   //                      2 optional -> either 1 invalid / or 2 invalid / or 3 invalid  ==> 3 partitions
+   //                      3 optional -> all 3 are valid                                 ==> no partitioning necessary
+
+   Anstatt Partitionen 3 Run Queues + 3 Wait Queues
+   ===> 8 Run Queues + 8 Wait Queues
+   ===> 16 queues (a 4096 byte pages) ==> 64 K min memory per syncrunnner_t
+   ===> 1 run queue action implementierung + macros, die Unterschiede (0,1,2,3 optionale Felder) angleichen
+   ===> 1 wait queue action implementierung + macros, die Unterschiede (0,1,2,3 optionale Felder) angleichen
+
+   Komapktieren der Queues ---->
+
+   Warten bis DAtenbank MEmory MOdell mit Garbage Collection + Compaction Algorithmus
+   (Run/Wait -Queue + Adaption Functions für Memory Compaction)
+
+

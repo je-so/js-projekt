@@ -223,6 +223,7 @@
       <File Name="../../C-kern/api/task/syncwait.h"/>
       <File Name="../../C-kern/api/task/syncwlist.h"/>
       <File Name="../../C-kern/api/task/syncqueue.h"/>
+      <File Name="../../C-kern/api/task/TODO.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">

@@ -60,7 +60,7 @@ int unittest_task_syncqueue(void) ;
  *
  * List of Extensions:
  * o The queue counts the number of stored elements.
- * o It offers functionality to remove any element int the queue by overwriting
+ * o It offers functionality to remove any element in the queue by overwriting
  *   it with the last and remove the last instead.
  * o It offers functionality to remember nodes which should be removed in
  *   a linked list and allows to compact the queue after it has been iterated over.
@@ -127,8 +127,7 @@ int insert2_syncqueue(syncqueue_t * syncqueue, uint8_t elemsize, IDNAME ** newel
 
 /* function: remove_syncqueue
  * Removes elem of type IDNAME from the queue by overwriting it with the last.
- * The parameter elem must be a pointer to type elem_t. The type of the element
- * must be given as second paramter.
+ * The second parameter elem must be a pointer to type elem_t.
  * The function initmove_elem is called with src set to the last element and
  * dest set to elem. If elem points to the last element in the queue
  * function initmove_elem is not called. */

@@ -538,12 +538,6 @@ static int test_query(void)
    heap_t heap = heap_FREE;
    long   array[255];
 
-   // TEST
-
-// TODO: test ISSWAP in query
-
-// TODO: !!! test invariant with equal values !!!
-
    // TEST elemsize_heap
    for (unsigned i = 255; i < 256; --i) {
       heap.elemsize = (uint8_t) i;
@@ -566,7 +560,7 @@ static int test_query(void)
    heap.nrofelem = 0;
    TEST(0 == nrofelem_heap(&heap));
 
-   // TEST invariant_heap: ascendning, descendning, equal
+   // TEST invariant_heap: ascending, descending, equal
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
       for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += sizeof(long)-1) {
          for (unsigned isasc = 0; isasc <= 1; ++isasc) {

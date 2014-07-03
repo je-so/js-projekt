@@ -120,7 +120,7 @@ struct syncrun_t {
     *
     * continuelabel - The address of the label where execution should continue after wakeup.
     * retcode       - The return code of the exited thread the woken up thread waited for.
-    *                 This value is only valid if a call to <waitforexit_syncrun> was made enter waiting state. */
+    *                 This value is only valid if a call to <waitforexit_syncrun> was made to enter waiting state. */
    struct {
       void *            continuelabel ;
       int               retcode ;
@@ -269,8 +269,8 @@ void waitforevent_syncrun(syncrun_t * srun, struct syncevent_t * syncevent) ;
 
 /* function: waitforlist_syncrun
  * Waits for syncwlist to be signaled. The calling thread inserts a new
- * event node in syncwlist and waits for it. Another thread must call <signalall_syncrun>
- * on syncwlist or <signalfirst_syncrun> for one or more times to wakeup the caller
+ * event node in syncwlist and waits on it. Another thread must call <signalall_syncrun>
+ * or <signalfirst_syncrun> one or more times on syncwlist to wakeup the caller
  * of this function.
  * The function is implemented as macro and uses <setstatewait_syncrun> to change
  * the state of the calling thread and then returns to srun.

@@ -72,7 +72,7 @@ static size_t              s_threadcontext_nextid = 0 ;
          memblock_t memobject = memblock_FREE ;             \
                                                             \
          if (! interface_##module()) {                      \
-            /* keep static object */                        \
+            /* keep threadcontext_INIT_STATIC */            \
             return 0 ;                                      \
          }                                                  \
          ONERROR_testerrortimer(                            \
@@ -514,7 +514,7 @@ static int test_iobjhelper(void)
    TEST(0               == s_test_testmodule) ;
    TEST(SIZESTATIC_PAGECACHE() == stsize) ;
 
-   // TEST INITIOBJ: keep static object (interface_testmoduleimpl2 returns 0)
+   // TEST INITIOBJ: keep threadcontext_INIT_STATIC (interface_testmoduleimpl2 returns 0)
    TEST(testiobj.object == (void*)1) ;
    TEST(testiobj.iimpl  == (void*)2) ;
    TEST(0 == call_initiobj2(&testiobj)) ;
