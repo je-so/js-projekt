@@ -17,10 +17,10 @@
    Author:
    (C) 2014 Jörg Seebohn
 
-   file: C-kern/api/sort/mergsort.h
+   file: C-kern/api/sort/mergesort.h
     Header file <MergeSort>.
 
-   file: C-kern/sort/mergsort.c
+   file: C-kern/sort/mergesort.c
     Implementation file <MergeSort impl>.
 */
 
@@ -33,6 +33,8 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/timevalue.h"
 #include "C-kern/api/time/systimer.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #endif
 
 
@@ -1460,8 +1462,8 @@ static int test_merge(void)
                TEST(sort.stack[stackoffset+0].len  == size);
                TEST(sort.stack[stackoffset+1].base == left + size*sort.elemsize);
                TEST(sort.stack[stackoffset+1].len  == 5);
-               TEST(sort.stack[stackoffset+2].base = left + (5+size)*sort.elemsize);
-               TEST(sort.stack[stackoffset+2].len  = 4);
+               TEST(sort.stack[stackoffset+2].base == left + (5+size)*sort.elemsize);
+               TEST(sort.stack[stackoffset+2].len  == 4);
             } else if (size <= 4) {
                // first merge [-2] and [-1] which then satisfy invariant ([-3].len <= [-1].len)
                TEST(sort.stacksize == stackoffset+2);
@@ -1703,15 +1705,15 @@ static void shuffle(uint8_t elemsize, size_t len, uint8_t a[len*elemsize])
    }
 }
 
-static int test_sort(mergesort_t * sort, const unsigned len, vmpage_t * vmpage)
+static int test_sort(mergesort_t * sort, const unsigned len, memblock_t * mblock)
 {
-   uint8_t * const a = vmpage->addr;
+   uint8_t * const a = mblock->addr;
 
    // prepare
    s_compare_count = 0;
 
    // TEST sortblob_mergesort: bytes stable
-   TEST(vmpage->size > 3*65536)
+   TEST(mblock->size > 3*65536)
    for (uintptr_t i = 0; i < 65536; ++i) {
       a[3*i]   = (uint8_t) (i);
       a[3*i+1] = 0;
@@ -1725,7 +1727,7 @@ static int test_sort(mergesort_t * sort, const unsigned len, vmpage_t * vmpage)
    }
 
    // TEST sortblob_mergesort: long stable
-   TEST(vmpage->size > 2*sizeof(long)*65536);
+   TEST(mblock->size > 2*sizeof(long)*65536);
    for (uintptr_t i = 0; i < 65536; ++i) {
       ((long*)a)[2*i]   = (long) (i & 255);
       ((long*)a)[2*i+1] = (long) (i / 256);
@@ -1758,7 +1760,7 @@ static int test_sort(mergesort_t * sort, const unsigned len, vmpage_t * vmpage)
    }
 
    // TEST sortblob_mergesort: long ascending
-   TEST(vmpage->size > 3*sizeof(long)*len);
+   TEST(mblock->size > 3*sizeof(long)*len);
    for (uintptr_t i = 0; i < len; ++i) {
       ((long*)a)[3*i]   = (long) i;
       ((long*)a)[3*i+1] = (long) i;
@@ -1860,9 +1862,9 @@ ONERR:
    return EINVAL;
 }
 
-static int test_measuretime(mergesort_t * sort, const unsigned len, vmpage_t * vmpage)
+static int test_measuretime(mergesort_t * sort, const unsigned len, memblock_t * mblock)
 {
-   uint8_t * const a     = vmpage->addr;
+   uint8_t * const a     = mblock->addr;
    systimer_t      timer = systimer_FREE;
 
    // prepare
@@ -1999,11 +2001,11 @@ static int build_top_down_slices()
 int unittest_sort_mergesort()
 {
    const unsigned len = 300000;
-   vmpage_t       vmpage;
+   memblock_t     mblock = memblock_FREE;
    mergesort_t    sort;
 
    init_mergesort(&sort);
-   TEST(0 == init_vmpage(&vmpage, len * (4*sizeof(void*))));
+   TEST(0 == ALLOC_MM(len * (4*sizeof(void*)), &mblock));
 
    if (test_stacksize())      goto ONERR;
    if (test_memhelper())      goto ONERR;
@@ -2016,15 +2018,15 @@ int unittest_sort_mergesort()
    if (test_rsearchgreater()) goto ONERR;
    if (test_merge())          goto ONERR;
    if (test_presort())        goto ONERR;
-   if (test_sort(&sort, len/10, &vmpage))       goto ONERR;
-   if (test_measuretime(&sort, len, &vmpage))   goto ONERR;
+   if (test_sort(&sort, len/10, &mblock))       goto ONERR;
+   if (test_measuretime(&sort, len, &mblock))   goto ONERR;
 
    TEST(0 == free_mergesort(&sort));
-   TEST(0 == free_vmpage(&vmpage));
+   TEST(0 == FREE_MM(&mblock));
 
    return 0;
 ONERR:
-   free_vmpage(&vmpage);
+   FREE_MM(&mblock);
    free_mergesort(&sort);
    return EINVAL;
 }

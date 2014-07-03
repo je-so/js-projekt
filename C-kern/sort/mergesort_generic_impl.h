@@ -1,27 +1,31 @@
+/* title: MergeSort Generic impl
+
+   Implements generic part and is resued by <MergeSort impl>.
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   Author:
+   (C) 2014 Jörg Seebohn
+
+   file: C-kern/sort/mergesort_generic_impl.h
+    Implementation file <MergeSort Generic impl>.
+*/
+#ifndef CKERN_SORT_MERGESORT_GENERIC_IMPL_HEADER
+#define CKERN_SORT_MERGESORT_GENERIC_IMPL_HEADER
+// allow several includes
+#endif
 
 // section: mergesort_t
-
-#undef search_greatequal
-#undef rsearch_greatequal
-#undef search_greater
-#undef rsearch_greater
-#undef merge_adjacent_slices
-#undef rmerge_adjacent_slices
-#undef merge_topofstack
-#undef establish_stack_invariant
-#undef merge_all
-#undef insertsort
-#undef reverse_elements
-#undef count_presorted
-#undef NAME
-#undef ELEMSIZE
-#undef ELEM
-#undef INITFASTCOPY
-#undef COPYINCR_1
-#undef COPYDECR_1
-#undef COPYINCR
-#undef COPYDECR
-#undef SWAP
 
 // every selected mergesort_IMPL_TYPE has its own namespace
 
@@ -38,10 +42,9 @@
 #define reverse_elements          NAME(reverse_elements)
 #define count_presorted           NAME(count_presorted)
 
-/* group: generic-macros
- *
- * These macros differentiate the functionality of the different functions.
- * All generic implementations are equal except for the macros. */
+// group: generic-macros
+// These macros differentiate the functionality of the different functions.
+// All generic implementations are equal except for the macros.
 
 // ==== mergesort_TYPE_POINTER ====
 
@@ -983,3 +986,25 @@ ONERR:
    TRACEEXIT_ERRLOG(err);
    return err;
 }
+
+#undef search_greatequal
+#undef rsearch_greatequal
+#undef search_greater
+#undef rsearch_greater
+#undef merge_adjacent_slices
+#undef rmerge_adjacent_slices
+#undef merge_topofstack
+#undef establish_stack_invariant
+#undef merge_all
+#undef insertsort
+#undef reverse_elements
+#undef count_presorted
+#undef NAME
+#undef ELEMSIZE
+#undef ELEM
+#undef INITFASTCOPY
+#undef COPYINCR_1
+#undef COPYDECR_1
+#undef COPYINCR
+#undef COPYDECR
+#undef SWAP
