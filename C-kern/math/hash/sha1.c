@@ -444,24 +444,6 @@ static int test_sha1(void)
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-#if 0
-int unittest_math_hash_sha1()
-{
-   resourceusage_t usage = resourceusage_FREE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
-   if (test_sha1())     goto ONERR;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   return 0 ;
-ONERR:
-   (void) free_resourceusage(&usage) ;
-   return EINVAL ;
-}
-#endif
    // generated with sha1sum
    strncpy((char*)sha1sum, "\xc5\x89\x38\xf0\xa3\xec\x94\x46\x7e\x81\x09\xbb\x0e\xb1\xdb\xd3\x7f\xd0\xab\x45", 20) ;
    TEST(0 == test_unevenaddr(&sha1sum, string)) ;
