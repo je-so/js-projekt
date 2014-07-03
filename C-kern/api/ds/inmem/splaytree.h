@@ -64,7 +64,7 @@ int unittest_ds_inmem_splaytree(void) ;
  * The iterator supports removing or deleting of the current node.
  * > splaytree_t tree ;
  * > fill_tree(&tree) ;
- * > foreach (_splaytree, &tree, node) {
+ * > foreach (_splaytree, node, &tree) {
  * >    if (need_to_remove(node)) {
  * >       err = remove_splaytree(&tree, node)) ;
  * >    }

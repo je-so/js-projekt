@@ -181,6 +181,26 @@ size_t nrofelem_heap(const heap_t * heap);
  * Root node has index 0 and the last node index <nrofelem_heap>-1. */
 int invariant_heap(const heap_t * heap);
 
+// group: foreach-support
+
+/* function: foreach_heap
+ * Macro which allows iterating over the whole heap.
+ * The first element is always the largest. Following
+ * elements are not iterated in any specific order.
+ *
+ * Changing Heap:
+ * It is *not allowed* to change the heap during iteration.
+ *
+ * Parameter:
+ * heap    - Pointer to heap which is iterated over.
+ *           This parameter is evaluated more than once !
+ *           So something like: heap_t*x=&heap_array[0]; foreach_heap(x++, elem)
+ *           does not work. Use foreach_heap(x, elem)...;++x instead.
+ * loopvar - is the name of the loop variable which has type void *.
+ *           It points to the next element with size <elemsize_heap>.
+ * */
+void foreach_heap(const heap_t * heap, IDNAME loopvar);
+
 // group: update
 
 /* function: insert_heap
@@ -216,6 +236,13 @@ int remove_heap(heap_t * heap, /*out*/void * elem/*[elemsize]*/);
  * Implements <heap_t.elemsize_heap>. */
 #define elemsize_heap(heap) \
          ((heap)->elemsize)
+
+/* define: foreach_heap
+ * Implements <heap_t.foreach_heap>. */
+#define foreach_heap(heap, loopvar) \
+         for (void * loopvar = (heap)->array,                                                \
+                   * loopvar ## _end = (heap)->array + (heap)->nrofelem * (heap)->elemsize;  \
+              loopvar != loopvar ## _end; loopvar = (uint8_t*)loopvar + (heap)->elemsize)
 
 /* define: free_heap
  * Implements <heap_t.free_heap>. */

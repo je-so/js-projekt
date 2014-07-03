@@ -127,19 +127,21 @@ int init_trie(/*out*/trie_t * trie);
  * you have to iterate over the stored pointers and free them before calling <free_trie>. */
 int free_trie(trie_t * trie);
 
-// group: foreach-support
-
-// TODO: add iterator support
-
 // group: query
 
 /* function: at_trie
  * Returns memory address of value of a previously stored (key, value) pair.
- * As long trie is not changed the returned address is valid. It is allowed
+ * As long as trie is not changed the returned address is valid. It is allowed
  * to write a new value with *at_trie(...)=new_value;
  *
  * If there is no stored value the memory address 0 is returned. */
 void ** at_trie(const trie_t * trie, uint16_t keylen, const uint8_t key[keylen]);
+
+// group: foreach-support
+
+void foreach_trie(trie_t * trie, IDNAME loopvar);
+
+// TODO: add iterator support
 
 // group: update
 

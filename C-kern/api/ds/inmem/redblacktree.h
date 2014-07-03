@@ -61,7 +61,7 @@ int unittest_ds_inmem_redblacktree(void) ;
  * The iterator supports removing or deleting of the current node.
  * > redblacktree_t tree ;
  * > fill_tree(&tree) ;
- * > foreach (_redblacktree, &tree, node) {
+ * > foreach (_redblacktree, node, &tree) {
  * >    if (need_to_remove(node)) {
  * >       err = remove_redblacktree(&tree, node)) ;
  * >    }

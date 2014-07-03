@@ -58,7 +58,7 @@ int unittest_ds_inmem_dlist(void) ;
  * Example:
  * > dlist_t list ;
  * > fill_list(&list) ;
- * >  foreach (_dlist, &list, node) {
+ * >  foreach (_dlist, node, &list) {
  * >     if (need_to_remove(node)) {
  * >        err = remove_dlist(&list, node) ;
  * >     }

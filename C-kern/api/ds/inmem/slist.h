@@ -64,7 +64,7 @@ int unittest_ds_inmem_slist(void) ;
  * > slist_t list ;
  * > fill_list(&list) ;
  * > slist_node_t * prev = last_slist(&list) ;
- * > foreach (_slist, &list, node) {
+ * > foreach (_slist, node, &list) {
  * >    if (need_to_remove(node)) {
  * >       removeafter_slist(&list, prev, node) ;
  * >       delete_node(node) ;

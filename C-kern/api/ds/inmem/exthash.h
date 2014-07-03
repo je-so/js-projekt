@@ -60,7 +60,7 @@ int unittest_ds_inmem_exthash(void) ;
  * The iterator supports removing or deleting of the current node.
  * > exthash_t htable ;
  * > fill_tree(&htable) ;
- * > foreach (_exthash, &htable, node) {
+ * > foreach (_exthash, node, &htable) {
  * >    if (need_to_remove(node)) {
  * >       err = remove_exthash(&htable, node)) ;
  * >    }

@@ -645,6 +645,62 @@ ONERR:
    return EINVAL;
 }
 
+static int test_foreach(void)
+{
+   heap_t heap = heap_FREE;
+   long   array[5*255];
+
+   // TEST foreach_heap: empty heap
+   {
+      unsigned i = 0;
+      foreach_heap(&heap, elem) {
+         ++i;
+         TEST(0);
+      }
+      TEST(i == 0);
+   }
+
+   // TEST foreach_heap: different element sizes
+   for (unsigned ismin = 0; ismin <= 1; ++ismin) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+         for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
+            for (unsigned len = 1; len <= 255; ++len) {
+               // fill array
+               memset(array, 0, sizeof(array));
+               for (unsigned i = 0, val = ismin ? 0 : 254; i < len; ++i, val += (unsigned)(ismin ? 1 : -1)) {
+                  if (basesize == 1) {
+                     ((uint8_t*)array)[i*elemsize] = (uint8_t) (val / 2);
+                  } else {
+                     array[i*elemsize/sizeof(long)] = (long) (val / 2);
+                  }
+               }
+               TEST(0 == init_heap(&heap, (uint8_t)elemsize, len, 255, array,
+                                 ismin ? (basesize == 1 ? &compare_byte_revert : &compare_long_revert)
+                                       : (basesize == 1 ? &compare_byte : &compare_long)
+                                 , 0));
+               unsigned i = 0, val = ismin ? 0 : 254;
+               foreach_heap(&heap, elem) {
+                  void * expect = heap.array + i * elemsize;
+                  TEST(expect == elem);
+                  if (basesize == 1) {
+                     TEST(*((uint8_t*)elem) == (uint8_t) (val / 2));
+                  } else {
+                     TEST(*((long*)elem)    == (long) (val / 2));
+                  }
+                  ++i;
+                  val += (unsigned) (ismin ? 1 : -1);
+               }
+               TEST(len == i);
+            }
+         }
+      }
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
 static int test_update(void)
 {
    heap_t heap = heap_FREE;
@@ -896,6 +952,7 @@ int unittest_ds_inmem_heap()
 {
    if (test_initfree())    goto ONERR;
    if (test_query())       goto ONERR;
+   if (test_foreach())     goto ONERR;
    if (test_update())      goto ONERR;
    if (test_time())        goto ONERR;
 
