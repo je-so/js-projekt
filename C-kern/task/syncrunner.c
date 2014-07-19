@@ -51,8 +51,11 @@ static int test_initfree(void)
    syncrunner_t srun = syncrunner_FREE;
 
    // TEST syncrunner_FREE
-   for (unsigned i = 0; i < lengthof(srun.queues); ++i) {
-      TEST(isfree_syncqueue(&srun.queues[i]));
+   for (unsigned i = 0; i < lengthof(srun.runqueue); ++i) {
+      TEST(isfree_syncqueue(&srun.runqueue[i]));
+   }
+   for (unsigned i = 0; i < lengthof(srun.waitqueue); ++i) {
+      TEST(isfree_syncqueue(&srun.waitqueue[i]));
    }
 
    return 0;

@@ -68,7 +68,8 @@ struct syncrunner_t {
    /* variable: queues
     * Queues wich are used to store <syncthread_t>.
     * Every queue serves a different number of optional fields of <syncfunc_t> and <syncwait_func_t>. */
-   syncqueue_t       queues[8 /*run*/+ 4*3 /*wait*/];
+   syncqueue_t    runqueue[4];
+   syncqueue_t    waitqueue[5];
 };
 
 // group: lifetime
@@ -76,7 +77,8 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         { { syncqueue_FREE } }
+         {  { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
+            { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE } }
 
 /* function: init_syncrunner
  * TODO: Describe Initializes object. */

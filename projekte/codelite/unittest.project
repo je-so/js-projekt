@@ -225,8 +225,6 @@
       <File Name="../../C-kern/api/task/syncqueue.h"/>
       <File Name="../../C-kern/api/task/TODO.txt"/>
       <File Name="../../C-kern/api/task/syncfunc.h"/>
-      <File Name="../../C-kern/api/task/syncwait_node.h"/>
-      <File Name="../../C-kern/api/task/syncwait_func.h"/>
       <File Name="../../C-kern/api/task/syncrunner.h"/>
       <File Name="../../C-kern/api/task/synclink.h"/>
     </VirtualDirectory>

@@ -42,6 +42,12 @@ typedef struct syncwait_t                 syncwait_t ;
  * Export <syncevent_t> into global namespace. */
 typedef struct syncevent_t                syncevent_t ;
 
+// TODO: implement syncwait_condition_t
+// TODO: remove all other
+
+/* typedef: struct syncwait_condition_t
+ * Export <syncwait_condition_t> into global namespace. */
+typedef struct syncwait_condition_t syncwait_condition_t;
 
 // section: Functions
 
@@ -49,7 +55,7 @@ typedef struct syncevent_t                syncevent_t ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_task_syncwait
- * Test <syncwait_t> functionality. */
+ * Teste <syncwait_condition_t>. */
 int unittest_task_syncwait(void) ;
 #endif
 
