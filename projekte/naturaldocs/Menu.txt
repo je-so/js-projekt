@@ -92,6 +92,7 @@ Group: Api  {
          File: BlockArray  (api/ds/inmem/blockarray.h)
          File: DoubleLinkedList  (api/ds/inmem/dlist.h)
          File: Extendible-Hashing  (api/ds/inmem/exthash.h)
+         File: Heap  (api/ds/inmem/heap.h)
          File: Patricia-Trie  (api/ds/inmem/patriciatrie.h)
          File: Queue  (api/ds/inmem/queue.h)
          File: RedBlacktree-Index  (api/ds/inmem/redblacktree.h)
@@ -283,6 +284,11 @@ Group: Api  {
       File: SystemUser  (api/platform/sysuser.h)
       }  # Group: Platform
 
+   Group: Sort  {
+
+      File: MergeSort  (api/sort/mergesort.h)
+      }  # Group: Sort
+
    Group: String  {
 
       File: Base64EncodeString  (api/string/base64encode_string.h)
@@ -320,10 +326,14 @@ Group: Api  {
 
    Group: Task  {
 
+      File: SyncFunc  (api/task/syncfunc.h)
       File: SyncQueue  (api/task/syncqueue.h)
       File: SyncRun  (api/task/syncrun.h)
+      File: SyncRunner  (api/task/syncrunner.h)
       File: SyncThread  (api/task/syncthread.h)
       File: SyncWait  (api/task/syncwait.h)
+      File: SyncWait-Func  (api/task/syncwait_func.h)
+      File: SyncWait-Node  (api/task/syncwait_node.h)
       File: SyncWaitlist  (api/task/syncwlist.h)
       }  # Group: Task
 
@@ -361,6 +371,7 @@ Group: Implementation  {
          File: BlockArray impl  (ds/inmem/blockarray.c)
          File: DoubleLinkedList impl  (ds/inmem/dlist.c)
          File: Extendible-Hashing impl  (ds/inmem/exthash.c)
+         File: Heap impl  (ds/inmem/heap.c)
          File: Patricia-Trie impl  (ds/inmem/patriciatrie.c)
          File: Queue impl  (ds/inmem/queue.c)
          File: RedBlacktree-Index impl  (ds/inmem/redblacktree.c)
@@ -554,6 +565,12 @@ Group: Implementation  {
 
       }  # Group: Platform
 
+   Group: Sort  {
+
+      File: MergeSort impl  (sort/mergesort.c)
+      File: MergeSort Generic impl  (sort/mergesort_generic_impl.h)
+      }  # Group: Sort
+
    Group: String  {
 
       File: Base64EncodeString impl  (string/base64encode_string.c)
@@ -570,8 +587,10 @@ Group: Implementation  {
 
    Group: Task  {
 
+      File: SyncFunc impl  (task/syncfunc.c)
       File: SyncQueue impl  (task/syncqueue.c)
       File: SyncRun impl  (task/syncrun.c)
+      File: SyncRunner impl  (task/syncrunner.c)
       File: SyncThread impl  (task/syncthread.c)
       File: SyncWait impl  (task/syncwait.c)
       File: SyncWaitlist impl  (task/syncwlist.c)

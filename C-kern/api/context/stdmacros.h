@@ -97,11 +97,15 @@
 // group: function-declaration
 
 /* define: IDNAME
- * It's a marker in a function declaration.
- * It is used in function declarations which are implemented as macro.
- * An identifier name is not supported in language C99 or later.
+ * Use it to declare a parameter as (part of) a name which is a valid C identifier.
  * See <dlist_IMPLEMENT> for an example. */
 #define IDNAME                         void*
+
+/* define: LABEL
+ * Use it to declare a parameter as a name of a C label.
+ * The label serves a target of a goto statement.
+ * See <execmd_syncthread> for an example. */
+#define LABEL                          void*
 
 /* define: TYPENAME
  * It's a marker in a function declaration.

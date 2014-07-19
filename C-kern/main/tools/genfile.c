@@ -117,7 +117,8 @@ int free_@FCTSUFFIX(@TYPENAME * obj);\n\
 \n\
 /* define: init_@FCTSUFFIX\n\
  * Implements <@TYPENAME.init_@FCTSUFFIX>. */\n\
-#define init_@FCTSUFFIX(obj);\n\
+#define init_@FCTSUFFIX(obj) \\\n\
+         // TODO: implement\n\
 \n\n\
 #endif\n";
 
@@ -163,6 +164,7 @@ ONERR:\n\
 }\n\n\
 static int childprocess_unittest(void)\n\
 {\n\
+   // NEED TO #include \"C-kern/api/test/resourceusage.h\"\n\
    resourceusage_t   usage = resourceusage_FREE;\n\n\
    TEST(0 == init_resourceusage(&usage));\n\n\
    if (test_initfree())       goto ONERR;\n\n\
@@ -175,12 +177,13 @@ ONERR:\n\
 }\n\n\
 int @UNITTESTNAME()\n\
 {\n\
-   // select between (1)\n\
-   // and also #include \"C-kern/api/test/resourceusage.h\"\n\
+   // select between (1) or (2)\n\
+   // == (1) ==\n\
    int err; \n\n\
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));\n\n\
    return err;\n\
-   // select between (2)\n\
+   // == (2) ==\n\
+   // NEED TO remove childprocess_unittest\n\
    if (test_initfree())       goto ONERR;\n\n\
    return 0;\n\
 ONERR:\n\

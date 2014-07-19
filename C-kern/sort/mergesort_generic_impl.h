@@ -1,6 +1,7 @@
 /* title: MergeSort Generic impl
 
-   Implements generic part and is resued by <MergeSort impl>.
+   Implementert generisch <MergeSort impl> und wird
+   für Pointer, Long und Byte Datentypen wiederverwendet.
 
    about: Copyright
    This program is free software.
@@ -916,16 +917,23 @@ static inline size_t count_presorted(mergesort_t * sort, size_t len, uint8_t * a
 // group: sort
 
 #if (mergesort_IMPL_TYPE == mergesort_TYPE_POINTER)
+/* function: sortptr_mergesort
+ * Sortiert Pointer Datentypen. */
 int sortptr_mergesort(mergesort_t * sort, size_t len, void * a[len], sort_compare_f cmp, void * cmpstate)
+{
 
 #elif (mergesort_IMPL_TYPE == mergesort_TYPE_LONG)
+/* function: sortlong_mergesort
+ * Sortiert Long Datentypen. */
 static int sortlong_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len, uint8_t * a/*[len*elemsize]*/, sort_compare_f cmp, void * cmpstate)
+{
 
 #elif (mergesort_IMPL_TYPE == mergesort_TYPE_BYTES)
+/* function: sortbytes_mergesort
+ * Sortiert Byte Datentypen. */
 static int sortbytes_mergesort(mergesort_t * sort, uint8_t elemsize, size_t len, uint8_t * a/*[len*elemsize]*/, sort_compare_f cmp, void * cmpstate)
-
-#endif
 {
+#endif
    int err;
 
    if (len < 2) return 0;
