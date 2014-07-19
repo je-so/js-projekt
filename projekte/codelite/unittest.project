@@ -93,7 +93,6 @@
         <File Name="../../C-kern/api/math/int/sign.h"/>
         <File Name="../../C-kern/api/math/int/bigint.h"/>
         <File Name="../../C-kern/api/math/int/sqroot.h"/>
-        <File Name="../../C-kern/api/math/int/atomic.h"/>
         <File Name="../../C-kern/api/math/int/byteorder.h"/>
         <File Name="../../C-kern/api/math/int/bitorder.h"/>
       </VirtualDirectory>
@@ -121,6 +120,7 @@
       <File Name="../../C-kern/api/memory/pagecache.h"/>
       <File Name="../../C-kern/api/memory/memstream.h"/>
       <File Name="../../C-kern/api/memory/ptr.h"/>
+      <File Name="../../C-kern/api/memory/atomic.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
@@ -441,7 +441,6 @@
       <File Name="../../C-kern/math/int/sign.c"/>
       <File Name="../../C-kern/math/int/bigint.c"/>
       <File Name="../../C-kern/math/int/sqroot.c"/>
-      <File Name="../../C-kern/math/int/atomic.c"/>
       <File Name="../../C-kern/math/int/byteorder.c"/>
       <File Name="../../C-kern/math/int/bitorder.c"/>
     </VirtualDirectory>
@@ -467,6 +466,7 @@
     <File Name="../../C-kern/memory/pagecache.c"/>
     <File Name="../../C-kern/memory/memstream.c"/>
     <File Name="../../C-kern/memory/ptr.c"/>
+    <File Name="../../C-kern/memory/atomic.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

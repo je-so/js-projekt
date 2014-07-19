@@ -27,7 +27,7 @@
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/math/int/atomic.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"

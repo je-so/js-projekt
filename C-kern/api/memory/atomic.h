@@ -29,14 +29,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/math/int/atomic.h
+   file: C-kern/api/memory/atomic.h
     Header file <AtomicOps>.
 
-   file: C-kern/math/int/atomic.c
+   file: C-kern/memory/atomic.c
     Implementation file <AtomicOps impl>.
 */
-#ifndef CKERN_MATH_INT_ATOMIC_HEADER
-#define CKERN_MATH_INT_ATOMIC_HEADER
+#ifndef CKERN_MEMORY_ATOMIC_HEADER
+#define CKERN_MEMORY_ATOMIC_HEADER
 
 
 // section: Functions
@@ -44,9 +44,9 @@
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_atomic
+/* function: unittest_memory_atomic
  * Test functionality of atomic operations. */
-int unittest_math_int_atomic(void) ;
+int unittest_memory_atomic(void) ;
 #endif
 
 

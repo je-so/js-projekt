@@ -28,7 +28,7 @@
 #include "C-kern/api/platform/sync/rwlock.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/math/int/atomic.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST

@@ -183,7 +183,6 @@ int run_unittest(void * argv)
       RUN(unittest_math_hash_crc32);
       RUN(unittest_math_hash_sha1);
       RUN(unittest_math_int_abs);
-      RUN(unittest_math_int_atomic);
       RUN(unittest_math_int_biginteger);
       RUN(unittest_math_int_bitorder);
       RUN(unittest_math_int_byteorder);
@@ -195,6 +194,7 @@ int run_unittest(void * argv)
 //}
 
 //{ memory unittest
+      RUN(unittest_memory_atomic);
       RUN(unittest_memory_hwcache);
       RUN(unittest_memory_memblock);
       RUN(unittest_memory_memstream);

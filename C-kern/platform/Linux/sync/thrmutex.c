@@ -28,7 +28,7 @@
 #include "C-kern/api/platform/sync/thrmutex.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/math/int/atomic.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"

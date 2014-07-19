@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/math/int/atomic.h
+   file: C-kern/api/memory/atomic.h
     Header file <AtomicOps>.
 
-   file: C-kern/math/int/atomic.c
+   file: C-kern/memory/atomic.c
     Implementation file <AtomicOps impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/math/int/atomic.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -382,7 +382,7 @@ ONERR:
    return EINVAL ;
 }
 
-int unittest_math_int_atomic()
+int unittest_memory_atomic()
 {
    if (test_readwrite())      goto ONERR;
    if (test_addsubswap())     goto ONERR;

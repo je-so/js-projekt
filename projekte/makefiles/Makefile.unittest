@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jul.19  08:15:29
+GenerationDate  := 2014.Jul.19  08:23:45
 GeneratedBy     := je-so
 
 ## Debug
@@ -149,7 +149,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
@@ -161,6 +160,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Debug)/C-kern!memory!ptr.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!atomic.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
@@ -265,7 +265,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o \
- $(ObjectDir_Release)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
@@ -277,6 +276,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Release)/C-kern!memory!ptr.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Release)/C-kern!memory!atomic.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
@@ -536,9 +536,6 @@ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Debug)
 
@@ -570,6 +567,9 @@ $(ObjectDir_Debug)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
@@ -878,9 +878,6 @@ $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Release)
 
@@ -912,6 +909,9 @@ $(ObjectDir_Release)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c

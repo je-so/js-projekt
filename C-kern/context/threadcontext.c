@@ -28,7 +28,7 @@
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/math/int/atomic.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/mm/mm.h"
