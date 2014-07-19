@@ -49,15 +49,15 @@ typedef struct syncwait_func_t syncwait_func_t;
  * is kept and <waitnode> is added to another waiting list. */
 struct syncwait_func_t {
    // group: private fields
-   /* variable: waitnode
-    * Connects the waiting function with other waiting nodes in a list.
-    * If the list head is also of type <syncwait_node_t> the waiting function
-    * can be moved in memory (memory compaction) without breaking the double linked list
-    * (prev and next nodes are adapted). */
-   syncwait_node_t   waitnode;
    /* variable: syncfunc
     * Describes a <syncfunc_t> with or without optional fields.
     * Never contains optional field <caller> an case this function
     * is waiting on another function to exit. */
    syncfunc_t        syncfunc;
+   /* variable: called
+    * Verbindet mit aufgerufener Funktion. */
+   syncwait_node_t   called;
+   /* variable: waitlink
+    * Verbindet mit Warteliste. */
+   syncwait_node_t   waitlink;
 };

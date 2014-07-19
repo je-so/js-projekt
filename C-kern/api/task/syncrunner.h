@@ -29,6 +29,8 @@
 #ifndef CKERN_TASK_SYNCRUNNER_HEADER
 #define CKERN_TASK_SYNCRUNNER_HEADER
 
+#include "C-kern/api/task/syncqueue.h"
+
 // forward
 struct syncfunc_t;
 
@@ -58,9 +60,15 @@ int unittest_task_syncrunner(void);
  * number of functions if the queues are implemented with linked pages with
  * a very large pagesize.
  *
+ * TODO: make queue_t adaptable to different page sizes !
+ * TODO: syncqueue_t uses 512 or 1024 bytes (check in table with different sizes !!) !
+ *
  * */
 struct syncrunner_t {
-   int dummy; // TODO: remove line
+   /* variable: queues
+    * Queues wich are used to store <syncthread_t>.
+    * Every queue serves a different number of optional fields of <syncfunc_t> and <syncwait_func_t>. */
+   syncqueue_t       queues[8 /*run*/+ 4*3 /*wait*/];
 };
 
 // group: lifetime
@@ -68,7 +76,7 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         { 0 }
+         { { syncqueue_FREE } }
 
 /* function: init_syncrunner
  * TODO: Describe Initializes object. */
@@ -82,8 +90,7 @@ int free_syncrunner(syncrunner_t * obj);
 
 // group: update
 
-int insertsf_syncrunner(syncrunner_t * srun, const struct syncfunc_t * sfunc);
-
+int addsf_syncrunner(syncrunner_t * srun, const struct syncfunc_t * sfunc);
 
 
 // section: inline implementation

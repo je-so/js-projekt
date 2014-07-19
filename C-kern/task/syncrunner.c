@@ -48,10 +48,12 @@
 
 static int test_initfree(void)
 {
-   syncrunner_t obj = syncrunner_FREE;
+   syncrunner_t srun = syncrunner_FREE;
 
    // TEST syncrunner_FREE
-   TEST(0 == obj.dummy);
+   for (unsigned i = 0; i < lengthof(srun.queues); ++i) {
+      TEST(isfree_syncqueue(&srun.queues[i]));
+   }
 
    return 0;
 ONERR:

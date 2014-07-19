@@ -224,13 +224,14 @@ int run_unittest(void * argv)
 //}
 
 //{ task unittest
-      RUN(unittest_task_syncfunc);
-      RUN(unittest_task_syncthread);
+      RUN(unittest_task_syncthread);   // TODO: remove start
       RUN(unittest_task_syncrun);
+      RUN(unittest_task_syncwait);
+      RUN(unittest_task_syncwlist);    // TODO: remove end
+      RUN(unittest_task_syncfunc);
+      RUN(unittest_task_synclink);
       RUN(unittest_task_syncqueue);
       RUN(unittest_task_syncrunner);
-      RUN(unittest_task_syncwait);
-      RUN(unittest_task_syncwlist);
 //}
 
 //{ test unittest
