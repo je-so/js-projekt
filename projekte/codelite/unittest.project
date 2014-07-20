@@ -175,6 +175,7 @@
         <File Name="../../C-kern/api/ds/typeadapt/nodeoffset.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
+      <File Name="../../C-kern/api/ds/link.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="io">
@@ -221,7 +222,6 @@
       <File Name="../../C-kern/api/task/syncqueue.h"/>
       <File Name="../../C-kern/api/task/syncfunc.h"/>
       <File Name="../../C-kern/api/task/syncrunner.h"/>
-      <File Name="../../C-kern/api/task/synclink.h"/>
       <File Name="../../C-kern/api/task/synccond.h"/>
       <File Name="../../C-kern/api/task/synccmd.h"/>
     </VirtualDirectory>
@@ -490,6 +490,7 @@
       <File Name="../../C-kern/ds/typeadapt/nodeoffset.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
+    <File Name="../../C-kern/ds/link.c"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -497,7 +498,6 @@
     <File Name="../../C-kern/task/syncqueue.c"/>
     <File Name="../../C-kern/task/syncfunc.c"/>
     <File Name="../../C-kern/task/syncrunner.c"/>
-    <File Name="../../C-kern/task/synclink.c"/>
     <File Name="../../C-kern/task/synccond.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>

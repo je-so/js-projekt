@@ -46,25 +46,25 @@ static int test_initfree(void)
    synccond_t   scond = synccond_FREE;
 
    // TEST synccond_FREE
-   TEST(0 == isvalid_synclink(&scond.waitfunc));
+   TEST(0 == isvalid_link(&scond.waitfunc));
 
    // TEST init_synccond
    memset(&scond, 255, sizeof(scond));
    TEST(0 == init_synccond(&scond));
-   TEST(0 == isvalid_synclink(&scond.waitfunc));
+   TEST(0 == isvalid_link(&scond.waitfunc));
 
    // TEST free_synccond
    syncfunc_t dummy = syncfunc_FREE;
    link_synccond(&scond, &dummy);
-   TEST(isvalid_synclink(&scond.waitfunc));
+   TEST(isvalid_link(&scond.waitfunc));
    TEST(0 == free_synccond(&scond));
-   TEST(! isvalid_synclink(&scond.waitfunc));
+   TEST(! isvalid_link(&scond.waitfunc));
    // Link verwaist (nicht gelöscht)
    TEST(&scond.waitfunc == dummy.waitfor.link);
 
    // TEST free_synccond: double free
    TEST(0 == free_synccond(&scond));
-   TEST(! isvalid_synclink(&scond.waitfunc));
+   TEST(! isvalid_link(&scond.waitfunc));
 
    return 0;
 ONERR:
@@ -84,13 +84,13 @@ static int test_query(void)
    TEST(0 != waitfunc_synccond(&scond));
 
    // TEST iswaiting_synccond: linked
-   init_synclink(&scond.waitfunc, &sfunc1.waitfor);
+   init_link(&scond.waitfunc, &sfunc1.waitfor);
    TEST( iswaiting_synccond(&scond));
 
    // TEST waitfunc_synccond: linked
-   init_synclink(&scond.waitfunc, &sfunc1.waitfor);
+   init_link(&scond.waitfunc, &sfunc1.waitfor);
    TEST(&sfunc1 == waitfunc_synccond(&scond));
-   init_synclink(&scond.waitfunc, &sfunc2.waitfor);
+   init_link(&scond.waitfunc, &sfunc2.waitfor);
    TEST(&sfunc2 == waitfunc_synccond(&scond));
 
    return 0;
@@ -144,13 +144,13 @@ static int test_update(void)
    TEST(! iswaiting_synccond(&scond))
    TEST(0 == wakeup_synccond(&scond, &srun));
    TEST(! iswaiting_synccond(&scond))
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
 
    // TEST wakeupall_synccond: leer, niemand wartet
    TEST(! iswaiting_synccond(&scond))
    TEST(0 == wakeupall_synccond(&scond, &srun));
    TEST(! iswaiting_synccond(&scond))
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
 
    // prepare: fill wait queue
    syncfunc_opt_e optfields = syncfunc_opt_WAITFOR | syncfunc_opt_WAITLIST;
@@ -163,15 +163,15 @@ static int test_update(void)
       sfunc[i] = nextfree_syncqueue(&srun.rwqueue[qidx]);
       memset(sfunc[i], 0, elemsize_syncqueue(&srun.rwqueue[qidx]));
       if (i == 0) {
-         init_synclink(addrwaitfor_syncfunc(sfunc[i]), &scond.waitfunc);
-         initself_synclinkd(addrwaitlist_syncfunc(sfunc[i], true));
+         init_link(addrwaitfor_syncfunc(sfunc[i]), &scond.waitfunc);
+         initself_linkd(addrwaitlist_syncfunc(sfunc[i], true));
       } else {
-         initprev_synclinkd(addrwaitlist_syncfunc(sfunc[i], true), addrwaitlist_syncfunc(sfunc[0], true));
+         initprev_linkd(addrwaitlist_syncfunc(sfunc[i], true), addrwaitlist_syncfunc(sfunc[0], true));
       }
    }
 
    // TEST wakeup_synccond: wakeup nächste Funktion
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
    for (int i = 0; i < 10; ++i) {
       TEST(scond.waitfunc.link == &sfunc[i]->waitfor);
       TEST(&scond.waitfunc     == sfunc[i]->waitfor.link);
@@ -203,21 +203,21 @@ static int test_update(void)
       sfunc[i] = nextfree_syncqueue(&srun.rwqueue[qidx]);
       memset(sfunc[i], 0, elemsize_syncqueue(&srun.rwqueue[qidx]));
       if (i == 0) {
-         init_synclink(addrwaitfor_syncfunc(sfunc[i]), &scond.waitfunc);
-         initself_synclinkd(addrwaitlist_syncfunc(sfunc[i], true));
+         init_link(addrwaitfor_syncfunc(sfunc[i]), &scond.waitfunc);
+         initself_linkd(addrwaitlist_syncfunc(sfunc[i], true));
       } else {
-         initprev_synclinkd(addrwaitlist_syncfunc(sfunc[i], true), addrwaitlist_syncfunc(sfunc[0], true));
+         initprev_linkd(addrwaitlist_syncfunc(sfunc[i], true), addrwaitlist_syncfunc(sfunc[0], true));
       }
    }
 
    // TEST wakeupall_synccond
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
    TEST(scond.waitfunc.link == &sfunc[0]->waitfor);
    TEST(&scond.waitfunc     == sfunc[0]->waitfor.link);
    TEST(0 == wakeupall_synccond(&scond, &srun));
    // link cleared
-   TEST(! isvalid_synclink(&sfunc[0]->waitfor));
-   TEST(! isvalid_synclink(&scond.waitfunc));
+   TEST(! isvalid_link(&sfunc[0]->waitfor));
+   TEST(! isvalid_link(&scond.waitfunc));
    // alle Wartenden in wakeup list aufgenommen
    TEST(addrwaitlist_syncfunc(sfunc[0], true) == srun.wakeup.next);
    TEST(addrwaitlist_syncfunc(sfunc[9], true) == srun.wakeup.prev);
@@ -239,19 +239,19 @@ static int test_update(void)
    // TEST wakeup_synccond: EINVAL
    syncfunc_t dummy = syncfunc_FREE;
    link_synccond(&scond, &dummy);
-   TEST(isvalid_synclink(&scond.waitfunc));
+   TEST(isvalid_link(&scond.waitfunc));
    TEST(EINVAL == wakeup_synccond(&scond, &srun));
    // nothing changed
    TEST(scond.waitfunc.link == &dummy.waitfor);
    TEST(&scond.waitfunc     == dummy.waitfor.link);
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
 
    // TEST wakeupall_synccond: EINVAL
    TEST(EINVAL == wakeupall_synccond(&scond, &srun));
    // nothing changed
    TEST(scond.waitfunc.link == &dummy.waitfor);
    TEST(&scond.waitfunc     == dummy.waitfor.link);
-   TEST(isself_synclinkd(&srun.wakeup));
+   TEST(isself_linkd(&srun.wakeup));
 
    // unprepare
    TEST(0 == free_syncrunner(&srun));

@@ -266,7 +266,7 @@ static inline uint8_t asenum(uint32_t pagesize_in_bytes)
 
 // group: lifetime
 
-int init_queue(queue_t * queue, uint32_t pagesize)
+int init_queue(/*out*/queue_t * queue, uint32_t pagesize)
 {
    if (!issupported(pagesize)) goto ONERR;
 

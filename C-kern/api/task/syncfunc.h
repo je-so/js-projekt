@@ -30,7 +30,7 @@
 #ifndef CKERN_TASK_SYNCFUNC_HEADER
 #define CKERN_TASK_SYNCFUNC_HEADER
 
-#include "C-kern/api/task/synclink.h"
+#include "C-kern/api/ds/link.h"
 
 // forward
 struct syncrunner_t;
@@ -240,21 +240,21 @@ struct syncfunc_t {
    union {
       /* variable: waitresult
        * *Optional*: Das Ergebnis der Warteoperation. */
-      int         waitresult;
+      int      waitresult;
       /* variable: waitfor
        * *Optional*: Entweder ist der Link verbunden mit <syncfunc_t.caller> oder mit <synccond_t.waitfunc>. */
-      synclink_t  waitfor;
+      link_t   waitfor;
    };
    /* variable: waitlist
     * *Optional*: Verbindet weitere wartende <syncfunc_t> in einer Liste.
     * Nur der Kopf der Liste besitzt das Feld <waitfor> alle anderen Wartenden sind mit dem Kopf
     * über waitlist verbunden. */
-   synclinkd_t waitlist;
+   linkd_t     waitlist;
    // == optional fields describing run state ==
 
    /* variable: caller
     * *Optional*: Zeigt auf aufrufende syncfunc_t und ist verbunden mit <syncfunc_t.waitfor>. */
-   synclink_t  caller;
+   link_t      caller;
    /* variable: state
     * *Optional*: Zeigt auf gesicherten Zustand der Funktion.
     * Der Wert ist anfangs 0 (ungültig). Der Speicher wird von <mainfct> verwaltet. */
@@ -266,7 +266,7 @@ struct syncfunc_t {
 /* define: syncfunc_FREE
  * Static initializer. */
 #define syncfunc_FREE \
-         { 0, 0, 0, synclink_FREE, synclinkd_FREE, synclink_FREE, 0 }
+         { 0, 0, 0, link_FREE, linkd_FREE, link_FREE, 0 }
 
 /* function: init_syncfunc
  * Initialisiert alle, außer den optionalen Feldern. */
@@ -310,7 +310,7 @@ uint16_t getsize_syncfunc(const syncfunc_opt_e optfields);
  * Precondition:
  * o waitfor != 0
  * o waitfor == addrwaitfor_syncfunc(...) || waitfor == addrcaller_syncfunc(...)->link */
-syncfunc_t * waitforcast_syncfunc(synclink_t * waitfor);
+syncfunc_t * waitforcast_syncfunc(link_t * waitfor);
 
 /* function: waitlistcast_syncfunc
  * Caste waitlist nach <syncfunc_t>.
@@ -320,7 +320,7 @@ syncfunc_t * waitforcast_syncfunc(synclink_t * waitfor);
  * o waitlist == addrwaitlist_syncfunc(...)
  *   || waitfor == addrwaitlist_syncfunc(...)->next
  *   || waitfor == addrwaitlist_syncfunc(...)->prev */
-syncfunc_t * waitlistcast_syncfunc(synclink_t * waitlist, const bool iswaitfor);
+syncfunc_t * waitlistcast_syncfunc(link_t * waitlist, const bool iswaitfor);
 
 /* function: offwaitfor_syncfunc
  * Liefere den Byteoffset zum Feld <waitfor>. */
@@ -354,7 +354,7 @@ int * addrwaitresult_syncfunc(syncfunc_t * sfunc);
  *
  * Precondition:
  * Feld <waitfor> ist vorhanden. */
-synclink_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
+link_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
 
 /* function: addrwaitlist_syncfunc
  * Liefere die Adresse Wert des optionalen Feldes <waitlist>.
@@ -362,7 +362,7 @@ synclink_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
  *
  * Precondition:
  * Feld <waitlist> ist vorhanden. */
-synclinkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
+linkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
 
 /* function: addrcaller_syncfunc
  * Liefere die Adresse Wert des optionalen Feldes <state>.
@@ -371,7 +371,7 @@ synclinkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
  *
  * Precondition:
  * Feld <caller> ist vorhanden. */
-synclink_t * addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize, const bool isstate);
+link_t * addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize, const bool isstate);
 
 /* function: addrstate_syncfunc
  * Liefere die Adresse Wert des optionalen Feldes <state>.
@@ -508,9 +508,9 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 #define addrwaitfor_syncfunc(sfunc) \
          ( __extension__ ({               \
             syncfunc_t * _sf;             \
-            synclink_t * _ptr;            \
+            link_t * _ptr;                \
             _sf = (sfunc);                \
-            _ptr = (synclink_t*) (        \
+            _ptr = (link_t*) (            \
                    (uint8_t*) _sf         \
                   + offwaitfor_syncfunc() \
                    );                     \
@@ -522,9 +522,9 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 #define addrwaitlist_syncfunc(sfunc, iswaitfor) \
          ( __extension__ ({               \
             syncfunc_t * _sf;             \
-            synclinkd_t * _ptr;           \
+            linkd_t * _ptr;               \
             _sf = (sfunc);                \
-            _ptr = (synclinkd_t*) (       \
+            _ptr = (linkd_t*) (           \
                    (uint8_t*) _sf         \
                   + offwaitlist_syncfunc( \
                      (iswaitfor)));       \
@@ -536,9 +536,9 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 #define addrcaller_syncfunc(sfunc, structsize, isstate) \
          ( __extension__ ({               \
             syncfunc_t * _sf;             \
-            synclink_t * _ptr;            \
+            link_t * _ptr;                \
             _sf = (sfunc);                \
-            _ptr = (synclink_t*) (        \
+            _ptr = (link_t*) (            \
                    (uint8_t*) _sf         \
                   + offcaller_syncfunc(   \
                     (structsize),         \
@@ -581,14 +581,14 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 /* define: getsize_syncfunc
  * Implementiert <syncfunc_t.getsize_syncfunc>. */
 #define getsize_syncfunc(optfields) \
-         ( (uint16_t) (  offwaitfor_syncfunc()           \
-            + (((optfields) & syncfunc_opt_WAITFOR)      \
-              ? sizeof(synclink_t) : 0)                  \
-            + (((optfields) & syncfunc_opt_WAITLIST)     \
-              ? sizeof(synclinkd_t) : 0)                 \
-            + (((optfields) & syncfunc_opt_CALLER)       \
-              ? sizeof(synclink_t) : 0)                  \
-            + (((optfields) & syncfunc_opt_STATE)        \
+         ( (uint16_t) (  offwaitfor_syncfunc()        \
+            + (((optfields) & syncfunc_opt_WAITFOR)   \
+              ? sizeof(link_t) : 0)                   \
+            + (((optfields) & syncfunc_opt_WAITLIST)  \
+              ? sizeof(linkd_t) : 0)                  \
+            + (((optfields) & syncfunc_opt_CALLER)    \
+              ? sizeof(link_t) : 0)                   \
+            + (((optfields) & syncfunc_opt_STATE)     \
               ? sizeof(void*) : 0)))
 
 /* define: state_syncfunc
@@ -613,12 +613,12 @@ static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, 
 /* define: offwaitlist_syncfunc
  * Implementiert <syncfunc_t.offwaitlist_syncfunc>. */
 #define offwaitlist_syncfunc(iswaitfor) \
-         (offwaitfor_syncfunc() + ((iswaitfor) ? sizeof(synclink_t) : 0))
+         (offwaitfor_syncfunc() + ((iswaitfor) ? sizeof(link_t) : 0))
 
 /* define: offcaller_syncfunc
  * Implementiert <syncfunc_t.offcaller_syncfunc>. */
 #define offcaller_syncfunc(structsize, isstate, iscaller) \
-         (offstate_syncfunc(structsize, isstate) - ((iscaller) ? sizeof(synclink_t) : 0))
+         (offstate_syncfunc(structsize, isstate) - ((iscaller) ? sizeof(link_t) : 0))
 
 /* define: offstate_syncfunc
  * Implementiert <syncfunc_t.offstate_syncfunc>. */
@@ -750,10 +750,10 @@ static inline void initmove_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize
             }
 
             if (0 != (src->optfields & syncfunc_opt_CALLER)) {
-               synclink_t * caller = addrcaller_syncfunc(dest, destsize, deststate);
+               link_t * caller = addrcaller_syncfunc(dest, destsize, deststate);
                *caller = *addrcaller_syncfunc(src, srcsize, isstate);
-               if (isvalid_synclink(caller)) {
-                  relink_synclink(caller);
+               if (isvalid_link(caller)) {
+                  relink_link(caller);
                }
             }
          }

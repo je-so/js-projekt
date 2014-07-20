@@ -154,6 +154,7 @@ int run_unittest(void * argv)
 //}
 
 //{ data structure unittest
+      RUN(unittest_ds_link);
       RUN(unittest_ds_inmem_arraysf);
       RUN(unittest_ds_inmem_arraystf);
       RUN(unittest_ds_inmem_binarystack);
@@ -226,7 +227,6 @@ int run_unittest(void * argv)
 //{ task unittest
       RUN(unittest_task_synccond);
       RUN(unittest_task_syncfunc);
-      RUN(unittest_task_synclink);
       RUN(unittest_task_syncqueue);
       RUN(unittest_task_syncrunner);
 //}

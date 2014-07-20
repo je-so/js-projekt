@@ -31,7 +31,7 @@
 #ifndef CKERN_TASK_SYNCCOND_HEADER
 #define CKERN_TASK_SYNCCOND_HEADER
 
-#include "C-kern/api/task/synclink.h"
+#include "C-kern/api/ds/link.h"
 
 // forward
 struct syncfunc_t;
@@ -63,7 +63,7 @@ int unittest_task_synccond(void);
  * von mehreren <syncrunner_t> gleichzeitig benutzt werden,
  * ist das Verhalten undefiniert/fehlerhaft. */
 struct synccond_t {
-   synclink_t  waitfunc;
+   link_t  waitfunc;
 };
 
 // group: lifetime
@@ -71,7 +71,7 @@ struct synccond_t {
 /* define: synccond_FREE
  * Static initializer. */
 #define synccond_FREE \
-         { synclink_FREE }
+         { link_FREE }
 
 /* function: init_synccond
  * Setze scond auf Initialwert - eine leere Warteliste. */
@@ -90,7 +90,7 @@ int free_synccond(synccond_t * scond);
  * Gib true zurück, falls mindestens eine Funktion wartet, sonst false. */
 int iswaiting_synccond(const synccond_t * scond);
 
-/* function: iswaiting_synccond
+/* function: waitfunc_synccond
  * Gib die wartende <syncfunc_t> zurück.
  *
  * Unchecked Precondition:
@@ -108,7 +108,7 @@ struct syncfunc_t * waitfunc_synccond(const synccond_t * scond);
  *
  * Unchecked Precondition:
  * o ! iswaiting_synccond(scond)
- * o ! isvalid_synclink(addrwaitfor_syncfunc(sfunc)) */
+ * o ! isvalid_link(addrwaitfor_syncfunc(sfunc)) */
 void link_synccond(synccond_t * scond, struct syncfunc_t * sfunc);
 
 /* function: unlink_synccond
@@ -141,17 +141,17 @@ int wakeupall_synccond(struct synccond_t * scond, struct syncrunner_t * srun);
 /* define: iswaiting_synccond
  * Implements <synccond_t.iswaiting_synccond>. */
 #define iswaiting_synccond(scond) \
-         (isvalid_synclink(&(scond)->waitfunc))
+         (isvalid_link(&(scond)->waitfunc))
 
 /* define: link_synccond
  * Implements <synccond_t.link_synccond>. */
 #define link_synccond(scond, sfunc) \
-         init_synclink(&(scond)->waitfunc, addrwaitfor_syncfunc(sfunc))
+         init_link(&(scond)->waitfunc, addrwaitfor_syncfunc(sfunc))
 
 /* define: unlink_synccond
  * Implements <synccond_t.unlink_synccond>. */
 #define unlink_synccond(scond) \
-         free_synclink(&(scond)->waitfunc)
+         free_link(&(scond)->waitfunc)
 
 /* define: waitfunc_synccond
  * Implements <synccond_t.waitfunc_synccond>. */

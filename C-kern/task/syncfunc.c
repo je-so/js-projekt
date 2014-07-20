@@ -40,24 +40,24 @@ void relink_syncfunc(syncfunc_t * sfunc, const size_t structsize)
 {
    const int iswaitfor = (sfunc->optfields & syncfunc_opt_WAITFOR);
    if (iswaitfor && !(sfunc->optfields & syncfunc_opt_WAITRESULT)) {
-      synclink_t * waitfor = addrwaitfor_syncfunc(sfunc);
-      if (isvalid_synclink(waitfor)) {
-         relink_synclink(waitfor);
+      link_t * waitfor = addrwaitfor_syncfunc(sfunc);
+      if (isvalid_link(waitfor)) {
+         relink_link(waitfor);
       }
    }
 
    if (0 != (sfunc->optfields & syncfunc_opt_WAITLIST)) {
-      synclinkd_t * waitlist = addrwaitlist_syncfunc(sfunc, iswaitfor);
-      if (isvalid_synclinkd(waitlist)) {
-         relink_synclinkd(waitlist);
+      linkd_t * waitlist = addrwaitlist_syncfunc(sfunc, iswaitfor);
+      if (isvalid_linkd(waitlist)) {
+         relink_linkd(waitlist);
       }
    }
 
    if (0 != (sfunc->optfields & syncfunc_opt_CALLER)) {
       const int isstate = (sfunc->optfields & syncfunc_opt_STATE);
-      synclink_t * caller = addrcaller_syncfunc(sfunc, structsize, isstate);
-      if (isvalid_synclink(caller)) {
-         relink_synclink(caller);
+      link_t * caller = addrcaller_syncfunc(sfunc, structsize, isstate);
+      if (isvalid_link(caller)) {
+         relink_link(caller);
       }
    }
 }
@@ -66,24 +66,24 @@ void unlink_syncfunc(syncfunc_t * sfunc, const size_t structsize)
 {
    const int iswaitfor = (sfunc->optfields & syncfunc_opt_WAITFOR);
    if (iswaitfor && !(sfunc->optfields & syncfunc_opt_WAITRESULT)) {
-      synclink_t * waitfor = addrwaitfor_syncfunc(sfunc);
-      if (isvalid_synclink(waitfor)) {
-         unlink_synclink(waitfor);
+      link_t * waitfor = addrwaitfor_syncfunc(sfunc);
+      if (isvalid_link(waitfor)) {
+         unlink_link(waitfor);
       }
    }
 
    if (0 != (sfunc->optfields & syncfunc_opt_WAITLIST)) {
-      synclinkd_t * waitlist = addrwaitlist_syncfunc(sfunc, iswaitfor);
-      if (isvalid_synclinkd(waitlist)) {
-         unlink_synclinkd(waitlist);
+      linkd_t * waitlist = addrwaitlist_syncfunc(sfunc, iswaitfor);
+      if (isvalid_linkd(waitlist)) {
+         unlink_linkd(waitlist);
       }
    }
 
    if (0 != (sfunc->optfields & syncfunc_opt_CALLER)) {
       const int isstate = (sfunc->optfields & syncfunc_opt_STATE);
-      synclink_t * caller = addrcaller_syncfunc(sfunc, structsize, isstate);
-      if (isvalid_synclink(caller)) {
-         unlink_synclink(caller);
+      link_t * caller = addrcaller_syncfunc(sfunc, structsize, isstate);
+      if (isvalid_link(caller)) {
+         unlink_link(caller);
       }
    }
 }
@@ -158,7 +158,7 @@ static int test_initfree(void)
 
    // TEST initmove_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      synclink_t waitfor = synclink_FREE;
+      link_t waitfor = link_FREE;
       for (syncfunc_opt_e opt2 = 0; opt2 <= syncfunc_opt_ALL; ++opt2) {
          if ((opt & syncfunc_opt_CALLER) != (opt2 & syncfunc_opt_CALLER)) continue;
          uint16_t size  = getsize_syncfunc(opt);
@@ -169,7 +169,7 @@ static int test_initfree(void)
          memset(&sfunc2, 0, sizeof(sfunc));
          init_syncfunc(&sfunc, &test_start_sf, opt);
          if (opt & syncfunc_opt_CALLER) {
-            init_synclink(addrcaller_syncfunc(&sfunc, size, (opt & syncfunc_opt_STATE)), &waitfor);
+            init_link(addrcaller_syncfunc(&sfunc, size, (opt & syncfunc_opt_STATE)), &waitfor);
          }
          initmove_syncfunc(&sfunc2, size2, contoff, opt2, state, &sfunc, size, (opt & syncfunc_opt_STATE));
          TEST(sfunc2.mainfct    == &test_start_sf);
@@ -259,7 +259,7 @@ static int test_getset(void)
 
    // TEST addrwaitlist_syncfunc
    TEST(addrwaitlist_syncfunc(&sfunc, true)  == &sfunc.waitlist);
-   TEST(addrwaitlist_syncfunc(&sfunc, false) == (synclinkd_t*)&sfunc.waitfor);
+   TEST(addrwaitlist_syncfunc(&sfunc, false) == (linkd_t*)&sfunc.waitfor);
 
    // TEST addrcaller_syncfunc
    size = getsize_syncfunc(syncfunc_opt_ALL);
@@ -270,7 +270,7 @@ static int test_getset(void)
                        + size
                        - (isstate ? sizeof(sfunc.state) : 0)
                        - sizeof(sfunc.caller);
-         TEST(addrcaller_syncfunc(&sfunc, size, isstate) == (synclink_t*)expect);
+         TEST(addrcaller_syncfunc(&sfunc, size, isstate) == (link_t*)expect);
       }
    }
 
@@ -299,14 +299,14 @@ static int test_getset(void)
    TEST(&sfunc == waitlistcast_syncfunc(addrwaitlist_syncfunc(&sfunc, false), false));
 
    // TEST waitforcast_syncfunc: connected link
-   init_synclink(&sfunc.waitfor, &sfunc2.caller);
+   init_link(&sfunc.waitfor, &sfunc2.caller);
    TEST(&sfunc == waitforcast_syncfunc(sfunc2.caller.link));
 
    // TEST waitlistcast_syncfunc: connected link
-   init_synclinkd(addrwaitlist_syncfunc(&sfunc, true), &sfunc2.waitlist);
+   init_linkd(addrwaitlist_syncfunc(&sfunc, true), &sfunc2.waitlist);
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.next, true));
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.prev, true));
-   init_synclinkd(addrwaitlist_syncfunc(&sfunc, false), &sfunc2.waitlist);
+   init_linkd(addrwaitlist_syncfunc(&sfunc, false), &sfunc2.waitlist);
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.next, false));
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.prev, false));
 
@@ -372,10 +372,10 @@ static int test_getset(void)
          if (!isresult) {
             TEST(addrwaitfor_syncfunc(&sfunc) == sfunc2.waitfor.link);
          } else {
-            TEST(0 == isvalid_synclink(&sfunc2.waitfor));
+            TEST(0 == isvalid_link(&sfunc2.waitfor));
          }
       } else {
-         TEST(0 == isvalid_synclink(&sfunc2.waitfor));
+         TEST(0 == isvalid_link(&sfunc2.waitfor));
       }
       if (iswaitlist) {
          TEST(addrwaitlist_syncfunc(&sfunc, iswaitfor)->prev == &sfunc2.waitlist);
@@ -383,13 +383,13 @@ static int test_getset(void)
          TEST(addrwaitlist_syncfunc(&sfunc, iswaitfor) == sfunc2.waitlist.prev);
          TEST(addrwaitlist_syncfunc(&sfunc, iswaitfor) == sfunc2.waitlist.next);
       } else {
-         TEST(0 == isvalid_synclinkd(&sfunc2.waitlist));
+         TEST(0 == isvalid_linkd(&sfunc2.waitlist));
       }
       if (iscaller) {
          TEST(addrcaller_syncfunc(&sfunc, size, isstate)->link == &sfunc2.caller);
          TEST(addrcaller_syncfunc(&sfunc, size, isstate) == sfunc2.caller.link);
       } else {
-         TEST(0 == isvalid_synclink(&sfunc2.caller));
+         TEST(0 == isvalid_link(&sfunc2.caller));
       }
    }
 
@@ -409,13 +409,13 @@ static int test_getset(void)
       // test unlink_syncfunc: invalid links (nothing is done)
       unlink_syncfunc(&sfunc, size);
       if (iswaitfor) {
-         init_synclink(addrwaitfor_syncfunc(&sfunc), &sfunc2.waitfor);
+         init_link(addrwaitfor_syncfunc(&sfunc), &sfunc2.waitfor);
       }
       if (iswaitlist) {
-         init_synclinkd(addrwaitlist_syncfunc(&sfunc, iswaitfor), &sfunc2.waitlist);
+         init_linkd(addrwaitlist_syncfunc(&sfunc, iswaitfor), &sfunc2.waitlist);
       }
       if (iscaller) {
-         init_synclink(addrcaller_syncfunc(&sfunc, size, isstate), &sfunc2.caller);
+         init_link(addrcaller_syncfunc(&sfunc, size, isstate), &sfunc2.caller);
       }
 
       // test unlink_syncfunc: valid links
@@ -424,10 +424,10 @@ static int test_getset(void)
       if (iswaitfor && isresult) {
          TEST(addrwaitfor_syncfunc(&sfunc) == sfunc2.waitfor.link);
       } else {
-         TEST(0 == isvalid_synclink(&sfunc2.waitfor));
+         TEST(0 == isvalid_link(&sfunc2.waitfor));
       }
-      TEST(0 == isvalid_synclinkd(&sfunc2.waitlist));
-      TEST(0 == isvalid_synclink(&sfunc2.caller));
+      TEST(0 == isvalid_linkd(&sfunc2.waitlist));
+      TEST(0 == isvalid_link(&sfunc2.caller));
       // sfunc is not changed
       if (iswaitfor) {
          TEST(addrwaitfor_syncfunc(&sfunc)->link == &sfunc2.waitfor);

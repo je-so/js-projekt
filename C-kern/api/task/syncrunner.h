@@ -80,10 +80,10 @@ struct syncrunner_t {
    /* variable: caller
     * Zeigt auf <syncfunc_t.caller> der zuletzt mit <addcall_syncrunner> hinzugefügten Funktion.
     * Falls 0, dann wurde <addcall_syncrunner> noch nicht von der gerade ablaufenden <syncfunc_t> aufgerufen. */
-   synclink_t   * caller;
+   link_t       * caller;
    /* variable: wakeup
     * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist>ist vorhanden. */
-   synclinkd_t    wakeup;
+   linkd_t        wakeup;
    /* variable: rwqueue
     * Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmet sich aus dem Vorhandensein optionaler Felder. */
@@ -98,7 +98,7 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         {  0, synclinkd_FREE, \
+         {  0, linkd_FREE, \
             { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
             false, \
          }
@@ -175,7 +175,7 @@ int wakeupall_syncrunner(syncrunner_t * srun, struct synccond_t * scond);
  * der Erfüllung der Wartebedingung werden sie wieder ausgeführt. */
 int run_syncrunner(syncrunner_t * srun);
 
-/* function: run_syncrunner
+/* function: run2_syncrunner
  * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
  * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
  * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
