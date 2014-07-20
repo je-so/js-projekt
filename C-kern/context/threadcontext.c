@@ -52,7 +52,7 @@
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadcontext_errtimer
- * Simulates an error in <init_threadcontext>. */
+ * Simulates an error in <threadcontext_t.init_threadcontext>. */
 static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_FREE ;
 #endif
 

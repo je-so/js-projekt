@@ -1,7 +1,6 @@
 /* title: DefaultMemoryManager
 
    Default implementation of <mm_it>.
-   // TODO: rename into mm_default
 
    about: Copyright
    This program is free software.
@@ -55,7 +54,7 @@ struct mm_impl_t {
 // group: initthread
 
 /* function: interface_mmimpl
- * This function is called from <init_threadcontext>.
+ * This function is called from <threadcontext_t.init_threadcontext>.
  * Used to initialize interface of <mm_t>. */
 struct mm_it * interface_mmimpl(void) ;
 

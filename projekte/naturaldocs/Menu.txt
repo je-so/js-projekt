@@ -112,6 +112,7 @@ Group: Api  {
          File: Typeadapt-Nodeoffset  (api/ds/typeadapt/nodeoffset.h)
          }  # Group: Typeadapt
 
+      File: DualLink  (api/ds/link.h)
       File: Foreach-Iterator  (api/ds/foreach.h)
       File: Typeadapt  (api/ds/typeadapt.h)
       }  # Group: Ds
@@ -188,7 +189,6 @@ Group: Api  {
 
       Group: Int  {
 
-         File: AtomicOps  (api/math/int/atomic.h)
          File: BigInteger  (api/math/int/bigint.h)
          File: Intop-Abs  (api/math/int/abs.h)
          File: Intop-Bitorder  (api/math/int/bitorder.h)
@@ -211,6 +211,7 @@ Group: Api  {
          File: MemoryManagerMacros  (api/memory/mm/mm_macros.h)
          }  # Group: Mm
 
+      File: AtomicOps  (api/memory/atomic.h)
       File: HWCache  (api/memory/hwcache.h)
       File: MemoryBlock  (api/memory/memblock.h)
       File: MemoryPageCache  (api/memory/pagecache_impl.h)
@@ -326,15 +327,11 @@ Group: Api  {
 
    Group: Task  {
 
+      File: SyncCommand  (api/task/synccmd.h)
+      File: SyncCondition  (api/task/synccond.h)
       File: SyncFunc  (api/task/syncfunc.h)
       File: SyncQueue  (api/task/syncqueue.h)
-      File: SyncRun  (api/task/syncrun.h)
       File: SyncRunner  (api/task/syncrunner.h)
-      File: SyncThread  (api/task/syncthread.h)
-      File: SyncWait  (api/task/syncwait.h)
-      File: SyncWait-Func  (api/task/syncwait_func.h)
-      File: SyncWait-Node  (api/task/syncwait_node.h)
-      File: SyncWaitlist  (api/task/syncwlist.h)
       }  # Group: Task
 
    File: ErrorHandling  (api/err.h)
@@ -391,6 +388,7 @@ Group: Implementation  {
          File: Typeadapt-Nodeoffset impl  (ds/typeadapt/nodeoffset.c)
          }  # Group: Typeadapt
 
+      File: DualLink impl  (ds/link.c)
       File: Typeadapt impl  (ds/typeadapt.c)
       }  # Group: DataStructures
 
@@ -475,7 +473,6 @@ Group: Implementation  {
          File: Intop-Log10 impl  (math/int/log10.c)
          File: Intop-Sign impl  (math/int/sign.c)
          File: Intop-SquareRoot impl  (math/int/sqroot.c)
-         File: AtomicOps impl  (math/int/atomic.c)
          File: Intop-Bitorder impl  (math/int/bitorder.c)
          File: Intop-Byteorder impl  (math/int/byteorder.c)
          }  # Group: Int
@@ -484,6 +481,7 @@ Group: Implementation  {
 
    Group: Memory  {
 
+      File: AtomicOps impl  (memory/atomic.c)
       File: DefaultMemoryManager impl  (memory/mm/mm_impl.c)
       File: HWCache impl  (memory/hwcache.c)
       File: MemoryBlock impl  (memory/memblock.c)
@@ -587,13 +585,10 @@ Group: Implementation  {
 
    Group: Task  {
 
+      File: SyncCondition impl  (task/synccond.c)
       File: SyncFunc impl  (task/syncfunc.c)
       File: SyncQueue impl  (task/syncqueue.c)
-      File: SyncRun impl  (task/syncrun.c)
       File: SyncRunner impl  (task/syncrunner.c)
-      File: SyncThread impl  (task/syncthread.c)
-      File: SyncWait impl  (task/syncwait.c)
-      File: SyncWaitlist impl  (task/syncwlist.c)
       }  # Group: Task
 
    Group: Test  {

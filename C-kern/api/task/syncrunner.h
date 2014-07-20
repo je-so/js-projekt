@@ -85,7 +85,7 @@ struct syncrunner_t {
     * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist>ist vorhanden. */
    linkd_t        wakeup;
    /* variable: rwqueue
-    * Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
+    * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmet sich aus dem Vorhandensein optionaler Felder. */
    syncqueue_t    rwqueue[3+3];
    /* variable: isrun

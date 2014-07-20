@@ -80,7 +80,7 @@ struct logwriter_t {
 // group: initthread
 
 /* function: interface_logwriter
- * This function is called from <init_threadcontext>.
+ * This function is called from <threadcontext_t.init_threadcontext>.
  * Used to initialize interface of <log_t>. */
 struct log_it * interface_logwriter(void);
 
