@@ -218,15 +218,12 @@
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="task">
-      <File Name="../../C-kern/api/task/syncthread.h"/>
-      <File Name="../../C-kern/api/task/syncrun.h"/>
-      <File Name="../../C-kern/api/task/syncwait.h"/>
-      <File Name="../../C-kern/api/task/syncwlist.h"/>
       <File Name="../../C-kern/api/task/syncqueue.h"/>
-      <File Name="../../C-kern/api/task/TODO.txt"/>
       <File Name="../../C-kern/api/task/syncfunc.h"/>
       <File Name="../../C-kern/api/task/syncrunner.h"/>
       <File Name="../../C-kern/api/task/synclink.h"/>
+      <File Name="../../C-kern/api/task/synccond.h"/>
+      <File Name="../../C-kern/api/task/synccmd.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">
@@ -497,14 +494,11 @@
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="task">
-    <File Name="../../C-kern/task/syncthread.c"/>
-    <File Name="../../C-kern/task/syncrun.c"/>
-    <File Name="../../C-kern/task/syncwait.c"/>
-    <File Name="../../C-kern/task/syncwlist.c"/>
     <File Name="../../C-kern/task/syncqueue.c"/>
     <File Name="../../C-kern/task/syncfunc.c"/>
     <File Name="../../C-kern/task/syncrunner.c"/>
     <File Name="../../C-kern/task/synclink.c"/>
+    <File Name="../../C-kern/task/synccond.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>
   <VirtualDirectory Name="graphic">

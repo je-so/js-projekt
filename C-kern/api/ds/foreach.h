@@ -80,9 +80,9 @@
  * See <slist_t> for an example.
  */
 #define foreach(_fsuffix, varname, ...)                                       \
-   for (iteratedtype##_fsuffix varname;;)                                     \
-   for (iteratortype##_fsuffix iter_##varname ;                               \
-        0 == initfirst##_fsuffix##iterator(& iter_##varname, __VA_ARGS__);    \
+   for (iteratortype##_fsuffix iter_##varname;                                \
+        0 == initfirst##_fsuffix##iterator(& iter_##varname, __VA_ARGS__);)   \
+   for (iteratedtype##_fsuffix varname;;                                      \
         (__extension__({ (void)free##_fsuffix##iterator(&iter_##varname);     \
                            break/*breaks outermost loop*/; })))               \
    while (next##_fsuffix##iterator(&iter_##varname, &varname))
@@ -133,10 +133,10 @@
  * See <dlist_t> for an example.
  */
 #define foreachReverse(_fsuffix, varname, ...)                                \
-   for (iteratedtype##_fsuffix varname;;)                                     \
-   for (iteratortype##_fsuffix iter_##varname ;                               \
-        0 == initlast##_fsuffix##iterator(& iter_##varname, __VA_ARGS__) ;    \
-        (__extension__({ (void)free##_fsuffix##iterator(&iter_##varname) ;    \
+   for (iteratortype##_fsuffix iter_##varname;                                \
+        0 == initlast##_fsuffix##iterator(& iter_##varname, __VA_ARGS__);)    \
+   for (iteratedtype##_fsuffix varname;;                                      \
+        (__extension__({ (void)free##_fsuffix##iterator(&iter_##varname);     \
                          break/*breaks outermost loop*/; })))                 \
    while (prev##_fsuffix##iterator(&iter_##varname, &varname))
 

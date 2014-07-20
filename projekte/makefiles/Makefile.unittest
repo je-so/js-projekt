@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jul.19  08:23:45
+GenerationDate  := 2014.Jul.20  06:49:42
 GeneratedBy     := je-so
 
 ## Debug
@@ -174,13 +174,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
  $(ObjectDir_Debug)/C-kern!task!synclink.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncthread.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncrun.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
@@ -290,13 +287,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
  $(ObjectDir_Release)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o \
- $(ObjectDir_Release)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Release)/C-kern!task!synccond.c.o \
  $(ObjectDir_Release)/C-kern!task!synclink.c.o \
- $(ObjectDir_Release)/C-kern!task!syncthread.c.o \
- $(ObjectDir_Release)/C-kern!task!syncrun.c.o \
- $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!test!unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
@@ -611,25 +605,16 @@ $(ObjectDir_Debug)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.c
 $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!task!syncwait.c.o: C-kern/task/syncwait.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!task!synclink.c.o: C-kern/task/synclink.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncthread.c.o: C-kern/task/syncthread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
@@ -953,25 +938,16 @@ $(ObjectDir_Release)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.
 $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!task!syncwait.c.o: C-kern/task/syncwait.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!task!synclink.c.o: C-kern/task/synclink.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncthread.c.o: C-kern/task/syncthread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c

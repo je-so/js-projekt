@@ -29,6 +29,8 @@
 #ifndef CKERN_TASK_SYNCRUNNER_HEADER
 #define CKERN_TASK_SYNCRUNNER_HEADER
 
+#include "C-kern/api/task/synccmd.h"
+#include "C-kern/api/task/syncfunc.h"
 #include "C-kern/api/task/syncqueue.h"
 
 // forward
@@ -51,25 +53,44 @@ int unittest_task_syncrunner(void);
 
 
 /* struct: syncrunner_t
- * TODO: describe type
+ * Verwaltet ein Menge von <syncfunc_t> in
+ * einer Reihe von Run- und Wait-Queues.
  *
- * Another very simple possibility is to use a complex of 8 run queues and 8 wait queues
- * (see <syncwait_func_t>) to store every possible combination of valid optional
- * fields. This would safe memory if a very large number of functions is used and
- * would make handling simple. But it wastes memory in case of a very a small
- * number of functions if the queues are implemented with linked pages with
- * a very large pagesize.
+ * Jeder Thread verwendet seinen eigenen <syncrunner_t>.
  *
- * TODO: make queue_t adaptable to different page sizes !
- * TODO: syncqueue_t uses 512 or 1024 bytes (check in table with different sizes !!) !
+ * Alle verwalteten <syncfunc_t> werden der Reihe nach ausgeführt,
+ * aber niemals gleichzeitig. Wenn eine ausgeführte Funktion die Rechenzeit
+ * nicht abgibt, werden alle anderen nicht oder verzögert ausgeführt.
+ *
+ * Synchronisation innerhalb eines Threads:
+ * Locking zum Schutz vor gleichzeitigem Zugriff innerhalb der Menge der
+ * Funktionen eines <syncrunner_t> ist nicht erforderlich.
+ * Synchronisation zwischen einzelnen Funktionen kann mittels Nachrichtenqueues
+ * gelöst werden.
+ *
+ * Synchronisation zwischen Threads:
+ * Die Verwendung von blockierendem Locking zum Zugriff auf Ressourcen,
+ * die von mehreren Threads verwendet werden, ist wegen der Unbestimmheit
+ * der Wartezeit eine schlechte Idee. Besser ist, auch zwischen Threads
+ * Nachrichtenqueues einzusetzen, die – etwa mittels Spinlocks – eine geringe
+ * Wartezeit garantieren.
  *
  * */
 struct syncrunner_t {
-   /* variable: queues
-    * Queues wich are used to store <syncthread_t>.
-    * Every queue serves a different number of optional fields of <syncfunc_t> and <syncwait_func_t>. */
-   syncqueue_t    runqueue[4];
-   syncqueue_t    waitqueue[5];
+   /* variable: caller
+    * Zeigt auf <syncfunc_t.caller> der zuletzt mit <addcall_syncrunner> hinzugefügten Funktion.
+    * Falls 0, dann wurde <addcall_syncrunner> noch nicht von der gerade ablaufenden <syncfunc_t> aufgerufen. */
+   synclink_t   * caller;
+   /* variable: wakeup
+    * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist>ist vorhanden. */
+   synclinkd_t    wakeup;
+   /* variable: rwqueue
+    * Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
+    * Die Größe in Bytes einer syncfunc_t bestimmet sich aus dem Vorhandensein optionaler Felder. */
+   syncqueue_t    rwqueue[3+3];
+   /* variable: isrun
+    * Falls true, wird <run_syncrunner> bzw. <teminate_syncrunner> ausgeführt. */
+   bool           isrun;
 };
 
 // group: lifetime
@@ -77,30 +98,125 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         {  { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
-            { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE } }
+         {  0, synclinkd_FREE, \
+            { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
+            false, \
+         }
 
 /* function: init_syncrunner
- * TODO: Describe Initializes object. */
-int init_syncrunner(/*out*/syncrunner_t * obj);
+ * Initialisiere srun, insbesondere die Warte- und Run-Queues. */
+int init_syncrunner(/*out*/syncrunner_t * srun);
 
 /* function: free_syncrunner
- * TODO: Describe Frees all associated resources. */
-int free_syncrunner(syncrunner_t * obj);
+ * Gib Speicher frei, insbesondere den SPeicher der Warte- und Run-Queues.
+ * Die Ressourcen noch auszuführender <syncfunc_t> und wartender <syncfunc_t>
+ * werden nicht freigegeben! Falls dies erforderlich ist, bitte vorher
+ * <teminate_syncrunner> aufrufen. */
+int free_syncrunner(syncrunner_t * srun);
 
 // group: query
 
+/* function: size_syncrunner
+ * Liefere Anzahl wartender und auszuführender <syncfunc_t>. */
+size_t size_syncrunner(const syncrunner_t * srun);
+
 // group: update
 
-int addsf_syncrunner(syncrunner_t * srun, const struct syncfunc_t * sfunc);
+/* function: addfunc_syncrunner
+ * Erzeugt neue <syncfunc_t> und fügt diese in die Runqueue ein.
+ * Auf die Beendigung einer solchen Funktion kann nicht gewartet werden.
+ *
+ * Parameter:
+ * mainfct - Auszuführende Funktion. Wird mit jedem Aurfuf von <run_syncrunner>
+ *           genau einmal ausgeführt.
+ * state   - Zustand, welcher mainfct mit Hilfe des ersten Parameter
+ *           (siehe <syncfunc_param_t.state> übergeben wird.
+ */
+int addfunc_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void * state);
+
+/* function: addcall_syncrunner
+ * Erzeugt neue <syncfunc_t> und fügt diese in die Runqueue ein.
+ * Auf die Beendigung der zuletzt erzeugten Funktion kann mit <waitexit_syncfunc>
+ * gewartet werden. Wenn auf die Beendigung von mehreren Funktionen gewartet werden
+ * soll, muss auf andere Synchronisationsmechanismen wie Messagequeues zurückgegriffen
+ * werden. Im Gegensatz zu <addfunc_syncrunner> verbraucht eine solcherart erzeugte
+ * Funktion mehr Speicherplatz.
+ *
+ * Parameter:
+ * mainfct - Auszuführende Funktion. Wird mit jedem Aurfuf von <run_syncrunner>
+ *           genau einmal ausgeführt.
+ * state   - Zustand, welcher mainfct mit Hilfe des ersten Parameter
+ *           (siehe <syncfunc_param_t.state> übergeben wird. */
+int addcall_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void * state);
+
+/* function: wakeup_syncrunner
+ * Wecke die erste wartende <syncfunc_t> auf.
+ * Falls <iswaiting_synccond>(scond)==false, wird nichts getan.
+ * Return EINVAL, falls scond zu einem anderen srun gehört.
+ * Die aufgeweckte Funktion wird in <syncrunner_t.wakeup> eingefügt
+ * und beim nächsten Aufruf von <run_syncrunner> wieder mit ausgeführt. */
+int wakeup_syncrunner(syncrunner_t * srun, struct synccond_t * scond);
+
+/* function: wakeupall_syncrunner
+ * Wecke alle auf scond wartenden <syncfunc_t> auf.
+ * Falls <iswaiting_synccond>(scond)==false, wird nichts getan.
+ * Return EINVAL, falls scond zu einem anderen srun gehört.
+ * Die aufgeweckten Funktionen werden in <syncrunner_t.wakeup> eingefügt
+ * und beim nächsten Aufruf von <run_syncrunner> wieder mit ausgeführt. */
+int wakeupall_syncrunner(syncrunner_t * srun, struct synccond_t * scond);
+
+// group: execute
+
+/* function: run_syncrunner
+ * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
+ * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
+ * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
+ * stehen in einer Warteschlange und werden nicht ausgeführt. Erst mit
+ * der Erfüllung der Wartebedingung werden sie wieder ausgeführt. */
+int run_syncrunner(syncrunner_t * srun);
+
+/* function: run_syncrunner
+ * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
+ * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
+ * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
+ * stehen in einer Warteschlange und werden nicht ausgeführt. Erst mit
+ * der Erfüllung der Wartebedingung werden sie wieder ausgeführt.
+ *
+ * Wenn Parameter runwakeup auf false gesetzt ist, werden gerade aufgeweckte
+ * Funktionen (<wakeup_syncrunner>, <wakeupall_syncrunner>) nicht mit
+ * ausgeführt, sondern verbleiben weiterhin in der Aufweckliste (<syncrunner_t.wakeup>). */
+int run2_syncrunner(syncrunner_t * srun, bool runwakeup);
+
+/* function: terminate_syncrunner
+ * Führt alle Funktionen, auch die wartenden, genau einmal aus.
+ * Als Kommando wird <synccmd_EXIT> übergeben, was so viel wie
+ * alle Ressourcen freizugeben bedeutet. Danach werden alle
+ * Funktionen gelöscht und aller Speicher freigegeben. */
+int terminate_syncrunner(syncrunner_t * srun);
+
 
 
 // section: inline implementation
 
-/* define: init_syncrunner
- * Implements <syncrunner_t.init_syncrunner>. */
-#define init_syncrunner(obj) \
-         // TODO: implement
+// group: syncrunner_t
 
+#if !defined(KONFIG_SUBSYS_SYNCRUNNER)
+
+/* define: init_syncrunner
+ * ! defined(KONFIG_SUBSYS_SYNCRUNNER) ==> Implementiert <syncrunner_t.init_syncrunner> als No-Op. */
+#define init_syncrunner(srun) \
+         (0)
+
+/* define: free_syncrunner
+ * ! defined(KONFIG_SUBSYS_SYNCRUNNER) ==> Implementiert <syncrunner_t.free_syncrunner> als No-Op. */
+#define free_syncrunner(srun) \
+         (0)
+
+#endif
+
+/* define: run_syncrunner
+ * Implementiert <syncrunner_t.run_syncrunner>. */
+#define run_syncrunner(srun) \
+         (run2_syncrunner((srun), true))
 
 #endif

@@ -247,10 +247,10 @@ struct pagecache_blockmap_t * blockmap_maincontext(void);
  * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
 /*ref*/iobj_DECLARE(,pagecache) pagecache_maincontext(void);
 
-/* function: syncrun_maincontext
- * Returns <syncrun_t> of current <maincontext_t>. It is used to store and run
- * all <syncthread_t> of the current thread. */
-struct syncrun_t *         syncrun_maincontext(void);
+/* function: syncrunner_maincontext
+ * Returns <syncrunner_t> of current <maincontext_t>. It is used to store and run
+ * all <syncfunc_t> of the current thread. */
+struct syncrunner_t *      syncrunner_maincontext(void);
 
 /* function: sysuser_maincontext
  * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
@@ -328,9 +328,9 @@ uint16_t sizestatic_maincontext(void);
  * Inline implementation of <maincontext_t.sizestatic_maincontext>. */
 #define sizestatic_maincontext()          (self_maincontext()->size_staticmem)
 
-/* define: syncrun_maincontext
- * Inline implementation of <maincontext_t.syncrun_maincontext>. */
-#define syncrun_maincontext()             (tcontext_maincontext()->syncrun)
+/* define: syncrunner_maincontext
+ * Inline implementation of <maincontext_t.syncrunner_maincontext>. */
+#define syncrunner_maincontext()          (tcontext_maincontext()->syncrunner)
 
 /* define: sysuser_maincontext
  * Inline implementation of <maincontext_t.sysuser_maincontext>. */

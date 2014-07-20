@@ -1,85 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="6" Name="m_selectedTab"/>
+  <int Value="4" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="129" Name="FirstVisibleLine"/>
-      <int Value="137" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/task/syncrun.h" Name="FileName"/>
-      <int Value="32" Name="FirstVisibleLine"/>
-      <int Value="30" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/task/syncrun.c" Name="FileName"/>
-      <int Value="658" Name="FirstVisibleLine"/>
-      <int Value="656" Name="CurrentLine"/>
+      <int Value="141" Name="FirstVisibleLine"/>
+      <int Value="148" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/task/syncfunc.h" Name="FileName"/>
-      <int Value="250" Name="FirstVisibleLine"/>
-      <int Value="277" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks">
-        <wxString Value="277:3"/>
-        <wxString Value="332:3"/>
-      </wxArrayString>
+      <int Value="403" Name="FirstVisibleLine"/>
+      <int Value="445" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/task/syncfunc.c" Name="FileName"/>
-      <int Value="422" Name="FirstVisibleLine"/>
-      <int Value="442" Name="CurrentLine"/>
+      <int Value="556" Name="FirstVisibleLine"/>
+      <int Value="598" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/task/syncrunner.h" Name="FileName"/>
-      <int Value="51" Name="FirstVisibleLine"/>
-      <int Value="79" Name="CurrentLine"/>
+      <int Value="91" Name="FirstVisibleLine"/>
+      <int Value="84" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/task/syncrunner.c" Name="FileName"/>
-      <int Value="31" Name="FirstVisibleLine"/>
-      <int Value="56" Name="CurrentLine"/>
+      <int Value="3079" Name="FirstVisibleLine"/>
+      <int Value="3108" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/task/syncqueue.h" Name="FileName"/>
-      <int Value="79" Name="FirstVisibleLine"/>
-      <int Value="80" Name="CurrentLine"/>
+      <int Value="95" Name="FirstVisibleLine"/>
+      <int Value="93" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/queue.h" Name="FileName"/>
-      <int Value="483" Name="FirstVisibleLine"/>
-      <int Value="481" Name="CurrentLine"/>
+      <int Value="175" Name="FirstVisibleLine"/>
+      <int Value="173" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/task/synclink.h" Name="FileName"/>
-      <int Value="3" Name="FirstVisibleLine"/>
-      <int Value="0" Name="CurrentLine"/>
+      <int Value="361" Name="FirstVisibleLine"/>
+      <int Value="362" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="1" Name="Count"/>
+    <long Value="4" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
+      <wxString Value="/jsprojekt/JS/C-kern/task/syncrun.c" Name="file"/>
+      <int Value="2315" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint1">
+      <wxString Value="/jsprojekt/JS/C-kern/task/syncrun.c" Name="file"/>
+      <int Value="2362" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint2">
+      <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
+      <int Value="143" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint3">
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
       <int Value="146" Name="lineno"/>
       <wxString Value="" Name="function_name"/>

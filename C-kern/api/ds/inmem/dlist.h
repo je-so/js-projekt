@@ -76,11 +76,13 @@ struct dlist_iterator_t {
 #define dlist_iterator_FREE { 0, 0 }
 
 /* function: initfirst_dlistiterator
- * Initializes an iterator for <dlist_t>. */
+ * Initializes an iterator for <dlist_t>.
+ * Returns ENODATA if list is empty. */
 int initfirst_dlistiterator(/*out*/dlist_iterator_t * iter, dlist_t * list) ;
 
 /* function: initlast_dlistiterator
- * Initializes an iterator for <dlist_t>. */
+ * Initializes an iterator for <dlist_t>.
+ * Returns ENODATA if list is empty. */
 int initlast_dlistiterator(/*out*/dlist_iterator_t * iter, dlist_t * list) ;
 
 /* function: free_dlistiterator
@@ -287,62 +289,73 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
 
 /* define: free_dlistiterator
  * Implements <dlist_iterator_t.free_dlistiterator>. */
-#define free_dlistiterator(iter)    \
+#define free_dlistiterator(iter) \
          (((iter)->next = 0), 0)
 
 /* define: initfirst_dlistiterator
  * Implements <dlist_iterator_t.initfirst_dlistiterator>. */
-#define initfirst_dlistiterator(iter, list)  \
-         ( __extension__ ({                                 \
-            typeof(iter) _iter = (iter) ;                   \
-            typeof(list) _list = (list) ;                   \
-            *_iter = (typeof(*_iter))                       \
-                        { first_dlist(_list), _list } ;     \
-            0 ;                                             \
+#define initfirst_dlistiterator(iter, list) \
+         ( __extension__ ({                              \
+            int _err;                                    \
+            typeof(iter) _iter = (iter);                 \
+            typeof(list) _list = (list);                 \
+            if (_list->last) {                           \
+               *_iter = (typeof(*_iter))                 \
+                        { first_dlist(_list), _list };   \
+               _err = 0;                                 \
+            } else {                                     \
+               _err = ENODATA;                           \
+            }                                            \
+            _err;                                        \
          }))
 
 /* define: initlast_dlistiterator
  * Implements <dlist_iterator_t.initlast_dlistiterator>. */
-#define initlast_dlistiterator(iter, list)   \
-         ( __extension__ ({                                 \
-            typeof(iter) _iter = (iter) ;                   \
-            typeof(list) _list = (list) ;                   \
-            *_iter = (typeof(*_iter))                       \
-                        { last_dlist(_list), _list } ;      \
-            0 ;                                             \
+#define initlast_dlistiterator(iter, list) \
+         ( __extension__ ({                              \
+            int _err;                                    \
+            typeof(iter) _iter = (iter);                 \
+            typeof(list) _list = (list);                 \
+            if (_list->last) {                           \
+               *_iter = (typeof(*_iter))                 \
+                        { last_dlist(_list), _list };    \
+               _err = 0;                                 \
+            } else {                                     \
+               _err = ENODATA;                           \
+            }                                            \
+            _err;                                        \
          }))
 
 /* define: next_dlistiterator
  * Implements <dlist_iterator_t.next_dlistiterator>. */
 #define next_dlistiterator(iter, node)                      \
          ( __extension__ ({                                 \
-            typeof(iter) _iter = (iter) ;                   \
-            bool _isNext = (0 != _iter->next) ;             \
+            typeof(iter) _iter = (iter);                    \
+            bool _isNext = (0 != _iter->next);              \
             if (_isNext) {                                  \
-               *(node) = _iter->next ;                      \
+               *(node) = _iter->next;                       \
                if (_iter->list->last == _iter->next)        \
-                  _iter->next = 0 ;                         \
+                  _iter->next = 0;                          \
                else                                         \
-                  _iter->next = next_dlist(_iter->next) ;   \
+                  _iter->next = next_dlist(_iter->next);    \
             }                                               \
-            _isNext ;                                       \
+            _isNext;                                        \
          }))
-
 
 /* define: prev_dlistiterator
  * Implements <dlist_iterator_t.prev_dlistiterator>. */
 #define prev_dlistiterator(iter, node)                      \
          ( __extension__ ({                                 \
-            typeof(iter) _iter = (iter) ;                   \
-            bool _isNext = (0 != _iter->next) ;             \
+            typeof(iter) _iter = (iter);                    \
+            bool _isNext = (0 != _iter->next);              \
             if (_isNext) {                                  \
-               *(node)     = _iter->next ;                  \
-               _iter->next = prev_dlist(_iter->next) ;      \
+               *(node)     = _iter->next;                   \
+               _iter->next = prev_dlist(_iter->next);       \
                if (_iter->list->last == _iter->next) {      \
-                  _iter->next = 0 ;                         \
+                  _iter->next = 0;                          \
                }                                            \
             }                                               \
-            _isNext ;                                       \
+            _isNext;                                        \
          }))
 
 // group: dlist_t

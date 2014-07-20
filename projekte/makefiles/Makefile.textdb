@@ -90,9 +90,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncrun.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
@@ -117,9 +114,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
- $(ObjectDir_Release)/C-kern!task!syncqueue.c.o \
- $(ObjectDir_Release)/C-kern!task!syncrun.c.o \
- $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
@@ -179,15 +173,6 @@ $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_imp
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
@@ -254,15 +239,6 @@ $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_i
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c

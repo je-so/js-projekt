@@ -92,7 +92,7 @@ struct pagecache_impl_t {
     * An array of list of allocated blocks which contain free pages.
     * A single large block contains only pages of one size. Different blocks serve different sizes.
     * Therefore every page size has its own free list.
-    * This my be changed for example by using the the "buddy memory allocation" technique. */
+    * This may be changed for example by using the the "buddy memory allocation" technique. */
    struct {
       struct dlist_node_t *   last ;
    }                       freeblocklist[6] ;

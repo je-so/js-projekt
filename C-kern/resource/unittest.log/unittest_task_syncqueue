@@ -1,14 +1,6 @@
-[1: 1405751788.072266s]
-insertlast_queue() C-kern/ds/inmem/queue.c:314
-Error 22 - Invalid argument
-Function input violates condition (nodesize <= 512)
-[1: 1405751788.072514s]
-insertlast_queue() C-kern/ds/inmem/queue.c:314
-Error 22 - Invalid argument
-Function input violates condition (nodesize <= 512)
-[1: 1405751788.072828s]
-removelast_queue() C-kern/ds/inmem/queue.c:378
+[1: 1405832450.474474s]
+removefirst_queue() C-kern/ds/inmem/queue.c:396
 Error 61 - No data available
-[1: 1405751788.073414s]
-removefirst_queue() C-kern/ds/inmem/queue.c:354
+[1: 1405832450.474480s]
+removelast_queue() C-kern/ds/inmem/queue.c:420
 Error 61 - No data available

@@ -39,63 +39,47 @@
 
 // group: lifetime
 
+/* define: init_syncqueue
+ * Implements <syncqueue_t.init_syncqueue>. */
+int init_syncqueue(/*out*/syncqueue_t * syncqueue, uint16_t elemsize, uint8_t qidx)
+{
+   int err;
+
+   err = init_queue(genericcast_queue(syncqueue), syncqueue_PAGESIZE);
+   if (err) goto ONERR;
+
+   syncqueue->elemsize = elemsize;
+   syncqueue->qidx     = qidx;
+   syncqueue->size     = 0;
+   syncqueue->nextfree = 0;
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
 int free_syncqueue(syncqueue_t * syncqueue)
 {
-   int err ;
+   int err;
 
-   err = free_queue(genericcast_queue(syncqueue)) ;
+   err = free_queue(genericcast_queue(syncqueue));
 
-   syncqueue->nrelements = 0 ;
+   syncqueue->size = 0;
 
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query
 
 bool isfree_syncqueue(const syncqueue_t * syncqueue)
 {
-   return 0 == syncqueue->last && 0 == syncqueue->nrelements ;
-}
-
-// group: update
-
-int compact2_syncqueue(syncqueue_t * syncqueue, uint16_t elemsize, struct dlist_t * freelist, void (*initmove_elem)(void * dest, void * src))
-{
-   int err = 0 ;
-   dlist_node_t * firstfree = first_dlist(freelist) ;
-
-   /* last node in freelist points to first free entry in queue */
-   /* firstnode in freelist points to last free entry in queue */
-
-   while (!isempty_dlist(freelist)) {
-      void * lastentry = last_queue(genericcast_queue(syncqueue), elemsize) ;
-
-      if (lastentry != firstfree) {
-         dlist_node_t * lastfree ;
-         err = removelast_dlist(freelist, &lastfree) ;
-         if (err) goto ONERR;
-         initmove_elem(lastfree, lastentry) ;
-      } else {
-         err = removefirst_dlist(freelist, &firstfree) ;
-         if (err) goto ONERR;
-         firstfree = first_dlist(freelist) ;
-      }
-
-      err = removelast_queue(genericcast_queue(syncqueue), elemsize) ;
-      if (err) goto ONERR;
-
-      -- syncqueue->nrelements ;
-   }
-
-   return 0 ;
-ONERR:
-   TRACEEXIT_ERRLOG(err);
-   return err ;
+   return 0 == syncqueue->last && 0 == syncqueue->size;
 }
 
 
@@ -117,29 +101,41 @@ static int test_initfree(void)
    TEST((queue_t*)&syncqueue == genericcast_queue(&syncqueue)) ;
 
    // TEST syncqueue_FREE
-   TEST(0 == syncqueue.last) ;
-   TEST(0 == syncqueue.nrelements) ;
-
-   // TEST syncqueue_INIT
-   memset(&syncqueue, 255, sizeof(syncqueue)) ;
-   syncqueue = (syncqueue_t) syncqueue_INIT ;
+   TEST(0 == syncqueue.last);
+   TEST(0 == syncqueue.pagesize);
+   TEST(0 == syncqueue.qidx);
+   TEST(0 == syncqueue.elemsize);
+   TEST(0 == syncqueue.size) ;
+   TEST(0 == syncqueue.nextfree);
    TEST(1 == isfree_syncqueue(&syncqueue)) ;
 
    // TEST init_syncqueue
-   memset(&syncqueue, 255, sizeof(syncqueue)) ;
-   init_syncqueue(&syncqueue) ;
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
+   for (int i = 1; i <= 128; ++i) {
+      memset(&syncqueue, 255, sizeof(syncqueue)) ;
+      init_syncqueue(&syncqueue, (uint16_t)i, (uint8_t)(i+1));
+      TEST(0 == syncqueue.last);
+      TEST(1 == syncqueue.pagesize);
+      TEST(syncqueue_PAGESIZE == pagesize_queue(genericcast_queue(&syncqueue)));
+      TEST(i == syncqueue.qidx-1);
+      TEST(i == syncqueue.elemsize);
+      TEST(0 == syncqueue.size) ;
+      TEST(0 == syncqueue.nextfree);
 
-   // TEST free_syncqueue
-   void * dummy ;
-   TEST(0 == syncqueue.last) ;
-   TEST(0 == insertfirst_queue(genericcast_queue(&syncqueue), &dummy, 24))
-   TEST(0 != syncqueue.last) ;
-   syncqueue.nrelements = 1 ;
-   TEST(0 == free_syncqueue(&syncqueue)) ;
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
-   TEST(0 == free_syncqueue(&syncqueue)) ;
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
+      // preapre free: allocate some memory
+      TEST(0 == preallocate_syncqueue(&syncqueue));
+      TEST(0 != syncqueue.last);
+      TEST(0 != syncqueue.size);
+      TEST(0 != syncqueue.nextfree);
+      TEST(&syncqueue == queuefromaddr_syncqueue(syncqueue.nextfree));
+
+      // TEST free_syncqueue
+      TEST(0 == free_syncqueue(&syncqueue)) ;
+      TEST(0 == syncqueue.last);
+      TEST(0 == syncqueue.size) ;
+      TEST(0 == free_syncqueue(&syncqueue)) ;
+      TEST(0 == syncqueue.last);
+      TEST(0 == syncqueue.size) ;
+   }
 
    return 0 ;
 ONERR:
@@ -148,440 +144,179 @@ ONERR:
 
 static int test_query(void)
 {
-   syncqueue_t    syncqueue ;
-   syncqueue_t    syncqueue2 = syncqueue_FREE ;
+   syncqueue_t syncqueue;
+   bool        isinit = false;
+
+   // TEST syncqueue_PAGESIZE
+   static_assert(syncqueue_PAGESIZE == 1024, "supported by queue_t");
 
    // TEST isfree_syncqueue
    memset(&syncqueue, 255 ,sizeof(syncqueue)) ;
    TEST(0 == isfree_syncqueue(&syncqueue)) ;
    syncqueue.last = 0 ;
-   syncqueue.nrelements = 0 ;
+   syncqueue.size = 0 ;
    TEST(1 == isfree_syncqueue(&syncqueue)) ;
    syncqueue.last = (void*)1 ;
    TEST(0 == isfree_syncqueue(&syncqueue)) ;
    syncqueue.last = 0 ;
-   syncqueue.nrelements = 1 ;
+   syncqueue.size = 1 ;
    TEST(0 == isfree_syncqueue(&syncqueue)) ;
-   syncqueue.nrelements = 0 ;
+   syncqueue.size = 0 ;
    TEST(1 == isfree_syncqueue(&syncqueue)) ;
 
-   // TEST len_syncqueue
-   syncqueue.nrelements = 0 ;
-   TEST(0 == len_syncqueue(&syncqueue)) ;
-   for (size_t i = 1; i; i <<= 1 ) {
-      syncqueue.nrelements = i ;
-      TEST(i == len_syncqueue(&syncqueue)) ;
+   // TEST elemsize_syncqueue
+   for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
+      syncqueue.elemsize = i;
+      TEST(i == elemsize_syncqueue(&syncqueue));
    }
+
+   // TEST idx_syncqueue
+   for (uint8_t i = 1; i; i = (uint8_t) (i << 1)) {
+      syncqueue.qidx = i;
+      TEST(i == idx_syncqueue(&syncqueue));
+   }
+
+   // TEST size_syncqueue
+   for (size_t i = 1; i; i <<= 1 ) {
+      syncqueue.size = i ;
+      TEST(i == size_syncqueue(&syncqueue)) ;
+   }
+   syncqueue.size = 0;
+   TEST(0 == size_syncqueue(&syncqueue));
 
    // TEST queuefromaddr_syncqueue
-   init_syncqueue(&syncqueue2) ;
-   void * nodeaddr[128] = { 0 } ;
+   init_syncqueue(&syncqueue, 512, 10);
+   isinit = true;
+   void * nodeaddr[128] = { 0 };
    for (unsigned i = 0; i < lengthof(nodeaddr); ++i) {
-      TEST(0 == insertlast_queue(genericcast_queue(&syncqueue2), &nodeaddr[i], 128)) ;
+      TEST(0 == preallocate_syncqueue(&syncqueue));
+      nodeaddr[i] = nextfree_syncqueue(&syncqueue);
    }
    for (unsigned i = 0; i < lengthof(nodeaddr); ++i) {
-      for (unsigned offset = 0; offset < 128; ++offset) {
-         TEST(&syncqueue2 == queuefromaddr_syncqueue(offset+(uint8_t*)nodeaddr[i])) ;
+      for (unsigned offset = 0; offset < 512; ++offset) {
+         TEST(&syncqueue == queuefromaddr_syncqueue(offset + (uint8_t*)nodeaddr[i]));
       }
    }
-   TEST(0 == free_syncqueue(&syncqueue2)) ;
+   isinit = false;
+   TEST(0 == free_syncqueue(&syncqueue));
 
-   return 0 ;
+   // TEST nextfree_syncqueue
+   for (uintptr_t i = 1; i; i <<= 1 ) {
+      syncqueue.nextfree = (void*)i;
+      TEST((void*)i == nextfree_syncqueue(&syncqueue));
+   }
+   syncqueue.nextfree = 0;
+   TEST(0 == nextfree_syncqueue(&syncqueue));
+
+   return 0;
 ONERR:
-   free_syncqueue(&syncqueue2) ;
-   return EINVAL ;
+   if (isinit) {
+      free_syncqueue(&syncqueue);
+   }
+   return EINVAL;
 }
 
-typedef struct testelem_t     testelem_t ;
+typedef struct testelem_t     testelem_t;
 
 /* struct: testelem_t
- * Element which is interconnected to a buddy with <buddy>. */
+ * Stored in queue for testing purpose. */
 struct testelem_t {
-   /* variable: buddy
-    * Points to buddy node.
-    * The buddy points back to this node. */
-   testelem_t *   buddy ;
-   size_t         id ;
-   size_t         buddy_id ;
-} ;
-
-static size_t s_testelem_initcount = 0 ;
-static size_t s_testelem_initmovecount = 0 ;
-
-static void init_testelem(/*out*/testelem_t * testelem, size_t id)
-{
-   ++ s_testelem_initcount ;
-   testelem->buddy = 0 ;
-   testelem->id    = id ;
-   testelem->buddy_id = 0 ;
-}
-
-static void initmove_testelem(/*out*/testelem_t * dest, testelem_t * src)
-{
-   ++ s_testelem_initmovecount ;
-   // check src is connected
-   assert(src->buddy != 0) ;
-   assert(src->buddy->buddy == src) ;
-   src->buddy->buddy = dest ;
-   *dest = *src ;
-}
-
-static void connect_testelem(testelem_t * testelem, testelem_t * buddy)
-{
-   assert(testelem->buddy == 0) ;
-   assert(buddy->buddy    == 0) ;
-   testelem->buddy = buddy ;
-   buddy->buddy    = testelem ;
-   testelem->buddy_id = buddy->id ;
-   buddy->buddy_id    = testelem->id ;
-}
+   size_t id;
+};
 
 static int test_update(void)
 {
-   syncqueue_t    syncqueue ;
-   queue_t        testelemlist ;
+   syncqueue_t    syncqueue;
+   queue_t        testelemlist;
 
    // prepare
-   init_syncqueue(&syncqueue) ;
-   init_queue(&testelemlist) ;
+   init_syncqueue(&syncqueue, sizeof(testelem_t), 1);
+   init_queue(&testelemlist, defaultpagesize_queue());
 
-   // TEST insert2_syncqueue
-   for (uint16_t elemsize = sizeof(testelem_t); elemsize <= 512; elemsize = (uint16_t)(elemsize + 16u)) {
-      s_testelem_initcount = 0 ;
-      testelem_t * testelem = 0 ;
-      TEST(0 == insert2_syncqueue(&syncqueue, elemsize, &testelem)) ;
-      TEST(0 != testelem) ;
-      init_testelem(testelem, elemsize) ;
-      TEST(1 == syncqueue.nrelements) ;
-      TEST(1 == s_testelem_initcount) ;
-      TEST(elemsize == sizelast_queue(genericcast_queue(&syncqueue))) ;
-      testelem_t * testelem1 = last_queue(genericcast_queue(&syncqueue), elemsize) ;
-      TEST(testelem == testelem1) ;
-      TEST(0 == insert2_syncqueue(&syncqueue, elemsize, &testelem)) ;
-      TEST(0 != testelem) ;
-      init_testelem(testelem, 2u*elemsize) ;
-      TEST(2 == syncqueue.nrelements) ;
-      TEST(2 == s_testelem_initcount) ;
-      testelem_t * testelem2 = last_queue(genericcast_queue(&syncqueue), elemsize) ;
-      TEST(testelem == testelem2) ;
-      TEST(testelem1->id == elemsize) ;
-      TEST(testelem2->id == 2u*elemsize) ;
-      TEST(0 == free_syncqueue(&syncqueue)) ;
-      init_syncqueue(&syncqueue) ;
+   // TEST setnextfree_syncqueue
+   for (uintptr_t i = 1; i; i <<= 1) {
+      void * old = nextfree_syncqueue(&syncqueue);
+      setnextfree_syncqueue(&syncqueue, (void*)i);
+      TEST(syncqueue.nextfree == (void*)i);
+      TEST(syncqueue.size     == 0);
+      setnextfree_syncqueue(&syncqueue, old);
+      TEST(syncqueue.nextfree == old);
    }
 
-   // TEST insert2_syncqueue: EINVAL
-   {
-      s_testelem_initcount = 0 ;
-      testelem_t * dummy ;
-      TEST(EINVAL == insert2_syncqueue(&syncqueue, 65535, &dummy)) ;
-      TEST(0 == syncqueue.nrelements) ;
-      TEST(0 == s_testelem_initcount) ;
+   // TEST preallocate_syncqueue
+   TEST(0 == nextfree_syncqueue(&syncqueue));
+   for (unsigned i = 1; i <= 5000; ++i) {
+      TEST(0 == preallocate_syncqueue(&syncqueue));
+      testelem_t * testelem = nextfree_syncqueue(&syncqueue);
+      TEST(0 != testelem);
+      testelem->id = i;
+      TEST(i == syncqueue.size);
+      TEST(testelem == last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
    }
-
-   // TEST insert_syncqueue
-   s_testelem_initcount = 0 ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      size_t oldsize = syncqueue.nrelements ;
-      testelem_t * testelem = 0 ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem)) ;
-      TEST(0 != testelem) ;
-      init_testelem(testelem, 2u*i) ;
-      TEST(oldsize+1 == syncqueue.nrelements) ;
-      TEST(oldsize+1 == s_testelem_initcount) ;
-      testelem_t * testelem1 = last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)) ;
-      TEST(testelem == testelem1) ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem)) ;
-      TEST(0 != testelem) ;
-      init_testelem(testelem, 2*i+1) ;
-      TEST(oldsize+2 == syncqueue.nrelements) ;
-      TEST(oldsize+2 == s_testelem_initcount) ;
-      testelem_t * testelem2 = last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)) ;
-      TEST(testelem == testelem2) ;
-      connect_testelem(testelem1, testelem2) ;
-   }
-   // check for correct content
-   for (unsigned i = 0; i == 0; ) {
-      testelem_t * buddy = 0 ;
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == i) ;
-         ++ i ;
-         if (!buddy) {
-            buddy = testelem ;
-         } else {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-            buddy = 0 ;
-         }
-      }
-      TEST(i == 10000) ;
-   }
-
-   // TEST insert_syncqueue: EINVAL
-   struct LARGE {
-      uint8_t large[1024] ;
-   } * large ;
-   TEST(10000 == s_testelem_initcount) ;
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(EINVAL == insert_syncqueue(&syncqueue, &large)) ;
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(10000 == s_testelem_initcount) ;
-
-   // TEST remove_syncqueue: remove elements beginning from first
+   // check content
    for (unsigned i = 0; i == 0; ) {
       foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         void * ptr ;
-         TEST(0 == insertlast_queue(&testelemlist, &ptr, sizeof(void*))) ;
-         *(void**)ptr = elem ;
-         ++ i ;
-         if (i == 5000) break ;
+         testelem_t * testelem = elem;
+         TEST(testelem->id == ++ i);
       }
-      TEST(i == 5000) ;
+      TEST(i == 5000);
    }
-   s_testelem_initmovecount = 0 ;
-   for (unsigned i = 0; i == 0; ) {
-      foreach (_queue, elem, &testelemlist, sizeof(void*)) {
-         ++ i ;
-         TEST(0 == remove_syncqueue(&syncqueue, *(testelem_t**)elem, &initmove_testelem))
-         TEST(i == s_testelem_initmovecount) ;
-         TEST(10000-i == syncqueue.nrelements) ;
-      }
-      TEST(i == 5000) ;
-   }
-   // check for correct content
-   for (unsigned i = 0; i == 0; ) {
-      testelem_t * buddy = 0 ;
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == 10000-1-i) ;
-         ++ i ;
-         if (!buddy) {
-            buddy = testelem ;
-         } else {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-            buddy = 0 ;
-         }
-      }
-      TEST(i == 5000) ;
-   }
-
-   // TEST remove_syncqueue: remove elements beginning from last
-   s_testelem_initmovecount = 0 ;
-   for (unsigned i = 0; i < 2500; ++i) {
-      testelem_t * last1 = last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)) ;
-      testelem_t * last1_buddy = last1->buddy ;
-      TEST(last1->id == 5000+2*i) ;
-      TEST(0 == remove_syncqueue(&syncqueue, last1, &initmove_testelem)) ;
-      TEST(0 == s_testelem_initmovecount) ;
-      TEST(5000-1-2*i == syncqueue.nrelements) ;
-      testelem_t * last2 = last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)) ;
-      TEST(last2->id == 5000+1+2*i) ;
-      TEST(last2->buddy == last1) ;
-      TEST(last1_buddy  == last2) ;
-      TEST(0 == remove_syncqueue(&syncqueue, last2, &initmove_testelem)) ;
-      TEST(0 == s_testelem_initmovecount) ;
-      TEST(5000-2-2*i == syncqueue.nrelements) ;
-   }
-
-   // TEST remove_syncqueue: ENODATA
-   TEST(0 == syncqueue.nrelements) ;
-   testelem_t dummy ;
-   TEST(ENODATA == remove_syncqueue(&syncqueue, &dummy, &initmove_testelem)) ;
-   TEST(0 == s_testelem_initmovecount) ;
-   TEST(0 == syncqueue.nrelements) ;
 
    // TEST removefirst_syncqueue
-   s_testelem_initcount = 0 ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      testelem_t * testelem1 = 0 ;
-      testelem_t * testelem2 = 0 ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem1)) ;
-      init_testelem(testelem1, 2*i) ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem2)) ;
-      init_testelem(testelem2, 2*i+1) ;
-      connect_testelem(testelem1, testelem2) ;
-   }
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(10000 == s_testelem_initcount) ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      TEST(0 == removefirst_syncqueue(&syncqueue, sizeof(testelem_t))) ;
-      TEST(10000-1-i == syncqueue.nrelements) ;
-   }
-   // check content
-   for (unsigned i = 5000; i == 5000; ) {
-      testelem_t * buddy = 0 ;
+   for (unsigned i = 0; i == 0; ) {
       foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == i) ;
-         if (buddy) {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-         }
-         buddy = buddy ? 0 : testelem ;
-         ++ i ;
+         void * ptr;
+         TEST(0 == insertlast_queue(&testelemlist, &ptr, sizeof(void*)));
+         *(void**)ptr = elem;
+         ++ i;
       }
-      TEST(i == 10000) ;
+      TEST(i == 5000);
    }
-   for (unsigned i = 0; i < 5000; ++i) {
-      TEST(0 == removefirst_syncqueue(&syncqueue, sizeof(testelem_t))) ;
-      TEST(5000-1-i == syncqueue.nrelements) ;
+   for (unsigned i = 0; i == 0; ) {
+      foreach (_queue, elem, &testelemlist, sizeof(void*)) {
+         testelem_t * testelem = *(void**)elem;
+         TEST(testelem->id == ++ i);
+         TEST(testelem == first_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
+         TEST(0 == removefirst_syncqueue(&syncqueue));
+         TEST(5000-i == syncqueue.size);
+         if (i == 2500) break;
+      }
+      TEST(i == 2500);
    }
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
 
    // TEST removelast_syncqueue
-   s_testelem_initcount = 0 ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      testelem_t * testelem1 = 0 ;
-      testelem_t * testelem2 = 0 ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem1)) ;
-      init_testelem(testelem1, 2*i) ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem2)) ;
-      init_testelem(testelem2, 2*i+1) ;
-      connect_testelem(testelem1, testelem2) ;
-   }
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(10000 == s_testelem_initcount) ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      TEST(0 == removelast_syncqueue(&syncqueue, sizeof(testelem_t))) ;
-      TEST(10000-1-i == syncqueue.nrelements) ;
-   }
-   // check content
-   for (unsigned i = 0; i == 0; ) {
-      testelem_t * buddy = 0 ;
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == i) ;
-         if (buddy) {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-         }
-         buddy = buddy ? 0 : testelem ;
-         ++ i ;
+   for (unsigned i = 5000; i == 5000; ) {
+      foreachReverse(_queue, elem, &testelemlist, sizeof(void*)) {
+         testelem_t * testelem = *(void**)elem;
+         TEST(testelem->id == i);
+         --i;
+         TEST(testelem == last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
+         TEST(0 == removelast_syncqueue(&syncqueue));
+         TEST(i-2500 == syncqueue.size);
+         if (i == 2500) break;
       }
-      TEST(i == 5000) ;
+      TEST(i == 2500);
    }
-   for (unsigned i = 0; i < 5000; ++i) {
-      TEST(0 == removelast_syncqueue(&syncqueue, sizeof(testelem_t))) ;
-      TEST(5000-1-i == syncqueue.nrelements) ;
-   }
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
 
    // TEST removefirst_syncqueue: ENODATA
-   TEST(0 == syncqueue.nrelements) ;
-   TEST(ENODATA == removefirst_syncqueue(&syncqueue, sizeof(testelem_t))) ;
-   TEST(0 == syncqueue.nrelements) ;
+   TEST(0 == syncqueue.size);
+   TEST(ENODATA == removefirst_syncqueue(&syncqueue));
+   TEST(0 == syncqueue.size);
 
-   // TEST addtofreelist_syncqueue, compact_syncqueue: free last half
-   dlist_t freelist = dlist_INIT ;
-   s_testelem_initcount = 0 ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      testelem_t * testelem1 = 0 ;
-      testelem_t * testelem2 = 0 ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem1)) ;
-      init_testelem(testelem1, 2*i) ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem2)) ;
-      init_testelem(testelem2, 2*i+1) ;
-      connect_testelem(testelem1, testelem2) ;
-   }
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(10000 == s_testelem_initcount) ;
-   for (unsigned i = 0; i == 0; ) {
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         ++ i ;
-         if (5000 < i) {
-            addtofreelist_syncqueue(&syncqueue, &freelist, (testelem_t*)elem) ;
-         }
-      }
-      TEST(10000 == i) ;
-      TEST(10000 == syncqueue.nrelements) ;
-   }
-   s_testelem_initmovecount = 0 ;
-   TEST(0 != freelist.last) ;
-   TEST(0 == compact_syncqueue(&syncqueue, testelem_t, &freelist, &initmove_testelem)) ;
-   TEST(0 == freelist.last) ;
-   TEST(0 == s_testelem_initmovecount) ;
-   // check content
-   for (unsigned i = 0; i == 0; ) {
-      testelem_t * buddy = 0 ;
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == i) ;
-         if (buddy) {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-         }
-         buddy = buddy ? 0 : testelem ;
-         ++ i ;
-      }
-      TEST(i == 5000) ;
-   }
-   TEST(0 == free_syncqueue(&syncqueue)) ;
-
-   // TEST addtofreelist_syncqueue, compact_syncqueue: free first half
-   s_testelem_initcount = 0 ;
-   for (unsigned i = 0; i < 5000; ++i) {
-      testelem_t * testelem1 = 0 ;
-      testelem_t * testelem2 = 0 ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem1)) ;
-      init_testelem(testelem1, 2*i) ;
-      TEST(0 == insert_syncqueue(&syncqueue, &testelem2)) ;
-      init_testelem(testelem2, 2*i+1) ;
-      connect_testelem(testelem1, testelem2) ;
-   }
-   TEST(10000 == syncqueue.nrelements) ;
-   TEST(10000 == s_testelem_initcount) ;
-   for (unsigned i = 0; i == 0; ) {
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         ++ i ;
-         if (i <= 5000) {
-            addtofreelist_syncqueue(&syncqueue, &freelist, (testelem_t*)elem) ;
-         }
-      }
-      TEST(10000 == i) ;
-      TEST(10000 == syncqueue.nrelements) ;
-   }
-   s_testelem_initmovecount = 0 ;
-   TEST(0 == compact_syncqueue(&syncqueue, testelem_t, &freelist, &initmove_testelem)) ;
-   TEST(5000 == s_testelem_initmovecount) ;
-   // check content
-   for (unsigned i = 0; i == 0; ) {
-      testelem_t * buddy = 0 ;
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
-         testelem_t * testelem = elem ;
-         TEST(testelem->id == 10000-1-i) ;
-         if (buddy) {
-            TEST(buddy        == testelem->buddy) ;
-            TEST(buddy->id    == testelem->buddy_id) ;
-            TEST(testelem     == buddy->buddy) ;
-            TEST(testelem->id == buddy->buddy_id) ;
-         }
-         buddy = buddy ? 0 : testelem ;
-         ++ i ;
-      }
-      TEST(i == 5000) ;
-   }
+   // TEST removelast_syncqueue: ENODATA
+   TEST(0 == syncqueue.size);
+   TEST(ENODATA == removelast_syncqueue(&syncqueue));
+   TEST(0 == syncqueue.size);
 
    // unprepare
-   TEST(0 == free_syncqueue(&syncqueue)) ;
-   TEST(0 == free_queue(&testelemlist)) ;
+   TEST(0 == free_syncqueue(&syncqueue));
+   TEST(0 == free_queue(&testelemlist));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_syncqueue(&syncqueue) ;
-   free_queue(&testelemlist) ;
-   return EINVAL ;
+   free_syncqueue(&syncqueue);
+   free_queue(&testelemlist);
+   return EINVAL;
 }
 
 int unittest_task_syncqueue()
@@ -590,9 +325,9 @@ int unittest_task_syncqueue()
    if (test_query())          goto ONERR;
    if (test_update())         goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

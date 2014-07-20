@@ -65,11 +65,12 @@
  * You can choose more than one subsystem, separate them by operator '|'.
  *
  * Supported values are:
- * NONE    -  Support a minimal system.
- * THREAD  -  Support also threads.
- * SYSUSER -  Support system users and authentication.
+ * NONE       -  Support a minimal system.
+ * THREAD     -  Support also threads.
+ * SYSUSER    -  Support system users and authentication.
+ * SYNCRUNNER -  Support thread local <syncrunner_t> which manages <syncfunc_t>.
  */
-#define KONFIG_SUBSYS                  (THREAD|SYSUSER)
+#define KONFIG_SUBSYS                  (THREAD|SYSUSER|SYNCRUNNER)
 #endif
 #if 0
 /* define: KONFIG_UNITTEST
@@ -93,6 +94,7 @@
 #define X11 4
 #define THREAD   8
 #define SYSUSER 16
+#define SYNCRUNNER 32
 
 #if ((KONFIG_SUBSYS)&THREAD)
 /* define: KONFIG_SUBSYS_THREAD
@@ -104,7 +106,12 @@
  * Will be automatically defined if <KONFIG_SUBSYS> contains SYSUSER. */
 #define KONFIG_SUBSYS_SYSUSER
 #endif
-#if ((KONFIG_SUBSYS)&(THREAD|SYSUSER))
+#if ((KONFIG_SUBSYS)&SYNCRUNNER)
+/* define: KONFIG_SUBSYS_SYNCRUNNER
+ * Will be automatically defined if <KONFIG_SUBSYS> contains SYNCRUNNER. */
+#define KONFIG_SUBSYS_SYNCRUNNER
+#endif
+#if ((KONFIG_SUBSYS)&(THREAD|SYSUSER|SYNCRUNNER))
 /* define: KONFIG_SUBSYS_NONE
  * Will be automatically defined if <KONFIG_SUBSYS> contains no other valid option. */
 #define KONFIG_SUBSYS_NONE
@@ -129,6 +136,7 @@
 #undef X11
 #undef THREAD
 #undef SYSUSER
+#undef SYNCRUNNER
 //}
 
 // group: 2. Standard Macros

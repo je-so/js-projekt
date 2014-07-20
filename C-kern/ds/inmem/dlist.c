@@ -471,9 +471,32 @@ static int test_dlistiterator(void)
    TEST(0 == iter.next) ;
    TEST(0 == iter.list) ;
 
-   // TEST initfirst_dlistiterator
+   // TEST initfirst_dlistiterator: empty list
+   TEST(ENODATA == initfirst_dlistiterator(&iter, &list));
+
+   // TEST initlast_dlistiterator: empty list
+   TEST(ENODATA == initlast_dlistiterator(&iter, &list));
+
+   // TEST foreach, foreachReverse: empty list
+   for (unsigned i = 0; 0 == i; i=1) {
+      foreach (_dlist, node, &list) {
+         ++ i;
+         break;
+      }
+      TEST(0 == i);
+
+      foreachReverse (_dlist, node, &list) {
+         ++ i;
+         break;
+      }
+      TEST(0 == i);
+   }
+
+   // fill list
    insertlast_dlist(&list, &nodes[0].node) ;
    insertlast_dlist(&list, &nodes[1].node) ;
+
+   // TEST initfirst_dlistiterator
    iter.next = 0 ;
    iter.list = 0 ;
    TEST(0 == initfirst_dlistiterator(&iter, &list)) ;
@@ -492,23 +515,8 @@ static int test_dlistiterator(void)
    TEST(iter.next == 0) ;
    TEST(iter.list == &list) ;
 
-   // TEST foreach, foreachReverse: empty iteration
-   TEST(0 == removeall_dlist(&list, 0, 0)) ;
-   for (unsigned i = 0; 0 == i; i=1) {
-      foreach (_dlist, node, &list) {
-         TEST(node == &nodes[i].node) ;
-         ++ i ;
-      }
-      TEST(0 == i) ;
-
-      foreachReverse (_dlist, node, &list) {
-         TEST(node == &nodes[i].node) ;
-         ++ i ;
-      }
-      TEST(0 == i) ;
-   }
-
    // TEST foreach, foreachReverse: single element iteration
+   removeall_dlist(&list, 0, 0);
    insertfirst_dlist(&list, &nodes[0].node) ;
    for (unsigned i = 0; 0 == i; i=1) {
       foreach (_dlist, node, &list) {

@@ -698,7 +698,7 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
    size_t         alignedsize = (bytesize + KONFIG_MEMALIGN-1u) & (~(KONFIG_MEMALIGN-1u)) ;
    staticpage_t * staticpage  = last_staticpagelist(genericcast_dlist(&pgcache->staticpagelist)) ;
 
-   VALIDATE_INPARAM_TEST(0 < alignedsize && alignedsize <= 128, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(0 < alignedsize && alignedsize <= 256, ONERR, ) ;
 
    if (  !staticpage
          || staticpage->memblock.size < alignedsize) {
@@ -1408,14 +1408,14 @@ static int test_alloc(void)
    pgcache.sizeallocated -= 4096 ;
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
 
-   // TEST allocstatic_pagecacheimpl: 1 byte -> 128 bytes
+   // TEST allocstatic_pagecacheimpl: 1 byte -> 256 bytes
    size_t alignedheadersize = !(sizeof(staticpage_t) % KONFIG_MEMALIGN) ? sizeof(staticpage_t) : sizeof(staticpage_t) + KONFIG_MEMALIGN - (sizeof(staticpage_t) % KONFIG_MEMALIGN) ;
    TEST(0 == init_pagecacheimpl(&pgcache)) ;
    oldsize = pgcache.sizeallocated ;
    block = first_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pagesize_4096])) ;
    TEST(0 != block) ;
    size_t sizestatic = 0 ;
-   for (unsigned i = 1; i <= 128; i *= 2) {
+   for (unsigned i = 1; i <= 256; i *= 2) {
       unsigned alignedsize = (i % KONFIG_MEMALIGN) ? i + KONFIG_MEMALIGN - (i % KONFIG_MEMALIGN) : i ;
       TEST(0 == allocstatic_pagecacheimpl(&pgcache, i, &page)) ;
       sizestatic += alignedsize ;
@@ -1427,17 +1427,17 @@ static int test_alloc(void)
    }
 
    // TEST allocstatic_pagecacheimpl: EINVAL
-   TEST(EINVAL == allocstatic_pagecacheimpl(&pgcache, 129, &page)) ;
+   TEST(EINVAL == allocstatic_pagecacheimpl(&pgcache, 257, &page)) ;
    TEST(EINVAL == allocstatic_pagecacheimpl(&pgcache, 0,   &page)) ;
    // nothing changed
    TEST(pgcache.sizeallocated       == oldsize + 4096) ;
    TEST(pgcache.sizestatic          == sizestatic) ;
    TEST(pgcache.staticpagelist.last == (void*)block->pageblock.addr) ;
-   TEST(page.addr == block->pageblock.addr + alignedheadersize + sizestatic - 128) ;
-   TEST(page.size == 128) ;
+   TEST(page.addr == block->pageblock.addr + alignedheadersize + sizestatic - 256) ;
+   TEST(page.size == 256) ;
 
-   // TEST freestatic_pagecacheimpl: 1 byte -> 128 bytes
-   for (unsigned i = 128; i >= 1; i /= 2) {
+   // TEST freestatic_pagecacheimpl: 1 byte -> 256 bytes
+   for (unsigned i = 256; i >= 1; i /= 2) {
       unsigned alignedsize = (i % KONFIG_MEMALIGN) ? i + KONFIG_MEMALIGN - (i % KONFIG_MEMALIGN) : i ;
       sizestatic -= alignedsize ;
       page = (memblock_t) memblock_INIT(i, block->pageblock.addr + alignedheadersize + sizestatic) ;

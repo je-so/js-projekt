@@ -30,11 +30,12 @@
 #define CKERN_CONTEXT_THREADCONTEXT_HEADER
 
 // forward
-struct processcontext_t ;
+struct processcontext_t;
+struct syncrunner_t;
 
 /* typedef: struct threadcontext_t
  * Export <threadcontext_t>. */
-typedef struct threadcontext_t            threadcontext_t ;
+typedef struct threadcontext_t threadcontext_t;
 
 
 // section: Functions
@@ -61,9 +62,9 @@ struct threadcontext_t {
    /* variable: mm
     * Thread local memory manager. */
    iobj_DECLARE(,mm)          mm ;
-   /* variable: syncrun
-    * Thread local synchronous task support. */
-   struct syncrun_t *         syncrun ;
+   /* variable: syncrunner
+    * Synchronous task support. */
+   struct syncrunner_t *      syncrunner;
    /* variable: objectcache
     * Thread local erorr object cache. */
    iobj_DECLARE(,objectcache) objectcache ;

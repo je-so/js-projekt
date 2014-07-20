@@ -26,6 +26,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/task/syncfunc.h"
+#include "C-kern/api/task/synccmd.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -309,6 +310,24 @@ static int test_getset(void)
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.next, false));
    TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.prev, false));
 
+   // TEST clearopt_syncfunc
+   for (int i = 0; i <= syncfunc_opt_ALL; ++i) {
+      for (int i2 = 0; i2 <= syncfunc_opt_ALL; ++i2) {
+         sfunc.optfields = (uint8_t) i;
+         clearopt_syncfunc(&sfunc, i2);
+         TEST(sfunc.optfields == (uint8_t) (i&~i2));
+      }
+   }
+
+   // TEST setopt_syncfunc
+   for (int i = 0; i <= syncfunc_opt_ALL; ++i) {
+      for (int i2 = 0; i2 <= syncfunc_opt_ALL; ++i2) {
+         sfunc.optfields = (uint8_t) i;
+         setopt_syncfunc(&sfunc, i2);
+         TEST(sfunc.optfields == (uint8_t) (i|i2));
+      }
+   }
+
    // TEST setresult_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
       for (int result = -10; result <= 10; ++result) {
@@ -438,16 +457,16 @@ static int test_start_sf(syncfunc_param_t * sfparam, uint32_t sfcmd)
 ONRUN:
    sfparam->contoffset = (uint16_t) __extension__ ((uintptr_t) &&ONCONTINUE - (uintptr_t) &&syncfunc_START);
    sfparam->retcode = 10;
-   return syncfunc_cmd_RUN;
+   return synccmd_RUN;
 
 ONCONTINUE:
-   static_assert(syncfunc_cmd_CONTINUE > syncfunc_cmd_RUN, "must run after continue");
+   static_assert(synccmd_CONTINUE > synccmd_RUN, "must run after continue");
    sfparam->retcode = 11;
-   return syncfunc_cmd_CONTINUE;
+   return synccmd_CONTINUE;
 
 ONEXIT:
    sfparam->retcode = 12;
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 }
 
 static int test_exit_sf(syncfunc_param_t * sfparam, uint32_t sfcmd)
@@ -468,7 +487,7 @@ ONRUN: ;
    if (err) goto ONERR;
    err = wait_syncfunc(sfparam, (void*)3);
    if (err) goto ONERR;
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 
 ONERR:
    return -1;
@@ -485,7 +504,7 @@ ONRUN: ;
    err = wait_syncfunc(sfparam, (void*)err);
    err = wait_syncfunc(sfparam, (void*)err);
    err = wait_syncfunc(sfparam, (void*)err);
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 
 ONERR:
    return -1;
@@ -510,7 +529,7 @@ ONRUN: ;
    err = waitexit_syncfunc(sfparam, &retcode);
    if (err) goto ONERR;
    sfparam->state = (void*)(intptr_t)retcode;
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 
 ONERR:
    return -1;
@@ -534,7 +553,7 @@ ONRUN: ;
    err = waitexit_syncfunc(sfparam, &retcode);
    sfparam->waiterr = err;
    sfparam->retcode = retcode;
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 
 ONERR:
    return -1;
@@ -553,7 +572,7 @@ ONRUN:
    yield_syncfunc(sfparam);
    sfparam->retcode += 21;
    sfparam->contoffset = 0;
-   return syncfunc_cmd_EXIT;
+   return synccmd_EXIT;
 
 ONERR:
    return -1;
@@ -563,27 +582,27 @@ static int test_implsupport(void)
 {
    syncfunc_param_t sfparam = syncfunc_param_FREE;
 
-   // TEST getstate_syncfunc
-   TEST(0 == getstate_syncfunc(&sfparam));
+   // TEST state_syncfunc
+   TEST(0 == state_syncfunc(&sfparam));
    for (uintptr_t i = 1; i; i <<= 1) {
       sfparam.state = (void*) i;
-      TEST((void*)i == getstate_syncfunc(&sfparam));
+      TEST((void*)i == state_syncfunc(&sfparam));
    }
 
    // TEST setstate_syncfunc
    memset(&sfparam, 0, sizeof(sfparam));
    for (uintptr_t i = 1; i; i <<= 1) {
       setstate_syncfunc(&sfparam, (void*) i);
-      TEST((void*)i == getstate_syncfunc(&sfparam));
+      TEST((void*)i == state_syncfunc(&sfparam));
    }
    setstate_syncfunc(&sfparam, 0);
-   TEST(0 == getstate_syncfunc(&sfparam));
+   TEST(0 == state_syncfunc(&sfparam));
 
    // TEST start_syncfunc: valid sfcmd values
-   static_assert(syncfunc_cmd_RUN == 0 && syncfunc_cmd_EXIT== 2, "3 different sfcmd");
-   for (int cmd = syncfunc_cmd_RUN; cmd <= syncfunc_cmd_EXIT; ++cmd) {
+   static_assert(synccmd_RUN == 0 && synccmd_EXIT== 2, "3 different sfcmd");
+   for (int cmd = synccmd_RUN; cmd <= synccmd_EXIT; ++cmd) {
       sfparam.retcode = 0;
-      TEST(cmd == test_start_sf(&sfparam, (syncfunc_cmd_e)cmd));
+      TEST(cmd == test_start_sf(&sfparam, (uint32_t)cmd));
       TEST(sfparam.syncrun     == 0);
       TEST(sfparam.contoffset  != 0);
       TEST(sfparam.state       == 0);
@@ -594,9 +613,9 @@ static int test_implsupport(void)
 
    // TEST start_syncfunc: invalid sfcmd value
    sfparam.contoffset = 0;
-   for (int cmd = syncfunc_cmd_WAIT; cmd <= syncfunc_cmd_WAIT+16; ++cmd) {
+   for (int cmd = synccmd_WAIT; cmd <= synccmd_WAIT+16; ++cmd) {
       sfparam.retcode = 0;
-      TEST(-1 == test_start_sf(&sfparam, (syncfunc_cmd_e)cmd));
+      TEST(-1 == test_start_sf(&sfparam, (uint32_t)cmd));
       TEST( 0 == sfparam.syncrun);
       TEST( 0 == sfparam.contoffset);
       TEST( 0 == sfparam.state);
@@ -608,7 +627,7 @@ static int test_implsupport(void)
    // TEST exit_syncfunc
    for (uint32_t cmd = 0; cmd <= 100000; cmd += 10000) {
       sfparam.retcode = -1;
-      TEST(syncfunc_cmd_EXIT == test_exit_sf(&sfparam, cmd));
+      TEST(synccmd_EXIT == test_exit_sf(&sfparam, cmd));
       TEST(sfparam.syncrun   == 0);
       TEST(sfparam.contoffset == 0);
       TEST(sfparam.state     == 0);
@@ -621,9 +640,9 @@ static int test_implsupport(void)
    memset(&sfparam, 0, sizeof(sfparam));
    for (intptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfparam.contoffset;
-      int      result = i != 4 ? syncfunc_cmd_WAIT : syncfunc_cmd_EXIT;
+      int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.condition = 0;
-      TEST(result == test_wait_sf(&sfparam, i == 1 ? syncfunc_cmd_RUN : syncfunc_cmd_CONTINUE));
+      TEST(result == test_wait_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
       TEST(0 == sfparam.syncrun);
       TEST(0 == sfparam.state);
       if (i != 4) {
@@ -641,10 +660,10 @@ static int test_implsupport(void)
    memset(&sfparam, 0, sizeof(sfparam));
    for (intptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfparam.contoffset;
-      int      result = i != 4 ? syncfunc_cmd_WAIT : syncfunc_cmd_EXIT;
+      int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.condition = 0;
       sfparam.waiterr   = i;
-      TEST(result == test_waiterr_sf(&sfparam, i == 1 ? syncfunc_cmd_RUN : syncfunc_cmd_CONTINUE));
+      TEST(result == test_waiterr_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
       TEST(0 == sfparam.syncrun);
       TEST(0 == sfparam.state);
       if (i != 4) {
@@ -662,11 +681,11 @@ static int test_implsupport(void)
    memset(&sfparam, 0, sizeof(sfparam));
    for (intptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfparam.contoffset;
-      int      result = i != 4 ? syncfunc_cmd_WAIT : syncfunc_cmd_EXIT;
+      int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.state     = 0 ;
       sfparam.condition = (void*)1;
       sfparam.retcode   = (int) i;
-      TEST(result == test_waitexit_sf(&sfparam, i == 1 ? syncfunc_cmd_RUN : syncfunc_cmd_CONTINUE));
+      TEST(result == test_waitexit_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
       TEST(0        == sfparam.syncrun);
       TEST((void*)i == sfparam.state);
       if (i != 4) {
@@ -684,12 +703,12 @@ static int test_implsupport(void)
    memset(&sfparam, 0, sizeof(sfparam));
    for (intptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfparam.contoffset;
-      int      result = i != 4 ? syncfunc_cmd_WAIT : syncfunc_cmd_EXIT;
+      int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.state     = 0;
       sfparam.condition = (void*)1;
       sfparam.waiterr   = i;
       sfparam.retcode   = (int) -i;
-      TEST(result == test_waitexiterr_sf(&sfparam, i == 1 ? syncfunc_cmd_RUN : syncfunc_cmd_CONTINUE));
+      TEST(result == test_waitexiterr_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
       TEST( i == sfparam.waiterr);
       TEST(-i == sfparam.retcode);
       if (i != 4) {
@@ -705,9 +724,9 @@ static int test_implsupport(void)
    memset(&sfparam, 0, sizeof(sfparam));
    for (int i = 19; i <= 21; ++i) {
       uint16_t oldoff = sfparam.contoffset;
-      int      result = i != 21 ? syncfunc_cmd_CONTINUE : syncfunc_cmd_EXIT;
+      int      result = i != 21 ? synccmd_CONTINUE : synccmd_EXIT;
       sfparam.retcode = 0;
-      TEST(result == test_yield_sf(&sfparam, i == 19 ? syncfunc_cmd_RUN : syncfunc_cmd_CONTINUE));
+      TEST(result == test_yield_sf(&sfparam, i == 19 ? synccmd_RUN : synccmd_CONTINUE));
       TEST(0 == sfparam.syncrun);
       TEST(0 == sfparam.state);
       TEST(oldoff != sfparam.contoffset);

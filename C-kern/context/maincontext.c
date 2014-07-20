@@ -318,8 +318,8 @@ static int test_querymacros(void)
    // TEST sysuser_maincontext
    TEST(&sysuser_maincontext()     == &pcontext_maincontext()->sysuser) ;
 
-   // TEST syncrun_maincontext
-   TEST(&syncrun_maincontext()     == &tcontext_maincontext()->syncrun) ;
+   // TEST syncrunner_maincontext
+   TEST(&syncrunner_maincontext()  == &tcontext_maincontext()->syncrunner);
 
    thread_tls_t tls ;
    tls = current_threadtls(&tls) ;

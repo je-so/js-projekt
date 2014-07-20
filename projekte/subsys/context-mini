@@ -11,5 +11,4 @@ Src += C-kern/ds/inmem/dlist.c
 Src += C-kern/ds/inmem/queue.c
 Src += C-kern/memory/pagecache_impl.c
 Src += C-kern/memory/mm/mm_impl.c
-Src += C-kern/task/syncqueue.c C-kern/task/syncrun.c C-kern/task/syncwlist.c
 Src += C-kern/io/writer/errlog.c C-kern/io/writer/log/logmain.c C-kern/io/writer/log/logbuffer.c C-kern/io/writer/log/logwriter.c

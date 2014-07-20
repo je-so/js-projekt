@@ -1,0 +1,270 @@
+[1: 1405769633.611705s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611721s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611727s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611732s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611737s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611743s]
+free_syncrunner() C-kern/task/syncrunner.c:148
+Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1405769633.611755s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611762s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611766s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611770s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611773s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611776s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611780s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611784s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611787s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611794s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611797s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611801s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611804s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611808s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611811s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611815s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611818s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611822s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611825s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611829s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611833s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611836s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611845s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.611848s]
+remove_syncqueue() C-kern/task/syncrunner.c:228
+Error 61 - No data available
+One or more resources could not be freed
+[1: 1405769633.612249s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:291
+Error 12 - Cannot allocate memory
+[1: 1405769633.612251s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:291
+Error 12 - Cannot allocate memory
+[1: 1405769633.612254s]
+addcall_syncrunner() C-kern/task/syncrunner.c:336
+Error 12 - Cannot allocate memory
+[1: 1405769633.612256s]
+addcall_syncrunner() C-kern/task/syncrunner.c:336
+Error 12 - Cannot allocate memory
+[1: 1405769633.612275s]
+wakeup_syncrunner() C-kern/task/syncrunner.c:418
+Error 22 - Invalid argument
+[1: 1405769633.612281s]
+wakeupall_syncrunner() C-kern/task/syncrunner.c:431
+Error 22 - Invalid argument
+[1: 1405769633.613938s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613944s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613952s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613956s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613961s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613965s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613969s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613974s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613979s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613984s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613988s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613993s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.613998s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614004s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614009s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614014s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614020s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614026s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614033s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.614039s]
+run2_syncrunner() C-kern/task/syncrunner.c:776
+Error 22 - Invalid argument
+[1: 1405769633.650144s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650158s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650162s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650166s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650169s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650178s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650181s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650185s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650188s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650192s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650195s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650199s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650202s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650205s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650208s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650217s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650220s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650223s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650227s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650230s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650234s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650237s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650253s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument
+[1: 1405769633.650257s]
+terminate_syncrunner() C-kern/task/syncrunner.c:839
+Error 22 - Invalid argument

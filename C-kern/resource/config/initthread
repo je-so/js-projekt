@@ -16,6 +16,6 @@
 "module",            "inittype",    "objtype",            "parameter",     "header-name"
 "pagecacheimpl",     "initthread",  "",                   "pagecache",     "C-kern/api/memory/pagecache_impl.h"
 "mmimpl",            "interface",   "mm_impl_t",          "mm",            "C-kern/api/memory/mm/mm_impl.h"
-"syncrun",           "object",      "syncrun_t",          "syncrun",       "C-kern/api/task/syncrun.h"
+"syncrunner",        "object",      "syncrunner_t",       "syncrunner",    "C-kern/api/task/syncrunner.h"
 "objectcacheimpl",   "interface",   "objectcache_impl_t", "objectcache",   "C-kern/api/cache/objectcache_impl.h"
 "logwriter",         "interface",   "logwriter_t",        "log",           "C-kern/api/io/writer/log/logwriter.h"
