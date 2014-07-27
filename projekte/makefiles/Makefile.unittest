@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jul.20  07:24:17
+GenerationDate  := 2014.Jul.27  14:54:12
 GeneratedBy     := je-so
 
 ## Debug
@@ -130,14 +130,15 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
@@ -165,7 +166,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
- $(ObjectDir_Debug)/C-kern!sort!mergesort.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
@@ -243,14 +243,15 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
+ $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
@@ -278,7 +279,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
- $(ObjectDir_Release)/C-kern!sort!mergesort.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
@@ -473,6 +473,9 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetim
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Debug)
 
@@ -480,6 +483,9 @@ $(ObjectDir_Debug)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -492,9 +498,6 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanne
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
@@ -576,9 +579,6 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!sort!mergesort.c.o: C-kern/sort/mergesort.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
@@ -806,6 +806,9 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifet
 $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Release)
 
@@ -813,6 +816,9 @@ $(ObjectDir_Release)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -825,9 +831,6 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scan
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
@@ -909,9 +912,6 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!sort!mergesort.c.o: C-kern/sort/mergesort.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c

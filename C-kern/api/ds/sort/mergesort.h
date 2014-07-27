@@ -9,7 +9,7 @@
    by one criterion first and after that by another.
 
    If you know that your data set contains large blocks
-   of persorted data, this implementation is very fast,
+   of presorted data, this implementation is very fast,
    meaning O(n) complexity in the best case.
 
    If additional memory of up to (nr_of_elements * element_size / 2)
@@ -34,14 +34,14 @@
    Author:
    (C) 2014 Jörg Seebohn
 
-   file: C-kern/api/sort/mergesort.h
+   file: C-kern/api/ds/sort/mergesort.h
     Header file <MergeSort>.
 
-   file: C-kern/sort/mergesort.c
+   file: C-kern/ds/sort/mergesort.c
     Implementation file <MergeSort impl>.
 */
-#ifndef CKERN_SORT_MERGESORT_HEADER
-#define CKERN_SORT_MERGESORT_HEADER
+#ifndef CKERN_DS_SORT_MERGESORT_HEADER
+#define CKERN_DS_SORT_MERGESORT_HEADER
 
 /* typedef: sort_compare_f
  * Define compare function for arbitrary objects.
@@ -69,9 +69,9 @@ typedef struct mergesort_t mergesort_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_sort_mergesort
+/* function: unittest_ds_sort_mergesort
  * Test <mergesort_t> functionality. */
-int unittest_sort_mergesort(void);
+int unittest_ds_sort_mergesort(void);
 #endif
 
 

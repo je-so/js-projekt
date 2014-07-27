@@ -17,15 +17,15 @@
    Author:
    (C) 2014 Jörg Seebohn
 
-   file: C-kern/api/sort/mergesort.h
+   file: C-kern/api/ds/sort/mergesort.h
     Header file <MergeSort>.
 
-   file: C-kern/sort/mergesort.c
+   file: C-kern/ds/sort/mergesort.c
     Implementation file <MergeSort impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/sort/mergesort.h"
+#include "C-kern/api/ds/sort/mergesort.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/memory/vm.h"
@@ -1998,7 +1998,7 @@ static int build_top_down_slices()
 }
 #endif
 
-int unittest_sort_mergesort()
+int unittest_ds_sort_mergesort()
 {
    const unsigned len = 300000;
    memblock_t     mblock = memblock_FREE;

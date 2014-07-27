@@ -18,7 +18,7 @@
    Author:
    (C) 2014 Jörg Seebohn
 
-   file: C-kern/sort/mergesort_generic_impl.h
+   file: C-kern/ds/sort/mergesort_generic_impl.h
     Implementation file <MergeSort Generic impl>.
 */
 #ifndef CKERN_SORT_MERGESORT_GENERIC_IMPL_HEADER

@@ -176,6 +176,9 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
       <File Name="../../C-kern/api/ds/link.h"/>
+      <VirtualDirectory Name="sort">
+        <File Name="../../C-kern/api/ds/sort/mergesort.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="io">
@@ -236,9 +239,6 @@
       <File Name="../../C-kern/api/graphic/pixelbuffer.h"/>
       <File Name="../../C-kern/api/graphic/glapi.h"/>
       <File Name="../../C-kern/api/graphic/gles2api.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="sort">
-      <File Name="../../C-kern/api/sort/mergesort.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -491,6 +491,10 @@
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
     <File Name="../../C-kern/ds/link.c"/>
+    <VirtualDirectory Name="sort">
+      <File Name="../../C-kern/ds/sort/mergesort.c"/>
+      <File Name="../../C-kern/ds/sort/mergesort_generic_impl.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -597,8 +601,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="sort">
-    <File Name="../../C-kern/sort/mergesort.c"/>
-    <File Name="../../C-kern/sort/mergesort_generic_impl.h"/>
-  </VirtualDirectory>
 </CodeLite_Project>

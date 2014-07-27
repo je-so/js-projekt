@@ -155,6 +155,7 @@ int run_unittest(void * argv)
 
 //{ data structure unittest
       RUN(unittest_ds_link);
+      // in memory data structures
       RUN(unittest_ds_inmem_arraysf);
       RUN(unittest_ds_inmem_arraystf);
       RUN(unittest_ds_inmem_binarystack);
@@ -169,6 +170,9 @@ int run_unittest(void * argv)
       RUN(unittest_ds_inmem_splaytree);
       RUN(unittest_ds_inmem_suffixtree);
       RUN(unittest_ds_inmem_trie);
+      // sort algorithms
+      RUN(unittest_ds_sort_mergesort);
+      // type adapter
       RUN(unittest_ds_typeadapt);
       RUN(unittest_ds_typeadapt_comparator);
       RUN(unittest_ds_typeadapt_getkey);
@@ -206,10 +210,6 @@ int run_unittest(void * argv)
       RUN(unittest_memory_wbuffer);
       RUN(unittest_memory_mm_mm);
       RUN(unittest_memory_mm_mmimpl);
-//}
-
-//{ sort algorithms
-      RUN(unittest_sort_mergesort);
 //}
 
 //{ string unittest
