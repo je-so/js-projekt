@@ -4,24 +4,17 @@
 # **********************************************************
 # * Tests that unittest have correct interface in *.[ch] *
 # * Tests that run_unittest.c calls every unittest_XXX() *
+# * Tests that C-kern/resource/unittest.log/* has
+# *       corresponding unittest_XXX()
 # **********************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
 error=0
 run_unittest="C-kern/test/run/run_unittest.c"
+unittest_log="C-kern/resource/unittest.log/"
 # test all *.h files
 files=`find C-kern/ -name "*.[ch]" -exec grep -l "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" {} \;`
 info=""
-# array of files which are tools and therfore not checked
-ok=( C-kern/main/tools/genmake.c
-     C-kern/tools/hash.c
-     C-kern/tools/hash.h
-     C-kern/main/tools/text_resource_compiler.c
-   )
-for((i=0;i<${#ok[*]};i=i+1)) do
-   files="${files/"${ok[$i]}"/}" # remove files which are ok from $files
-done
-files=`echo $files | sed -e '/^[ ]*$/d' -`
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
@@ -70,6 +63,20 @@ for i in $files; do
    done
 done
 
+#
+# Find for every log file in C-kern/resource/unittest.log/ a RUN()
+#
+for i in ${unittest_log}*; do
+      result=`grep "RUN(${i##*/})" ${run_unittest}`
+      if [ "$result" = "" ]; then
+         error=1
+         info="$info  log-file: <${i}> is not used from '${run_unittest}'\n"
+      fi
+done
+
+#
+# print error and infor if "$verbose" != ""
+#
 if [ "$error" != "0" ]; then
    echo -e "\nError: unittests are either incorrect defined or not called" 1>&2
    if [ "$verbose" != "" ]; then
