@@ -270,6 +270,10 @@ int run_unittest(void * argv)
       RUN(unittest_io_writer_log_logmain);
 //}
 
+//{ new C
+      RUN(unittest_newc_ncparser);
+//}
+
 //{ platform unittest
       // sync unittest
       RUN(unittest_platform_sync_mutex);

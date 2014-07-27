@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jul.27  14:54:12
+GenerationDate  := 2014.Jul.27  15:04:30
 GeneratedBy     := je-so
 
 ## Debug
@@ -166,6 +166,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Debug)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
@@ -279,6 +280,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Release)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
@@ -579,6 +581,9 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
@@ -912,6 +917,9 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c

@@ -240,6 +240,9 @@
       <File Name="../../C-kern/api/graphic/glapi.h"/>
       <File Name="../../C-kern/api/graphic/gles2api.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="newC">
+      <File Name="../../C-kern/api/newC/nCparser.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -601,4 +604,7 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="newC">
+    <File Name="../../C-kern/newC/nCparser.c"/>
+  </VirtualDirectory>
 </CodeLite_Project>
