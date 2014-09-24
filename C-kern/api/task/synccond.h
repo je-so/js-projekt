@@ -147,7 +147,7 @@ int wakeupall_synccond(struct synccond_t * scond, struct syncrunner_t * srun);
 /* define: waitfunc_synccond
  * Implements <synccond_t.waitfunc_synccond>. */
 #define waitfunc_synccond(scond) \
-         (waitforcast_syncfunc((scond)->waitfunc.link))
+         (castPwaitfor_syncfunc((scond)->waitfunc.link))
 
 /* define: wakeup_synccond
  * Implements <synccond_t.wakeup_synccond>. */

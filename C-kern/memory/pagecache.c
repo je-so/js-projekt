@@ -241,8 +241,8 @@ static int test_genericit(void)
    TEST(pgcacheif.sizestatic    == &sizestatic2_dummy) ;
    TEST(pgcacheif.emptycache    == &emptycache2_dummy) ;
 
-   // TEST genericcast_pagecacheit
-   TEST((pagecache_it*)&pgcacheif == genericcast_pagecacheit(&pgcacheif, struct pagecachex_t)) ;
+   // TEST cast_pagecacheit
+   TEST((pagecache_it*)&pgcacheif == cast_pagecacheit(&pgcacheif, struct pagecachex_t)) ;
 
    return 0 ;
 ONERR:
@@ -258,7 +258,7 @@ int test_call(void)
                            &allocstatic2_dummy, &freestatic2_dummy, &sizestatic2_dummy,
                            &emptycache2_dummy
                         ) ;
-   pagecache_t    pgcache = pagecache_INIT((pagecache_t*)&obj, genericcast_pagecacheit(&iimpl, struct pagecachex_t)) ;
+   pagecache_t    pgcache = pagecache_INIT((pagecache_t*)&obj, cast_pagecacheit(&iimpl, struct pagecachex_t)) ;
 
    // TEST allocpage_pagecache
    for (unsigned i = 0; i <= 10; ++i) {

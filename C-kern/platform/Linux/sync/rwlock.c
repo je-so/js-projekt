@@ -102,7 +102,7 @@ static inline void unlockflag_rwlock(rwlock_t * rwlock)
  * o rwlock->readers not empty */
  static inline void wakeupreader_rwlock(rwlock_t * rwlock)
 {
-   thread_t * lastthread = last_rwlocklist(genericcast_slist(&rwlock->readers)) ;
+   thread_t * lastthread = last_rwlocklist(cast_slist(&rwlock->readers)) ;
    thread_t * nextthread = lastthread ;
    thread_t * firstthread ;
    do {
@@ -115,7 +115,7 @@ static inline void unlockflag_rwlock(rwlock_t * rwlock)
       unlockflag_thread(firstthread) ;
    } while (nextthread != lastthread) ;
 
-   init_rwlocklist(genericcast_slist(&rwlock->readers)) ;
+   init_rwlocklist(cast_slist(&rwlock->readers)) ;
 }
 
 /* function: wakeupwriter_rwlock
@@ -126,10 +126,10 @@ static inline void unlockflag_rwlock(rwlock_t * rwlock)
  * o rwlock->writers not empty */
 static inline void wakeupwriter_rwlock(rwlock_t * rwlock)
 {
-   thread_t * firstthread = first_rwlocklist(genericcast_slist(&rwlock->writers)) ;
+   thread_t * firstthread = first_rwlocklist(cast_slist(&rwlock->writers)) ;
    lockflag_thread(firstthread) ;
    rwlock->writer = firstthread ;
-   removefirst_rwlocklist(genericcast_slist(&rwlock->writers), &firstthread) ;
+   removefirst_rwlocklist(cast_slist(&rwlock->writers), &firstthread) ;
    resume_thread(firstthread) ;
    unlockflag_thread(firstthread) ;
 }
@@ -171,7 +171,7 @@ int lockreader_rwlock(rwlock_t * rwlock)
          err = EDEADLK ;
          goto ONERR;
       }
-      insertandwait_rwlock(rwlock, genericcast_slist(&rwlock->readers), self) ;
+      insertandwait_rwlock(rwlock, cast_slist(&rwlock->readers), self) ;
 
    } else {
       ++ rwlock->nrofreader ;
@@ -204,7 +204,7 @@ int lockwriter_rwlock(rwlock_t * rwlock)
          err = EDEADLK ;
          goto ONERR;
       }
-      insertandwait_rwlock(rwlock, genericcast_slist(&rwlock->writers), self) ;
+      insertandwait_rwlock(rwlock, cast_slist(&rwlock->writers), self) ;
 
    } else {
       rwlock->writer = self ;
@@ -503,7 +503,7 @@ static int test_synchronize(void)
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
          thread_t * firstthread = 0 ;
-         TEST(0 == removefirst_rwlocklist(genericcast_slist(&rwlock.readers), &firstthread)) ;
+         TEST(0 == removefirst_rwlocklist(cast_slist(&rwlock.readers), &firstthread)) ;
          TEST(threads[i]           == firstthread) ;
          TEST(threads[i]->nextwait == 0) ;
          atomicadd_int(&rwlock.nrofreader, 1) ; // wakeup increments nrofreader
@@ -599,7 +599,7 @@ static int test_synchronize(void)
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
          thread_t * firstthread = 0 ;
-         TEST(0 == removefirst_rwlocklist(genericcast_slist(&rwlock.writers), &firstthread)) ;
+         TEST(0 == removefirst_rwlocklist(cast_slist(&rwlock.writers), &firstthread)) ;
          TEST(threads[i]           == firstthread) ;
          TEST(threads[i]->nextwait == 0) ;
          resume_thread(threads[i]) ;   // real wakeup
@@ -663,7 +663,7 @@ static int test_synchronize(void)
    TEST(0 == rwlock.lockflag) ;
 
    // TEST unlockreader_rwlock: active waiting on lockflag of thread
-   insertlast_rwlocklist(genericcast_slist(&rwlock.readers), self_thread()) ;
+   insertlast_rwlocklist(cast_slist(&rwlock.readers), self_thread()) ;
    rwlock.nrofreader = 1 ;
    lockflag_thread(self_thread()) ; // flag is acquired in unlockreader
    trysuspend_thread() ;
@@ -783,7 +783,7 @@ static int test_synchronize(void)
 
    // TEST unlockwriter_rwlock: active waiting on lockflag of thread
    lockflag_thread(self_thread()) ; // flag is acquired in unlockreader
-   insertlast_rwlocklist(genericcast_slist(&rwlock.writers), self_thread()) ;
+   insertlast_rwlocklist(cast_slist(&rwlock.writers), self_thread()) ;
    trysuspend_thread() ;
    lockflag_rwlock(&rwlock) ;       // flag is acquired in unlockwriter
    TEST(0 == newgeneric_thread(&threads[0], &thread_unlockwriter, &rwlock)) ;

@@ -295,15 +295,15 @@ static inline void initmove_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize
  * ohne Nebeneffekte sein. */
 uint16_t getsize_syncfunc(const syncfunc_opt_e optfields);
 
-/* function: waitforcast_syncfunc
+/* function: castPwaitfor_syncfunc
  * Caste waitfor nach <syncfunc_t>.
  *
  * Precondition:
  * o waitfor != 0
  * o waitfor == addrwaitfor_syncfunc(...) || waitfor == addrcaller_syncfunc(...)->link */
-syncfunc_t * waitforcast_syncfunc(link_t * waitfor);
+static inline syncfunc_t * castPwaitfor_syncfunc(link_t * waitfor);
 
-/* function: waitlistcast_syncfunc
+/* function: castPwaitlist_syncfunc
  * Caste waitlist nach <syncfunc_t>.
  *
  * Precondition:
@@ -311,7 +311,7 @@ syncfunc_t * waitforcast_syncfunc(link_t * waitfor);
  * o waitlist == addrwaitlist_syncfunc(...)
  *   || waitfor == addrwaitlist_syncfunc(...)->next
  *   || waitfor == addrwaitlist_syncfunc(...)->prev */
-syncfunc_t * waitlistcast_syncfunc(link_t * waitlist, const bool iswaitfor);
+static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool iswaitfor);
 
 /* function: offwaitfor_syncfunc
  * Liefere den Byteoffset zum Feld <waitfor>. */
@@ -380,7 +380,7 @@ void clearopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
 
 /* function: setopt_syncfunc
  * Setzt alle Bits in sfunc->optfields, die in optfield gesetzt sind. */
-void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
+static inline void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
 
 /* function: relink_syncfunc
  * Korrigiert die Ziellinks von <waitfor>, <waitlist> und <caller>, nachdem sfunc im Speicher verschoben wurde. */
@@ -618,13 +618,13 @@ static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, 
 
 /* define: setopt_syncfunc
  * Implementiert <syncfunc_t.setopt_syncfunc>. */
-#define setopt_syncfunc(sfunc, optfield) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf = (sfunc);   \
-            _sf->optfields = (uint8_t) (  \
-                     _sf->optfields       \
-                     | (optfield));       \
-         }))
+static inline void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield)
+{
+         sfunc->optfields = (uint8_t) (
+                              sfunc->optfields
+                              | optfield
+                           );
+}
 
 /* define: setresult_syncfunc
  * Implementiert <syncfunc_t.setresult_syncfunc>. */
@@ -700,15 +700,19 @@ static inline void setresult_syncfunc(syncfunc_t * sfunc, int result)
             (sfparam)->waiterr;                             \
          }))
 
-/* define: waitforcast_syncfunc
- * Implementiert <syncfunc_t.waitforcast_syncfunc>. */
-#define waitforcast_syncfunc(waitfor) \
-            ((syncfunc_t*) ((uint8_t*) (waitfor) - offwaitfor_syncfunc()))
+/* define: castPwaitfor_syncfunc
+ * Implementiert <syncfunc_t.castPwaitfor_syncfunc>. */
+static inline syncfunc_t * castPwaitfor_syncfunc(link_t * waitfor)
+{
+         return (syncfunc_t*) ((uint8_t*) (waitfor) - offwaitfor_syncfunc());
+}
 
-/* define: waitlistcast_syncfunc
- * Implementiert <syncfunc_t.waitlistcast_syncfunc>. */
-#define waitlistcast_syncfunc(waitlist, iswaitfor) \
-            ((syncfunc_t*) ((uint8_t*) (waitlist) - offwaitlist_syncfunc(iswaitfor)))
+/* define: castPwaitlist_syncfunc
+ * Implementiert <syncfunc_t.castPwaitlist_syncfunc>. */
+static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool iswaitfor)
+{
+         return (syncfunc_t*) ((uint8_t*) (waitlist) - offwaitlist_syncfunc(iswaitfor));
+}
 
 /* define: yield_syncfunc
  * Implementiert <syncfunc_t.yield_syncfunc>. */

@@ -462,8 +462,8 @@ static int test_generic(void)
       int            dummy2 ;
    }        str1 ;
 
-   // TEST genericcast_string
-   TEST((const string_t*)&str1.addr == genericcast_string(&str1)) ;
+   // TEST cast_string
+   TEST((const string_t*)&str1.addr == cast_string(&str1)) ;
 
    return 0 ;
 ONERR:

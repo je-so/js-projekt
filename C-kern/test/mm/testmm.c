@@ -442,7 +442,7 @@ static testmm_page_t * findpage_testmm(testmm_t * mman, uint8_t * blockaddr)
 
 testmm_t * mmcontext_testmm(void)
 {
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
+   if (cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       return 0 ;
    }
 
@@ -472,7 +472,7 @@ static int getpreviousmm_testmm(const testmm_t * mman, /*out*/memblock_t * previ
 static int installold_testmm(/*out*/mm_t * testmm)
 {
    int err;
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) return EINVAL;
+   if (cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) return EINVAL;
 
    memblock_t previous_mm;
 
@@ -494,7 +494,7 @@ static int installold_testmm(/*out*/mm_t * testmm)
 static int installnew_testmm(const mm_t * testmm)
 {
    int err;
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) return EINVAL;
+   if (cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) return EINVAL;
 
    memblock_t previous_mm;
 
@@ -515,7 +515,7 @@ int switchon_testmm()
    int  err;
    mm_t testmm = mm_FREE;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
+   if (cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       memblock_t  previous_mm;
 
       err = initasmm_testmm(&testmm);
@@ -539,7 +539,7 @@ int switchoff_testmm()
 {
    int err;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) {
+   if (cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) {
 
       mm_t testmm;
 
@@ -617,7 +617,7 @@ int initasmm_testmm(/*out*/mm_t * testmm)
 
    memcpy(memblock.addr, &testmmobj, objsize) ;
 
-   *testmm = (mm_t) mm_INIT((struct mm_t*) memblock.addr, genericcast_mmit(&s_testmm_interface, testmm_t)) ;
+   *testmm = (mm_t) mm_INIT((struct mm_t*) memblock.addr, cast_mmit(&s_testmm_interface, testmm_t)) ;
 
    return err ;
 ONERR:
@@ -633,7 +633,7 @@ int freeasmm_testmm(mm_t * testmm)
    const size_t   objsize   = sizeof(testmm_t) ;
 
    if (testmm->object) {
-      assert(testmm->iimpl == genericcast_mmit(&s_testmm_interface, testmm_t)) ;
+      assert(testmm->iimpl == cast_mmit(&s_testmm_interface, testmm_t)) ;
 
       memcpy(&testmmobj, testmm->object, objsize) ;
       err = free_testmm(&testmmobj) ;
@@ -986,20 +986,20 @@ static int test_initfree(void)
    TEST(0 == testmm.sizeallocated) ;
 
    // TEST initiot, double freeiot
-   TEST(0 == mmobj.object) ;
-   TEST(0 == mmobj.iimpl) ;
-   TEST(0 == initasmm_testmm(&mmobj)) ;
-   TEST(mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize)) ;
-   TEST(mmobj.iimpl  == genericcast_mmit(&s_testmm_interface, testmm_t)) ;
-   TEST(0 == freeasmm_testmm(&mmobj)) ;
-   TEST(0 == mmobj.object) ;
-   TEST(0 == mmobj.iimpl) ;
+   TEST(0 == mmobj.object);
+   TEST(0 == mmobj.iimpl);
+   TEST(0 == initasmm_testmm(&mmobj));
+   TEST(mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize));
+   TEST(mmobj.iimpl  == cast_mmit(&s_testmm_interface, testmm_t));
+   TEST(0 == freeasmm_testmm(&mmobj));
+   TEST(0 == mmobj.object);
+   TEST(0 == mmobj.iimpl);
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_testmm(&testmm) ;
-   freeasmm_testmm(&mmobj) ;
-   return EINVAL ;
+   free_testmm(&testmm);
+   freeasmm_testmm(&mmobj);
+   return EINVAL;
 }
 
 static int test_allocate(void)
@@ -1182,16 +1182,16 @@ static int test_context(void * dummy)
    initcopy_iobj(&oldmm, &mm_maincontext());
 
    // TEST switchon_testmm: double call
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
+   TEST(cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
+   TEST(cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
+   TEST(cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
 
    // TEST switchoff_testmm: double call
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
+   TEST(cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchoff_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
+   TEST(cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
    TEST(oldmm.object == mm_maincontext().object) ;
    TEST(oldmm.iimpl  == mm_maincontext().iimpl) ;
    TEST(0 == switchoff_testmm()) ;

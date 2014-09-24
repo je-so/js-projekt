@@ -25,15 +25,15 @@
 #include "C-kern/api/ds/inmem/node/slist_node.h"
 
 // forward
-struct typeadapt_t ;
+struct typeadapt_t;
 
 /* typedef: struct slist_t
  * Export <slist_t>. */
-typedef struct slist_t                 slist_t ;
+typedef struct slist_t slist_t;
 
 /* typedef: struct slist_iterator_t
  * Export <slist_iterator_t>. */
-typedef struct slist_iterator_t        slist_iterator_t ;
+typedef struct slist_iterator_t slist_iterator_t;
 
 
 // section: Functions
@@ -43,7 +43,7 @@ typedef struct slist_iterator_t        slist_iterator_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_slist
  * Test <slist_t> functionality. */
-int unittest_ds_inmem_slist(void) ;
+int unittest_ds_inmem_slist(void);
 #endif
 
 
@@ -139,15 +139,15 @@ bool next_slistiterator(slist_iterator_t * iter, /*out*/struct slist_node_t ** n
  * >
  * > // free objects automatically
  * > objectadapt_t      typeadapt = typeadapt_INIT_LIFETIME(0, &delete_object_function) ;
- * > err = free_mylist(&mylist, genericcast_typeadapt(&typeadapt, object_t, void)) ;
+ * > err = free_mylist(&mylist, cast_typeadapt(&typeadapt, object_t, void)) ;
  * > }
  *
  * */
 struct slist_t {
    /* variable: last
     * Points to last element (tail) of list. */
-   struct slist_node_t  * last ;
-} ;
+   struct slist_node_t * last;
+};
 
 // group: lifetime
 
@@ -257,11 +257,11 @@ int removeall_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * ty
 
 // group: generic
 
-/* function: genericcast_slist
+/* function: cast_slist
  * Casts list into <slist_t> if that is possible.
  * The generic object list must have a last pointer
  * as first member. */
-slist_t * genericcast_slist(void * list) ;
+slist_t * cast_slist(void * list);
 
 /* define: slist_IMPLEMENT
  * Generates interface of single linked list storing elements of type object_t.
@@ -316,16 +316,18 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
 
 // group: slist_t
 
-/* define: genericcast_slist
- * Implements <slist_t.genericcast_slist>. */
-#define genericcast_slist(list)                                                  \
-   ( __extension__ ({                                                            \
-      static_assert(offsetof(typeof(*(list)), last) == offsetof(slist_t, last),  \
-         "ensure same structure") ;                                              \
-      static_assert((typeof((list)->last))0 == (slist_node_t*)0,                 \
-         "ensure same type") ;                                                   \
-      (slist_t*) (list) ;                                                        \
-   }))
+/* define: cast_slist
+ * Implements <slist_t.cast_slist>. */
+#define cast_slist(list) \
+         ( __extension__ ({                    \
+            typeof(list) _l;                   \
+            _l = (list);                       \
+            static_assert(                     \
+               &(_l->last)                     \
+               == &((slist_t*) _l)->last,      \
+               "ensure compatible structure"); \
+            (slist_t*) _l;                     \
+         }))
 
 /* define: isinlist_slist
  * Implements <slist_t.isinlist_slist>. */

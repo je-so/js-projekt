@@ -39,7 +39,7 @@ slist_IMPLEMENT(_wlist, thread_t, nextwait)
 
 int init_waitlist(/*out*/waitlist_t * wlist)
 {
-   init_wlist(genericcast_slist(wlist)) ;
+   init_wlist(cast_slist(wlist)) ;
 
    wlist->nr_waiting = 0 ;
    wlist->lockflag   = 0 ; ;
@@ -97,7 +97,7 @@ int wait_waitlist(waitlist_t * wlist)
    thread_t *  self = self_thread() ;
 
    lockflag_waitlist(wlist) ;
-   insertlast_wlist(genericcast_slist(wlist), self) ;
+   insertlast_wlist(cast_slist(wlist), self) ;
    ++ wlist->nr_waiting ;
    unlockflag_waitlist(wlist) ;
 
@@ -120,11 +120,11 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), vo
 {
    lockflag_waitlist(wlist) ;
 
-   thread_t * thread = first_wlist(genericcast_slist(wlist)) ;
+   thread_t * thread = first_wlist(cast_slist(wlist)) ;
 
    if (thread) {
       lockflag_thread(thread) ;
-      (void) removefirst_wlist(genericcast_slist(wlist), &thread) ;
+      (void) removefirst_wlist(cast_slist(wlist), &thread) ;
       -- wlist->nr_waiting ;
       unlockflag_waitlist(wlist) ;
 
@@ -333,7 +333,7 @@ static int test_synchronize(void)
       }
       lockflag_thread(threads[i]) ;
       thread_t * firstthread = 0 ;
-      TEST(0 == removefirst_wlist(genericcast_slist(&wlist), &firstthread)) ;
+      TEST(0 == removefirst_wlist(cast_slist(&wlist), &firstthread)) ;
       TEST(threads[i]           == firstthread) ;
       TEST(threads[i]->nextwait == 0) ;
       unlockflag_thread(threads[i]) ;
@@ -349,7 +349,7 @@ static int test_synchronize(void)
 
    // TEST trywakeup_waitlist
    TEST(0 == self_thread()->nextwait) ;
-   insertlast_wlist(genericcast_slist(&wlist), self_thread()) ;
+   insertlast_wlist(cast_slist(&wlist), self_thread()) ;
    TEST(0 != self_thread()->nextwait) ;
    wlist.nr_waiting = 1 ;
    settask_thread(self_thread(), 0, 0) ;
@@ -366,7 +366,7 @@ static int test_synchronize(void)
 
    // TEST trywakeup_waitlist: active waiting on lockflag
    TEST(0 == self_thread()->nextwait) ;
-   insertlast_wlist(genericcast_slist(&wlist), self_thread()) ;
+   insertlast_wlist(cast_slist(&wlist), self_thread()) ;
    TEST(0 != self_thread()->nextwait) ;
    wlist.nr_waiting = 1 ;
    settask_thread(self_thread(), 0, 0) ;
@@ -397,7 +397,7 @@ static int test_synchronize(void)
 
    // TEST trywakeup_waitlist: active waiting lockflag of woken up thread
    TEST(0 == self_thread()->nextwait) ;
-   insertlast_wlist(genericcast_slist(&wlist), self_thread()) ;
+   insertlast_wlist(cast_slist(&wlist), self_thread()) ;
    TEST(0 != self_thread()->nextwait) ;
    wlist.nr_waiting = 1 ;
    settask_thread(self_thread(), 0, 0) ;

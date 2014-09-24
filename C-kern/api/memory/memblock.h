@@ -134,30 +134,32 @@ int growleft_memblock(memblock_t * mblock, size_t addr_decrement) ;
  * > ├────────────┤            ├┈┈┈┈┈──────────┤ size' == size + size_increment
  * > └- addr      └- addr+size └- addr         └- addr+size'
  * */
-int growright_memblock(memblock_t * mblock, size_t size_increment) ;
+int growright_memblock(memblock_t * mblock, size_t size_increment);
 
 // group: generic
 
-/* function: genericcast_memblock
+/* function: cast_memblock
  * Casts a pointer to generic object into pointer to <memblock_t>.
  * The object must have two members nameprefix##addr and nameprefix##size
  * of the same type as <memblock_t> and in the same order. */
-memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
+memblock_t * cast_memblock(void * obj, IDNAME nameprefix);
 
 
 // section: inline implementation
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */
-#define addr_memblock(mblock)          ((mblock)->addr)
+#define addr_memblock(mblock) \
+         ((mblock)->addr)
 
 /* define: clear_memblock
  * Implements <memblock_t.clear_memblock>. */
-#define clear_memblock(mblock)         (memset((mblock)->addr, 0, (mblock)->size))
+#define clear_memblock(mblock) \
+         (memset((mblock)->addr, 0, (mblock)->size))
 
-/* define: genericcast_memblock
- * Implements <memblock_t.genericcast_memblock>. */
-#define genericcast_memblock(obj, nameprefix)               \
+/* define: cast_memblock
+ * Implements <memblock_t.cast_memblock>. */
+#define cast_memblock(obj, nameprefix) \
          ( __extension__ ({                                 \
             typeof(obj) _obj = (obj) ;                      \
             static_assert(                                  \
@@ -197,19 +199,19 @@ memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
 /* define: growright_memblock
  * Implements <memblock_t.growright_memblock>. */
 #define growright_memblock(mblock, size_increment)       \
-         ( __extension__ ({ int _err ;                   \
-            typeof(mblock) _mblock = (mblock) ;          \
+         ( __extension__ ({ int _err;                    \
+            typeof(mblock) _mblock = (mblock);           \
             size_t _size = _mblock->size                 \
-                         + (size_increment) ;            \
+                         + (size_increment);             \
             if ( _size < _mblock->size                   \
                  || ((uintptr_t)_mblock->addr + _size    \
                       < (uintptr_t)_mblock->addr)) {     \
-               _err = ENOMEM ;                           \
+               _err = ENOMEM;                            \
             } else {                                     \
-               _mblock->size = _size ;                   \
-               _err = 0 ;                                \
+               _mblock->size = _size;                    \
+               _err = 0;                                 \
             }                                            \
-            _err ;                                       \
+            _err;                                        \
          }))
 
 /* define: isfree_memblock

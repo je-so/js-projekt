@@ -39,7 +39,7 @@
 
 static inline void compiletime_assert(void)
 {
-   static_assert( ((x11drawable_t*)0) == genericcast_x11drawable((x11window_t*)0),
+   static_assert( ((x11drawable_t*)0) == cast_x11drawable((x11window_t*)0),
                   "x11window_t can be cast to x11drawable_t");
 }
 
@@ -759,8 +759,8 @@ static int test_interface(void)
    TEST(evhimpl.onreshape == &onreshape_testwindow);
    TEST(evhimpl.onvisible == &onvisible_testwindow);
 
-   // TEST genericcast_x11windowevh (x11window_evh_DECLARE)
-   TEST(genericcast_x11windowevh(&evhimpl, testwindow_t) == (x11window_evh_t*)&evhimpl);
+   // TEST cast_x11windowevh (x11window_evh_DECLARE)
+   TEST(cast_x11windowevh(&evhimpl, testwindow_t) == (x11window_evh_t*)&evhimpl);
 
    // TEST onclose_testwindow
    for (int i = 0; i < 10; ++i) {
@@ -862,11 +862,11 @@ static int test_initfree(x11display_t * x11disp)
    WAITFOR(x11disp, 5, false) ;
 
    // TEST free_x11window: XDestroyWindow called outside free_x11window (or another process for example)
-   TEST(0 == init_x11window(x11win, x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), 0, 0)) ;
+   TEST(0 == init_x11window(x11win, x11disp, snr, cast_x11windowevh(&evhimpl, testwindow_t), 0, 0)) ;
    TEST(x11win->display      == x11disp) ;
    TEST(x11win->sys_drawable != 0) ;
    TEST(x11win->sys_colormap != 0) ;
-   TEST(x11win->evhimpl      == genericcast_x11windowevh(&evhimpl, testwindow_t)) ;
+   TEST(x11win->evhimpl      == cast_x11windowevh(&evhimpl, testwindow_t)) ;
    TEST(x11win->state        == x11window_state_HIDDEN) ;
    TEST(x11win->flags        == (x11window_flags_OWNWINDOW|x11window_flags_OWNCOLORMAP)) ;
    syswin = x11win->sys_drawable;
@@ -880,7 +880,7 @@ static int test_initfree(x11display_t * x11disp)
    TEST(x11win->display      == x11disp) ;
    TEST(x11win->sys_drawable == 0) ;
    TEST(x11win->sys_colormap != 0) ;
-   TEST(x11win->evhimpl      == genericcast_x11windowevh(&evhimpl, testwindow_t)) ;
+   TEST(x11win->evhimpl      == cast_x11windowevh(&evhimpl, testwindow_t)) ;
    TEST(x11win->state        == x11window_state_DESTROYED) ;
    TEST(x11win->flags        == (x11window_flags_OWNCOLORMAP)) ;
    // removed from id -> object map
@@ -1590,9 +1590,9 @@ static int childprocess_unittest(void)
    TEST(0 == init_x11display(&x11disp, 0)) ;
    snr = defaultscreennr_x11display(&x11disp) ;
    // with frame
-   TEST(0 == init_x11window(&x11win.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), gconf, config)) ;
+   TEST(0 == init_x11window(&x11win.x11win, &x11disp, snr, cast_x11windowevh(&evhimpl, testwindow_t), gconf, config)) ;
    // without frame
-   TEST(0 == init_x11window(&x11win2.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), gconf2, config2)) ;
+   TEST(0 == init_x11window(&x11win2.x11win, &x11disp, snr, cast_x11windowevh(&evhimpl, testwindow_t), gconf2, config2)) ;
 
    if (test_initfree(&x11disp))           goto ONERR;
    if (test_query(&x11disp, &x11win,

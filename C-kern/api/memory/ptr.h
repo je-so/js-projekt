@@ -63,7 +63,7 @@ int isaligned_ptr(const ptr_t ptr, unsigned nrbits);
  *
  * Unchecked Precondition:
  * nrbits < bitsof(void*) */
-int lsbits_ptr(const ptr_t ptr, unsigned nrbits);
+uintptr_t lsbits_ptr(const ptr_t ptr, unsigned nrbits);
 
 // group: update
 

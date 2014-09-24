@@ -148,26 +148,26 @@ static int test_generic(void)
 
    // TEST mm_it_INIT
    mmxif = (mmx_it) mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
-   TEST(mmxif.malloc        == &malloc_mmx) ;
-   TEST(mmxif.mresize       == &mresize_mmx) ;
-   TEST(mmxif.mfree         == &mfree_mmx) ;
-   TEST(mmxif.sizeallocated == &sizeallocated_mmx) ;
+   TEST(mmxif.malloc        == &malloc_mmx);
+   TEST(mmxif.mresize       == &mresize_mmx);
+   TEST(mmxif.mfree         == &mfree_mmx);
+   TEST(mmxif.sizeallocated == &sizeallocated_mmx);
 
-   // TEST genericcast_mmit
-   TEST((mm_it*)&mmxif == genericcast_mmit(&mmxif, struct mmx_t)) ;
+   // TEST cast_mmit
+   TEST((mm_it*)&mmxif == cast_mmit(&mmxif, struct mmx_t));
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 /* function: test_call
  * Test call functions of <mm_t>. */
 static int test_call(void)
 {
-   mmx_it mmxif = mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   mmx_it mmxif = mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx);
    mmx_t  mmx   = { 0, 0, 0, 0 } ;
-   mm_t   mm    = mm_INIT((mm_t*)&mmx, genericcast_mmit(&mmxif, struct mmx_t)) ;
+   mm_t   mm    = mm_INIT((mm_t*)&mmx, cast_mmit(&mmxif, struct mmx_t));
 
    // TEST malloc_mm
    TEST(0 == malloc_mm(mm, 1000, (struct memblock_t*)10001)) ;

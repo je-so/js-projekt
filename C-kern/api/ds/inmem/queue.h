@@ -23,17 +23,18 @@ struct dlist_node_t;
 
 /* typedef: struct queue_t
  * Export <queue_t> into global namespace. */
-typedef struct queue_t              queue_t;
+typedef struct queue_t queue_t;
 
 /* typedef: struct queue_iterator_t
  * Export <queue_iterator_t> into global namespace. */
-typedef struct queue_iterator_t     queue_iterator_t;
+typedef struct queue_iterator_t queue_iterator_t;
 
 /* typedef: struct queue_page_t
  * Export <queue_page_t> into global namespace.
  * This is an opaque type which describes a block of memory
  * holding multiple number of elements. */
-typedef struct queue_page_t         queue_page_t;
+typedef struct queue_page_t queue_page_t;
+
 
 // section: Functions
 
@@ -264,10 +265,10 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
 
 // group: generic
 
-/* function: genericcast_queue
+/* function: cast_queue
  * Tries to cast generic object queue into pointer to <queue_t>.
  * The generic object must have a last pointer as first member. */
-queue_t * genericcast_queue(void * queue);
+queue_t * cast_queue(void * queue);
 
 /* define: queue_IMPLEMENT
  * Generates interface of queue_t storing elements of type object_t.
@@ -459,27 +460,20 @@ struct queue_page_t {
                _node;                                    \
          }))
 
-/* define: genericcast_queue
- * Implements <queue_t.genericcast_queue>. */
-#define genericcast_queue(queue) \
-         ( __extension__ ({                           \
-            static_assert(                            \
-                  sizeof((queue)->last)               \
-                  == sizeof(((queue_t*)0)->last)      \
-                  && offsetof(typeof(*(queue)), last) \
-                     == offsetof(queue_t, last)       \
-                  && (typeof((queue)->last))0         \
-                  == (struct dlist_node_t*)0          \
-                  && sizeof((queue)->pagesize)        \
-                  == sizeof(((queue_t*)0)->pagesize)  \
-                  && offsetof(                        \
-                          typeof(*(queue)), pagesize) \
-                     == offsetof(queue_t, pagesize)   \
-                  && (typeof(&(queue)->pagesize))0    \
-                  == (uint8_t*)0,                     \
-                  "ensure compatible structure"       \
-            );                                        \
-            (queue_t*) (queue);                       \
+/* define: cast_queue
+ * Implements <queue_t.cast_queue>. */
+#define cast_queue(queue) \
+         ( __extension__ ({                      \
+            typeof(queue) _q;                    \
+            _q = (queue);                        \
+            static_assert(                       \
+               &(_q->last)                       \
+               == &((queue_t*) _q)->last         \
+               && &(_q->pagesize)                \
+                  == &((queue_t*) _q)->pagesize, \
+                  "ensure compatible structure"  \
+            );                                   \
+            (queue_t*) _q;                       \
          }))
 
 /* define: isempty_queue

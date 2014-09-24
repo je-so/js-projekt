@@ -163,8 +163,8 @@ static int test_generic(void)
    static_assert(offsetof(testadapter_it, cmp_key_object) == offsetof(typeadapt_comparator_it, cmp_key_object), "structure compatible") ;
    static_assert(offsetof(testadapter_it, cmp_object) == offsetof(typeadapt_comparator_it, cmp_object), "structure compatible") ;
 
-   // TEST genericcast_typeadaptcomparator
-   TEST((struct typeadapt_comparator_it*)&adpcmp == genericcast_typeadaptcomparator(&adpcmp, testadapter_t, testobject_t, int)) ;
+   // TEST cast_typeadaptcomparator
+   TEST((struct typeadapt_comparator_it*)&adpcmp == cast_typeadaptcomparator(&adpcmp, testadapter_t, testobject_t, uintptr_t)) ;
 
    // TEST typeadapt_comparator_FREE
    TEST(0 == adpcmp.cmp_key_object) ;

@@ -18,7 +18,7 @@
 
 /* typedef: struct dlist_node_t
  * Export <dlist_node_t> into global namespace. */
-typedef struct dlist_node_t            dlist_node_t ;
+typedef struct dlist_node_t dlist_node_t;
 
 
 /* struct: dlist_node_t
@@ -30,12 +30,12 @@ struct dlist_node_t {
    /* variable: next
     * Points to next node in the list.
     * If this node is currently not part of any list this value is set to NULL. */
-   dlist_node_t  * next ;
+   dlist_node_t  * next;
    /* variable: prev
     * Points to previous node in the list.
     * If this node is currently not part of any list this value is set to NULL. */
-   dlist_node_t  * prev ;
-} ;
+   dlist_node_t  * prev;
+};
 
 // group: lifetime
 
@@ -51,42 +51,30 @@ struct dlist_node_t {
 
 // group: generic
 
-/* function: genericcast_dlistnode
+/* function: cast_dlistnode
  * Casts node into pointer to <dlist_node_t>.
  * The pointer node must point to an object which has
  * the same data members as <dlist_node_t>. */
-dlist_node_t * genericcast_dlistnode(void * node) ;
+dlist_node_t * cast_dlistnode(void * node) ;
 
 
 
 // section: inline implementation
 
-/* define: genericcast_dlistnode
- * Implements <dlist_node_t.genericcast_dlistnode>. */
-#define genericcast_dlistnode(node)                         \
-         ( __extension__ ({                                 \
-            static_assert(                                  \
-                  sizeof((node)->next)                      \
-                  == sizeof(((dlist_node_t*)0)->next)       \
-                  && sizeof((node)->prev)                   \
-                  == sizeof(((dlist_node_t*)0)->prev)       \
-                  && offsetof(dlist_node_t, next)           \
-                     < offsetof(dlist_node_t, prev)         \
-                  && offsetof(typeof(*(node)), next)        \
-                     < offsetof(typeof(*(node)), prev)      \
-                  && offsetof(typeof(*(node)), prev)        \
-                     - offsetof(typeof(*(node)), next)      \
-                     == offsetof(dlist_node_t, prev)        \
-                     - offsetof(dlist_node_t, next),        \
-                  "ensure compatible structure"             \
-            ) ;                                             \
-            static_assert(                                  \
-                  (typeof((node)->next))0                   \
-                     == (dlist_node_t*)0                    \
-                  && (typeof((node)->prev))0                \
-                     == (dlist_node_t*)0,                   \
-                  "ensure same type") ;                     \
-            (dlist_node_t*) &(node)->next ;                 \
+/* define: cast_dlistnode
+ * Implements <dlist_node_t.cast_dlistnode>. */
+#define cast_dlistnode(node) \
+         ( __extension__ ({                            \
+            static_assert(                             \
+                  &((node)->next)                      \
+                  == &((dlist_node_t*) (uintptr_t)     \
+                       &(node)->next)->next            \
+                  && &((node)->prev)                   \
+                     == &((dlist_node_t*) (uintptr_t)  \
+                          &(node)->next)->prev,        \
+                  "ensure compatible structure"        \
+            );                                         \
+            (dlist_node_t*) &(node)->next;             \
          }))
 
 #endif

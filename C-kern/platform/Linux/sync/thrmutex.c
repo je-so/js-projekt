@@ -123,7 +123,7 @@ int lock_thrmutex(thrmutex_t * mutex)
          err = EDEADLK ;
          goto ONERR;
       }
-      insertlast_thrmutexlist(genericcast_slist(mutex), self) ;
+      insertlast_thrmutexlist(cast_slist(mutex), self) ;
       unlockflag_thrmutex(mutex) ;
 
       // suspend
@@ -158,9 +158,9 @@ int unlock_thrmutex(thrmutex_t * mutex)
 
    thread_t * nextwait = 0 ;
 
-   if (! isempty_thrmutexlist(genericcast_slist(mutex))) {
+   if (! isempty_thrmutexlist(cast_slist(mutex))) {
       // resume waiting thread
-      (void) removefirst_thrmutexlist(genericcast_slist(mutex), &nextwait) ;
+      (void) removefirst_thrmutexlist(cast_slist(mutex), &nextwait) ;
       resume_thread(nextwait) ;
    }
 
@@ -370,7 +370,7 @@ static int test_synchronize(void)
       }
       lockflag_thrmutex(&mutex) ;   // acquired during wakeup
       thread_t * firstthread = 0 ;
-      TEST(0 == removefirst_thrmutexlist(genericcast_slist(&mutex), &firstthread)) ;
+      TEST(0 == removefirst_thrmutexlist(cast_slist(&mutex), &firstthread)) ;
       TEST(threads[i]           == firstthread) ;
       TEST(threads[i]->nextwait == 0) ;
       resume_thread(threads[i]) ;   // real wakeup

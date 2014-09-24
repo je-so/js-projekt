@@ -1,32 +1,32 @@
-[1: 1411568031.610515s]
+[1: 1411570848.193946s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:91
 Error 22 - Invalid argument
 Function input violates condition (0 == *iobuffer)
-[1: 1411568031.610521s]
+[1: 1411570848.193952s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:106
 Error 22 - Invalid argument
-Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-[1: 1411568031.610890s]
+Function input violates condition (cast_memblock(&objectcache->iobuffer,) == *iobuffer)
+[1: 1411570848.194357s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:91
 Error 22 - Invalid argument
 Function input violates condition (0 == *iobuffer)
-[1: 1411568031.610923s]
+[1: 1411570848.194412s]
 lockiobuffer_objectcacheimpl() C-kern/cache/objectcache_impl.c:122
 Error 22 - Invalid argument
 Assertion '!err && "lockiobuffer2_objectcacheimpl"' failed.
-[1: 1411568031.610926s]
+[1: 1411570848.194418s]
 abort_maincontext() C-kern/context/maincontext.c:224
 Error 22 - Invalid argument
 Abort process with fatal error
-[1: 1411568031.844252s]
+[1: 1411570848.425654s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:106
 Error 22 - Invalid argument
-Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-[1: 1411568031.844309s]
+Function input violates condition (cast_memblock(&objectcache->iobuffer,) == *iobuffer)
+[1: 1411570848.425691s]
 unlockiobuffer_objectcacheimpl() C-kern/cache/objectcache_impl.c:131
 Error 22 - Invalid argument
 Assertion '!err && "unlockiobuffer2_objectcacheimpl"' failed.
-[1: 1411568031.844316s]
+[1: 1411570848.425694s]
 abort_maincontext() C-kern/context/maincontext.c:224
 Error 22 - Invalid argument
 Abort process with fatal error

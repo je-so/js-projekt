@@ -52,7 +52,7 @@ static test_errortimer_t   s_window_errtimer = test_errortimer_FREE;
 /* define: INIT_OSWINDOW
  * Initializes the native window oswindow in an OS specific way. */
 #define INIT_OSWINDOW(oswindow, disp, screennr, eventhandler, visualid, winattr) \
-         initvid_x11window(oswindow, os_display(disp), screennr, genericcast_x11windowevh(eventhandler, window_t), (uint32_t)visualid, winattr)
+         initvid_x11window(oswindow, os_display(disp), screennr, cast_x11windowevh(eventhandler, window_t), (uint32_t)visualid, winattr)
 
 /* define: FREE_OSWINDOW
  * Frees oswindow in an OS specific way. */

@@ -25,7 +25,7 @@ struct typeadapt_object_t ;
 
 /* typedef: struct typeadapt_gethash_it
  * Export <typeadapt_gethash_it> into global namespace. */
-typedef struct typeadapt_gethash_it         typeadapt_gethash_it ;
+typedef struct typeadapt_gethash_it typeadapt_gethash_it;
 
 
 // section: Functions
@@ -35,25 +35,25 @@ typedef struct typeadapt_gethash_it         typeadapt_gethash_it ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_typeadapt_gethash
  * Test <typeadapt_gethash_it> functionality. */
-int unittest_ds_typeadapt_gethash(void) ;
+int unittest_ds_typeadapt_gethash(void);
 #endif
 
 
 /* struct: typeadapt_gethash_it
  * Declares interface for computing a hash value from key / object.
  * If you change this interface do not forget to adapt
- * <typeadapt_gethash_EMBED> and <genericcast_typeadaptgethash>. */
+ * <typeadapt_gethash_EMBED> and <cast_typeadaptgethash>. */
 struct typeadapt_gethash_it {
    /* function: hashobject
     * Computes the hash value of the key of an object. The parameter is a pointer to the object which contains
     * the key. */
-   size_t  (*hashobject) (struct typeadapt_t * typeadp, const struct typeadapt_object_t * node) ;
+   size_t  (*hashobject) (struct typeadapt_t * typeadp, const struct typeadapt_object_t * node);
    /* function: hashkey
     * Computes the hash value of a key. This computation must correspond with <hashobject>. The reason is that
     * insert operations uses the object to compute the hash functions and find operations uses the key value
-    * fir its hash computation. */
-   size_t  (*hashkey)    (struct typeadapt_t * typeadp, const void * key) ;
-} ;
+    * for its hash computation. */
+   size_t  (*hashkey)    (struct typeadapt_t * typeadp, const void * key);
+};
 
 // group: lifetime
 
@@ -69,7 +69,7 @@ struct typeadapt_gethash_it {
  * hashobject_f - Function pointer to function returning the hash value of an object. See <typeadapt_gethash_it.hashobject>.
  * hashkey_f    - Function pointer to function returning the hash value of a key. See <typeadapt_gethash_it.hashkey>. */
 #define typeadapt_gethash_INIT(hashobject_f, hashkey_f) \
-   { hashobject_f, hashkey_f }
+         { hashobject_f, hashkey_f }
 
 // group: query
 
@@ -93,12 +93,12 @@ size_t callhashkey_typeadaptgethash(typeadapt_gethash_it * gethash, struct typea
 
 // group: generic
 
-/* define: genericcast_typeadaptgethash
+/* define: cast_typeadaptgethash
  * Casts parameter gethash into pointer to <typeadapt_gethash_it>.
  * The parameter *gethash* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_gethash_DECLARE>.
  * The other parameter have to be the same as in <typeadapt_gethash_DECLARE>. */
-typeadapt_gethash_it * genericcast_typeadaptgethash(void * gethash, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
+typeadapt_gethash_it * cast_typeadaptgethash(void * gethash, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
 /* define: typeadapt_gethash_DECLARE
  * Declares a derived interface from generic <typeadapt_gethash_it>.
@@ -128,49 +128,46 @@ void typeadapt_gethash_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME
 
 // section: inline implementation
 
-/* define: genericcast_typeadaptgethash
- * Implements <typeadapt_gethash_it.genericcast_typeadaptgethash>. */
-#define genericcast_typeadaptgethash(gethash, typeadapter_t, object_t, key_t)    \
-   ( __extension__ ({                                                            \
-      static_assert(                                                             \
-         offsetof(typeadapt_gethash_it, hashobject)                              \
-         == offsetof(typeof(*(gethash)), hashobject)                             \
-         && offsetof(typeadapt_gethash_it, hashkey)                              \
-            == offsetof(typeof(*(gethash)), hashkey),                            \
-         "ensure same structure") ;                                              \
-      if (0) {                                                                   \
-         size_t hash = 0 ;                                                       \
-         hash += (gethash)->hashobject((typeadapter_t*)0, (const object_t*)0) ;  \
-         hash += (gethash)->hashkey((typeadapter_t*)0, (const key_t)0) ;         \
-      }                                                                          \
-      (typeadapt_gethash_it*) (gethash) ;                                        \
-   }))
+/* define: cast_typeadaptgethash
+ * Implements <typeadapt_gethash_it.cast_typeadaptgethash>. */
+#define cast_typeadaptgethash(gethash, typeadapter_t, object_t, key_t) \
+         ( __extension__ ({                                       \
+            typeof(gethash) _gh;                                  \
+            _gh = (gethash);                                      \
+            static_assert(                                        \
+               &(_gh->hashobject)                                 \
+               == (size_t (**) (typeadapter_t*, const object_t*)) \
+                  &((typeadapt_gethash_it*) _gh)->hashobject      \
+               && &(_gh->hashkey)                                 \
+                  == (size_t (**) (typeadapter_t*, const key_t))  \
+                     &((typeadapt_gethash_it*) _gh)->hashkey      \
+               && sizeof(key_t) == sizeof(void*),                 \
+               "ensure same structure") ;                         \
+            (typeadapt_gethash_it*) _gh;                          \
+         }))
 
 /* define: callhashobject_typeadaptgethash
  * Implements <typeadapt_gethash_it.callhashobject_typeadaptgethash>. */
 #define callhashobject_typeadaptgethash(gethash, typeadp, node) \
-   ((gethash)->hashobject((typeadp), (node)))
+         ((gethash)->hashobject((typeadp), (node)))
 
 /* define: callhashkey_typeadaptgethash
  * Implements <typeadapt_gethash_it.callhashkey_typeadaptgethash>. */
 #define callhashkey_typeadaptgethash(gethash, typeadp, key) \
-   ((gethash)->hashkey((typeadp), (key)))
+         ((gethash)->hashkey((typeadp), (key)))
 
 /* define: typeadapt_gethash_DECLARE
  * Implements <typeadapt_gethash_it.typeadapt_gethash_DECLARE>. */
-#define typeadapt_gethash_DECLARE(declared_it, typeadapter_t, object_t, key_t)   \
-   static inline void compiletimeassert##declared_it(void) {                     \
-      static_assert(sizeof(key_t)==sizeof(void*), "compatible with hashkey") ;   \
-   }                                                                             \
-   typedef struct declared_it             declared_it ;                          \
-   struct declared_it {                                                          \
-      typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t) ;                  \
-   }
+#define typeadapt_gethash_DECLARE(declared_it, typeadapter_t, object_t, key_t) \
+         typedef struct declared_it declared_it;                     \
+         struct declared_it {                                        \
+            typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t); \
+         }
 
 /* define: typeadapt_gethash_EMBED
  * Implements <typeadapt_gethash_it.typeadapt_gethash_EMBED>. */
-#define typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t)               \
-   size_t  (*hashobject) (typeadapter_t * typeadp, const object_t * node) ;   \
-   size_t  (*hashkey)    (typeadapter_t * typeadp, const key_t key)
+#define typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t) \
+         size_t  (*hashobject) (typeadapter_t * typeadp, const object_t * node); \
+         size_t  (*hashkey)    (typeadapter_t * typeadp, const key_t key)
 
 #endif

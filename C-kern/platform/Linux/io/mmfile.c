@@ -758,18 +758,18 @@ static int test_generic(void)
       }        mmfile[2] ;
       uint8_t  * preFX_addr ;
       size_t   preFX_size ;
-   }                       obj ;
-   const struct testobj_t  cobj ;
+   }                       obj;
+   const struct testobj_t  cobj;
 
-   // TEST genericcast_mmfile: non const
-   TEST((mmfile_t*)(&obj.mmfile[0].addr) == genericcast_mmfile(&obj.mmfile[0],,)) ;
-   TEST((mmfile_t*)(&obj.mmfile[1].addr) == genericcast_mmfile(&obj.mmfile[1],,)) ;
-   TEST((mmfile_t*)(&obj.preFX_addr)     == genericcast_mmfile(&obj,preFX_,)) ;
+   // TEST cast_mmfile: non const
+   TEST((mmfile_t*)(&obj.mmfile[0].addr) == cast_mmfile(&obj.mmfile[0],,)) ;
+   TEST((mmfile_t*)(&obj.mmfile[1].addr) == cast_mmfile(&obj.mmfile[1],,)) ;
+   TEST((mmfile_t*)(&obj.preFX_addr)     == cast_mmfile(&obj,preFX_,)) ;
 
-   // TEST genericcast_mmfile: const
-   TEST((const mmfile_t*)(&cobj.mmfile[0].addr) == genericcast_mmfile(&cobj.mmfile[0],,const)) ;
-   TEST((const mmfile_t*)(&cobj.mmfile[1].addr) == genericcast_mmfile(&cobj.mmfile[1],,const)) ;
-   TEST((const mmfile_t*)(&cobj.preFX_addr)     == genericcast_mmfile(&cobj,preFX_,const)) ;
+   // TEST cast_mmfile: const
+   TEST((const mmfile_t*)(&cobj.mmfile[0].addr) == cast_mmfile(&cobj.mmfile[0],,const)) ;
+   TEST((const mmfile_t*)(&cobj.mmfile[1].addr) == cast_mmfile(&cobj.mmfile[1],,const)) ;
+   TEST((const mmfile_t*)(&cobj.preFX_addr)     == cast_mmfile(&cobj,preFX_,const)) ;
 
    return 0 ;
 ONERR:

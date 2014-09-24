@@ -54,7 +54,7 @@ struct vm_regionsarray_t
 static inline void compiletime_assert(void)
 {
    vmpage_t vmpage ;
-   static_assert( (memblock_t*)&vmpage == genericcast_memblock(&vmpage, )
+   static_assert( (memblock_t*)&vmpage == cast_memblock(&vmpage, )
                   && sizeof(vmpage_t) == sizeof(memblock_t), "same structure") ;
 }
 
@@ -906,16 +906,16 @@ static int test_vmpage(void)
    page.size = 0 ;
    TEST(1 == isfree_vmpage(&page)) ;
 
-   // TEST genericcast_vmpage
+   // TEST cast_vmpage
    struct {
-      uint8_t *   test_addr ;
-      size_t      test_size ;
-      uint8_t *   addr ;
-      size_t      size ;
+      uint8_t *   test_addr;
+      size_t      test_size;
+      uint8_t *   addr;
+      size_t      size;
    } genericpage ;
 
-   TEST(genericcast_vmpage(&genericpage, test_) == (vmpage_t*)&genericpage) ;
-   TEST(genericcast_vmpage(&genericpage, )      == (vmpage_t*)&genericpage.addr) ;
+   TEST(cast_vmpage(&genericpage, test_) == (vmpage_t*)&genericpage) ;
+   TEST(cast_vmpage(&genericpage, )      == (vmpage_t*)&genericpage.addr) ;
 
 
    for (size_in_pages = 1; size_in_pages < 100; ++size_in_pages) {

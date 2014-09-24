@@ -140,7 +140,7 @@ int delete_thread(thread_t ** threadobj)
 
       err = join_thread(delobj) ;
 
-      err2 = free_threadtls(genericcast_threadtls(delobj, tls_)) ;
+      err2 = free_threadtls(cast_threadtls(delobj, tls_)) ;
       if (err2) err = err2 ;
 
       if (err) goto ONERR;
@@ -670,7 +670,7 @@ static void sigusr1handler(int sig)
 static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy ;
-   signalstack_threadtls(genericcast_threadtls(self_thread(), tls_), &s_sigaltstack_signalstack) ;
+   signalstack_threadtls(cast_threadtls(self_thread(), tls_), &s_sigaltstack_signalstack) ;
    s_sigaltstack_threadid    = pthread_self() ;
    s_sigaltstack_returncode  = EINVAL ;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
@@ -948,8 +948,8 @@ static int test_manythreads(void)
    // TEST newgeneric_thread: every thread has its own stackframe + self_thread
    for (unsigned i = 0; i < lengthof(startarg.isValid); ++i) {
       TEST(0 == newgeneric_thread(&startarg.thread[i], thread_isvalidstack, &startarg)) ;
-      signalstack_threadtls(genericcast_threadtls(startarg.thread[i], tls_), &startarg.signalstack[i]) ;
-      threadstack_threadtls(genericcast_threadtls(startarg.thread[i], tls_), &startarg.threadstack[i]) ;
+      signalstack_threadtls(cast_threadtls(startarg.thread[i], tls_), &startarg.signalstack[i]) ;
+      threadstack_threadtls(cast_threadtls(startarg.thread[i], tls_), &startarg.threadstack[i]) ;
    }
    // startarg initialized
    startarg.isvalid = true ;

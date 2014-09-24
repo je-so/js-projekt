@@ -251,15 +251,15 @@ int removeall_dlist(dlist_t * list, uint16_t nodeoffset, struct typeadapt_t * ty
  * Transfer ownership of all nodes from fromlist to tolist.
  * After this operation fromlist is empty and tolist contains all nodes.
  * The nodes are appended at the end of tolist. */
-void transfer_dlist(dlist_t * tolist, dlist_t * fromlist) ;
+void transfer_dlist(dlist_t * tolist, dlist_t * fromlist);
 
 // group: generic
 
-/* function: genericcast_dlist
+/* function: cast_dlist
  * Casts list into <dlist_t> if that is possible.
  * The generic object list must have a last pointer
  * as first member. */
-dlist_t * genericcast_dlist(void * list) ;
+dlist_t * cast_dlist(void * list);
 
 /* define: dlist_IMPLEMENT
  * Generates interface of double linked list storing elements of type object_t.
@@ -271,7 +271,7 @@ dlist_t * genericcast_dlist(void * list) ;
  * nodeprefix - The access path of the field <dlist_node_t> in type object_t including ".".
  *              if next and prev pointers are part of object_t leave this field emtpy.
  * */
-void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
+void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix);
 
 
 // section: inline implementation
@@ -351,37 +351,43 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
 
 // group: dlist_t
 
-/* define: genericcast_dlist
- * Implements <dlist_t.genericcast_dlist>. */
-#define genericcast_dlist(list)                             \
-         ( __extension__ ({                                 \
-            static_assert(                                  \
-                  sizeof((list)->last)                      \
-                  == sizeof(((dlist_t*)0)->last)            \
-                  && offsetof(typeof(*(list)), last)        \
-                  == offsetof(dlist_t, last)                \
-                  && (typeof((list)->last))0                \
-                     == (dlist_node_t*)0,                   \
-                  "ensure compatible structure"             \
-            ) ;                                             \
-            (dlist_t*) (list) ;                             \
+/* define: cast_dlist
+ * Implements <dlist_t.cast_dlist>. */
+#define cast_dlist(list) \
+         ( __extension__ ({                \
+            typeof(list) _l2 = (list);     \
+            static_assert(                 \
+               &(_l2->last)                \
+               == &((dlist_t*) (uintptr_t) \
+                     _l2)->last,           \
+                  "compatible structure"   \
+            );                             \
+            (dlist_t*) _l2;                \
          }))
 
 /* define: first_dlist
  * Implements <dlist_t.first_dlist>. */
-#define first_dlist(list)                    ((list)->last ? (list)->last->next : (struct dlist_node_t*)0)
+#define first_dlist(list) \
+         ( __extension__ ({                    \
+            typeof(list) _l;                   \
+            _l = (list);                       \
+            ( _l->last ? _l->last->next : 0 ); \
+         }))
 
 /* define: last_dlist
  * Implements <dlist_t.last_dlist>. */
-#define last_dlist(list)                     ((list)->last)
+#define last_dlist(list) \
+         ((list)->last)
 
 /* define: init_dlist
  * Implements <dlist_t.init_dlist>. */
-#define init_dlist(list)                     ((void)(*(list) = (dlist_t)dlist_INIT))
+#define init_dlist(list) \
+         ((void)(*(list) = (dlist_t)dlist_INIT))
 
 /* define: isempty_dlist
  * Implements <dlist_t.isempty_dlist>. */
-#define isempty_dlist(list)                  (0 == (list)->last)
+#define isempty_dlist(list) \
+         (0 == (list)->last)
 
 /* define: isinlist_dlist
  * Implements <dlist_t.isinlist_dlist>. */

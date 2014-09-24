@@ -94,7 +94,7 @@ static logwriter_it  s_logwriter_interface = {
 
 struct log_it * interface_logwriter(void)
 {
-   return genericcast_logit(&s_logwriter_interface, logwriter_t) ;
+   return cast_logit(&s_logwriter_interface, logwriter_t) ;
 }
 
 // group: helper
@@ -121,7 +121,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
 {
    int err ;
 
-   err = allocatebuffer_logwriter(genericcast_memblock(lgwrt, )) ;
+   err = allocatebuffer_logwriter(cast_memblock(lgwrt, )) ;
    if (err) goto ONERR;
    lgwrt->chan = (logwriter_chan_t*) lgwrt->addr ;
 
@@ -147,7 +147,7 @@ int free_logwriter(logwriter_t * lgwrt)
 {
    int err ;
 
-   err = freebuffer_logwriter(genericcast_memblock(lgwrt,)) ;
+   err = freebuffer_logwriter(cast_memblock(lgwrt,)) ;
 
    lgwrt->chan = 0 ;
 
@@ -980,8 +980,8 @@ ONERR:
 
 static int test_initthread(void)
 {
-   // TEST genericcast_logit
-   TEST(genericcast_logit(&s_logwriter_interface, logwriter_t) == (log_it*)&s_logwriter_interface) ;
+   // TEST cast_logit
+   TEST(cast_logit(&s_logwriter_interface, logwriter_t) == (log_it*)&s_logwriter_interface) ;
 
    // TEST s_logwriter_interface
    TEST(s_logwriter_interface.printf         == &printf_logwriter);
@@ -994,7 +994,7 @@ static int test_initthread(void)
    TEST(s_logwriter_interface.setstate       == &setstate_logwriter);
 
    // TEST interface_logwriter
-   TEST(interface_logwriter() == genericcast_logit(&s_logwriter_interface, logwriter_t)) ;
+   TEST(interface_logwriter() == cast_logit(&s_logwriter_interface, logwriter_t)) ;
 
    return 0 ;
 ONERR:

@@ -38,7 +38,7 @@
 
 static inline void compiletime_assert(void)
 {
-   static_assert( ((x11drawable_t*)0) == genericcast_x11drawable((x11dblbuffer_t*)0),
+   static_assert( ((x11drawable_t*)0) == cast_x11drawable((x11dblbuffer_t*)0),
                   "x11dblbuffer_t can be cast to x11drawable_t");
    static_assert(sizeof(((x11drawable_t*)0)->sys_drawable) == sizeof(XdbeBackBuffer),
                  "external visible handle has same size as internal X11 Window handle");

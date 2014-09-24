@@ -569,7 +569,7 @@ static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/
    if (err) return err ;
 
    textresource_text_t * newtext = (textresource_text_t *) mblock.addr ;
-   (void) init_textresourcetext(newtext, genericcast_string(&text->name)) ;
+   (void) init_textresourcetext(newtext, cast_string(&text->name)) ;
 
    *textcopy = newtext ;
 
@@ -1190,7 +1190,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
             textparam.typemod |= typemodifier_POINTER ;
          }
 
-         err = match_identifier(reader, CONST_CAST(string_t,genericcast_string(&textparam.name))) ;
+         err = match_identifier(reader, CONST_CAST(string_t,cast_string(&textparam.name))) ;
          if (err) goto ONERR;
 
          if (at_arrayptype(reader->txtres.paramtypes, textparam.name.size, textparam.name.addr)) {

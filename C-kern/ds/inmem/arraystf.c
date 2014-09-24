@@ -205,7 +205,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
 
       if (isbranchtype_arraystfunode(node)) {
          pparent = parent ;
-         parent  = branch_arraystfunode(node) ;
+         parent  = cast2branch_arraystfunode(node) ;
          if (parent->offset > keyval.offset) {
             init_arraystfkeyval(&keyval, parent->offset, keynode) ;
          }
@@ -213,7 +213,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
          childindex  = childindex_arraystfmwaybranch(parent, keyval.data) ;
          node        = parent->child[childindex] ;
       } else {
-         result->found_key = node_arraystfunode(node) ;
+         result->found_key = cast2node_arraystfunode(node) ;
          if (  keynode->size == result->found_key->size
                && 0 == memcmp(keynode->addr, result->found_key->addr, keynode->size)) {
             err = 0 ;
@@ -294,7 +294,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
             continue ;
          }
 
-         arraystf_mwaybranch_t * branch = branch_arraystfunode(node) ;
+         arraystf_mwaybranch_t * branch = cast2branch_arraystfunode(node) ;
          node = branch->child[0] ;
          branch->child[0] = 0 ;
          branch->used = lengthof(branch->child)-1 ;
@@ -305,7 +305,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
                if (node) {
                   if (isbranchtype_arraystfunode(node)) {
                      arraystf_mwaybranch_t * parent = branch ;
-                     branch = branch_arraystfunode(node) ;
+                     branch = cast2branch_arraystfunode(node) ;
                      node = branch->child[0] ;
                      branch->child[0] = (arraystf_unode_t*) parent ;
                      branch->used     = lengthof(branch->child)-1 ;
@@ -363,7 +363,7 @@ struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, cons
    err = find_arraystf(array, &key, &found) ;
    if (err) return 0 ;
 
-   return node_arraystfunode(found.found_node) ;
+   return cast2node_arraystfunode(found.found_node) ;
 }
 
 // group: change
@@ -379,7 +379,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    err = find_arraystf(array, node, &found) ;
    if (ESRCH != err) {
       if (inserted_or_existing_node) {
-         *inserted_or_existing_node = (0 == err) ? node_arraystfunode(found.found_node) : 0 ;
+         *inserted_or_existing_node = (0 == err) ? cast2node_arraystfunode(found.found_node) : 0 ;
       }
       return (0 == err) ? EEXIST : err ;
    }
@@ -416,12 +416,12 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
          init_arraystfkeyval(&keynode, keydiff.offset, node) ;
          keydiff.data ^= keynode.data ;
 
-         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, nodecast_arraystfunode(node)) ;
+         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, castPnode_arraystfunode(node)) ;
 
          if (found.parent) {
-            found.parent->child[found.childindex] = branchcast_arraystfunode(new_branch) ;
+            found.parent->child[found.childindex] = castPbranch_arraystfunode(new_branch) ;
          } else {
-            array->root[found.rootindex] = branchcast_arraystfunode(new_branch) ;
+            array->root[found.rootindex] = castPbranch_arraystfunode(new_branch) ;
          }
          goto DONE ;
       }
@@ -433,7 +433,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    // simple case (parent is 0)
 
       if (! found.parent) {
-         array->root[found.rootindex] = nodecast_arraystfunode(node) ;
+         array->root[found.rootindex] = castPnode_arraystfunode(node) ;
          goto DONE ;
       }
 
@@ -443,12 +443,12 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
       for (unsigned i = lengthof(branch->child)-1; ;) {
          if (branch->child[i]) {
             if (isbranchtype_arraystfunode(branch->child[i])) {
-               branch = branch_arraystfunode(branch->child[i]) ;
+               branch = cast2branch_arraystfunode(branch->child[i]) ;
                i = lengthof(branch->child)-1;
                continue ;
             }
 
-            err = initdiff_arraystfkeyval(&keydiff, node_arraystfunode(branch->child[i]), node) ;
+            err = initdiff_arraystfkeyval(&keydiff, cast2node_arraystfunode(branch->child[i]), node) ;
             if (err) goto ONERR;
             break ;
          }
@@ -463,7 +463,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
       if (     found.parent->offset == keydiff.offset
             && found.parent->shift  == shift)  {
          // prefix does match
-         found.parent->child[found.childindex] = nodecast_arraystfunode(node) ;
+         found.parent->child[found.childindex] = castPnode_arraystfunode(node) ;
          ++ found.parent->used ;
          goto DONE ;
       }
@@ -474,7 +474,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
 
    assert(found.parent) ;
    arraystf_mwaybranch_t   * parent = 0 ;
-   arraystf_mwaybranch_t   * branch = branch_arraystfunode(array->root[found.rootindex]) ;
+   arraystf_mwaybranch_t   * branch = cast2branch_arraystfunode(array->root[found.rootindex]) ;
    arraystf_keyval_t       keynode ;
 
    unsigned childindex = 0 ;
@@ -488,7 +488,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
       arraystf_unode_t * child = branch->child[childindex] ;
       assert(child) ;
       assert(isbranchtype_arraystfunode(child)) ;
-      branch = branch_arraystfunode(child) ;
+      branch = cast2branch_arraystfunode(child) ;
    }
 
    memblock_t mblock ;
@@ -500,12 +500,12 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    init_arraystfkeyval(&keynode, keydiff.offset, node) ;
    keydiff.data ^= keynode.data ;
 
-   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, branchcast_arraystfunode(branch), keynode.data, nodecast_arraystfunode(node)) ;
+   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, castPbranch_arraystfunode(branch), keynode.data, castPnode_arraystfunode(node)) ;
 
    if (parent) {
-      parent->child[childindex] = branchcast_arraystfunode(new_branch) ;
+      parent->child[childindex] = castPbranch_arraystfunode(new_branch) ;
    } else {
-      array->root[found.rootindex] = branchcast_arraystfunode(new_branch) ;
+      array->root[found.rootindex] = castPbranch_arraystfunode(new_branch) ;
    }
 
 DONE:
@@ -579,7 +579,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
    assert(array->length > 0) ;
    -- array->length ;
 
-   *removed_node = node_arraystfunode(found.found_node) ;
+   *removed_node = cast2node_arraystfunode(found.found_node) ;
 
    return 0 ;
 ONERR:
@@ -699,7 +699,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
             rootnode = iter->array->root[iter->ri ++] ;
             if (rootnode) {
                if (!isbranchtype_arraystfunode(rootnode)) {
-                  *node = node_arraystfunode(rootnode) ;
+                  *node = cast2node_arraystfunode(rootnode) ;
                   return true ;
                }
                break ;
@@ -709,7 +709,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
          err = push_binarystack(iter->stack, &pos) ;
          if (err) goto ONERR;
 
-         pos->branch = branch_arraystfunode(rootnode) ;
+         pos->branch = cast2branch_arraystfunode(rootnode) ;
          pos->ci     = 0 ;
 
       } else {
@@ -731,11 +731,11 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
             if (isbranchtype_arraystfunode(childnode)) {
                err = push_binarystack(iter->stack, &pos) ;
                if (err) goto ONERR;
-               pos->branch = branch_arraystfunode(childnode) ;
+               pos->branch = cast2branch_arraystfunode(childnode) ;
                pos->ci     = 0 ;
                continue ;
             } else {
-               *node = node_arraystfunode(childnode) ;
+               *node = cast2node_arraystfunode(childnode) ;
                return true ;
             }
          }
@@ -774,9 +774,9 @@ static int test_arraystfnode(void)
       TEST(i+1 == node.size) ;
    }
 
-   // TEST stringcast_arraystfnode
+   // TEST cast_arraystfnode
    for (unsigned i = 0; i < 1000; i += 100) {
-      TEST(stringcast_arraystfnode((string_t*)i) == (arraystf_node_t*)i) ;
+      TEST(cast_arraystfnode((string_t*)i) == (arraystf_node_t*)i) ;
    }
 
    // TEST childindex_arraystfmwaybranch
@@ -809,20 +809,20 @@ static int test_arraystfnode(void)
       TEST(unode == branch.child[i]) ;
    }
 
-   // TEST nodecast_arraystfunode, node_arraystfunode
-   unode = nodecast_arraystfunode(&node) ;
+   // TEST castPnode_arraystfunode, cast2node_arraystfunode
+   unode = castPnode_arraystfunode(&node) ;
    TEST(&node == &unode->node) ;
-   TEST(&node == node_arraystfunode(unode)) ;
+   TEST(&node == cast2node_arraystfunode(unode)) ;
 
-   // TEST branchcast_arraystfunode, branch_arraystfunode
-   unode = branchcast_arraystfunode(&branch) ;
+   // TEST castPbranch_arraystfunode, cast2branch_arraystfunode
+   unode = castPbranch_arraystfunode(&branch) ;
    TEST(&branch == (arraystf_mwaybranch_t*)(0x01 ^ (uintptr_t)&unode->branch)) ;
-   TEST(&branch == branch_arraystfunode(unode)) ;
+   TEST(&branch == cast2branch_arraystfunode(unode)) ;
 
    // TEST isbranchtype_arraystfunode
-   unode = nodecast_arraystfunode(&node) ;
+   unode = castPnode_arraystfunode(&node) ;
    TEST(0 == isbranchtype_arraystfunode(unode)) ;
-   unode = branchcast_arraystfunode(&branch) ;
+   unode = castPbranch_arraystfunode(&branch) ;
    TEST(1 == isbranchtype_arraystfunode(unode)) ;
 
    return 0 ;
@@ -957,7 +957,7 @@ static int test_initfree(void)
    memblock_t        memblock  = memblock_FREE ;
    arraystf_t  *     array     = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    testnode_t      * nodes ;
    arraystf_node_t * inserted_node ;
    arraystf_node_t * removed_node ;
@@ -1012,7 +1012,7 @@ static int test_initfree(void)
          TEST(0 != array->root[ri]) ;
          TEST(1 == length_arraystf(array)) ;
          TEST(inserted_node == &node.node) ;
-         TEST(&node.node == node_arraystfunode(array->root[ri])) ;
+         TEST(&node.node == cast2node_arraystfunode(array->root[ri])) ;
          for (unsigned i = 0; i < toplevelsize_arraystf(array); ++i) {
             if (i == ri) continue ;
             TEST(0 == array->root[i]) ;
@@ -1030,7 +1030,7 @@ static int test_initfree(void)
    TEST(0 == new_arraystf(&array, 64)) ;
    nodes[4] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[4].key), .key = { 4 } } ;
    TEST(0 == tryinsert_arraystf(array, &nodes[4].node, &inserted_node, &nodeadp))
-   TEST(&nodes[4].node == node_arraystfunode(array->root[1])) ;
+   TEST(&nodes[4].node == cast2node_arraystfunode(array->root[1])) ;
    for (uint8_t pos = 5; pos <= 7; ++pos) {
       inserted_node = 0 ;
       nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[pos].key), .key = { pos } } ;
@@ -1040,11 +1040,11 @@ static int test_initfree(void)
       TEST(1 == nodes[pos].copycount) ;
       TEST(pos-3u == length_arraystf(array)) ;
       TEST(isbranchtype_arraystfunode(array->root[1])) ;
-      TEST(0 == branch_arraystfunode(array->root[1])->shift) ;
-      TEST(pos-3u == branch_arraystfunode(array->root[1])->used) ;
+      TEST(0 == cast2branch_arraystfunode(array->root[1])->shift) ;
+      TEST(pos-3u == cast2branch_arraystfunode(array->root[1])->used) ;
    }
    for (uint8_t pos = 4; pos <= 7; ++pos) {
-      TEST(&nodes[pos].node == node_arraystfunode(branch_arraystfunode(array->root[1])->child[pos-4])) ;
+      TEST(&nodes[pos].node == cast2node_arraystfunode(cast2branch_arraystfunode(array->root[1])->child[pos-4])) ;
       TEST(&nodes[pos].node == at_arraystf(array, 1, &pos)) ;
    }
    TEST(0 == at_arraystf(array, 0, 0)) ;
@@ -1062,7 +1062,7 @@ static int test_initfree(void)
          TEST(array->root[1]) ;
          TEST(isbranchtype_arraystfunode(array->root[1])) ;
       } else if (pos == 6) {
-         TEST(&nodes[7].node == node_arraystfunode(array->root[1])) ;
+         TEST(&nodes[7].node == cast2node_arraystfunode(array->root[1])) ;
       } else {
          TEST(! array->root[1]) ;
       }
@@ -1080,33 +1080,33 @@ static int test_initfree(void)
       TEST(0 == nodes[pos].freecount) ;
       TEST(pos-15u == length_arraystf(array)) ;
       if (pos == 16) {
-         TEST(&nodes[16].node == node_arraystfunode( array->root[0])) ;
+         TEST(&nodes[16].node == cast2node_arraystfunode( array->root[0])) ;
       } else if (pos == 17) {
          TEST(isbranchtype_arraystfunode( array->root[0])) ;
-         branch1 = branch_arraystfunode( array->root[0]) ;
+         branch1 = cast2branch_arraystfunode( array->root[0]) ;
          TEST(0 == branch1->shift) ;
-         TEST(&nodes[16].node  == node_arraystfunode(branch1->child[0])) ;
-         TEST(&nodes[17].node  == node_arraystfunode(branch1->child[1])) ;
+         TEST(&nodes[16].node  == cast2node_arraystfunode(branch1->child[0])) ;
+         TEST(&nodes[17].node  == cast2node_arraystfunode(branch1->child[1])) ;
       } else if (pos <= 19) {
          TEST(isbranchtype_arraystfunode( array->root[0])) ;
-         TEST(branch1 == branch_arraystfunode( array->root[0])) ;
-         TEST(&nodes[pos].node == node_arraystfunode(branch1->child[pos-16])) ;
+         TEST(branch1 == cast2branch_arraystfunode( array->root[0])) ;
+         TEST(&nodes[pos].node == cast2node_arraystfunode(branch1->child[pos-16])) ;
       } else if (pos == 20 || pos == 24 || pos == 28) {
          TEST(isbranchtype_arraystfunode( array->root[0])) ;
          if (pos == 20) {
-            arraystf_mwaybranch_t * branch2 = branch_arraystfunode( array->root[0]) ;
+            arraystf_mwaybranch_t * branch2 = cast2branch_arraystfunode( array->root[0]) ;
             TEST(2 == branch2->shift) ;
-            TEST(branch1 == branch_arraystfunode(branch2->child[0])) ;
+            TEST(branch1 == cast2branch_arraystfunode(branch2->child[0])) ;
             branch1 = branch2 ;
          }
-         TEST(&nodes[pos].node == node_arraystfunode(branch1->child[(pos-16)/4])) ;
+         TEST(&nodes[pos].node == cast2node_arraystfunode(branch1->child[(pos-16)/4])) ;
       } else {
          TEST(isbranchtype_arraystfunode( array->root[0])) ;
-         TEST(branch1 == branch_arraystfunode( array->root[0])) ;
+         TEST(branch1 == cast2branch_arraystfunode( array->root[0])) ;
          TEST(isbranchtype_arraystfunode(branch1->child[(pos-16)/4])) ;
-         arraystf_mwaybranch_t * branch2 = branch_arraystfunode(branch1->child[(pos-16)/4]) ;
-         TEST(&nodes[pos&~0x03u].node == node_arraystfunode(branch2->child[0])) ;
-         TEST(&nodes[pos].node        == node_arraystfunode(branch2->child[pos&0x03u])) ;
+         arraystf_mwaybranch_t * branch2 = cast2branch_arraystfunode(branch1->child[(pos-16)/4]) ;
+         TEST(&nodes[pos&~0x03u].node == cast2node_arraystfunode(branch2->child[0])) ;
+         TEST(&nodes[pos].node        == cast2node_arraystfunode(branch2->child[pos&0x03u])) ;
       }
    }
 
@@ -1120,25 +1120,25 @@ static int test_initfree(void)
       TEST(0 == at_arraystf(array, 1, &pos)) ;
       TEST(31u-pos == length_arraystf(array)) ;
       if (pos <= 17) {
-         TEST(1 == isbranchtype_arraystfunode(branch_arraystfunode( array->root[0])->child[0])) ;
+         TEST(1 == isbranchtype_arraystfunode(cast2branch_arraystfunode( array->root[0])->child[0])) ;
       } else if (pos == 18) {
-         TEST(&nodes[19].node == node_arraystfunode(branch_arraystfunode( array->root[0])->child[0])) ;
+         TEST(&nodes[19].node == cast2node_arraystfunode(cast2branch_arraystfunode( array->root[0])->child[0])) ;
       } else if (pos == 19) {
-         TEST(0 == branch_arraystfunode( array->root[0])->child[0]) ;
+         TEST(0 == cast2branch_arraystfunode( array->root[0])->child[0]) ;
       } else if (pos < 22) {
-         TEST(1 == isbranchtype_arraystfunode(branch_arraystfunode( array->root[0])->child[1])) ;
+         TEST(1 == isbranchtype_arraystfunode(cast2branch_arraystfunode( array->root[0])->child[1])) ;
       } else if (pos == 22) {
          TEST(1 == isbranchtype_arraystfunode( array->root[0])) ;
-         TEST(2 == branch_arraystfunode( array->root[0])->shift) ;
-         TEST(&nodes[23].node == node_arraystfunode(branch_arraystfunode( array->root[0])->child[1])) ;
+         TEST(2 == cast2branch_arraystfunode( array->root[0])->shift) ;
+         TEST(&nodes[23].node == cast2node_arraystfunode(cast2branch_arraystfunode( array->root[0])->child[1])) ;
       } else if (pos <= 26) {
          TEST(1 == isbranchtype_arraystfunode( array->root[0])) ;
-         TEST(2 == branch_arraystfunode( array->root[0])->shift) ;
+         TEST(2 == cast2branch_arraystfunode( array->root[0])->shift) ;
       } else if (pos <= 29) {
          TEST(1 == isbranchtype_arraystfunode( array->root[0])) ;
-         TEST(0 == branch_arraystfunode( array->root[0])->shift) ;
+         TEST(0 == cast2branch_arraystfunode( array->root[0])->shift) ;
       } else if (pos == 30) {
-         TEST(&nodes[31].node == node_arraystfunode( array->root[0])) ;
+         TEST(&nodes[31].node == cast2node_arraystfunode( array->root[0])) ;
       } else if (pos == 31) {
          TEST(0 ==  array->root[0]) ;
       }
@@ -1276,7 +1276,7 @@ static int test_error(void)
    const size_t      nrnodes   = 10000 ;
    memblock_t        memblock  = memblock_FREE ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    arraystf_t      * array     = 0 ;
    testnode_t      * nodes ;
    arraystf_node_t * removed_node  = 0 ;
@@ -1515,8 +1515,8 @@ static int test_generic(void)
    arraystf_t         * array   = 0 ;
    arraystf_t         * array2  = 0 ;
    testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_member_t nodeadp1  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   typeadapt_member_t nodeadp2  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node2)) ;
+   typeadapt_member_t nodeadp1  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
+   typeadapt_member_t nodeadp2  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node2)) ;
    testnode_t         * nodes ;
    testnode_t         * inserted_node ;
    size_t             nextpos ;

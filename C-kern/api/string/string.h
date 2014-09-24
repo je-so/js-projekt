@@ -195,14 +195,14 @@ int shrinkright_string(string_t * str, size_t nr_bytes_removed_from_string_end) 
  *
  * Attention:
  * Call this function only if you know that <isempty_string> does return *false*. */
-void skipbyte_string(string_t * str) ;
+void skipbyte_string(string_t * str);
 
 
 // group: generic
 
-/* function: genericcast_string
+/* function: cast_string
  * Casts a pointer to generic obj type into pointer to <string_t>. */
-const string_t * genericcast_string(const void * obj) ;
+const string_t * cast_string(const void * obj);
 
 
 // section: inline implementation
@@ -211,55 +211,48 @@ const string_t * genericcast_string(const void * obj) ;
 
 /* define: addr_string
  * Implements <string_t.addr_string>. */
-#define addr_string(str)                        ((str)->addr)
+#define addr_string(str) \
+         ((str)->addr)
 
 /* function: findbyte_string
  * Implements <string_t.findbyte_string>. */
-#define findbyte_string(str, byte)              ((const uint8_t*)memchr((str)->addr, (uint8_t)(byte), (str)->size))
+#define findbyte_string(str, byte) \
+         ((const uint8_t*)memchr((str)->addr, (uint8_t)(byte), (str)->size))
 
 /* function: free_string
  * Implements <string_t.free_string>. */
-#define free_string(str)                        ((void)((*str) = (string_t)string_FREE))
+#define free_string(str) \
+         ((void)((*str) = (string_t)string_FREE))
 
-/* function: genericcast_string
- * Implements <string_t.genericcast_string>. */
-#define genericcast_string(obj)                 \
+/* function: cast_string
+ * Implements <string_t.cast_string>. */
+#define cast_string(obj) \
    ( __extension__ ({                           \
-      typeof(obj) _obj = (obj) ;                \
+      typeof(obj) _obj = (obj);                 \
       static_assert(                            \
-         sizeof(_obj->addr)                     \
-         == sizeof(((string_t*)0)->addr)        \
-         && 0 == offsetof(string_t, addr),      \
-         "addr member is compatible") ;         \
-      static_assert(                            \
-         sizeof(_obj->size)                     \
-         == sizeof(((string_t*)0)->size)        \
-         && offsetof(string_t, size)            \
-            == ((uintptr_t)&_obj->size)         \
-               -((uintptr_t)&_obj->addr),       \
-         "size member is compatible") ;         \
-      if (0) {                                  \
-         volatile uint8_t _err ;                \
-         volatile size_t _size = _obj->size ;   \
-         _err = _obj->addr[_size] ;             \
-         (void) _err ;                          \
-      }                                         \
-      (const string_t*)(&_obj->addr) ;          \
+         &(_obj->addr)                          \
+         == &((string_t*)(uintptr_t)            \
+               &_obj->addr)->addr               \
+         && &(_obj->size)                       \
+            == &((string_t*)(uintptr_t)         \
+               &_obj->addr)->size,              \
+         "fields are compatible");              \
+      (const string_t*)(&_obj->addr);           \
    }))
 
 /* function: init_string
  * Implements <string_t.init_string>. */
 static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t string[size])
 {
-   str->addr = string ;
-   str->size = size ;
+         str->addr = string;
+         str->size = size;
 }
 
 /* function: initcopy_string
  * Implements <string_t.initcopy_string>. */
 static inline void initcopy_string(/*out*/string_t * str, const string_t * restrict srcstr)
 {
-   *str = *srcstr ;
+         *str = *srcstr;
 }
 
 /* define: initPstream_string
@@ -273,22 +266,27 @@ static inline void initcopy_string(/*out*/string_t * str, const string_t * restr
 
 /* define: isempty_string
  * Implements <string_t.isempty_string>. */
-#define isempty_string(str)                     (0 == (str)->size)
+#define isempty_string(str) \
+         (0 == (str)->size)
 
 /* define: isfree_string
  * Implements <string_t.isfree_string>. */
-#define isfree_string(str)                      (0 == (str)->addr && 0 == (str)->size)
+#define isfree_string(str) \
+         (0 == (str)->addr && 0 == (str)->size)
 
 /* define: size_string
  * Implements <string_t.size_string>. */
-#define size_string(str)                      ((str)->size)
+#define size_string(str) \
+         ((str)->size)
 
 /* define: skipbyte_string
  * Implements <string_t.skipbyte_string>. */
-#define skipbyte_string(str)                    \
-   do {                                         \
-      ++ (str)->addr ;                          \
-      -- (str)->size ;                          \
-   } while(0)
+#define skipbyte_string(str) \
+         do {               \
+            typeof(str) _s; \
+            _s = (str);     \
+            ++ _s->addr;    \
+            -- _s->size;    \
+         } while(0)
 
 #endif

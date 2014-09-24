@@ -706,7 +706,7 @@ static int test_initfree(void)
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_FREE, 0
    } ;
-   typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
+   typeadapt_t *              typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
    memblock_t                 memblock1 = memblock_FREE ;
    splaytree_t                tree      = splaytree_FREE ;
    nodesarray_t               * nodes1 ;
@@ -826,7 +826,7 @@ static int test_insertremove(void)
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_FREE, 0
    } ;
-   typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
+   typeadapt_t *              typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
    memblock_t                 memblock1 = memblock_FREE ;
    memblock_t                 memblock2 = memblock_FREE ;
    splaytree_t                tree      = splaytree_INIT(0) ;
@@ -1080,7 +1080,7 @@ static int test_iterator(void)
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_FREE, 0
    } ;
-   typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
+   typeadapt_t *              typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
    memblock_t                 memblock1 = memblock_FREE ;
    splaytree_t                tree      = splaytree_FREE ;
    splaytree_t                emptytree = splaytree_FREE ;
@@ -1221,7 +1221,7 @@ static int test_generic(void)
       typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_FREE, 0
    } ;
-   typeadapt_t *              typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
+   typeadapt_t *              typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
    memblock_t                 memblock1 = memblock_FREE ;
    splaytree_t                tree      = splaytree_FREE ;
    nodesarray_t               * nodes1 ;
@@ -1234,14 +1234,14 @@ static int test_generic(void)
       (*nodes1)[i].key = (int)i ;
    }
 
-   // TEST genericcast_splaytree
+   // TEST cast_splaytree
    struct {
       int i1 ;
       splaytree_node_t * root ;
       int i2 ;
    } tree2 ;
-   TEST((splaytree_t*)&tree2.root == genericcast_splaytree(&tree2)) ;
-   TEST(&tree == genericcast_splaytree(&tree)) ;
+   TEST((splaytree_t*)&tree2.root == cast_splaytree(&tree2)) ;
+   TEST(&tree == cast_splaytree(&tree)) ;
 
    // TEST init_splaytree, free_splaytree
    tree.root = (void*)1 ;

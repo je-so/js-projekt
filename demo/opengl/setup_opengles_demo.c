@@ -201,7 +201,7 @@ int setup_opengles_demo(maincontext_t * maincontext)
    snr = defaultscreennr_display(&disp);
 
    TEST(0 == init_gconfig(&gconf, &disp, conf_attribs));
-   TEST(0 == init_window(&win.super, &disp, snr, genericcast_windowevh(&eventhandler, demowindow_t), &gconf, winattr));
+   TEST(0 == init_window(&win.super, &disp, snr, cast_windowevh(&eventhandler, demowindow_t), &gconf, winattr));
    TEST(0 == init_gcontext(&gcontext, &disp, &gconf, gcontext_api_OPENGLES));
    TEST(0 == setcurrent_gcontext(&gcontext, &disp, &win.super, &win.super));
 

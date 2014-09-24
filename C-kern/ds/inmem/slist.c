@@ -184,7 +184,7 @@ static int test_initfree(void)
    slist_t            slist     = slist_INIT ;
    slist_node_t       node      = slist_node_INIT ;
    testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_t *      typeadp   = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
+   typeadapt_t *      typeadp   = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
 
    // TEST slist_node_INIT
@@ -374,7 +374,7 @@ static int test_insertremove(void)
 {
    slist_t            slist      = slist_INIT ;
    testnode_adapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_t *      typeadp    = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
+   typeadapt_t *      typeadp    = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
    slist_node_t       * node     = 0 ;
 
@@ -601,7 +601,7 @@ static int test_generic(void)
    slist_t              slist1     = slist_INIT ;
    slist_t              slist2     = slist_INIT ;
    gnodeadapter_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_deleteobject_gnodeadapter), test_errortimer_FREE, 0 } ;
-   typeadapt_t *        typeadp    = genericcast_typeadapt(&typeadapt, gnodeadapter_t, gnode_t, void*) ;
+   typeadapt_t *        typeadp    = cast_typeadapt(&typeadapt, gnodeadapter_t, gnode_t, void*) ;
    gnode_t              nodes[100] = { { 0, 0, 0, {0}, 0, 0 } } ;
    gnode_t *            removed_node ;
 
@@ -610,11 +610,11 @@ static int test_generic(void)
    static_assert(offsetof(gnode_t, next)+sizeof(((gnode_t*)0)->next) == offsetof(gnode_t, marker2), "next before marker2 defined") ;
    static_assert(sizeof(((gnode_t*)0)->next) == sizeof(void*), "next is pointer") ;
 
-   // TEST genericcast_slist
+   // TEST cast_slist
    struct {
       slist_node_t * last ;
    }  xlist ;
-   TEST((slist_t*)&xlist == genericcast_slist(&xlist)) ;
+   TEST((slist_t*)&xlist == cast_slist(&xlist)) ;
 
    // TEST empty list
    TEST(0 == first_slist1(&slist1)) ;

@@ -73,14 +73,14 @@ static int test_generic(void)
    // TEST iobj_DECLARE: anonymous
    iobj_DECLARE(, testiobj)   testiobj2 ;
 
-   // TEST genericcast_iobj
+   // TEST cast_iobj
    struct testiob3_t {
       testiobj_t *   object ;
       testiobj_it *  iimpl ;
    }                          testiobj3 ;
-   TEST(genericcast_iobj(&testiobj1, testiobj) == &testiobj1) ;
-   TEST(genericcast_iobj(&testiobj2, testiobj) == (testiobj_t*) &testiobj2) ;
-   TEST(genericcast_iobj(&testiobj3, testiobj) == (testiobj_t*) &testiobj3) ;
+   TEST(cast_iobj(&testiobj1, testiobj) == &testiobj1) ;
+   TEST(cast_iobj(&testiobj2, testiobj) == (testiobj_t*) &testiobj2) ;
+   TEST(cast_iobj(&testiobj3, testiobj) == (testiobj_t*) &testiobj3) ;
 
    // TEST init_iobj
    init_iobj(&testiobj1, (testiobj_t*)1, (testiobj_it*)2) ;

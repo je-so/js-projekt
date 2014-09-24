@@ -101,11 +101,11 @@ struct window_evh_t {
 
 // group: generic
 
-/* function: genericcast_windowevh
+/* function: cast_windowevh
  * Casts parameter evhimpl into pointer to interface <window_evh_t>.
  * The parameter evhimpl has to be of type pointer to type declared with <window_evh_DECLARE>.
  * The other parameters must be the same as in <window_evh_DECLARE> without the first. */
-const window_evh_t * genericcast_windowevh(const void * evhimpl, TYPENAME subwindow_t);
+const window_evh_t * cast_windowevh(const void * evhimpl, TYPENAME subwindow_t);
 
 /* function: window_evh_DECLARE
  * Declares an interface to handle window events.
@@ -304,31 +304,31 @@ int swapbuffer_window(window_t * win, struct display_t * disp);
 
 // group: window_evh_t
 
-/* define: genericcast_windowevh
- * Implements <window_evh_t.genericcast_windowevh>. */
-#define genericcast_windowevh(evhimpl, subwindow_t)   \
-      ( __extension__ ({                              \
-         static_assert(                               \
-            offsetof(typeof(*(evhimpl)), onclose)     \
-               == offsetof(window_evh_t, onclose)     \
-            && offsetof(typeof(*(evhimpl)),ondestroy) \
-               == offsetof(window_evh_t, ondestroy)   \
-            && offsetof(typeof(*(evhimpl)), onredraw) \
-               == offsetof(window_evh_t, onredraw)    \
-            && offsetof(typeof(*(evhimpl)),onreshape) \
-               == offsetof(window_evh_t, onreshape)   \
-            && offsetof(typeof(*(evhimpl)),onvisible) \
-               == offsetof(window_evh_t, onvisible),  \
-            "ensure same structure");                 \
-         if (0) {                                     \
-            (evhimpl)->onclose((subwindow_t*)0);      \
-            (evhimpl)->ondestroy((subwindow_t*)0);    \
-            (evhimpl)->onredraw((subwindow_t*)0);     \
-            (evhimpl)->onreshape((subwindow_t*)0, (uint32_t)0, (uint32_t)0); \
-            (evhimpl)->onvisible((subwindow_t*)0, (bool)0);   \
-         }                                            \
-         (const window_evh_t*) (evhimpl);             \
-      }))
+/* define: cast_windowevh
+ * Implements <window_evh_t.cast_windowevh>. */
+#define cast_windowevh(evhimpl, subwindow_t)   \
+         ( __extension__ ({                                         \
+            typeof(evhimpl) _ev;                                    \
+            _ev = (evhimpl);                                        \
+            static_assert(                                          \
+               &_ev->onclose                                        \
+               == (void (*const*) (subwindow_t*))                   \
+                  & ((const window_evh_t*) _ev)->onclose            \
+               && &_ev->ondestroy                                   \
+               == (void (*const*) (subwindow_t*))                   \
+                  & ((const window_evh_t*) _ev)->ondestroy          \
+               && &_ev->onredraw                                    \
+               == (void (*const*) (subwindow_t*))                   \
+                  & ((const window_evh_t*) _ev)->onredraw           \
+               && &_ev->onreshape                                   \
+               == (void (*const*) (subwindow_t*,uint32_t,uint32_t)) \
+                  & ((const window_evh_t*) _ev)->onreshape          \
+               && &_ev->onvisible                                   \
+               == (void (*const*) (subwindow_t*,bool))              \
+                  & ((const window_evh_t*) _ev)->onvisible,         \
+               "strukturell kompatibel");                           \
+            (const window_evh_t*) _ev;                              \
+         }))
 
 /* define: window_evh_DECLARE
  * Implements <window_evh_t.window_evh_DECLARE>. */

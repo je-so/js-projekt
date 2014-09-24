@@ -20,12 +20,12 @@
 #define CKERN_DS_TYPEADAPT_COMPARATOR_HEADER
 
 // forward
-struct typeadapt_t ;
-struct typeadapt_object_t ;
+struct typeadapt_t;
+struct typeadapt_object_t;
 
 /* typedef: struct typeadapt_comparator_it
  * Export <typeadapt_comparator_it> into global namespace. */
-typedef struct typeadapt_comparator_it          typeadapt_comparator_it ;
+typedef struct typeadapt_comparator_it typeadapt_comparator_it;
 
 
 // section: Functions
@@ -35,14 +35,14 @@ typedef struct typeadapt_comparator_it          typeadapt_comparator_it ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_typeadapt_comparator
  * Test <typeadapt_comparator_it> functionality. */
-int unittest_ds_typeadapt_comparator(void) ;
+int unittest_ds_typeadapt_comparator(void);
 #endif
 
 
 /* struct: typeadapt_comparator_it
  * Declares interface for comparing two objects and key with object.
  * If you change this interface do not forget to adapt
- * <typeadapt_comparator_EMBED> and <genericcast_typeadaptcomparator>. */
+ * <typeadapt_comparator_EMBED> and <cast_typeadaptcomparator>. */
 struct typeadapt_comparator_it {
    /* variable: cmp_key_object
     * Compares key with an object. lkey is the left operand and robject the right one.
@@ -51,7 +51,7 @@ struct typeadapt_comparator_it {
     * -1 - lkey <  robject
     * 0  - lkey == robject
     * +1 - lkey >  robject */
-   int  (* cmp_key_object) (struct typeadapt_t * typeadp, const void * lkey, const struct typeadapt_object_t * robject) ;
+   int  (* cmp_key_object) (struct typeadapt_t * typeadp, const void * lkey, const struct typeadapt_object_t * robject);
    /* variable: cmp_object
     * Compares two objects. lobject is left operand and robject the right one.
     *
@@ -59,8 +59,8 @@ struct typeadapt_comparator_it {
     * -1 - lobject <  robject
     * 0  - lobject == robject
     * +1 - lobject >  robject */
-   int  (* cmp_object)     (struct typeadapt_t * typeadp, const struct typeadapt_object_t * lobject, const struct typeadapt_object_t * robject) ;
-} ;
+   int  (* cmp_object)     (struct typeadapt_t * typeadp, const struct typeadapt_object_t * lobject, const struct typeadapt_object_t * robject);
+};
 
 // group: lifetime
 
@@ -96,12 +96,12 @@ int callcmpobj_typeadaptcomparator(typeadapt_comparator_it * adpcmp, struct type
 
 // group: generic
 
-/* define: genericcast_typeadaptcomparator
+/* define: cast_typeadaptcomparator
  * Casts parameter adpcmp into pointer to <typeadapt_comparator_it>.
  * The parameter *adpcmp* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_comparator_DECLARE>.
  * The second and third parameter must be the same as in <typeadapt_comparator_DECLARE>. */
-typeadapt_comparator_it * genericcast_typeadaptcomparator(void * adpcmp, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
+typeadapt_comparator_it * cast_typeadaptcomparator(void * adpcmp, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
 /* define: typeadapt_comparator_DECLARE
  * Declares a derived interface from generic <typeadapt_comparator_it>.
@@ -134,39 +134,39 @@ typeadapt_comparator_it * genericcast_typeadaptcomparator(void * adpcmp, TYPENAM
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_comparator_it> supports.
  * key_t         - The key type that <typeadapt_comparator_it> supports. Must be of size sizeof(void*). */
-#define typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t)                                          \
-   int  (* cmp_key_object)  (typeadapter_t * typeadp, const key_t lkey, const object_t * robject) ;         \
+#define typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t) \
+   int  (* cmp_key_object)  (typeadapter_t * typeadp, const key_t lkey, const object_t * robject);         \
    int  (* cmp_object)      (typeadapter_t * typeadp, const object_t * lobject, const object_t  * robject)
 
 
 // section: inline implementation
 
-/* define: genericcast_typeadaptcomparator
- * Implements <typeadapt_comparator_it.genericcast_typeadaptcomparator>. */
-#define genericcast_typeadaptcomparator(adpcmp, typeadapter_t, object_t, key_t)  \
-   ( __extension__ ({                                                            \
-      static_assert(                                                             \
-         offsetof(typeadapt_comparator_it, cmp_key_object)                       \
-         == offsetof(typeof(*(adpcmp)), cmp_key_object)                          \
-         && offsetof(typeadapt_comparator_it, cmp_object)                        \
-            == offsetof(typeof(*(adpcmp)), cmp_object),                          \
-         "ensure same structure") ;                                              \
-      if (0) {                                                                   \
-         int _err = (adpcmp)->cmp_key_object((typeadapter_t*)0, (const key_t)0, (const object_t*)0) ; \
-         _err += (adpcmp)->cmp_object((typeadapter_t*)0, (const object_t*)0, (const object_t*)0) ;    \
-         (void) _err ;                                                           \
-      }                                                                          \
-      (typeadapt_comparator_it*) (adpcmp) ;                                      \
-   }))
+/* define: cast_typeadaptcomparator
+ * Implements <typeadapt_comparator_it.cast_typeadaptcomparator>. */
+#define cast_typeadaptcomparator(adpcmp, typeadapter_t, object_t, key_t) \
+         ( __extension__ ({                                                      \
+            typeof(adpcmp) _cm;                                                  \
+            _cm = (adpcmp);                                                      \
+            static_assert(                                                       \
+               &(_cm->cmp_key_object)                                            \
+               == (int (**) (typeadapter_t*,const key_t,const object_t*))        \
+                  &((typeadapt_comparator_it*) _cm)->cmp_key_object              \
+               && &(_cm->cmp_object)                                             \
+                  == (int (**) (typeadapter_t*,const object_t*,const object_t*)) \
+                     &((typeadapt_comparator_it*) _cm)->cmp_object               \
+               && sizeof(key_t) == sizeof(void*),                                \
+               "ensure same structure") ;                                        \
+            (typeadapt_comparator_it*) _cm;                                      \
+         }))
 
 /* function: callcmpkeyobj_typeadaptcomparator
  * Implements <typeadapt_comparator_it.callcmpkeyobj_typeadaptcomparator>. */
 #define callcmpkeyobj_typeadaptcomparator(adpcmp, typeadp, key, robject) \
-   ((adpcmp)->cmp_key_object((typeadp), (key), (robject)))
+         ((adpcmp)->cmp_key_object((typeadp), (key), (robject)))
 
 /* function: callcmpobj_typeadaptcomparator
  * Implements <typeadapt_comparator_it.callcmpobj_typeadaptcomparator>. */
 #define callcmpobj_typeadaptcomparator(adpcmp, typeadp, lobject, robject) \
-   ((adpcmp)->cmp_object((typeadp), (lobject), (robject)))
+         ((adpcmp)->cmp_object((typeadp), (lobject), (robject)))
 
 #endif

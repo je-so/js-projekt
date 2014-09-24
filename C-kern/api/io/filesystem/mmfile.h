@@ -165,12 +165,12 @@ int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessm
 
 // group: generic
 
-/* function: genericcast_mmfile
+/* function: cast_mmfile
  * Casts a generic object pointer into pointer to <memblock_t>.
  * Set qual to *const* if you want to cast a const pointer.
  * The object must have two data members with access path "obj->nameprefix##addr" and
  * "obj->nameprefix##size" of the same type as <mmfile_t> and in the same order. */
-mmfile_t * genericcast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER qualifier) ;
+mmfile_t * cast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER qualifier);
 
 
 // section: inline implementation
@@ -183,26 +183,22 @@ mmfile_t * genericcast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER quali
  * Implements <mmfile_t.alignedsize_mmfile>. */
 #define alignedsize_mmfile(mfile)      ((size_mmfile(mfile) + (pagesize_vm()-1)) & ~(pagesize_vm()-1))
 
-/* define: genericcast_mmfile
- * Implements <mmfile_t.genericcast_mmfile>. */
-#define genericcast_mmfile(obj, nameprefix, qualifier)            \
-         ( __extension__ ({                                       \
-            typeof(obj) _obj = (obj) ;                            \
-            static_assert(                                        \
-               sizeof(_obj->nameprefix##addr)                     \
-               == sizeof(((mmfile_t*)0)->addr)                    \
-               && 0 == offsetof(mmfile_t, addr),                  \
-               && (typeof(_obj->nameprefix##addr)*)0              \
-                  == (uint8_t**)0                                 \
-               && sizeof(_obj->nameprefix##size)                  \
-                  == sizeof(((mmfile_t*)0)->size)                 \
-               && offsetof(mmfile_t, size)                        \
-                  == ((uintptr_t)&_obj->nameprefix##size)         \
-                     -((uintptr_t)&_obj->nameprefix##addr)        \
-               && (typeof(_obj->nameprefix##size)*)0              \
-                  == (size_t**)0                                  \
-               "structure is compatible") ;                       \
-            (qualifier mmfile_t *)(&_obj->nameprefix##addr) ;     \
+/* define: cast_mmfile
+ * Implements <mmfile_t.cast_mmfile>. */
+#define cast_mmfile(obj, nameprefix, qualifier) \
+         ( __extension__ ({                               \
+            typeof(obj) _o;                               \
+            _o = (obj);                                   \
+            static_assert(                                \
+               &(_o->nameprefix##addr)                    \
+               == & ( (qualifier mmfile_t *)              \
+                      (&_o->nameprefix##addr))->addr      \
+               && &(_o->nameprefix##size)                 \
+                   == & ( (qualifier mmfile_t *)          \
+                          (&_o->nameprefix##addr))->size, \
+               "ensure compatible structure");            \
+            (qualifier mmfile_t *)                        \
+            (&_o->nameprefix##addr);                      \
          }))
 
 /* define: initmove_mmfile

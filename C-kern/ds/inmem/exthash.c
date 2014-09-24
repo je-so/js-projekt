@@ -538,15 +538,15 @@ bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** no
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct testobject_t      testobject_t ;
+typedef struct testobject_t testobject_t;
 
-typeadapt_DECLARE(testadapt_t, testobject_t, uintptr_t) ;
+typeadapt_DECLARE(testadapt_t, testobject_t, uintptr_t);
 
 struct testobject_t {
-   size_t         deletecount ;
-   size_t         key ;
-   exthash_node_t node ;
-} ;
+   size_t         deletecount;
+   size_t         key;
+   exthash_node_t node;
+};
 
 static int impl_cmpkeyobj_testadapt(testadapt_t * typeadp, const uintptr_t lkey, const struct testobject_t * robject)
 {
@@ -590,7 +590,7 @@ static int test_initfree(void)
    exthash_t            htable    = exthash_FREE ;
    typeadapt_member_t   emptyadp  = typeadapt_member_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
    exthash_node_t       node      = exthash_node_INIT ;
    exthash_iterator_t   iter      = exthash_iterator_FREE ;
    testobject_t         nodes[256] ;
@@ -704,7 +704,7 @@ static int test_privquery(void)
 {
    exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
    testobject_t         node      = { 0, 0, exthash_node_INIT } ;
 
    // prepare
@@ -786,7 +786,7 @@ static int test_privchange(void)
 {
    exthash_t            htable     = exthash_FREE ;
    testadapt_t          typeadapt  = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp    = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp    = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] = { { 0, 0, exthash_node_INIT } } ;
 
    // prepare
@@ -861,7 +861,7 @@ static int test_findinsertremove(void)
 {
    exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
    const size_t         MAXNODES  = 524288 ;
    memblock_t           mem       = memblock_FREE ;
    testobject_t         * nodes ;
@@ -1036,7 +1036,7 @@ static int test_generic(void)
 {
    exthash_t            htable    = exthash_FREE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] ;
 
    // prepare

@@ -1121,12 +1121,12 @@ int matchall_suffixtree(
    }
 
    *matched_count = leaf_count ;
-   err = free_iterlist(&posstack, genericcast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
+   err = free_iterlist(&posstack, cast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
    if (err) goto ONERR;
 
    return 0 ;
 ONERR:
-   (void) free_iterlist(&posstack, genericcast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
+   (void) free_iterlist(&posstack, cast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
    TRACEEXIT_ERRLOG(err);
    return err ;
 }
@@ -1443,7 +1443,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44767,44945,59514,59638,59751,59806};
+   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44760,44931,59500,59624,59737,59792};
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

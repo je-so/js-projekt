@@ -147,10 +147,10 @@ iobj_DECLARE(log_t, log);
 
 // group: generic
 
-/* function: genericcast_log
+/* function: cast_log
  * Casts parameter iobj to pointer to <log_t>.
  * iobj must be a pointer to an anonymous interfaceable log object. */
-log_t * genericcast_log(void * iobj);
+log_t * cast_log(void * iobj);
 
 
 /* struct: log_it
@@ -203,11 +203,11 @@ struct log_it {
 
 // group: generic
 
-/* function: genericcast_logit
+/* function: cast_logit
  * Casts pointer logif into pointer to interface <log_it>.
  * Parameter *logif* must point to a type declared with <log_it_DECLARE>.
  * The other parameters must be the same as in <log_it_DECLARE> without the first. */
-log_it * genericcast_logit(void * logif, TYPENAME log_t);
+log_it * cast_logit(void * logif, TYPENAME log_t);
 
 /* function: log_it_DECLARE
  * Declares a function table for accessing a log service.
@@ -246,74 +246,75 @@ struct log_header_t {
 
 // group: log_t
 
-/* define: genericcast_log
- * Implements <log_t.genericcast_log>. */
-#define genericcast_log(iobj) \
-         genericcast_iobj(iobj, log)
+/* define: cast_log
+ * Implements <log_t.cast_log>. */
+#define cast_log(iobj) \
+         cast_iobj(iobj, log)
 
 // group: log_it
 
-/* define: genericcast_logit
- * Implements <log_it.genericcast_logit>. */
-#define genericcast_logit(logif, log_t)               \
-         ( __extension__ ({                           \
-            static_assert(                            \
-               &((typeof(logif))0)->printf            \
-               == (void(**)(log_t*,uint8_t,uint8_t,   \
-                     const log_header_t*,             \
-                     const char*,...))                \
-                     &((log_it*)0)->printf            \
-               && &((typeof(logif))0)->printtext      \
-               == (void(**)(log_t*,uint8_t,uint8_t,   \
-                     const log_header_t*,             \
-                     log_text_f,...))                 \
-                     &((log_it*)0)->printtext         \
-               && &((typeof(logif))0)->flushbuffer    \
-                  == (void(**)(log_t*,uint8_t))       \
-                        &((log_it*)0)->flushbuffer    \
-               && &((typeof(logif))0)->truncatebuffer \
-                  == (void(**)(log_t*,uint8_t,        \
-                               size_t))               \
-                        &((log_it*)0)->truncatebuffer \
-               && &((typeof(logif))0)->getbuffer      \
-                  == (void(**)(const log_t*,uint8_t,  \
-                        uint8_t**,size_t*))           \
-                        &((log_it*)0)->getbuffer      \
-               && &((typeof(logif))0)->getstate       \
-                  == (uint8_t(**)(const log_t*,       \
-                                  uint8_t))           \
-                        &((log_it*)0)->getstate       \
-               && &((typeof(logif))0)->compare        \
-                  == (int(**)(const log_t*, uint8_t,  \
-                              size_t,const uint8_t*)) \
-                        &((log_it*)0)->compare        \
-               && &((typeof(logif))0)->setstate       \
-                  == (void(**)(log_t*,uint8_t,        \
-                        uint8_t))                     \
-                        &((log_it*)0)->setstate,      \
-               "ensure same structure");              \
-            (log_it*) (logif);                        \
+/* define: cast_logit
+ * Implements <log_it.cast_logit>. */
+#define cast_logit(logif, log_t) \
+         ( __extension__ ({                            \
+            typeof(logif) _l;                          \
+            _l = (logif);                              \
+            static_assert(                             \
+               &_l->printf                             \
+               == (void(**)(log_t*,uint8_t,uint8_t,    \
+                     const log_header_t*,              \
+                     const char*,...))                 \
+                     &((log_it*) _l)->printf           \
+               && &_l->printtext                       \
+                  == (void(**)(log_t*,uint8_t,uint8_t, \
+                               const log_header_t*,    \
+                               log_text_f,...))        \
+                     &((log_it*) _l)->printtext        \
+               && &_l->flushbuffer                     \
+                  == (void(**)(log_t*,uint8_t))        \
+                     &((log_it*) _l)->flushbuffer      \
+               && &_l->truncatebuffer                  \
+                  == (void(**)(log_t*,uint8_t,size_t)) \
+                     &((log_it*) _l)->truncatebuffer   \
+               && &_l->getbuffer                       \
+                  == (void(**)(const log_t*,uint8_t,   \
+                        uint8_t**,size_t*))            \
+                     &((log_it*) _l)->getbuffer        \
+               && &_l->getstate                        \
+                  == (uint8_t(**)(const log_t*,        \
+                                  uint8_t))            \
+                     &((log_it*) _l)->getstate         \
+               && &_l->compare                         \
+                  == (int(**)(const log_t*, uint8_t,   \
+                              size_t,const uint8_t*))  \
+                     &((log_it*) _l)->compare          \
+               && &_l->setstate                        \
+                  == (void(**)(log_t*,uint8_t,         \
+                               uint8_t))               \
+                     &((log_it*) _l)->setstate,        \
+               "ensure compatible structure");         \
+            (log_it*) _l;                              \
          }))
 
 
 /* define: log_it_DECLARE
  * Implements <log_it.log_it_DECLARE>. */
-#define log_it_DECLARE(declared_it, log_t)   \
-   typedef struct declared_it    declared_it;                                          \
-   struct declared_it {                                                                \
-      void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,               \
-                            const log_header_t * header, const char * format, ... )    \
-                            __attribute__ ((__format__ (__printf__, 5, 6)));           \
-      void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,               \
-                            const log_header_t * header, log_text_f textf, ... );      \
-      void  (*flushbuffer) (log_t * log, uint8_t channel);                             \
-      void  (*truncatebuffer) (log_t * log, uint8_t channel, size_t size);             \
-      void  (*getbuffer)   (const log_t * log, uint8_t channel,                        \
-                            /*out*/uint8_t ** buffer, /*out*/size_t * size);           \
-      uint8_t (*getstate)  (const log_t * log, uint8_t channel);                       \
-      int     (*compare)   (const log_t * log, uint8_t channel, size_t logsize,        \
-                            const uint8_t logbuffer[logsize]);                         \
-      void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate);           \
-   };
+#define log_it_DECLARE(declared_it, log_t) \
+         typedef struct declared_it declared_it;                                          \
+         struct declared_it {                                                             \
+            void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,            \
+                                  const log_header_t * header, const char * format, ... ) \
+                                  __attribute__ ((__format__ (__printf__, 5, 6)));        \
+            void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,            \
+                                  const log_header_t * header, log_text_f textf, ... );   \
+            void  (*flushbuffer) (log_t * log, uint8_t channel);                          \
+            void  (*truncatebuffer) (log_t * log, uint8_t channel, size_t size);          \
+            void  (*getbuffer)   (const log_t * log, uint8_t channel,                     \
+                                  /*out*/uint8_t ** buffer, /*out*/size_t * size);        \
+            uint8_t (*getstate)  (const log_t * log, uint8_t channel);                    \
+            int     (*compare)   (const log_t * log, uint8_t channel, size_t logsize,     \
+                                  const uint8_t logbuffer[logsize]);                      \
+            void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate);        \
+         };
 
 #endif

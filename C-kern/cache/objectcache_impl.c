@@ -45,7 +45,7 @@ static objectcache_impl_it  s_objectcacheimpl_interface = {
 
 objectcache_it * interface_objectcacheimpl(void)
 {
-   return genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
+   return cast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
 }
 
 // group: lifetime
@@ -59,20 +59,20 @@ int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
    if (err) goto ONERR;
 
    static_assert(sizeof(*cache) == sizeof(iobuffer), "only one cached object") ;
-   *genericcast_memblock(&cache->iobuffer, ) = iobuffer ;
+   *cast_memblock(&cache->iobuffer, ) = iobuffer;
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) RELEASE_PAGECACHE(&iobuffer) ;
+   (void) RELEASE_PAGECACHE(&iobuffer);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int free_objectcacheimpl(objectcache_impl_t * cache)
 {
    int err ;
 
-   err = RELEASE_PAGECACHE(genericcast_memblock(&cache->iobuffer, )) ;
+   err = RELEASE_PAGECACHE(cast_memblock(&cache->iobuffer, )) ;
 
    if (err) goto ONERR;
 
@@ -90,7 +90,7 @@ static int lockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, /*out
 
    VALIDATE_INPARAM_TEST(0 == *iobuffer, ONERR, ) ;
 
-   *iobuffer = genericcast_memblock(&objectcache->iobuffer,) ;
+   *iobuffer = cast_memblock(&objectcache->iobuffer,) ;
 
    return 0 ;
 ONERR:
@@ -103,7 +103,7 @@ static int unlockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, mem
    int err ;
 
    if (*iobuffer) {
-      VALIDATE_INPARAM_TEST(genericcast_memblock(&objectcache->iobuffer,) == *iobuffer, ONERR, ) ;
+      VALIDATE_INPARAM_TEST(cast_memblock(&objectcache->iobuffer,) == *iobuffer, ONERR, ) ;
       *iobuffer = 0 ;
    }
 
@@ -163,8 +163,8 @@ ONERR:
 
 static int test_initthread(void)
 {
-   // TEST genericcast_objectcacheit
-   TEST((objectcache_it*)&s_objectcacheimpl_interface == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
+   // TEST cast_objectcacheit
+   TEST((objectcache_it*)&s_objectcacheimpl_interface == cast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
 
    // TEST s_objectcacheimpl_interface
    TEST(s_objectcacheimpl_interface.lock_iobuffer   == &lockiobuffer_objectcacheimpl) ;

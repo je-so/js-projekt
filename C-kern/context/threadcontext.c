@@ -204,12 +204,12 @@ static int freehelper5_threadcontext(threadcontext_t * tcontext, threadcontext_t
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   (void) tcontext;"\n"   (void) statictcontext;"\n"   return freethread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter"));"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
+// TEXTDB:SELECT("static int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   (void) tcontext;"\n"   (void) statictcontext;"\n"   return freethread_"module"("(if (parameter!="") "cast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter"));"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
 static int freehelper1_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    (void) tcontext;
    (void) statictcontext;
-   return freethread_pagecacheimpl(genericcast_iobj(&tcontext->pagecache, pagecache));
+   return freethread_pagecacheimpl(cast_iobj(&tcontext->pagecache, pagecache));
 }
 
 // TEXTDB:END
@@ -246,11 +246,11 @@ static int inithelper5_threadcontext(/*out*/threadcontext_t * tcontext)
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(/*out*/threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter"));"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(/*out*/threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "cast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter"));"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
 static int inithelper1_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    (void) tcontext;
-   return initthread_pagecacheimpl(genericcast_iobj(&tcontext->pagecache, pagecache));
+   return initthread_pagecacheimpl(cast_iobj(&tcontext->pagecache, pagecache));
 }
 
 // TEXTDB:END
@@ -269,7 +269,7 @@ static int config_threadcontext(threadcontext_t * tcontext, maincontext_e contex
    case maincontext_DEFAULT:
       return 0;
    case maincontext_CONSOLE:
-      ilog = genericcast_log(&tcontext->log) ;
+      ilog = cast_log(&tcontext->log) ;
       ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_UNBUFFERED) ;
       ilog->iimpl->setstate(ilog->object, log_channel_ERR, log_state_IGNORED) ;
       return 0 ;

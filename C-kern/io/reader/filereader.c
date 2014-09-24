@@ -87,7 +87,7 @@ static int initsinglebuffer_filereader(/*out*/filereader_mmfile_t mmfile[2], fil
 {
    int err ;
 
-   err = initPio_mmfile(genericcast_mmfile(&mmfile[0],,), fd, 0, bufsize, accessmode_READ) ;
+   err = initPio_mmfile(cast_mmfile(&mmfile[0],,), fd, 0, bufsize, accessmode_READ) ;
    if (err) return err ;
 
    return 0 ;
@@ -100,7 +100,7 @@ static int initdoublebuffer_filereader(/*out*/filereader_mmfile_t mmfile[2], fil
    err = initsinglebuffer_filereader(mmfile, fd, bufsize) ;
    if (err) return err ;
 
-   err = initsplit_mmfile(genericcast_mmfile(&mmfile[0],,), genericcast_mmfile(&mmfile[1],,), bufsize/2, genericcast_mmfile(&mmfile[0],,)) ;
+   err = initsplit_mmfile(cast_mmfile(&mmfile[0],,), cast_mmfile(&mmfile[1],,), bufsize/2, cast_mmfile(&mmfile[0],,)) ;
    if (err) return err ;
 
    return 0 ;
@@ -177,10 +177,10 @@ int free_filereader(filereader_t * frd)
 
    err = free_file(&frd->file) ;
 
-   err2 = free_mmfile(genericcast_mmfile(&frd->mmfile[0],,)) ;
+   err2 = free_mmfile(cast_mmfile(&frd->mmfile[0],,)) ;
    if (err2) err = err2 ;
 
-   err2 = free_mmfile(genericcast_mmfile(&frd->mmfile[1],,)) ;
+   err2 = free_mmfile(cast_mmfile(&frd->mmfile[1],,)) ;
    if (err2) err = err2 ;
 
    if (err) goto ONERR;
@@ -213,8 +213,8 @@ bool isfree_filereader(const filereader_t * frd)
             && 0 == frd->fileoffset
             && 0 == frd->filesize
             && isfree_file(frd->file)
-            && isfree_mmfile(genericcast_mmfile(&frd->mmfile[0],,const))
-            && isfree_mmfile(genericcast_mmfile(&frd->mmfile[1],,const)) ;
+            && isfree_mmfile(cast_mmfile(&frd->mmfile[0],,const))
+            && isfree_mmfile(cast_mmfile(&frd->mmfile[1],,const)) ;
 }
 
 // group: read
@@ -228,7 +228,7 @@ static int readnextblock_filereader(filereader_t * frd, int nextindex)
       return ENODATA ;
    }
 
-   err = seek_mmfile(genericcast_mmfile(&frd->mmfile[nextindex],,), frd->file, frd->fileoffset, accessmode_READ) ;
+   err = seek_mmfile(cast_mmfile(&frd->mmfile[nextindex],,), frd->file, frd->fileoffset, accessmode_READ) ;
    if (err) goto ONERR;
 
    off_t  unreadsize = frd->filesize - frd->fileoffset ;
@@ -340,9 +340,9 @@ static int test_initfree(directory_t * tempdir)
       TEST(0 == mfile.size) ;
    }
 
-   // TEST genericcast_mmfile: filereader_t.mmfile compatible with mmfile_t
-   TEST((mmfile_t*)&frd.mmfile[0].addr == genericcast_mmfile(&frd.mmfile[0],,)) ;
-   TEST((mmfile_t*)&frd.mmfile[1].addr == genericcast_mmfile(&frd.mmfile[1],,)) ;
+   // TEST cast_mmfile: filereader_t.mmfile compatible with mmfile_t
+   TEST((mmfile_t*)&frd.mmfile[0].addr == cast_mmfile(&frd.mmfile[0],,)) ;
+   TEST((mmfile_t*)&frd.mmfile[1].addr == cast_mmfile(&frd.mmfile[1],,)) ;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "big", (size_t)3e9)) ;
@@ -356,10 +356,10 @@ static int test_initfree(directory_t * tempdir)
       case 2:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
       default: goto ONERR;
       }
-      TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) != 0) ;
-      TEST(size_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) == ti*B) ;
-      TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[1],,)) == 0) ;
-      TEST(size_mmfile(genericcast_mmfile(&frd.mmfile[1],,)) == 0) ;
+      TEST(addr_mmfile(cast_mmfile(&frd.mmfile[0],,)) != 0) ;
+      TEST(size_mmfile(cast_mmfile(&frd.mmfile[0],,)) == ti*B) ;
+      TEST(addr_mmfile(cast_mmfile(&frd.mmfile[1],,)) == 0) ;
+      TEST(size_mmfile(cast_mmfile(&frd.mmfile[1],,)) == 0) ;
       TEST(frd.ioerror    == 0) ;
       TEST(frd.unreadsize == ti*B) ;
       TEST(frd.nextindex  == 0) ;
@@ -375,10 +375,10 @@ static int test_initfree(directory_t * tempdir)
 
    // TEST init_filereader, free_filereader
    TEST(0 == init_filereader(&frd, "double", tempdir)) ;
-   TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) != 0) ;
-   TEST(size_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) == B/2) ;
-   TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[1],,)) == addr_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) + B/2) ;
-   TEST(size_mmfile(genericcast_mmfile(&frd.mmfile[1],,)) == B/2) ;
+   TEST(addr_mmfile(cast_mmfile(&frd.mmfile[0],,)) != 0) ;
+   TEST(size_mmfile(cast_mmfile(&frd.mmfile[0],,)) == B/2) ;
+   TEST(addr_mmfile(cast_mmfile(&frd.mmfile[1],,)) == addr_mmfile(cast_mmfile(&frd.mmfile[0],,)) + B/2) ;
+   TEST(size_mmfile(cast_mmfile(&frd.mmfile[1],,)) == B/2) ;
    TEST(frd.ioerror    == 0) ;
    TEST(frd.unreadsize == B) ;
    TEST(frd.nextindex  == 0) ;

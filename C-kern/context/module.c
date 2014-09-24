@@ -60,7 +60,7 @@ int init_module(/*out*/module_t * mod, const char * modulename)
    err = delete_directory(&dir) ;
    if (err) goto ONERR;
 
-   initmove_mmfile(genericcast_mmfile(mod, code_, ), &mmfile) ;
+   initmove_mmfile(cast_mmfile(mod, code_, ), &mmfile) ;
 
    return 0 ;
 ONERR:
@@ -74,7 +74,7 @@ int free_module(module_t * mod)
 {
    int err ;
 
-   err = free_mmfile(genericcast_mmfile(mod, code_, )) ;
+   err = free_mmfile(cast_mmfile(mod, code_, )) ;
    if (err) goto ONERR;
 
    return 0 ;
@@ -109,17 +109,17 @@ static int test_initfree(void)
       TEST(0 == init_module(&mod, name[i])) ;
       TEST(mod.code_addr != 0) ;
       TEST(mod.code_size == code_size) ;
-      TEST(1 == ismapped_vm(genericcast_vmpage(&mod, code_), accessmode_RDEX_SHARED)) ;
+      TEST(1 == ismapped_vm(cast_vmpage(&mod, code_), accessmode_RDEX_SHARED)) ;
 
       // TEST free_module
       TEST(0 == free_module(&mod)) ;
       TEST(0 == mod.code_addr) ;
       TEST(0 == mod.code_size) ;
-      TEST(1 == isunmapped_vm(genericcast_vmpage(&mod, code_))) ;
+      TEST(1 == isunmapped_vm(cast_vmpage(&mod, code_))) ;
       TEST(0 == free_module(&mod)) ;
       TEST(0 == mod.code_addr) ;
       TEST(0 == mod.code_size) ;
-      TEST(1 == isunmapped_vm(genericcast_vmpage(&mod, code_))) ;
+      TEST(1 == isunmapped_vm(cast_vmpage(&mod, code_))) ;
    }
 
    // unprepare
@@ -157,11 +157,11 @@ static int test_generic(void)
 {
    module_t mod ;
 
-   // TEST genericcast_memblock: code_addr, code_size compatible with memblock_t
-   TEST((memblock_t*)&mod == genericcast_memblock(&mod, code_)) ;
+   // TEST cast_memblock: code_addr, code_size compatible with memblock_t
+   TEST((memblock_t*)&mod == cast_memblock(&mod, code_)) ;
 
-   // TEST genericcast_mmfile: code_addr, code_size compatible with mmfile_t
-   TEST((mmfile_t*)&mod == genericcast_mmfile(&mod, code_,)) ;
+   // TEST cast_mmfile: code_addr, code_size compatible with mmfile_t
+   TEST((mmfile_t*)&mod == cast_mmfile(&mod, code_,)) ;
 
    return 0 ;
 ONERR:

@@ -67,8 +67,8 @@ static int test_query(void)
 {
    x11drawable_t x11draw = x11drawable_FREE;
 
-   // TEST genericcast_x11drawable
-   TEST(&x11draw == genericcast_x11drawable(&x11draw));
+   // TEST cast_x11drawable
+   TEST(&x11draw == cast_x11drawable(&x11draw));
 
    return 0;
 ONERR:

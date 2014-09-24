@@ -161,8 +161,8 @@ static int test_generic(void)
    static_assert(offsetof(testadapter_it, hashobject) == offsetof(typeadapt_gethash_it, hashobject), "structure compatible") ;
    static_assert(offsetof(testadapter_it, hashkey) == offsetof(typeadapt_gethash_it, hashkey), "structure compatible") ;
 
-   // TEST genericcast_typeadaptgethash
-   TEST((typeadapt_gethash_it*)&gethash == genericcast_typeadaptgethash(&gethash, testadapter_t, double, float*)) ;
+   // TEST cast_typeadaptgethash
+   TEST((typeadapt_gethash_it*)&gethash == cast_typeadaptgethash(&gethash, testadapter_t, double, float*)) ;
 
    // TEST callhashobject_typeadaptgethash
    for (unsigned i = 0; i < lengthof(nodes); ++i) {

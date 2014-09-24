@@ -192,11 +192,11 @@ size_t pagesizeinbytes_pagecacheit(pagesize_e pagesize) ;
 
 // group: generic
 
-/* function: genericcast_pagecacheit
+/* function: cast_pagecacheit
  * Casts pointer pgcacheif into pointer to interface <pagecache_it>.
  * Parameter *pgcacheif* must point to a type declared with <pagecache_it_DECLARE>.
  * The other parameters must be the same as in <pagecache_it_DECLARE> without the first. */
-pagecache_it * genericcast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t) ;
+pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t) ;
 
 /* function: pagecache_it_DECLARE
  * Declares an interface function table for accessing pagecache.
@@ -251,106 +251,70 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
 
 /* define: sizeallocated_pagecache
  * Implements <pagecache_t.sizeallocated_pagecache>. */
-#define sizeallocated_pagecache(pgcache)  \
+#define sizeallocated_pagecache(pgcache) \
          ((pgcache).iimpl->sizeallocated((pgcache).object))
 
 /* define: sizestatic_pagecache
  * Implements <pagecache_t.sizestatic_pagecache>. */
-#define sizestatic_pagecache(pgcache)  \
+#define sizestatic_pagecache(pgcache) \
          ((pgcache).iimpl->sizestatic((pgcache).object))
 
 // group: pagecache_it
 
-/* define: genericcast_pagecacheit
- * Implements <pagecache_it.genericcast_pagecacheit>. */
-#define genericcast_pagecacheit(pgcacheif, pagecache_t)     \
-   ( __extension__ ({                                       \
-      static_assert(                                        \
-         offsetof(typeof(*(pgcacheif)), allocpage)          \
-         == offsetof(pagecache_it, allocpage)               \
-         && offsetof(typeof(*(pgcacheif)), releasepage)     \
-            == offsetof(pagecache_it, releasepage)          \
-         && offsetof(typeof(*(pgcacheif)), sizeallocated)   \
-            == offsetof(pagecache_it, sizeallocated)        \
-         && offsetof(typeof(*(pgcacheif)), allocstatic)     \
-            == offsetof(pagecache_it, allocstatic)          \
-         && offsetof(typeof(*(pgcacheif)), freestatic)      \
-            == offsetof(pagecache_it, freestatic)           \
-         && offsetof(typeof(*(pgcacheif)), sizestatic)      \
-            == offsetof(pagecache_it, sizestatic)           \
-         && sizeof(int)                                     \
-            == sizeof((pgcacheif)->allocpage(               \
-               (pagecache_t*)0, pagesize_16384,             \
-               (struct memblock_t*)0))                      \
-         && sizeof(int)                                     \
-            == sizeof((pgcacheif)->releasepage(             \
-               (pagecache_t*)0, (struct memblock_t*)0))     \
-         && sizeof(size_t)                                  \
-            == sizeof((pgcacheif)->sizeallocated(           \
-                        (const pagecache_t*)0))             \
-         && sizeof(int)                                     \
-            == sizeof((pgcacheif)->allocstatic(             \
-                     (pagecache_t*)0, (size_t)0,            \
-                     (struct memblock_t*)0))                \
-         && sizeof(int)                                     \
-            == sizeof((pgcacheif)->freestatic(              \
-                     (pagecache_t*)0,                       \
-                     (struct memblock_t*)0))                \
-         && sizeof(size_t)                                  \
-            == sizeof((pgcacheif)->sizestatic(              \
-                        (const pagecache_t*)0))             \
-         && sizeof(int)                                     \
-            == sizeof((pgcacheif)->emptycache(              \
-                        (pagecache_t*)0)),                  \
-         "ensure same structure") ;                         \
-      if (0) {                                              \
-         int      _err ;                                    \
-         size_t   _err2 ;                                   \
-         _err = (pgcacheif)->allocpage(                     \
-               (pagecache_t*)0, pagesize_16384,             \
-               (struct memblock_t*)0) ;                     \
-         _err += (pgcacheif)->releasepage(                  \
-               (pagecache_t*)0, (struct memblock_t*)0) ;    \
-         _err2 = (pgcacheif)->sizeallocated(                \
-                        (const pagecache_t*)0) ;            \
-         _err += (pgcacheif)->allocstatic(                  \
-               (pagecache_t*)0, (size_t)128,                \
-               (struct memblock_t *)0) ;                    \
-         _err += (pgcacheif)->freestatic(                   \
-               (pagecache_t*)0,                             \
-               (struct memblock_t *)0) ;                    \
-         _err2 += (pgcacheif)->sizestatic(                  \
-                        (const pagecache_t*)0) ;            \
-         _err += (pgcacheif)->emptycache(                   \
-                        (pagecache_t*)0) ;                  \
-         _err2 += (size_t)_err ;                            \
-         (void) _err2 ;                                     \
-      }                                                     \
-      (pagecache_it*) (pgcacheif) ;                         \
+/* define: cast_pagecacheit
+ * Implements <pagecache_it.cast_pagecacheit>. */
+#define cast_pagecacheit(pgcacheif, pagecache_t) \
+   ( __extension__ ({                                              \
+      typeof(pgcacheif) _if;                                       \
+      _if = (pgcacheif);                                           \
+      static_assert(                                               \
+         &(_if->allocpage)                                         \
+         == (int (**) (pagecache_t*,uint8_t, struct memblock_t*))  \
+            &((pagecache_it*) _if)->allocpage                      \
+         && &(_if->releasepage)                                    \
+            == (int (**) (pagecache_t *, struct memblock_t *))     \
+               &((pagecache_it*) _if)->releasepage                 \
+         && &(_if->sizeallocated)                                  \
+            == (size_t (**) (const pagecache_t *))                 \
+               &((pagecache_it*) _if)->sizeallocated               \
+         && &(_if->allocstatic)                                    \
+            == (int (**) (pagecache_t*,size_t,struct memblock_t*)) \
+               &((pagecache_it*) _if)->allocstatic                 \
+         && &(_if->freestatic)                                     \
+            == (int (**) (pagecache_t*,struct memblock_t*))        \
+               &((pagecache_it*) _if)->freestatic                  \
+         && &(_if->sizestatic)                                     \
+            == (size_t (**) (const pagecache_t *))                 \
+               &((pagecache_it*) _if)->sizestatic                  \
+         && &(_if->emptycache)                                     \
+            == (int (**) (pagecache_t *))                          \
+               &((pagecache_it*) _if)->emptycache,                 \
+         "ensure compatible structure");                           \
+      (pagecache_it*) _if;                                         \
    }))
 
 /* define: pagecache_it_DECLARE
  * Implements <pagecache_it.pagecache_it_DECLARE>. */
-#define pagecache_it_DECLARE(declared_it, pagecache_t)      \
-   typedef struct declared_it       declared_it ;           \
-   struct declared_it {                                     \
-      int    (*allocpage)     (pagecache_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;       \
-      int    (*releasepage)   (pagecache_t * pgcache, struct memblock_t * page) ;                              \
-      size_t (*sizeallocated) (const pagecache_t * pgcache) ;                                                  \
-      int    (*allocstatic)   (pagecache_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;  \
-      int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;                          \
-      size_t (*sizestatic)    (const pagecache_t * pgcache) ;                                                  \
-      int    (*emptycache)    (pagecache_t * pgcache) ;                                                        \
-   } ;
+#define pagecache_it_DECLARE(declared_it, pagecache_t) \
+   typedef struct declared_it declared_it;             \
+   struct declared_it {                                \
+      int    (*allocpage)     (pagecache_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page);      \
+      int    (*releasepage)   (pagecache_t * pgcache, struct memblock_t * page);                             \
+      size_t (*sizeallocated) (const pagecache_t * pgcache);                                                 \
+      int    (*allocstatic)   (pagecache_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock); \
+      int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock);                         \
+      size_t (*sizestatic)    (const pagecache_t * pgcache);                                                 \
+      int    (*emptycache)    (pagecache_t * pgcache);                                                       \
+   };
 
 /* define: pagesizeinbytes_pagecacheit
  * Implements <pagecache_it.pagesizeinbytes_pagecacheit>. */
-#define pagesizeinbytes_pagecacheit(pagesize)   \
-   ( __extension__ ({                           \
-         unsigned _pgsize ;                     \
-         _pgsize = (unsigned)(pagesize) ;       \
-         (size_t)256 << (2u*_pgsize + 2u*(_pgsize == pagesize_1MB)) ; \
-   }))
+#define pagesizeinbytes_pagecacheit(pagesize) \
+         ( __extension__ ({                   \
+            unsigned _pgsize ;                \
+            _pgsize = (pagesize);             \
+            (size_t)256 << (2u*_pgsize + 2u*(_pgsize == pagesize_1MB)); \
+         }))
 
 
 #endif

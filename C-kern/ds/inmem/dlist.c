@@ -310,10 +310,10 @@ static int test_dlistnode(void)
    TEST(0 == node.next) ;
    TEST(0 == node.prev) ;
 
-   // TEST genericcast_dlistnode
-   TEST(genericcast_dlistnode(&node)  == &node) ;
-   TEST(genericcast_dlistnode(&node1) == (dlist_node_t*)&node1.next) ;
-   TEST(genericcast_dlistnode(&node2) == (dlist_node_t*)&node2.next) ;
+   // TEST cast_dlistnode
+   TEST(cast_dlistnode(&node)  == &node) ;
+   TEST(cast_dlistnode(&node1) == (dlist_node_t*)&node1.next) ;
+   TEST(cast_dlistnode(&node2) == (dlist_node_t*)&node2.next) ;
 
    return 0 ;
 ONERR:
@@ -323,7 +323,7 @@ ONERR:
 static int test_initfree(void)
 {
    testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
-   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   typeadapt_t *     typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t           list = dlist_INIT ;
    testnode_t        nodes[1000] ;
 
@@ -655,7 +655,7 @@ ONERR:
 static int test_insertremove(void)
 {
    testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
-   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   typeadapt_t *     typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t           list = dlist_INIT ;
    testnode_t        nodes[1000] ;
    dlist_node_t *    removed_node ;
@@ -1060,7 +1060,7 @@ ONERR:
 static int test_setops(void)
 {
    testadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 } ;
-   typeadapt_t *  typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   typeadapt_t *  typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
    dlist_t        list  = dlist_INIT ;
    dlist_t        list2 = dlist_INIT ;
    testnode_t     nodes[1000] ;
@@ -1099,7 +1099,7 @@ static int test_setops(void)
    // TEST removeall_dlist: no free called if typeadapt_t.lifetime.delete_object set to 0
    {
       testadapt_t    typeadapt2 = typeadapt ;
-      typeadapt_t *  typeadp2   = genericcast_typeadapt(&typeadapt2, testadapt_t, testnode_t, void*) ;
+      typeadapt_t *  typeadp2   = cast_typeadapt(&typeadapt2, testadapt_t, testnode_t, void*) ;
       typeadapt2.lifetime.delete_object = 0 ;
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
          insertfirst_dlist(&list, &nodes[i].node) ;
@@ -1184,7 +1184,7 @@ dlist_IMPLEMENT(_glist2, genericnode_t, node2.)
 static int test_generic(void)
 {
    genericadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_FREE, 0 } ;
-   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*) ;
+   typeadapt_t *     typeadp   = cast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*) ;
    dlist_t           list1 = dlist_INIT ;
    dlist_t           list2 = dlist_INIT ;
    genericnode_t     nodes[1000] ;
@@ -1192,11 +1192,11 @@ static int test_generic(void)
 
    memset(nodes, 0, sizeof(nodes)) ;
 
-   // TEST genericcast_dlist
+   // TEST cast_dlist
    struct {
       dlist_node_t * last ;
    }  xlist ;
-   TEST((dlist_t*)&xlist == genericcast_dlist(&xlist)) ;
+   TEST((dlist_t*)&xlist == cast_dlist(&xlist)) ;
 
    // TEST empty list
    TEST(0 == first_glist1(&list1)) ;

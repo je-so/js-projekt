@@ -202,13 +202,13 @@ static int test_generic(void)
       size_t   size ;
    }           mblock2 = { 0, 0 } ;
 
-   // TEST genericcast_memblock
-   TEST((memblock_t*)&mblock.pre_addr == genericcast_memblock(&mblock, pre_)) ;
-   TEST((memblock_t*)&mblock2         == genericcast_memblock(&mblock2, )) ;
+   // TEST cast_memblock
+   TEST((memblock_t*)&mblock.pre_addr == cast_memblock(&mblock, pre_)) ;
+   TEST((memblock_t*)&mblock2         == cast_memblock(&mblock2, )) ;
 
-   // TEST genericcast_memblock: memblock_INIT
-   *genericcast_memblock(&mblock, pre_) = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
-   *genericcast_memblock(&mblock2, )    = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
+   // TEST cast_memblock: memblock_INIT
+   *cast_memblock(&mblock, pre_) = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
+   *cast_memblock(&mblock2, )    = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
    TEST(mblock.pre_addr == buffer)
    TEST(mblock2.addr    == buffer)
    TEST(mblock.pre_size == sizeof(buffer)) ;

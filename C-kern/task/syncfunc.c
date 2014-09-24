@@ -275,31 +275,31 @@ static int test_getset(void)
       TEST(addrstate_syncfunc(&sfunc, size) == (void**)expect);
    }
 
-   // TEST waitforcast_syncfunc: 0 value return invalid address
-   TEST(0 != waitforcast_syncfunc(0));
+   // TEST castPwaitfor_syncfunc: 0 value return invalid address
+   TEST(0 != castPwaitfor_syncfunc(0));
 
-   // TEST waitlistcast_syncfunc: 0 value return invalid address
-   TEST(0 != waitlistcast_syncfunc(0, true));
-   TEST(0 != waitlistcast_syncfunc(0, false));
+   // TEST castPwaitlist_syncfunc: 0 value return invalid address
+   TEST(0 != castPwaitlist_syncfunc(0, true));
+   TEST(0 != castPwaitlist_syncfunc(0, false));
 
-   // TEST waitforcast_syncfunc: value returned from addrwaitfor_syncfunc(&sfunc)
-   TEST(&sfunc == waitforcast_syncfunc(addrwaitfor_syncfunc(&sfunc)));
+   // TEST castPwaitfor_syncfunc: value returned from addrwaitfor_syncfunc(&sfunc)
+   TEST(&sfunc == castPwaitfor_syncfunc(addrwaitfor_syncfunc(&sfunc)));
 
-   // TEST waitlistcast_syncfunc: value returned from addrwaitlist_syncfunc(&sfunc, ?)
-   TEST(&sfunc == waitlistcast_syncfunc(addrwaitlist_syncfunc(&sfunc, true), true));
-   TEST(&sfunc == waitlistcast_syncfunc(addrwaitlist_syncfunc(&sfunc, false), false));
+   // TEST castPwaitlist_syncfunc: value returned from addrwaitlist_syncfunc(&sfunc, ?)
+   TEST(&sfunc == castPwaitlist_syncfunc(addrwaitlist_syncfunc(&sfunc, true), true));
+   TEST(&sfunc == castPwaitlist_syncfunc(addrwaitlist_syncfunc(&sfunc, false), false));
 
-   // TEST waitforcast_syncfunc: connected link
+   // TEST castPwaitfor_syncfunc: connected link
    init_link(&sfunc.waitfor, &sfunc2.caller);
-   TEST(&sfunc == waitforcast_syncfunc(sfunc2.caller.link));
+   TEST(&sfunc == castPwaitfor_syncfunc(sfunc2.caller.link));
 
-   // TEST waitlistcast_syncfunc: connected link
+   // TEST castPwaitlist_syncfunc: connected link
    init_linkd(addrwaitlist_syncfunc(&sfunc, true), &sfunc2.waitlist);
-   TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.next, true));
-   TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.prev, true));
+   TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.next, true));
+   TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.prev, true));
    init_linkd(addrwaitlist_syncfunc(&sfunc, false), &sfunc2.waitlist);
-   TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.next, false));
-   TEST(&sfunc == waitlistcast_syncfunc(sfunc2.waitlist.prev, false));
+   TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.next, false));
+   TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.prev, false));
 
    // TEST clearopt_syncfunc
    for (int i = 0; i <= syncfunc_opt_ALL; ++i) {

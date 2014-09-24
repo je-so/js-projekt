@@ -26,16 +26,16 @@
 
 /* typedef: struct typeadapt_t
  * Export <typeadapt_t> into global namespace. */
-typedef struct typeadapt_t             typeadapt_t ;
+typedef struct typeadapt_t typeadapt_t;
 
 /* typedef: typeadapt_member_t
  * Export <typeadapt_member_t> into global namespace. */
-typedef struct typeadapt_member_t      typeadapt_member_t ;
+typedef struct typeadapt_member_t typeadapt_member_t;
 
 /* typedef: typeadapt_object_t
  * Declares abstract object type.
  * It is used to tag objects that want to be stored in the data store. */
-typedef struct typeadapt_object_t      typeadapt_object_t ;
+typedef struct typeadapt_object_t typeadapt_object_t;
 
 
 // section: Functions
@@ -45,7 +45,7 @@ typedef struct typeadapt_object_t      typeadapt_object_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_typeadapt
  * Test <typeadapt_t> functionality. */
-int unittest_ds_typeadapt(void) ;
+int unittest_ds_typeadapt(void);
 #endif
 
 
@@ -81,7 +81,7 @@ struct typeadapt_member_t {
 
 /* function: isequal_typeadaptmember
  * Returns true if both <typeadapt_member_t>s are equal. */
-bool isequal_typeadaptmember(const typeadapt_member_t * ltypeadp, const typeadapt_member_t * rtypeadp) ;
+bool isequal_typeadaptmember(const typeadapt_member_t * ltypeadp, const typeadapt_member_t * rtypeadp);
 
 // group: call-services
 
@@ -233,11 +233,11 @@ int callgetbinarykey_typeadapt(typeadapt_t * typeadp, ...) ;
 
 // group: generic
 
-/* function: genericcast_typeadapt
+/* function: cast_typeadapt
  * Casts parameter typeadp into pointer to <typeadapt_t>.
  * The parameter *typeadp* has to be of type "pointer to type" that
  * embeds the generic public interface with <typeadapt_EMBED> as first member. */
-typeadapt_t * genericcast_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
+typeadapt_t * cast_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
 
 /* function: typeadapt_DECLARE
  * Declares a derived interface from generic <typeadapt_t>.
@@ -267,24 +267,26 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 
 // section: inline implementation
 
-/* define: genericcast_typeadapt
- * Implements <typeadapt_t.genericcast_typeadapt>. */
-#define genericcast_typeadapt(typeadp, typeadapter_t, object_t, key_t)                       \
-   ( __extension__ ({                                                                        \
-      static_assert(                                                                         \
-         offsetof(typeof(*(typeadp)), comparator) == offsetof(typeadapt_t, comparator)       \
-         && offsetof(typeof(*(typeadp)), gethash) == offsetof(typeadapt_t, gethash)          \
-         && offsetof(typeof(*(typeadp)), getkey) == offsetof(typeadapt_t, getkey)            \
-         && offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),       \
-         "ensure same structure") ;                                                          \
-      if (0) {                                                                               \
-         (void) genericcast_typeadaptcomparator((typeof((typeadp)->comparator)*)0, typeadapter_t, object_t, key_t) ;   \
-         (void) genericcast_typeadaptgethash((typeof((typeadp)->gethash)*)0, typeadapter_t, object_t, key_t) ;         \
-         (void) genericcast_typeadaptgetkey((typeof((typeadp)->getkey)*)0, typeadapter_t, object_t) ;      \
-         (void) genericcast_typeadaptlifetime((typeof((typeadp)->lifetime)*)0, typeadapter_t, object_t) ;  \
-      }                                                                                      \
-      (typeadapt_t*) (typeadp) ;                                                             \
-   }))
+/* define: cast_typeadapt
+ * Implements <typeadapt_t.cast_typeadapt>. */
+#define cast_typeadapt(typeadp, typeadapter_t, object_t, key_t) \
+         ( __extension__ ({                                                                      \
+            typeof(typeadp) _t;                                                                  \
+            _t = (typeadp);                                                                      \
+            static_assert(                                                                       \
+               offsetof(typeof(*_t), comparator)  == offsetof(typeadapt_t, comparator)           \
+               && offsetof(typeof(*_t), gethash)  == offsetof(typeadapt_t, gethash)              \
+               && offsetof(typeof(*_t), getkey)   == offsetof(typeadapt_t, getkey)               \
+               && offsetof(typeof(*_t), lifetime) == offsetof(typeadapt_t, lifetime),            \
+               "ensure same offsets");                                                           \
+            if (0) {                                                                             \
+               (void) cast_typeadaptcomparator(&_t->comparator, typeadapter_t, object_t, key_t); \
+               (void) cast_typeadaptgethash(&_t->gethash, typeadapter_t, object_t, key_t);       \
+               (void) cast_typeadaptgetkey(&_t->getkey, typeadapter_t, object_t);                \
+               (void) cast_typeadaptlifetime(&_t->lifetime, typeadapter_t, object_t);            \
+            }                                                                                    \
+            (typeadapt_t*) _t;                                                                   \
+         }))
 
 /* define: callcmpkeyobj_typeadapt
  * Implements <typeadapt_t.callcmpkeyobj_typeadapt>. */
@@ -356,26 +358,26 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */
-#define typeadapt_EMBED(typeadapter_t, object_t, key_t)              \
-   struct {                                                          \
-      typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t) ;   \
-   } comparator ;                                                    \
-   struct {                                                          \
-      typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t) ;      \
-   } gethash ;                                                       \
-   struct {                                                          \
-      typeadapt_getkey_EMBED(typeadapter_t, object_t) ;              \
-   } getkey ;                                                        \
-   struct {                                                          \
-      typeadapt_lifetime_EMBED(typeadapter_t, object_t) ;            \
-   } lifetime                                                        \
+#define typeadapt_EMBED(typeadapter_t, object_t, key_t) \
+         struct {                                                       \
+            typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t); \
+         } comparator;                                                  \
+         struct {                                                       \
+            typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t);    \
+         } gethash;                                                     \
+         struct {                                                       \
+            typeadapt_getkey_EMBED(typeadapter_t, object_t);            \
+         } getkey;                                                      \
+         struct {                                                       \
+            typeadapt_lifetime_EMBED(typeadapter_t, object_t);          \
+         } lifetime                                                     \
 
 /* define: typeadapt_DECLARE
  * Implements <typeadapt_t.typeadapt_DECLARE>. */
-#define typeadapt_DECLARE(typeadapter_t, object_t, key_t)            \
-   typedef struct typeadapter_t           typeadapter_t ;            \
-   struct typeadapter_t {                                            \
-      typeadapt_EMBED(typeadapter_t, object_t, key_t) ;              \
-   }
+#define typeadapt_DECLARE(typeadapter_t, object_t, key_t) \
+         typedef struct typeadapter_t typeadapter_t;         \
+         struct typeadapter_t {                              \
+            typeadapt_EMBED(typeadapter_t, object_t, key_t); \
+         }
 
 #endif

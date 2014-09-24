@@ -181,7 +181,7 @@ static inline int addlastpage_queue(queue_t * queue)
 
    qpage->end_offset   = sizeof(queue_page_t);
    qpage->start_offset = sizeof(queue_page_t);
-   insertlast_pagelist(genericcast_dlist(queue), qpage);
+   insertlast_pagelist(cast_dlist(queue), qpage);
 
    return 0;
 }
@@ -196,7 +196,7 @@ static inline int addfirstpage_queue(queue_t * queue)
 
    qpage->end_offset   = pagesize_queue(queue);
    qpage->start_offset = pagesize_queue(queue);
-   insertfirst_pagelist(genericcast_dlist(queue), qpage);
+   insertfirst_pagelist(cast_dlist(queue), qpage);
 
    return 0;
 }
@@ -206,7 +206,7 @@ static inline int removefirstpage_queue(queue_t * queue)
    int err;
    queue_page_t * first;
 
-   err = removefirst_pagelist(genericcast_dlist(queue), &first);
+   err = removefirst_pagelist(cast_dlist(queue), &first);
    if (err) return err;
 
    err = delete_queuepage(&first, pagesize_queue(queue));
@@ -220,7 +220,7 @@ static inline int removelastpage_queue(queue_t * queue)
    int err;
    queue_page_t * last;
 
-   err = removelast_pagelist(genericcast_dlist(queue), &last);
+   err = removelast_pagelist(cast_dlist(queue), &last);
    if (err) return err;
 
    err = delete_queuepage(&last, pagesize_queue(queue));
@@ -276,7 +276,7 @@ void initmove_queue(/*out*/queue_t * dest, queue_t * src)
    dest->pagesize = src->pagesize;
    src->last = 0;
 
-   queue_page_t * last = last_pagelist(genericcast_dlist(dest));
+   queue_page_t * last = last_pagelist(cast_dlist(dest));
    if (last) {
       queue_page_t * qpage = last;
       do {
@@ -291,7 +291,7 @@ int free_queue(queue_t * queue)
    int err;
 
    if (queue->last) {
-      queue_page_t * qpage = last_pagelist(genericcast_dlist(queue));
+      queue_page_t * qpage = last_pagelist(cast_dlist(queue));
       uint16_t pagesize = pagesize_queue(queue);
       qpage = next_pagelist(qpage);
       queue->last->next = 0;
@@ -321,13 +321,13 @@ int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesiz
 
    VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, );
 
-   queue_page_t * first = first_pagelist(genericcast_dlist(queue));
+   queue_page_t * first = first_pagelist(cast_dlist(queue));
 
    if (!first || 0 != pushfirst_queuepage(first, nodeaddr, nodesize)) {
       err = addfirstpage_queue(queue);
       if (err) goto ONERR;
 
-      first = first_pagelist(genericcast_dlist(queue));
+      first = first_pagelist(cast_dlist(queue));
 
       err = pushfirst_queuepage(first, nodeaddr, nodesize);
       assert(!err);
@@ -345,14 +345,14 @@ int insertlast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize
 
    VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, );
 
-   queue_page_t * last = last_pagelist(genericcast_dlist(queue));
+   queue_page_t * last = last_pagelist(cast_dlist(queue));
    uint16_t pagesize = pagesize_queue(queue);
 
    if (!last || 0 != pushlast_queuepage(last, pagesize, nodeaddr, nodesize)) {
       err = addlastpage_queue(queue);
       if (err) goto ONERR;
 
-      last = last_pagelist(genericcast_dlist(queue));
+      last = last_pagelist(cast_dlist(queue));
 
       err = pushlast_queuepage(last, pagesize, nodeaddr, nodesize);
       assert(!err);
@@ -367,7 +367,7 @@ ONERR:
 int removefirst_queue(queue_t * queue, uint16_t nodesize)
 {
    int err;
-   queue_page_t * first = first_pagelist(genericcast_dlist(queue));
+   queue_page_t * first = first_pagelist(cast_dlist(queue));
 
    if (!first) {
       err = ENODATA;
@@ -391,7 +391,7 @@ ONERR:
 int removelast_queue(queue_t * queue, uint16_t nodesize)
 {
    int err;
-   queue_page_t * last = last_pagelist(genericcast_dlist(queue));
+   queue_page_t * last = last_pagelist(cast_dlist(queue));
 
    if (!last) {
       err = ENODATA;
@@ -415,7 +415,7 @@ ONERR:
 int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize, uint16_t newsize)
 {
    int err;
-   queue_page_t * last = last_pagelist(genericcast_dlist(queue));
+   queue_page_t * last = last_pagelist(cast_dlist(queue));
    uint16_t pagesize = pagesize_queue(queue);
 
    VALIDATE_INPARAM_TEST(newsize <= 512, ONERR, );
@@ -442,7 +442,7 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
             goto ONERR;
          }
       }
-      last = last_pagelist(genericcast_dlist(queue));
+      last = last_pagelist(cast_dlist(queue));
       err = pushlast_queuepage(last, pagesize, nodeaddr, newsize);
       assert(!err);
       memmove(*nodeaddr, oldcontent, oldsize/* oldsize < newsize !*/);
@@ -1159,18 +1159,18 @@ static int test_update(void)
    TEST(0 == insertfirst_queue(&queue, &node, 0));
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
-      queue_page_t * last  = last_pagelist(genericcast_dlist(&queue));
-      queue_page_t * first = first_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last  = last_pagelist(cast_dlist(&queue));
+      queue_page_t * first = first_pagelist(cast_dlist(&queue));
       queue_page_t * old   = (void*)first->next;
       bool           isNew = (first->start_offset - sizeof(queue_page_t)) < nodesize;
       uint32_t       off   = isNew ? defaultpagesize_queue() : first->start_offset;
       TEST(0 == insertfirst_queue(&queue, &node, nodesize));
       if (isNew) {
-         TEST(first == next_pagelist(first_pagelist(genericcast_dlist(&queue))));
+         TEST(first == next_pagelist(first_pagelist(cast_dlist(&queue))));
          old   = first;
-         first = first_pagelist(genericcast_dlist(&queue));
+         first = first_pagelist(cast_dlist(&queue));
       }
-      TEST(first == first_pagelist(genericcast_dlist(&queue)));
+      TEST(first == first_pagelist(cast_dlist(&queue)));
       TEST(first->next  == (void*)old);
       TEST(first->prev  == (void*)last);
       TEST(first->queue == &queue);
@@ -1184,8 +1184,8 @@ static int test_update(void)
    TEST(0 == insertlast_queue(&queue, &node, 0));
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
-      queue_page_t * last  = last_pagelist(genericcast_dlist(&queue));
-      queue_page_t * first = first_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last  = last_pagelist(cast_dlist(&queue));
+      queue_page_t * first = first_pagelist(cast_dlist(&queue));
       queue_page_t * old   = (void*)last->prev;
       bool           isNew = (defaultpagesize_queue() - last->end_offset) < nodesize;
       uint32_t       off   = isNew ? sizeof(queue_page_t) : last->end_offset;
@@ -1193,9 +1193,9 @@ static int test_update(void)
       if (isNew) {
          TEST(queue.last == last->next);
          old  = last;
-         last = last_pagelist(genericcast_dlist(&queue));
+         last = last_pagelist(cast_dlist(&queue));
       }
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->next  == (void*)first);
       TEST(last->prev  == (void*)old);
       TEST(last->queue == &queue);
@@ -1239,11 +1239,11 @@ static int test_update(void)
    TEST(0 == addlastpage_queue(&queue));
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t);
       last->end_offset    = defaultpagesize_queue();
       TEST(0 == removefirst_queue(&queue, nodesize));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == defaultpagesize_queue());
       TEST(last->start_offset == sizeof(queue_page_t) + nodesize);
@@ -1252,11 +1252,11 @@ static int test_update(void)
    // TEST removelast_queue: single page queue
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t);
       last->end_offset    = defaultpagesize_queue();
       TEST(0 == removelast_queue(&queue, nodesize));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == defaultpagesize_queue() - nodesize);
       TEST(last->start_offset == sizeof(queue_page_t));
@@ -1265,21 +1265,21 @@ static int test_update(void)
    // TEST resizelast_queue: single page queue
    TEST(0 != queue.last);
    for (uint32_t i = sizeof(queue_page_t); i < defaultpagesize_queue(); ++i) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       *(i + (uint8_t*)last) = (uint8_t)i;
    }
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t);
       last->end_offset    = defaultpagesize_queue();
       TEST(0 == resizelast_queue(&queue, &node, 512, nodesize));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == defaultpagesize_queue() - 512 + nodesize);
       TEST(last->start_offset == sizeof(queue_page_t));
       TEST(node               == (uint8_t*)last + last->end_offset - nodesize);
       TEST(0 == resizelast_queue(&queue, &node, nodesize, 512));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == defaultpagesize_queue());
       TEST(last->start_offset == sizeof(queue_page_t));
@@ -1287,19 +1287,19 @@ static int test_update(void)
    }
    // content has not changed !
    for (uint32_t i = sizeof(queue_page_t); i < defaultpagesize_queue(); ++i) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       TEST((uint8_t)i == *(i + (uint8_t*)last));
    }
 
    // TEST resizelast_queue: single page queue (shift from end to start)
    TEST(0 != queue.last);
    for (uint16_t nodesize = 128; nodesize <= 512; ++nodesize) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = defaultpagesize_queue() - 127;
       last->end_offset    = defaultpagesize_queue();
       memset((uint8_t*)last + last->start_offset, (uint8_t)nodesize, 127);
       TEST(0 == resizelast_queue(&queue, &node, 127, nodesize));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue        == &queue);
       TEST(last->end_offset   == sizeof(queue_page_t) + nodesize);
       TEST(last->start_offset == sizeof(queue_page_t));
@@ -1315,11 +1315,11 @@ static int test_update(void)
    // TEST removefirst_queue: EOVERFLOW
    TEST(0 != queue.last);
    {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t) + 1;
       last->end_offset    = sizeof(queue_page_t) + 2;
       TEST(EOVERFLOW == removefirst_queue(&queue, 2));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == sizeof(queue_page_t) + 2);
       TEST(last->start_offset == sizeof(queue_page_t) + 1);
@@ -1328,11 +1328,11 @@ static int test_update(void)
    // TEST removelast_queue: EOVERFLOW
    TEST(0 != queue.last);
    {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t) + 1;
       last->end_offset    = sizeof(queue_page_t) + 3;
       TEST(EOVERFLOW == removelast_queue(&queue, 3));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == sizeof(queue_page_t) + 3);
       TEST(last->start_offset == sizeof(queue_page_t) + 1);
@@ -1341,11 +1341,11 @@ static int test_update(void)
    // TEST resizelast_queue: EOVERFLOW
    TEST(0 != queue.last);
    {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       last->start_offset  = sizeof(queue_page_t) + 1;
       last->end_offset    = sizeof(queue_page_t) + 4;
       TEST(EOVERFLOW == resizelast_queue(&queue, &node, 4, 3));
-      TEST(last == last_pagelist(genericcast_dlist(&queue)));
+      TEST(last == last_pagelist(cast_dlist(&queue)));
       TEST(last->queue == &queue);
       TEST(last->end_offset   == sizeof(queue_page_t) + 4);
       TEST(last->start_offset == sizeof(queue_page_t) + 1);
@@ -1381,7 +1381,7 @@ static int test_update(void)
    for (unsigned i = 0; i < lengthof(qpages); ++i) {
       uint32_t pagesize = defaultpagesize_queue();
       for (uint32_t off = sizeof(queue_page_t); off < pagesize; ++off) {
-         TEST(qpages[i] == first_pagelist(genericcast_dlist(&queue)));
+         TEST(qpages[i] == first_pagelist(cast_dlist(&queue)));
          TEST(qpages[i]->queue        == &queue);
          TEST(qpages[i]->end_offset   == defaultpagesize_queue());
          TEST(qpages[i]->start_offset == off);
@@ -1400,7 +1400,7 @@ static int test_update(void)
    for (int i = lengthof(qpages)-1; i >= 0; --i) {
       uint32_t pagesize = defaultpagesize_queue();
       for (uint32_t off = pagesize; off > sizeof(queue_page_t); --off) {
-         TEST(qpages[i] == last_pagelist(genericcast_dlist(&queue)));
+         TEST(qpages[i] == last_pagelist(cast_dlist(&queue)));
          TEST(qpages[i]->queue        == &queue);
          TEST(qpages[i]->end_offset   == off);
          TEST(qpages[i]->start_offset == sizeof(queue_page_t));
@@ -1414,19 +1414,19 @@ static int test_update(void)
    TEST(0 == addlastpage_queue(&queue));
    // fill page
    for (uint32_t i = sizeof(queue_page_t); i < defaultpagesize_queue(); ++i) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       *(i + (uint8_t*)last) = (uint8_t)i;
    }
    for (uint16_t nodesize = 0; nodesize <= 256; ++nodesize) {
-      queue_page_t * first = first_pagelist(genericcast_dlist(&queue));
-      TEST(first == last_pagelist(genericcast_dlist(&queue)));
+      queue_page_t * first = first_pagelist(cast_dlist(&queue));
+      TEST(first == last_pagelist(cast_dlist(&queue)));
       first->start_offset  = sizeof(queue_page_t);
       first->end_offset    = defaultpagesize_queue();
       memset((uint8_t*)end_queuepage(first) - nodesize, (uint8_t)nodesize, nodesize);
       TEST(0 == resizelast_queue(&queue, &node, nodesize, (uint16_t)(nodesize+256)));
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       TEST(last  != first);
-      TEST(first == first_pagelist(genericcast_dlist(&queue)));
+      TEST(first == first_pagelist(cast_dlist(&queue)));
       TEST(first->queue == &queue);
       TEST(first->end_offset   == defaultpagesize_queue()-nodesize);
       TEST(first->start_offset == sizeof(queue_page_t));
@@ -1442,7 +1442,7 @@ static int test_update(void)
    }
    // content of old page has not changed
    for (uint32_t i = sizeof(queue_page_t); i < defaultpagesize_queue(); ++i) {
-      queue_page_t * last = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * last = last_pagelist(cast_dlist(&queue));
       if (i >= defaultpagesize_queue()-256) {
          TEST((uint8_t)0 == *(i + (uint8_t*)last));
       } else {
@@ -1452,8 +1452,8 @@ static int test_update(void)
 
    // TEST resizelast_queue: ENOMEM
    {
-      queue_page_t * first = first_pagelist(genericcast_dlist(&queue));
-      queue_page_t * last  = last_pagelist(genericcast_dlist(&queue));
+      queue_page_t * first = first_pagelist(cast_dlist(&queue));
+      queue_page_t * last  = last_pagelist(cast_dlist(&queue));
       TEST(0 != last);
       TEST(first == last);
       first->start_offset  = sizeof(queue_page_t);
@@ -1461,8 +1461,8 @@ static int test_update(void)
       init_testerrortimer(&s_queuepage_errtimer, 1, ENOMEM);
       TEST(ENOMEM == resizelast_queue(&queue, &node, 1, 127));
          // nothing done
-      TEST(first == first_pagelist(genericcast_dlist(&queue)));
-      TEST(last  == last_pagelist(genericcast_dlist(&queue)));
+      TEST(first == first_pagelist(cast_dlist(&queue)));
+      TEST(last  == last_pagelist(cast_dlist(&queue)));
       TEST(first->start_offset  == sizeof(queue_page_t))
       TEST(first->end_offset    == defaultpagesize_queue());
    }
@@ -1496,9 +1496,9 @@ static int test_generic(void)
    }              queue2;
    test_node_t *  node = 0;
 
-   // TEST genericcast_queue
-   TEST(genericcast_queue(&queue)  == &queue);
-   TEST(genericcast_queue(&queue2) == (queue_t*)&queue2);
+   // TEST cast_queue
+   TEST(cast_queue(&queue)  == &queue);
+   TEST(cast_queue(&queue2) == (queue_t*)&queue2);
 
    // TEST init_queue
    memset(&queue, 255, sizeof(queue));
@@ -1512,10 +1512,10 @@ static int test_generic(void)
    TEST(0 != queue.last);
    queue_page_t * last = (queue_page_t*) queue.last;
    queue2.last = 0;
-   initmove_testqueue(genericcast_queue(&queue2), &queue);
+   initmove_testqueue(cast_queue(&queue2), &queue);
    TEST(queue2.last == (void*)last);
    TEST(queue.last  == 0);
-   initmove_testqueue(&queue, genericcast_queue(&queue2));
+   initmove_testqueue(&queue, cast_queue(&queue2));
    TEST(queue2.last == 0);
    TEST(queue.last  == (void*)last);
 

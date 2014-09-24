@@ -50,12 +50,12 @@ struct errorcontext_t {
     * Table with offset values relative to <strdata>.
     * The tables length is equal to 256 but all entries with index > <maxsyserrnum_errorcontext>
     * share the same offset to string "Unknown error". */
-   uint16_t *  stroffset ;
+   uint16_t *  stroffset;
    /* variable: strdata
     * String table with system error descriptions in english.
     * Last byte of string is a '\0' byte (C string). */
-   uint8_t  *  strdata ;
-} ;
+   uint8_t  *  strdata;
+};
 
 // group: initonce
 
@@ -63,7 +63,7 @@ struct errorcontext_t {
  * Called from <maincontext_t.init_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>. */
-int initonce_errorcontext(/*out*/errorcontext_t * error) ;
+int initonce_errorcontext(/*out*/errorcontext_t * error);
 
 /* function: freeonce_errorcontext
  * Called from <maincontext_t.free_maincontext>.
@@ -71,7 +71,7 @@ int initonce_errorcontext(/*out*/errorcontext_t * error) ;
  * has the same structure as <errorcontext_t>.
  * This operation is a no op. This ensures that errorcontext_t works
  * in an uninitialized (static) context. */
-int freeonce_errorcontext(errorcontext_t * error) ;
+int freeonce_errorcontext(errorcontext_t * error);
 
 // group: lifetime
 
@@ -85,32 +85,32 @@ int freeonce_errorcontext(errorcontext_t * error) ;
 
 /* function: init_errorcontext
  * Initializes errcontext with static system error string table. */
-int init_errorcontext(/*out*/errorcontext_t * errcontext) ;
+int init_errorcontext(/*out*/errorcontext_t * errcontext);
 
 /* function: free_errorcontext
  * Sets members of errcontext to 0. */
-int free_errorcontext(errorcontext_t * errcontext) ;
+int free_errorcontext(errorcontext_t * errcontext);
 
 // group: query
 
 /* function: maxsyserrnum_errorcontext
  * Returns the number of system error entries. */
-uint16_t maxsyserrnum_errorcontext(void) ;
+uint16_t maxsyserrnum_errorcontext(void);
 
 /* function: str_errorcontext
  * Returns the error description of errnum as a null terminated C string.
  * The value of errnum should be set to the value returned in errno.
  * If errnum is < 0 or errnum > <maxsyserrnum_errorcontext> then string "Unknown error"
  * is returned. */
-const uint8_t * str_errorcontext(const errorcontext_t errcontext, int errnum) ;
+const uint8_t * str_errorcontext(const errorcontext_t errcontext, int errnum);
 
 // group: generic
 
-/* function: genericcast_errorcontext
+/* function: cast_errorcontext
  * Casts a pointer to generic object into pointer to <errorcontext_t>.
  * The object must have members with the same name and type as
  * <errorcontext_t> and in the same order. */
-errorcontext_t * genericcast_errorcontext(void * object) ;
+errorcontext_t * cast_errorcontext(void * object);
 
 
 // section: inline implementation
@@ -118,42 +118,25 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
 /* define: initonce_errorcontext
  * Implements <errorcontext_t.initonce_errorcontext>. */
 #define initonce_errorcontext(error) \
-         (init_errorcontext(genericcast_errorcontext(error)))
+         (init_errorcontext(cast_errorcontext(error)))
 
 /* define: freeonce_errorcontext
  * Implements <errorcontext_t.freeonce_errorcontext>. */
 #define freeonce_errorcontext(error) \
          (0)
 
-/* define: genericcast_errorcontext
- * Implements <errorcontext_t.genericcast_errorcontext>. */
-#define genericcast_errorcontext(object)                       \
-         ( __extension__ ({                                    \
-            typeof(object) _obj = (object) ;                   \
-            errorcontext_t * _errcon = 0 ;                     \
-            static_assert(                                     \
-               sizeof(_errcon->stroffset)                      \
-               == sizeof(_obj->stroffset)                      \
-               && sizeof((_errcon->stroffset)[0])              \
-                  == sizeof((_obj->stroffset)[0])              \
-               && offsetof(errorcontext_t, stroffset)          \
-                  == offsetof(typeof(*_obj), stroffset)        \
-               && sizeof(_errcon->strdata)                     \
-                  == sizeof(_obj->strdata)                     \
-               && sizeof(_errcon->strdata[0])                  \
-                  == sizeof(_obj->strdata[0])                  \
-               && offsetof(errorcontext_t, strdata)            \
-                  == offsetof(typeof(*_obj), strdata),         \
-               "members are compatible") ;                     \
-            if (0) {                                           \
-               volatile uint16_t _off ;                        \
-               volatile uint8_t  _str ;                        \
-               _off = _obj->stroffset[0] ;                     \
-               _str = _obj->strdata[_off] ;                    \
-               (void) _str ;                                   \
-            }                                                  \
-            (void) _errcon ;                                   \
-            (errorcontext_t *)(_obj) ;                         \
+/* define: cast_errorcontext
+ * Implements <errorcontext_t.cast_errorcontext>. */
+#define cast_errorcontext(object) \
+         ( __extension__ ({                              \
+            typeof(object) _ec = (object);               \
+            static_assert(                               \
+               &(_ec->stroffset)                         \
+               == &((errorcontext_t *) _ec)->stroffset   \
+               && &(_ec->strdata)                        \
+                  == &((errorcontext_t *) _ec)->strdata, \
+               "members are compatible");                \
+            (errorcontext_t *) _ec;                      \
          }))
 
 /* define: maxsyserrnum_errorcontext
@@ -165,10 +148,10 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
  * Implements <errorcontext_t.str_errorcontext>. */
 #define str_errorcontext(errcontext, errnum)                   \
          ( __extension__ ({                                    \
-            unsigned _errnum = (unsigned) (errnum) ;           \
+            unsigned _errnum = (unsigned) (errnum);            \
             (errcontext).strdata                               \
                + (errcontext).stroffset[                       \
-                     (_errnum > 511 ? 511 : _errnum)] ;        \
+                     (_errnum > 511 ? 511 : _errnum)];         \
          }))
 
 #endif

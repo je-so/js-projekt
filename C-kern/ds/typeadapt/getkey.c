@@ -30,7 +30,7 @@
 
 bool isequal_typeadaptgetkey(const typeadapt_getkey_it * ladpgetkey, const typeadapt_getkey_it * radpgetkey)
 {
-   return ladpgetkey->getbinarykey == radpgetkey->getbinarykey ;
+   return ladpgetkey->getbinarykey == radpgetkey->getbinarykey;
 }
 
 // group: test
@@ -65,16 +65,16 @@ static void impl_getbinarykey_typeadapt(struct typeadapt_t * typeadp, struct typ
 static int test_binarykey(void)
 {
    struct {
-      /*without const */uint8_t  * addr ;
-      size_t   size ;
+      const uint8_t * addr;
+      size_t          size;
    }                       anonym = { 0, 0 } ;
    string_t                str1   = string_INIT_CSTR("12345") ;
    typeadapt_binarykey_t   binkey = typeadapt_binarykey_FREE ;
-   typeadapt_binarykey_t   * ptrkey = 0 ;
+   typeadapt_binarykey_t * ptrkey = 0 ;
 
    // TEST typeadapt_binarykey_FREE
-   TEST(0 == binkey.addr) ;
-   TEST(0 == binkey.size) ;
+   TEST(0 == binkey.addr);
+   TEST(0 == binkey.size);
 
    // TEST typeadapt_binarykey_INIT
    binkey = (typeadapt_binarykey_t) typeadapt_binarykey_INIT(1, (const uint8_t*)2) ;
@@ -84,12 +84,12 @@ static int test_binarykey(void)
    TEST(binkey.addr == (void*)-2) ;
    TEST(binkey.size == (size_t)-1) ;
 
-   // TEST genericcast_typeadaptbinarykey: with type string_t
-   ptrkey = genericcast_typeadaptbinarykey(&str1) ;
+   // TEST cast_typeadaptbinarykey: with type string_t
+   ptrkey = cast_typeadaptbinarykey(&str1) ;
    TEST(ptrkey == (void*)&str1) ;
 
-   // TEST genericcast_typeadaptbinarykey: with anonymous type
-   ptrkey = genericcast_typeadaptbinarykey(&anonym) ;
+   // TEST cast_typeadaptbinarykey: with anonymous type
+   ptrkey = cast_typeadaptbinarykey(&anonym) ;
    TEST(ptrkey == (void*)&anonym) ;
 
    return 0 ;
@@ -183,8 +183,8 @@ static int test_generic(void)
    static_assert(sizeof(testadapter_it) == sizeof(typeadapt_getkey_it), "structure compatible") ;
    static_assert(offsetof(testadapter_it, getbinarykey) == offsetof(typeadapt_getkey_it, getbinarykey), "structure compatible") ;
 
-   // TEST genericcast_typeadaptgetkey
-   TEST((typeadapt_getkey_it*)&adpgetkey == genericcast_typeadaptgetkey(&adpgetkey, testadapter_t, testnode_t)) ;
+   // TEST cast_typeadaptgetkey
+   TEST((typeadapt_getkey_it*)&adpgetkey == cast_typeadaptgetkey(&adpgetkey, testadapter_t, testnode_t));
 
    // TEST typeadapt_getkey_FREE
    TEST(0 == adpgetkey.getbinarykey) ;

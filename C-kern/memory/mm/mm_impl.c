@@ -51,15 +51,15 @@ static mm_impl_it    s_mmimpl_interface = mm_it_INIT(
 
 mm_it * interface_mmimpl(void)
 {
-   return genericcast_mmit(&s_mmimpl_interface, mm_impl_t) ;
+   return cast_mmit(&s_mmimpl_interface, mm_impl_t);
 }
 
 // group: lifetime
 
 int init_mmimpl(/*out*/mm_impl_t * mman)
 {
-   mman->size_allocated = 0 ;
-   return 0 ;
+   mman->size_allocated = 0;
+   return 0;
 }
 
 int free_mmimpl(mm_impl_t * mman)
@@ -193,16 +193,16 @@ ONERR:
 static int test_initthread(void)
 {
    // TEST s_mmimpl_interface
-   TEST(s_mmimpl_interface.mresize == &mresize_mmimpl) ;
-   TEST(s_mmimpl_interface.mfree   == &mfree_mmimpl) ;
-   TEST(s_mmimpl_interface.sizeallocated == &sizeallocated_mmimpl) ;
+   TEST(s_mmimpl_interface.mresize == &mresize_mmimpl);
+   TEST(s_mmimpl_interface.mfree   == &mfree_mmimpl);
+   TEST(s_mmimpl_interface.sizeallocated == &sizeallocated_mmimpl);
 
    // TEST interface_mmimpl
-   TEST(interface_mmimpl() == genericcast_mmit(&s_mmimpl_interface, mm_impl_t)) ;
+   TEST(interface_mmimpl() == cast_mmit(&s_mmimpl_interface, mm_impl_t));
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_query(void)

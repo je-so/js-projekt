@@ -45,7 +45,7 @@ int unittest_task_syncqueue(void);
  * This object uses <queue_t> to implement its functionality.
  *
  * Extension of queue_t:
- * Use <genericcast_queue> to cast pointer to <syncqueue_t> into pointer to
+ * Use <cast_queue> to cast pointer to <syncqueue_t> into pointer to
  * <queue_t> if you want to read the content of the queue. Use only functions
  * of this interface if you want to update the content.
  *
@@ -178,15 +178,15 @@ int removelast_syncqueue(syncqueue_t * syncqueue);
 /* define: preallocate_syncqueue
  * Implements <syncqueue_t.preallocate_syncqueue>. */
 #define preallocate_syncqueue(syncqueue) \
-         ( __extension__ ({                     \
-            int _err;                           \
-            syncqueue_t * _sq = (syncqueue);    \
-            _err = insertlast_queue(            \
-                        genericcast_queue(_sq), \
-                        &_sq->nextfree,         \
-                        _sq->elemsize);         \
-            _sq->size += (_err == 0);           \
-            _err;                               \
+         ( __extension__ ({                  \
+            int _err;                        \
+            syncqueue_t * _sq = (syncqueue); \
+            _err = insertlast_queue(         \
+                        cast_queue(_sq),     \
+                        &_sq->nextfree,      \
+                        _sq->elemsize);      \
+            _sq->size += (_err == 0);        \
+            _err;                            \
          }))
 
 /* define: castPaddr_syncqueue
@@ -197,25 +197,25 @@ int removelast_syncqueue(syncqueue_t * syncqueue);
 /* define: removefirst_syncqueue
  * Implements <syncqueue_t.removefirst_syncqueue>. */
 #define removefirst_syncqueue(syncqueue) \
-         ( __extension__ ({                        \
-            syncqueue_t * _sq = (syncqueue);       \
-            int _err = removefirst_queue(          \
-                        genericcast_queue(_sq),    \
-                        _sq->elemsize);            \
-            _sq->size -= (_err == 0);              \
-            _err;                                  \
+         ( __extension__ ({                  \
+            syncqueue_t * _sq = (syncqueue); \
+            int _err = removefirst_queue(    \
+                        cast_queue(_sq),     \
+                        _sq->elemsize);      \
+            _sq->size -= (_err == 0);        \
+            _err;                            \
          }))
 
 /* define: removelast_syncqueue
  * Implements <syncqueue_t.removelast_syncqueue>. */
 #define removelast_syncqueue(syncqueue) \
-         ( __extension__ ({                        \
-            syncqueue_t * _sq = (syncqueue);       \
-            int _err = removelast_queue(           \
-                        genericcast_queue(_sq),    \
-                        _sq->elemsize);            \
-            _sq->size -= (_err == 0);              \
-            _err;                                  \
+         ( __extension__ ({                  \
+            syncqueue_t * _sq = (syncqueue); \
+            int _err = removelast_queue(     \
+                        cast_queue(_sq),     \
+                        _sq->elemsize);      \
+            _sq->size -= (_err == 0);        \
+            _err;                            \
          }))
 
 /* define: setnextfree_syncqueue

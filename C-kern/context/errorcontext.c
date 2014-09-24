@@ -214,12 +214,12 @@ static int test_generic(void)
       uint8_t  *  strdata ;
    }              errcontext2 ;
 
-   // TEST genericcast_errorcontext
-   TEST(&errcontext                   == genericcast_errorcontext(&errcontext)) ;
-   TEST((errorcontext_t*)&errcontext2 == genericcast_errorcontext(&errcontext2)) ;
+   // TEST cast_errorcontext
+   TEST(&errcontext                   == cast_errorcontext(&errcontext)) ;
+   TEST((errorcontext_t*)&errcontext2 == cast_errorcontext(&errcontext2)) ;
 
    // TEST init_errorcontext
-   TEST(0 == init_errorcontext(genericcast_errorcontext(&errcontext2))) ;
+   TEST(0 == init_errorcontext(cast_errorcontext(&errcontext2))) ;
 
    // TEST str_errorcontext
    const uint8_t * errstr = str_errorcontext(errcontext2, maxsyserrnum_errorcontext()+1) ;
@@ -227,7 +227,7 @@ static int test_generic(void)
    TEST(0 == strcmp((const char*)errstr, "Unknown error")) ;
 
    // TEST free_errorcontext
-   TEST(0 == init_errorcontext(genericcast_errorcontext(&errcontext2))) ;
+   TEST(0 == init_errorcontext(cast_errorcontext(&errcontext2))) ;
 
    return 0 ;
 ONERR:

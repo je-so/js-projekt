@@ -36,7 +36,7 @@ int init_syncqueue(/*out*/syncqueue_t * syncqueue, uint16_t elemsize, uint8_t qi
 {
    int err;
 
-   err = init_queue(genericcast_queue(syncqueue), syncqueue_PAGESIZE);
+   err = init_queue(cast_queue(syncqueue), syncqueue_PAGESIZE);
    if (err) goto ONERR;
 
    syncqueue->elemsize = elemsize;
@@ -54,7 +54,7 @@ int free_syncqueue(syncqueue_t * syncqueue)
 {
    int err;
 
-   err = free_queue(genericcast_queue(syncqueue));
+   err = free_queue(cast_queue(syncqueue));
 
    syncqueue->size = 0;
 
@@ -89,7 +89,7 @@ static int test_initfree(void)
    TEST(0 == queue.last) ;
    queue = (queue_t) queue_INIT ;
    TEST(0 == queue.last) ;
-   TEST((queue_t*)&syncqueue == genericcast_queue(&syncqueue)) ;
+   TEST((queue_t*)&syncqueue == cast_queue(&syncqueue)) ;
 
    // TEST syncqueue_FREE
    TEST(0 == syncqueue.last);
@@ -106,7 +106,7 @@ static int test_initfree(void)
       init_syncqueue(&syncqueue, (uint16_t)i, (uint8_t)(i+1));
       TEST(0 == syncqueue.last);
       TEST(1 == syncqueue.pagesize);
-      TEST(syncqueue_PAGESIZE == pagesize_queue(genericcast_queue(&syncqueue)));
+      TEST(syncqueue_PAGESIZE == pagesize_queue(cast_queue(&syncqueue)));
       TEST(i == syncqueue.qidx-1);
       TEST(i == syncqueue.elemsize);
       TEST(0 == syncqueue.size) ;
@@ -242,11 +242,11 @@ static int test_update(void)
       TEST(0 != testelem);
       testelem->id = i;
       TEST(i == syncqueue.size);
-      TEST(testelem == last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
+      TEST(testelem == last_queue(cast_queue(&syncqueue), sizeof(testelem_t)));
    }
    // check content
    for (unsigned i = 0; i == 0; ) {
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
+      foreach (_queue, elem, cast_queue(&syncqueue), sizeof(testelem_t)) {
          testelem_t * testelem = elem;
          TEST(testelem->id == ++ i);
       }
@@ -255,7 +255,7 @@ static int test_update(void)
 
    // TEST removefirst_syncqueue
    for (unsigned i = 0; i == 0; ) {
-      foreach (_queue, elem, genericcast_queue(&syncqueue), sizeof(testelem_t)) {
+      foreach (_queue, elem, cast_queue(&syncqueue), sizeof(testelem_t)) {
          void * ptr;
          TEST(0 == insertlast_queue(&testelemlist, &ptr, sizeof(void*)));
          *(void**)ptr = elem;
@@ -267,7 +267,7 @@ static int test_update(void)
       foreach (_queue, elem, &testelemlist, sizeof(void*)) {
          testelem_t * testelem = *(void**)elem;
          TEST(testelem->id == ++ i);
-         TEST(testelem == first_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
+         TEST(testelem == first_queue(cast_queue(&syncqueue), sizeof(testelem_t)));
          TEST(0 == removefirst_syncqueue(&syncqueue));
          TEST(5000-i == syncqueue.size);
          if (i == 2500) break;
@@ -281,7 +281,7 @@ static int test_update(void)
          testelem_t * testelem = *(void**)elem;
          TEST(testelem->id == i);
          --i;
-         TEST(testelem == last_queue(genericcast_queue(&syncqueue), sizeof(testelem_t)));
+         TEST(testelem == last_queue(cast_queue(&syncqueue), sizeof(testelem_t)));
          TEST(0 == removelast_syncqueue(&syncqueue));
          TEST(i-2500 == syncqueue.size);
          if (i == 2500) break;

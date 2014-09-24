@@ -535,11 +535,11 @@ static int test_generic(void)
       int         y ;
    }              tls2 ;
 
-   // TEST genericcast_threadtls
+   // TEST cast_threadtls
    ptr = &tls ;
-   TEST(ptr == genericcast_threadtls(&tls,)) ;
+   TEST(ptr == cast_threadtls(&tls,)) ;
    ptr = (thread_tls_t*)&tls2.prefix_addr ;
-   TEST(ptr == genericcast_threadtls(&tls2,prefix_)) ;
+   TEST(ptr == cast_threadtls(&tls2,prefix_)) ;
 
    return 0 ;
 ONERR:

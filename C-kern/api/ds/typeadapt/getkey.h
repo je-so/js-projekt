@@ -25,11 +25,11 @@ struct typeadapt_object_t ;
 
 /* typedef: struct typeadapt_binarykey_t
  * Export <typeadapt_binarykey_t> into global namespace. */
-typedef struct typeadapt_binarykey_t               typeadapt_binarykey_t ;
+typedef struct typeadapt_binarykey_t typeadapt_binarykey_t;
 
 /* typedef: struct typeadapt_getkey_it
  * Export <typeadapt_getkey_it> into global namespace. */
-typedef struct typeadapt_getkey_it                 typeadapt_getkey_it ;
+typedef struct typeadapt_getkey_it typeadapt_getkey_it;
 
 
 // section: Functions
@@ -39,7 +39,7 @@ typedef struct typeadapt_getkey_it                 typeadapt_getkey_it ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_typeadapt_getkey
  * Test <typeadapt_getkey_it> functionality. */
-int unittest_ds_typeadapt_getkey(void) ;
+int unittest_ds_typeadapt_getkey(void);
 #endif
 
 
@@ -48,11 +48,11 @@ int unittest_ds_typeadapt_getkey(void) ;
 struct typeadapt_binarykey_t {
    /* variable: addr
     * Start address of binary data of key. The lowest address in memory. */
-   const uint8_t  * addr/*[size]*/ ;
+   const uint8_t  * addr/*[size]*/;
    /* variable: size
     * Size in bytes of binary data <addr> points to. */
-   size_t         size ;
-} ;
+   size_t         size;
+};
 
 // group: lifetime
 
@@ -66,21 +66,21 @@ struct typeadapt_binarykey_t {
 
 // group: generic
 
-/* function: genericcast_typeadaptbinarykey
+/* function: cast_typeadaptbinarykey
  * Casts parameter conststr into pointer to <typeadapt_binarykey_t>.
  * Parameter constr should be of type pointer to <string_t>. */
-typeadapt_binarykey_t * genericcast_typeadaptbinarykey(void * conststr) ;
+typeadapt_binarykey_t * cast_typeadaptbinarykey(void * conststr);
 
 
 /* struct: typeadapt_getkey_it
  * Declares interface for getting a description of a binary key of the object.
  * If you change this interface do not forget to adapt
- * <typeadapt_getkey_EMBED> and <genericcast_typeadaptgetkey>. */
+ * <typeadapt_getkey_EMBED> and <cast_typeadaptgetkey>. */
 struct typeadapt_getkey_it {
    /* variable: getbinarykey
     * Returns in <typeadapt_binarykey_t> the description of a binary key. */
-   void  (*getbinarykey)   (struct typeadapt_t * typeadp, struct typeadapt_object_t * node, /*out*/typeadapt_binarykey_t * binkey) ;
-} ;
+   void  (*getbinarykey) (struct typeadapt_t * typeadp, struct typeadapt_object_t * node, /*out*/typeadapt_binarykey_t * binkey);
+};
 
 // group: lifetime
 
@@ -109,12 +109,12 @@ void callgetbinarykey_typeadaptgetkey(typeadapt_getkey_it * adpgetkey, struct ty
 
 // group: generic
 
-/* define: genericcast_typeadaptgetkey
+/* define: cast_typeadaptgetkey
  * Casts parameter adpgetkey into pointer to <typeadapt_getkey_it>.
  * The parameter *adpgetkey* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_getkey_DECLARE>.
  * The second and third parameter must be the same as in <typeadapt_getkey_DECLARE>. */
-typeadapt_getkey_it * genericcast_typeadaptgetkey(void * adpgetkey, TYPENAME typeadapter_t, TYPENAME object_t) ;
+typeadapt_getkey_it * cast_typeadaptgetkey(void * adpgetkey, TYPENAME typeadapter_t, TYPENAME object_t) ;
 
 /* define: typeadapt_getkey_DECLARE
  * Declares a derived interface from generic <typeadapt_getkey_it>.
@@ -128,10 +128,10 @@ typeadapt_getkey_it * genericcast_typeadaptgetkey(void * adpgetkey, TYPENAME typ
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_getkey_it> supports. */
 #define typeadapt_getkey_DECLARE(declared_it, typeadapter_t, object_t)  \
-   typedef struct declared_it             declared_it ;                 \
-   struct declared_it {                                                 \
-      typeadapt_getkey_EMBED(typeadapter_t, object_t) ;                 \
-   }
+         typedef struct declared_it declared_it;             \
+         struct declared_it {                                \
+            typeadapt_getkey_EMBED(typeadapter_t, object_t); \
+         }
 
 /* define: typeadapt_getkey_EMBED
  * Declares a derived interface from generic <typeadapt_getkey_it>.
@@ -142,53 +142,47 @@ typeadapt_getkey_it * genericcast_typeadaptgetkey(void * adpgetkey, TYPENAME typ
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_getkey_it> supports. */
-#define typeadapt_getkey_EMBED(typeadapter_t, object_t)                                                        \
-   void  (* getbinarykey)  (typeadapter_t * typeadp, object_t * node, /*out*/typeadapt_binarykey_t * binkey)   \
+#define typeadapt_getkey_EMBED(typeadapter_t, object_t) \
+         void  (* getbinarykey)  (typeadapter_t * typeadp, object_t * node, /*out*/typeadapt_binarykey_t * binkey)
 
 
 // section: inline implementation
 
-/* define: genericcast_typeadaptbinarykey
- * Implements <typeadapt_binarykey_t.genericcast_typeadaptbinarykey>. */
-#define genericcast_typeadaptbinarykey(conststr)                     \
-   ( __extension__ ({                                                \
-      typeof(conststr) _conststr = (conststr) ;                      \
-      static_assert(                                                 \
-         offsetof(typeadapt_binarykey_t, addr)                       \
-         == offsetof(typeof(*(conststr)), addr)                      \
-         && offsetof(typeadapt_binarykey_t, size)                    \
-            == offsetof(typeof(*(conststr)), size),                  \
-         "ensure same structure") ;                                  \
-      if (0) {                                                       \
-         int _err = 0 ;                                              \
-         const uint8_t * _addr = _conststr->addr ;                   \
-         size_t        _size   = _conststr->size ;                   \
-         _err = (int) (_addr[0] + _size) ;                           \
-         (void) _err ;                                               \
-      }                                                              \
-      (typeadapt_binarykey_t*) _conststr ;                           \
-   }))
+/* define: cast_typeadaptbinarykey
+ * Implements <typeadapt_binarykey_t.cast_typeadaptbinarykey>. */
+#define cast_typeadaptbinarykey(conststr) \
+         ( __extension__ ({                                 \
+            typeof(conststr) _cs;                           \
+            _cs = (conststr);                               \
+            static_assert(                                  \
+               &(_cs->addr)                                 \
+               == &((typeadapt_binarykey_t*) (uintptr_t)    \
+                    _cs)->addr                              \
+               && &(_cs->size)                              \
+                  == &((typeadapt_binarykey_t*) (uintptr_t) \
+                       _cs)->size,                          \
+               "ensure same structure");                    \
+            (typeadapt_binarykey_t*) _cs;                   \
+         }))
 
-/* define: genericcast_typeadaptgetkey
- * Implements <typeadapt_getkey_it.genericcast_typeadaptgetkey>. */
-#define genericcast_typeadaptgetkey(adpgetkey, typeadapter_t, object_t)    \
-   ( __extension__ ({                                                      \
-      static_assert(                                                       \
-         offsetof(typeadapt_getkey_it, getbinarykey)                       \
-         == offsetof(typeof(*(adpgetkey)), getbinarykey),                  \
-         "ensure same structure") ;                                        \
-      if (0) {                                                             \
-         (adpgetkey)->getbinarykey(                                        \
-                      (typeadapter_t*)0, (object_t*)0,                     \
-                      (typeadapt_binarykey_t*)0) ;                         \
-      }                                                                    \
-      (typeadapt_getkey_it*) (adpgetkey) ;                                 \
-   }))
+/* define: cast_typeadaptgetkey
+ * Implements <typeadapt_getkey_it.cast_typeadaptgetkey>. */
+#define cast_typeadaptgetkey(adpgetkey, typeadapter_t, object_t) \
+         ( __extension__ ({                                                     \
+            typeof(adpgetkey) _gk;                                              \
+            _gk = (adpgetkey);                                                  \
+            static_assert(                                                      \
+               &(_gk->getbinarykey)                                             \
+               == (void (**) (typeadapter_t*,object_t*,typeadapt_binarykey_t*)) \
+                  &((typeadapt_getkey_it*) _gk)->getbinarykey,                  \
+               "ensure same structure");                                        \
+            (typeadapt_getkey_it*) _gk;                                         \
+         }))
 
 /* function: callgetbinarykey_typeadaptgetkey
  * Implements <typeadapt_getkey_it.callgetbinarykey_typeadaptgetkey>. */
 #define callgetbinarykey_typeadaptgetkey(adpgetkey, typeadp, node, binkey) \
-   ((adpgetkey)->getbinarykey((typeadp), (node), (binkey)))
+         ((adpgetkey)->getbinarykey((typeadp), (node), (binkey)))
 
 
 #endif
