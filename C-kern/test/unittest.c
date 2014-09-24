@@ -313,11 +313,13 @@ struct childprocess_t {
 
 static int childprocess_unittest(childprocess_t * param)
 {
-   int err = param->test_f();
-
+   int err;
    uint8_t *buffer;
    size_t   size = 0;
    size_t   written;
+
+   CLEARBUFFER_ERRLOG();
+   err = param->test_f();
    GETBUFFER_ERRLOG(&buffer, &size);
 
    TEST(0 == write_iochannel(param->pipefd, size, buffer, &written));
@@ -374,7 +376,9 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
    err = free_iochannel(&fd[1]);
    if (err) goto ONERR;
 
-   *retcode = result.returncode;
+   if (retcode) {
+      *retcode = result.returncode;
+   }
 
    return 0;
 ONERR:
@@ -787,6 +791,22 @@ static int test_exec(void)
    TEST(6 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
 
+   // TEST execasprocess_unittest: retcode == 0
+   CLEARBUFFER_ERRLOG();
+   TEST(0 == execasprocess_unittest(&dummy_unittest_ok, 0/*retcode == 0*/));
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(6 == logsize);
+   TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
+
+   // TEST execasprocess_unittest: ERRORLOG is cleared in child process
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(6 == logsize); // is not doubled
+   TEST(0 == execasprocess_unittest(&dummy_unittest_ok, &retcode));
+   TEST(0 == retcode);
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(12 == logsize); // would be 18 if logsize is not cleared
+   TEST(0  == memcmp(logbuffer, "ERRLOGERRLOG", 12));
+
    // TEST execasprocess_unittest: return code ENOMEM
    CLEARBUFFER_ERRLOG();
    TEST(0 == execasprocess_unittest(&dummy_unittest_fail1, &retcode));
@@ -816,7 +836,7 @@ static int test_exec(void)
    TEST(0 == memcmp(logbuffer, "ERRLOG\n", 7));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(94 == bytes_read)
-   TEST(0 == strncmp("C-kern/test/unittest.c:356: TEST FAILED\nC-kern/test/unittest.c:356: Test process aborted (06)\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("C-kern/test/unittest.c:358: TEST FAILED\nC-kern/test/unittest.c:358: Test process aborted (06)\n", (const char*)buffer, bytes_read));
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare
@@ -861,10 +881,10 @@ ONERR:
 static void call_testp_macro(void)
 {
    int bytes;
-   TESTP(1 == 1, "%d", 1);
+   TESTP(1 == 1, "%d %d", 1, 2);
    bytes = write(STDOUT_FILENO, "X", 1);
    (void) bytes;
-   TESTP(0 == 1, "%" PRIu64, (uint64_t)1);
+   TESTP(0 == 1, "%" PRIu64 ",%d", (uint64_t)1, 2);
    bytes = write(STDOUT_FILENO, "Y", 1);
    (void) bytes;
    return;
@@ -893,13 +913,13 @@ static int test_macros(void)
    call_test_macro();
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(49 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:851: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:871: TEST FAILED\nZ", bytes_read));
 
    // TEST TESTP
    call_testp_macro();
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(72 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:867: TEST FAILED\nC-kern/test/unittest.c:867: 1\nZ", bytes_read));
+   TEST(74 == bytes_read);
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:887: TEST FAILED\nC-kern/test/unittest.c:887: 1,2\nZ", bytes_read));
 
    // unprepare
    memcpy(&s_unittest_singleton, &old, sizeof(old));

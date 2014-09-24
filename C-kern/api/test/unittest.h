@@ -103,6 +103,7 @@ int execsingle_unittest(const char * testname, int (*test_f)(void));
 /* function: execasprocess_unittest
  * Forks a child process which runs the test function.
  * The parameter retcode is set to the value returned by test_f.
+ * If it is NULL nothing is returned.
  * If test_t exits abnormally with a signal retcode is set to EINTR.
  * Also the content of the buffered errorlog is transfered via pipe
  * at the end of test_f to the calling process and printed to its errorlog.
@@ -168,11 +169,11 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
  * >    return EINVAL;
  * > }
  * */
-#define TESTP(CONDITION, FORMAT, ARGS) \
+#define TESTP(CONDITION, FORMAT, ...)  \
          if ( !(CONDITION) ) {         \
             logfailedf_unittest(       \
             __FILE__, __LINE__,        \
-            FORMAT, ARGS);             \
+            FORMAT, __VA_ARGS__);      \
             goto ONERR;                \
          }                             \
 

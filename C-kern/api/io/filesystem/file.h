@@ -10,7 +10,7 @@
 
    Includes:
    You need to include "C-kern/api/io/accessmode.h" (<IO-Accessmode>)
-   and "C-kern/api/io/iochannel.h" (<IOChannel>) before htis file.
+   before htis file.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
