@@ -97,7 +97,7 @@ const uint8_t * next_stringstream(const stringstream_t * strstream) ;
  * Finds byte in string stream.
  * The returned value points to the position of the found byte.
  * The value 0 is returned if *strstream* does not contain the byte. */
-const uint8_t * findbyte_stringstream(const struct string_t * strstream, uint8_t byte) ;
+const uint8_t * findbyte_stringstream(const stringstream_t * strstream, uint8_t byte);
 
 // group: read
 

@@ -47,7 +47,7 @@ int initPstr_stringstream(/*out*/stringstream_t * strstream, const struct string
 {
    int err;
 
-   const uintptr_t next = (uintptr_t)addr_string(str);
+   const uintptr_t next = (uintptr_t) addr_string(str);
    const uintptr_t end  = next + size_string(str);
 
    VALIDATE_INPARAM_TEST(next <= end, ONERR, );
@@ -243,9 +243,9 @@ static int test_change(void)
    TEST(strstream.next == buffer) ;
    TEST(strstream.end  == buffer + sizeof(buffer)) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 

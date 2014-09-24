@@ -50,7 +50,7 @@
 typedef struct heap_t heap_t;
 
 /* typedef: heap_compare_f
- * Define compare function for objects stored in the heap.
+ * Define compare function for objects stored on the heap.
  * The first parameter cmpstate is a variable which
  * points to additional shared compare state beyond
  * the two objects left and right.

@@ -477,28 +477,28 @@ ONERR:
 
 int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_bytes)
 {
-   int err ;
-   int bytes ;
-   int fd = *ipsock ;
+   int err;
+   int bytes;
+   int fd = *ipsock;
 
    if (ioctl(fd, TIOCOUTQ, &bytes)) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("ioctl(TIOCOUTQ)", err) ;
-      PRINTINT_ERRLOG(fd) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("ioctl(TIOCOUTQ)", err);
+      PRINTINT_ERRLOG(fd);
       goto ONERR;
    }
 
-   *unsend_bytes = (unsigned)bytes ;
-   return 0 ;
+   *unsend_bytes = (unsigned)bytes;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * readsize, /*out*/uint32_t * writesize)
 {
-   int err ;
-   int value ;
+   int err;
+   int value;
    int fd = *ipsock;
    socklen_t len = sizeof(value);
 
@@ -528,21 +528,22 @@ ONERR:
 
 int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t queuesize_write)
 {
-   int err ;
-   int        value ;
-   socklen_t  len    = sizeof(int) ;
-   int        fd     = *ipsock ;
+   int err;
+   int        value;
+   socklen_t  len = sizeof(int);
+   int        fd  = *ipsock;
 
    VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
-                        && queuesize_write <= INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize_read); PRINTSIZE_ERRLOG(queuesize_write) ) ;
+                           && queuesize_write <= INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize_read);
+                           PRINTSIZE_ERRLOG(queuesize_write) );
 
    if (queuesize_read)  {
       value = (int) (queuesize_read/2);
       if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value, len)) {
-         err = errno ;
-         TRACESYSCALL_ERRLOG("setsockopt(SO_RCVBUF)", err) ;
-         PRINTINT_ERRLOG(fd) ;
-         PRINTINT_ERRLOG(queuesize_read) ;
+         err = errno;
+         TRACESYSCALL_ERRLOG("setsockopt(SO_RCVBUF)", err);
+         PRINTINT_ERRLOG(fd);
+         PRINTINT_ERRLOG(queuesize_read);
          goto ONERR;
       }
    }
@@ -550,46 +551,46 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t
    if (queuesize_write)  {
       value = (int) (queuesize_write/2);
       if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value, len)) {
-         err = errno ;
-         TRACESYSCALL_ERRLOG("setsockopt(SO_SNDBUF)", err) ;
-         PRINTINT_ERRLOG(fd) ;
-         PRINTINT_ERRLOG(queuesize_write) ;
+         err = errno;
+         TRACESYSCALL_ERRLOG("setsockopt(SO_SNDBUF)", err);
+         PRINTINT_ERRLOG(fd);
+         PRINTINT_ERRLOG(queuesize_write);
          goto ONERR;
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // === connected I/O ===
 
 int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read)
 {
-   int     err ;
+   int     err;
    int     fd    = *ipsock;
    ssize_t bytes = recv(fd, data, maxdata_len, MSG_DONTWAIT);
 
    if (-1 == bytes) {
-      err = errno ;
+      err = errno;
       if (EWOULDBLOCK == err) err = EAGAIN;
       if (err == EAGAIN) return err;
-      TRACESYSCALL_ERRLOG("recv", err) ;
-      PRINTINT_ERRLOG(fd) ;
-      PRINTSIZE_ERRLOG(maxdata_len) ;
+      TRACESYSCALL_ERRLOG("recv", err);
+      PRINTINT_ERRLOG(fd);
+      PRINTSIZE_ERRLOG(maxdata_len);
       goto ONERR;
    }
 
    if (bytes_read) {
-      *bytes_read = (size_t) bytes ;
+      *bytes_read = (size_t) bytes;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written )
@@ -708,24 +709,24 @@ ONERR:
 
 int readPaddr_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read)
 {
-   int err ;
-   struct sockaddr_storage saddr ;
-   socklen_t               slen  = sizeof(saddr) ;
-   int                     fd    = *ipsock ;
-   ssize_t                 bytes ;
+   int err;
+   struct sockaddr_storage saddr;
+   socklen_t               slen  = sizeof(saddr);
+   int                     fd    = *ipsock;
+   ssize_t                 bytes;
 
    if (remoteaddr) {
-      VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONERR, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONERR, );
 
       if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
-         err = EAFNOSUPPORT ;
+         err = EAFNOSUPPORT;
          goto ONERR;
       }
    }
 
-   bytes = recvfrom(fd, data, maxdata_len, MSG_DONTWAIT, (struct sockaddr*)&saddr, &slen) ;
+   bytes = recvfrom(fd, data, maxdata_len, MSG_DONTWAIT, (struct sockaddr*)&saddr, &slen);
    if (-1 == bytes) {
-      err = errno ;
+      err = errno;
       if (EWOULDBLOCK == err) err = EAGAIN;
       if (err == EAGAIN) return err;
       TRACESYSCALL_ERRLOG("recv", err);
@@ -736,58 +737,58 @@ int readPaddr_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdat
 
    // set out param
    if (remoteaddr) {
-      ipprotocol_e protocol = protocol_ipsocket( ipsock ) ;
-      err = setaddr_ipaddr(remoteaddr, protocol, (uint16_t)slen, (struct sockaddr*)&saddr) ;
+      ipprotocol_e protocol = protocol_ipsocket( ipsock );
+      err = setaddr_ipaddr(remoteaddr, protocol, (uint16_t)slen, (struct sockaddr*)&saddr);
       if (err) goto ONERR;
    }
 
    if (bytes_read) {
-      *bytes_read = (size_t) bytes ;
+      *bytes_read = (size_t) bytes;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int writePaddr_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written )
 {
-   int     err ;
-   int     fd    = *ipsock ;
-   ssize_t bytes ;
+   int     err;
+   int     fd = *ipsock;
+   ssize_t bytes;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONERR, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONERR, );
 
    if (ipprotocol_UDP != protocol_ipaddr(remoteaddr)) {
-      err = EPROTONOSUPPORT ;
+      err = EPROTONOSUPPORT;
       goto ONERR;
    }
 
    if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
-      err = EAFNOSUPPORT ;
+      err = EAFNOSUPPORT;
       goto ONERR;
    }
 
-   bytes = sendto(fd, data, maxdata_len, MSG_NOSIGNAL|MSG_DONTWAIT, remoteaddr->addr, remoteaddr->addrlen) ;
+   bytes = sendto(fd, data, maxdata_len, MSG_NOSIGNAL|MSG_DONTWAIT, remoteaddr->addr, remoteaddr->addrlen);
    if (-1 == bytes) {
-      err = errno ;
+      err = errno;
       if (EWOULDBLOCK == err) err = EAGAIN;
       if (err == EAGAIN) return err;
-      TRACESYSCALL_ERRLOG("sendto", err) ;
-      PRINTINT_ERRLOG(fd) ;
-      PRINTSIZE_ERRLOG(maxdata_len) ;
+      TRACESYSCALL_ERRLOG("sendto", err);
+      PRINTINT_ERRLOG(fd);
+      PRINTSIZE_ERRLOG(maxdata_len);
       goto ONERR;
    }
 
    if (bytes_written) {
-      *bytes_written = (size_t) bytes ;
+      *bytes_written = (size_t) bytes;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -797,25 +798,25 @@ ONERR:
 
 static int test_initfree(void)
 {
-   ipaddr_t   * ipaddr  = 0 ;
-   ipaddr_t   * ipaddr2 = 0 ;
-   ipsocket_t   ipsock  = ipsocket_FREE ;
-   ipsocket_t   ipsock2 = ipsocket_FREE ;
+   ipaddr_t   * ipaddr  = 0;
+   ipaddr_t   * ipaddr2 = 0;
+   ipsocket_t   ipsock  = ipsocket_FREE;
+   ipsocket_t   ipsock2 = ipsocket_FREE;
 
    // TEST static init
-   TEST(-1 == ipsock) ;
+   TEST(-1 == ipsock);
 
    // TEST init, double free
-   TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
-   TEST(0 == init_ipsocket(&ipsock, ipaddr)) ;
-   TEST(0 < ipsock) ;
-   TEST(0 == free_ipsocket(&ipsock)) ;
-   TEST(-1 == ipsock) ;
-   TEST(0 == free_ipsocket(&ipsock)) ;
-   TEST(-1 == ipsock) ;
-   TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_TCP)) ;
-   TEST(0 == initlisten_ipsocket(&ipsock, ipaddr, 1)) ;
-   TEST(0 < ipsock) ;
+   TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4));
+   TEST(0 == init_ipsocket(&ipsock, ipaddr));
+   TEST(0 < ipsock);
+   TEST(0 == free_ipsocket(&ipsock));
+   TEST(-1 == ipsock);
+   TEST(0 == free_ipsocket(&ipsock));
+   TEST(-1 == ipsock);
+   TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_TCP));
+   TEST(0 == initlisten_ipsocket(&ipsock, ipaddr, 1));
+   TEST(0 < ipsock);
    TEST(0 == free_ipsocket(&ipsock)) ;
    TEST(-1 == ipsock) ;
    TEST(0 == free_ipsocket(&ipsock)) ;
@@ -1087,7 +1088,7 @@ static int test_buffersize(void)
       TEST(rwsize[2] == sockbuf_size);
       TEST(rwsize[3] == sockbuf_size);
 
-      // TEST bytestoread_ipsocket, bytestowrite_ipsocket on connected socket without data read/written
+      // TEST bytestoread_ipsocket, bytestowrite_ipsocket: no data read/written
       size_t size = 0 ;
       TEST(0 == bytestoread_ipsocket( &ipsockCL, &size)) ;
       TEST(0 == size) ;
@@ -1192,14 +1193,14 @@ static int test_buffersize(void)
          TEST(wsize == bs);
       }
 
-      // TEST bytestoread_ipsocket: connected socket (no data transfered)
+      // TEST bytestoread_ipsocket: no data transfered
       size_t size;
       TEST(0 == bytestoread_ipsocket(&ipsockCL, &size));
       TEST(0 == size);
       TEST(0 == bytestoread_ipsocket(&ipsockSV, &size));
       TEST(0 == size);
 
-      // TEST bytestowrite_ipsocket: connected socket (no data transfered)
+      // TEST bytestowrite_ipsocket: no data transfered
       TEST(0 == bytestowrite_ipsocket(&ipsockCL, &size));
       TEST(0 == size);
       TEST(0 == bytestowrite_ipsocket(&ipsockSV, &size));
@@ -1409,13 +1410,11 @@ int test_udpIO(void)
    ipsocket_t     ipsockCL[2]  = { ipsocket_FREE } ;
    ipsocket_t     ipsockSV[10] = { ipsocket_FREE } ;
    cstring_t      name         = cstring_INIT ;
-   const size_t   buffer_size  = 512u  ;
-   uint8_t      * buffer       = (uint8_t*) malloc(buffer_size) ;
+   uint8_t        buffer[512];
+   const size_t   buffer_size  = sizeof(buffer);
    uint16_t       portCL[lengthof(ipsockCL)] ;
    uint16_t       portSV[lengthof(ipsockSV)] ;
    size_t         size ;
-
-   TEST(buffer) ;
 
    // TEST ipversion_4, ipversion_6
    static_assert( ipversion_4 < ipversion_6, "" ) ;
@@ -1533,10 +1532,8 @@ int test_udpIO(void)
    }
 
    TEST(0 == free_cstring(&name)) ;
-   free(buffer) ;
    return 0 ;
 ONERR:
-   free(buffer) ;
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) delete_ipaddr(&ipaddr2) ;

@@ -12,8 +12,9 @@
    into one node (n1-"xyz"->n2).
 
    A trie node has a dynamic size and is reallocated in case of insertions or deletions.
-   Therefore the trie does not store keys with associated user nodes but only keys
-   with associated pointers which can point to user defined values.
+   Therefore a user type can not include a trie node and be managed by a trie.
+   So trie stores keys into internal nodes which can be reallocated and stores user pointers
+   to associate keys with user define node values.
 
    >            n1
    >    "a"/    |"b"   \"c"
@@ -66,7 +67,7 @@ int unittest_ds_inmem_trie(void);
 
 
 /* struct: trie_t
- * Manages an index which associates  abinary key with a user defined pointer.
+ * Manages an index which associates a binary key with a user defined pointer.
  * The index is implemented as a trie.
  * The data structure contains a single pointer to the root node.
  *
@@ -78,13 +79,15 @@ int unittest_ds_inmem_trie(void);
  * If the found child node contains a stored user value it is returned.
  *
  * Level Compression (LC):
- * A single node consumes more than nrbit > 1 bits and
+ * A single node consumes more nrbit > 1 bits and
  * has exactly pow(2,nrbits) possible child nodes.
  *
  * Path Compression (PC):
- * A node which has only 1 valid child stores a
- * the bit of the key as prefix and removes the child.
- * This is repeated until a node has at least two childs.
+ * A node which has only 1 valid child stores nrbit
+ * bits of the key which are used to select the child node
+ * as prefix and removes the child. This is repeated until
+ * a node has at least two childs or the node can not grow
+ * any larger.
  *
  * */
 struct trie_t {

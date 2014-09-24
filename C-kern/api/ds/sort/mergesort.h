@@ -172,7 +172,7 @@ struct mergesort_t {
          { 0, 0, 0, 0, 0, { { 0, 0 } }, 0, { 0 } }
 
 /* function: init_mergesort
- * Initializes sort so that calling <sortblob_mergesort> or <sortblob_mergesort> will work. */
+ * Initializes sort so that calling <sortptr_mergesort> or <sortblob_mergesort> will work. */
 void init_mergesort(/*out*/mergesort_t * sort);
 
 /* function: free_mergesort
@@ -185,7 +185,7 @@ int free_mergesort(mergesort_t * sort);
 // group: sort
 
 /* function: sortptr_mergesort
- * Sorts the array a which contains len pointers.
+ * Sort array a which contains len pointers.
  * The sorting is done in ascending order.
  * Returns 0 on success, ENOMEM (or another value) on error.
  * The array contains pointer to objects and the comparison function cmp
