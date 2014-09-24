@@ -213,6 +213,10 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/iochannel.h"/>
+      <VirtualDirectory Name="terminal">
+        <File Name="../../C-kern/api/io/terminal/terminal.h"/>
+        <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -275,6 +279,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="filesystem">
       <File Name="../../C-kern/io/filesystem/fileutil.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="terminal">
+      <File Name="../../C-kern/io/terminal/termadapt.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
@@ -362,6 +369,7 @@
       <File Name="../../C-kern/resource/config/initthread"/>
       <File Name="../../C-kern/resource/config/modulevalues"/>
       <File Name="../../C-kern/resource/config/signalhandler"/>
+      <File Name="../../C-kern/resource/config/environvars"/>
     </VirtualDirectory>
     <VirtualDirectory Name="generated">
       <File Name="../../C-kern/resource/generated/errlog.h"/>
@@ -388,6 +396,7 @@
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
         <File Name="../../C-kern/platform/Linux/io/iochannel.c"/>
         <File Name="../../C-kern/platform/Linux/io/filepath.c"/>
+        <File Name="../../C-kern/platform/Linux/io/terminal.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

@@ -51,6 +51,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o
 
@@ -67,6 +68,9 @@ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcont
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c

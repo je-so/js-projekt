@@ -19,5 +19,6 @@ Src          += C-kern/context/module.c
 Src          += C-kern/context/processcontext.c
 Src          += C-kern/context/threadcontext.c
 Src          += C-kern/io/reader/filereader.c
+Src          += C-kern/platform/Linux/io/terminal.c
 Src          += C-kern/platform/Linux/sync/signal.c
 Src          += C-kern/platform/Linux/sysuser.c

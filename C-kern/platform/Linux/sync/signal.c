@@ -213,9 +213,9 @@ int initonce_signalhandler()
             if (sigaddset(&signalmask, signr)) goto ONERR_add;    \
          }
 
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
    // SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt
-   addrange(SIGRTMIN,SIGRTMAX) ;
+   addrange(SIGRTMIN,SIGRTMAX);
 // TEXTDB:END
 #undef  addall
 
@@ -223,9 +223,11 @@ int initonce_signalhandler()
          signr = (_SIGNR) ;   \
          if (sigaddset(&signalmask, signr)) goto ONERR_add;
 
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
    // used to suspend and resume a single thread
-   add(SIGINT) ;
+   add(SIGINT);
+   // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
+   add(SIGWINCH);
 // TEXTDB:END
 
    err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_signalhandler_oldmask) ;
@@ -235,31 +237,31 @@ int initonce_signalhandler()
    err = sigemptyset(&signalmask) ;
    if (err) goto ONERR_emptyset;
 
-// TEXTDB:SELECT("   // "description\n"   add("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
+// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
 // TEXTDB:END
-   err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0) ;
+   err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0);
    if (err) goto ONERR_sigmask;
 #undef add
 
 #define set(_SIGNR, _HANDLER) \
    static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
-   "s_signalhandler must be big enough" ) ;                          \
-   err = set_signalhandler(_SIGNR, _HANDLER) ;                       \
+   "s_signalhandler must be big enough" );                           \
+   err = set_signalhandler(_SIGNR, _HANDLER);                        \
    if (err) goto ONERR;
 
-// TEXTDB:SELECT("   // "description\n"   set("signal", "handler") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
+// TEXTDB:SELECT("   // "description\n"   set("signal", "handler");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
 // TEXTDB:END
 #undef set
 
 #define ignore(_SIGNR) \
    static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
-   "s_signalhandler must be big enough" ) ;                          \
-   err = setignore_signalhandler(_SIGNR) ;                           \
+   "s_signalhandler must be big enough" );                           \
+   err = setignore_signalhandler(_SIGNR);                            \
    if (err) goto ONERR;
 
-// TEXTDB:SELECT("   // "description\n"   ignore("signal") ;")FROM("C-kern/resource/config/signalhandler")WHERE(action=='ignore')
+// TEXTDB:SELECT("   // "description\n"   ignore("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='ignore')
    // ensures that calls to write return EPIPE
-   ignore(SIGPIPE) ;
+   ignore(SIGPIPE);
 // TEXTDB:END
 #undef ignore
 

@@ -102,6 +102,11 @@ Group: Api  {
          File: Trie  (api/ds/inmem/trie.h)
          }  # Group: InMemory
 
+      Group: Sort  {
+
+         File: MergeSort  (api/ds/sort/mergesort.h)
+         }  # Group: Sort
+
       Group: Typeadapt  {
 
          File: Typeadapt-Comparator  (api/ds/typeadapt/comparator.h)
@@ -146,6 +151,12 @@ Group: Api  {
          File: Internetprotocol-Address  (api/io/ip/ipaddr.h)
          File: Internetprotocol-Sockets  (api/io/ip/ipsocket.h)
          }  # Group: Ip
+
+      Group: Terminal  {
+
+         File: Terminal  (api/io/terminal/terminal.h)
+         File: TerminalAdapter  (api/io/terminal/termadapt.h)
+         }  # Group: Terminal
 
       Group: Reader  {
 
@@ -223,6 +234,11 @@ Group: Api  {
       File: WriteBuffer  (api/memory/wbuffer.h)
       }  # Group: Memory
 
+   Group: NewC  {
+
+      File: NewC-Parser  (api/newC/nCparser.h)
+      }  # Group: NewC
+
    Group: Platform  {
 
       Group: Linux  {
@@ -284,11 +300,6 @@ Group: Api  {
       File: PlatformInit  (api/platform/init.h)
       File: SystemUser  (api/platform/sysuser.h)
       }  # Group: Platform
-
-   Group: Sort  {
-
-      File: MergeSort  (api/sort/mergesort.h)
-      }  # Group: Sort
 
    Group: String  {
 
@@ -378,6 +389,11 @@ Group: Implementation  {
          File: Trie impl  (ds/inmem/trie.c)
          }  # Group: InMemory
 
+      Group: Sort  {
+
+         File: MergeSort impl  (ds/sort/mergesort.c)
+         }  # Group: Sort
+
       Group: Typeadapt  {
 
          File: Typeadapt-Comparator impl  (ds/typeadapt/comparator.c)
@@ -389,6 +405,7 @@ Group: Implementation  {
          }  # Group: Typeadapt
 
       File: DualLink impl  (ds/link.c)
+      File: MergeSort Generic impl  (ds/sort/mergesort_generic_impl.h)
       File: Typeadapt impl  (ds/typeadapt.c)
       }  # Group: DataStructures
 
@@ -404,6 +421,11 @@ Group: Implementation  {
       }  # Group: Graphic
 
    Group: Io  {
+
+      Group: Terminal  {
+
+         File: TerminalAdapter impl  (io/terminal/termadapt.c)
+         }  # Group: Terminal
 
       Group: Reader  {
 
@@ -494,6 +516,11 @@ Group: Implementation  {
       File: WriteBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
 
+   Group: NewC  {
+
+      File: NewC-Parser impl  (newC/nCparser.c)
+      }  # Group: NewC
+
    Group: Platform  {
 
       Group: Linux  {
@@ -508,6 +535,7 @@ Group: Implementation  {
             File: IOChannel impl  (platform/Linux/io/iochannel.c)
             File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
+            File: Terminal impl  (platform/Linux/io/terminal.c)
             }  # Group: Io
 
          Group: Task  {
@@ -563,12 +591,6 @@ Group: Implementation  {
 
       }  # Group: Platform
 
-   Group: Sort  {
-
-      File: MergeSort impl  (sort/mergesort.c)
-      File: MergeSort Generic impl  (sort/mergesort_generic_impl.h)
-      }  # Group: Sort
-
    Group: String  {
 
       File: Base64EncodeString impl  (string/base64encode_string.c)
@@ -602,7 +624,14 @@ Group: Implementation  {
 
       File: MemoryErrorTestMacros impl  (test/mm/err_macros.c)
       File: Resourceusage impl  (test/resourceusage.c)
-      File: Run-Unit-Test impl  (test/run/run_unittest.c)
+
+      Group: Run  {
+
+         File: Run-Unit-Test impl  (test/run/run_unittest.c)
+         File: SpeedTest-Linuxsplice  (test/run/run_linuxsplice_speedtest.c)
+         File: SpeedTest-Madvise  (test/run/run_madvise_speedtest.c)
+         }  # Group: Run
+
       File: Test-Errortimer impl  (test/errortimer.c)
       File: Test-MemoryManager impl  (test/mm/testmm.c)
       File: Unit-Test impl  (test/unittest.c)

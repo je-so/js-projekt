@@ -59,7 +59,9 @@ static test_errortimer_t   s_mergesort_errtimer = test_errortimer_FREE;
 
 /* function: alloctemp_mergesort
  * Reallocates <mergesort_t.temp> so it can store tempsize bytes.
- * The array is always reallocated. */
+ * The array is always reallocated.
+ * If tempsize is set to 0 any allocated memory is freed and
+ * sort->tempsize and sort->temp are initialized with sort->tempmem. */
 static int alloctemp_mergesort(mergesort_t * sort, size_t tempsize)
 {
    int err;
@@ -308,7 +310,7 @@ static int test_memhelper(void)
    vmpage = (vmpage_t) vmpage_INIT(sort.tempsize, sort.temp);
    TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
 
-   // TEST alloctemp_mergesort: free (size == 0)
+   // TEST alloctemp_mergesort: size == 0 frees memory
    TEST(0 == alloctemp_mergesort(&sort, 0));
    TEST(sort.tempmem == sort.temp);
    TEST(sizeof(sort.tempmem) == sort.tempsize);

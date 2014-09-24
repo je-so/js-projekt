@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Sep.24  16:46:52
+GenerationDate  := 2014.Sep.24  17:39:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -83,6 +83,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -134,6 +135,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o \
@@ -195,6 +197,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -246,6 +249,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o \
@@ -328,6 +332,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
@@ -481,6 +488,9 @@ $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileu
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -660,6 +670,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
 	@$(CC_Release)
 
@@ -811,6 +824,9 @@ $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fil
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
