@@ -33,6 +33,12 @@
 
 /* about: Public System Types
  *
+ * sys_ioblock_SIZE            - Type holding the size of a single datablock transfered from IO device to memory
+ *                               and vice versa (see O_DIRECT; »man 2 open«).
+ *                               This value is used only for files.
+ *                               (Die Datenbank wird direkt auf Partitionen zugreifen und einen
+ *                                IO-Device-Description-Block benutzen, der individuell die IO-Größe
+ *                                für dieses Device bestimmt, das erlaubt SSDs etwa mit 2MB Blöcken anzusteueren!)
  * sys_iochannel_t             - Type holding system specific description of a file descriptor.
  *                               Which is used for files and network connections (sockets).
  * sys_iochannel_FREE - Static initializer for <sys_iochannel_t>. It marks the file descriptor as invalid.
@@ -51,6 +57,10 @@
  *
  * */
 
+
+/* define: sys_ioblock_SIZE
+ * Support up to 4K disk drives. */
+#define sys_ioblock_SIZE               4096
 
 /* define: sys_iochannel_t
  * Choose Posix file descriptor type. */
