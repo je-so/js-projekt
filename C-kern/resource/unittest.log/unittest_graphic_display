@@ -1,42 +1,42 @@
-[1: 1403500320.334517s]
-initdefault_display() C-kern/graphic/display.c:125
+[1: 1410603465.672260s]
+initdefault_display() C-kern/graphic/display.c:116
 Error 12 - Cannot allocate memory
-[1: 1403500320.336074s]
-initdefault_display() C-kern/graphic/display.c:125
+[1: 1410603465.673905s]
+initdefault_display() C-kern/graphic/display.c:116
 Error 12 - Cannot allocate memory
-[1: 1403500320.347593s]
-free_display() C-kern/graphic/display.c:145
-Error 12 - Cannot allocate memory
-One or more resources could not be freed
-[1: 1403500320.351865s]
-free_display() C-kern/graphic/display.c:145
+[1: 1410603465.685058s]
+free_display() C-kern/graphic/display.c:136
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1403500320.360212s]
-initdefault_display() C-kern/graphic/display.c:125
-Error 12 - Cannot allocate memory
-[1: 1403500320.360932s]
-initdefault_display() C-kern/graphic/display.c:125
-Error 12 - Cannot allocate memory
-[1: 1403500320.370529s]
-free_display() C-kern/graphic/display.c:145
+[1: 1410603465.689269s]
+free_display() C-kern/graphic/display.c:136
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1403500320.375624s]
-free_display() C-kern/graphic/display.c:145
+[1: 1410603465.702527s]
+initdefault_display() C-kern/graphic/display.c:116
+Error 12 - Cannot allocate memory
+[1: 1410603465.703391s]
+initdefault_display() C-kern/graphic/display.c:116
+Error 12 - Cannot allocate memory
+[1: 1410603465.715031s]
+free_display() C-kern/graphic/display.c:136
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1403500320.382967s]
-initdefault_display() C-kern/graphic/display.c:125
-Error 12 - Cannot allocate memory
-[1: 1403500320.383482s]
-initdefault_display() C-kern/graphic/display.c:125
-Error 12 - Cannot allocate memory
-[1: 1403500320.392289s]
-free_display() C-kern/graphic/display.c:145
+[1: 1410603465.720043s]
+free_display() C-kern/graphic/display.c:136
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1403500320.398583s]
-free_display() C-kern/graphic/display.c:145
+[1: 1410603465.726902s]
+initdefault_display() C-kern/graphic/display.c:116
+Error 12 - Cannot allocate memory
+[1: 1410603465.727586s]
+initdefault_display() C-kern/graphic/display.c:116
+Error 12 - Cannot allocate memory
+[1: 1410603465.738298s]
+free_display() C-kern/graphic/display.c:136
+Error 12 - Cannot allocate memory
+One or more resources could not be freed
+[1: 1410603465.743392s]
+free_display() C-kern/graphic/display.c:136
 Error 12 - Cannot allocate memory
 One or more resources could not be freed

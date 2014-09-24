@@ -1,36 +1,36 @@
-[1: 1403500294.841220s]
-initsubstr_string() C-kern/string/string.c:59
+[1: 1410603206.662559s]
+initsubstr_string() C-kern/string/string.c:50
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1403500294.841228s]
-initsubstr_string() C-kern/string/string.c:59
+[1: 1410603206.662568s]
+initsubstr_string() C-kern/string/string.c:50
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1403500294.841231s]
-initse_string() C-kern/string/string.c:43
+[1: 1410603206.662577s]
+initse_string() C-kern/string/string.c:34
 Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
-[1: 1403500294.841989s]
-substr_string() C-kern/string/string.c:106
+[1: 1410603206.664061s]
+substr_string() C-kern/string/string.c:97
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1403500294.841991s]
-substr_string() C-kern/string/string.c:106
+[1: 1410603206.664065s]
+substr_string() C-kern/string/string.c:97
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1403500294.841994s]
-substr_string() C-kern/string/string.c:106
+[1: 1410603206.664070s]
+substr_string() C-kern/string/string.c:97
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1403500294.841996s]
-substr_string() C-kern/string/string.c:106
+[1: 1410603206.664074s]
+substr_string() C-kern/string/string.c:97
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1403500294.841998s]
-shrinkleft_string() C-kern/string/string.c:121
+[1: 1410603206.664078s]
+shrinkleft_string() C-kern/string/string.c:112
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
-[1: 1403500294.842000s]
-shrinkright_string() C-kern/string/string.c:136
+[1: 1410603206.664082s]
+shrinkright_string() C-kern/string/string.c:127
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))

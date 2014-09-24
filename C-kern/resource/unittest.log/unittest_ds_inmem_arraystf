@@ -1,29 +1,29 @@
-[1: 1403500288.107984s]
-initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:137
+[1: 1410603066.681676s]
+initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:128
 Error 22 - Invalid argument
 Function input violates condition (size1 != size2)
-[1: 1403500288.292681s]
-new_arraystf() C-kern/ds/inmem/arraystf.c:259
+[1: 1410603066.865449s]
+new_arraystf() C-kern/ds/inmem/arraystf.c:250
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[1: 1403500288.292694s]
-find_arraystf() C-kern/ds/inmem/arraystf.c:177
+[1: 1410603066.865460s]
+find_arraystf() C-kern/ds/inmem/arraystf.c:168
 Error 22 - Invalid argument
 Function input violates condition (keynode->size < SIZE_MAX)
-[1: 1403500288.292697s]
-insert_arraystf() C-kern/ds/inmem/arraystf.c:626
+[1: 1410603066.865464s]
+insert_arraystf() C-kern/ds/inmem/arraystf.c:617
 Error 17 - File exists
-[1: 1403500288.292700s]
-remove_arraystf() C-kern/ds/inmem/arraystf.c:608
+[1: 1410603066.865466s]
+remove_arraystf() C-kern/ds/inmem/arraystf.c:599
 Error 3 - No such process
-[1: 1403500288.294539s]
-delete_arraystf() C-kern/ds/inmem/arraystf.c:360
+[1: 1410603066.867214s]
+delete_arraystf() C-kern/ds/inmem/arraystf.c:351
 Error 12345 - Unknown error
 One or more resources could not be freed
-[1: 1403500288.315070s]
-tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:532
+[1: 1410603066.887834s]
+tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:523
 Error 12 - Cannot allocate memory
-[1: 1403500288.315078s]
-tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:532
+[1: 1410603066.887839s]
+tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:523
 Error 12 - Cannot allocate memory

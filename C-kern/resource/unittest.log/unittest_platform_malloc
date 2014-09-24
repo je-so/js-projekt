@@ -1,4 +1,4 @@
-[1: 1403500306.306315s]
-allocatedsize_malloc() C-kern/platform/Linux/malloc.c:122
+[1: 1410603382.420307s]
+allocatedsize_malloc() C-kern/platform/Linux/malloc.c:113
 Error 24 - Too many open files
 System call 'pipe2' failed

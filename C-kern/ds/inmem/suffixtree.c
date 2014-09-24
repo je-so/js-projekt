@@ -2,17 +2,8 @@
 
    Implements <Suffix-Tree>.
 
-   about: Copyright
-   This program is free software.
-   You can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   Copyright:
+   This program is free software. See accompanying LICENSE file.
 
    Author:
    (C) 2012 Jörg Seebohn
@@ -1452,7 +1443,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3405,3478,3607,3678,3792,4075,4162,4276,4393,4478,4591,4756,4835,4911,4989,5065,44115,44390,45210,45388,59957,60081,60194,60249};
+   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44767,44945,59514,59638,59751,59806};
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

@@ -2,17 +2,8 @@
 
    Implements functions defined in <Unit-Test>.
 
-   about: Copyright
-   This program is free software.
-   You can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   Copyright:
+   This program is free software. See accompanying LICENSE file.
 
    Author:
    (C) 2011 Jörg Seebohn
@@ -758,7 +749,7 @@ static int test_exec(void)
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(145 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:272: TEST FAILED\nC-kern/test/unittest.c:272: Errlog differs from file './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:263: TEST FAILED\nC-kern/test/unittest.c:263: Errlog differs from file './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
@@ -825,7 +816,7 @@ static int test_exec(void)
    TEST(0 == memcmp(logbuffer, "ERRLOG\n", 7));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(94 == bytes_read)
-   TEST(0 == strncmp("C-kern/test/unittest.c:365: TEST FAILED\nC-kern/test/unittest.c:365: Test process aborted (06)\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("C-kern/test/unittest.c:356: TEST FAILED\nC-kern/test/unittest.c:356: Test process aborted (06)\n", (const char*)buffer, bytes_read));
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare
@@ -902,13 +893,13 @@ static int test_macros(void)
    call_test_macro();
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(49 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:860: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:851: TEST FAILED\nZ", bytes_read));
 
    // TEST TESTP
    call_testp_macro();
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(72 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:876: TEST FAILED\nC-kern/test/unittest.c:876: 1\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:867: TEST FAILED\nC-kern/test/unittest.c:867: 1\nZ", bytes_read));
 
    // unprepare
    memcpy(&s_unittest_singleton, &old, sizeof(old));

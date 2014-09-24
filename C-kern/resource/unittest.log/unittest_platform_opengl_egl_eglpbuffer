@@ -1,16 +1,16 @@
-[1: 1403500319.613748s]
-free_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:97
+[1: 1410603388.708121s]
+free_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:88
 Error 13 - Permission denied
 One or more resources could not be freed
-[1: 1403500319.614130s]
-size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:120
+[1: 1410603388.708489s]
+size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:111
 Error 22 - Invalid argument
-[1: 1403500319.614134s]
-size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:120
+[1: 1410603388.708493s]
+size_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:111
 Error 22 - Invalid argument
-[1: 1403500319.615889s]
-configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:139
+[1: 1410603388.709638s]
+configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:130
 Error 22 - Invalid argument
-[1: 1403500319.615891s]
-configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:139
+[1: 1410603388.709640s]
+configid_eglpbuffer() C-kern/platform/OpenGL/EGL/eglpbuffer.c:130
 Error 22 - Invalid argument

@@ -1,53 +1,53 @@
-[1: 1405530570.716468s]
-insertfirst_queue() C-kern/ds/inmem/queue.c:347
+[1: 1410602929.839426s]
+insertfirst_queue() C-kern/ds/inmem/queue.c:338
 Error 12 - Cannot allocate memory
-[1: 1405530570.716479s]
-insertlast_queue() C-kern/ds/inmem/queue.c:372
+[1: 1410602929.839436s]
+insertlast_queue() C-kern/ds/inmem/queue.c:363
 Error 12 - Cannot allocate memory
-[1: 1405530570.716482s]
-insertfirst_queue() C-kern/ds/inmem/queue.c:331
+[1: 1410602929.839438s]
+insertfirst_queue() C-kern/ds/inmem/queue.c:322
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-[1: 1405530570.716486s]
-insertfirst_queue() C-kern/ds/inmem/queue.c:331
+[1: 1410602929.839441s]
+insertfirst_queue() C-kern/ds/inmem/queue.c:322
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-[1: 1405530570.716489s]
-insertlast_queue() C-kern/ds/inmem/queue.c:355
+[1: 1410602929.839443s]
+insertlast_queue() C-kern/ds/inmem/queue.c:346
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-[1: 1405530570.716491s]
-insertlast_queue() C-kern/ds/inmem/queue.c:355
+[1: 1410602929.839445s]
+insertlast_queue() C-kern/ds/inmem/queue.c:346
 Error 22 - Invalid argument
 Function input violates condition (nodesize <= 512)
-[1: 1405530570.716493s]
-removefirst_queue() C-kern/ds/inmem/queue.c:396
+[1: 1410602929.839447s]
+removefirst_queue() C-kern/ds/inmem/queue.c:387
 Error 61 - No data available
-[1: 1405530570.716502s]
-removelast_queue() C-kern/ds/inmem/queue.c:420
+[1: 1410602929.839449s]
+removelast_queue() C-kern/ds/inmem/queue.c:411
 Error 61 - No data available
-[1: 1405530570.716506s]
-resizelast_queue() C-kern/ds/inmem/queue.c:462
+[1: 1410602929.839451s]
+resizelast_queue() C-kern/ds/inmem/queue.c:453
 Error 61 - No data available
-[1: 1405530570.717440s]
-removefirst_queue() C-kern/ds/inmem/queue.c:396
+[1: 1410602929.839765s]
+removefirst_queue() C-kern/ds/inmem/queue.c:387
 Error 75 - Value too large for defined data type
-[1: 1405530570.717442s]
-removelast_queue() C-kern/ds/inmem/queue.c:420
+[1: 1410602929.839771s]
+removelast_queue() C-kern/ds/inmem/queue.c:411
 Error 75 - Value too large for defined data type
-[1: 1405530570.717444s]
-resizelast_queue() C-kern/ds/inmem/queue.c:462
+[1: 1410602929.839773s]
+resizelast_queue() C-kern/ds/inmem/queue.c:453
 Error 75 - Value too large for defined data type
-[1: 1405530570.717447s]
-resizelast_queue() C-kern/ds/inmem/queue.c:430
+[1: 1410602929.839775s]
+resizelast_queue() C-kern/ds/inmem/queue.c:421
 Error 22 - Invalid argument
 Function input violates condition (newsize <= 512)
-[1: 1405530570.717450s]
-removefirst_queue() C-kern/ds/inmem/queue.c:396
+[1: 1410602929.839777s]
+removefirst_queue() C-kern/ds/inmem/queue.c:387
 Error 12 - Cannot allocate memory
-[1: 1405530570.717452s]
-removelast_queue() C-kern/ds/inmem/queue.c:420
+[1: 1410602929.839779s]
+removelast_queue() C-kern/ds/inmem/queue.c:411
 Error 12 - Cannot allocate memory
-[1: 1405530570.720341s]
-resizelast_queue() C-kern/ds/inmem/queue.c:462
+[1: 1410602929.840441s]
+resizelast_queue() C-kern/ds/inmem/queue.c:453
 Error 12 - Cannot allocate memory

@@ -1,3 +1,3 @@
-[1: 1403500295.451140s]
-new_testmmpage() C-kern/test/mm/testmm.c:227
+[1: 1410603186.299797s]
+new_testmmpage() C-kern/test/mm/testmm.c:218
 Error 12 - Cannot allocate memory

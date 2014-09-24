@@ -1,6 +1,6 @@
-[1: 1403500290.317328s]
-removenodes_splaytree() C-kern/ds/inmem/splaytree.c:529
+[1: 1410602929.941877s]
+removenodes_splaytree() C-kern/ds/inmem/splaytree.c:520
 Error 24 - Too many open files
-[1: 1403500290.317334s]
-free_splaytree() C-kern/ds/inmem/splaytree.c:164
+[1: 1410602929.941881s]
+free_splaytree() C-kern/ds/inmem/splaytree.c:155
 Error 24 - Too many open files

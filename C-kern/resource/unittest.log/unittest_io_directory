@@ -1,102 +1,102 @@
-[1: 1403500296.087071s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:437
+[1: 1410603132.393597s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:428
 Error 22 - Invalid argument
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=18446744073709551615
-[1: 1403500296.087118s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:437
+[1: 1410603132.393638s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:428
 Error 27 - File too large
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=9223372036854775807
-[1: 1403500296.087141s]
-new_directory() C-kern/platform/Linux/io/directory.c:227
+[1: 1410603132.393661s]
+new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 2 - No such file or directory
 System call 'openat' failed
 path=.....
-[1: 1403500296.087147s]
-new_directory() C-kern/platform/Linux/io/directory.c:227
+[1: 1410603132.393667s]
+new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 20 - Not a directory
 System call 'openat' failed
 path=/tmp/test1.123456/file_000000
-[1: 1403500296.087154s]
-makedirectory_directory() C-kern/platform/Linux/io/directory.c:403
+[1: 1410603132.393675s]
+makedirectory_directory() C-kern/platform/Linux/io/directory.c:394
 Error 13 - Permission denied
 System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
 mkdiratfd=10
 directory_path=XXXXXXXX.test
-[1: 1403500296.087160s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:428
+[1: 1410603132.393680s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:419
 Error 13 - Permission denied
 System call 'openat(openatfd, file_path)' failed
 openatfd=10
 file_path=XXXXXXXX.test
-[1: 1403500296.087168s]
-removedirectory_directory() C-kern/platform/Linux/io/directory.c:467
+[1: 1410603132.393688s]
+removedirectory_directory() C-kern/platform/Linux/io/directory.c:458
 Error 39 - Directory not empty
 System call 'unlinkat(unlinkatfd, directory_path)' failed
 unlinkatfd=10
 directory_path=..
-[1: 1403500296.091182s]
-new_directory() C-kern/platform/Linux/io/directory.c:227
+[1: 1410603132.397790s]
+new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 2 - No such file or directory
 System call 'openat' failed
 path=/tmp/test1.123456
-[1: 1403500296.099731s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406298s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099740s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406304s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099747s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406311s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099754s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406318s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099765s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406328s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099779s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406341s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099792s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406354s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099814s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406377s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099837s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406396s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099860s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406417s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099891s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406436s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099934s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406455s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.099974s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406475s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100012s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406496s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100048s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406518s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100091s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406554s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100132s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406589s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100174s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406624s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error
-[1: 1403500296.100212s]
-path_directory() C-kern/platform/Linux/io/directory.c:203
+[1: 1410603132.406658s]
+path_directory() C-kern/platform/Linux/io/directory.c:194
 Error 1000 - Unknown error

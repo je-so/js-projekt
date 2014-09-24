@@ -1,9 +1,0 @@
-[1: 1403500317.923314s]
-initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:168
-Error 38 - Function not implemented
-[1: 1403500318.362575s]
-set_x11videomode() C-kern/platform/X11/x11videomode.c:223
-Error 38 - Function not implemented
-[1: 1403500318.695634s]
-initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:168
-Error 38 - Function not implemented

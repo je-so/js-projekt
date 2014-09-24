@@ -7,17 +7,8 @@
    Call Signature:
    genfile <filetitle> <typename> <headerfilename> <sourcefilename>
 
-   about: Copyright
-   This program is free software.
-   You can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   Copyright:
+   This program is free software. See accompanying LICENSE file.
 
    Author:
    (C) 2012 Jörg Seebohn
@@ -60,16 +51,8 @@ typedef enum variable_e                variable_e;
 static const char * s_templateheader =
 "/* title: @TITLE\n\n\
    TO""DO: describe module interface\n\n\
-   about: Copyright\n\
-   This program is free software.\n\
-   You can redistribute it and/or modify\n\
-   it under the terms of the GNU General Public License as published by\n\
-   the Free Software Foundation; either version 2 of the License, or\n\
-   (at your option) any later version.\n\n\
-   This program is distributed in the hope that it will be useful,\n\
-   but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-   GNU General Public License for more details.\n\n\
+   Copyright:\n\
+   This program is free software. See accompanying LICENSE file.\n\n\
    Author:\n\
    (C) 2014 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\
@@ -125,16 +108,8 @@ int free_@FCTSUFFIX(@TYPENAME * obj);\n\
 static const char * s_templatesource =
 "/* title: @TITLE impl\n\n\
    Implements <@TITLE>.\n\n\
-   about: Copyright\n\
-   This program is free software.\n\
-   You can redistribute it and/or modify\n\
-   it under the terms of the GNU General Public License as published by\n\
-   the Free Software Foundation; either version 2 of the License, or\n\
-   (at your option) any later version.\n\n\
-   This program is distributed in the hope that it will be useful,\n\
-   but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-   GNU General Public License for more details.\n\n\
+   Copyright:\n\
+   This program is free software. See accompanying LICENSE file.\n\n\
    Author:\n\
    (C) 2014 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\

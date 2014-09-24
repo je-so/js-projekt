@@ -1,13 +1,13 @@
-[1: 1403500311.114517s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:383
+[1: 1410603387.843944s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:374
 Error 3 - No such process
-[1: 1403500311.114529s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:399
+[1: 1410603387.843961s]
+replaceobject_x11display() C-kern/platform/X11/x11display.c:390
 Error 3 - No such process
-[1: 1403500311.114532s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:363
+[1: 1410603387.843964s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:354
 Error 22 - Invalid argument
 Function input violates condition (object != 0)
-[1: 1403500311.114535s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:370
+[1: 1410603387.843968s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:361
 Error 17 - File exists

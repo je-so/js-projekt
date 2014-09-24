@@ -1,16 +1,16 @@
-init_platform() C-kern/platform/Linux/init.c:0097
+init_platform() C-kern/platform/Linux/init.c:0088
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0102
+init_platform() C-kern/platform/Linux/init.c:0093
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0110
+init_platform() C-kern/platform/Linux/init.c:0101
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0125
+init_platform() C-kern/platform/Linux/init.c:0116
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0142
+init_platform() C-kern/platform/Linux/init.c:0133
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0149
+init_platform() C-kern/platform/Linux/init.c:0140
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0155
+init_platform() C-kern/platform/Linux/init.c:0146
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:71
+init_platform() C-kern/platform/Linux/init.c:62
 aborted

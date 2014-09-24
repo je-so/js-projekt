@@ -101,18 +101,9 @@ for i in $files; do
             fi
             break
          fi
-         if [ "${REPLY/   about: Copyright/}" != "$REPLY" ]; then
+         if [ "${REPLY/   Copyright:/}" != "$REPLY" ]; then
             files="${files/" $i"/}"
-            if ! read_and_check_line "   This program is free software." "$i" ; then break ; fi
-            if ! read_and_check_line "   You can redistribute it and/or modify" "$i" ; then break ; fi
-            if ! read_and_check_line "   it under the terms of the GNU General Public License as published by" "$i" ; then break ; fi
-            if ! read_and_check_line "   the Free Software Foundation; either version 2 of the License, or" "$i" ; then break ; fi
-            if ! read_and_check_line "   (at your option) any later version." "$i" ; then break ; fi
-            if ! read_and_check_line "" "$i" ; then break ; fi
-            if ! read_and_check_line "   This program is distributed in the hope that it will be useful," "$i" ; then break ; fi
-            if ! read_and_check_line "   but WITHOUT ANY WARRANTY; without even the implied warranty of" "$i" ; then break ; fi
-            if ! read_and_check_line "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" "$i" ; then break ; fi
-            if ! read_and_check_line "   GNU General Public License for more details." "$i" ; then break ; fi
+            if ! read_and_check_line "   This program is free software. See accompanying LICENSE file." "$i" ; then break ; fi
             if ! read_and_check_line "" "$i" ; then break ; fi
             if ! read_and_check_line "   Author:" "$i" ; then break ; fi
             if ! read_and_check_line "   (C) 2010 Jörg Seebohn" "$i" ; then break ; fi

@@ -1,26 +1,26 @@
-[1: 1403500288.090926s]
-new_arraysf() C-kern/ds/inmem/arraysf.c:122
+[1: 1410603066.665973s]
+new_arraysf() C-kern/ds/inmem/arraysf.c:113
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[1: 1403500288.090948s]
-new_arraysf() C-kern/ds/inmem/arraysf.c:123
+[1: 1410603066.665987s]
+new_arraysf() C-kern/ds/inmem/arraysf.c:114
 Error 22 - Invalid argument
 Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
 posshift=25
-[1: 1403500288.090953s]
-insert_arraysf() C-kern/ds/inmem/arraysf.c:466
+[1: 1410603066.665991s]
+insert_arraysf() C-kern/ds/inmem/arraysf.c:457
 Error 17 - File exists
-[1: 1403500288.090957s]
-remove_arraysf() C-kern/ds/inmem/arraysf.c:448
+[1: 1410603066.665994s]
+remove_arraysf() C-kern/ds/inmem/arraysf.c:439
 Error 3 - No such process
-[1: 1403500288.098300s]
-delete_arraysf() C-kern/ds/inmem/arraysf.c:221
+[1: 1410603066.672388s]
+delete_arraysf() C-kern/ds/inmem/arraysf.c:212
 Error 12345 - Unknown error
 One or more resources could not be freed
-[1: 1403500288.105522s]
-tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:373
+[1: 1410603066.679327s]
+tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:364
 Error 12 - Cannot allocate memory
-[1: 1403500288.105530s]
-tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:373
+[1: 1410603066.679332s]
+tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:364
 Error 12 - Cannot allocate memory

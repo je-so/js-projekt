@@ -1,8 +1,8 @@
-[1: 1403500294.852289s]
-printfappend_cstring() C-kern/string/cstring.c:197
+[1: 1410603206.675133s]
+printfappend_cstring() C-kern/string/cstring.c:188
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory
-[1: 1403500294.852295s]
-append_cstring() C-kern/string/cstring.c:155
+[1: 1410603206.675138s]
+append_cstring() C-kern/string/cstring.c:146
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory

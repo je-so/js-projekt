@@ -1,10 +1,10 @@
-[1: 1403500321.749670s]
-init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:93
+[1: 1410603467.105357s]
+init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:84
 Error 22 - Invalid argument
-[1: 1403500321.749690s]
-init_gcontext() C-kern/graphic/gcontext.c:67
+[1: 1410603467.105375s]
+init_gcontext() C-kern/graphic/gcontext.c:58
 Error 22 - Invalid argument
-[1: 1403500321.751609s]
-free_gcontext() C-kern/graphic/gcontext.c:88
+[1: 1410603467.107501s]
+free_gcontext() C-kern/graphic/gcontext.c:79
 Error 7 - Argument list too long
 One or more resources could not be freed
