@@ -102,13 +102,46 @@ static inline bool isfree_iochannel(const iochannel_t ioc) ;
  * The function checks that ioc refers to a valid iochannel
  * which is known to the operating system.
  * It is therefore more costly than <isfree_iochannel>. */
-bool isvalid_iochannel(const iochannel_t ioc) ;
+bool isvalid_iochannel(const iochannel_t ioc);
+
+/* function: isclosedread_iochannel
+ * Returns *true* if the input channel ioc is closed from the remote side.
+ * This could happen if a network (socket) connection is closed from the remote peer
+ * or if a terminal is closed and no more input could be read.
+ * Any error is ignored and false is returned instead.
+ *
+ * In case of an ioc being closed polling ioc always results in ioc being ready for read.
+ * But reading returns 0 bytes.
+ *
+ * Files are never considered closed for reading. */
+bool isclosedread_iochannel(const iochannel_t ioc);
+
+/* function: isclosedwrite_iochannel
+ * Returns *true* if the output channel ioc is closed from the remote side.
+ * This could happen if a network (socket) connection is closed from the remote peer
+ * or if a terminal is closed and no more output could be written.
+ * Any error is ignored and false is returned instead.
+ *
+ * In case of an ioc being closed by the remote peer polling ioc always results
+ * in ioc being ready for write and error. Writing returns EPIPE.
+ *
+ * Files are never considered closed for writing. */
+bool isclosedwrite_iochannel(const iochannel_t ioc);
 
 /* function: accessmode_iochannel
  * Returns <accessmode_e> for an io channel.
  * Returns <accessmode_READ>, <accessmode_WRITE> or the combination <accessmode_RDWR>.
  * In case of an error <accessmode_NONE> is returned. */
 uint8_t accessmode_iochannel(const iochannel_t ioc) ;
+
+/* function: sizeread_iochannel
+ * Returns number of bytes to read.
+ * For files and block devices the total size is returned.
+ * If files are larger than SIZE_MAX the value SIZE_MAX is returned instead.
+ * For sockets, fifos and character devices the number of readable bytes are returned.
+ *
+ * No error log is written in case of an error! */
+int sizeread_iochannel(const iochannel_t ioc, /*out*/size_t * size);
 
 // group: I/O
 
