@@ -1,32 +1,32 @@
-[1: 1411568042.499369s]
+[1: 1411569043.325761s]
 init_file() C-kern/platform/Linux/io/file.c:87
 Error 2 - No such file or directory
 System call 'openat' failed
 File name '/tmp/filereader.XXXXXX/X'
-[1: 1411568042.499419s]
+[1: 1411569043.325810s]
 init_filereader() C-kern/io/reader/filereader.c:135
 Error 2 - No such file or directory
-[1: 1411568042.499424s]
+[1: 1411569043.325815s]
 init_file() C-kern/platform/Linux/io/file.c:87
 Error 2 - No such file or directory
 System call 'openat' failed
 File name '/tmp/filereader.XXXXXX/X'
-[1: 1411568042.499462s]
+[1: 1411569043.325858s]
 initsingle_filereader() C-kern/io/reader/filereader.c:163
 Error 2 - No such file or directory
-[1: 1411568043.136388s]
+[1: 1411569044.024068s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 12 - Cannot allocate memory
 System call 'mmap' failed
-[1: 1411568043.136400s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+[1: 1411569044.024084s]
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 12 - Cannot allocate memory
-[1: 1411568043.136413s]
+[1: 1411569044.024095s]
 initsingle_filereader() C-kern/io/reader/filereader.c:163
 Error 12 - Cannot allocate memory
-[1: 1411568043.274991s]
+[1: 1411569044.159086s]
 readnext_filereader() C-kern/io/reader/filereader.c:283
 Error 105 - No buffer space available
-[1: 1411568043.275084s]
+[1: 1411569044.159162s]
 readnext_filereader() C-kern/io/reader/filereader.c:283
 Error 105 - No buffer space available

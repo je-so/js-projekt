@@ -252,7 +252,7 @@ static int test_synchronize(void)
       yield_thread() ;
    }
    TEST(1                == atomicread_int(&s_thread_runcount)) ;
-   TEST(wlist.last       == asnode_wlist(threads[0])) ;
+   TEST(wlist.last       == cast2node_wlist(threads[0])) ;
    TEST(wlist.nr_waiting == 1) ;
    TEST(wlist.lockflag   == 0) ;
    TEST(threads[0]       == next_wlist(threads[0])) ;
@@ -288,7 +288,7 @@ static int test_synchronize(void)
             || 0 != atomicread_int(&wlist.lockflag)) {
       yield_thread() ;
    }
-   TEST(wlist.last       == asnode_wlist(threads[0])) ;
+   TEST(wlist.last       == cast2node_wlist(threads[0])) ;
    TEST(wlist.nr_waiting == 1) ;
    TEST(wlist.lockflag   == 0) ;
    TEST(threads[0]       == next_wlist(threads[0])) ;
@@ -319,7 +319,7 @@ static int test_synchronize(void)
          yield_thread() ;
       }
       TEST(i+1              == atomicread_int(&s_thread_runcount)) ;
-      TEST(wlist.last       == asnode_wlist(threads[i])) ;
+      TEST(wlist.last       == cast2node_wlist(threads[i])) ;
       TEST(wlist.nr_waiting == i+1) ;
       TEST(wlist.lockflag   == 0) ;
    }
@@ -342,7 +342,7 @@ static int test_synchronize(void)
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
       TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
-      TEST(wlist.last        == (i+1 < lengthof(threads) ? asnode_wlist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(wlist.last        == (i+1 < lengthof(threads) ? cast2node_wlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(wlist.nr_waiting  == lengthof(threads)) ;
       TEST(wlist.lockflag    == 0) ;
    }
@@ -445,7 +445,7 @@ static int test_synchronize(void)
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
       TEST(lengthof(threads)-1-i == nrwaiting_waitlist(&wlist)) ;
-      TEST(wlist.last            == (i+1 < lengthof(threads) ? asnode_wlist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(wlist.last            == (i+1 < lengthof(threads) ? cast2node_wlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(wlist.lockflag        == 0) ;
    }
 

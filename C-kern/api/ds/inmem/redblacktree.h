@@ -279,14 +279,14 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int  removenodes##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
    static inline int  invariant##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline redblacktree_node_t * asnode##_fsuffix(object_t * object) { \
+   static inline redblacktree_node_t * cast2node##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (redblacktree_node_t*)offsetof(object_t, nodename), "correct type") ; \
       return (redblacktree_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobject##_fsuffix(redblacktree_node_t * node) { \
+   static inline object_t * cast2object##_fsuffix(redblacktree_node_t * node) { \
       return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobjectnull##_fsuffix(redblacktree_node_t * node) { \
+   static inline object_t * castnull2object##_fsuffix(redblacktree_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
    static inline void init##_fsuffix(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp) { \
@@ -298,21 +298,21 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    static inline void getinistate##_fsuffix(const redblacktree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) { \
       redblacktree_node_t * rootnode ; \
       getinistate_redblacktree(tree, &rootnode, nodeadp) ; \
-      *root = asobjectnull##_fsuffix(rootnode) ; \
+      *root = castnull2object##_fsuffix(rootnode) ; \
    } \
    static inline bool isempty##_fsuffix(const redblacktree_t * tree) { \
       return isempty_redblacktree(tree) ; \
    } \
    static inline int  find##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** found_node) { \
       int err = find_redblacktree(tree, (void*)key, (redblacktree_node_t**)found_node) ; \
-      if (err == 0) *found_node = asobject##_fsuffix(*(redblacktree_node_t**)found_node) ; \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(redblacktree_node_t**)found_node) ; \
       return err ; \
    } \
    static inline int  insert##_fsuffix(redblacktree_t * tree, object_t * new_node) { \
-      return insert_redblacktree(tree, asnode##_fsuffix(new_node)) ; \
+      return insert_redblacktree(tree, cast2node##_fsuffix(new_node)) ; \
    } \
    static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) { \
-      int err = remove_redblacktree(tree, asnode##_fsuffix(node)) ; \
+      int err = remove_redblacktree(tree, cast2node##_fsuffix(node)) ; \
       return err ; \
    } \
    static inline int  removenodes##_fsuffix(redblacktree_t * tree) { \
@@ -332,12 +332,12 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    } \
    static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
       bool isNext = next_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(redblacktree_node_t**)node) ; \
+      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node) ; \
       return isNext ; \
    } \
    static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
       bool isNext = prev_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(redblacktree_node_t**)node) ; \
+      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node) ; \
       return isNext ; \
    }
 

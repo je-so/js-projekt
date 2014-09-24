@@ -256,11 +256,11 @@ int invariant_exthash(const exthash_t * htable) ;
    static inline int  remove##_fsuffix(exthash_t * htable, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int  removenodes##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
    static inline int  invariant##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
-   static inline exthash_node_t * asnode##_fsuffix(object_t * object) { \
+   static inline exthash_node_t * cast2node##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (exthash_node_t*)offsetof(object_t, nodename), "correct type") ; \
       return (exthash_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobject##_fsuffix(exthash_node_t * node) { \
+   static inline object_t * cast2object##_fsuffix(exthash_node_t * node) { \
       return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
    } \
    static inline int init##_fsuffix(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) { \
@@ -277,14 +277,14 @@ int invariant_exthash(const exthash_t * htable) ;
    } \
    static inline int  find##_fsuffix(exthash_t * htable, const key_t key, /*out*/object_t ** found_node) { \
       int err = find_exthash(htable, (void*)key, (exthash_node_t**)found_node) ; \
-      if (err == 0) *found_node = asobject##_fsuffix(*(exthash_node_t**)found_node) ; \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(exthash_node_t**)found_node) ; \
       return err ; \
    } \
    static inline int  insert##_fsuffix(exthash_t * htable, object_t * new_node) { \
-      return insert_exthash(htable, asnode##_fsuffix(new_node)) ; \
+      return insert_exthash(htable, cast2node##_fsuffix(new_node)) ; \
    } \
    static inline int  remove##_fsuffix(exthash_t * htable, object_t * node) { \
-      int err = remove_exthash(htable, asnode##_fsuffix(node)) ; \
+      int err = remove_exthash(htable, cast2node##_fsuffix(node)) ; \
       return err ; \
    } \
    static inline int  removenodes##_fsuffix(exthash_t * htable) { \
@@ -301,7 +301,7 @@ int invariant_exthash(const exthash_t * htable) ;
    } \
    static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, object_t ** node) { \
       bool isNext = next_exthashiterator(iter, (exthash_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(exthash_node_t**)node) ; \
+      if (isNext) *node = cast2object##_fsuffix(*(exthash_node_t**)node) ; \
       return isNext ; \
    }
 

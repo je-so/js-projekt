@@ -60,7 +60,7 @@ int init_eglwindow(/*out*/eglwindow_t * eglwin, egldisplay_t egldisp, eglconfig_
    EGLSurface window   = eglCreateWindowSurface(egldisp, eglconf, (EGLNativeWindowType) syswin, attrib);
 
    if (EGL_NO_SURFACE == window) {
-      err = aserrcode_egl(eglGetError());
+      err = convert2errno_egl(eglGetError());
       goto ONERR;
    }
 
@@ -82,7 +82,7 @@ int free_eglwindow(eglwindow_t * eglwin, egldisplay_t egldisp)
       *eglwin = 0;
 
       if (EGL_FALSE == isDestoyed) {
-         err = aserrcode_egl(eglGetError());
+         err = convert2errno_egl(eglGetError());
          goto ONERR;
       }
 
@@ -102,7 +102,7 @@ int swapbuffer_eglwindow(eglwindow_t eglwin, egldisplay_t egldisp)
    int err;
 
    if (EGL_FALSE == eglSwapBuffers(egldisp, eglwin)) {
-      err = aserrcode_egl(eglGetError());
+      err = convert2errno_egl(eglGetError());
       goto ONERR;
    }
 

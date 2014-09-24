@@ -43,7 +43,7 @@ ONERR:
    return err ;
 }
 
-int initfromstring_string(/*out*/stringstream_t * strstream, const struct string_t * str)
+int initPstr_stringstream(/*out*/stringstream_t * strstream, const struct string_t * str)
 {
    int err;
 
@@ -100,19 +100,19 @@ static int test_initfree(void)
    TEST(strstream.next == buffer) ;
    TEST(strstream.end  == buffer) ;
 
-   // TEST initfromstring_string
+   // TEST initPstr_stringstream
    for (unsigned i = 0; i <= sizeof(buffer); ++i) {
       strstream = (stringstream_t) stringstream_FREE ;
       init_string(&str, sizeof(buffer)-i, buffer+i) ;
-      TEST(0 == initfromstring_string(&strstream, &str)) ;
+      TEST(0 == initPstr_stringstream(&strstream, &str)) ;
       TEST(strstream.next == buffer+i) ;
       TEST(strstream.end  == buffer+sizeof(buffer)) ;
    }
 
-   // TEST initfromstring_string: EINVAL
+   // TEST initPstr_stringstream: EINVAL
    init_string(&str, 1, (const uint8_t*)(uintptr_t)-1) ;
    TEST(0 == init_stringstream(&strstream, buffer, buffer+1)) ;
-   TEST(EINVAL == initfromstring_string(&strstream, &str)) ;
+   TEST(EINVAL == initPstr_stringstream(&strstream, &str)) ;
    TEST(strstream.next == buffer) ;
    TEST(strstream.end  == buffer+1) ;
 

@@ -58,7 +58,7 @@ ONERR:
    return err ;
 }
 
-void initfromstringstream_string(/*out*/string_t * str, const struct stringstream_t * strstream)
+void initPstream_string(/*out*/string_t * str, const struct stringstream_t * strstream)
 {
    str->addr = next_stringstream(strstream) ;
    str->size = size_stringstream(strstream) ;
@@ -230,10 +230,10 @@ static int test_initfree(void)
    TEST(str.addr == &buffer[1]) ;
    TEST(str.size == 3) ;
 
-   // TEST initfromstringstream_string
+   // TEST initPstream_string
    for (unsigned i = 0; i <= sizeof(buffer); ++i) {
       TEST(0 == init_stringstream(&strstream, buffer+i, buffer+sizeof(buffer))) ;
-      initfromstringstream_string(&str, &strstream) ;
+      initPstream_string(&str, &strstream) ;
       TEST(addr_string(&str) == buffer+i) ;
       TEST(size_string(&str) == sizeof(buffer)-i) ;
    }

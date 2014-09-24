@@ -706,7 +706,7 @@ ONERR:
 
 // === unconnected I/O ===
 
-int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read)
+int readPaddr_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read)
 {
    int err ;
    struct sockaddr_storage saddr ;
@@ -751,7 +751,7 @@ ONERR:
    return err ;
 }
 
-int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written )
+int writePaddr_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written )
 {
    int     err ;
    int     fd    = *ipsock ;
@@ -1441,7 +1441,7 @@ int test_udpIO(void)
          memset( buffer, (int)i, buffer_size) ;
          for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
             TEST(0 == setport_ipaddr(ipaddr2, portSV[i])) ;
-            TEST(0 == writeto_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
+            TEST(0 == writePaddr_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
          }
       }
@@ -1450,7 +1450,7 @@ int test_udpIO(void)
          unsigned ci = (i % lengthof(ipsockCL)) ;
          TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
          TEST(buffer_size == size) ;
-         TEST(0 == readfrom_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
+         TEST(0 == readPaddr_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
          TEST(buffer_size == size) ;
          for (unsigned b = 0; b < buffer_size; ++b) {
             TEST(buffer[b] == i) ;
@@ -1482,7 +1482,7 @@ int test_udpIO(void)
          memset( buffer, (int)i, buffer_size) ;
          for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
             TEST(0 == setport_ipaddr(ipaddr2, portSV[i])) ;
-            TEST(0 == writeto_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
+            TEST(0 == writePaddr_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
          }
       }
@@ -1495,7 +1495,7 @@ int test_udpIO(void)
                yield_thread() ;
             }
             TEST(buffer_size == size) ;
-            TEST(0 == readfrom_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
+            TEST(0 == readPaddr_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
             for (unsigned b = 0; b < buffer_size; ++b) {
                TEST(buffer[b] == i) ;
@@ -1512,13 +1512,13 @@ int test_udpIO(void)
       // TEST EAFNOSUPPORT (ipaddr is of wrong version)
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, version == ipversion_4 ? ipversion_6 : ipversion_4 )) ;
-      TEST(EAFNOSUPPORT == writeto_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
-      TEST(EAFNOSUPPORT == readfrom_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
+      TEST(EAFNOSUPPORT == writePaddr_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
+      TEST(EAFNOSUPPORT == readPaddr_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
 
       // TEST EPROTONOSUPPORT (ipaddr contains wrong protocol)
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, version)) ;
-      TEST(EPROTONOSUPPORT == writeto_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
+      TEST(EPROTONOSUPPORT == writePaddr_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
 
       // TEST close
       for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {

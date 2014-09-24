@@ -38,12 +38,12 @@
 /* define: KEYCOMPARE
  * Casts node to type <typeadapt_object_t> and calls <callcmpkeyobj_typeadapt>.
  * This macro expects variable name tree to point to <splaytree_t>. */
-#define KEYCOMPARE(key,node)  callcmpkeyobj_typeadapt(typeadp, key, memberasobject_typeadaptnodeoffset(nodeoffset, node))
+#define KEYCOMPARE(key,node)  callcmpkeyobj_typeadapt(typeadp, key, cast2object_typeadaptnodeoffset(nodeoffset, node))
 
 /* define: OBJCOMPARE
  * Casts node to type <typeadapt_object_t> and calls <callcmpobj_typeadapt>.
  * This macro expects variable name tree to point to <splaytree_t>. */
-#define OBJCOMPARE(keyobject,node)  callcmpobj_typeadapt(typeadp, keyobject, memberasobject_typeadaptnodeoffset(nodeoffset, node))
+#define OBJCOMPARE(keyobject,node)  callcmpobj_typeadapt(typeadp, keyobject, cast2object_typeadaptnodeoffset(nodeoffset, node))
 
 // group: test
 
@@ -78,7 +78,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
 
          const splaytree_node_t  * leftchild  = state->parent->left ;
          const splaytree_node_t  * rightchild = state->parent->right ;
-         typeadapt_object_t      * stateobj   = memberasobject_typeadaptnodeoffset(nodeoffset, state->parent) ;
+         typeadapt_object_t      * stateobj   = cast2object_typeadaptnodeoffset(nodeoffset, state->parent) ;
 
          if (  (  state->lowerbound
                   && callcmpobj_typeadapt(typeadp, state->lowerbound, stateobj) >= 0)
@@ -123,7 +123,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
                   err = push_binarystack(&parents, &state) ;
                   if (err) goto ONERR;
                   state->parent     = prevstate->parent->right ;
-                  state->lowerbound = memberasobject_typeadaptnodeoffset(nodeoffset, prevstate->parent) ;
+                  state->lowerbound = cast2object_typeadaptnodeoffset(nodeoffset, prevstate->parent) ;
                   state->upperbound = prevstate->upperbound ;
                   break ;
                }
@@ -304,7 +304,7 @@ static int splaykey_splaytree(splaytree_t * tree, const void * key, uint16_t nod
  * Same as <splaykey_splaytree> except node is used as key. */
 static int splaynode_splaytree(splaytree_t * tree, const splaytree_node_t * keynode,/*out*/int * rootcmp, uint16_t nodeoffset, typeadapt_t * typeadp)
 {
-   typeadapt_object_t* keyobject = memberasobject_typeadaptnodeoffset(nodeoffset, keynode) ;
+   typeadapt_object_t* keyobject = cast2object_typeadaptnodeoffset(nodeoffset, keynode) ;
    splaytree_node_t    keyroot   = { .left = 0, .right = 0 } ;
    splaytree_node_t  * higherAsKey ;
    splaytree_node_t  * lowerAsKey ;
@@ -505,7 +505,7 @@ int removenodes_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t *
          }
 
          if (isDeleteObject) {
-            typeadapt_object_t * object = memberasobject_typeadaptnodeoffset(nodeoffset, delnode) ;
+            typeadapt_object_t * object = cast2object_typeadaptnodeoffset(nodeoffset, delnode) ;
             int err2 = calldelete_typeadapt(typeadp, &object) ;
             if (err2) err = err2 ;
          }

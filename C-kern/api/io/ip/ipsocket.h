@@ -232,13 +232,13 @@ int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data ) ;
 
 // group: unconnected io
 
-/* function: readfrom_ipsocket
+/* function: readPaddr_ipsocket
  * Same as <read_ipsocket> but for unconnected (UDP) sockets.
  * In addition to the read bytes the address of the sender is also returned in remoteaddr.
  * Error code EAFNOSUPPORT is returned in case remoteaddr is not the same <ipversion_e> as <ipsocket_t>. */
-int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
+int readPaddr_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
 
-/* function: writeto_ipsocket
+/* function: writePaddr_ipsocket
  * Same as <write_ipsocket> but for unconnected (UDP) sockets.
  * In addition to bytes to write the caller has to supply the network address of the receiver.
  *
@@ -246,7 +246,7 @@ int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t 
  * 0               - Success.
  * EAFNOSUPPORT    - remoteaddr is not the same <ipversion_e> as <ipsocket_t>.
  * EPROTONOSUPPORT - remoteaddr describes no <ipprotocol_UDP> address.  */
-int writeto_ipsocket(ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
+int writePaddr_ipsocket(ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
 
 
 

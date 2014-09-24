@@ -117,7 +117,7 @@ static int test_initfree(void)
       TEST(0 != syncqueue.last);
       TEST(0 != syncqueue.size);
       TEST(0 != syncqueue.nextfree);
-      TEST(&syncqueue == queuefromaddr_syncqueue(syncqueue.nextfree));
+      TEST(&syncqueue == castPaddr_syncqueue(syncqueue.nextfree));
 
       // TEST free_syncqueue
       TEST(0 == free_syncqueue(&syncqueue)) ;
@@ -175,7 +175,7 @@ static int test_query(void)
    syncqueue.size = 0;
    TEST(0 == size_syncqueue(&syncqueue));
 
-   // TEST queuefromaddr_syncqueue
+   // TEST castPaddr_syncqueue
    init_syncqueue(&syncqueue, 512, 10);
    isinit = true;
    void * nodeaddr[128] = { 0 };
@@ -185,7 +185,7 @@ static int test_query(void)
    }
    for (unsigned i = 0; i < lengthof(nodeaddr); ++i) {
       for (unsigned offset = 0; offset < 512; ++offset) {
-         TEST(&syncqueue == queuefromaddr_syncqueue(offset + (uint8_t*)nodeaddr[i]));
+         TEST(&syncqueue == castPaddr_syncqueue(offset + (uint8_t*)nodeaddr[i]));
       }
    }
    isinit = false;

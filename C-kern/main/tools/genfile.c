@@ -166,7 +166,7 @@ ONERR:\n\
 }\n\n\
 #endif\n";
 
-static int construct_strings_frompath(const char * filepath, cstring_t * headertag, cstring_t * unittestname)
+static int convertpath(const char * filepath, cstring_t * headertag, cstring_t * unittestname)
 {
    int err;
 
@@ -220,7 +220,7 @@ ONERR:
    return err ;
 }
 
-static int construct_strings_fromtypename(const char * typenamestr, cstring_t * tname2, cstring_t * fctsuffix)
+static int converttype(const char * typenamestr, cstring_t * tname2, cstring_t * fctsuffix)
 {
    int err ;
 
@@ -380,10 +380,10 @@ static int main_thread(maincontext_t * maincontext)
    err = process_arguments(maincontext->argc, maincontext->argv) ;
    if (err) goto PRINT_USAGE ;
 
-   err = construct_strings_frompath(s_headerpath, &s_headertag, &s_unittestname) ;
+   err = convertpath(s_headerpath, &s_headertag, &s_unittestname) ;
    if (err) goto PRINT_USAGE ;
 
-   err = construct_strings_fromtypename(s_typename, &s_typename2, &s_fctsuffix) ;
+   err = converttype(s_typename, &s_typename2, &s_fctsuffix) ;
    if (err) goto PRINT_USAGE ;
 
    // parse templates => expand variables => write header + source files

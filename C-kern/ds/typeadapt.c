@@ -499,25 +499,25 @@ static int test_typeadaptmember(void)
    TEST(true == isequal_testobject(&cmpobj, &testobj)) ;
    testobj.gethash.is_hashkey = false ;
 
-   // TEST memberasobject_typeadaptmember
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[0], &testobj.comparator.is_cmpkeyobj)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[1], &testobj.comparator.is_cmpobj)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[2], &testobj.gethash.is_hashobject)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[3], &testobj.gethash.is_hashkey)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[4], &testobj.getkey.is_getbinarykey)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[5], &testobj.key)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[6], &testobj.lifetime.is_newcopy)) ;
-   TEST((struct typeadapt_object_t*)&testobj == memberasobject_typeadaptmember(&nodeadp8[7], &testobj.lifetime.is_delete)) ;
+   // TEST cast2object_typeadaptmember
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[0], &testobj.comparator.is_cmpkeyobj)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[1], &testobj.comparator.is_cmpobj)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[2], &testobj.gethash.is_hashobject)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[3], &testobj.gethash.is_hashkey)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[4], &testobj.getkey.is_getbinarykey)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[5], &testobj.key)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[6], &testobj.lifetime.is_newcopy)) ;
+   TEST((struct typeadapt_object_t*)&testobj == cast2object_typeadaptmember(&nodeadp8[7], &testobj.lifetime.is_delete)) ;
 
-   // TEST objectasmember_typeadaptmember
-   TEST(&testobj.comparator.is_cmpkeyobj == objectasmember_typeadaptmember(&nodeadp8[0], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.comparator.is_cmpobj    == objectasmember_typeadaptmember(&nodeadp8[1], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.gethash.is_hashobject   == objectasmember_typeadaptmember(&nodeadp8[2], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.gethash.is_hashkey      == objectasmember_typeadaptmember(&nodeadp8[3], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.getkey.is_getbinarykey  == objectasmember_typeadaptmember(&nodeadp8[4], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.key == objectasmember_typeadaptmember(&nodeadp8[5], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.lifetime.is_newcopy == objectasmember_typeadaptmember(&nodeadp8[6], (struct typeadapt_object_t*)&testobj)) ;
-   TEST(&testobj.lifetime.is_delete  == objectasmember_typeadaptmember(&nodeadp8[7], (struct typeadapt_object_t*)&testobj)) ;
+   // TEST cast2member_typeadaptmember
+   TEST(&testobj.comparator.is_cmpkeyobj == cast2member_typeadaptmember(&nodeadp8[0], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.comparator.is_cmpobj    == cast2member_typeadaptmember(&nodeadp8[1], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.gethash.is_hashobject   == cast2member_typeadaptmember(&nodeadp8[2], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.gethash.is_hashkey      == cast2member_typeadaptmember(&nodeadp8[3], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.getkey.is_getbinarykey  == cast2member_typeadaptmember(&nodeadp8[4], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.key == cast2member_typeadaptmember(&nodeadp8[5], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.lifetime.is_newcopy == cast2member_typeadaptmember(&nodeadp8[6], (struct typeadapt_object_t*)&testobj)) ;
+   TEST(&testobj.lifetime.is_delete  == cast2member_typeadaptmember(&nodeadp8[7], (struct typeadapt_object_t*)&testobj)) ;
 
    return 0 ;
 ONERR:

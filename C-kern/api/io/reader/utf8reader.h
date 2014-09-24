@@ -325,13 +325,13 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
                   ++ _rd1->next ;                        \
                } else {                                  \
                   uint8_t _sz ;                          \
-                  _sz = sizefromfirstbyte_utf8(          \
-                                      firstbyte) ;       \
+                  _sz = sizePfirst_utf8(                 \
+                                      firstbyte);        \
                   if (_sz > (_rd1->end - _rd1->next)) {  \
                      _err = EILSEQ ;                     \
                   } else {                               \
-                     _rd1->next += _sz + (_sz==0) ;      \
-                     incrcolumn_textpos(&_rd1->pos) ;    \
+                     _rd1->next += _sz + (_sz==0);       \
+                     incrcolumn_textpos(&_rd1->pos);     \
                   }                                      \
                }                                         \
             } else {                                     \

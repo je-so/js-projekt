@@ -60,12 +60,12 @@ struct x11videomode_t {
  * Static initializer. */
 #define x11videomode_FREE { 0, 0, 0 }
 
-/* function: initfromvalues_x11videomode
+/* function: init_x11videomode
  * Initializes xvidmode with the parameter values. */
-void initfromvalues_x11videomode(/*out*/x11videomode_t * xvidmode, uint32_t width_in_pixel, uint32_t height_in_pixel, uint16_t modeid) ;
+void init_x11videomode(/*out*/x11videomode_t * xvidmode, uint32_t width_in_pixel, uint32_t height_in_pixel, uint16_t modeid) ;
 
 /* function: initcurrent_x11videomode
- * Returns the current active video mode of the default screen. */
+ * Returns the current active video mode of x11screen. */
 int initcurrent_x11videomode(/*out*/x11videomode_t * current_xvidmode, struct x11screen_t * x11screen) ;
 
 // group: change x11screen_t
@@ -113,9 +113,9 @@ bool next_x11videomodeiterator(x11videomode_iterator_t * xvidit, /*out*/x11video
 
 // group: x11videomode_t
 
-/* define: initfromvalues_x11videomode
- * Implements <x11videomode_t.initfromvalues_x11videomode>. */
-#define initfromvalues_x11videomode(xvidmode, width_in_pixel, height_in_pixel, modeid) \
+/* define: init_x11videomode
+ * Implements <x11videomode_t.init_x11videomode>. */
+#define init_x11videomode(xvidmode, width_in_pixel, height_in_pixel, modeid) \
          ((void)(*(xvidmode) = (x11videomode_t) { width_in_pixel, height_in_pixel, modeid }))
 
 #endif

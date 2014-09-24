@@ -3,37 +3,43 @@ title: Type Casts
 The different types of casts which are supported in the interface
 of the objects.
 
-Casts are mostly used to change a pointer pointing to type a
-into a pointer pointing to type b. a and b must be structural
+Casts are mostly used to change a pointer to one type (a)
+into a pointer pointing to another type (b). a and b must be structural
 compatible. They both must have the same members (type + name).
 
 section: casting pointers
 
-group: genericcast_TYPE
+group: generic
 
-If an interface subtype is constructed with help of TYPE_it_DECLARE
-it is compatible with TYPE_it. To cast a pointer to subtype into a
-pointer to TYPE_it use genericcast_TYPEit(...). This function which
-is implemented as macro checks the compatibility.
+If an interface subtype is constructed with help of type_it_DECLARE
+it is compatible with type_it. To cast a pointer to subtype into a
+pointer to type_it use the generic cast cast_typeit(...).
+This function which is implemented as macro checks the structural compatibility.
 
-group: FROMTYPEcast_TYPE
+group: cast from type1 into type2
 
-The same as genericcast except that function FROMTYPEcast_TYPE(...)
-casts a pointer to FROMTYPE into a pointer to TYPE.
-This cast is more specific and does only accepts pointers to FROMTYPE.
+Cast is part of type2:
 
-group: cast_TYPE
+The same as generic cast except that the name of the function is
+> castPtype1_type2(type1_t * addr).
 
-If you do not need a generic cast and have only one FROMTYPEcast_TYPE
-you can rename it into cast_TYPE.
+It casts a pointer to type1 into a pointer to type2 and is part of interface
+of type2. The 'P' in the function name is a prefix to state that a parameter type
+is following.
 
-group: asTOTYPE
+Cast is part of type1:
 
-This cast reverses the type conversion. The function asTOTYPE_TYPE
-converts a pointer to TYPE into a pointer to TOTYPE.
-It is considered an extension of TOTYPE. The same functionality could
-be achieved with function TYPEcast_TOTYPE implemented as part of the
-interface of TOTYPE.
-Therefore it is encouraged to implement always TYPEcast_TOTYPE even
-in another module. Type extensions will be supported by the upcoming
-language "transactional C".
+The following function casts a pointer to type1 into a pointer to type2 also
+> cast2type2_type1(type1_t * addr)
+
+But it is part of interface of type1. The '2' in the function name is a prefix
+to state that the target type is following.
+
+Even if it is part of the interface of type1 it is considered an extension of type2.
+
+group: Conversion between values
+
+Sometimes a value must be converted by applying a more complex transformation than
+a simple type representation.
+
+In such a case the name of the function is convert2xxx_yyy or convertPyyy_xxx.

@@ -211,7 +211,7 @@ static inline size_t hashobject_exthash(exthash_t * htable, const exthash_node_t
 {
    size_t hashvalue ;
 
-   hashvalue = callhashobject_typeadaptmember(&htable->nodeadp, memberasobject_typeadaptmember(&htable->nodeadp, node)) ;
+   hashvalue = callhashobject_typeadaptmember(&htable->nodeadp, cast2object_typeadaptmember(&htable->nodeadp, node)) ;
 
    return hashvalue ;
 }
@@ -837,14 +837,14 @@ static int test_privchange(void)
    tree.root = htable.hashtable[0] ;
    unsigned count = 0 ;
    foreach (_redblacktree, node, &tree) {
-      TEST((count << 8) == ((testobject_t*)memberasobject_typeadaptmember(&nodeadp, node))->key) ;
+      TEST((count << 8) == ((testobject_t*)cast2object_typeadaptmember(&nodeadp, node))->key) ;
       count += 2 ;
    }
    TEST(count == 256) ;
    tree.root = htable.hashtable[1] ;
    count = 1 ;
    foreach (_redblacktree, node, &tree) {
-      TEST(((count << 8)+1) == ((testobject_t*)memberasobject_typeadaptmember(&nodeadp, node))->key) ;
+      TEST(((count << 8)+1) == ((testobject_t*)cast2object_typeadaptmember(&nodeadp, node))->key) ;
       count += 2 ;
    }
    TEST(count == 257) ;

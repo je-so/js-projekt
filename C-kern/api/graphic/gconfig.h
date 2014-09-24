@@ -183,10 +183,10 @@ int init_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const int
  * Parameter user is passed as user data into the filter function. */
 int initfiltered_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const int32_t config_attributes[], gconfig_filter_t * filter);
 
-/* function: initfromconfigid_gconfig
+/* function: initPid_gconfig
  * Returns an OpenGL surface configuration whose ID matches configid.
  * Use this function to create a copy of an existing configuration. */
-int initfromconfigid_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const uint32_t configid);
+int initPid_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const uint32_t configid);
 
 /* function: free_gconfig
  * Frees any memory associated with a configuration. */

@@ -155,7 +155,7 @@ int init_queue(/*out*/queue_t * queue, uint32_t pagesize);
  * After successful return dest is a copy of the old value of src
  * and src is set to <queue_INIT>.
  * This function has runtime O(n/NB) where NB is the number of nodes per memory page.
- * (You could copy queue_t directly but then <queuefromaddr_queue> returns the old
+ * (You could copy queue_t directly but then <castPaddr_queue> returns the old
  * address. If you can live with that then copy directly). */
 void initmove_queue(/*out*/queue_t * dest, queue_t * src);
 
@@ -196,9 +196,9 @@ size_t sizefirst_queue(const queue_t * queue);
  * If only one memory page is allocated this value equals to <sizenodesfirstpage_queue>. */
 size_t sizelast_queue(const queue_t * queue);
 
-/* function: queuefromaddr_queue
+/* function: castPaddr_queue
  * Returns queue an inserted node with address nodeaddr belongs to. */
-queue_t * queuefromaddr_queue(void * nodeaddr);
+queue_t * castPaddr_queue(void * nodeaddr);
 
 /* function: defaultpagesize_queue
  * Returns the default size of a memory page the queue uses.
@@ -517,9 +517,9 @@ struct queue_page_t {
 #define defaultpagesize_queue()  \
          ((uint16_t)4096)
 
-/* define: queuefromaddr_queue
- * Implements <queue_t.queuefromaddr_queue>. */
-#define queuefromaddr_queue(nodeaddr, pagesize) \
+/* define: castPaddr_queue
+ * Implements <queue_t.castPaddr_queue>. */
+#define castPaddr_queue(nodeaddr, pagesize) \
          (((queue_page_t*)((uintptr_t)(nodeaddr) & ~((uintptr_t)(pagesize)-1u)))->queue)
 
 /* define: sizefirst_queue

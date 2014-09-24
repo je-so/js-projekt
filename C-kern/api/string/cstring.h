@@ -74,10 +74,10 @@ struct cstring_t
  * If you set *preallocate_size* to 0 no memory is preallocated. */
 int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
 
-/* function: initfromstring_cstring
+/* function: initcopy_cstring
  * Inits <cstring_t> and copies data from <string_t>.
  * If parameter *copiedfrom* is empty no data is preallocated. */
-int initfromstring_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom) ;
+int initcopy_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom) ;
 
 /* function: initmove_cstring
  * Inits dest with content of source and sets source to <cstring_FREE>. */

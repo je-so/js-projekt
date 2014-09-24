@@ -1,4 +1,4 @@
-*Abstraction Done Right* #cprogramming
+title: Abstraction Done Right
 
 The conclusions of the following examples are:
 
@@ -7,36 +7,36 @@ Abstract away unnecessary information without loosing essential detail.
 Never abstract away necessary details and reintroduce new concepts to
 leak the abstraction.
 
-*Examples:*
+group: Examples
 
-POSIX API: Object initialization / destruction
+about: POSIX API - Object initialization / destruction
 
 In POSIX you have different naming conventions for init and free of objects
 of different type. To access a file you have to
-  int fd = open("path", ...) ;
+> int fd = open("path", ...);
 and to free the file resource (file descriptor) you have to
-  int err = close(fd) ;
+> int err = close(fd);
 
 It is possible to abstract away the different conventions
 and introduce a simpler api, like so:
-   file_t fd ;
-   int err = init_file(&fd, "path", ...) ;
+> file_t fd;
+> int err = init_file(&fd, "path", ...);
 and
-   int err = free_file(&fd) ;
+> int err = free_file(&fd);
 which is done in the POSIX thread api:
-   pthread_attr_t attr ;
-   int err = pthread_attr_init(&attr) ;
+> pthread_attr_t attr;
+> int err = pthread_attr_init(&attr);
 or
-   pthread_mutex_t mutex ;
-   int err = pthread_mutex_init(&mutex,...) ;
+> pthread_mutex_t mutex;
+> int err = pthread_mutex_init(&mutex,...);
 but broken in
-   pthread_t thread ;
-   int err = pthread_create(&thread,...) ;
+> pthread_t thread;
+> int err = pthread_create(&thread,...);
 instead of
-   pthread_t thread ;
-   int err = pthread_init(&thread,...) ;
+> pthread_t thread;
+> int err = pthread_init(&thread,...);
 
-Generic OOP Language: Object initialization / destruction
+about: Generic OOP Language - Object initialization / destruction
 
 In a generic OOP language there is a new and a delete for object
 construction on the heap and object destruction.
@@ -44,73 +44,79 @@ More "sophisticated" languages even abstract away the "delete"
 operation and introduce the concept of a garbage collector.
 
 To open a file you call
-   file_t * fd = new file_t("path", ...) ;
+> file_t * fd = new file_t("path", ...);
 and if you want to close it you do
-   delete fd ;
+> delete fd;
 
 but object construction and destruction is costly. So most languages offers
 something more like:
-   file_t * fd = new file_t() ;
-   fd->open("path", ...) ;
-   fd->close() ;
-   // now fd could be reused.
+> file_t * fd = new file_t();
+> fd->open("path", ...);
+> fd->close();
+> // now fd could be reused.
 
-Abstracting away the placement or location of the object in memory is a necessary
-detail.
+Abstracting away the placement or location of the object in memory is a necessary detail.
 
 In a generic OOP language you have to use always a pointer:
-   struct extended_file_t {
-      file_t * fd ;
-      ... ;
-   } ;
+> struct extended_file_t {
+>    file_t * fd;
+>    ...;
+> };
 or introduce a new concept like inheritance which then becomes
-   struct extended_file_t : file_t {
-      ... ;
-   } ;
+> struct extended_file_t : file_t {
+>    ...;
+> };
 and init function becomes
-   int init_extended_file(const char * path, ...) {
-      // pointer to extended_file_t is a hidden information channel
-      // and could be accessed with this, self or something else
-      int err = super("path", ...) ;
-   }
+> int init_extended_file(const char * path, ...) {
+>    // pointer to extended_file_t is a hidden information channel
+>    // and could be accessed with this, self or something else
+>    int err = super("path", ...);
+> }
 
 In C you could embed a file_t in another object without a problem.
-   struct extended_file_t {
-      file_t fd ;
-      ... ;
-   } ;
+> struct extended_file_t {
+>    file_t fd;
+>    ...;
+> };
 
 It is also possible to introduce a concept like "placement new" (C++)
 then the initialization of extended_file_t becomes
 
-int init_extended_file(extended_file_t * extfile) {
-   int err ;
-   // call super class constructor without allocating memory on the heap
-   new(&extfile->fd) file_t() ;
-}
+> int init_extended_file(extended_file_t * extfile) {
+>    int err;
+>   // call super class constructor without allocating memory on the heap
+>   new(&extfile->fd) file_t();
+> }
 
 What is also wrong with new is that it abstracted away the necessary detail
 of the error channel. Creating a file and open it:
-   file_t * fd = new file_t("path",...) ;
+> file_t * fd = new file_t("path",...);
 could generate at least two errors (there are more possible errors):
-   "out of memory" and "file not found".
+ *  "out of memory" and
+ *  "file not found".
 Cause of the abstracted away error channel you have to reintroduce the
 concept of a hidden error channel called exceptions which leads to:
-   try {
-      file_t * fd = new file_t("path",...) ;
-   } catch(OutOfMemoryError err) {
-      // handle out of memory
-   } catch(FileNotFound err) {
-      // handle out of memory
-   }
+> try {
+     file_t * fd = new file_t("path",...);
+> } catch(OutOfMemoryError err) {
+     // handle out of memory
+> } catch(FileNotFound err) {
+     // handle out of memory
+> }
+
+group: Conclusion
 
 I hope I made it clear that abstracting away a necessary detail
 leads to a new concept which leaks the abstraction.
 
-==> Law of the Wrong Abstraction: Always introduce new concepts
+about: Law of Wrong Abstraction
+
+==> Always introduce new concepts
     without making it simpler !!!
 
-Abstraction done right is to abstract away unnecessary detail.
+about: Law of Right Abstraction
 
-==> Law of the Right Abstraction: Harmonize conventions
-    leading to simpler APIs and OVERCOME HISTORY !
+==> Abstraction done right is to abstract away unnecessary detail.
+    In other words harmonize conventions leading to simpler APIs
+    and OVERCOME HISTORY !
+

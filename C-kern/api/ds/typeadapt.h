@@ -115,13 +115,13 @@ void callgetbinarykey_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
 
 // group: conversion
 
-/* function: memberasobject_typeadaptmember
- * See <memberasobject_typeadaptnodeoffset>. */
-struct typeadapt_object_t * memberasobject_typeadaptmember(typeadapt_member_t * nodeadp, void * node) ;
+/* function: cast2object_typeadaptmember
+ * See <cast2object_typeadaptnodeoffset>. */
+struct typeadapt_object_t * cast2object_typeadaptmember(typeadapt_member_t * nodeadp, void * node) ;
 
-/* function: objectasmember_typeadaptmember
- * See <objectasmember_typeadaptnodeoffset>. */
-void * objectasmember_typeadaptmember(typeadapt_member_t * nodeadp, struct typeadapt_object_t * object) ;
+/* function: cast2member_typeadaptmember
+ * See <cast2member_typeadaptnodeoffset>. */
+void * cast2member_typeadaptmember(typeadapt_member_t * nodeadp, struct typeadapt_object_t * object) ;
 
 
 /* struct: typeadapt_t
@@ -346,13 +346,13 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
  * Implements <typeadapt_t.iscalldelete_typeadapt>. */
 #define iscalldelete_typeadapt(typeadp)               (0 != (typeadp)->lifetime.delete_object)
 
-/* define: memberasobject_typeadaptmember
- * Imeplements <typeadapt_member_t.memberasobject_typeadaptmember>. */
-#define memberasobject_typeadaptmember(nodeadp, node) memberasobject_typeadaptnodeoffset((nodeadp)->nodeoff, node)
+/* define: cast2object_typeadaptmember
+ * Imeplements <typeadapt_member_t.cast2object_typeadaptmember>. */
+#define cast2object_typeadaptmember(nodeadp, node) cast2object_typeadaptnodeoffset((nodeadp)->nodeoff, node)
 
-/* define: objectasmember_typeadaptmember
- * Imeplements <typeadapt_member_t.objectasmember_typeadaptmember>. */
-#define objectasmember_typeadaptmember(nodeadp, object)  objectasmember_typeadaptnodeoffset((nodeadp)->nodeoff, object)
+/* define: cast2member_typeadaptmember
+ * Imeplements <typeadapt_member_t.cast2member_typeadaptmember>. */
+#define cast2member_typeadaptmember(nodeadp, object)  cast2member_typeadaptnodeoffset((nodeadp)->nodeoff, object)
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */

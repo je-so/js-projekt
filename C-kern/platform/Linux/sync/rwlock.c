@@ -483,13 +483,13 @@ static int test_synchronize(void)
             yield_thread() ;
          }
          TEST(i+1                 == atomicread_int(&s_thread_runcount)) ;
-         TEST(rwlock.readers.last == asnode_rwlocklist(threads[i])) ;
+         TEST(rwlock.readers.last == cast2node_rwlocklist(threads[i])) ;
          TEST(rwlock.writers.last == (waitreason == 1 ? (void*)1      : 0)) ;
          TEST(rwlock.writer       == (waitreason == 0 ? self_thread() : 0)) ;
          TEST(rwlock.nrofreader   == 0) ;
          TEST(rwlock.lockflag     == 0) ;
-         TEST(threads[i]->nextwait       == asnode_rwlocklist(threads[0])) ;
-         TEST(threads[i-(i>0)]->nextwait == asnode_rwlocklist(threads[i])) ;
+         TEST(threads[i]->nextwait       == cast2node_rwlocklist(threads[0])) ;
+         TEST(threads[i-(i>0)]->nextwait == cast2node_rwlocklist(threads[i])) ;
       }
       rwlock.writer       = 0 ;
       rwlock.writers.last = 0 ;
@@ -517,7 +517,7 @@ static int test_synchronize(void)
          TEST(0 == returncode_thread(threads[i])) ;
          TEST(0 == delete_thread(&threads[i])) ;
          TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
-         TEST(rwlock.readers.last   == (i+1 < lengthof(threads) ? asnode_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
+         TEST(rwlock.readers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
          TEST(rwlock.writers.last   == 0) ;
          TEST(rwlock.writer         == 0) ;
          TEST(rwlock.nrofreader     == 1 + i) ;
@@ -580,12 +580,12 @@ static int test_synchronize(void)
          }
          TEST(i+1                 == atomicread_int(&s_thread_runcount)) ;
          TEST(rwlock.readers.last == 0) ;
-         TEST(rwlock.writers.last == asnode_rwlocklist(threads[i])) ;
+         TEST(rwlock.writers.last == cast2node_rwlocklist(threads[i])) ;
          TEST(rwlock.writer       == (waitreason == 0 ? self_thread() : 0)) ;
          TEST(rwlock.nrofreader   == (waitreason == 1 ? 1             : 0)) ;
          TEST(rwlock.lockflag     == 0) ;
-         TEST(threads[i]->nextwait       == asnode_rwlocklist(threads[0])) ;
-         TEST(threads[i-(i>0)]->nextwait == asnode_rwlocklist(threads[i])) ;
+         TEST(threads[i]->nextwait       == cast2node_rwlocklist(threads[0])) ;
+         TEST(threads[i-(i>0)]->nextwait == cast2node_rwlocklist(threads[i])) ;
       }
       rwlock.writer     = 0 ;
       rwlock.nrofreader = 0 ;
@@ -612,7 +612,7 @@ static int test_synchronize(void)
          TEST(0 == returncode_thread(threads[i])) ;
          TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
          TEST(rwlock.readers.last   == 0) ;
-         TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? asnode_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
+         TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
          TEST(rwlock.writer         == 0) ;  // set in unlockwriter during resume
          TEST(rwlock.nrofreader     == 0) ;
          TEST(rwlock.lockflag       == 0) ;
@@ -846,14 +846,14 @@ static int test_synchronize(void)
       rwlock.writer = self_thread() ;
       TEST(0 == unlockwriter_rwlock(&rwlock)) ;
       TEST(rwlock.readers.last   == 0) ;
-      TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? asnode_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(rwlock.writer         == threads[i]) ;
       TEST(rwlock.nrofreader     == 0) ;
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
       TEST(rwlock.readers.last   == 0) ;
-      TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? asnode_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(rwlock.writer         == threads[i]) ;
       TEST(rwlock.nrofreader     == 0) ;
       TEST(rwlock.lockflag       == 0) ;

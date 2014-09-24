@@ -43,9 +43,9 @@ static test_errortimer_t   s_directory_errtimer = test_errortimer_FREE ;
 
 // group: helper
 
-static inline DIR * asDIR_directory(const directory_t * dir)
+static inline DIR * cast2DIR_directory(const directory_t * dir)
 {
-   return (DIR*) CONST_CAST(directory_t, dir) ;
+   return (DIR*) CONST_CAST(directory_t, dir);
 }
 
 // group: query
@@ -298,7 +298,7 @@ int delete_directory(directory_t ** dir)
    if (delobj) {
       *dir = 0 ;
 
-      err = closedir(asDIR_directory(delobj)) ;
+      err = closedir(cast2DIR_directory(delobj)) ;
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("closedir", err) ;
@@ -321,7 +321,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    struct dirent  * result           = 0 ;
 
    errno = 0 ;
-   result = readdir(asDIR_directory(dir)) ;
+   result = readdir(cast2DIR_directory(dir)) ;
    if (!result && errno) {
       err = errno ;
       TRACESYSCALL_ERRLOG("readdir",err) ;
@@ -370,7 +370,7 @@ int gofirst_directory(directory_t * dir)
 
    VALIDATE_INPARAM_TEST(dir, ONERR, ) ;
 
-   rewinddir(asDIR_directory(dir)) ;
+   rewinddir(cast2DIR_directory(dir)) ;
    return 0 ;
 ONERR:
    TRACEEXIT_ERRLOG(err);

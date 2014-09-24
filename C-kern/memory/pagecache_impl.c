@@ -1025,7 +1025,7 @@ static int test_initfree(void)
    TEST(0 != pgcache.freeblocklist[pagesize_4096].last) ;
    for (unsigned i = 0; i < lengthof(pgcache.freeblocklist); ++i) {
       if (i == pagesize_4096) {
-         TEST(asobject_blocklist(pgcache.blocklist.last) == asobject_freeblocklist(pgcache.freeblocklist[i].last)) ;
+         TEST(cast2object_blocklist(pgcache.blocklist.last) == cast2object_freeblocklist(pgcache.freeblocklist[i].last)) ;
       } else {
          TEST(0 == pgcache.freeblocklist[i].last) ;
       }

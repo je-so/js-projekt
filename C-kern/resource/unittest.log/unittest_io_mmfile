@@ -28,7 +28,7 @@ Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=27
 [1: 1410603342.700971s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 22 - Invalid argument
 [1: 1410603342.700975s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:43
@@ -44,7 +44,7 @@ Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=1
 [1: 1410603342.700983s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 22 - Invalid argument
 [1: 1410603342.700985s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
@@ -52,7 +52,7 @@ Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
 [1: 1410603342.700987s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 22 - Invalid argument
 [1: 1410603342.700989s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
@@ -60,7 +60,7 @@ Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
 [1: 1410603342.700992s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 22 - Invalid argument
 [1: 1410603342.700996s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
@@ -68,7 +68,7 @@ Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=2
 [1: 1410603342.700999s]
-initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
 Error 22 - Invalid argument
 [1: 1410603342.701005s]
 initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171

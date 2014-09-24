@@ -755,18 +755,18 @@ static int test_query(void)
       queue_page_t * lpage = (queue_page_t*)queue.last;
       TEST(lpage != fpage);
 
-      // TEST queuefromaddr_queue
+      // TEST castPaddr_queue
       for (unsigned i = 0; i < pagesize_queue(&queue); ++i) {
          void * nodeaddr;
          nodeaddr = (uint8_t*)fpage + i;
-         TEST(&queue == queuefromaddr_queue(nodeaddr, pagesize_queue(&queue)));
+         TEST(&queue == castPaddr_queue(nodeaddr, pagesize_queue(&queue)));
          fpage->queue = (void*)1;
-         TEST((void*)1 == queuefromaddr_queue(nodeaddr, pagesize_queue(&queue)));
+         TEST((void*)1 == castPaddr_queue(nodeaddr, pagesize_queue(&queue)));
          fpage->queue = &queue;
          nodeaddr = (uint8_t*)lpage + i;
-         TEST(&queue == queuefromaddr_queue(nodeaddr, pagesize_queue(&queue)));
+         TEST(&queue == castPaddr_queue(nodeaddr, pagesize_queue(&queue)));
          lpage->queue = (void*)2;
-         TEST((void*)2 == queuefromaddr_queue(nodeaddr, pagesize_queue(&queue)));
+         TEST((void*)2 == castPaddr_queue(nodeaddr, pagesize_queue(&queue)));
          lpage->queue = &queue;
       }
 

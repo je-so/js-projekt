@@ -103,7 +103,7 @@ int free_egldisplay(egldisplay_t * egldisp)
       *egldisp = 0;
 
       if (EGL_FALSE == isTerminate) {
-         err = aserrcode_egl(eglGetError());
+         err = convert2errno_egl(eglGetError());
          goto ONERR;
       }
 

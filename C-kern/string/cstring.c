@@ -49,7 +49,7 @@ ONERR:
    return err ;
 }
 
-int initfromstring_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom)
+int initcopy_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom)
 {
    int err ;
 
@@ -276,16 +276,16 @@ static int test_initfree(void)
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.chars) ;
 
-   // TEST initfromstring_cstring on empty string
+   // TEST initcopy_cstring on empty string
    string_t stringfrom = string_FREE ;
-   TEST(0 == initfromstring_cstring(&cstr, &stringfrom)) ;
+   TEST(0 == initcopy_cstring(&cstr, &stringfrom)) ;
    TEST(0 == cstr.size) ;
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.chars) ;
 
-   // TEST initfromstring_cstring
+   // TEST initcopy_cstring
    stringfrom = (string_t) string_INIT(7, (const uint8_t*)"x1y2z3!") ;
-   TEST(0 == initfromstring_cstring(&cstr, &stringfrom)) ;
+   TEST(0 == initcopy_cstring(&cstr, &stringfrom)) ;
    TEST(7 == size_cstring(&cstr)) ;
    TEST(8 == cstr.allocated_size) ;
    TEST(0 != cstr.chars) ;

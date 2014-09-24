@@ -187,7 +187,7 @@ static inline unsigned find_wait_queue(const syncfunc_opt_e optfields)
  * Unchecked Precondition:
  * o Alle Links in sfunc sind ungültig;
  *   (sfunc->waitfor.link == 0 && sfunc->caller.link == 0 && sfunc->waitlist.prev == 0 && sfunc->waitlist.next == 0).
- * o sfunc ist in queue abgelegt / sfunc ∈ queue / (squeue == queuefromaddr_syncqueue(sfunc))
+ * o sfunc ist in queue abgelegt / sfunc ∈ queue / (squeue == castPaddr_syncqueue(sfunc))
  * o nextfree_syncqueue(squeue) == 0 || (nextfree_syncqueue(squeue) != 0 && "content is free and not on use")
  * */
 static int remove_syncqueue(syncqueue_t * squeue, syncfunc_t * sfunc)
@@ -222,7 +222,7 @@ ONERR:
  * Der Wert 0 wird zurückgegeben, wenn sfunc nicht zu srun gehört. */
 static inline syncqueue_t * wait_queue(syncrunner_t * srun, syncfunc_t * sfunc)
 {
-   syncqueue_t * squeue = queuefromaddr_syncqueue(sfunc);
+   syncqueue_t * squeue = castPaddr_syncqueue(sfunc);
    return squeue && squeue == &srun->rwqueue[find_wait_queue(sfunc->optfields)] ? squeue : 0;
 }
 
@@ -536,7 +536,7 @@ static inline int process_wakeup_list(syncrunner_t * srun)
    while (wakeup.next != &wakeup) {
       sfunc  = waitlistcast_syncfunc(wakeup.next, true);
       unlinkkeepself_linkd(wakeup.next);
-      squeue = queuefromaddr_syncqueue(sfunc);
+      squeue = castPaddr_syncqueue(sfunc);
       size   = elemsize_syncqueue(squeue);
       isstate = (sfunc->optfields & syncfunc_opt_STATE);
 
@@ -2101,7 +2101,7 @@ static int test_exec_wakeup(void)
                   if (condition) {
                      TEST(iswaiting_synccond(&scond));
                      syncfunc_t * sf = waitfunc_synccond(&scond);
-                     TEST(squeue == queuefromaddr_syncqueue(sf));
+                     TEST(squeue == castPaddr_syncqueue(sf));
                      TEST(&scond.waitfunc == addrwaitfor_syncfunc(sf)->link);
                      TEST(isvalid_linkd(addrwaitlist_syncfunc(sf, true)));
                      for (i = 1; i < lengthof(sfunc); ++i) {
@@ -2183,7 +2183,7 @@ static int test_exec_wakeup(void)
                   unsigned i = 0;
                   for (linkd_t * next = srun.wakeup.next; next != &srun.wakeup; next = next->next) {
                      syncfunc_t * sf = waitlistcast_syncfunc(next, true);
-                     TEST(squeue == queuefromaddr_syncqueue(sf));
+                     TEST(squeue == castPaddr_syncqueue(sf));
                      TEST(sf->mainfct    == &test_wakeup_sf);
                      TEST(sf->contoffset == s_test_set_contoffset);
                      TEST(sf->optfields  ==  (syncfunc_opt_WAITFOR_CONDITION
@@ -2488,7 +2488,7 @@ static int test_exec_run(void)
                unsigned i = 0;
                for (linkd_t * next = srun.wakeup.next, * prev = &srun.wakeup; next != &srun.wakeup; next = next->next) {
                   syncfunc_t * sf = waitlistcast_syncfunc(next, true);
-                  TEST(squeue == queuefromaddr_syncqueue(sf));
+                  TEST(squeue == castPaddr_syncqueue(sf));
                   TEST(sf->mainfct    == &test_wakeup_sf);
                   TEST(sf->contoffset == 0);
                   TEST(sf->optfields  == optfields);
@@ -2653,7 +2653,7 @@ static int test_exec_run(void)
                   if (condition) {
                      TEST(iswaiting_synccond(&scond));
                      syncfunc_t * sf = waitfunc_synccond(&scond);
-                     TEST(squeue == queuefromaddr_syncqueue(sf));
+                     TEST(squeue == castPaddr_syncqueue(sf));
                      TEST(&scond.waitfunc == addrwaitfor_syncfunc(sf)->link);
                      TEST(isvalid_linkd(addrwaitlist_syncfunc(sf, true)));
                      for (i = 1; i < lengthof(sfunc); ++i) {
@@ -2724,7 +2724,7 @@ static int test_exec_run(void)
                   unsigned i = 0;
                   for (linkd_t * next = srun.wakeup.next, * prev = &srun.wakeup; next != &srun.wakeup; next = next->next) {
                      syncfunc_t * sf = waitlistcast_syncfunc(next, true);
-                     TEST(squeue == queuefromaddr_syncqueue(sf));
+                     TEST(squeue == castPaddr_syncqueue(sf));
                      TEST(sf->mainfct    == &test_run_sf);
                      TEST(sf->contoffset == s_test_set_contoffset);
                      TEST(sf->optfields  == optfields);

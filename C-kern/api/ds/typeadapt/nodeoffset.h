@@ -69,36 +69,36 @@ bool isequal_typeadaptnodeoffset(const typeadapt_nodeoffset_t lnodeoff, const ty
 
 // group: conversion
 
-/* function: memberasobject_typeadaptnodeoffset
+/* function: cast2object_typeadaptnodeoffset
  * Converts a pointer to a struct member to the object which contains it.
  * The member is usually the data type that is used in containers to store their management information.
  * See also <typeadapt_object_t>. */
-struct typeadapt_object_t * memberasobject_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, void * node) ;
+struct typeadapt_object_t * cast2object_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, void * node);
 
-/* function: objectasmember_typeadaptnodeoffset
+/* function: cast2member_typeadaptnodeoffset
  * Converts object pointer to pointer to struct member.
- * It is the reverse operation of <memberasobject_typeadaptnodeoffset>. */
-void * objectasmember_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, struct typeadapt_object_t * object) ;
+ * It is the reverse operation of <cast2object_typeadaptnodeoffset>. */
+void * cast2member_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, struct typeadapt_object_t * object);
 
 
 // section: inline implementation
 
-/* define: memberasobject_typeadaptnodeoffset
- * Implements <typeadapt_nodeoffset_t.memberasobject_typeadaptnodeoffset>. */
-#define memberasobject_typeadaptnodeoffset(nodeoff, node)   \
-         ( __extension__ ({                                 \
-            uint32_t _off = (nodeoff);                      \
-            (struct typeadapt_object_t*) (                  \
-                  (uintptr_t)(node) - _off                  \
-            );                                              \
+/* define: cast2object_typeadaptnodeoffset
+ * Implements <typeadapt_nodeoffset_t.cast2object_typeadaptnodeoffset>. */
+#define cast2object_typeadaptnodeoffset(nodeoff, node)   \
+         ( __extension__ ({                              \
+            uint32_t _off = (nodeoff);                   \
+            (struct typeadapt_object_t*) (               \
+                  (uintptr_t)(node) - _off               \
+            );                                           \
          }))
 
-/* define: objectasmember_typeadaptnodeoffset
- * Implements <typeadapt_nodeoffset_t.objectasmember_typeadaptnodeoffset>. */
-#define objectasmember_typeadaptnodeoffset(nodeoff, object) \
-         ( __extension__ ({                                 \
-            uint32_t _off = (nodeoff);                      \
-            (void*) ((uintptr_t)(object) + _off);           \
+/* define: cast2member_typeadaptnodeoffset
+ * Implements <typeadapt_nodeoffset_t.cast2member_typeadaptnodeoffset>. */
+#define cast2member_typeadaptnodeoffset(nodeoff, object) \
+         ( __extension__ ({                              \
+            uint32_t _off = (nodeoff);                   \
+            (void*) ((uintptr_t)(object) + _off);        \
          }))
 
 /* define: init_typeadaptnodeoffset
@@ -110,9 +110,9 @@ void * objectasmember_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, 
  * Implements <typeadapt_nodeoffset_t.isequal_typeadaptnodeoffset>. */
 #define isequal_typeadaptnodeoffset(lnodeoff, rnodeoff)  \
          ( __extension__ ({                              \
-            typeadapt_nodeoffset_t _loff = (lnodeoff) ;  \
-            typeadapt_nodeoffset_t _roff = (rnodeoff) ;  \
-            _loff == _roff ;                             \
+            typeadapt_nodeoffset_t _loff = (lnodeoff);   \
+            typeadapt_nodeoffset_t _roff = (rnodeoff);   \
+            _loff == _roff;                              \
          }))
 
 #endif

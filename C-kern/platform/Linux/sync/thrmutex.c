@@ -353,11 +353,11 @@ static int test_synchronize(void)
          yield_thread() ;
       }
       TEST(i+1              == atomicread_int(&s_thread_runcount)) ;
-      TEST(mutex.last       == asnode_thrmutexlist(threads[i])) ;
+      TEST(mutex.last       == cast2node_thrmutexlist(threads[i])) ;
       TEST(mutex.lockholder == self_thread()) ;
       TEST(mutex.lockflag   == 0) ;
-      TEST(threads[i]->nextwait       == asnode_thrmutexlist(threads[0])) ;
-      TEST(threads[i-(i>0)]->nextwait == asnode_thrmutexlist(threads[i])) ;
+      TEST(threads[i]->nextwait       == cast2node_thrmutexlist(threads[0])) ;
+      TEST(threads[i-(i>0)]->nextwait == cast2node_thrmutexlist(threads[i])) ;
    }
    mutex.lockholder = 0 ;
 
@@ -383,7 +383,7 @@ static int test_synchronize(void)
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
       TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
-      TEST(mutex.last            == (i+1 < lengthof(threads) ? asnode_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(mutex.last            == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder      == 0) ; // not set in lock_thrmutex
       TEST(mutex.lockflag        == 0) ;
    }
@@ -442,12 +442,12 @@ static int test_synchronize(void)
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       atomicwrite_int((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
       TEST(0 == unlock_thrmutex(&mutex)) ;
-      TEST(mutex.last       == (i+1 < lengthof(threads) ? asnode_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(mutex.last       == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder == threads[i]) ;  // set in unlock_thrmutex
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
-      TEST(mutex.last       == (i+1 < lengthof(threads) ? asnode_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
+      TEST(mutex.last       == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder == threads[i]) ;  // set in unlock_thrmutex
       TEST(mutex.lockflag   == 0) ;
       TEST(0 == delete_thread(&threads[i])) ;

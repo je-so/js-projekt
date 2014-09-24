@@ -248,9 +248,9 @@ static int test_query(void)
    TEST(&disp == (void*) os_display(&disp));
    TEST(1 == ISFREE_OSDISPLAY(os_display(&disp)));
 
-   // TEST castfromos_display
-   TEST(0 == castfromos_display(0));
-   TEST(&disp == castfromos_display(os_display(&disp)));
+   // TEST castPos_display
+   TEST(0 == castPos_display(0));
+   TEST(&disp == castPos_display(os_display(&disp)));
 
    return 0;
 ONERR:

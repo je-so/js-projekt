@@ -86,7 +86,7 @@ int size_pixelbuffer(const pixelbuffer_t * pbuf, struct display_t * disp, /*out*
 
 /* function: configid_pixelbuffer
  * Returns the configuration ID of pbuf in configid.
- * Use id in a call to <initfromconfigid_gconfig> for querying the configuration values
+ * Use id in a call to <initPid_gconfig> for querying the configuration values
  * assigned during creation of pbuf. */
 int configid_pixelbuffer(const pixelbuffer_t * pbuf, struct display_t * disp, /*out*/uint32_t * configid);
 

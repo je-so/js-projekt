@@ -87,12 +87,12 @@
 /* define: KEYCOMPARE
  * Casts node to type <typeadapt_object_t> and calls <callcmpkeyobj_typeadapt>.
  * This macro expects variable name tree to point to <redblacktree_t>. */
-#define KEYCOMPARE(key,node)     callcmpkeyobj_typeadaptmember(&tree->nodeadp, key, memberasobject_typeadaptmember(&tree->nodeadp, node))
+#define KEYCOMPARE(key,node)     callcmpkeyobj_typeadaptmember(&tree->nodeadp, key, cast2object_typeadaptmember(&tree->nodeadp, node))
 
 /* define: NODECOMPARE
  * Casts both nodes to type <typeadapt_object_t> and calls <callcmpobj_typeadapt>.
  * This macro expects variable name tree to point to <redblacktree_t>. */
-#define NODECOMPARE(lnode,rnode) callcmpobj_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, lnode), memberasobject_typeadaptmember(&tree->nodeadp, rnode))
+#define NODECOMPARE(lnode,rnode) callcmpobj_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, lnode), cast2object_typeadaptmember(&tree->nodeadp, rnode))
 
 // group: test
 
@@ -684,7 +684,7 @@ int removenodes_redblacktree(redblacktree_t * tree)
          delnode->parent = 0 ;
 
          if (isDeleteObject) {
-            typeadapt_object_t * object = memberasobject_typeadaptmember(&tree->nodeadp, delnode) ;
+            typeadapt_object_t * object = cast2object_typeadaptmember(&tree->nodeadp, delnode) ;
             int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
             if (err2) err = err2 ;
          }

@@ -1,4 +1,4 @@
-title: parameter types
+title: Parameter Types
 
 Desctribes the different parameter types of functions.
 

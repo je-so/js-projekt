@@ -86,20 +86,20 @@ static int test_objectnodeconversion(void)
                            } ;
    testobject_t            objects[100] ;
 
-   // TEST memberasobject_typeadaptnodeoffset
+   // TEST cast2object_typeadaptnodeoffset
    for (unsigned i = 0; i < lengthof(objects); ++i) {
-      TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadaptnodeoffset(nodeoff[0], &objects[i].node0)) ;
-      TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadaptnodeoffset(nodeoff[1], &objects[i].node1)) ;
-      TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadaptnodeoffset(nodeoff[2], &objects[i].node2)) ;
-      TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadaptnodeoffset(nodeoff[3], &objects[i].node3)) ;
+      TEST((struct typeadapt_object_t*)&objects[i] == cast2object_typeadaptnodeoffset(nodeoff[0], &objects[i].node0)) ;
+      TEST((struct typeadapt_object_t*)&objects[i] == cast2object_typeadaptnodeoffset(nodeoff[1], &objects[i].node1)) ;
+      TEST((struct typeadapt_object_t*)&objects[i] == cast2object_typeadaptnodeoffset(nodeoff[2], &objects[i].node2)) ;
+      TEST((struct typeadapt_object_t*)&objects[i] == cast2object_typeadaptnodeoffset(nodeoff[3], &objects[i].node3)) ;
    }
 
-   // TEST objectasmember_typeadaptnodeoffset
+   // TEST cast2member_typeadaptnodeoffset
    for (unsigned i = 0; i < lengthof(objects); ++i) {
-      TEST(&objects[i].node0 == objectasmember_typeadaptnodeoffset(nodeoff[0], (struct typeadapt_object_t*)&objects[i])) ;
-      TEST(&objects[i].node1 == objectasmember_typeadaptnodeoffset(nodeoff[1], (struct typeadapt_object_t*)&objects[i])) ;
-      TEST(&objects[i].node2 == objectasmember_typeadaptnodeoffset(nodeoff[2], (struct typeadapt_object_t*)&objects[i])) ;
-      TEST(&objects[i].node3 == objectasmember_typeadaptnodeoffset(nodeoff[3], (struct typeadapt_object_t*)&objects[i])) ;
+      TEST(&objects[i].node0 == cast2member_typeadaptnodeoffset(nodeoff[0], (struct typeadapt_object_t*)&objects[i])) ;
+      TEST(&objects[i].node1 == cast2member_typeadaptnodeoffset(nodeoff[1], (struct typeadapt_object_t*)&objects[i])) ;
+      TEST(&objects[i].node2 == cast2member_typeadaptnodeoffset(nodeoff[2], (struct typeadapt_object_t*)&objects[i])) ;
+      TEST(&objects[i].node3 == cast2member_typeadaptnodeoffset(nodeoff[3], (struct typeadapt_object_t*)&objects[i])) ;
    }
 
    return 0 ;

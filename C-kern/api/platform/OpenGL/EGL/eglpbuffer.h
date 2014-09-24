@@ -75,7 +75,7 @@ int size_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * egldis
 
 /* function: configid_eglpbuffer
  * Returns the configuration ID of eglpbuf in configid.
- * Use id in a call to <initfromconfigid_eglconfig> for querying the configuration values assigned
+ * Use id in a call to <initPid_eglconfig> for querying the configuration values assigned
  * during creation of eglpbuf. */
 int configid_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * egldisp, /*out*/uint32_t * configid);
 

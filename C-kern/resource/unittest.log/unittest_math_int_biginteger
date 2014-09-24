@@ -5,11 +5,11 @@ Error 75 - Value too large for defined data type
 new_bigint() C-kern/math/int/bigint.c:1146
 Error 75 - Value too large for defined data type
 [1: 1410603104.727549s]
-setfromdouble_bigint() C-kern/math/int/bigint.c:1385
+setPdouble_bigint() C-kern/math/int/bigint.c:1385
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 [1: 1410603104.727553s]
-setfromdouble_bigint() C-kern/math/int/bigint.c:1385
+setPdouble_bigint() C-kern/math/int/bigint.c:1385
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 [1: 1410603104.727559s]

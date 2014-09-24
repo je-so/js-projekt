@@ -115,9 +115,9 @@ uint16_t idx_syncqueue(const syncqueue_t * syncqueue);
  * Returns the number of elements stored in the queue. */
 size_t size_syncqueue(const syncqueue_t * syncqueue);
 
-/* function: queuefromaddr_syncqueue
- * See <queuefromaddr_queue>. */
-syncqueue_t * queuefromaddr_syncqueue(void * nodeaddr);
+/* function: castPaddr_syncqueue
+ * See <castPaddr_queue>. */
+syncqueue_t * castPaddr_syncqueue(void * nodeaddr);
 
 /* function: nextfree_syncqueue
  * Returns address of preallocated element. */
@@ -189,10 +189,10 @@ int removelast_syncqueue(syncqueue_t * syncqueue);
             _err;                               \
          }))
 
-/* define: queuefromaddr_syncqueue
- * Implements <syncqueue_t.queuefromaddr_syncqueue>. */
-#define queuefromaddr_syncqueue(nodeaddr) \
-         ((syncqueue_t*)queuefromaddr_queue(nodeaddr, syncqueue_PAGESIZE))
+/* define: castPaddr_syncqueue
+ * Implements <syncqueue_t.castPaddr_syncqueue>. */
+#define castPaddr_syncqueue(nodeaddr) \
+         ((syncqueue_t*)castPaddr_queue(nodeaddr, syncqueue_PAGESIZE))
 
 /* define: removefirst_syncqueue
  * Implements <syncqueue_t.removefirst_syncqueue>. */

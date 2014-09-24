@@ -358,6 +358,8 @@
       <File Name="../../coding-conventions/casts.txt"/>
       <File Name="../../coding-conventions/todo-list.txt"/>
       <File Name="../../coding-conventions/utf8art.txt"/>
+      <File Name="../../coding-conventions/abstractions.txt"/>
+      <File Name="../../coding-conventions/overloading.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>

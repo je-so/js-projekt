@@ -178,7 +178,7 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
    if (err) return err ;
 
    typeadapt_binarykey_t key ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, node), &key) ;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key) ;
    if (key.size != keylength || 0 != memcmp(key.addr, searchkey, keylength)) {
       return ESRCH ;
    }
@@ -198,7 +198,7 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
    int err ;
    typeadapt_binarykey_t   insertkey ;
 
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, newnode), &insertkey) ;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, newnode), &insertkey) ;
 
    VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONERR, ) ;
 
@@ -220,7 +220,7 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
       return EEXIST ;      // found node already inserted
    } else {
       typeadapt_binarykey_t nodek ;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, node), &nodek) ;
+      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek) ;
       if (first_different_bit(nodek.addr, nodek.size, insertkey.addr, insertkey.size, &new_bitoffset)) {
          return EEXIST ;   // found node has same key
       }
@@ -296,7 +296,7 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
    if (err) return err ;
 
    typeadapt_binarykey_t nodek ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, node), &nodek) ;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek) ;
 
    if (  nodek.size != keylength
          || memcmp(nodek.addr, searchkey, keylength)) {
@@ -427,7 +427,7 @@ int removenodes_patriciatrie(patriciatrie_t * tree)
             node->left       = 0 ;
             node->right      = 0 ;
             if (isDeleteObject) {
-               typeadapt_object_t * object = memberasobject_typeadaptmember(&tree->nodeadp, node) ;
+               typeadapt_object_t * object = cast2object_typeadaptmember(&tree->nodeadp, node) ;
                int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
                if (err2) err = err2 ;
             }
@@ -498,7 +498,7 @@ bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
    patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;
@@ -535,7 +535,7 @@ bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
    patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;
@@ -596,7 +596,7 @@ int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, pa
          node = node->left ;
       }
       typeadapt_binarykey_t key ;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, node), &key) ;
+      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key) ;
       bool isPrefix =   key.size >= keylength
                         && ! memcmp(key.addr, prefixkey, keylength) ;
       if (!isPrefix) node = 0 ;
@@ -617,7 +617,7 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
    patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;

@@ -382,21 +382,21 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    static inline int removefirst##_fsuffix(slist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int removeafter##_fsuffix(slist_t * list, object_t * prev_node, object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int removeall##_fsuffix(slist_t * list, struct typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
-   static inline slist_node_t * asnode##_fsuffix(object_t * object) { \
+   static inline slist_node_t * cast2node##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->name_nextptr == (slist_node_t**)offsetof(object_t, name_nextptr), "correct type") ; \
       return (slist_node_t *) ((uintptr_t)object + offsetof(object_t, name_nextptr)) ; \
    } \
-   static inline object_t * asobject##_fsuffix(slist_node_t * node) { \
+   static inline object_t * cast2object##_fsuffix(slist_node_t * node) { \
       return (object_t *) ((uintptr_t)node - offsetof(object_t, name_nextptr)) ; \
    } \
-   static inline object_t * asobjectnull##_fsuffix(slist_node_t * node) { \
+   static inline object_t * castnull2object##_fsuffix(slist_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, name_nextptr)) : 0 ; \
    } \
    static inline void init##_fsuffix(slist_t * list) { \
       init_slist(list) ; \
    } \
    static inline void initsingle##_fsuffix(slist_t * list, object_t * node) { \
-      initsingle_slist(list, asnode##_fsuffix(node)) ; \
+      initsingle_slist(list, cast2node##_fsuffix(node)) ; \
    } \
    static inline int free##_fsuffix(slist_t * list, struct typeadapt_t * typeadp) { \
       return free_slist(list, offsetof(object_t, name_nextptr), typeadp) ; \
@@ -405,34 +405,34 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
       return isempty_slist(list) ; \
    } \
    static inline object_t * first##_fsuffix(const slist_t * list) { \
-      return asobjectnull##_fsuffix(first_slist(list)) ; \
+      return castnull2object##_fsuffix(first_slist(list)) ; \
    } \
    static inline object_t * last##_fsuffix(const slist_t * list) { \
-      return asobjectnull##_fsuffix(last_slist(list)) ; \
+      return castnull2object##_fsuffix(last_slist(list)) ; \
    } \
    static inline object_t * next##_fsuffix(object_t * node) { \
-      return asobject##_fsuffix(next_slist(asnode##_fsuffix(node))) ; \
+      return cast2object##_fsuffix(next_slist(cast2node##_fsuffix(node))) ; \
    } \
    static inline bool isinlist##_fsuffix(object_t * node) { \
-      return isinlist_slist(asnode##_fsuffix(node)) ; \
+      return isinlist_slist(cast2node##_fsuffix(node)) ; \
    } \
    static inline void insertfirst##_fsuffix(slist_t * list, object_t * new_node) { \
-      insertfirst_slist(list, asnode##_fsuffix(new_node)) ; \
+      insertfirst_slist(list, cast2node##_fsuffix(new_node)) ; \
    } \
    static inline void insertlast##_fsuffix(slist_t * list, object_t * new_node) { \
-      insertlast_slist(list, asnode##_fsuffix(new_node)) ; \
+      insertlast_slist(list, cast2node##_fsuffix(new_node)) ; \
    } \
    static inline void insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) { \
-      insertafter_slist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
+      insertafter_slist(list, cast2node##_fsuffix(prev_node), cast2node##_fsuffix(new_node)) ; \
    } \
    static inline int removefirst##_fsuffix(slist_t * list, object_t ** removed_node) { \
       int err = removefirst_slist(list, (slist_node_t**)removed_node) ; \
-      if (!err) *removed_node = asobject##_fsuffix(*(slist_node_t**)removed_node) ; \
+      if (!err) *removed_node = cast2object##_fsuffix(*(slist_node_t**)removed_node) ; \
       return err ; \
    } \
    static inline int removeafter##_fsuffix(slist_t * list, object_t * prev_node, object_t ** removed_node) { \
-      int err = removeafter_slist(list, asnode##_fsuffix(prev_node), (slist_node_t**)removed_node) ; \
-      if (!err) *removed_node = asobject##_fsuffix(*(slist_node_t**)removed_node) ; \
+      int err = removeafter_slist(list, cast2node##_fsuffix(prev_node), (slist_node_t**)removed_node) ; \
+      if (!err) *removed_node = cast2object##_fsuffix(*(slist_node_t**)removed_node) ; \
       return err ; \
    } \
    static inline int removeall##_fsuffix(slist_t * list, struct typeadapt_t * typeadp) { \
@@ -446,7 +446,7 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    } \
    static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, object_t ** node) { \
       bool isNext = next_slistiterator(iter, (slist_node_t**)node) ;    \
-      if (isNext) *node = asobject##_fsuffix(*(slist_node_t**)node) ;   \
+      if (isNext) *node = cast2object##_fsuffix(*(slist_node_t**)node) ;   \
       return isNext ; \
    }
 

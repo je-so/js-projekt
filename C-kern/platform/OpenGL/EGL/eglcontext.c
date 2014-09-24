@@ -79,7 +79,7 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
 
    return 0;
 ONERR:
-   err = aserrcode_egl(eglGetError());
+   err = convert2errno_egl(eglGetError());
 ONERR_INPARAM:
    TRACEEXIT_ERRLOG(err);
    return err;
@@ -95,7 +95,7 @@ int free_eglcontext(eglcontext_t * eglcont, egldisplay_t egldisp)
       *eglcont = 0;
 
       if (EGL_FALSE == isDestoyed) {
-         err = aserrcode_egl(eglGetError());
+         err = convert2errno_egl(eglGetError());
          goto ONERR;
       }
 
@@ -116,7 +116,7 @@ int api_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, /*out*/uint
    EGLint value = 0;
 
    if (EGL_FALSE == eglQueryContext(egldisp, eglcont, EGL_CONTEXT_CLIENT_TYPE, &value)) {
-      err = aserrcode_egl(eglGetError());
+      err = convert2errno_egl(eglGetError());
       goto ONERR;
    }
 
@@ -143,7 +143,7 @@ int configid_eglcontext(const eglcontext_t eglcont, struct opengl_display_t * eg
    static_assert(sizeof(EGLint) <= sizeof(uint32_t), "attribute type can be converted to returned type");
 
    if (EGL_FALSE == eglQueryContext(egldisp, eglcont, EGL_CONFIG_ID, &value)) {
-      err = aserrcode_egl(eglGetError());
+      err = convert2errno_egl(eglGetError());
       goto ONERR;
    }
 
@@ -211,7 +211,7 @@ int setcurrent_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, stru
 
    return 0;
 ONERR:
-   err = aserrcode_egl(eglGetError());
+   err = convert2errno_egl(eglGetError());
    if (old_egldisp != 0) {
       (void) eglBindAPI(eglapi);
       (void) eglMakeCurrent(old_egldisp, old_drawsurf, old_readsurf, old_eglcont);
@@ -225,7 +225,7 @@ int releasecurrent_eglcontext(struct opengl_display_t * egldisp)
    int err;
 
    if (EGL_FALSE == eglMakeCurrent(egldisp, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
-      err = aserrcode_egl(eglGetError());
+      err = convert2errno_egl(eglGetError());
       goto ONERR;
    }
 

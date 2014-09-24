@@ -40,7 +40,7 @@ int nativeerr_egl(void)
    return eglGetError();
 }
 
-int aserrcode_egl(int eglerr)
+int convert2errno_egl(int eglerr)
 {
    switch (eglerr) {
    case EGL_SUCCESS:          return 0;      // The last function succeeded without error.
@@ -84,29 +84,29 @@ ONERR:
 
 static int test_query2(void)
 {
-   // TEST aserrcode_egl
-   TEST(0 == aserrcode_egl(EGL_SUCCESS));
-   TEST(ESTATE == aserrcode_egl(EGL_NOT_INITIALIZED));
-   TEST(EACCES == aserrcode_egl(EGL_BAD_ACCESS));
-   TEST(EALLOC == aserrcode_egl(EGL_BAD_ALLOC));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_ATTRIBUTE));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_CONFIG));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_CONTEXT));
-   TEST(ENODEV == aserrcode_egl(EGL_BAD_CURRENT_SURFACE));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_DISPLAY));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_MATCH));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_NATIVE_PIXMAP));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_NATIVE_WINDOW));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_PARAMETER));
-   TEST(EINVAL == aserrcode_egl(EGL_BAD_SURFACE));
-   TEST(ERESET == aserrcode_egl(EGL_CONTEXT_LOST));
+   // TEST convert2errno_egl
+   TEST(0 == convert2errno_egl(EGL_SUCCESS));
+   TEST(ESTATE == convert2errno_egl(EGL_NOT_INITIALIZED));
+   TEST(EACCES == convert2errno_egl(EGL_BAD_ACCESS));
+   TEST(EALLOC == convert2errno_egl(EGL_BAD_ALLOC));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_ATTRIBUTE));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_CONFIG));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_CONTEXT));
+   TEST(ENODEV == convert2errno_egl(EGL_BAD_CURRENT_SURFACE));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_DISPLAY));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_MATCH));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_NATIVE_PIXMAP));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_NATIVE_WINDOW));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_PARAMETER));
+   TEST(EINVAL == convert2errno_egl(EGL_BAD_SURFACE));
+   TEST(ERESET == convert2errno_egl(EGL_CONTEXT_LOST));
 
-   // TEST aserrcode_egl: parameter out of range
-   TEST(EINVAL == aserrcode_egl(0));
-   TEST(EINVAL == aserrcode_egl(INT_MAX));
-   TEST(EINVAL == aserrcode_egl(INT_MIN));
-   TEST(EINVAL == aserrcode_egl(EGL_CONTEXT_LOST+1));
-   TEST(EINVAL == aserrcode_egl(EGL_SUCCESS-1));
+   // TEST convert2errno_egl: parameter out of range
+   TEST(EINVAL == convert2errno_egl(0));
+   TEST(EINVAL == convert2errno_egl(INT_MAX));
+   TEST(EINVAL == convert2errno_egl(INT_MIN));
+   TEST(EINVAL == convert2errno_egl(EGL_CONTEXT_LOST+1));
+   TEST(EINVAL == convert2errno_egl(EGL_SUCCESS-1));
 
    return 0;
 ONERR:

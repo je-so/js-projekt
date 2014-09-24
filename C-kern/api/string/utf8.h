@@ -76,13 +76,13 @@ bool isvalidfirstbyte_utf8(const uint8_t firstbyte) ;
  * returns true and <isvalidfirstbyte_utf8> returns false. */
 bool isfirstbyte_utf8(const uint8_t firstbyte) ;
 
-/* function: sizefromfirstbyte_utf8
+/* function: sizePfirst_utf8
  * Returns the size in bytes of a correct encoded mb-sequence by means of the value of its first byte.
  * The number of bytes is calculated from firstbyte - the first byte of the encoded byte sequence.
  * The returned values are in the range 0..4 (0..<maxsize_utf8>).
  * A return value between 1 and 4 describes a valid first byte.
  * A value of 0 indicates that firstbyte is not a valid first byte of an utf8 encoded byte sequence. */
-uint8_t sizefromfirstbyte_utf8(const uint8_t firstbyte) ;
+uint8_t sizePfirst_utf8(const uint8_t firstbyte) ;
 
 /* function: sizechar_utf8
  * Returns the size in bytes of uchar as encoded mb-sequence.
@@ -111,7 +111,7 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
 /* function: decodechar_utf8
  * Decodes utf-8 encoded bytes beginning from strstart and returns character in uchar.
  * The string must be big enough but needs never larger as <maxsize_utf8>.
- * Use <sizefromfirstbyte_utf8> to determine the size if strstart contains less then <maxsize_utf8> bytes.
+ * Use <sizePfirst_utf8> to determine the size if strstart contains less then <maxsize_utf8> bytes.
  *
  * The number of decoded bytes is returned.
  *
@@ -121,18 +121,18 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
  *
  * Example:
  *
- * > uint8_t * str    = &strbuffer[0] ;
- * > uint8_t * strend = strbuffer + sizeof(strbuffer) ;
+ * > uint8_t * str    = &strbuffer[0];
+ * > uint8_t * strend = strbuffer + sizeof(strbuffer);
  * > while (str < strend) {
  * >    if (strend-str < maxsize_utf8()) {
- * >       if (sizefromfirstbyte_utf8(str[0]) > (strend-str)) {
+ * >       if (sizePfirst_utf8(str[0]) > (strend-str)) {
  * >          ...not enough data for last character...
- * >          break ;
+ * >          break;
  * >       }
  * >    }
- * >    char32_t uchar ;
- * >    uint8_t  len = decodechar_utf8(str, &uchar) ;
- * >    str += len ;
+ * >    char32_t uchar;
+ * >    uint8_t  len = decodechar_utf8(str, &uchar);
+ * >    str += len;
  * >    ... do something with uchar ...
  * > } */
 uint8_t decodechar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/], /*out*/char32_t * uchar) ;
@@ -198,7 +198,7 @@ int validate_utf8validator(utf8validator_t * utf8validator, size_t size, const u
 
 
 // struct: stringstream_t
-struct stringstream_t ;
+struct stringstream_t;
 
 // group: read-utf8
 
@@ -263,15 +263,15 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
 
 /* function: isvalidfirstbyte_utf8
  * Implements <utf8.isvalidfirstbyte_utf8>. */
-#define isvalidfirstbyte_utf8(firstbyte)  (sizefromfirstbyte_utf8(firstbyte) != 0)
+#define isvalidfirstbyte_utf8(firstbyte)  (sizePfirst_utf8(firstbyte) != 0)
 
 /* function: maxsize_utf8
  * Implements <utf8.maxsize_utf8>. */
 #define maxsize_utf8()                    ((uint8_t)4)
 
-/* function: sizefromfirstbyte_utf8
- * Implements <utf8.sizefromfirstbyte_utf8>. */
-#define sizefromfirstbyte_utf8(firstbyte) (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
+/* function: sizePfirst_utf8
+ * Implements <utf8.sizePfirst_utf8>. */
+#define sizePfirst_utf8(firstbyte) (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
 
 /* function: sizechar_utf8
  * Implements <utf8.sizechar_utf8>. */
@@ -285,7 +285,7 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
 
 /* function: skipchar_utf8
  * Implements <utf8.skipchar_utf8>. */
-#define skipchar_utf8(strstart)           (sizefromfirstbyte_utf8(*(strstart)))
+#define skipchar_utf8(strstart)           (sizePfirst_utf8(*(strstart)))
 
 // group: utf8validator_t
 

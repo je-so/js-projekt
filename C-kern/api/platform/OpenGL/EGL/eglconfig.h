@@ -81,11 +81,11 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldi
  * Parameter user is passed as user data into the filter function. */
 int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user);
 
-/* function: initfromconfigid_eglconfig
+/* function: initPid_eglconfig
  * Returns a configuration with ID id.
  * Use this function to create a copy of a configuration assigned to a
  * surface (window, pbuffer) or a context. */
-int initfromconfigid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const uint32_t id);
+int initPid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const uint32_t id);
 
 /* function: free_eglconfig
  * Frees any associated resources.

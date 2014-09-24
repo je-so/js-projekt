@@ -100,7 +100,7 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
 
    uint8_t chrsize ;
    if (  size >= maxsize_utf8()
-         || size >= (chrsize = sizefromfirstbyte_utf8(scan->next[0])) ) {
+         || size >= (chrsize = sizePfirst_utf8(scan->next[0])) ) {
       chrsize = decodechar_utf8(scan->next, uchar) ;
       scan->next += chrsize ;
       if (0 == chrsize) {

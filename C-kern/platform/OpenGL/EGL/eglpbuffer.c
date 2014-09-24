@@ -61,7 +61,7 @@ int init_eglpbuffer(/*out*/eglpbuffer_t * eglpbuf, struct opengl_display_t * egl
 
    return 0;
 ONERR:
-   err = aserrcode_egl(eglGetError());
+   err = convert2errno_egl(eglGetError());
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -76,7 +76,7 @@ int free_eglpbuffer(eglpbuffer_t * eglpbuf, struct opengl_display_t * egldisp)
       *eglpbuf = 0;
 
       if (EGL_FALSE == isDestoyed) {
-         err = aserrcode_egl(eglGetError());
+         err = convert2errno_egl(eglGetError());
          goto ONERR;
       }
 
@@ -107,7 +107,7 @@ int size_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * egldis
 
    return 0;
 ONERR:
-   err = aserrcode_egl(eglGetError());
+   err = convert2errno_egl(eglGetError());
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -126,7 +126,7 @@ int configid_eglpbuffer(const eglpbuffer_t eglpbuf, struct opengl_display_t * eg
 
    return 0;
 ONERR:
-   err = aserrcode_egl(eglGetError());
+   err = convert2errno_egl(eglGetError());
    TRACEEXIT_ERRLOG(err);
    return err;
 }

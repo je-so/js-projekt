@@ -48,7 +48,7 @@ int free_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp
          next = node->next ;
          node->next = 0 ;
          if (isDelete) {
-            typeadapt_object_t * delobj = memberasobject_typeadaptnodeoffset(nodeoffset, node) ;
+            typeadapt_object_t * delobj = cast2object_typeadaptnodeoffset(nodeoffset, node) ;
             int err2 = calldelete_typeadapt(typeadp, &delobj) ;
             if (err2) err = err2 ;
          }

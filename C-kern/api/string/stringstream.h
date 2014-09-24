@@ -71,9 +71,9 @@ struct stringstream_t {
  * If both values are equal the stringstream is initialized with a size of zero. */
 int init_stringstream(/*out*/stringstream_t * strstream, const uint8_t * startaddr, const uint8_t * endaddr) ;
 
-/* function: initfromstring_string
+/* function: initPstr_stringstream
  * Initializes stringstream from <string_t>. */
-int initfromstring_string(/*out*/stringstream_t * strstream, const struct string_t * str) ;
+int initPstr_stringstream(/*out*/stringstream_t * strstream, const struct string_t * str) ;
 
 /* function: free_stringstream
  * Resets stringstream to null string. */

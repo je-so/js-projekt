@@ -114,10 +114,10 @@ int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * 
  * Same as calling <initcopy_string>(str,fromstr) and then calling <substr_string>(str,start_offset,size). */
 int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, size_t start_offset, size_t size) ;
 
-/* function: initfromstringstream_string
+/* function: initPstream_string
  * Initializes str with content of <stringstream_t>.
  * The string points to the unread string buffer of <stringstream_t>. */
-void initfromstringstream_string(/*out*/string_t * str, const struct stringstream_t * strstream) ;
+void initPstream_string(/*out*/string_t * str, const struct stringstream_t * strstream) ;
 
 /* function: free_string
  * Sets string to <string_FREE>. */

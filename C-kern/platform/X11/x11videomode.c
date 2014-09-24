@@ -102,7 +102,7 @@ bool next_x11videomodeiterator(x11videomode_iterator_t * xvidit, /*out*/x11video
 
    sizes = XRRConfigSizes((XRRScreenConfiguration *)xvidit->config, &count) ;
 
-   initfromvalues_x11videomode(xvidmode,
+   init_x11videomode(xvidmode,
                                (unsigned)sizes[xvidit->nextindex].width,
                                (unsigned)sizes[xvidit->nextindex].height, xvidit->nextindex) ;
 
@@ -293,8 +293,8 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(0 == xvidmode.height_in_pixel) ;
    TEST(0 == xvidmode.modeid) ;
 
-   // TEST initfromvalues_x11videomode
-   initfromvalues_x11videomode(&xvidmode, 11, 12, 13) ;
+   // TEST init_x11videomode
+   init_x11videomode(&xvidmode, 11, 12, 13) ;
    TEST(11 == xvidmode.width_in_pixel) ;
    TEST(12 == xvidmode.height_in_pixel) ;
    TEST(13 == xvidmode.modeid) ;

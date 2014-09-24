@@ -290,14 +290,14 @@ static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/
    static inline int  insert##_fsuffix(patriciatrie_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline int  remove##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int  removenodes##_fsuffix(patriciatrie_t * tree) __attribute__ ((always_inline)) ; \
-   static inline patriciatrie_node_t * asnode##_fsuffix(object_t * object) { \
+   static inline patriciatrie_node_t * cast2node##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (patriciatrie_node_t*)offsetof(object_t, nodename), "correct type") ; \
       return (patriciatrie_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobject##_fsuffix(patriciatrie_node_t * node) { \
+   static inline object_t * cast2object##_fsuffix(patriciatrie_node_t * node) { \
       return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobjectnull##_fsuffix(patriciatrie_node_t * node) { \
+   static inline object_t * castnull2object##_fsuffix(patriciatrie_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
    static inline void init##_fsuffix(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) { \
@@ -309,22 +309,22 @@ static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/
    static inline void getinistate##_fsuffix(const patriciatrie_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) { \
       patriciatrie_node_t * rootnode ; \
       getinistate_patriciatrie(tree, &rootnode, nodeadp) ; \
-      *root = asobjectnull##_fsuffix(rootnode) ; \
+      *root = castnull2object##_fsuffix(rootnode) ; \
    } \
    static inline bool isempty##_fsuffix(const patriciatrie_t * tree) { \
       return isempty_patriciatrie(tree) ; \
    } \
    static inline int  find##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** found_node) { \
       int err = find_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)found_node) ; \
-      if (err == 0) *found_node = asobject##_fsuffix(*(patriciatrie_node_t**)found_node) ; \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(patriciatrie_node_t**)found_node) ; \
       return err ; \
    } \
    static inline int  insert##_fsuffix(patriciatrie_t * tree, object_t * new_node) { \
-      return insert_patriciatrie(tree, asnode##_fsuffix(new_node)) ; \
+      return insert_patriciatrie(tree, cast2node##_fsuffix(new_node)) ; \
    } \
    static inline int  remove##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) { \
       int err = remove_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)removed_node) ; \
-      if (err == 0) *removed_node = asobject##_fsuffix(*(patriciatrie_node_t**)removed_node) ; \
+      if (err == 0) *removed_node = cast2object##_fsuffix(*(patriciatrie_node_t**)removed_node) ; \
       return err ; \
    } \
    static inline int  removenodes##_fsuffix(patriciatrie_t * tree) { \
@@ -341,12 +341,12 @@ static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/
    } \
    static inline bool next##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) { \
       bool isNext = next_patriciatrieiterator(iter, (patriciatrie_node_t**)node) ;  \
-      if (isNext) *node = asobject##_fsuffix(*(patriciatrie_node_t**)node) ;        \
+      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node) ;        \
       return isNext ; \
    } \
    static inline bool prev##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) { \
       bool isNext = prev_patriciatrieiterator(iter, (patriciatrie_node_t**)node) ;  \
-      if (isNext) *node = asobject##_fsuffix(*(patriciatrie_node_t**)node) ;        \
+      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node) ;        \
       return isNext ; \
    }
 

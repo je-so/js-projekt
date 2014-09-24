@@ -287,7 +287,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
 
          if (!isbranchtype_arraystfunode(node)) {
             if (isDelete) {
-               typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
+               typeadapt_object_t * delobj = cast2object_typeadaptmember(nodeadp, node) ;
                err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
                if (err2) err = err2 ;
             }
@@ -311,7 +311,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
                      branch->used     = lengthof(branch->child)-1 ;
                      continue ;
                   } else if (isDelete) {
-                     typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
+                     typeadapt_object_t * delobj = cast2object_typeadaptmember(nodeadp, node) ;
                      err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
                      if (err2) err = err2 ;
                   }
@@ -385,9 +385,9 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    }
 
    if (nodeadp) {
-      err = callnewcopy_typeadaptmember(nodeadp, &copied_node, memberasobject_typeadaptmember(nodeadp, node)) ;
+      err = callnewcopy_typeadaptmember(nodeadp, &copied_node, cast2object_typeadaptmember(nodeadp, node)) ;
       if (err) goto ONERR;
-      node = objectasmember_typeadaptmember(nodeadp, copied_node) ;
+      node = cast2member_typeadaptmember(nodeadp, copied_node) ;
    }
 
    VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ONERR, ) ;

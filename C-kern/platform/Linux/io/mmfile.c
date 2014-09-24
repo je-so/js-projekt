@@ -87,7 +87,7 @@ ONERR:
    return err ;
 }
 
-int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode)
+int initPio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode)
 {
    int err ;
 
@@ -524,27 +524,27 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    fd = openat(io_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
 
-   // init_mmfile, initfromio_mmfile: wrong accessmode_e
+   // init_mmfile, initPio_mmfile: wrong accessmode_e
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_WRITE/*needs always read*/, tempdir)) ;
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_EXEC|accessmode_READ|accessmode_PRIVATE/*needs always SHARED*/, tempdir)) ;
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_RDWR_PRIVATE+2*accessmode_SHARED/*unknown 2*accessmode_SHARED*/, tempdir)) ;
-   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED/*SHARED + RPIVATE*/)) ;
+   TEST(EINVAL == initPio_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED/*SHARED + RPIVATE*/)) ;
 
-   // TEST init_mmfile, initfromio_mmfile: offset not page aligned
+   // TEST init_mmfile, initPio_mmfile: offset not page aligned
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 1, 0, accessmode_RDWR_PRIVATE, tempdir)) ;
-   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 1, 0, accessmode_RDWR_PRIVATE)) ;
+   TEST(EINVAL == initPio_mmfile(&mfile, fd, 1, 0, accessmode_RDWR_PRIVATE)) ;
 
-   // TEST initfromio_mmfile: file must always be opened with write access
-   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_PRIVATE)) ;
-   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_SHARED)) ;
+   // TEST initPio_mmfile: file must always be opened with write access
+   TEST(EINVAL == initPio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_PRIVATE)) ;
+   TEST(EINVAL == initPio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_SHARED)) ;
 
    // unprepare
    TEST(0 == free_iochannel(&fd)) ;
 
-   // // TEST init_mmfile, initfromio_mmfile: file must always be opened with read access
+   // // TEST init_mmfile, initPio_mmfile: file must always be opened with read access
    fd = openat(io_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
-   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_READ)) ;
+   TEST(EINVAL == initPio_mmfile(&mfile, fd, 0, 1, accessmode_READ)) ;
    TEST(0 == free_iochannel(&fd)) ;
 
    // initsplit_mmfile: EINVAL
@@ -650,7 +650,7 @@ static int test_seek(directory_t * tempdir)
    // create content
    TEST(0 == initcreate_file(&fd, "mmfile", tempdir)) ;
    TEST(0 == allocate_file(fd, nrpages*pagesize + 1/*test access beyond filelength*/)) ;
-   TEST(0 == initfromio_mmfile(&mfile, fd, 0, nrpages*pagesize + 1, accessmode_RDWR_SHARED)) ;
+   TEST(0 == initPio_mmfile(&mfile, fd, 0, nrpages*pagesize + 1, accessmode_RDWR_SHARED)) ;
    TEST(0 == free_iochannel(&fd)) ;
    for (unsigned i = 0; i < nrpages; ++i) {
       memset(addr_mmfile(&mfile)+i*pagesize, (int)i, pagesize) ;
@@ -686,7 +686,7 @@ static int test_seek(directory_t * tempdir)
    }
 
    // TEST seek_mmfile: access out of bounds (1 byte of page in use)
-   TEST(0 == initfromio_mmfile(&mfile, fd, 0, pagesize, accessmode_READ)) ;
+   TEST(0 == initPio_mmfile(&mfile, fd, 0, pagesize, accessmode_READ)) ;
    TEST(0 == seek_mmfile(&mfile, fd, nrpages*pagesize, accessmode_READ)) ;
    TEST(99 == addr_mmfile(&mfile)[0]) ;
    TEST(0  == addr_mmfile(&mfile)[1]) ;
@@ -715,7 +715,7 @@ static int test_seek(directory_t * tempdir)
 
    // TEST seek_mmfile: EINVAL
    TEST(0 == init_file(&fd, "mmfile", accessmode_READ, tempdir)) ;
-   TEST(0 == initfromio_mmfile(&mfile, fd, 0, 0, accessmode_READ)) ;
+   TEST(0 == initPio_mmfile(&mfile, fd, 0, 0, accessmode_READ)) ;
    // write on read only file
    TEST(EINVAL == seek_mmfile(&mfile, fd, 0, accessmode_RDWR_SHARED)) ;
    TEST(EINVAL == seek_mmfile(&mfile, fd, 0, accessmode_RDWR_PRIVATE)) ;

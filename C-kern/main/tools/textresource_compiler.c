@@ -611,7 +611,7 @@ ONERR:
 
 // group: update
 
-static int copyfromref_textresourcetext(textresource_text_t * text, textresource_text_t * textref)
+static int setref_textresourcetext(textresource_text_t * text, textresource_text_t * textref)
 {
    int err ;
 
@@ -1500,7 +1500,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
             report_parseerror(reader, "undefined identifier '%.*s'", (int)name.size, name.addr) ;
             return EINVAL ;
          }
-         err = copyfromref_textresourcetext(textcopy, textref) ;
+         err = setref_textresourcetext(textcopy, textref) ;
          if (err) return err ;
          err = skip_spaceandcomment(reader) ;
          if (err) return err ;
@@ -2368,7 +2368,7 @@ static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
 
    foreach(_languagelist, lang, &writer->txtres->languages) {
 
-      err = initfromstring_cstring(&filename, &progC->cfilename) ;
+      err = initcopy_cstring(&filename, &progC->cfilename) ;
       if (err) goto ONERR;
 
       if (lang->name.size > INT_MAX) {
@@ -2401,7 +2401,7 @@ static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
 
    // generate C header file
 
-   err = initfromstring_cstring(&filename, &progC->hfilename) ;
+   err = initcopy_cstring(&filename, &progC->hfilename) ;
    if (err) goto ONERR;
 
    if (0 == trypath_directory(0, str_cstring(&filename))) {
@@ -2522,7 +2522,7 @@ static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer)
 
    foreach (_languagelist, lang, &writer->txtres->languages) {
 
-      err = initfromstring_cstring(&filename, &Ctable->cfilename) ;
+      err = initcopy_cstring(&filename, &Ctable->cfilename) ;
       if (err) goto ONERR;
 
       if (lang->name.size > INT_MAX) {

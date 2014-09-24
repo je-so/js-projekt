@@ -248,7 +248,7 @@ int swapbuffer_window(window_t * win, struct display_t * disp);
 /* define: display_window
  * Implements <window_t.display_window>. */
 #define display_window(win) \
-         (castfromos_display(display_x11window(os_window(win))))
+         (castPos_display(display_x11window(os_window(win))))
 
 /* define: hide_window
  * Implements <window_t.hide_window>. */

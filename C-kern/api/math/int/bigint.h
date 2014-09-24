@@ -193,25 +193,25 @@ void clear_bigint(bigint_t * big) ;
  * fails ENOMEM is returned. */
 int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom) ;
 
-/* function: setfromint32_bigint
+/* function: setPi64_bigint
  * Sets the value of big to the value of the provided parameter. */
-void setfromint32_bigint(bigint_t * big, int32_t value) ;
+void setPi64_bigint(bigint_t * big, int32_t value) ;
 
-/* function: setfromuint32_bigint
+/* function: setPu32_bigint
  * Sets the value of big to the positive value of the provided parameter . */
-void setfromuint32_bigint(bigint_t * big, uint32_t value) ;
+void setPu32_bigint(bigint_t * big, uint32_t value) ;
 
-/* function: setfromuint64_bigint
+/* function: setPu64_bigint
  * Sets the value of big to the positive value of the provided parameter . */
-void setfromuint64_bigint(bigint_t * big, uint64_t value) ;
+void setPu64_bigint(bigint_t * big, uint64_t value) ;
 
-/* function: setfromdouble_bigint
+/* function: setPdouble_bigint
  * Sets the value of big to the integer value of the provided parameter.
  * The fractional part is discarded.
  * If the integer part is zero the value is set to 0.
  * In case parameter *value* is NAN or INFINITY the error EINVAL is returned.
  * The assigned <bigint_t> must have at least 3 allocated integer digits. */
-int setfromdouble_bigint(bigint_t * big, double value) ;
+int setPdouble_bigint(bigint_t * big, double value) ;
 
 /* function: setbigfirst_bigint
  * Sets the value of big integer from an array of integers.

@@ -1,0 +1,54 @@
+title: Overloading / Überladen
+
+group: Abbildung auf C
+
+about: Einleitung
+
+C unterstützt nicht das Überladen von Funktionen.
+Damit ist gemeint, daß der Compiler bei Aufruf einer
+Funktion nicht nur überen Namen, sondern auch über den
+Typ der Parameter auflöst.
+
+Beispiel:
+Die überladene Funktion print
+> print(int x);
+> print(double d);
+kann sowohl mit einem Parameter vom Typ int als auch vom Typ double
+aufgerufen werden. Je nach Parametertyp wird vom Compiler die korrekte
+Implementierung aufgerufen.
+
+about: Ausgangspunkt
+
+Für die Initialisierung eines Objetkes mit init_object bzw. new_object
+werden oft mehrere Funktionen mit unterschiedlichen Parametertypen
+unterstützt.
+
+Eine direkte Abbildung auf C ist nicht möglich, daher wird folgende
+Konvention benutzt.
+
+about: Konvention
+
+Einfacher Name:
+Diejenige Funktionssignatur, die am häufigsten aufgerufen wird, bekommt
+den einfachen Namen, etwa print oder init_object zugewiesen. 
+
+Zusammengesetzter Name:
+Weitere Parametersignaturen werden durch anhängen eines "Ptyp" bzw. "Pname"
+nach dem ersten Verb und vor dem _typ Suffix eines Namens gebildet.
+
+Beispiel:
+
+Die folgende Signatur erzeugt ein Adapterobjekt aus einer ID.
+> new_adapter(adapter_t ** adapt, int id);
+
+Für den Benutzer sind aber Namen einfacher zum Merken, also
+unterstützt das Programm eine weitere Funktion, die einen
+Namen zur Identifikation verwendet.
+> newPname_adapter(adapter_t ** adapt, const char * name);
+
+Wenn eine Objekt mehrere Setter unterstützt, dann werden diese
+der Reihe nach mit ihrem Typ unterschieden.
+> setPint_decimal(decimal_t * dec, int value);
+> setPfloat_decimal(decimal_t * dec, float value);
+> setPdouble_decimal(decimal_t * dec, double value);
+

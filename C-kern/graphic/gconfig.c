@@ -56,11 +56,11 @@ ONERR:
    return err;
 }
 
-int initfromconfigid_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const uint32_t configid)
+int initPid_gconfig(/*out*/gconfig_t * gconf, struct display_t * display, const uint32_t configid)
 {
    int err;
 
-   err = initfromconfigid_eglconfig(&gl_gconfig(gconf), gl_display(display), configid);
+   err = initPid_eglconfig(&gl_gconfig(gconf), gl_display(display), configid);
    if (err) goto ONERR;
 
    return 0;
@@ -327,8 +327,8 @@ static int test_initfree(display_t * display)
       TEST(0 == free_gconfig(&config));
       TEST(0 == config.glconfig);
 
-      // TEST initfromconfigid_gconfig
-      TEST(0 == initfromconfigid_gconfig(&config, display, configid));
+      // TEST initPid_gconfig
+      TEST(0 == initPid_gconfig(&config, display, configid));
       TEST(0 != config.glconfig);
       TEST(0 == configid_gconfig(&config, display, &configid2));
       TEST(configid2 == configid);

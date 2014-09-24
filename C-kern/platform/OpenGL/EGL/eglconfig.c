@@ -211,7 +211,7 @@ ONERR:
    return err;
 }
 
-int initfromconfigid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const uint32_t id)
+int initPid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const uint32_t id)
 {
    int err;
    EGLint egl_attrib_list[] = {
@@ -248,7 +248,7 @@ ONERR:
             static_assert(sizeof(int32_t) == sizeof(EGLint), "conversion without changing value"); \
             EGLBoolean isOK = eglGetConfigAttrib(egldisp, eglconf, attr, value); \
             if (!isOK) {                                          \
-               err = aserrcode_egl(eglGetError());                \
+               err = convert2errno_egl(eglGetError());             \
                goto ONERR;                                        \
             }                                                     \
          }
@@ -558,7 +558,7 @@ static int test_initfree(egldisplay_t egldisp)
    TEST(0 == eglconf);
    TEST(size_allocated == SIZEALLOCATED_MM());
 
-   // TEST initfromconfigid_eglconfig
+   // TEST initPid_eglconfig
    for (unsigned i = 0; i < lengthof(onoff); ++i) {
       for (int isOn = 0; isOn <= 1; ++isOn) {
          EGLint configid1 = 0;
@@ -569,16 +569,16 @@ static int test_initfree(egldisplay_t egldisp)
          TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
          TEST(0 != eglGetConfigAttrib(egldisp, eglconf, EGL_CONFIG_ID, &configid1));
          TEST(0 == free_eglconfig(&eglconf));
-         // initfromconfigid_eglconfig
-         TEST(0 == initfromconfigid_eglconfig(&eglconf, egldisp, (uint32_t) configid1));
+         // initPid_eglconfig
+         TEST(0 == initPid_eglconfig(&eglconf, egldisp, (uint32_t) configid1));
          TEST(0 != eglGetConfigAttrib(egldisp, eglconf, EGL_CONFIG_ID, &configid2));
          TEST(configid1 == configid2);
          TEST(0 == free_eglconfig(&eglconf));
       }
    }
 
-   // TEST initfromconfigid_eglconfig
-   TEST(ESRCH == initfromconfigid_eglconfig(&eglconf, egldisp, INT32_MAX));
+   // TEST initPid_eglconfig
+   TEST(ESRCH == initPid_eglconfig(&eglconf, egldisp, INT32_MAX));
 
    return 0;
 ONERR:
