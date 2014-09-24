@@ -21,8 +21,8 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/memory/vm.h"
-#include "C-kern/api/string/stringstream.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
@@ -248,7 +248,7 @@ ONERR:
    return err ;
 }
 
-int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer)
+int readnext_filereader(filereader_t * frd, /*out*/struct memstream_ro_t * buffer)
 {
    int err ;
 
@@ -272,7 +272,7 @@ int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffe
    }
 
    // set out param
-   *buffer = (stringstream_t) stringstream_INIT(bufferaddr, bufferaddr + buffersize) ;
+   init_memstream(buffer, bufferaddr, bufferaddr + buffersize);
 
    frd->unreadsize -= buffersize ;
    -- frd->nrfreebuffer ;
@@ -496,7 +496,7 @@ static int test_read(directory_t * tempdir)
    filereader_t   frd = filereader_FREE ;
    const size_t   B   = sizebuffer_filereader() ;
    memblock_t     mem = memblock_FREE ;
-   stringstream_t buffer = stringstream_FREE ;
+   memstream_ro_t buffer = memstream_FREE;
 
    // prepare
    TEST(0 == RESIZE_MM(2*B+1, &mem)) ;
@@ -530,10 +530,10 @@ static int test_read(directory_t * tempdir)
       TEST(frd.nrfreebuffer == 1) ; // acquired 1 buffer
       TEST(buffer.next == frd.mmfile[0].addr) ;
       TEST(buffer.end  == frd.mmfile[0].addr + frd.mmfile[0].size) ;
-      TEST(size_stringstream(&buffer) == (ti == 3 ? 2*B+1 : B)) ;
+      TEST(size_memstream(&buffer) == (ti == 3 ? 2*B+1 : B));
       // check content
-      for (size_t i = 0; isnext_stringstream(&buffer); ++i) {
-         uint8_t byte = nextbyte_stringstream(&buffer) ;
+      for (size_t i = 0; isnext_memstream(&buffer); ++i) {
+         uint8_t byte = nextbyte_memstream(&buffer);
          TEST(byte == (uint8_t)(13*i)) ;
       }
 
@@ -577,9 +577,9 @@ static int test_read(directory_t * tempdir)
       TEST(buffer.next == frd.mmfile[0].addr) ;
       TEST(buffer.end  == frd.mmfile[0].addr + (i != 2 ? B/2 : 1)) ;
       // check content
-      for (; isnext_stringstream(&buffer); ++offset) {
-         uint8_t byte = nextbyte_stringstream(&buffer) ;
-         TEST(byte == (uint8_t)(13*offset)) ;
+      for (; isnext_memstream(&buffer); ++offset) {
+         uint8_t byte = nextbyte_memstream(&buffer);
+         TEST(byte == (uint8_t)(13*offset));
       }
 
       if (i != 2) {
@@ -589,18 +589,18 @@ static int test_read(directory_t * tempdir)
          TEST(frd.unreadsize   == 0) ;       // all read
          TEST(frd.nextindex    == 0) ;       // nextindex incremented
          TEST(frd.nrfreebuffer == 0) ;       // acquired 1 buffer
-         TEST(buffer.next == frd.mmfile[1].addr) ;
-         TEST(buffer.end  == frd.mmfile[1].addr + frd.mmfile[0].size) ;
-         TEST(size_stringstream(&buffer) == B/2) ;
+         TEST(buffer.next == frd.mmfile[1].addr);
+         TEST(buffer.end  == frd.mmfile[1].addr + frd.mmfile[0].size);
+         TEST(size_memstream(&buffer) == B/2);
          // check content
-         for (; isnext_stringstream(&buffer); ++offset) {
-            uint8_t byte = nextbyte_stringstream(&buffer) ;
-            TEST(byte == (uint8_t)(13*offset)) ;
+         for (; isnext_memstream(&buffer); ++offset) {
+            uint8_t byte = nextbyte_memstream(&buffer);
+            TEST(byte == (uint8_t)(13*offset));
          }
       }
 
       // readnext_filereader: reads second buffer
-      buffer = (stringstream_t) stringstream_FREE ;
+      buffer = (memstream_ro_t) memstream_FREE;
       if (i != 2) {
          TEST(ENOBUFS == readnext_filereader(&frd, &buffer)) ;
          TEST(0 == iseof_filereader(&frd)) ;
@@ -652,7 +652,7 @@ static int test_read(directory_t * tempdir)
       TEST(0 == frd.nextindex) ;
       TEST(2 == frd.nrfreebuffer) ;
       TEST(0 == readnext_filereader(&frd, &buffer)) ;
-      stringstream_t buffer2 = buffer ;
+      memstream_ro_t buffer2 = buffer;
       TEST(0 == frd.unreadsize) ;
       TEST(1 == frd.nextindex) ;
       TEST(1 == frd.nrfreebuffer) ;
@@ -697,7 +697,7 @@ static int test_read(directory_t * tempdir)
 
       if (U1) {
          // readnext_filereader: reads second buffer
-         stringstream_t buffer2 = stringstream_FREE ;
+         memstream_ro_t buffer2 = memstream_FREE;
          TEST(0 == readnext_filereader(&frd, &buffer2)) ;
          TEST(I == frd.nextindex) ;
          TEST(0 == frd.nrfreebuffer) ;
@@ -707,7 +707,7 @@ static int test_read(directory_t * tempdir)
          TEST(!I == frd.nextindex) ;
          TEST(1 == frd.nrfreebuffer) ;
          // readnext_filereader returns the same second buffer
-         stringstream_t buffer3 = stringstream_FREE ;
+         memstream_ro_t buffer3 = memstream_FREE ;
          TEST(0 == readnext_filereader(&frd, &buffer3)) ;
          TEST(I == frd.nextindex) ;
          TEST(0 == frd.nrfreebuffer) ;
@@ -728,8 +728,8 @@ static int test_read(directory_t * tempdir)
       TEST(2 == frd.nrfreebuffer) ;
 
       // readnext_filereader: reads same buffer
-      stringstream_t buffer2 = stringstream_FREE ;
-      TEST(0 == readnext_filereader(&frd, &buffer2)) ;
+      memstream_ro_t buffer2 = memstream_FREE;
+      TEST(0 == readnext_filereader(&frd, &buffer2));
       TEST(U1 == frd.unreadsize) ;
       TEST(!I == frd.nextindex) ;
       TEST(1 == frd.nrfreebuffer) ;

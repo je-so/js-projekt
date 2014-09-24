@@ -18,8 +18,8 @@
 #include "C-kern/api/string/utf8.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"
+#include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/string/stringstream.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/systimer.h"
@@ -485,70 +485,70 @@ ONERR:
 
 
 
-// section: stringstream_t
+// section: memstream_ro_t
 
 // group: read-utf8
 
-int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/char32_t * uchar)
+int nextutf8_memstream(memstream_ro_t * memstr, /*out*/char32_t * uchar)
 {
-   size_t   size = size_stringstream(strstream) ;
-   uint8_t  len ;
+   size_t   size = size_memstream(memstr);
+   uint8_t  len;
 
    if (size < maxchar_utf8()) {
       /* all data decoded ? */
       if (!size) return ENODATA ;
-      len = sizePfirst_utf8(strstream->next[0]) ;
+      len = sizePfirst_utf8(memstr->next[0]) ;
       /* not enough data ? */
       if (size < len) return ENOTEMPTY ;
    }
 
-   len = decodechar_utf8(strstream->next, uchar) ;
+   len = decodechar_utf8(memstr->next, uchar) ;
    if (!len) return EILSEQ ;
 
    utf8validator_t utf8validator = utf8validator_INIT ;
-   int err = validate_utf8validator(&utf8validator, len, strstream->next, 0) ;
+   int err = validate_utf8validator(&utf8validator, len, memstr->next, 0) ;
    if (err) return err ;
 
-   strstream->next += len ;
+   memstr->next += len ;
    return 0 ;
 }
 
-void skipillegalutf8_strstream(struct stringstream_t * strstream)
+void skipillegalutf8_memstream(memstream_ro_t * memstr)
 {
-   while (strstream->next < strstream->end) {
-      uint8_t size = sizePfirst_utf8(*strstream->next) ;
+   while (memstr->next < memstr->end) {
+      uint8_t size = sizePfirst_utf8(*memstr->next) ;
 
       if (size) {
          char32_t uchar ;
-         if (size > size_stringstream(strstream))
-            size = (uint8_t) size_stringstream(strstream) ;
-         else if (0 == peekutf8_stringstream(strstream, &uchar)) /*is next character valid ? */
+         if (size > size_memstream(memstr))
+            size = (uint8_t) size_memstream(memstr) ;
+         else if (0 == peekutf8_memstream(memstr, &uchar)) /*is next character valid ? */
             break ;
-         strstream->next += size ; // skip wrong character
+         memstr->next += size ; // skip wrong character
 
       } else {
-         ++ strstream->next ; // skip wrong byte
+         ++ memstr->next ; // skip wrong byte
       }
    }
 }
 
 // group: find-utf8
 
-const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, char32_t uchar)
+const uint8_t * findutf8_memstream(const memstream_ro_t * memstr, char32_t uchar)
 {
-   const size_t   size = size_stringstream(strstream) ;
+   const size_t   size = size_memstream(memstr) ;
    const uint8_t  * found  ;
    uint8_t        utf8c[3] ;
 
    if (uchar < 0x80) {
-      found = memchr(strstream->next, (int)uchar, size) ;
+      found = memchr(memstr->next, (int)uchar, size) ;
 
    } else if (uchar < 0x800) {
       //0b110xxxxx 0b10xxxxxx
       utf8c[0] = (uint8_t) (0x80 | (uchar & 0x3f)) ;
       uint32_t uc = uchar >> 6 ;
       uc   = (0xc0 | uc) ;
-      for (found = memchr(strstream->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(strstream->end - found))) {
+      for (found = memchr(memstr->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(memstr->end - found))) {
          if (utf8c[0] == found[1]) {
             break ;
          }
@@ -562,7 +562,7 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
       utf8c[0] = (uint8_t) (0x80 | (uc & 0x3f)) ;
       uc >>= 6 ;
       uc   = (0xe0 | uc) ;
-      for (found = memchr(strstream->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(strstream->end - found))) {
+      for (found = memchr(memstr->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(memstr->end - found))) {
          if (  utf8c[0] == found[1]
                && utf8c[1] == found[2]) {
             break ;
@@ -579,7 +579,7 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
       utf8c[0] = (uint8_t) (0x80 | (uc & 0x3f)) ;
       uc >>= 6 ;
       uc   = (0xf0 | uc) ;
-      for (found = memchr(strstream->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(strstream->end - found))) {
+      for (found = memchr(memstr->next, (int)uc, size); found; found = memchr(found, (int)uc, (size_t)(memstr->end - found))) {
          if (  utf8c[0] == found[1]
                && utf8c[1] == found[2]
                && utf8c[2] == found[3]) {
@@ -1035,33 +1035,33 @@ ONERR:
    return EINVAL ;
 }
 
-static int test_readstrstream(void)
+static int test_readmemstr(void)
 {
-   stringstream_t strstream ;
-   uint32_t       uchar       = 0 ;
-   uint32_t       uchar2      = 0 ;
+   memstream_ro_t memstr;
+   uint32_t       uchar  = 0;
+   uint32_t       uchar2 = 0;
 
-   // TEST nextutf8_stringstream, peekutf8_stringstream, skiputf8_stringstream: all characters
+   // TEST nextutf8_memstream, peekutf8_memstream, skiputf8_memstream: all characters
    for (char32_t i = 0; i < maxchar_utf8(); ++i) {
       uint8_t buffer[maxsize_utf8()] ;
       uint8_t len = encodechar_utf8(maxsize_utf8(), buffer, i) ;
-      TEST(0 == init_stringstream(&strstream, buffer, buffer+maxsize_utf8())) ;
-      TEST(0 == peekutf8_stringstream(&strstream, &uchar)) ;
+      init_memstream(&memstr, buffer, buffer+maxsize_utf8());
+      TEST(0 == peekutf8_memstream(&memstr, &uchar)) ;
       TEST(i == uchar) ;
-      TEST(strstream.next == buffer) ;
-      TEST(strstream.end  == buffer+maxsize_utf8()) ;
+      TEST(memstr.next == buffer) ;
+      TEST(memstr.end  == buffer+maxsize_utf8()) ;
       --uchar ;
-      TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+      TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
       TEST(i == uchar) ;
-      TEST(strstream.next == buffer+len) ;
-      TEST(strstream.end  == buffer+maxsize_utf8()) ;
-      strstream.next = buffer ;
-      TEST(0 == skiputf8_stringstream(&strstream)) ;
-      TEST(strstream.next == buffer+len) ;
-      TEST(strstream.end  == buffer+maxsize_utf8()) ;
+      TEST(memstr.next == buffer+len) ;
+      TEST(memstr.end  == buffer+maxsize_utf8()) ;
+      memstr.next = buffer ;
+      TEST(0 == skiputf8_memstream(&memstr)) ;
+      TEST(memstr.next == buffer+len) ;
+      TEST(memstr.end  == buffer+maxsize_utf8()) ;
    }
 
-   // TEST nextutf8_stringstream, peekutf8_stringstream, skiputf8_stringstream: check that values too low and values too high are recognized
+   // TEST nextutf8_memstream, peekutf8_memstream, skiputf8_memstream: check that values too low and values too high are recognized
    struct {
       const uint8_t *   str ;
       char32_t          uchr ;
@@ -1083,49 +1083,49 @@ static int test_readstrstream(void)
       { (const uint8_t*)"\xF4\x8F\xBF\xBF", 0x10ffff, 4 },   // 0x10ffff  0b11110100 0b10001111 0b10111111 0b10111111
    } ;
    for (unsigned i = 0; i < lengthof(minmaxstr); ++i) {
-      TEST(0 == init_stringstream(&strstream, minmaxstr[i].str, minmaxstr[i].str+4)) ;
+      init_memstream(&memstr, minmaxstr[i].str, minmaxstr[i].str+4);
       if (minmaxstr[i].uchr) {
-         TEST(0 == peekutf8_stringstream(&strstream, &uchar2)) ;
+         TEST(0 == peekutf8_memstream(&memstr, &uchar2)) ;
          TEST(uchar2 == minmaxstr[i].uchr) ;
       } else {
-         TEST(EILSEQ == peekutf8_stringstream(&strstream, &uchar2)) ;
+         TEST(EILSEQ == peekutf8_memstream(&memstr, &uchar2)) ;
       }
-      TEST(strstream.next == minmaxstr[i].str) ;
-      TEST(strstream.end  == minmaxstr[i].str+4) ;
+      TEST(memstr.next == minmaxstr[i].str) ;
+      TEST(memstr.end  == minmaxstr[i].str+4) ;
       if (minmaxstr[i].uchr) {
-         TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+         TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
          TEST(uchar == minmaxstr[i].uchr) ;
       } else {
-         TEST(EILSEQ == nextutf8_stringstream(&strstream, &uchar)) ;
+         TEST(EILSEQ == nextutf8_memstream(&memstr, &uchar)) ;
       }
-      TEST(strstream.next == minmaxstr[i].str+minmaxstr[i].offset) ;
-      TEST(strstream.end  == minmaxstr[i].str+4) ;
-      strstream.next = minmaxstr[i].str ;
+      TEST(memstr.next == minmaxstr[i].str+minmaxstr[i].offset) ;
+      TEST(memstr.end  == minmaxstr[i].str+4) ;
+      memstr.next = minmaxstr[i].str ;
       if (minmaxstr[i].uchr) {
-         TEST(0 == skiputf8_stringstream(&strstream)) ;
+         TEST(0 == skiputf8_memstream(&memstr)) ;
       } else {
-         TEST(EILSEQ == skiputf8_stringstream(&strstream)) ;
+         TEST(EILSEQ == skiputf8_memstream(&memstr)) ;
       }
-      TEST(strstream.next == minmaxstr[i].str+minmaxstr[i].offset) ;
-      TEST(strstream.end  == minmaxstr[i].str+4) ;
+      TEST(memstr.next == minmaxstr[i].str+minmaxstr[i].offset) ;
+      TEST(memstr.end  == minmaxstr[i].str+4) ;
    }
 
-   // TEST nextutf8_stringstream, peekutf8_stringstream, skiputf8_stringstream: ENODATA
+   // TEST nextutf8_memstream, peekutf8_memstream, skiputf8_memstream: ENODATA
    const uint8_t * empty = (const uint8_t *) "" ;
-   TEST(0 == init_stringstream(&strstream, empty, empty)) ;
-   TEST(ENODATA == nextutf8_stringstream(&strstream, &uchar)) ;
-   TEST(ENODATA == peekutf8_stringstream(&strstream, &uchar)) ;
-   TEST(ENODATA == skiputf8_stringstream(&strstream)) ;
-   TEST(strstream.next == empty) ;
-   TEST(strstream.end  == empty) ;
+   init_memstream(&memstr, empty, empty);
+   TEST(ENODATA == nextutf8_memstream(&memstr, &uchar));
+   TEST(ENODATA == peekutf8_memstream(&memstr, &uchar));
+   TEST(ENODATA == skiputf8_memstream(&memstr));
+   TEST(memstr.next == empty);
+   TEST(memstr.end  == empty);
 
-   // TEST nextutf8_stringstream, peekutf8_stringstream, skiputf8_stringstream: whole range of first byte, ENOTEMPTY, EILSEQ
+   // TEST nextutf8_memstream, peekutf8_memstream, skiputf8_memstream: whole range of first byte, ENOTEMPTY, EILSEQ
    char32_t fillchar[] = { 0x0, 0x1, 0x3F } ;
    for (char32_t i = 0; i < 256; ++i) {
       bool is_check_follow_bytes = false ;
       for (unsigned fci = 0; fci < lengthof(fillchar); ++fci) {
          uint8_t  buffer[4] = { (uint8_t)i, (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]) } ;
-         TEST(0 == init_stringstream(&strstream, buffer, buffer+4)) ;
+         init_memstream(&memstr, buffer, buffer+4);
          char32_t expect = 0 ;
          switch (sizePfirst_utf8(i)) {
          case 0:
@@ -1148,63 +1148,63 @@ static int test_readstrstream(void)
             break ;
          }
          if (i && !expect) {
-            TEST(EILSEQ == peekutf8_stringstream(&strstream, &uchar)) ;
-            TEST(strstream.next == buffer) ;
-            TEST(EILSEQ == nextutf8_stringstream(&strstream, &uchar)) ;
-            TEST(strstream.next == buffer) ;
-            TEST(EILSEQ == skiputf8_stringstream(&strstream)) ;
-            TEST(strstream.next == buffer) ;
+            TEST(EILSEQ == peekutf8_memstream(&memstr, &uchar)) ;
+            TEST(memstr.next == buffer) ;
+            TEST(EILSEQ == nextutf8_memstream(&memstr, &uchar)) ;
+            TEST(memstr.next == buffer) ;
+            TEST(EILSEQ == skiputf8_memstream(&memstr)) ;
+            TEST(memstr.next == buffer) ;
          } else {
             uchar = expect + 1 ;
-            TEST(0 == peekutf8_stringstream(&strstream, &uchar)) ;
+            TEST(0 == peekutf8_memstream(&memstr, &uchar)) ;
             TEST(uchar == expect) ;
-            TEST(strstream.next == buffer) ;
+            TEST(memstr.next == buffer) ;
             uchar = expect + 1 ;
-            TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+            TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
             TEST(uchar == expect) ;
-            TEST(strstream.next == buffer+sizePfirst_utf8(i)) ;
-            strstream.next = buffer ;
-            TEST(0 == skiputf8_stringstream(&strstream)) ;
-            TEST(strstream.next == buffer+sizePfirst_utf8(i)) ;
+            TEST(memstr.next == buffer+sizePfirst_utf8(i)) ;
+            memstr.next = buffer ;
+            TEST(0 == skiputf8_memstream(&memstr)) ;
+            TEST(memstr.next == buffer+sizePfirst_utf8(i)) ;
          }
-         TEST(strstream.end == buffer+4) ;
+         TEST(memstr.end == buffer+4) ;
          if (sizePfirst_utf8(i) > 1) {
-            TEST(0 == init_stringstream(&strstream, buffer, buffer + sizePfirst_utf8(i)-1)) ;
-            TEST(ENOTEMPTY == peekutf8_stringstream(&strstream, &uchar)) ;
-            TEST(strstream.next == buffer) ;
-            TEST(ENOTEMPTY == nextutf8_stringstream(&strstream, &uchar)) ;
-            TEST(strstream.next == buffer) ;
-            TEST(ENOTEMPTY == skiputf8_stringstream(&strstream)) ;
-            TEST(strstream.next == buffer) ;
-            TEST(strstream.end  == buffer+sizePfirst_utf8(i)-1) ;
+            init_memstream(&memstr, buffer, buffer + sizePfirst_utf8(i)-1);
+            TEST(ENOTEMPTY == peekutf8_memstream(&memstr, &uchar)) ;
+            TEST(memstr.next == buffer) ;
+            TEST(ENOTEMPTY == nextutf8_memstream(&memstr, &uchar)) ;
+            TEST(memstr.next == buffer) ;
+            TEST(ENOTEMPTY == skiputf8_memstream(&memstr)) ;
+            TEST(memstr.next == buffer) ;
+            TEST(memstr.end  == buffer+sizePfirst_utf8(i)-1) ;
          }
          if (!i || expect) {
             is_check_follow_bytes = true ;
             for (int i2 = sizePfirst_utf8(i)-1; i2 > 0; --i2) {
-               TEST(0 == init_stringstream(&strstream, buffer, buffer+4)) ;
+               init_memstream(&memstr, buffer, buffer+4);
                buffer[i2] = (uint8_t)(fillchar[fci]) ;
-               TEST(EILSEQ == peekutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == nextutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == skiputf8_stringstream(&strstream        )/*illegal fill byte*/) ;
+               TEST(EILSEQ == peekutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == nextutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == skiputf8_memstream(&memstr        )/*illegal fill byte*/) ;
                buffer[i2] = (uint8_t)(0x40 + fillchar[fci]) ;
-               TEST(EILSEQ == peekutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == nextutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == skiputf8_stringstream(&strstream        )/*illegal fill byte*/) ;
+               TEST(EILSEQ == peekutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == nextutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == skiputf8_memstream(&memstr        )/*illegal fill byte*/) ;
                buffer[i2] = (uint8_t)(0xc0 + fillchar[fci]) ;
-               TEST(EILSEQ == peekutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == nextutf8_stringstream(&strstream, &uchar)/*illegal fill byte*/) ;
-               TEST(EILSEQ == skiputf8_stringstream(&strstream        )/*illegal fill byte*/) ;
+               TEST(EILSEQ == peekutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == nextutf8_memstream(&memstr, &uchar)/*illegal fill byte*/) ;
+               TEST(EILSEQ == skiputf8_memstream(&memstr        )/*illegal fill byte*/) ;
                buffer[i2] = (uint8_t)(0x80 + fillchar[fci]) ;
-               TEST(0 == peekutf8_stringstream(&strstream, &uchar)/*OK*/) ;
-               TEST(strstream.next == buffer) ;
-               TEST(strstream.end  == buffer+4) ;
+               TEST(0 == peekutf8_memstream(&memstr, &uchar)/*OK*/) ;
+               TEST(memstr.next == buffer) ;
+               TEST(memstr.end  == buffer+4) ;
             }
          }
       }
       TEST(sizePfirst_utf8(i) == 0 || is_check_follow_bytes) ;
    }
 
-   // TEST skipillegalutf8_strstream: first byte encoded illegal
+   // TEST skipillegalutf8_memstream: first byte encoded illegal
    const size_t   utf8strsize = 8+6+4+2 ;
    const uint8_t* utf8str = (const uint8_t *) (
                            "\U0010ffff" "\U00010000"
@@ -1220,16 +1220,16 @@ static int test_readstrstream(void)
    illseq[11] = 0x80 ;
    illseq[14] = 0x80 ;
    illseq[16] = 0x80 ;
-   TEST(0 == init_stringstream(&strstream, illseq, illseq+utf8strsize)) ;
-   skipillegalutf8_strstream(&strstream) ;
-   TEST(strstream.next == illseq+utf8strsize-2) ;
-   TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+   init_memstream(&memstr, illseq, illseq+utf8strsize);
+   skipillegalutf8_memstream(&memstr) ;
+   TEST(memstr.next == illseq+utf8strsize-2) ;
+   TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
    TEST(0x7f == uchar) ;
-   TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+   TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
    TEST(0 == uchar) ;
-   TEST(ENODATA == nextutf8_stringstream(&strstream, &uchar)) ;
+   TEST(ENODATA == nextutf8_memstream(&memstr, &uchar)) ;
 
-   // TEST skipillegalutf8_strstream: follow byte encoded illegal
+   // TEST skipillegalutf8_memstream: follow byte encoded illegal
    memcpy(illseq, utf8str, utf8strsize) ;
    illseq[1] = 0xFF ;
    illseq[5] = 0xFF ;
@@ -1237,49 +1237,49 @@ static int test_readstrstream(void)
    illseq[12] = 0xFF;
    illseq[15] = 0xFF ;
    illseq[17] = 0xFF ;
-   TEST(0 == init_stringstream(&strstream, illseq, illseq+utf8strsize)) ;
-   skipillegalutf8_strstream(&strstream) ;
-   TEST(strstream.next == illseq+utf8strsize-2) ;
+   init_memstream(&memstr, illseq, illseq+utf8strsize);
+   skipillegalutf8_memstream(&memstr) ;
+   TEST(memstr.next == illseq+utf8strsize-2) ;
 
-   // TEST skipillegalutf8_strstream: last not fully encoded byte is also skipped
+   // TEST skipillegalutf8_memstream: last not fully encoded byte is also skipped
    memcpy(illseq, utf8str, utf8strsize) ;
-   TEST(0 == init_stringstream(&strstream, illseq, illseq+7)) ;
+   init_memstream(&memstr, illseq, illseq+7);
    illseq[1] = 0xFF ;
-   skipillegalutf8_strstream(&strstream) ;
-   TEST(ENODATA == nextutf8_stringstream(&strstream, &uchar)) ;
-   TEST(strstream.next == illseq+7) ;
+   skipillegalutf8_memstream(&memstr) ;
+   TEST(ENODATA == nextutf8_memstream(&memstr, &uchar)) ;
+   TEST(memstr.next == illseq+7) ;
 
    return 0 ;
 ONERR:
    return EINVAL ;
 }
 
-static int test_findstrstream(void)
+static int test_findmemstr(void)
 {
-   const char     * utf8str = "\U0010fff0\U0010ffff abcd\U0000fff0\U0000ffff abcd\u07f0\u07ff abcd\x7f abcd" ;
-   stringstream_t strstream = stringstream_INIT((const uint8_t*)utf8str, (const uint8_t*)utf8str+strlen(utf8str)) ;
+   const char     * utf8str = "\U0010fff0\U0010ffff abcd\U0000fff0\U0000ffff abcd\u07f0\u07ff abcd\x7f abcd";
+   memstream_ro_t   memstr  = memstream_INIT((const uint8_t*)utf8str, (const uint8_t*)utf8str + strlen(utf8str));
    const uint8_t  * found ;
 
-   // TEST findutf8_stringstream
-   found = findutf8_stringstream(&strstream, 0x10ffffu) ;
+   // TEST findutf8_memstream
+   found = findutf8_memstream(&memstr, 0x10ffffu);
    TEST(found ==  4+(const uint8_t*)utf8str) ;
-   found = findutf8_stringstream(&strstream, 0xffffu) ;
+   found = findutf8_memstream(&memstr, 0xffffu) ;
    TEST(found == 16+(const uint8_t*)utf8str) ;
-   found = findutf8_stringstream(&strstream, 0x7ffu) ;
+   found = findutf8_memstream(&memstr, 0x7ffu) ;
    TEST(found == 26+(const uint8_t*)utf8str) ;
-   found = findutf8_stringstream(&strstream, 0x7fu) ;
+   found = findutf8_memstream(&memstr, 0x7fu) ;
    TEST(found == 33+(const uint8_t*)utf8str) ;
-   found = findutf8_stringstream(&strstream, (char32_t) 'a') ;
+   found = findutf8_memstream(&memstr, (char32_t) 'a') ;
    TEST(found == 9+(const uint8_t*)utf8str) ;
 
-   // TEST findutf8_stringstream: character not in stream
-   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x10fffe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0xfffe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x7fe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x7e)) ;
+   // TEST findutf8_memstream: character not in stream
+   TEST(0 == findutf8_memstream(&memstr, (char32_t) 0x10fffe)) ;
+   TEST(0 == findutf8_memstream(&memstr, (char32_t) 0xfffe)) ;
+   TEST(0 == findutf8_memstream(&memstr, (char32_t) 0x7fe)) ;
+   TEST(0 == findutf8_memstream(&memstr, (char32_t) 0x7e)) ;
 
-   // TEST findutf8_stringstream: codepoint out of range
-   TEST(0 == findutf8_stringstream(&strstream, (char32_t)-1)) ;
+   // TEST findutf8_memstream: codepoint out of range
+   TEST(0 == findutf8_memstream(&memstr, (char32_t)-1)) ;
 
    return 0 ;
 ONERR:
@@ -1321,13 +1321,13 @@ static int test_speed(void)
    for (unsigned testrepeat = 0 ; testrepeat < 5; ++testrepeat) {
       TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
       for (unsigned decoderepeat = 0 ; decoderepeat < 5; ++decoderepeat) {
-         stringstream_t strstream = stringstream_INIT(data.buffer, data.buffer + sizeof(data.buffer)) ;
+         memstream_ro_t memstr = memstream_INIT(data.buffer, data.buffer + sizeof(data.buffer)) ;
          for (unsigned nrchars = 0 ; nrchars < sizeof(data.buffer)/4; ++nrchars) {
             char32_t uchar = 0 ;
-            TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+            TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
             TEST(uchar == 0x10FFFF) ;
          }
-         TEST(strstream.next == strstream.end) ;
+         TEST(memstr.next == memstr.end) ;
       }
       TEST(0 == expirationcount_systimer(timer, &microsec)) ;
       TEST(0 == stop_systimer(timer)) ;
@@ -1350,12 +1350,12 @@ int unittest_string_utf8()
 {
    if (test_utf8())           goto ONERR;
    if (test_utf8validator())  goto ONERR;
-   if (test_readstrstream())  goto ONERR;
-   if (test_findstrstream())  goto ONERR;
+   if (test_readmemstr())     goto ONERR;
+   if (test_findmemstr())     goto ONERR;
    if (test_speed())          goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 #endif

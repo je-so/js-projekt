@@ -19,7 +19,7 @@
 #include "C-kern/api/io/reader/utf8scanner.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/reader/filereader.h"
-#include "C-kern/api/string/stringstream.h"
+#include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/string/utf8.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -242,7 +242,7 @@ int readbuffer_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
       setsize_splitstring(&scan->scanned_token, 0, strsize) ;
    }
 
-   err = readnext_filereader(frd, genericcast_stringstream(scan)) ;
+   err = readnext_filereader(frd, cast_memstreamro(scan, ));
    if (err) goto ONERR;
 
    uint8_t stridx = nrofparts_splitstring(&scan->scanned_token) ;
@@ -553,7 +553,7 @@ static int test_bufferio(directory_t * tempdir)
    TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
    TEST(0 == init_utf8scanner(&scan)) ;
    // cleartoken_utf8scanner does nothing in case of already cleared token
-   stringstream_t dummy ;
+   memstream_ro_t dummy;
    TEST(0 == readnext_filereader(&freader, &dummy)) ;
    TEST(oldfree == freader.nrfreebuffer+1) ;
    TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;

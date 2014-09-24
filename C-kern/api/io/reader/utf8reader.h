@@ -28,7 +28,7 @@
 
 /* typedef: struct utf8reader_t
  * Exports <utf8reader_t>. */
-typedef struct utf8reader_t            utf8reader_t ;
+typedef struct utf8reader_t utf8reader_t;
 
 
 // section: Functions
@@ -38,7 +38,7 @@ typedef struct utf8reader_t            utf8reader_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_reader_utf8reader
  * Test <utf8reader_t>. */
-int unittest_io_reader_utf8reader(void) ;
+int unittest_io_reader_utf8reader(void);
 #endif
 
 
@@ -48,11 +48,11 @@ int unittest_io_reader_utf8reader(void) ;
  * The current read position is also handled by this object.
  * Reading a character advances the text position. */
 struct utf8reader_t {
-   const uint8_t        * next ;
-   const uint8_t        * end ;
-   textpos_t            pos ;
-   mmfile_t             mmfile ;
-} ;
+   const uint8_t *   next;
+   const uint8_t *   end;
+   textpos_t         pos;
+   mmfile_t          mmfile;
+};
 
 // group: lifetime
 
@@ -118,16 +118,14 @@ size_t unreadsize_utf8reader(utf8reader_t * utfread) ;
  * Reads next byte and increments column by one.
  * The value is returned in nextbyte.
  *
- * See <nextutf8_stringstream> for a list of error codes.
- * Use <skipchar_utf8reader> or <skipbytes_utf8reader> to move the
- * reading position in case of returned error EILSEQ. */
-int nextbyte_utf8reader(utf8reader_t * utfread, uint8_t * nextbyte) ;
+ * Returns ENODATA in case of utfread containing no more bytes to read. */
+int nextbyte_utf8reader(utf8reader_t * utfread, uint8_t * nextbyte);
 
 /* function: nextchar_utf8reader
  * Decodes next unicode character from UTF-8 into UTF-32 encoding.
  * The returned value in nxtchar corresponds to a unicode codepoint.
  *
- * See <nextutf8_stringstream> for a list of error codes.
+ * See <nextutf8_memstream> for a list of error codes.
  * Use <skipchar_utf8reader> or <skipbytes_utf8reader> to move the
  * reading position in case of returned error EILSEQ. */
 int nextchar_utf8reader(utf8reader_t * utfread, char32_t * nxtchar) ;
@@ -222,17 +220,17 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
  * Implements <utf8reader_t.nextchar_utf8reader>. */
 #define nextchar_utf8reader(utfread, nxtchar)            \
          ( __extension__ ({                              \
-            typeof(utfread) _rd1 = (utfread) ;           \
-            int _err2 = nextutf8_stringstream(           \
-                  genericcast_stringstream(_rd1),        \
-                  (nxtchar)) ;                           \
+            typeof(utfread) _rd1 = (utfread);            \
+            int _err2 = nextutf8_memstream(              \
+                  cast_memstreamro(_rd1,),               \
+                  (nxtchar));                            \
             if (0 == _err2) {                            \
-               incrcolumn_textpos(&_rd1->pos) ;          \
+               incrcolumn_textpos(&_rd1->pos);           \
                if ('\n' == *(nxtchar)) {                 \
-                  incrline_textpos(&_rd1->pos) ;         \
+                  incrline_textpos(&_rd1->pos);          \
                }                                         \
             }                                            \
-            _err2 ;                                      \
+            _err2;                                       \
          }))
 
 /* define: column_utf8reader
@@ -287,7 +285,7 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
             typeof(utfread) _rd2  = (utfread) ;          \
             int    _err2 ;                               \
             size_t _off2 = (offset) ;                    \
-            size_t _size = unreadsize_utf8reader(_rd2) ; \
+            size_t _size = unreadsize_utf8reader(_rd2);  \
             if (_size > _off2) {                         \
                *(nextascii) = _rd2->next[_off2] ;        \
                _err2 = 0 ;                               \

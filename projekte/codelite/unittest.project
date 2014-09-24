@@ -30,7 +30,6 @@
       <File Name="../../C-kern/api/string/urlencode_string.h"/>
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
-      <File Name="../../C-kern/api/string/stringstream.h"/>
       <File Name="../../C-kern/api/string/textpos.h"/>
       <File Name="../../C-kern/api/string/splitstring.h"/>
     </VirtualDirectory>
@@ -212,7 +211,6 @@
           <File Name="../../C-kern/api/io/writer/log/logbuffer.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/iochannel.h"/>
     </VirtualDirectory>
@@ -275,7 +273,6 @@
       </VirtualDirectory>
       <File Name="../../C-kern/io/writer/errlog.c"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/io/iocallback.c"/>
     <VirtualDirectory Name="filesystem">
       <File Name="../../C-kern/io/filesystem/fileutil.c"/>
     </VirtualDirectory>
@@ -340,7 +337,6 @@
     <File Name="../../C-kern/string/urlencode_string.c"/>
     <File Name="../../C-kern/string/base64encode_string.c"/>
     <File Name="../../C-kern/string/format_string.c"/>
-    <File Name="../../C-kern/string/stringstream.c"/>
     <File Name="../../C-kern/string/textpos.c"/>
     <File Name="../../C-kern/string/splitstring.c"/>
   </VirtualDirectory>

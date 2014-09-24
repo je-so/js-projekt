@@ -17,7 +17,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/string/stringstream.h"
+#include "C-kern/api/memory/memstream.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #endif
@@ -56,12 +56,6 @@ int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, 
 ONERR:
    TRACEEXIT_ERRLOG(err);
    return err ;
-}
-
-void initPstream_string(/*out*/string_t * str, const struct stringstream_t * strstream)
-{
-   str->addr = next_stringstream(strstream) ;
-   str->size = size_stringstream(strstream) ;
 }
 
 // group: compare
@@ -141,9 +135,8 @@ ONERR:
 
 static int test_initfree(void)
 {
-   string_t       str ;
-   stringstream_t strstream ;
-   uint8_t        buffer[256] ;
+   string_t str;
+   uint8_t  buffer[256];
 
    // TEST string_FREE
    str = (string_t) string_FREE ;
@@ -230,12 +223,22 @@ static int test_initfree(void)
    TEST(str.addr == &buffer[1]) ;
    TEST(str.size == 3) ;
 
-   // TEST initPstream_string
+   // TEST initPstream_string: with memstream_ro_t
    for (unsigned i = 0; i <= sizeof(buffer); ++i) {
-      TEST(0 == init_stringstream(&strstream, buffer+i, buffer+sizeof(buffer))) ;
-      initPstream_string(&str, &strstream) ;
-      TEST(addr_string(&str) == buffer+i) ;
-      TEST(size_string(&str) == sizeof(buffer)-i) ;
+      memstream_ro_t memstr;
+      init_memstream(&memstr, buffer+i, buffer+sizeof(buffer));
+      initPstream_string(&str, &memstr);
+      TEST(addr_string(&str) == buffer+i);
+      TEST(size_string(&str) == sizeof(buffer)-i);
+   }
+
+   // TEST initPstream_string: with memstream_t
+   for (unsigned i = 0; i <= sizeof(buffer); ++i) {
+      memstream_t memstr;
+      init_memstream(&memstr, buffer+i, buffer+sizeof(buffer));
+      initPstream_string(&str, &memstr);
+      TEST(addr_string(&str) == buffer+i);
+      TEST(size_string(&str) == sizeof(buffer)-i);
    }
 
    return 0 ;

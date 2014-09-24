@@ -20,12 +20,12 @@
 #include "C-kern/api/io/accessmode.h"
 
 // forward
-struct directory_t ;
-struct stringstream_t ;
+struct directory_t;
+struct memstream_ro_t;
 
 /* typedef: struct filereader_t
  * Export <filereader_t> into global namespace. */
-typedef struct filereader_t            filereader_t ;
+typedef struct filereader_t filereader_t;
 
 
 // section: Functions
@@ -156,7 +156,7 @@ void setioerror_filereader(filereader_t * frd, int ioerr) ;
  * ENODATA - All data read.
  * ENOBUFS - No more buffer available. Call <release_filereader> first before calling this function.
  * EIO     - Input/Output error (ENOMEM or other error codes are also possible). */
-int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer) ;
+int readnext_filereader(filereader_t * frd, /*out*/struct memstream_ro_t * buffer) ;
 
 /* function: release_filereader
  * Releases the oldest read buffer.

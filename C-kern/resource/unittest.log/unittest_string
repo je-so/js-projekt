@@ -1,36 +1,36 @@
-[1: 1410603206.662559s]
+[1: 1411405247.962340s]
 initsubstr_string() C-kern/string/string.c:50
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1410603206.662568s]
+[1: 1411405247.962345s]
 initsubstr_string() C-kern/string/string.c:50
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1410603206.662577s]
+[1: 1411405247.962349s]
 initse_string() C-kern/string/string.c:34
 Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
-[1: 1410603206.664061s]
-substr_string() C-kern/string/string.c:97
+[1: 1411405247.963095s]
+substr_string() C-kern/string/string.c:91
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1410603206.664065s]
-substr_string() C-kern/string/string.c:97
+[1: 1411405247.963097s]
+substr_string() C-kern/string/string.c:91
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1410603206.664070s]
-substr_string() C-kern/string/string.c:97
+[1: 1411405247.963099s]
+substr_string() C-kern/string/string.c:91
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1410603206.664074s]
-substr_string() C-kern/string/string.c:97
+[1: 1411405247.963101s]
+substr_string() C-kern/string/string.c:91
 Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1410603206.664078s]
-shrinkleft_string() C-kern/string/string.c:112
+[1: 1411405247.963103s]
+shrinkleft_string() C-kern/string/string.c:106
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
-[1: 1410603206.664082s]
-shrinkright_string() C-kern/string/string.c:127
+[1: 1411405247.963105s]
+shrinkright_string() C-kern/string/string.c:121
 Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))

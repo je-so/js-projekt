@@ -34,11 +34,11 @@
 
 /* typedef: struct utf8validator_t
  * Export <utf8validator_t> into global namespace. */
-typedef struct utf8validator_t            utf8validator_t ;
+typedef struct utf8validator_t utf8validator_t;
 
 /* variable: g_utf8_bytesperchar
  * Stores the length in bytes of an encoded utf8 character indexed by the first encoded byte. */
-extern uint8_t g_utf8_bytesperchar[256] ;
+extern uint8_t g_utf8_bytesperchar[256];
 
 
 // section: Functions
@@ -47,8 +47,8 @@ extern uint8_t g_utf8_bytesperchar[256] ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_string_utf8
- * Test <escape_char>. */
-int unittest_string_utf8(void) ;
+ * Test UTF-8 functions. */
+int unittest_string_utf8(void);
 #endif
 
 
@@ -197,55 +197,56 @@ int validate_utf8validator(utf8validator_t * utf8validator, size_t size, const u
 
 
 
-// struct: stringstream_t
-struct stringstream_t;
+// struct: memstream_t
+// Extend memstream_ro_t with UTF-8 capability.
+struct memstream_ro_t;
 
 // group: read-utf8
 
-/* function: nextutf8_stringstream
- * Reads next utf-8 encoded character from strstream.
+/* function: nextutf8_memstream
+ * Reads next utf-8 encoded character from memstr.
  * The character is returned as unicode character (codepoint) in uchar.
- * The next pointer of strstream is incremented with the number of decoded bytes.
+ * The next pointer of memstr is incremented with the number of decoded bytes.
  *
  * Returns:
  * 0         - UTF8 character decoded and returned in uchar and memory pointer is moved to next character.
- * ENODATA   - strstream is empty.
+ * ENODATA   - memstr is empty.
  * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
  *             are not enough bytes left in the string.
- * EILSEQ    - The next multibyte sequence is not encoded in a correct way. strstream is not changed.
- *             Use <skipillegalutf8_strstream> to skip all illegal bytes. */
-int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/char32_t * uchar) ;
+ * EILSEQ    - The next multibyte sequence is not encoded in a correct way. memstr is not changed.
+ *             Use <skipillegalutf8_memstream> to skip all illegal bytes. */
+int nextutf8_memstream(struct memstream_ro_t * memstr, /*out*/char32_t * uchar) ;
 
-/* function: peekutf8_stringstream
- * Same as <nextutf8_stringstream> except the strstream is not changed.
+/* function: peekutf8_memstream
+ * Same as <nextutf8_memstream> except that memstr is not changed.
  * Calling this function more than once returns always the same value in uchar. */
-int peekutf8_stringstream(const struct stringstream_t * strstream, /*out*/char32_t * uchar) ;
+int peekutf8_memstream(const struct memstream_ro_t * memstr, /*out*/char32_t * uchar) ;
 
-/* function: skiputf8_stringstream
- * Skips next utf-8 encoded character from strstream.
- * The next pointer of strstream is incremented with the size of the next character.
+/* function: skiputf8_memstream
+ * Skips next utf-8 encoded character from memstr.
+ * The next pointer of memstr is incremented with the size of the next character.
  *
  * Returns:
  * 0         - Memory pointer is moved to next character.
- * ENODATA   - strstream is empty.
+ * ENODATA   - memstr is empty.
  * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
  *             are not enough bytes left in the string.
- * EILSEQ    - The next multibyte sequence is not encoded in a correct way. strstream is not changed.
- *             Use <skipillegalutf8_strstream> to skip all illegal bytes. */
-int skiputf8_stringstream(struct stringstream_t * strstream) ;
+ * EILSEQ    - The next multibyte sequence is not encoded in a correct way. memstr is not changed.
+ *             Use <skipillegalutf8_memstream> to skip all illegal bytes. */
+int skiputf8_memstream(struct memstream_ro_t * memstr);
 
-/* function: skipillegalutf8_strstream
+/* function: skipillegalutf8_memstream
  * Skips bytes until end of stream or the begin of a valid utf-8 encoding is found. */
-void skipillegalutf8_strstream(struct stringstream_t * strstream) ;
+void skipillegalutf8_memstream(struct memstream_ro_t * memstr);
 
 // group: find-utf8
 
-/* function: findutf8_stringstream
- * Searches for unicode character in utf8 encoded stringstream.
+/* function: findutf8_memstream
+ * Searches for unicode character in utf8 encoded string described by memstr.
  * The returned value points to the start addr of the multibyte sequence
- * in the unread buffer. A return value of 0 inidcates that *strstream* does not contain the multibyte sequence
+ * in the unread buffer. A return value of 0 inidcates that *memstr* does not contain the multibyte sequence
  * or that uchar is bigger than <maxchar_utf8> and therefore invalid. */
-const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, char32_t uchar) ;
+const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_t uchar);
 
 
 
@@ -313,30 +314,30 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
 #define sizeprefix_utf8validator(utf8validator) \
          ((utf8validator)->size_of_prefix)
 
-// group: stringstream_t
+// group: memstream_t
 
-/* define: peekutf8_stringstream
- * Implements <stringstream_t.peekutf8_stringstream>. */
-#define peekutf8_stringstream(strstream, uchar)    \
-         (  __extension__ ({                       \
-            stringstream_t * _strstr =             \
-                              (strstream) ;        \
-            nextutf8_stringstream(                 \
-               &(stringstream_t)                   \
-                  stringstream_INIT(               \
-                     _strstr->next,                \
-                     _strstr->end), uchar) ;       \
+/* define: peekutf8_memstream
+ * Implements <memstream_t.peekutf8_memstream>. */
+#define peekutf8_memstream(memstr, uchar) \
+         (  __extension__ ({              \
+            typeof(memstr) _m;            \
+            _m = (memstr);                \
+            memstream_ro_t _m2 =          \
+               memstream_INIT(            \
+                  _m->next, _m->end);     \
+            nextutf8_memstream( &_m2,     \
+                                 uchar);  \
          }))
 
-/* define: skiputf8_stringstream
- * Implements <stringstream_t.skiputf8_stringstream>. */
-#define skiputf8_stringstream(strstream)           \
-         ( __extension__ ({                        \
-            char32_t _uchar ;                      \
-            nextutf8_stringstream(                 \
-               (strstream),                        \
-               &_uchar                             \
-            ) ;                                    \
+/* define: skiputf8_memstream
+ * Implements <memstream_t.skiputf8_memstream>. */
+#define skiputf8_memstream(memstr) \
+         ( __extension__ ({            \
+            char32_t _uchar;           \
+            nextutf8_memstream(        \
+               (memstr),               \
+               &_uchar                 \
+            );                         \
          }))
 
 

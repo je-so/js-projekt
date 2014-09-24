@@ -18,11 +18,11 @@
 #define CKERN_API_STRING_HEADER
 
 // forward
-struct stringstream_t ;
+struct memstream_ro_t;
 
 /* typedef: struct string_t
  * Export <string_t>. */
-typedef struct string_t                string_t ;
+typedef struct string_t string_t;
 
 
 // section: Functions
@@ -31,8 +31,8 @@ typedef struct string_t                string_t ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_string
- * Test <escapechar_string>. */
-int unittest_string(void) ;
+ * Test type <string_t>. */
+int unittest_string(void);
 #endif
 
 
@@ -115,13 +115,13 @@ int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * 
 int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, size_t start_offset, size_t size) ;
 
 /* function: initPstream_string
- * Initializes str with content of <stringstream_t>.
- * The string points to the unread string buffer of <stringstream_t>. */
-void initPstream_string(/*out*/string_t * str, const struct stringstream_t * strstream) ;
+ * Initializes str with content of memstr.
+ * The string points to the memory block referenced by memstr (see <memstream_ro_t>). */
+void initPstream_string(/*out*/string_t * str, const struct memstream_ro_t * memstr);
 
 /* function: free_string
  * Sets string to <string_FREE>. */
-void free_string(string_t * str) ;
+void free_string(string_t * str);
 
 // group: query
 
@@ -261,6 +261,15 @@ static inline void initcopy_string(/*out*/string_t * str, const string_t * restr
 {
    *str = *srcstr ;
 }
+
+/* define: initPstream_string
+ * Implements <string_t.initPstream_string>. */
+#define initPstream_string(str, memstr) \
+         do {                                   \
+            string_t * _s = (str);              \
+            _s->addr = next_memstream(memstr);  \
+            _s->size = size_memstream(memstr);  \
+         } while(0)
 
 /* define: isempty_string
  * Implements <string_t.isempty_string>. */

@@ -122,7 +122,7 @@ bool isnext_memstream(const memstream_t * memstr);
  * Returns the number of unread bytes. */
 size_t size_memstream(const memstream_t * memstr);
 
-/* function: size_memstream
+/* function: offset_memstream
  * Returns the offset of the next pointer from start.
  * Parameter start must be the value given in <init_memstream> or <memstream_INIT>. */
 size_t offset_memstream(const memstream_t * memstr, uint8_t * start);
@@ -315,8 +315,8 @@ static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr)
 #define offset_memstream(memstr, start) \
          ((size_t)((memstr)->next - (start)))
 
-/* define: write_memstream
- * Implements <memstream_t.write_memstream>. */
+/* define: printf_memstream
+ * Implements <memstream_t.printf_memstream>. */
 #define printf_memstream(memstr, format, ...) \
          ( __extension__ ({                     \
             memstream_t * _m;                   \

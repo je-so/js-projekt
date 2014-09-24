@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Sep.24  16:24:49
+GenerationDate  := 2014.Sep.24  16:46:52
 GeneratedBy     := je-so
 
 ## Debug
@@ -173,7 +173,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
- $(ObjectDir_Debug)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o \
@@ -286,7 +285,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!textpos.c.o \
  $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
- $(ObjectDir_Release)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!syncqueue.c.o \
@@ -600,9 +598,6 @@ $(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
@@ -933,9 +928,6 @@ $(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c

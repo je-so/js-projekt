@@ -173,7 +173,7 @@ struct syncfunc_param_t {
  * >    start_syncfunc(sfparam, sfcmd, ONRUN, ONERR);
  * >    goto ONERR;
  * > ONRUN:
- * >    void * state = malloc(...);
+ * >    void * state = alloc_memory(...);
  * >    setstate_syncfunc(sfparam, state);
  * >    ...
  * >    yield_syncfunc(sfparam);
@@ -184,7 +184,7 @@ struct syncfunc_param_t {
  * >    ...
  * >    exit_syncfunc(sfparam, 0);
  * > ONERR:
- * >    free( state_syncfunc(sfparam) );
+ * >    free_memory( state_syncfunc(sfparam) );
  * >    exit_syncfunc(sfparam, err);
  * > }
  * */
@@ -434,7 +434,7 @@ void setstate_syncfunc(syncfunc_param_t * sfparam, void * new_state);
  * synccmd_CONTINUE    - Springt zu der Adresse, die bei der vorherigen Ausführung in
  *                       <syncfunc_param_t.contlabel> gespeichert wurde.
  * synccmd_EXIT        - Springe zu Label onexit. Dieser Zweig sollte alle Ressourcen freigeben
- *                       (free(<state_syncfunc>(sfparam)) und <exit_syncfunc>(sfparam,EINTR) aufrufen.
+ *                       (free_memory(<state_syncfunc>(sfparam)) und <exit_syncfunc>(sfparam,EINTR) aufrufen.
  * Alle anderen Werte  - Das Makro tut nichts und kehrt zum Aufrufer zurück.
  * */
 void start_syncfunc(const syncfunc_param_t * sfparam, uint32_t sfcmd, LABEL onrun, IDNAME onexit);

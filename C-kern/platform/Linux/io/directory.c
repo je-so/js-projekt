@@ -203,7 +203,6 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
    int            fdd      = -1 ;
    int            openatfd = AT_FDCWD ;
    DIR *          sysdir   = 0 ;
-   char *         cwd      = 0 ;
    const bool     is_absolute = ('/' == dir_path[0]) ;
    const char *   path        = dir_path[0] ? dir_path : "." ;
 
@@ -227,19 +226,18 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       PRINTCSTR_ERRLOG(path) ;
       goto ONERR;
    }
-   fdd = iochannel_FREE ; // is used internally
+   // fdd is now used by sysdir
 
-   *(DIR**)dir = sysdir ;
+   *(DIR**)dir = sysdir;
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_iochannel(&fdd) ;
+   free_iochannel(&fdd);
    if (sysdir) {
-      (void) closedir(sysdir) ;
+      (void) closedir(sysdir);
    }
-   free(cwd) ;
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix)
@@ -590,7 +588,7 @@ static int test_initfree(void)
    fd_oldwd = open( ".", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    TEST(-1 != fd_oldwd) ;
 
-   // TEST new, double free (current working dir ".")
+   // TEST new_directory: current working dir "."
    TEST(0 == new_directory(&dir, ".", NULL)) ;
    TEST(0 != dir) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
@@ -601,13 +599,15 @@ static int test_initfree(void)
       }
       TEST(0 == strcmp(fname, fndfiles.gl_pathv[nr_files])) ;
    }
-   globfree(&fndfiles) ;
+   globfree(&fndfiles);
+
+   // TEST delete_directory
    TEST(0 == delete_directory(&dir)) ;
    TEST(!dir) ;
    TEST(0 == delete_directory(&dir)) ;
    TEST(!dir) ;
 
-   // TEST new, double free (current working dir "")
+   // TEST new_directory: current working dir ""
    TEST(0 == new_directory(&dir, "", NULL)) ;
    TEST(0 != dir) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
@@ -618,7 +618,9 @@ static int test_initfree(void)
       }
       TEST(0 == strcmp(fname, fndfiles.gl_pathv[nr_files])) ;
    }
-   globfree(&fndfiles) ;
+   globfree(&fndfiles);
+
+   // TEST delete_directory
    TEST(0 == delete_directory(&dir)) ;
    TEST(!dir) ;
    TEST(0 == delete_directory(&dir)) ;
@@ -633,7 +635,7 @@ static int test_initfree(void)
    TEST(0 == glob(str_cstring(&tmppath), GLOB_NOSORT, 0, &fndfiles)) ;
    TEST(1 == fndfiles.gl_pathc) ;
    TEST(0 == strcmp(fndfiles.gl_pathv[0], str_cstring(&tmppath))) ;
-   globfree(&fndfiles) ;
+   globfree(&fndfiles);
 
    // TEST init relative, double free
    TEST(0 == mkdirat(io_directory(temp_dir), "reldir.123", 0777)) ;
@@ -657,7 +659,7 @@ static int test_initfree(void)
       }
       TEST(0 == strcmp(fname, fndfiles.gl_pathv[nr_files])) ;
    }
-   globfree(&fndfiles) ;
+   globfree(&fndfiles);
    TEST(0 == delete_directory(&dir)) ;
    TEST(0 == new_directory(&dir, ".", temp_dir)) ;
    TEST(0 == delete_directory(&dir)) ;
@@ -672,7 +674,7 @@ static int test_initfree(void)
       }
       TEST(0 == strcmp(fname, 1+fndfiles.gl_pathv[nr_files])) ;
    }
-   globfree(&fndfiles) ;
+   globfree(&fndfiles);
    TEST(0 == delete_directory(&dir)) ;
 
    // TEST makedirecory & makefile

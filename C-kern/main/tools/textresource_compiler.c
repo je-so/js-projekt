@@ -25,10 +25,10 @@
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/string/stringstream.h"
 
 
 typedef struct outconfig_t                outconfig_t ;

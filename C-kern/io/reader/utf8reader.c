@@ -18,8 +18,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/string/stringstream.h"
 #include "C-kern/api/math/int/log2.h"
+#include "C-kern/api/memory/memstream.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -74,7 +74,7 @@ ONERR:
 
 int skipline_utf8reader(utf8reader_t * utfread)
 {
-   const uint8_t * found = findbyte_stringstream(genericcast_stringstream(utfread), '\n') ;
+   const uint8_t * found = findbyte_memstream(cast_memstreamro(utfread,), '\n');
 
    if (found) {
       utfread->next = ++ found ;

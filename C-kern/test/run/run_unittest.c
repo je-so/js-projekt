@@ -209,7 +209,6 @@ int run_unittest(void * argv)
       RUN(unittest_string_cstring);
       RUN(unittest_string_base64encode);
       RUN(unittest_string_splitstring);
-      RUN(unittest_string_stringstream);
       RUN(unittest_string_textpos);
       RUN(unittest_string_urlencode);
       RUN(unittest_string_utf8);
