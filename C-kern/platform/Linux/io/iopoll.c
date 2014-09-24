@@ -394,10 +394,10 @@ static int test_waitevents(void)
    // prepare
    memset(fd, -1, sizeof(fd)) ;
    for (unsigned i = 0; i < lengthof(fd); ++ i) {
-      TEST(0 == pipe2(fd[i], O_CLOEXEC|O_NONBLOCK)) ;
+      TEST(0 == pipe2(fd[i], O_CLOEXEC|O_NONBLOCK));
       TEST(2 == write(fd[i][1], "89", 2)) ;
    }
-   TEST(0 == init_iopoll(&iopoll)) ;
+   TEST(0 == init_iopoll(&iopoll));
 
    // TEST wait_iopoll: calling it twice returns the same nr of events (level triggered)
    for (unsigned i = 0; i < lengthof(fd); ++ i) {
@@ -503,7 +503,7 @@ static int test_waitevents(void)
    }
 
    // TEST wait_iopoll: close removes files except if another fd refers to the same system file object
-   fd[0][1] = dup(fd[0][0]) ;
+   TEST(0 == initcopy_iochannel(&fd[0][1], fd[0][0]));
    for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == free_iochannel(&fd[i][0])) ;
    }
@@ -516,7 +516,7 @@ static int test_waitevents(void)
    TEST(0 == nr_events) ;
 
    // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_CLOSE
-   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK));
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 10))) ;
    TEST(1 == write(fd[0][1], "1", 1)) ;
    TEST(0 == free_iochannel(&fd[0][1])) ;
@@ -529,7 +529,7 @@ static int test_waitevents(void)
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
    TEST(ioevents[0].eventid.val32 == 11) ;
-   TEST(0 == free_iochannel(&fd[0][0])) ;
+   TEST(0 == free_iochannel(&fd[0][0]));
 
    // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_ERROR
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
@@ -587,7 +587,7 @@ static int test_waitevents(void)
    TEST(0 == free_iochannel(&fd[0][1])) ;
 
    // TEST wait_iopoll: waits ~ 40 milli seconds for events
-   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK));
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 0))) ;
    timevalue_t starttv ;
    timevalue_t endtv ;
@@ -597,35 +597,56 @@ static int test_waitevents(void)
    int64_t millisec = diffms_timevalue(&endtv, &starttv) ;
    TEST(30 <= millisec && millisec <= 50) ;
 
-   // TEST EINVAL: queue size zero
+   // TEST wait_iopoll: EINVAL, queue size zero
    TEST(EINVAL == wait_iopoll(&iopoll, &nr_events, 0, ioevents, 0)) ;
 
-   // TEST EINVAL: queue size too large
+   // TEST wait_iopoll: EINVAL, queue size too large
    TEST(EINVAL == wait_iopoll(&iopoll, &nr_events, INT_MAX, ioevents, 0)) ;
 
-   // TEST EINVAL: file descriptor is not of type epoll
+   // TEST wait_iopoll: EINVAL, file descriptor is not of type epoll
    int old = iopoll.sys_poll ;
    iopoll.sys_poll = fd[0][0] ;
    TEST(EINVAL == wait_iopoll(&iopoll, &nr_events, 1, ioevents, 0)) ;
    iopoll.sys_poll = old ;
 
-   // TEST EBADF: iopoll system object freed
+   // TEST wait_iopoll: EBADF, iopoll system object freed
    TEST(0 == free_iopoll(&iopoll)) ;
    TEST(EBADF == wait_iopoll(&iopoll, &nr_events, 1, ioevents, 0)) ;
+
+   // TEST wait_iopoll: two file descriptors referring the same file object are reported twice
+   TEST(0 == free_iochannel(&fd[1][0]));
+   TEST(0 == initcopy_iochannel(&fd[1][0], fd[0][0]));
+   TEST(0 == init_iopoll(&iopoll));
+   TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 1)));
+   TEST(0 == registerfd_iopoll(&iopoll, fd[1][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 2)));
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0));
+   TEST(0 == nr_events);
+   TEST(4 == write(fd[0][1], "data", 4));
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0));
+   TEST(2 == nr_events);
+   if (ioevents[0].eventid.val64 > ioevents[1].eventid.val64) {
+      uint64_t temp = ioevents[1].eventid.val64;
+      ioevents[1].eventid.val64 = ioevents[0].eventid.val64;
+      ioevents[0].eventid.val64 = temp;
+   }
+   for (unsigned i = 0; i < 2; ++ i) {
+      TEST(ioevents[i].ioevents      == ioevent_READ);
+      TEST(ioevents[i].eventid.val64 == i+1);
+   }
 
    // unprepare
    TEST(0 == free_iopoll(&iopoll)) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      free_iochannel(fd[i]) ;
-      free_iochannel(fd[i]+1) ;
+      TEST(0 == free_iochannel(&fd[i][0]));
+      TEST(0 == free_iochannel(&fd[i][1]));
    }
 
    return 0 ;
 ONERR:
    free_iopoll(&iopoll) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      free_iochannel(fd[i]) ;
-      free_iochannel(fd[i]+1) ;
+      free_iochannel(&fd[i][0]);
+      free_iochannel(&fd[i][1]);
    }
    return EINVAL ;
 }

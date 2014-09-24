@@ -19,11 +19,11 @@
 #define CKERN_IO_IOPOLL_HEADER
 
 // forward
-struct ioevent_t ;
+struct ioevent_t;
 
 /* typedef: struct iopoll_t
  * Export <iopoll_t> into global namespace. */
-typedef struct iopoll_t                   iopoll_t ;
+typedef struct iopoll_t iopoll_t;
 
 
 // section: Functions
@@ -33,7 +33,7 @@ typedef struct iopoll_t                   iopoll_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_iopoll
  * Test <iopoll_t> functionality. */
-int unittest_io_iopoll(void) ;
+int unittest_io_iopoll(void);
 #endif
 
 
@@ -43,13 +43,28 @@ int unittest_io_iopoll(void) ;
  * The occurred events can be queried for with help of <wait_iopoll>.
  * A file descriptor can be registered with a call to <registerfd_iopoll>.
  * The underlying system I/O object associated with a file descriptor is the event
- * generating object. */
+ * generating object.
+ *
+ * Level Triggered:
+ * <wait_iopoll> returns after every call all fiuledescriptor which are ready
+ * for their registered events. So if you do not need any further notifications for
+ * <ioevent_WRITE> for example, call <updatefd_iopoll> to unregister the filedescriptor
+ * for this kind of event.
+ *
+ * Edge Triggered:
+ * This event generation policy is currently not supported.
+ * Edfge triggered events are only sent once.
+ * So if <wait_iopoll> returned an <ioevent_READ> for a filedescriptor the same event
+ * is not reported on this filedescriptor the next time <wait_iopoll> is called.
+ * Only if new data arrives on the channel another event is generated.
+ *
+ * */
 struct iopoll_t {
    // group: struct fields
    /* variable: sys_poll
     * Handle to the underlying system event queue. */
-   sys_iochannel_t   sys_poll ;
-} ;
+   sys_iochannel_t   sys_poll;
+};
 
 // group: lifetime
 
@@ -59,11 +74,11 @@ struct iopoll_t {
 
 /* function: init_iopoll
  * Creates system specific event queue to query for io events (<ioevent_t>). */
-int init_iopoll(/*out*/iopoll_t * iopoll) ;
+int init_iopoll(/*out*/iopoll_t * iopoll);
 
 /* function: free_iopoll
  * Frees system event queue. */
-int free_iopoll(iopoll_t * iopoll) ;
+int free_iopoll(iopoll_t * iopoll);
 
 // group: query
 
@@ -82,7 +97,7 @@ int free_iopoll(iopoll_t * iopoll) ;
  * In case there are more events than queuesize only the first queuesize events are returned.
  * The next call returns the remaining events. So events for every file descriptor are reported
  * even if queuesize is too small. */
-int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms) ;
+int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms);
 
 // group: change
 
@@ -101,16 +116,16 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
  *
  * ioevent_ERROR  - Be always prepared to handle error conditions like network failures or closed pipes.
  * ioevent_CLOSE  - Be always prepared that the other side closes the connection. */
-int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event) ;
+int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event);
 
 /* function: updatefd_iopoll
  * Changes <ioevent_t> for an already registered file descriptor. See also <registerfd_iopoll>.
  * In case <sys_iochannel_t> *fd* was not registered before the error ENOENT is returned. */
-int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event) ;
+int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event);
 
 /* function: unregisterfd_iopoll
  * Unregisters <sys_iochannel_t> *fd*.
  * <wait_iopoll> no more reports any event for an unregistered descriptor. */
-int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd) ;
+int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd);
 
 #endif
