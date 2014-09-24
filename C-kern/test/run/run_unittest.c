@@ -247,7 +247,6 @@ int run_unittest(void * argv)
       RUN(unittest_io_ipsocket);
       // generic
       RUN(unittest_io_iochannel);
-      RUN(unittest_io_iocallback);
       RUN(unittest_io_url);
       RUN(unittest_io_iopoll);
       // reader

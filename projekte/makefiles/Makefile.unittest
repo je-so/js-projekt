@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Jul.27  15:04:30
+GenerationDate  := 2014.Sep.24  16:24:49
 GeneratedBy     := je-so
 
 ## Debug
@@ -132,7 +132,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
- $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
@@ -246,7 +245,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
- $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
@@ -479,9 +477,6 @@ $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
@@ -815,9 +810,6 @@ $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
