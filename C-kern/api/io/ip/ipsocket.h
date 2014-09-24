@@ -92,6 +92,13 @@ int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr)
  * So calling this function in a dedicated system worker thread is a good idea. */
 int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr/*0=newany_ipaddr*/) ;
 
+/* function: initconnectasync_ipsocket
+ * Same as <initconnect_ipsocket> except do not wait until connection is established.
+ * If ipsock is ready for writing, the connection has been established or an error occurred.
+ * Use <waitconnect_ipsocket> to wait for ipsock to be ready for writing and to return if
+ * the connection has been established successfully. */
+int initconnectasync_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr/*0=newany_ipaddr*/);
+
 /* function: initlisten_ipsocket
  * Creates a TCP server socket for accepting connections from peers (clients).
  * The parameter *max_outstanding_connections* sets the number of connections which are established
@@ -117,6 +124,17 @@ int initaccept_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, str
 /* function: free_ipsocket
  * Closes communication channel and frees system resources. */
 int free_ipsocket(/*out*/ipsocket_t * ipsock) ;
+
+// group: async-support
+
+/* function: waitconnect_ipsocket
+ * Waits until a socket connected.
+ * Use this function only with after <initconnectasync_ipsocket> was called on the socket.
+ *
+ * Returns:
+ * 0    - Connection established.
+ * != 0 - Error code, no connection established, call <free_ipsocket>. */
+int waitconnect_ipsocket(const ipsocket_t * ipsock);
 
 // group: query
 
@@ -177,9 +195,9 @@ int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_byte
 
 /* function: queuesize_ipsocket
  * Returns the buffer size in bytes.
- * *queuesize_read* gives the number of bytes which can be received without reading.
- * *queuesize_write* gives the number of bytes which can be written without sending. */
-int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * queuesize_read, /*out*/uint32_t * queuesize_write) ;
+ * *readsize* gives the number of bytes which can be received without reading.
+ * *writesize* gives the number of bytes which can be written without sending. */
+int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * readsize, /*out*/uint32_t * writesize) ;
 
 /* function: setqueuesize_ipsocket
  * Changes the size of the read and write queue.
@@ -239,69 +257,6 @@ int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t 
  * EPROTONOSUPPORT - remoteaddr describes no <ipprotocol_UDP> address.  */
 int writeto_ipsocket(ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
 
-
-// experimental async operation
-
-/* struct: ipsocket_async_t
- * Allows to make a TCP connection in an async way.
- * Call to <initconnect_ipsocketasync> to start operation.
- * To check if operation has completed call <success_ipsocketasync>.
- * In case of success call <convert_ipsocketasync> to complete the cycle.
- * If you want to abort the operation call <free_ipsocketasync>.
- * If you want to wait for completion call <waitms_ipsocketasync>. */
-struct ipsocket_async_t {
-   /* variable: ipsock
-    * A socket of type <ipsocket_t>. It describes the network connection. */
-   ipsocket_t  ipsock ;
-   /* variable: err
-    * Indicates if operation has completed.
-    *
-    * Values:
-    * 0           - Operation has completed with no error.
-    * EINPROGRESS - Operation has not completed.
-    * other value - Operation has completed with this error. */
-   int         err ;
-} ;
-
-// group: lifetime
-
-/* define: ipsocket_async_FREE
- * Static initializer. */
-#define ipsocket_async_FREE {  ipsocket_FREE, 0 }
-
-/* function: initconnect_ipsocketasync
- * Same as <initconnect_ipsocket> except for async operation.
- * Call <success_ipsocketasync> to check if connect request operation has completed. */
-int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr) ;
-
-/* function: free_ipsocketasync
- * Closes socket and frees all resources.
- * Any pending connection operations are aborted. */
-int free_ipsocketasync(ipsocket_async_t * ipsockasync) ;
-
-/* function: convert_ipsocketasync
- * Converts <ipsocket_async_t> into <ipsocket_t>.
- *
- * In case of success (returns 0) ipsockasync is reset to <ipsocket_async_FREE>
- * and ipsock contains a connected socket ready for read/write operations.
- *
- * In case <success_ipsocketasync> does not return 0 this same error code is returned
- * and nothing is done. */
-int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ipsock) ;
-
-// group: query
-
-/* function: success_ipsocketasync
- * Returns 0 if async connect completed.
- * Returns EINPROGRESS if the operation is not completed yet.
- * Another value != 0 indicates that the operation completed with an error. */
-int success_ipsocketasync(ipsocket_async_t * ipsockasync) ;
-
-/* function: waitms_ipsocketasync
- * Waits until operation completes.
- * Returns EINPROGRESS in case of timeout and 0 in case operation completed.
- * Call <success_ipsocketasync> to check if an error occurred. */
-int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 => no timeout*/) ;
 
 
 // section: inline implementation
