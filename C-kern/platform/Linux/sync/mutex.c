@@ -535,81 +535,7 @@ ONERR:
    return EINVAL ;
 }
 
-static void sigusr1(int sig)
-{
-   assert(sig == SIGUSR1) ;
-   ++ s_lockmutex_signal ;
-}
-
-static int thread_lockmutex(mutex_t * mutex)
-{
-   int err ;
-   s_lockmutex_signal = 1 ;
-   err = lock_mutex(mutex) ;
-   if (!err) {
-      err = unlock_mutex(mutex) ;
-   }
-   return err ;
-}
-
-static int test_interrupt(void)
-{
-   mutex_t           mutex     = mutex_INIT_DEFAULT ;
-   thread_t          * thread1 = 0 ;
-   bool              isoldprocmask = false ;
-   sigset_t          oldprocmask ;
-   bool              isoldact  = false ;
-   struct sigaction  newact ;
-   struct sigaction  oldact ;
-
-
-   TEST(0 == sigemptyset(&newact.sa_mask)) ;
-   TEST(0 == sigaddset(&newact.sa_mask,SIGUSR1)) ;
-   TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
-   isoldprocmask = true ;
-   sigemptyset(&newact.sa_mask) ;
-   newact.sa_flags   = 0 ;
-   newact.sa_handler = &sigusr1 ;
-   TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
-   isoldact = true ;
-
-   // TEST interrupt is ignored during wait on lock
-   TEST(0 == init_mutex(&mutex)) ;
-   TEST(0 == lock_mutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == newgeneric_thread(&thread1, &thread_lockmutex, &mutex)) ;
-   for (int i = 0; i < 1000; ++i) {
-      if (s_lockmutex_signal) break ;
-      sleepms_thread(1) ;
-   }
-   TEST(s_lockmutex_signal /*thread started*/) ;
-   sleepms_thread(10) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == pthread_kill(thread1->sys_thread, SIGUSR1)) ;
-   for (int i = 0; i < 1000; ++i) {
-      if (s_lockmutex_signal) break ;
-      sleepms_thread(1) ;
-   }
-   TEST(s_lockmutex_signal /*SIGUSR1 was received by thread*/) ;
-   TEST(0 == unlock_mutex(&mutex)) ;
-   TEST(0 == join_thread(thread1)) ;
-   // no error => lock_mutex has restarted itself
-   TEST(0 == returncode_thread(thread1)) ;
-   TEST(0 == delete_thread(&thread1)) ;
-
-   TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
-   TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
-
-   return 0 ;
-ONERR:
-   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
-   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
-   free_mutex(&mutex) ;
-   delete_thread(&thread1) ;
-   return EINVAL ;
-}
-
-typedef struct processparam_t    processparam_t ;
+typedef struct processparam_t    processparam_t;
 
 struct processparam_t {
    mutex_t              mutex   ;
@@ -630,7 +556,6 @@ static int process_counter(processparam_t * param)
 
    return 0 ;
 }
-
 
 static int test_interprocess(void)
 {
@@ -674,16 +599,165 @@ ONERR:
    return EINVAL ;
 }
 
+static void sigusr1(int sig)
+{
+   assert(sig == SIGUSR1);
+   ++ s_lockmutex_signal;
+}
+
+static int thread_lockmutex(mutex_t * mutex)
+{
+   int err ;
+   s_lockmutex_signal = 1;
+   err = lock_mutex(mutex) ;
+   if (!err) {
+      err = unlock_mutex(mutex) ;
+   }
+   return err ;
+}
+
+static void handler_sigcont(int sig)
+{
+   if (sig != SIGCONT || 4 != write(1, "cont", 4)) {
+      exit(1);
+   }
+}
+
+static int process_lockmutex(mutex_t * mutex)
+{
+   int err ;
+   struct sigaction  newact;
+   sigemptyset(&newact.sa_mask);
+   sigaddset(&newact.sa_mask, SIGCONT);
+   sigprocmask(SIG_UNBLOCK, &newact.sa_mask, 0);
+   sigemptyset(&newact.sa_mask);
+   newact.sa_flags   = 0 ;
+   newact.sa_handler = &handler_sigcont;
+   sigaction(SIGCONT, &newact, 0);
+   if (1 == write(1, "l", 1)) {
+      err = lock_mutex(mutex);
+      // 'u' is written only to make sure lock function does not return
+      // before unlock in other process is called
+      if (1 != write(1, "u", 1)) {
+         exit(1);
+      }
+      if (!err) {
+         err = unlock_mutex(mutex);
+      }
+      if (!err) {
+         exit(0);
+      }
+   }
+   exit(1);
+}
+
+static int test_interrupt(void)
+{
+   mutex_t           mutex     = mutex_INIT_DEFAULT;
+   thread_t        * thread1 = 0;
+   bool              isoldprocmask = false;
+   sigset_t          oldprocmask;
+   bool              isoldact  = false;
+   struct sigaction  newact;
+   struct sigaction  oldact;
+   process_t         process = process_FREE;
+   vmpage_t          vmpage = vmpage_FREE;
+   int               pfd[2] = { -1, -1 };
+
+   TEST(0 == sigemptyset(&newact.sa_mask)) ;
+   TEST(0 == sigaddset(&newact.sa_mask,SIGUSR1)) ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
+   isoldprocmask = true ;
+   sigemptyset(&newact.sa_mask) ;
+   newact.sa_flags   = 0 ;
+   newact.sa_handler = &sigusr1 ;
+   TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
+   isoldact = true ;
+
+   // TEST lock_mutex: interrupt SIGUSR1 is ignored during wait on lock
+   TEST(0 == init_mutex(&mutex));
+   TEST(0 == lock_mutex(&mutex));
+   s_lockmutex_signal = 0;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockmutex, &mutex));
+   for (int i = 0; i < 1000; ++i) {
+      if (s_lockmutex_signal) break;
+      sleepms_thread(1);
+   }
+   TEST(s_lockmutex_signal /*thread started*/);
+   sleepms_thread(10);
+   s_lockmutex_signal = 0;
+   TEST(0 == pthread_kill(thread1->sys_thread, SIGUSR1));
+   // wait for signal received
+   for (int i = 0; i < 1000; ++i) {
+      if (s_lockmutex_signal) break;
+      sleepms_thread(1);
+   }
+   TEST(s_lockmutex_signal /*SIGUSR1 was received by thread*/);
+   TEST(0 == unlock_mutex(&mutex));
+   TEST(0 == join_thread(thread1));
+   // no error => lock_mutex has restarted itself
+   TEST(0 == returncode_thread(thread1));
+   TEST(0 == delete_thread(&thread1));
+
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
+   TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
+
+   // TEST lock_mutex: SIGSTOP / SIGCONT are ignored
+   TEST(0 == init2_vmpage(&vmpage, sizeof(mutex_t), accessmode_SHARED|accessmode_RDWR));
+   TEST(0 == pipe2(pfd, O_CLOEXEC));
+   mutex_t *       smutex = (mutex_t*) vmpage.addr;
+   process_stdio_t stdfd  = process_stdio_INIT_DEVNULL;
+   process_result_t result;
+   redirectout_processstdio(&stdfd, pfd[1]);
+   TEST(0 == init_mutex(smutex));
+   TEST(0 == lock_mutex(smutex));
+   TEST(0 == initgeneric_process(&process, &process_lockmutex, smutex, &stdfd));
+   TEST(0 == free_iochannel(&pfd[1]));
+   uint8_t buffer[20];
+   TEST(1 == read(pfd[0], buffer, sizeof(buffer)));
+   TEST('l' == buffer[0]);
+   TEST(0 == kill(process, SIGSTOP));
+   process_state_e procstate;
+   for (int i = 0; i < 1000; ++i) {
+      TEST(0 == state_process(&process, &procstate));
+      if (process_state_STOPPED == procstate) break;
+      sleepms_thread(1);
+   }
+   TEST(process_state_STOPPED == procstate);
+   TEST(0 == kill(process, SIGCONT));
+   TEST(4 == read(pfd[0], buffer, sizeof(buffer)));
+   // no 'u' is read from pfd[0] after "cont"
+   TEST(0 == memcmp(buffer, "cont", 4));
+   TEST(0 == unlock_mutex(smutex));
+   TEST(0 == wait_process(&process, &result));
+   TEST(process_state_TERMINATED == result.state);
+   TEST(0 == result.returncode);
+   TEST(0 == free_process(&process));
+   TEST(0 == free_mutex(smutex));
+   TEST(0 == free_iochannel(&pfd[0]));
+   TEST(0 == free_vmpage(&vmpage));
+
+   return 0;
+ONERR:
+   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0);
+   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0);
+   free_mutex(&mutex);
+   delete_thread(&thread1);
+   free_process(&process);
+   free_vmpage(&vmpage);
+   return EINVAL;
+}
+
 int unittest_platform_sync_mutex()
 {
    if (test_staticinit())        goto ONERR;
    if (test_errorcheck())        goto ONERR;
    if (test_slock())             goto ONERR;
-   if (test_interrupt())         goto ONERR;
    if (test_interprocess())      goto ONERR;
+   if (test_interrupt())         goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 #endif

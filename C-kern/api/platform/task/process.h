@@ -168,7 +168,7 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
  * If a process is running it is killed.
  * So call <wait_process> before to ensure the process has finished properly.
  * ECHILD is returned if process does no longer exist. */
-int free_process(process_t * process) ;
+int free_process(process_t * process);
 
 // group: query
 

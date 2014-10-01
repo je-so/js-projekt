@@ -184,43 +184,44 @@ ONERR:
 
 static int queryresult_process(sys_process_t pid, /*out*/process_result_t * result, queryoption_e option)
 {
-   int err ;
-   siginfo_t info ;
-   int       flags ;
+   int err;
+   siginfo_t info;
+   int       flags;
 
 #define FLAGS (WEXITED|WSTOPPED)
 
    switch(option) {
    case queryoption_NOWAIT:
-      flags = FLAGS|WNOHANG|WNOWAIT ;
-      break ;
+      // WNOWAIT: Leave the child in a waitable state; a later wait call can
+      //          be used to again retrieve the child status information.
+      flags = FLAGS|WNOHANG|WNOWAIT;
+      break;
    case queryoption_WAIT:
-      flags = FLAGS|WNOWAIT ;
-      break ;
+      flags = FLAGS|WNOWAIT;
+      break;
    case queryoption_WAIT_AND_FREE:
-      flags = FLAGS ;
-      break ;
+      flags = FLAGS;
+      break;
    default:
-      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONERR, PRINTINT_ERRLOG(option)) ;
-      flags = FLAGS ;
-      break ;
+      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONERR, PRINTINT_ERRLOG(option));
+      flags = FLAGS;
+      break;
    }
 
 #undef FLAGS
 
-   info.si_pid = 0 ;
+   info.si_pid = 0;
    while (-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
       if (EINTR != errno) {
-         err = errno ;
-         TRACESYSCALL_ERRLOG("waitid",err) ;
-         PRINTINT_ERRLOG(pid) ;
+         err = errno;
+         TRACESYSCALL_ERRLOG("waitid",err);
+         PRINTINT_ERRLOG(pid);
          goto ONERR;
       }
    }
 
-
    if (pid != info.si_pid) {
-      result->state = process_state_RUNNABLE ;
+      result->state = process_state_RUNNABLE;
       return 0 ;
    }
 
@@ -399,19 +400,19 @@ ONERR:
 
 int free_process(process_t * process)
 {
-   int err ;
-   pid_t pid = *process ;
+   int err;
+   pid_t pid = *process;
 
-   static_assert(0 == sys_process_FREE, "0 is no valid process id") ;
+   static_assert(0 == sys_process_FREE, "0 is no valid process id");
 
    if (pid) {
 
-      *process = sys_process_FREE ;
+      *process = sys_process_FREE;
 
-      kill(pid, SIGKILL) ;
+      kill(pid, SIGKILL);
 
-      process_result_t result ;
-      err = queryresult_process(pid, &result, queryoption_WAIT_AND_FREE) ;
+      process_result_t result;
+      err = queryresult_process(pid, &result, queryoption_WAIT_AND_FREE);
 
       if (err) goto ONERR;
    }
