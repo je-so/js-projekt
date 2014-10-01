@@ -239,8 +239,10 @@ int join_thread(thread_t * threadobj)
 
    if (sys_thread_FREE != threadobj->sys_thread) {
 
-      err = pthread_join(threadobj->sys_thread, 0) ;
-      threadobj->sys_thread = sys_thread_FREE ;
+      err = pthread_join(threadobj->sys_thread, 0);
+      if (err != EDEADLK) {
+         threadobj->sys_thread = sys_thread_FREE;
+      }
 
       if (err) goto ONERR;
    }
@@ -249,6 +251,22 @@ int join_thread(thread_t * threadobj)
 ONERR:
    TRACEEXIT_ERRLOG(err);
    return err ;
+}
+
+int tryjoin_thread(thread_t * threadobj)
+{
+   int err = 0;
+
+   if (sys_thread_FREE != threadobj->sys_thread) {
+
+      err = pthread_tryjoin_np(threadobj->sys_thread, 0);
+
+      if (err != EBUSY && err != EDEADLK) {
+         threadobj->sys_thread = sys_thread_FREE;
+      }
+   }
+
+   return err;
 }
 
 // group: change-run-state
@@ -396,20 +414,20 @@ static sys_thread_t  s_thread_id       = 0 ;
 
 static int thread_donothing(void * dummy)
 {
-   (void) dummy ;
-   return 0 ;
+   (void) dummy;
+   return 0;
 }
 
 static int thread_returncode(intptr_t retcode)
 {
-   s_thread_id = pthread_self() ;
-   atomicadd_int(&s_thread_runcount, 1) ;
+   s_thread_id = pthread_self();
+   atomicadd_int(&s_thread_runcount, 1);
    while (0 == atomicread_int(&s_thread_signal)) {
-      pthread_yield() ;
+      pthread_yield();
    }
-   s_thread_signal = 0 ;
-   atomicsub_int(&s_thread_runcount, 1) ;
-   return (int) retcode ;
+   s_thread_signal = 0;
+   atomicsub_int(&s_thread_runcount, 1);
+   return (int) retcode;
 }
 
 static int test_initfree(void)
@@ -583,70 +601,140 @@ static int test_join(void)
    thread_t * thread = 0 ;
 
    // TEST join_thread
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 12)) ;
-   atomicwrite_int(&s_thread_signal, 1) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(0 == atomicread_int(&s_thread_signal)) ;
-   TEST(thread->nextwait   == 0) ;
-   TEST(thread->main_task  == (thread_f)&thread_returncode) ;
-   TEST(thread->main_arg   == (void*)12) ;
-   TEST(thread->returncode == 12) ;
-   TEST(thread->sys_thread == sys_thread_FREE) ;
-   TEST(thread->tls_addr   != 0) ;
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 12));
+   atomicwrite_int(&s_thread_signal, 1);
+   TEST(0 == join_thread(thread));
+   TEST(0 == atomicread_int(&s_thread_signal));
+   TEST(thread->nextwait   == 0);
+   TEST(thread->main_task  == (thread_f)&thread_returncode);
+   TEST(thread->main_arg   == (void*)12);
+   TEST(thread->returncode == 12);
+   TEST(thread->sys_thread == sys_thread_FREE);
+   TEST(thread->tls_addr   != 0);
 
    // TEST join_thread: calling on already joined thread
-   TEST(0 == join_thread(thread)) ;
-   TEST(thread->nextwait   == 0) ;
-   TEST(thread->main_task  == (thread_f)&thread_returncode) ;
-   TEST(thread->main_arg   == (void*)12) ;
-   TEST(thread->returncode == 12) ;
-   TEST(thread->sys_thread == sys_thread_FREE) ;
-   TEST(thread->tls_addr   != 0) ;
-   TEST(0 == delete_thread(&thread)) ;
+   TEST(0 == join_thread(thread));
+   TEST(thread->nextwait   == 0);
+   TEST(thread->main_task  == (thread_f)&thread_returncode);
+   TEST(thread->main_arg   == (void*)12);
+   TEST(thread->returncode == 12);
+   TEST(thread->sys_thread == sys_thread_FREE);
+   TEST(thread->tls_addr   != 0);
+   TEST(0 == delete_thread(&thread));
+
+   // TEST tryjoin_thread: EBUSY
+   s_thread_signal = 0;
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 13));
+   TEST(EBUSY == tryjoin_thread(thread));
+   TEST(sys_thread_FREE != thread->sys_thread);
+
+   // TEST tryjoin_thread
+   atomicwrite_int(&s_thread_signal, 1);
+   while(1 == atomicread_int(&s_thread_signal)) {
+      sleepms_thread(1);
+   }
+   for (;;) {
+      int err = tryjoin_thread(thread);
+      if (!err) break;
+      TEST(EBUSY == err);
+      TEST(sys_thread_FREE != thread->sys_thread);
+   }
+   TEST(thread->nextwait   == 0);
+   TEST(thread->main_task  == (thread_f)&thread_returncode);
+   TEST(thread->main_arg   == (void*)13);
+   TEST(thread->returncode == 13);
+   TEST(thread->sys_thread == sys_thread_FREE);
+   TEST(thread->tls_addr   != 0);
+
+   // TEST tryjoin_thread: calling on already joined thread
+   TEST(0 == tryjoin_thread(thread));
+   TEST(thread->nextwait   == 0);
+   TEST(thread->main_task  == (thread_f)&thread_returncode);
+   TEST(thread->main_arg   == (void*)13);
+   TEST(thread->returncode == 13);
+   TEST(thread->sys_thread == sys_thread_FREE);
+   TEST(thread->tls_addr   != 0);
+   TEST(0 == delete_thread(&thread));
 
    // TEST join_thread: different returncode
    for (int i = -5; i < 5; ++i) {
-      const intptr_t arg = 1111 * i ;
-      TEST(0 == newgeneric_thread(&thread, thread_returncode, arg)) ;
-      TEST(thread->sys_thread != sys_thread_FREE) ;
-      atomicwrite_int(&s_thread_signal, 1) ;
-      TEST(0 == join_thread(thread)) ;
-      TEST(0 == atomicread_int(&s_thread_signal)) ;
-      TEST(thread->nextwait   == 0) ;
-      TEST(thread->main_task  == (thread_f)&thread_returncode) ;
-      TEST(thread->main_arg   == (void*)arg) ;
-      TEST(thread->returncode == arg) ;
-      TEST(thread->sys_thread == sys_thread_FREE) ;
-      TEST(thread->tls_addr   != 0) ;
-      TEST(0 == join_thread(thread)) ;
-      TEST(thread->nextwait   == 0) ;
-      TEST(thread->main_task  == (thread_f)&thread_returncode) ;
-      TEST(thread->main_arg   == (void*)arg) ;
-      TEST(thread->returncode == arg) ;
-      TEST(thread->sys_thread == sys_thread_FREE) ;
-      TEST(thread->tls_addr   != 0) ;
-      TEST(0 == delete_thread(&thread)) ;
+      const intptr_t arg = 1111 * i;
+      TEST(0 == newgeneric_thread(&thread, thread_returncode, arg));
+      TEST(thread->sys_thread != sys_thread_FREE);
+      atomicwrite_int(&s_thread_signal, 1);
+      for (int t = 0; t < 2; ++t) {
+         TEST(0 == join_thread(thread));
+         TEST(0 == atomicread_int(&s_thread_signal));
+         TEST(thread->nextwait   == 0);
+         TEST(thread->main_task  == (thread_f)&thread_returncode);
+         TEST(thread->main_arg   == (void*)arg);
+         TEST(thread->returncode == arg);
+         TEST(thread->sys_thread == sys_thread_FREE);
+         TEST(thread->tls_addr   != 0);
+      }
+      TEST(0 == delete_thread(&thread));
+   }
+
+   // TEST tryjoin_thread: different returncode
+   for (int i = -5; i < 5; ++i) {
+      const intptr_t arg = 123 * i;
+      s_thread_runcount = 0;
+      TEST(0 == newgeneric_thread(&thread, thread_returncode, arg));
+      TEST(EBUSY == tryjoin_thread(thread));
+      atomicwrite_int(&s_thread_signal, 1);
+      for (int w = 0; w < 10000; ++w) {
+         TEST(sys_thread_FREE != thread->sys_thread);
+         int err = tryjoin_thread(thread);
+         if (!err) break;
+         TEST(err == EBUSY);
+         sleepms_thread(1);
+      }
+      for (int t = 0; t < 2; ++t) {
+         TEST(thread->nextwait   == 0) ;
+         TEST(thread->main_task  == (thread_f)&thread_returncode);
+         TEST(thread->main_arg   == (void*)arg);
+         TEST(thread->returncode == arg);
+         TEST(thread->sys_thread == sys_thread_FREE);
+         TEST(thread->tls_addr   != 0);
+         TEST(0 == tryjoin_thread(thread));
+      }
+      TEST(0 == delete_thread(&thread));
    }
 
    // TEST join_thread: EDEADLK
-   thread_t selfthread = { .sys_thread = pthread_self() } ;
-   TEST(EDEADLK == join_thread(&selfthread)) ;
+   thread_t selfthread = { .sys_thread = pthread_self() };
+   TEST(EDEADLK == join_thread(&selfthread));
+   TEST(pthread_self() == selfthread.sys_thread);
+
+   // TEST tryjoin_thread: EDEADLK
+   TEST(EDEADLK == tryjoin_thread(&selfthread));
+   TEST(pthread_self() == selfthread.sys_thread);
+
+   // prepare
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 0));
+   thread_t copied_thread1 = *thread;
+   thread_t copied_thread2 = *thread;
+   atomicwrite_int(&s_thread_signal, 1);
+   TEST(0 == join_thread(thread));
+   TEST(sys_thread_FREE == thread->sys_thread);
+   TEST(0 == returncode_thread(thread));
 
    // TEST join_thread: ESRCH
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 0)) ;
-   thread_t copied_thread = *thread ;
-   atomicwrite_int(&s_thread_signal, 1) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(thread->sys_thread        == sys_thread_FREE) ;
-   TEST(returncode_thread(thread) == 0) ;
-   TEST(ESRCH == join_thread(&copied_thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
+   TEST(ESRCH == join_thread(&copied_thread1));
+   TEST(sys_thread_FREE == copied_thread1.sys_thread);
 
-   return 0 ;
+   // TEST tryjoin_thread: EBUSY (should be ESRCH, but does not work)
+   TEST(EBUSY == tryjoin_thread(&copied_thread2));
+   TEST(sys_thread_FREE != copied_thread2.sys_thread);
+
+   // unprepare
+   TEST(0 == delete_thread(&thread));
+
+   return 0;
 ONERR:
-   atomicwrite_int(&s_thread_signal, 1) ;
-   delete_thread(&thread) ;
-   return EINVAL ;
+   atomicwrite_int(&s_thread_signal, 1);
+   delete_thread(&thread);
+   return EINVAL;
 }
 
 static memblock_t       s_sigaltstack_signalstack ;
@@ -1506,8 +1594,8 @@ static int childprocess_unittest(void)
    if (test_exit())                    goto ONERR;
    if (test_update())                  goto ONERR;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
 
    return 0 ;
 ONERR:

@@ -175,7 +175,16 @@ void setreturncode_thread(thread_t * thread, int retcode) ;
  * If the thread has already been joined this function returns immediately.
  * The error EDEADLK is returned if you want to join <self_thread>.
  * The error ESRCH is returned if the thread has exited already (if threadobj is not updated properly). */
-int join_thread(thread_t * threadobj) ;
+int join_thread(thread_t * threadobj);
+
+/* function: tryjoin_thread
+ * The function poll if threadobj has terminated. No error is logged.
+ *
+ * Returns:
+ * 0 - Thread has been terminated or the thread has already been joined.
+ * EDEADLK - Joining <self_thread> is an error.
+ * EBUSY - Thread is running - joining is not possible. */
+int tryjoin_thread(thread_t * threadobj);
 
 // group: change-run-state
 
@@ -190,7 +199,7 @@ int join_thread(thread_t * threadobj) ;
  * It is possible that signals are received which are generated from outside this process
  * therefore make sure with some other mechanism that returning
  * from <suspend_thread> emanates from a corresponding call to <resume_thread>. */
-void suspend_thread(void) ;
+void suspend_thread(void);
 
 /* function: trysuspend_thread
  * The function returns 0 if the calling thread has been resumed.
@@ -199,7 +208,7 @@ void suspend_thread(void) ;
  * It returns EAGAIN if no there is no pending resume. Nothing is done in
  * this case. Use this function to poll for any pending <resume_thread>
  * without sleeping.  */
-int trysuspend_thread(void) ;
+int trysuspend_thread(void);
 
 /* function: resume_thread
  * The thread which is refered by threadobj is woken up.

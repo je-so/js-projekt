@@ -61,7 +61,7 @@ int free_semaphore(semaphore_t * semaobj)
       // wake up any waiters
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
-      fcntl(semaobj->sys_sema, F_SETFL, (long)flags) ;
+      fcntl(semaobj->sys_sema, F_SETFL, flags) ;
       for (uint64_t increment = 0xffff; increment; increment <<= 16) {
          err2 = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
          if (-1 == err2) {
@@ -160,7 +160,7 @@ static int test_semaphore_init(void)
    {
       int flags = fcntl(sema.sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
-      TEST(0 == fcntl(sema.sys_sema, F_SETFL, (long)flags)) ;
+      TEST(0 == fcntl(sema.sys_sema, F_SETFL, flags)) ;
    }
    TEST(EAGAIN == wait_semaphore(&sema)) ;
    TEST(0 == free_semaphore(&sema)) ;
@@ -175,13 +175,13 @@ static int test_semaphore_init(void)
    {
       int flags = fcntl(sema.sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
-      TEST(0 == fcntl(sema.sys_sema, F_SETFL, (long)flags)) ;
+      TEST(0 == fcntl(sema.sys_sema, F_SETFL, flags)) ;
    }
    TEST(EAGAIN == wait_semaphore(&sema)) ;
    {
       int flags = fcntl(sema.sys_sema, F_GETFL) ;
       flags &= ~(O_NONBLOCK) ;
-      TEST(0 == fcntl(sema.sys_sema, F_SETFL, (long)flags)) ;
+      TEST(0 == fcntl(sema.sys_sema, F_SETFL, flags)) ;
    }
    for (int i = 0; i < 3; ++i) {
       TEST(0 == signal_semaphore(&sema, 3)) ;
@@ -192,7 +192,7 @@ static int test_semaphore_init(void)
    {
       int flags = fcntl(sema.sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
-      TEST(0 == fcntl(sema.sys_sema, F_SETFL, (long)flags)) ;
+      TEST(0 == fcntl(sema.sys_sema, F_SETFL, flags)) ;
    }
    TEST(EAGAIN == wait_semaphore(&sema)) ;
    TEST(0 == free_semaphore(&sema)) ;

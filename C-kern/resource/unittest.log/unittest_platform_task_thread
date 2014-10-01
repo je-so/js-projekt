@@ -1,26 +1,26 @@
-[1: 1410603381.566378s]
-exit_thread() C-kern/platform/Linux/task/thread.c:361
+[1: 1412152066.669680s]
+exit_thread() C-kern/platform/Linux/task/thread.c:379
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))
-[1: 1410603381.570265s]
+[1: 1412152066.673612s]
 new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 1 - Operation not permitted
-[1: 1410603381.570290s]
+[1: 1412152066.673669s]
 new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 2 - No such file or directory
-[1: 1410603381.570317s]
+[1: 1412152066.673723s]
 new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 3 - No such process
-[1: 1410603381.570342s]
+[1: 1412152066.673772s]
 new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 4 - Interrupted system call
-[1: 1410603381.582191s]
-join_thread() C-kern/platform/Linux/task/thread.c:250
+[1: 1412152066.698491s]
+join_thread() C-kern/platform/Linux/task/thread.c:252
 Error 35 - Resource deadlock avoided
-[1: 1410603381.583231s]
-join_thread() C-kern/platform/Linux/task/thread.c:250
+[1: 1412152066.699489s]
+join_thread() C-kern/platform/Linux/task/thread.c:252
 Error 3 - No such process
-[1: 1410603382.332281s]
-exit_thread() C-kern/platform/Linux/task/thread.c:361
+[1: 1412152067.475026s]
+exit_thread() C-kern/platform/Linux/task/thread.c:379
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))

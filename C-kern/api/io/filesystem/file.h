@@ -10,7 +10,7 @@
 
    Includes:
    You need to include "C-kern/api/io/accessmode.h" (<IO-Accessmode>)
-   before htis file.
+   before this file.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -28,14 +28,14 @@
 #define CKERN_IO_FILESYSTEM_FILE_HEADER
 
 // forward
-struct directory_t ;
+struct directory_t;
 
 /* typedef: file_t
  * Export <file_t>, alias for <sys_iochannel_t>.
  * Describes a persistent binary object with a name.
  * Describes an opened file for doing reading and/or writing.
  * The file is located in a system specific filesystem. */
-typedef sys_iochannel_t                   file_t ;
+typedef sys_iochannel_t file_t;
 
 /* enums: file_e
  * Standard files which are usually open at process start by convention.
@@ -44,13 +44,12 @@ typedef sys_iochannel_t                   file_t ;
  * file_STDOUT - The file descriptor value of the standard output channel.
  * file_STDERR - The file descriptor value of the standard error (output) channel.
  * */
-enum file_e {
+typedef enum file_e {
    file_STDIN  = sys_iochannel_STDIN,
    file_STDOUT = sys_iochannel_STDOUT,
    file_STDERR = sys_iochannel_STDERR
-} ;
+} file_e;
 
-typedef enum file_e                       file_e ;
 
 
 // section: Functions

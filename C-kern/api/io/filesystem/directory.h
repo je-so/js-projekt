@@ -167,7 +167,7 @@ int makedirectory_directory(directory_t * dir/*0 => current working directory*/,
  * Creates a new file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length) ;
+int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length);
 
 /* function: removedirectory_directory
  * Removes the empty directory with directory_path relative to dir.

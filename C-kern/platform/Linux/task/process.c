@@ -140,7 +140,7 @@ static int redirectstdfd_processstdio2(const process_stdfd2_t * stdfd2, int stdf
    } else {
       // clear FD_CLOEXEC
       // ignore error in case stdfd is closed
-      (void) fcntl(stdfd, F_SETFD, (long)0) ;
+      (void) fcntl(stdfd, F_SETFD, 0);
    }
 
    return 0 ;

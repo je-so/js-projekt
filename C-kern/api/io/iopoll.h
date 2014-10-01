@@ -83,12 +83,10 @@ int free_iopoll(iopoll_t * iopoll);
 // group: query
 
 /* function: wait_iopoll
- * Waits *timeout_ms* milliseconds for events and returns them.
+ * Waits *timeout_ms* milliseconds for events and returns them in eventqueue.
  * Set *timeout_ms* to 0 if you want to poll only for any new events without waiting.
  *
  * The value queuesize must be in the range (0 < queuesize < INT_MAX).
- *
- * On successfull return nr_events contains the number of events returned in eventqueue.
  *
  * Every bit set in <ioevent_t->ioevents> indicates an occurred event (see <ioevent_e>).
  * The value returned in <ioevent_t->eventid> is the same as set in <registerfd_iopoll> or <updatefd_iopoll>.
@@ -96,7 +94,14 @@ int free_iopoll(iopoll_t * iopoll);
  *
  * In case there are more events than queuesize only the first queuesize events are returned.
  * The next call returns the remaining events. So events for every file descriptor are reported
- * even if queuesize is too small. */
+ * by successive calls to this function even if queuesize is too small.
+ *
+ * Returns:
+ * 0     - OK, nr_events contains the number of events returned in eventqueue. nr_events is always less
+ *         or equal than queuesize. In case of a timeout nr_events is set to 0.
+ * EINTR - In case of SIGSTOP/SIGCONT or any other called interrupt handler. EINTR is not logged as error code.
+ * EBADF - Object iopoll contains is in a freed state.
+ * EINVAL - Object iopoll contains a wrong file descriptor. */
 int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms);
 
 // group: change
@@ -107,15 +112,18 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
  * and the id which is returned to be used by the caller to differentiate between the
  * different file descriptors.
  *
- * Calling this function for an already registered descriptor returns EEXIST.
- * Instead use <updatefd_iopoll> to change <ioevent_t> for an already registered descriptor.
- *
  * List of unmaskable events:
  * The follwoing events can not be removed by clearing their bit in the
  * <ioevent_t.ioevents> value of parameter for_event and are always monitored.
  *
  * ioevent_ERROR  - Be always prepared to handle error conditions like network failures or closed pipes.
- * ioevent_CLOSE  - Be always prepared that the other side closes the connection. */
+ * ioevent_CLOSE  - Be always prepared that the other side closes the connection.
+ *
+ * Returns:
+ * 0      - fd is registered for <ioevent_t> »for_event«.
+ * EPERM  - fd refers to an <iochannel_t> of type directory.
+ * EEXIST - Function is called for an already registered descriptor.
+ *          Call <updatefd_iopoll> to change <ioevent_t> for an already registered descriptor. */
 int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event);
 
 /* function: updatefd_iopoll

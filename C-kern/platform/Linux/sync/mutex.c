@@ -699,6 +699,7 @@ static int test_interrupt(void)
    TEST(0 == returncode_thread(thread1));
    TEST(0 == delete_thread(&thread1));
 
+   // unprepare
    TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
    TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
 
