@@ -1,8 +1,10 @@
 /* title: UTF8-Scanner
 
-   Exports <utf8scanner_t> which supports to break a text file
+   Exports <utf8scanner_t> which supports breaking a text file
    into separate strings. The file is read with help of <filereader_t>.
-   The common parts of every text scanner is implemented in this type.
+   The common parts of every text scanner are implemented in this type.
+
+   TODO: replace it with another type supporting the new IO Buffer structure
 
    Copyright:
    This program is free software. See accompanying LICENSE file.

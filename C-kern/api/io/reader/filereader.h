@@ -2,6 +2,8 @@
 
    Offers a simple interface for reading and buffering the content of a file.
 
+   TODO: remove type and replace it after utf8scanner_t has been remove
+
    Copyright:
    This program is free software. See accompanying LICENSE file.
 
@@ -27,6 +29,10 @@ struct memstream_ro_t;
  * Export <filereader_t> into global namespace. */
 typedef struct filereader_t filereader_t;
 
+/* typedef: struct filereader_mmfile_t
+ * Export <filereader_mmfile_t> into global namespace. */
+typedef struct filereader_mmfile_t  filereader_mmfile_t;
+
 
 // section: Functions
 
@@ -37,6 +43,21 @@ typedef struct filereader_t filereader_t;
  * Test <filereader_t> functionality. */
 int unittest_io_reader_filereader(void) ;
 #endif
+
+
+/* struct: filereader_mmfile_t
+ * Private type used in implementation of <filereader_t>. */
+struct filereader_mmfile_t {
+   uint8_t* addr ;
+   size_t   size ;
+};
+
+// group: lifetime
+
+/* define: filereader_mmfile_FREE
+ * Static initializer. */
+#define filereader_mmfile_FREE \
+         {0, 0}
 
 
 /* struct: filereader_t
@@ -73,10 +94,7 @@ struct filereader_t {
    sys_iochannel_t  file ;
    /* variable: mmfile
     * The buffered input of the file. */
-   struct {
-      uint8_t* addr ;
-      size_t   size ;
-   }           mmfile[2] ;
+   filereader_mmfile_t mmfile[2] ;
 } ;
 
 // group: static configuration
@@ -91,7 +109,8 @@ struct filereader_t {
 
 /* define: filereader_FREE
  * Static initializer. */
-#define filereader_FREE { 0, 0, 0, 0, 0, 0, sys_iochannel_FREE, { {0, 0}, {0, 0} } }
+#define filereader_FREE \
+         { 0, 0, 0, 0, 0, 0, sys_iochannel_FREE, { filereader_mmfile_FREE, filereader_mmfile_FREE } }
 
 /* function: initsingle_filereader
  * Opens file for reading into a single buffer.

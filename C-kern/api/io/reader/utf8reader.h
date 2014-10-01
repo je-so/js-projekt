@@ -3,8 +3,14 @@
    This reader decodes UTF-8 multibyte text content into a <char32_t> character
    and maintains additional information about the current line number and column.
 
-   This reader is unsafe in that it do not check for incorrect encoding
-   in same cases (skip for example).
+   Some functions are unsafe (marked with »Unsafe Function:«)
+   in that they do not check for correct utf8 encoding.
+
+   This reader uses <mmfile_t> and works only for files
+   which can be mapped into memory all at once.
+
+   For small parsers this allows to reference strings and
+   identifiers in the read buffer without copying them.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -43,7 +49,7 @@ int unittest_io_reader_utf8reader(void);
 
 
 /* struct: utf8reader_t
- * Extends <mmfile_t> with text reading capapbilities.
+ * Extends <mmfile_t> with text reading capabilities.
  * Only text files encoded in UTF-8 are supported.
  * The current read position is also handled by this object.
  * Reading a character advances the text position. */
@@ -80,7 +86,7 @@ int free_utf8reader(utf8reader_t * utfread) ;
 size_t column_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: line_utf8reader
- * Returns the line nr of the current readng position.
+ * Returns the line nr of the current reading position.
  * During initialization of <utf8reader_t> this value is set to 1.
  * Eve3ry time a new line character is read this value is incremented
  * by one and the column nr is set to 0 (see <column_utf8reader>). */

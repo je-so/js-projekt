@@ -50,9 +50,11 @@ int unittest_io_mmfile(void) ;
  * In case a read error occurs a SIGBUS is thrown under Linux.
  * Register special recovery handler for mmfiles => abort + read error !
  *
- * TODO: memory mapping fails:
- * Add a check function to mmfile_t which checks if memory mapping is possible !
- * If not then use some »read into buffer fallback operation« in some higher component !!
+ * TODO: Return ENOSYS from init functions / do not log error
+ *       This allows to check if memory mapping is possible for this file !
+ * TODO: Remove initsplit
+ * TODO: Add seek2 function with memoffset + size parameter to allow mappings at different fileoffsets
+ *       within a single mmfile_t
  * */
 struct mmfile_t {
    /* variable: addr

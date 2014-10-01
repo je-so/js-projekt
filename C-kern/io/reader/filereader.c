@@ -35,12 +35,6 @@
 
 // section: filereader_t
 
-// group: types
-
-/* typedef: filereader_mmfile_t
- * Names type <filereader_t.mmfile>. */
-typedef typeof(((filereader_t*)0)->mmfile[0])      filereader_mmfile_t ;
-
 // group: static configuration
 
 // TEXTDB:SELECT('#undef  filereader_'name\n'#define filereader_'name'      ('value')')FROM("C-kern/resource/config/modulevalues")WHERE(module=="filereader_t")
@@ -59,8 +53,8 @@ static inline void initvariables_filereader(filereader_t * frd)
    // fileoffset set or cleared in init_filereader or initsingle_filereader
    // filesize set in initfile_filreader and cleared in ONERR handler of init_filereader or initsingle_filereader
    frd->file      = (file_t) file_FREE ;
-   frd->mmfile[0] = (filereader_mmfile_t) mmfile_FREE ;
-   frd->mmfile[1] = (filereader_mmfile_t) mmfile_FREE ;
+   frd->mmfile[0] = (filereader_mmfile_t) filereader_mmfile_FREE;
+   frd->mmfile[1] = (filereader_mmfile_t) filereader_mmfile_FREE;
 }
 
 /* function: initfile_filereader
