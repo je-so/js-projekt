@@ -115,26 +115,26 @@ typedef enum termkey_e {
    termkey_CENTER,   // center of keypad ('5')
 } termkey_e;
 
-/* enums: termmodkey_e
+/* enums: term_modkey_e
  * Bits, welche die gedrückten Zusatztasten (modifier keys) kodieren.
  * Generell wird es nur von xterm unterstützt. Die Linuxconsole unterstützt
  * nur die Tasten Shift-F1 bis Shift-F8.
- * termmodkey_NONE  - Keine Zusatztasten gedrückt.
- * termmodkey_SHIFT - Es wurde zusätzlich die Shift-Taste gedrückt.
- * termmodkey_ALT   - Es wurde zusätzlich die Alt-Taste gedrückt.
- * termmodkey_CTRL  - Es wurde zusätzlich die Ctrl-Taste (Strg - Steuerung auf Deutsch) gedrückt.
- * termmodkey_META  - Es wurde zusätzlich die Meta-Taste (sofern vorhanden) gedrückt.
- * termmodkey_MASK  - Alle Bits der einzelnen Werte vereinigt.
+ * term_modkey_NONE  - Keine Zusatztasten gedrückt.
+ * term_modkey_SHIFT - Es wurde zusätzlich die Shift-Taste gedrückt.
+ * term_modkey_ALT   - Es wurde zusätzlich die Alt-Taste gedrückt.
+ * term_modkey_CTRL  - Es wurde zusätzlich die Ctrl-Taste (Strg - Steuerung auf Deutsch) gedrückt.
+ * term_modkey_META  - Es wurde zusätzlich die Meta-Taste (sofern vorhanden) gedrückt.
+ * term_modkey_MASK  - Alle Bits der einzelnen Werte vereinigt.
  * * */
-typedef enum termmodkey_e {
-   termmodkey_NONE,
-   termmodkey_SHIFT = 1,
-   termmodkey_ALT   = 2,
-   termmodkey_CTRL  = 4,
-   termmodkey_META  = 8,
+typedef enum term_modkey_e {
+   term_modkey_NONE,
+   term_modkey_SHIFT = 1,
+   term_modkey_ALT   = 2,
+   term_modkey_CTRL  = 4,
+   term_modkey_META  = 8,
 
-   termmodkey_MASK  = 15
-} termmodkey_e;
+   term_modkey_MASK  = 15
+} term_modkey_e;
 
 /* enums: termid_e
  * Liste der unterstützten Terminaltypen.
@@ -165,8 +165,8 @@ struct termkey_t {
     * Nummer der Spezialtaste - siehe <termkey_e>. */
    termkey_e     nr;
    /* variable: mod
-    * Bitkombination der Zusatztasten (modifier) - siehe <termmodkey_e>. */
-   termmodkey_e  mod;
+    * Bitkombination der Zusatztasten (modifier) - siehe <term_modkey_e>. */
+   term_modkey_e  mod;
 };
 
 // group: lifetime

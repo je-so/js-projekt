@@ -429,22 +429,22 @@ int inslines_termadapt(const termadapt_t * termadapt, /*ret*/memstream_t * ctrlc
                                              \
    if (next == '1') {                        \
       next = keycodes->next[CODELEN+1];      \
-      if (next < '0' || next > '6') return EILSEQ;    \
-      if (size < CODELEN+3u) return ENODATA;          \
-      mod  = (termmodkey_e) (next - ('0' - 9));   \
-      next = keycodes->next[CODELEN+2u];              \
-      codelen = CODELEN+3u;                           \
-                                                      \
-   } else {                                           \
-      if (next < '1' || next > '9') return EILSEQ;    \
-      mod  = (termmodkey_e) (next - '1');         \
-      next = keycodes->next[CODELEN+1u];              \
-      codelen = CODELEN+2u;                           \
+      if (next < '0' || next > '6') return EILSEQ; \
+      if (size < CODELEN+3u) return ENODATA;       \
+      mod  = (term_modkey_e) (next - ('0' - 9));   \
+      next = keycodes->next[CODELEN+2u];           \
+      codelen = CODELEN+3u;                        \
+                                                   \
+   } else {                                        \
+      if (next < '1' || next > '9') return EILSEQ; \
+      mod  = (term_modkey_e) (next - '1');         \
+      next = keycodes->next[CODELEN+1u];           \
+      codelen = CODELEN+2u;                        \
    }
 
 int key_termadapt(const termadapt_t * termadapt, memstream_ro_t * keycodes, /*out*/termkey_t * key)
 {
-   (void) termadapt; // handle linux / xterm at the same (most codes are equal)
+   (void) termadapt; // handle linux/xterm at the same time (most escape codes are equal)
 
    size_t size = size_memstream(keycodes);
 
@@ -453,12 +453,12 @@ int key_termadapt(const termadapt_t * termadapt, memstream_ro_t * keycodes, /*ou
    uint8_t next = keycodes->next[0];
 
    if (next == 0x7f) {
-      *key = (termkey_t) termkey_INIT(termkey_BS, termmodkey_NONE);
+      *key = (termkey_t) termkey_INIT(termkey_BS, term_modkey_NONE);
       skip_memstream(keycodes, 1);
       return 0;
 
    } else if (next == 0x1b) {
-      termmodkey_e mod = termmodkey_NONE;
+      term_modkey_e mod = term_modkey_NONE;
       unsigned codelen;
       if (size < 2) return ENODATA;
       next = keycodes->next[1];
@@ -503,7 +503,7 @@ int key_termadapt(const termadapt_t * termadapt, memstream_ro_t * keycodes, /*ou
          if (size < 4) return ENODATA;
          next = keycodes->next[3];
          if (next < 'A' || next > 'E') return EILSEQ;
-         *key = (termkey_t) termkey_INIT((termkey_e) (termkey_F1 + next - 'A'), termmodkey_NONE);
+         *key = (termkey_t) termkey_INIT((termkey_e) (termkey_F1 + next - 'A'), term_modkey_NONE);
          skip_memstream(keycodes, 4);
          return 0;
       }
@@ -581,7 +581,7 @@ int key_termadapt(const termadapt_t * termadapt, memstream_ro_t * keycodes, /*ou
       }
 
       // linux shift F1-F8 (F13-F20)
-      *key = (termkey_t) termkey_INIT((termkey_e) (termkey_F1 + nr - 25 - (nr > 27) - (nr > 30)), termmodkey_SHIFT);
+      *key = (termkey_t) termkey_INIT((termkey_e) (termkey_F1 + nr - 25 - (nr > 27) - (nr > 30)), term_modkey_SHIFT);
       skip_memstream(keycodes, 5);
       return 0;
    }
@@ -605,12 +605,12 @@ static int test_initfree(void)
    } terminaltypes[] = {
       {
          termid_LINUXCONSOLE, (const uint8_t*[]) {
-            (const uint8_t*) "linux", (const uint8_t*) "linux console", 0
+            (const uint8_t*) u8"linux", (const uint8_t*) u8"linux console", 0
          }
       },
       {
          termid_XTERM, (const uint8_t*[]) {
-            (const uint8_t*) "xterm", (const uint8_t*) "xterm-debian", (const uint8_t*) "X11 terminal emulator", 0
+            (const uint8_t*) u8"xterm", (const uint8_t*) u8"xterm-debian", (const uint8_t*) u8"X11 terminal emulator", 0
          }
       }
    };
@@ -1100,7 +1100,7 @@ static int test_keycodes(void)
             memset(&key, 255, sizeof(key));
             TEST(0 == key_termadapt(termadapt, &keycodes, &key));
             TEST(K == key.nr);
-            TEST(termmodkey_SHIFT == key.mod);
+            TEST(term_modkey_SHIFT == key.mod);
             TEST(end == keycodes.next);
             TEST(end == keycodes.end);
 
@@ -1125,7 +1125,7 @@ static int test_keycodes(void)
                continue;
             }
 
-            for (termmodkey_e mi = termmodkey_NONE+1; mi <= termmodkey_MASK; ++mi) {
+            for (term_modkey_e mi = term_modkey_NONE+1; mi <= term_modkey_MASK; ++mi) {
                uint8_t        buffer[100];
                size_t         len2     = len + 2 + (mi > 8) + (len == 3);
                const uint8_t* end      = buffer + len2;
