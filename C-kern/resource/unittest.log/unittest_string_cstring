@@ -1,8 +1,38 @@
-[1: 1410603206.675133s]
-printfappend_cstring() C-kern/string/cstring.c:188
+[1: 1412339344.512529s]
+printfappend_cstring() C-kern/string/cstring.c:181
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory
-[1: 1410603206.675138s]
-append_cstring() C-kern/string/cstring.c:146
+[1: 1412339344.512540s]
+append_cstring() C-kern/string/cstring.c:141
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory
+[1: 1412339344.512546s]
+append_cstring() C-kern/string/cstring.c:141
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+[1: 1412339344.512582s]
+new_testmmpage() C-kern/test/mm/testmm.c:218
+Error 12 - Cannot allocate memory
+[1: 1412339344.512587s]
+mresize_testmm() C-kern/test/mm/testmm.c:734
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+[1: 1412339344.512591s]
+allocate_cstring() C-kern/string/cstring.c:116
+Error 12 - Cannot allocate memory
+[1: 1412339344.512595s]
+new_testmmpage() C-kern/test/mm/testmm.c:218
+Error 12 - Cannot allocate memory
+[1: 1412339344.512598s]
+mresize_testmm() C-kern/test/mm/testmm.c:734
+Error 12 - Cannot allocate memory
+Could not allocate 4294967294 bytes of memory
+[1: 1412339344.512603s]
+allocate_cstring() C-kern/string/cstring.c:116
+Error 12 - Cannot allocate memory
+[1: 1412339344.513093s]
+setsize_cstring() C-kern/string/cstring.c:209
+Error 22 - Invalid argument
+[1: 1412339344.513101s]
+setsize_cstring() C-kern/string/cstring.c:209
+Error 22 - Invalid argument

@@ -778,14 +778,14 @@ ONERR:
 
 int unittest_io_mmfile()
 {
-   directory_t     * tempdir = 0 ;
-   const char      * tmpstr  = 0 ;
-   cstring_t         tmppath = cstring_INIT ;
+   directory_t* tempdir = 0;
+   const char*  tmpstr  = 0;
+   cstring_t    tmppath = cstring_INIT;
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "mmfile")) ;
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
-   tmpstr = str_cstring(&tmppath) ;
+   TEST(0 == newtemp_directory(&tempdir, "mmfile"));
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   tmpstr = str_cstring(&tmppath);
 
    if (test_query())                      goto ONERR;
    if (test_initfree(tempdir, tmpstr))    goto ONERR;
@@ -794,15 +794,15 @@ int unittest_io_mmfile()
    if (test_generic())                    goto ONERR;
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == delete_directory(&tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == delete_directory(&tempdir));
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) free_cstring(&tmppath) ;
-   (void) delete_directory(&tempdir) ;
-   return EINVAL ;
+   (void) free_cstring(&tmppath);
+   (void) delete_directory(&tempdir);
+   return EINVAL;
 }
 
 #endif

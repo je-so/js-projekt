@@ -359,27 +359,27 @@ ONERR:
 
 static int test_initfree(void)
 {
-   csvfilereader_t  csvfile  = csvfilereader_FREE ;
-   mmfile_t         mmempty  = mmfile_FREE ;
-   directory_t    * tmpdir   = 0 ;
-   cstring_t        tmppath  = cstring_INIT ;
-   cstring_t        filepath = cstring_INIT ;
-   file_t           file     = file_FREE ;
+   csvfilereader_t csvfile  = csvfilereader_FREE;
+   mmfile_t        mmempty  = mmfile_FREE;
+   directory_t*    tmpdir   = 0;
+   cstring_t       tmppath  = cstring_INIT;
+   cstring_t       filepath = cstring_INIT;
+   file_t          file     = file_FREE;
 
    // prepare
-   TEST(0 == newtemp_directory(&tmpdir, "test_initfree")) ;
-   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
-   TEST(0 == makefile_directory(tmpdir, "single", 0)) ;
-   TEST(0 == init_file(&file, "single", accessmode_WRITE, tmpdir)) ;
-   TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0)) ;
-   TEST(0 == free_file(&file)) ;
+   TEST(0 == newtemp_directory(&tmpdir, "test_initfree"));
+   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   TEST(0 == makefile_directory(tmpdir, "single", 0));
+   TEST(0 == init_file(&file, "single", accessmode_WRITE, tmpdir));
+   TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0));
+   TEST(0 == free_file(&file));
 
    // TEST csvfilereader_FREE
-   TEST(0 == memcmp(&mmempty, &csvfile.file, sizeof(mmempty))) ;
-   TEST(0 == csvfile.nrcolumns) ;
-   TEST(0 == csvfile.nrrows) ;
-   TEST(0 == csvfile.allocated_rows) ;
-   TEST(0 == csvfile.tablevalues) ;
+   TEST(0 == memcmp(&mmempty, &csvfile.file, sizeof(mmempty)));
+   TEST(0 == csvfile.nrcolumns);
+   TEST(0 == csvfile.nrrows);
+   TEST(0 == csvfile.allocated_rows);
+   TEST(0 == csvfile.tablevalues);
 
    // TEST init_csvfilereader, free_csvfilereader
    TEST(0 == printfappend_cstring(&filepath, "%s/single", str_cstring(&tmppath))) ;

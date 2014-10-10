@@ -1647,10 +1647,10 @@ uint16_t nrdigits_decimal(const decimal_t * dec)
 
 int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
 {
-   int err ;
-   uint16_t       size     = size_decimal(dec) ;
-   int32_t        exponent = dec->exponent ;
-   const uint32_t * digits = dec->digits ;
+   int err;
+   uint16_t        size     = size_decimal(dec);
+   int32_t         exponent = dec->exponent;
+   const uint32_t* digits   = dec->digits;
 
    // skip trailing 0 digits
    while (  size
@@ -1663,12 +1663,12 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
    /*size == 0 || 0 != digits[0]*/
 
    if (size) {
-      uint8_t  nrzeropos ;
-      uint8_t  digitsize ;
-      uint8_t  expsize   ;
-      uint32_t lastdigit ;
-      uint32_t digit ;
-      uint8_t  * str ;
+      uint8_t  nrzeropos;
+      uint8_t  digitsize;
+      uint8_t  expsize;
+      uint32_t lastdigit;
+      uint32_t digit;
+      uint8_t* str;
 
       exponent *= digitsperint_decimal() ;
 
@@ -1683,10 +1683,10 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
 
       const size_t strsize = (isnegative_decimal(dec) + (uint32_t)expsize + (uint32_t)digitsize
                               + digitsperint_decimal() * (uint32_t)size) - (uint32_t)nrzeropos ;
-      err = resize_cstring(cstr, strsize) ;
+      err = allocate_cstring(cstr, strsize+1/*null byte*/);
       if (err) goto ONERR;
 
-      str = (uint8_t*) str_cstring(cstr) ;
+      str = addr_cstring(cstr);
 
       if (isnegative_decimal(dec)) {
          *(str++) = '-' ;
@@ -1722,20 +1722,20 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
          str += expsize ;
       }
 
-      err = truncate_cstring(cstr, (size_t) (str - (uint8_t*)str_cstring(cstr))) ;
+      err = setsize_cstring(cstr, (size_t) (str - addr_cstring(cstr)));
       if (err) goto ONERR;
 
    } else {
-      clear_cstring(cstr) ;
-      err = append_cstring(cstr, 1, "0") ;
+      clear_cstring(cstr);
+      err = append_cstring(cstr, 1, "0");
       if (err) goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   clear_cstring(cstr) ;
+   clear_cstring(cstr);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: assign

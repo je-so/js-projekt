@@ -34,22 +34,22 @@
 
 // group: util
 
-int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct directory_t * relative_to)
+int load_file(const char* filepath, /*ret*/struct wbuffer_t* result, struct directory_t* relative_to)
 {
-   int err ;
-   off_t    loadsize ;
-   size_t   readsize ;
-   size_t   oldsize = size_wbuffer(result);
-   file_t   file    = file_FREE ;
+   int err;
+   off_t  loadsize;
+   size_t readsize;
+   size_t oldsize = size_wbuffer(result);
+   file_t file    = file_FREE;
 
-   err = init_file(&file, filepath, accessmode_READ, relative_to) ;
+   err = init_file(&file, filepath, accessmode_READ, relative_to);
    if (err) goto ONERR;
 
-   err = size_file(file, &loadsize) ;
+   err = size_file(file, &loadsize);
    if (err) goto ONERR;
 
    if (loadsize < 0 || (sizeof(size_t) < sizeof(off_t) && loadsize >= (off_t)SIZE_MAX)) {
-      err = ENOMEM ;
+      err = ENOMEM;
       goto ONERR;
    }
 
@@ -61,19 +61,19 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    if (err) goto ONERR;
 
    if (readsize != (size_t)loadsize) {
-      err = EIO ;
+      err = EIO;
       goto ONERR;
    }
 
-   err = free_file(&file) ;
+   err = free_file(&file);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   shrink_wbuffer(result, oldsize) ;
-   (void) free_file(&file) ;
+   shrink_wbuffer(result, oldsize);
+   (void) free_file(&file);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -116,12 +116,12 @@ ONERR:
 
 static int test_loadsave(directory_t * tempdir)
 {
-   file_t      file = file_FREE ;
-   cstring_t   cstr = cstring_INIT ;
-   wbuffer_t   wbuf = wbuffer_FREE ;
-   const char  * testcontent[] = { "", "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" } ;
-   off_t       filesize ;
-   memblock_t  datablock = memblock_FREE ;
+   file_t      file = file_FREE;
+   cstring_t   cstr = cstring_INIT;
+   wbuffer_t   wbuf = wbuffer_FREE;
+   const char* testcontent[] = { "", "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" };
+   off_t       filesize;
+   memblock_t  datablock = memblock_FREE;
 
    // TEST save_file, load_file: small files
    for (unsigned ti = 0; ti < lengthof(testcontent); ++ti) {
@@ -141,74 +141,76 @@ static int test_loadsave(directory_t * tempdir)
       TEST(0 == remove_file("save", tempdir)) ;
    }
 
-   // TEST save_file, load_file: bigger file
-   TEST(0 == RESIZE_MM(1024*1024, &datablock)) ;
+   // TEST save_file: 1MB file size
+   TEST(0 == RESIZE_MM(1024*1024, &datablock));
    for (size_t i = 0; i < size_memblock(&datablock); ++i) {
-      addr_memblock(&datablock)[i] = (uint8_t)(11*i) ;
+      addr_memblock(&datablock)[i] = (uint8_t)(11*i);
    }
-   TEST(0 == save_file("save", size_memblock(&datablock), addr_memblock(&datablock), tempdir)) ;
-   wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;
-   TEST(0 == load_file("save", &wbuf, tempdir)) ;
-   TEST(size_cstring(&cstr) == size_memblock(&datablock)) ;
+   TEST(0 == save_file("save", size_memblock(&datablock), addr_memblock(&datablock), tempdir));
+
+   // TEST load_file: 1MB file size
+   wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr);
+   TEST(0 == load_file("save", &wbuf, tempdir));
+   TEST(capacity_cstring(&cstr) == size_memblock(&datablock));
    for (size_t i = 0; i < size_memblock(&datablock); ++i) {
-      TEST(addr_memblock(&datablock)[i] == (uint8_t) str_cstring(&cstr)[i]) ;
+      TEST(addr_memblock(&datablock)[i] == (uint8_t) str_cstring(&cstr)[i]);
    }
-   TEST(0 == FREE_MM(&datablock)) ;
+   TEST(0 == FREE_MM(&datablock));
 
    // TEST save_file: EEXIST
-   TEST(EEXIST == save_file("save", 1, "", tempdir)) ;
-   TEST(0 == remove_file("save", tempdir)) ;
+   TEST(EEXIST == save_file("save", 1, "", tempdir));
+   TEST(0 == remove_file("save", tempdir));
 
    // TEST load_file: ENOENT
-   size_t oldsize = size_cstring(&cstr);
+   size_t oldsize = capacity_cstring(&cstr);
    TEST(oldsize == size_wbuffer(&wbuf));
    TEST(0 < oldsize);
-   TEST(ENOENT == load_file("save", &wbuf, tempdir)) ;
-   TEST(oldsize == size_cstring(&cstr));
+   TEST(ENOENT == load_file("save", &wbuf, tempdir));
+   TEST(oldsize == capacity_cstring(&cstr));
    TEST(oldsize == size_wbuffer(&wbuf));
 
    // unprepare
-   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == free_cstring(&cstr));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_cstring(&cstr) ;
-   free_file(&file) ;
-   FREE_MM(&datablock) ;
-   remove_file("save", tempdir) ;
-   return EINVAL ;
+   free_cstring(&cstr);
+   free_file(&file);
+   FREE_MM(&datablock);
+   remove_file("save", tempdir);
+   return EINVAL;
 }
 
 int unittest_io_fileutil()
 {
-   cstring_t   tmppath  = cstring_INIT ;
-   directory_t *tempdir = 0 ;
+   cstring_t    tmppath = cstring_INIT;
+   directory_t* tempdir = 0;
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest"));
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
 
    if (test_loadsave(tempdir))   goto ONERR;
 
    /* adapt log */
-   uint8_t *logbuffer ;
-   size_t   logsize ;
-   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
+   uint8_t *logbuffer;
+   size_t   logsize;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
    while (strstr((char*)logbuffer, "/iofiletest.")) {
       logbuffer = (uint8_t*)strstr((char*)logbuffer, "/iofiletest.")+12;
-      memcpy(logbuffer, "XXXXXX", 6) ;
+      memcpy(logbuffer, "XXXXXX", 6);
    }
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == delete_directory(&tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == delete_directory(&tempdir));
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) free_cstring(&tmppath) ;
-   (void) delete_directory(&tempdir) ;
-   return EINVAL ;
+   (void) free_cstring(&tmppath);
+   (void) delete_directory(&tempdir);
+   return EINVAL;
 }
 
 #endif

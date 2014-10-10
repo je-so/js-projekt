@@ -82,8 +82,8 @@ static void init_testmmblock(
     size_t           datasize,
     size_t           alignsize)
 {
-   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header));
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer));
 
    block->header.datasize  = datasize ;
    block->header.alignsize = alignsize ;
@@ -108,8 +108,8 @@ static void init_testmmblock(
 static bool isvalidtrailer_testmmblock(testmm_blocktrailer_t * trailer)
 {
    testmm_block_t * block = trailer->header[0];
-   const size_t headersize  = alignsize_testmmblock(sizeof(block->header)) ;
-   const size_t trailersize = alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t headersize  = alignsize_testmmblock(sizeof(block->header));
+   const size_t trailersize = alignsize_testmmblock(sizeof(block->trailer));
 
    for (unsigned i = 0; i < trailersize / sizeof(void*); ++i) {
       if (trailer->header[i] != block) return false;
@@ -134,9 +134,9 @@ static bool isvalidtrailer_testmmblock(testmm_blocktrailer_t * trailer)
 
 static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memblock)
 {
-   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
-   const size_t alignsize   =  alignsize_testmmblock(memblock->size) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header));
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer));
+   const size_t alignsize   =  alignsize_testmmblock(memblock->size);
 
    if (block->header.datasize  != memblock->size)  return false ;
    if (block->header.alignsize != alignsize)       return false ;
@@ -182,8 +182,8 @@ struct testmm_page_t {
 static int new_testmmpage(/*out*/testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
 {
    int err ;
-   const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
-   const size_t   trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
+   const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header));
+   const size_t   trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer));
    const size_t   blocksize = (minblocksize + headersize + trailersize) < 1024 * 1024 ? 1024 * 1024 : (minblocksize + headersize + trailersize) ;
    const size_t   pgsize    = pagesize_vm() ;
    const size_t   datasize  = (blocksize + (pgsize-1)) & ~(pgsize-1) ;
@@ -246,8 +246,8 @@ static int ispagefree_testmmpage(testmm_page_t * mmpage)
 
 static int isblockvalid_testmmpage(testmm_page_t * mmpage, struct memblock_t * memblock)
 {
-   const size_t headersize  =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header));
+   const size_t trailersize =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer));
 
    testmm_block_t * block = (testmm_block_t*) (memblock->addr - headersize) ;
 
@@ -265,8 +265,8 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
 {
    int err ;
    testmm_block_t  * block ;
-   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header));
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer));
 
    VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONERR, ) ;
 
@@ -311,10 +311,12 @@ static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct 
 {
    int err ;
    testmm_block_t * block ;
-   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
-   const size_t alignsize   =  alignsize_testmmblock(newsize) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header));
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer));
+   const size_t alignsize   =  alignsize_testmmblock(newsize);
    const size_t blocksize   =  headersize + trailersize + alignsize ;
+
+   if (alignsize < newsize) return ENOMEM;
 
    block = (testmm_block_t*) mmpage->freeblock.addr ;
 
@@ -323,10 +325,10 @@ static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct 
 
    init_testmmblock(block, newsize, alignsize) ;
 
-   memblock->addr = block->header.userdata ;
-   memblock->size = newsize ;
+   memblock->addr = block->header.userdata;
+   memblock->size = newsize;
 
-   return 0 ;
+   return 0;
 }
 
 static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
@@ -662,15 +664,15 @@ int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * membl
 {
    int err ;
 
-   err = allocblock_testmmpage(mman->mmpage, size, memblock) ;
+   err = allocblock_testmmpage(mman->mmpage, size, memblock);
 
    if (err) {
-      if (ENOMEM != err) return err ;
+      if (ENOMEM != err) return err;
 
-      err = addpage_testmm(mman, size) ;
-      if (err) return err ;
+      err = addpage_testmm(mman, size);
+      if (err) return err;
 
-      err = allocblock_testmmpage(mman->mmpage, size, memblock) ;
+      err = allocblock_testmmpage(mman->mmpage, size, memblock);
    }
 
    if (!err) {
@@ -838,11 +840,11 @@ static int test_testmmpage(void)
    TEST(0 == mmpage) ;
 
    // TEST allocblock_testmmpage
-   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
+   TEST(0 == new_testmmpage(&mmpage, 0, 0));
    memblock_t nextfree = mmpage->freeblock ;
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i) ;
-      memblock = (memblock_t) memblock_FREE ;
+      memblock = (memblock_t) memblock_FREE;
       TEST(0      == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(true   == isblockvalid_testmmpage(mmpage, &memblock)) ;
       TEST(ENOMEM == allocblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
@@ -853,6 +855,18 @@ static int test_testmmpage(void)
       nextfree.size -= headersize + trailersize + alignsize ;
       TEST(nextfree.addr == mmpage->freeblock.addr) ;
       TEST(nextfree.size == mmpage->freeblock.size) ;
+   }
+   TEST(0 == delete_testmmpage(&mmpage)) ;
+
+   // TEST allocblock_testmmpage: ENOMEM
+   TEST(0 == new_testmmpage(&mmpage, 0, 0));
+   memblock = (memblock_t) memblock_FREE;
+   for (size_t i = (size_t)-1; i > alignsize_testmmblock(i); --i) {
+      testmm_page_t old = *mmpage;
+      memcpy(&old, mmpage, sizeof(old));
+      TEST(ENOMEM == allocblock_testmmpage(mmpage, i, &memblock));
+      TEST( isfree_memblock(&memblock));
+      TEST(0 == memcmp(&old, mmpage, sizeof(old)));
    }
    TEST(0 == delete_testmmpage(&mmpage)) ;
 

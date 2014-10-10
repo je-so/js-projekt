@@ -1162,11 +1162,11 @@ ONERR:
 
 int unittest_io_file()
 {
-   cstring_t         tmppath = cstring_INIT ;
-   directory_t     * tempdir = 0 ;
+   cstring_t    tmppath = cstring_INIT;
+   directory_t* tempdir = 0;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest"));
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
 
    if (test_remove(tempdir))     goto ONERR;
    if (test_query(tempdir))      goto ONERR;
@@ -1178,27 +1178,27 @@ int unittest_io_file()
    if (test_advise(tempdir))     goto ONERR;
 
    // adapt LOG
-   uint8_t *logbuffer ;
-   size_t   logsize ;
+   uint8_t *logbuffer;
+   size_t   logsize;
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
    if (logsize) {
-      char * found = (char*)logbuffer ;
+      char * found = (char*)logbuffer;
       while ( (found = strstr(found, str_cstring(&tmppath))) ) {
-         if (!strchr(found, '.')) break ;
-         memcpy( strchr(found, '.')+1, "123456", 6 ) ;
-         found += size_cstring(&tmppath) ;
+         if (!strchr(found, '.')) break;
+         memcpy( strchr(found, '.')+1, "123456", 6 );
+         found += size_cstring(&tmppath);
       }
    }
 
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == delete_directory(&tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == delete_directory(&tempdir));
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) free_cstring(&tmppath) ;
-   (void) delete_directory(&tempdir) ;
-   return EINVAL ;
+   (void) free_cstring(&tmppath);
+   (void) delete_directory(&tempdir);
+   return EINVAL;
 }
 
 #endif

@@ -388,7 +388,7 @@ static int test_registerfd(void)
    TEST(0 == free_file(&file));
 
    // unprepare
-   uint8_t path[sys_path_MAXSIZE] = {0};
+   uint8_t path[sys_path_MAXSIZE];
    TEST(0 == path_directory(dir, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(path), path)));
    TEST(0 == removefile_directory(dir, "file"));
    TEST(0 == delete_directory(&dir));

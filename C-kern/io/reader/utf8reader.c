@@ -481,12 +481,12 @@ ONERR:
 
 int unittest_io_reader_utf8reader()
 {
-   directory_t *tempdir = 0 ;
-   cstring_t   tmppath  = cstring_INIT ;
+   directory_t* tempdir = 0;
+   cstring_t    tmppath = cstring_INIT;
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "utf8reader")) ;
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
+   TEST(0 == newtemp_directory(&tempdir, "utf8reader"));
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
 
    if (test_initfree(tempdir))   goto ONERR;
    if (test_query())             goto ONERR;
@@ -495,16 +495,16 @@ int unittest_io_reader_utf8reader()
    if (test_match(tempdir))      goto ONERR;
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == delete_directory(&tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == delete_directory(&tempdir));
 
-   return 0 ;
+   return 0;
 ONERR:
-   removedirectory_directory(0, str_cstring(&tmppath)) ;
-   free_cstring(&tmppath) ;
-   delete_directory(&tempdir) ;
-   return EINVAL ;
+   removedirectory_directory(0, str_cstring(&tmppath));
+   free_cstring(&tmppath);
+   delete_directory(&tempdir);
+   return EINVAL;
 }
 
 #endif

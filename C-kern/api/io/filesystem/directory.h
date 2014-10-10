@@ -18,7 +18,7 @@
 #define CKERN_IO_FILESYSTEM_DIRECTORY_HEADER
 
 // forward
-struct wbuffer_t ;
+struct wbuffer_t;
 
 /* typedef: struct directory_t
  * Export opaque <directory_t> to read/write a directory in the file system.
@@ -29,7 +29,7 @@ struct wbuffer_t ;
  *
  * In case the directory is set to 0 relative paths are resolved by using the
  * current working directory as starting point. */
-typedef struct directory_t             directory_t ;
+typedef struct directory_t directory_t;
 
 /* enums: filetype_e
  * Encodes the type of the file the filename refers to.
@@ -44,7 +44,7 @@ typedef struct directory_t             directory_t ;
  * ftRegularFile     - A normal data file.
  * ftSocket          - A unix system socket.
  * * */
-enum filetype_e {
+typedef enum filetype_e {
    ftUnknown,
    ftBlockDevice,
    ftCharacterDevice,
@@ -53,9 +53,7 @@ enum filetype_e {
    ftSymbolicLink,
    ftRegularFile,
    ftSocket
-} ;
-
-typedef enum filetype_e    filetype_e ;
+} filetype_e;
 
 
 // section: Functions
@@ -114,29 +112,28 @@ int delete_directory(directory_t ** dir) ;
  * 0         - file_path refers to an existing file or directory.
  * ENOENT    - file_path does not refer to an existing file system entry.
  *             No error log entry is written. */
-int trypath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
+int trypath_directory(const directory_t* dir/*0 => current working directory*/, const char * const file_path);
 
 /* function: io_directory
  * Returns <iochannel_t> (file descriptor) of the opened directory.
  * Do not free it after usage else dir can not be accessed any more. */
-sys_iochannel_t io_directory(const directory_t * dir) ;
+sys_iochannel_t io_directory(const directory_t* dir);
 
 /* function: filesize_directory
  * Returns the filesize of a file with path »file_path«.
  * *file_path* is considered relative to dir. If dir is NULL then it is considered
  * relative to the current working directory.
  * If *file_path* is absolute the value of *dir* does not matter. */
-int filesize_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, /*out*/off_t * file_size) ;
+int filesize_directory(const directory_t* dir/*0 => current working directory*/, const char* file_path, /*out*/off_t* file_size) ;
 
 /* function: path_directory
  * Returns absolute real path of directory dir in path.
  * If dir was initializated with a path containing symlinks the returned path
  * will differ from the one used during initialization.
  * The returned path contains at least '/' as first character.
- * A trailing '\0' is *not* appended at the end of the returned string.
- * If <wbuffer_t> wraps a <cstring_t> a '\0' byte is added automatically else
- * do not forget to add your own if you use C string functions. */
-int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path) ;
+ * A trailing '\0' is appended at the end of the returned path.
+ * Do not forget to call <cstring_t.adaptsize_cstring> if path wraps a <cstring_t>. */
+int path_directory(const directory_t* dir, /*ret*/struct wbuffer_t* path);
 
 // group: read
 
@@ -148,12 +145,12 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path) ;
  *         It is valid until any other function on dir is called.
  *         If there is no next entry *name* is set to NULL.
  * ftype - On success and if ftype != NULL it contains the type of file. */
-int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype_e * ftype) ;
+int next_directory(directory_t* dir, /*out*/const char** name, /*out*/filetype_e * ftype);
 
 /* function: gofirst_directory
  * Sets the current read position to the begin of the directory stream. The next call to <next_directory>
  * returns the first entry again. */
-int gofirst_directory(directory_t * dir) ;
+int gofirst_directory(directory_t* dir);
 
 // group: write
 
@@ -161,7 +158,7 @@ int gofirst_directory(directory_t * dir) ;
  * Creates directory with directory_path relative to dir.
  * If dir is 0 the directory_path is relative to the current working directory.
  * If directory_path is absolute then the parameter dir does not matter. */
-int makedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
+int makedirectory_directory(directory_t* dir/*0 => current working directory*/, const char* directory_path);
 
 /* function: makefile_directory
  * Creates a new file with file_path relative to dir.
@@ -173,20 +170,21 @@ int makefile_directory(directory_t * dir/*0 => current working directory*/, cons
  * Removes the empty directory with directory_path relative to dir.
  * If dir is 0 the directory_path is relative to the current working directory.
  * If directory_path is absolute then the parameter dir does not matter. */
-int removedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
+int removedirectory_directory(directory_t* dir/*0 => current working directory*/, const char* directory_path);
 
 /* function: removefile_directory
  * Removes the file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-int removefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path) ;
+int removefile_directory(directory_t* dir/*0 => current working directory*/, const char* file_path);
 
 
 // section: inline implementation
 
 /* define: io_directory
  * Implements <directory_t.io_directory>. */
-#define io_directory(dir)              (dirfd((DIR*)CONST_CAST(directory_t, dir)))
+#define io_directory(dir) \
+         (dirfd((DIR*)CONST_CAST(directory_t, dir)))
 
 
 #endif

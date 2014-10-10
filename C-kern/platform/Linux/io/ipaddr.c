@@ -378,105 +378,105 @@ ipport_t port_ipaddr(const ipaddr_t * addr)
    return ntohs(port) ;
 }
 
-ipprotocol_e protocol_ipaddr(const ipaddr_t * addr)
+ipprotocol_e protocol_ipaddr(const ipaddr_t* addr)
 {
-   return addr->protocol ;
+   return addr->protocol;
 }
 
-ipversion_e version_ipaddr(const ipaddr_t * addr)
+ipversion_e version_ipaddr(const ipaddr_t* addr)
 {
-   uint16_t family = ((const struct sockaddr_in*)(addr->addr))->sin_family ;
-   return (ipversion_e) family ;
+   uint16_t family = ((const struct sockaddr_in*)(addr->addr))->sin_family;
+   return (ipversion_e) family;
 }
 
-int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
+int dnsname_ipaddr(const ipaddr_t* addr, cstring_t* dns_name)
 {
    int err ;
 
-   err = resize_cstring(dns_name, NI_MAXHOST) ;
+   err = allocate_cstring(dns_name, NI_MAXHOST);
    if (err) goto ONERR;
 
    for (;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
+      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), capacity_cstring(dns_name), 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
       if (err) {
-         if (     EAI_OVERFLOW == err
-               && dns_name->allocated_size < 4096) {
-            err = resize_cstring(dns_name, 2*dns_name->allocated_size) ;
+         if (  EAI_OVERFLOW == err
+               && capacity_cstring(dns_name) < 4096) {
+            err = allocate_cstring(dns_name, 2*capacity_cstring(dns_name));
             if (err) goto ONERR;
-            continue ;
+            continue;
          }
-         err = convert_eai_errorcodes(err) ;
+         err = convert_eai_errorcodes(err);
          goto ONERR;
       }
-      break ;
+      break;
    }
 
-   resize_cstring(dns_name, strlen(str_cstring(dns_name))) ;
-   return 0 ;
+   adaptsize_cstring(dns_name);
+   return 0;
 ONERR:
-   clear_cstring(dns_name) ;
+   clear_cstring(dns_name);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
 {
    int err ;
 
-   err = resize_cstring(dns_name, NI_MAXHOST) ;
+   err = allocate_cstring(dns_name, NI_MAXHOST);
    if (err) goto ONERR;
 
    for (;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_NAMEREQD) ;
+      err = getnameinfo(addr->addr, addr->addrlen, str_cstring(dns_name), capacity_cstring(dns_name), 0, 0, NI_NAMEREQD);
       if (err) {
-         if (     EAI_OVERFLOW == err
-               && dns_name->allocated_size < 4096) {
-            err = resize_cstring(dns_name, 2*dns_name->allocated_size) ;
+         if (  EAI_OVERFLOW == err
+               && capacity_cstring(dns_name) < 4096) {
+            err = allocate_cstring(dns_name, 2*capacity_cstring(dns_name));
             if (err) goto ONERR;
-            continue ;
+            continue;
          }
-         err = convert_eai_errorcodes(err) ;
+         err = convert_eai_errorcodes(err);
          goto ONERR;
       }
-      break ;
+      break;
    }
 
-   resize_cstring(dns_name, strlen(str_cstring(dns_name))) ;
-   return 0 ;
+   adaptsize_cstring(dns_name);
+   return 0;
 ONERR:
-   clear_cstring(dns_name) ;
+   clear_cstring(dns_name);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
 {
    int err ;
 
-   err = resize_cstring(numeric_name, 64) ;
+   err = allocate_cstring(numeric_name, 64);
    if (err) goto ONERR;
 
    for (;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(numeric_name), numeric_name->allocated_size, 0, 0, NI_NUMERICHOST) ;
+      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(numeric_name), capacity_cstring(numeric_name), 0, 0, NI_NUMERICHOST) ;
       if (err) {
-         if (     EAI_OVERFLOW == err
-               && numeric_name->allocated_size < 4096) {
-            err = resize_cstring(numeric_name, 2*numeric_name->allocated_size) ;
+         if (  EAI_OVERFLOW == err
+               && capacity_cstring(numeric_name) < 4096) {
+            err = allocate_cstring(numeric_name, 2*capacity_cstring(numeric_name));
             if (err) goto ONERR;
-            continue ;
+            continue;
          }
-         err = convert_eai_errorcodes(err) ;
+         err = convert_eai_errorcodes(err);
          goto ONERR;
       }
-      break ;
+      break;
    }
 
-   resize_cstring(numeric_name, strlen(str_cstring(numeric_name))) ;
-   return 0 ;
+   adaptsize_cstring(numeric_name);
+   return 0;
 ONERR:
-   clear_cstring(numeric_name) ;
+   clear_cstring(numeric_name);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: log

@@ -1,41 +1,44 @@
-[1: 1410603446.892078s]
-shrink_cstring_wbuffer() C-kern/memory/wbuffer.c:81
+[1: 1412320584.982915s]
+shrink_cstring_wbuffer() C-kern/memory/wbuffer.c:84
 Error 22 - Invalid argument
-[1: 1410603446.892086s]
+[1: 1412320584.982919s]
 alloc_cstring_wbuffer() C-kern/memory/wbuffer.c:67
 Error 12 - Cannot allocate memory
-[1: 1410603446.892090s]
-shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:132
+[1: 1412320584.982923s]
+shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:137
 Error 22 - Invalid argument
-[1: 1410603446.892092s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:118
+[1: 1412320584.982926s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:121
 Error 12 - Cannot allocate memory
-[1: 1410603446.892105s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:118
-Error 12 - Cannot allocate memory
-[1: 1410603446.892108s]
-shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:132
+[1: 1412320584.982928s]
+shrink_static_wbuffer() C-kern/memory/wbuffer.c:167
 Error 22 - Invalid argument
-[1: 1410603446.892112s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:107
+[1: 1412320584.982945s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:121
+Error 12 - Cannot allocate memory
+[1: 1412320584.982948s]
+shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:137
+Error 22 - Invalid argument
+[1: 1412320584.982952s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:110
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory
-[1: 1410603446.892115s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:118
+[1: 1412320584.982954s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:121
 Error 12 - Cannot allocate memory
-[1: 1410603446.892119s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:107
+[1: 1412320584.982959s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:110
 Error 12 - Cannot allocate memory
 Could not allocate 4294967279 bytes of memory
-[1: 1410603446.892121s]
-appendcopy_wbuffer() C-kern/memory/wbuffer.c:206
+[1: 1412320584.982961s]
+appendcopy_wbuffer() C-kern/memory/wbuffer.c:214
 Error 12 - Cannot allocate memory
-[1: 1410603446.892123s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:118
+[1: 1412320584.982963s]
+alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:121
 Error 12 - Cannot allocate memory
-[1: 1410603446.892124s]
-appendcopy_wbuffer() C-kern/memory/wbuffer.c:206
+[1: 1412320584.982965s]
+appendcopy_wbuffer() C-kern/memory/wbuffer.c:214
 Error 12 - Cannot allocate memory
-[1: 1410603446.892133s]
-appendcopy_wbuffer() C-kern/memory/wbuffer.c:206
+[1: 1412320584.982973s]
+appendcopy_wbuffer() C-kern/memory/wbuffer.c:214
 Error 12 - Cannot allocate memory
