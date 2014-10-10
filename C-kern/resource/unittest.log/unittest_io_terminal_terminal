@@ -1,42 +1,42 @@
-[1: 1411022990.414250s]
+[1: 1412744534.692495s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:182
 Error 22 - Invalid argument
-[1: 1411022990.414292s]
+[1: 1412744534.692525s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:182
 Error 22 - Invalid argument
-[1: 1411022990.414309s]
+[1: 1412744534.692539s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:182
 Error 22 - Invalid argument
-[1: 1411022990.414355s]
+[1: 1412744534.692573s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:182
 Error 22 - Invalid argument
-[1: 1411022990.414373s]
+[1: 1412744534.692586s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:182
 Error 22 - Invalid argument
-[1: 1411022990.414434s]
-isutf8_terminal() C-kern/platform/Linux/io/terminal.c:259
+[1: 1412744534.692636s]
+isutf8_terminal() C-kern/platform/Linux/io/terminal.c:263
 Error 22 - Invalid argument
-[1: 1411022990.414468s]
-pathname_terminal() C-kern/platform/Linux/io/terminal.c:278
+[1: 1412744534.692659s]
+pathname_terminal() C-kern/platform/Linux/io/terminal.c:282
 Error 9 - Bad file descriptor
-[1: 1411022990.522896s]
-configstore_terminal() C-kern/platform/Linux/io/terminal.c:387
+[1: 1412744534.802021s]
+configstore_terminal() C-kern/platform/Linux/io/terminal.c:391
 Error 22 - Invalid argument
-[1: 1411022990.522915s]
-configstore_terminal() C-kern/platform/Linux/io/terminal.c:387
+[1: 1412744534.802039s]
+configstore_terminal() C-kern/platform/Linux/io/terminal.c:391
 Error 22 - Invalid argument
-[1: 1411022990.633086s]
-size_terminal() C-kern/platform/Linux/io/terminal.c:342
+[1: 1412744534.916832s]
+size_terminal() C-kern/platform/Linux/io/terminal.c:346
 Error 9 - Bad file descriptor
-[1: 1411022990.635362s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:372
+[1: 1412744534.919418s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
 Error 6 - No such device or address
-[1: 1411022990.639750s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:372
+[1: 1412744534.925201s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
 Error 6 - No such device or address
-[1: 1411022990.642788s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:372
+[1: 1412744534.930910s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
 Error 6 - No such device or address
-[1: 1411022990.645889s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:372
+[1: 1412744534.937200s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
 Error 6 - No such device or address

@@ -24,6 +24,7 @@ void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr,
 void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, size_t linenr, size_t colnr) ;
 void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer) ;
 void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer) ;
+void STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, const char * signame) ;
 void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition) ;
 void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition) ;
 void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, const char * violated_condition) ;
@@ -49,6 +50,7 @@ void vPARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs
 void vPARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
 void vPROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
 void vRESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
+void vSTATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
 void vTEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
 void vTEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;
 void vTEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs) ;

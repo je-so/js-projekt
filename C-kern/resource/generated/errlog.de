@@ -155,6 +155,13 @@ void vRESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list va
    PRINTF("Ungleiche Anzahl benutzter Ressourcen\n") ;
 }
 
+void vSTATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+{
+   const char * signame = va_arg(vargs, const char*) ;
+
+   PRINTF("Ein für Signal »%s« installierter Signalhandler erzeugt möglicherweise undefiniertes Verhalten.\n", signame) ;
+}
+
 void vTEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * violated_condition = va_arg(vargs, const char*) ;

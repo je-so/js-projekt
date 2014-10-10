@@ -166,7 +166,7 @@ struct termkey_t {
    termkey_e     nr;
    /* variable: mod
     * Bitkombination der Zusatztasten (modifier) - siehe <term_modkey_e>. */
-   term_modkey_e  mod;
+   term_modkey_e mod;
 };
 
 // group: lifetime
@@ -235,11 +235,11 @@ struct termkey_t {
 struct termadapt_t {
    /* variable: termid
     * Interne Nummer des Terminals beginnend von 0. */
-   const uint16_t  termid;
+   const uint16_t termid;
    /* variable: typelist
     * Liste von Typnamen, unter denen das Terminal bekannt ist, jeweils getrennt mit '|'.
     * Die Liste ist mit einem \0 Byte abgeschlossen. */
-   const uint8_t * typelist; // "name1|name2|...|nameN\0"
+   const uint8_t* typelist; // "name1|name2|...|nameN\0"
 };
 
 // group: lifetime
@@ -251,7 +251,7 @@ struct termadapt_t {
  * Return:
  * 0      - In termadapt wurde erfolgreich ein Zeicher auf ein initialisiertes <termadapt_t> Objekt abgelegt.
  * EINVAL - Die Terminal ID in termid ist ein Wert ausserhalb der Liste <termid_e>. */
-int new_termadapt(/*out*/termadapt_t ** termadapt, const termid_e termid);
+int new_termadapt(/*out*/termadapt_t** termadapt, const termid_e termid);
 
 /* function: newPtype_termadapt
  * Wie <new_termadapt>, erwartet in type aber Rückgabewert von <type_terminal>.
@@ -265,17 +265,17 @@ int new_termadapt(/*out*/termadapt_t ** termadapt, const termid_e termid);
  * ENOENT - Der durch den String type beschriebene Terminaltyp wird nicht unterstützt.
  *          Dieser Fehler wird nicht geloggt.
  * */
-int newPtype_termadapt(/*out*/termadapt_t ** termadapt, const uint8_t * type);
+int newPtype_termadapt(/*out*/termadapt_t** termadapt, const uint8_t* type);
 
 /* function: delete_termadapt
  * Setzt termadapt auf 0. */
-int delete_termadapt(termadapt_t ** termadapt);
+int delete_termadapt(termadapt_t** termadapt);
 
 // group: query
 
 /* function: id_termadapt
  * Gibt die interne ID des Terminals zurück - siehe <termid_e>. */
-termid_e id_termadapt(const termadapt_t * termadapt);
+termid_e id_termadapt(const termadapt_t* termadapt);
 
 // group: write control-codes
 
@@ -293,67 +293,67 @@ termid_e id_termadapt(const termadapt_t * termadapt);
  *   sich durch alterniv gesendete Codes unterscheiden. Im Normalmodus
  *   senden die Keypadtasten '/','*','-','+','<cr>' die aufgedruckten Symbole,
  *   im Appmode Escapesequenzen zur Unterscheidung. */
-int startedit_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int startedit_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: endedit_termadapt
  * Beendet Editiermodus und stellt ovrherigen Zustand – soweit möglich – wieder her.
  * Diese Steuerbefehle sollten immer vor Ende des Prozesses, sofern zuvor <startedit_termadapt>
  * aufgerufen wurde, an das Terminal gesendet werden, ansonsten könnte die Shelleingabe nicht mehr
  * richtig funktionieren. */
-int endedit_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int endedit_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 // ======= Cursor =======
 
 /* function: cursoroff_termadapt
  * Schaltet den Cursor unsichtbar. */
-int cursoroff_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int cursoroff_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: cursoron_termadapt
  * Schaltet den Cursor wieder auf sichtbar. */
-int cursoron_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int cursoron_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: movecursor_termadapt
  * Bewegt den Cursor in die Spalte cursorx und Zeile cursory.
  * Die Werte (0,0) bezeichnen die linke obere Ecke. */
-int movecursor_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, unsigned cursorx, unsigned cursory);
+int movecursor_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, unsigned cursorx, unsigned cursory);
 
 // ======= Clear =======
 
 /* function: clearline_termadapt
  * Löscht die Zeile, auf der sich der Cursor befindet. */
-int clearline_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int clearline_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: clearendofline_termadapt
  * Löscht den Inhalt von der aktuellen Cursorposition bis zum Zeilenende. */
-int clearendofline_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int clearendofline_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: clearscreen_termadapt
  * Löscht den gesamten Terminalschirm und setzt den Cursor auf Position (0,0) | die linke obere Ecke. */
-int clearscreen_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int clearscreen_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 // ======= Text Style =======
 
 /* function: bold_termadapt
  * Schaltet den Text auf fett gedruckte Darstellung. */
-int bold_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int bold_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: fgcolor_termadapt
  * Setzt die Vordergrundfarbe des Textes auf fgcolor.
  * Die Farbe kann aus der Palette <termcol_e> gewählt werden.
  * Ist bright auf true gesetzt, werden hellere Farben verwendet (die zweite Palette),
  * sofern das Terminal es unterstützt. */
-int fgcolor_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, bool bright, unsigned fgcolor);
+int fgcolor_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, bool bright, unsigned fgcolor);
 
 /* function: bgcolor_termadapt
  * Setzt die Hintergrundfarbe des Textes auf bgcolor.
  * Die Farbe kann aus der Palette <termcol_e> gewählt werden.
  * Ist bright auf true gesetzt, werden hellere Farben verwendet (die zweite Palette),
  * sofern das Terminal es unterstützt. */
-int bgcolor_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, bool bright, unsigned bgcolor);
+int bgcolor_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, bool bright, unsigned bgcolor);
 
 /* function: normtext_termadapt
  * Setzt den Text auf normale Breite und Standard Vordergrund und Hintergrundfarbe. */
-int normtext_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int normtext_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 // ======= Scroll =======
 
@@ -361,22 +361,22 @@ int normtext_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t 
  * Setzt die Scrollregion von Zeile starty bis einschließlich Zeile endy.
  * Die Zeilennummern werden ab 0 gezählt. Damit kann eine Statuszeile am oberen
  * oder unteren Ende des Terminalschirms realisiert werden. */
-int scrollregion_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, unsigned starty, unsigned endy);
+int scrollregion_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, unsigned starty, unsigned endy);
 
 /* function: scrollregionoff_termadapt
  * Setzt den gesamten Schirm als Scrollregion. */
-int scrollregionoff_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int scrollregionoff_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: scrollup_termadapt
  * Scrollt eine Zeile nach oben, sofern der Cursor in der letzten Zeile steht.
  * Mit der letzen Zeile ist die Höhe-1 des Terminals in Zeilen gemeint oder endy,
  * falls <scrollregion_termadapt> angeschalten ist. */
-int scrollup_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int scrollup_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: scrolldown_termadapt
  * Scrollt eine Zeile nach unten, sofern der Cursor in der ersten Zeile steht.
  * Mit der ersten Zeile ist 0 gemeint oder starty, falls <scrollregion_termadapt> angeschalten ist. */
-int scrolldown_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int scrolldown_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 // ======= Insert / Delete =======
 
@@ -384,7 +384,7 @@ int scrolldown_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_
  * Schaltet Replacemodus ein (insert mode: OFF).
  * Ein ausgegebenes Zeichen überschreibt das unter dem Cursor liegende und setzt den Cursor eine
  * Spalte weiter nach rechts. */
-int replacemode_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int replacemode_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: insertmode_termadapt
  * Schaltet Insertmodus ein (insert mode: ON).
@@ -392,12 +392,12 @@ int replacemode_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream
  * nach rechts, fügt an der aktuellen Cursorposition ein neues ein und setzt den Cursor eine
  * Spalte weiter nach rechts. Ein am Ende der Zeile nach rechts geschobenes Zeichen wird abgeschnitten.
  * Das Abschneiden wird in <startedit_termadapt> gesetzt. */
-int insertmode_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int insertmode_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: delchar_termadapt
  * Löscht das Zeichen, auf dem der Cursor steht. Zeichen rechts davon werden nach links geschoben.
  * Am rechten Bildschirmrand erscheint eine Leerstelle. */
-int delchar_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes);
+int delchar_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes);
 
 /* function: dellines_termadapt
  * Löscht nroflines Zeilen. Der Cursor bleibt auf derselben Stelle stehen.
@@ -405,13 +405,13 @@ int delchar_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t *
  * alle darunterliegenden Zeilen werden nach oben gescrollt. Nachrückende Zeilen sind leer
  * (oder falls weitere Terminals unterstützt werden könnten auch alte, herausgescrollte
  * Inhalte beinhalten). <scrollregion_termadapt> bestimmt dabei den Scrollbereich. */
-int dellines_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, unsigned nroflines);
+int dellines_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, unsigned nroflines);
 
 /* function: inslines_termadapt
  * Fügt nroflines neue Leerzeilen ein. Der Cursor bleibt auf derselben Stelle stehen.
  * Die Zeile, auf der der Cursor steht und alle darunterliegenden werden nroflines Zeilen nach untern gescrollt.
  * <scrollregion_termadapt> bestimmt dabei den Scrollbereich. */
-int inslines_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t * ctrlcodes, unsigned nroflines);
+int inslines_termadapt(const termadapt_t* termadapt, /*ret*/struct memstream_t* ctrlcodes, unsigned nroflines);
 
 // group: read keycodes
 
@@ -427,7 +427,7 @@ int inslines_termadapt(const termadapt_t * termadapt, /*ret*/struct memstream_t 
  *           welche die Spezialtaste beschreibenm, und key enthält deren Beschreibung.
  *
  * Es wird *kein* Logeintrag im Falle eines Fehlers geschrieben. */
-int key_termadapt(const termadapt_t * termadapt, struct memstream_ro_t * keycodes, /*out*/termkey_t * key);
+int key_termadapt(const termadapt_t* termadapt, struct memstream_ro_t* keycodes, /*out*/termkey_t* key);
 
 
 

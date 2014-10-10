@@ -173,13 +173,13 @@ struct terminal_t {
  * Falls <sys_iochannel_STDIN>, <sys_iochannel_STDOUT> mit dem controlling Terminal
  * verbunden sind, werden diese Filedescriptoren verwendet.
  * Ansonsten wird versucht, eine neue Verbindung zum controlling Terminal aufzubauen. */
-int init_terminal(/*out*/terminal_t * terml);
+int init_terminal(/*out*/terminal_t* terml);
 
 /* function: free_terminal
  * Schliesst geöffneten IOchannel, falls nicht <sys_iochannel_STDIN> und <sys_iochannel_STDOUT> verwendet wurden.
  * Falls <configrawedit_terminal> aufgerufen wurde, muss vor <free_terminal> explizit <configrestore_terminal>
  * aufgerufen werden, um das Terminal wieder in den regulären Modus zurückzuschalten. */
-int free_terminal(terminal_t * terml);
+int free_terminal(terminal_t* terml);
 
 // group: query
 
@@ -187,14 +187,14 @@ int free_terminal(terminal_t * terml);
  * Gibt den Eingabekanal vom Terminal terml zurück.
  * Eingelesene Bytes sind die UTF8-Codes der Zeichen plus als Esacpesequenzen kodierte Sondertasten.
  * Mit der Funktion <querykey_termcdb> können diese Sondertasten dekodiert werden. */
-sys_iochannel_t input_terminal(terminal_t * terml);
+sys_iochannel_t input_terminal(terminal_t* terml);
 
 /* function: output_terminal
  * Gibt den Ausgabekanal vom Terminal terml zurück.
  * Geschriebene Bytes sollten in UTF8 kodierte Zeichen sein plus als Esacpesequenzen kodierte Sonderfunktionen.
  * Die Typ <termcdb_t> bietet Funktionen wie <movecursor_termcdb> und weitere, welche diese Escapesequenzen
  * dem Typ des Terminals entsprechend erzeugen. */
-sys_iochannel_t output_terminal(terminal_t * terml);
+sys_iochannel_t output_terminal(terminal_t* terml);
 
 /* function: hascontrolling_terminal
  * Gibt true zurück, falls der Prozess mit einem »controlling Terminal« verbunden ist.
@@ -232,7 +232,7 @@ int waitsizechange_terminal(void);
 
 /* function: isutf8_terminal
  * Gibt true zurück, wenn das Terminal auf Verarbeitung von UTF8 konfiguriert ist. */
-bool isutf8_terminal(terminal_t * terml);
+bool isutf8_terminal(terminal_t* terml);
 
 /* function: type_terminal
  * Liefert den Typ controlling Terminals als String zurück.
@@ -257,17 +257,17 @@ int type_terminal(uint16_t len, /*out*/uint8_t type[len]);
  *          Der Inhalt von name wurde möglicherweise aber trotzdem teilweise geändert.
  *
  * Alle Fehler außer ENOBUFS werden geloggt! */
-int pathname_terminal(const terminal_t * terml, uint16_t len, /*err;out*/uint8_t name[len]);
+int pathname_terminal(const terminal_t* terml, uint16_t len, /*err;out*/uint8_t name[len]);
 
 /* function: ctrlsusp_terminal
  * Gibt CTRL-? Keycode zurück, der den aktuellen Vordergrundprozess schlafen legt (Signal SIGTSTP).
  * Defaultwert ist CTRL-Z. */
-uint8_t ctrlsusp_terminal(const terminal_t * terml);
+uint8_t ctrlsusp_terminal(const terminal_t* terml);
 
 /* function: ctrllnext_terminal
  * Gibt CTRL-? Keycode zurück, der die nächste Kommandotaste als Wert markiert und sie ihrer Kommandofunktion enthebt.
  * Defaultwert ist CTRL-V. */
-uint8_t ctrllnext_terminal(const terminal_t * terml);
+uint8_t ctrllnext_terminal(const terminal_t* terml);
 
 // group: read
 
@@ -280,7 +280,7 @@ uint8_t ctrllnext_terminal(const terminal_t * terml);
  * Return:
  * 0      - Fehler oder keine Daten innerhalb von 50 ms Sekunde gelesen.
  * != 0   - Anzahl an Bytes, die nach keys gelesen wurden. Der Wert ist immer <= len. */
-size_t tryread_terminal(terminal_t * terml, size_t len, /*out*/uint8_t keys[len]);
+size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len]);
 
 /* function: size_terminal
  * Liest die aktuelle Höhe und Breite des Terminals in Zeichen.
@@ -288,7 +288,7 @@ size_t tryread_terminal(terminal_t * terml, size_t len, /*out*/uint8_t keys[len]
  * bzw. <issizechange_terminal> die Änderung ermittelt werden.
  * Meldet eine der beiden Funktionen eine Änderung, muss die Funktion <size_terminal>
  * aufgerufen werden, um die Größe auf den neuesten Stand zu bringen. */
-int size_terminal(terminal_t * terml, unsigned * nrcolsX, unsigned * nrrowsY);
+int size_terminal(terminal_t* terml, unsigned* nrcolsX, unsigned* nrrowsY);
 
 // group: update
 
@@ -315,19 +315,19 @@ int removecontrolling_terminal(void);
  * Wird von <init_terminal> automatisch aufgerufen.
  * Die gespeicherten Einstellungen können mit <configrestore_terminal> wiederhergestellt werden.
  * Dies Funktion sollte immer dann aufgerufen werden, wenn der Prozess das Signal SIGCONT empfängt. */
-int configstore_terminal(terminal_t * terml);
+int configstore_terminal(terminal_t* terml);
 
 /* function: configrestore_terminal
  * Macht Änderungen von <configrawedit_terminal> rückgängig.
  * Dies Funktion sollte immer dann aufgerufen werden, wenn der Prozess das Signal SIGTSTP empfängt. */
-int configrestore_terminal(terminal_t * terml);
+int configrestore_terminal(terminal_t* terml);
 
 /* function: configrawedit_terminal
  * Schaltet um von zeilenweise Eingabe auf zeichenweise Eingabe und Funktion der Control-Tasten aus.
  * Die Änderung der Konfiguration muss vor Schließen von terml mit <configrestore_terminal>
  * wieder rückgängig gemacht werden, ansonsten muß der Benutzer manuell "stty sane" blind auf
  * der Kommandozeile eingeben, da die Echofunktion auch ausgeschalten ist. */
-int configrawedit_terminal(terminal_t * terml);
+int configrawedit_terminal(terminal_t* terml);
 
 
 

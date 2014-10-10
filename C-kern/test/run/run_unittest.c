@@ -258,6 +258,7 @@ int run_unittest(void * argv)
       RUN(unittest_io_writer_log_logwriter);
       RUN(unittest_io_writer_log_logmain);
       // Terminal
+      RUN(unittest_io_terminal_pseudoterm);
       RUN(unittest_io_terminal_termadapt);
       RUN(unittest_io_terminal_terminal);
 //}

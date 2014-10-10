@@ -216,6 +216,7 @@
       <VirtualDirectory Name="terminal">
         <File Name="../../C-kern/api/io/terminal/terminal.h"/>
         <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
+        <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
@@ -397,6 +398,7 @@
         <File Name="../../C-kern/platform/Linux/io/iochannel.c"/>
         <File Name="../../C-kern/platform/Linux/io/filepath.c"/>
         <File Name="../../C-kern/platform/Linux/io/terminal.c"/>
+        <File Name="../../C-kern/platform/Linux/io/pseudoterm.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

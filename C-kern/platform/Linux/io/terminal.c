@@ -75,7 +75,7 @@ static test_errortimer_t   s_terminal_errtimer = test_errortimer_FREE;
  * wird, kann auch nur Control-C (ohne ^V davor) eingegeben werden.
  *
  * */
-static inline int readconfig(/*out*/struct termios * tconf, sys_iochannel_t fd)
+static inline int readconfig(/*out*/struct termios* tconf, sys_iochannel_t fd)
 {
    int err;
 
@@ -90,7 +90,7 @@ ONERR:
    return err;
 }
 
-static inline int writeconfig(struct termios * tconf, sys_iochannel_t fd)
+static inline int writeconfig(struct termios* tconf, sys_iochannel_t fd)
 {
    int err;
 
@@ -107,7 +107,7 @@ ONERR:
    return err;
 }
 
-static inline int readwinsize(/*out*/struct winsize * size, sys_iochannel_t fd)
+static inline int readwinsize(/*out*/struct winsize* size, sys_iochannel_t fd)
 {
    int err;
 
@@ -123,7 +123,7 @@ ONERR:
 
 /* function: configstore
  * Calls <readconfig> and stores values into <terminal_t.ctrl_lnext> ... <terminal_t.oldconf_onlcr>. */
-static inline int configstore(/*out*/terminal_t * terml, sys_iochannel_t fd)
+static inline int configstore(/*out*/terminal_t* terml, sys_iochannel_t fd)
 {
    int err;
    struct termios tconf;
@@ -150,7 +150,7 @@ ONERR:
 
 // group: lifetime
 
-int init_terminal(/*out*/terminal_t * terml)
+int init_terminal(/*out*/terminal_t* terml)
 {
    int err;
    file_t input = sys_iochannel_STDIN;
@@ -183,7 +183,7 @@ ONERR:
    return err;
 }
 
-int free_terminal(terminal_t * terml)
+int free_terminal(terminal_t* terml)
 {
    int err;
 
@@ -213,6 +213,10 @@ ONERR:
 
 // group: query
 
+/* function: hascontrolling_terminal
+ * If a process has a controlling terminal, opening the special file /dev/tty obtains
+ * a file descriptor for that terminal. This is useful if standard input and output are redirected,
+ * and a program wants to ensure that it is communicating with the controlling terminal. */
 bool hascontrolling_terminal(void)
 {
    if (! iscontrolling_terminal(sys_iochannel_STDIN)) {
@@ -245,7 +249,7 @@ bool issizechange_terminal()
    return (SIGWINCH == sigtimedwait(&signset, &info, & (const struct timespec) { 0, 0 }));
 }
 
-bool isutf8_terminal(terminal_t * terml)
+bool isutf8_terminal(terminal_t* terml)
 {
    int err;
    struct termios tconf;
@@ -260,7 +264,7 @@ ONERR:
    return false;
 }
 
-int pathname_terminal(const terminal_t * terml, uint16_t len, uint8_t name[len])
+int pathname_terminal(const terminal_t* terml, uint16_t len, uint8_t name[len])
 {
    int err;
 
@@ -306,7 +310,7 @@ int type_terminal(uint16_t len, /*out*/uint8_t type[len])
 
 // group: read
 
-size_t tryread_terminal(terminal_t * terml, size_t len, /*out*/uint8_t keys[len])
+size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len])
 {
    size_t        nrbytes = 0;
    struct pollfd pfd = { .events = POLLIN, .fd = terml->input };
@@ -326,7 +330,7 @@ size_t tryread_terminal(terminal_t * terml, size_t len, /*out*/uint8_t keys[len]
    return nrbytes;
 }
 
-int size_terminal(terminal_t * terml, unsigned * nrcolsX, unsigned * nrrowsY)
+int size_terminal(terminal_t* terml, unsigned* nrcolsX, unsigned* nrrowsY)
 {
    int err;
    struct winsize size;
@@ -375,7 +379,7 @@ ONERR:
 
 // group: config line discipline
 
-int configstore_terminal(terminal_t * terml)
+int configstore_terminal(terminal_t* terml)
 {
    int err;
 
@@ -388,7 +392,7 @@ ONERR:
    return err;
 }
 
-int configrestore_terminal(terminal_t * terml)
+int configrestore_terminal(terminal_t* terml)
 {
    int err;
    struct termios tconf;
@@ -426,7 +430,7 @@ ONERR:
    return err;
 }
 
-int configrawedit_terminal(terminal_t * terml)
+int configrawedit_terminal(terminal_t* terml)
 {
    int err;
    struct termios tconf;
@@ -738,7 +742,7 @@ static void test_sighandler(int signr)
    (void) signr;
 }
 
-static int thread_callwaitsize(void * arg)
+static int thread_callwaitsize(void* arg)
 {
    sigset_t sigmask;
    TEST(0 == sigemptyset(&sigmask));
@@ -1446,12 +1450,23 @@ ONERR:
 
 int unittest_io_terminal_terminal()
 {
+   uint8_t    termpath1[128];
+   uint8_t    termpath2[128];
+
+   // get path to controlling terminal
+   TEST(0 == ttyname_r(sys_iochannel_STDIN, (char*) termpath1, sizeof(termpath1)));
+
    if (test_helper())         goto ONERR;
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;
    if (test_config())         goto ONERR;
    if (test_read())           goto ONERR;
    if (test_controlterm())    goto ONERR;
+
+   // check controlling terminal has not changed
+   TEST(getsid(0) == tcgetsid(sys_iochannel_STDIN));
+   TEST(0 == ttyname_r(sys_iochannel_STDIN, (char*) termpath2, sizeof(termpath2)));
+   TEST(0 == strcmp((char*)termpath1, (char*)termpath2));
 
    return 0;
 ONERR:
