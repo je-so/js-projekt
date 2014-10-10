@@ -741,18 +741,18 @@ static memblock_t       s_sigaltstack_signalstack ;
 static pthread_t        s_sigaltstack_threadid ;
 static volatile int     s_sigaltstack_returncode ;
 
-static void sigusr1handler(int sig)
+static void handler_sigusr1(int sig)
 {
-   int errno_backup = errno ;
+   int errno_backup = errno;
    if (  sig == SIGUSR1
          && 0 != pthread_equal(s_sigaltstack_threadid, pthread_self())
          && s_sigaltstack_signalstack.addr < (uint8_t*)&sig
          && (uint8_t*)&sig < s_sigaltstack_signalstack.addr+s_sigaltstack_signalstack.size) {
-      s_sigaltstack_returncode = 0 ;
+      s_sigaltstack_returncode = 0;
    } else {
-      s_sigaltstack_returncode = EINVAL ;
+      s_sigaltstack_returncode = EINVAL;
    }
-   errno = errno_backup ;
+   errno = errno_backup;
 }
 
 static int thread_sigaltstack(intptr_t dummy)
@@ -790,10 +790,10 @@ static int test_sigaltstack(void)
    TEST(0 == sigprocmask(SIG_UNBLOCK, &newact.sa_mask, &oldprocmask)) ;
    isProcmask = true ;
 
-   sigemptyset(&newact.sa_mask) ;
-   newact.sa_flags   = SA_ONSTACK ;
-   newact.sa_handler = &sigusr1handler ;
-   TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
+   sigemptyset(&newact.sa_mask);
+   newact.sa_flags   = SA_ONSTACK;
+   newact.sa_handler = &handler_sigusr1;
+   TEST(0 == sigaction(SIGUSR1, &newact, &oldact));
    isAction = true ;
 
    // TEST sigusr1handler: signal self_thread()
@@ -802,13 +802,13 @@ static int test_sigaltstack(void)
       .ss_size  = altstack.size,
       .ss_flags = 0
    } ;
-   TEST(0 == sigaltstack(&newst, &oldst)) ;
-   isStack = true ;
-   s_sigaltstack_threadid    = pthread_self() ;
-   s_sigaltstack_signalstack = altstack ;
-   s_sigaltstack_returncode  = EINVAL ;
-   TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
-   TEST(0 == s_sigaltstack_returncode) ;
+   TEST(0 == sigaltstack(&newst, &oldst));
+   isStack = true;
+   s_sigaltstack_threadid    = pthread_self();
+   s_sigaltstack_signalstack = altstack;
+   s_sigaltstack_returncode  = EINVAL;
+   TEST(0 == pthread_kill(pthread_self(), SIGUSR1));
+   TEST(0 == s_sigaltstack_returncode);
 
    // TEST newgeneric_thread: test that own signal stack is used
    // thread 'thread_sigaltstack' runs under its own sigaltstack in sigusr1handler with signal SIGUSR1

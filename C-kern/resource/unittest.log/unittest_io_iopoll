@@ -1,98 +1,98 @@
 [1: 1412147269.794077s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:160
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:160
 Error 22 - Invalid argument
 Function input violates condition (0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK))
 for_event->ioevents=4294967280
 [1: 1412147269.794087s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:186
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:186
 Error 22 - Invalid argument
 Function input violates condition (0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK))
 updated_event->ioevents=16
 [1: 1412147269.794091s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:186
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:186
 Error 22 - Invalid argument
 Function input violates condition (0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK))
 updated_event->ioevents=16
 [1: 1412147269.794094s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 17 - File exists
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=43
 fd=3
 [1: 1412147269.794100s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:194
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:194
 Error 2 - No such file or directory
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
 iopoll->sys_poll=43
 fd=4
 [1: 1412147269.794106s]
-unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:216
+unregister_iopoll() C-kern/platform/Linux/io/iopoll.c:216
 Error 2 - No such file or directory
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
 iopoll->sys_poll=43
 fd=4
 [1: 1412147269.794109s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=43
 fd=-1
 [1: 1412147269.794112s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:194
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:194
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
 iopoll->sys_poll=43
 fd=-1
 [1: 1412147269.794115s]
-unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:216
+unregister_iopoll() C-kern/platform/Linux/io/iopoll.c:216
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
 iopoll->sys_poll=43
 fd=-1
 [1: 1412147269.794121s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=43
 fd=3
 [1: 1412147269.794124s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:194
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:194
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
 iopoll->sys_poll=43
 fd=3
 [1: 1412147269.794127s]
-unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:216
+unregister_iopoll() C-kern/platform/Linux/io/iopoll.c:216
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
 iopoll->sys_poll=43
 fd=3
 [1: 1412147269.794131s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=-1
 fd=5
 [1: 1412147269.794134s]
-updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:194
+update_iopoll() C-kern/platform/Linux/io/iopoll.c:194
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
 iopoll->sys_poll=-1
 fd=5
 [1: 1412147269.794137s]
-unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:216
+unregister_iopoll() C-kern/platform/Linux/io/iopoll.c:216
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
 iopoll->sys_poll=-1
 fd=5
 [1: 1412147269.794248s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 1 - Operation not permitted
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=3
 fd=43
 [1: 1412147269.794312s]
-registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:168
+register_iopoll() C-kern/platform/Linux/io/iopoll.c:168
 Error 1 - Operation not permitted
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=3

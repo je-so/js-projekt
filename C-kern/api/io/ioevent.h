@@ -31,7 +31,7 @@ typedef union ioevent_id_t                ioevent_id_t ;
  *                  In this case the peer has shutdown the connection for writing or the own side
  *                  has shutdown the connection for reading. In both cases you should
  *                  no longer wait for events of type ioevent_READ. In case of <iopoll_t> you
- *                  should call <updatefd_iopoll>.
+ *                  should call <update_iopoll>.
  * ioevent_WRITE  - You can write to a file descriptor. This bit can also be set even if you can not write
  *                  cause of an error. So check first the <ioevent_ERROR> condition.
  * ioevent_ERROR  - An error condition is signaled on file descriptor.

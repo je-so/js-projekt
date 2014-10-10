@@ -41,14 +41,14 @@ int unittest_io_iopoll(void);
  * Event manager which stores <sys_iochannel_t> and returns associated <ioevent_t>.
  * It monitors registered file descriptors for one or more <ioevent_e>s.
  * The occurred events can be queried for with help of <wait_iopoll>.
- * A file descriptor can be registered with a call to <registerfd_iopoll>.
+ * A file descriptor can be registered with a call to <register_iopoll>.
  * The underlying system I/O object associated with a file descriptor is the event
  * generating object.
  *
  * Level Triggered:
  * <wait_iopoll> returns after every call all fiuledescriptor which are ready
  * for their registered events. So if you do not need any further notifications for
- * <ioevent_WRITE> for example, call <updatefd_iopoll> to unregister the filedescriptor
+ * <ioevent_WRITE> for example, call <update_iopoll> to unregister the filedescriptor
  * for this kind of event.
  *
  * Edge Triggered:
@@ -89,7 +89,7 @@ int free_iopoll(iopoll_t * iopoll);
  * The value queuesize must be in the range (0 < queuesize < INT_MAX).
  *
  * Every bit set in <ioevent_t->ioevents> indicates an occurred event (see <ioevent_e>).
- * The value returned in <ioevent_t->eventid> is the same as set in <registerfd_iopoll> or <updatefd_iopoll>.
+ * The value returned in <ioevent_t->eventid> is the same as set in <register_iopoll> or <update_iopoll>.
  * Use it to associate <ioevent_e> with the corresponding file descriptor.
  *
  * In case there are more events than queuesize only the first queuesize events are returned.
@@ -106,7 +106,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
 
 // group: change
 
-/* function: registerfd_iopoll
+/* function: register_iopoll
  * Registers <sys_iochannel_t> *fd* and monitors it for <ioevent_t.ioevents>.
  * The parameter for_event gives the event mask for which the file descriptor is monitored
  * and the id which is returned to be used by the caller to differentiate between the
@@ -123,17 +123,17 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
  * 0      - fd is registered for <ioevent_t> »for_event«.
  * EPERM  - fd refers to an <iochannel_t> of type directory.
  * EEXIST - Function is called for an already registered descriptor.
- *          Call <updatefd_iopoll> to change <ioevent_t> for an already registered descriptor. */
-int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event);
+ *          Call <update_iopoll> to change <ioevent_t> for an already registered descriptor. */
+int register_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event);
 
-/* function: updatefd_iopoll
- * Changes <ioevent_t> for an already registered file descriptor. See also <registerfd_iopoll>.
+/* function: update_iopoll
+ * Changes <ioevent_t> for an already registered file descriptor. See also <register_iopoll>.
  * In case <sys_iochannel_t> *fd* was not registered before the error ENOENT is returned. */
-int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event);
+int update_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event);
 
-/* function: unregisterfd_iopoll
+/* function: unregister_iopoll
  * Unregisters <sys_iochannel_t> *fd*.
  * <wait_iopoll> no more reports any event for an unregistered descriptor. */
-int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd);
+int unregister_iopoll(iopoll_t * iopoll, sys_iochannel_t fd);
 
 #endif
