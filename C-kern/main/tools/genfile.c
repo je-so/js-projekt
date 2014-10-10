@@ -24,18 +24,18 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 
-static const char * s_programname;
-static const char * s_filetitle;
-static const char * s_typename;
-static const char * s_headerpath;
-static const char * s_sourcepath;
-static cstring_t    s_fctsuffix    = cstring_INIT;
-static cstring_t    s_headertag    = cstring_INIT;
-static cstring_t    s_typename2    = cstring_INIT;
-static cstring_t    s_unittestname = cstring_INIT;
+static const char* s_programname;
+static const char* s_filetitle;
+static const char* s_typename;
+static const char* s_headerpath;
+static const char* s_sourcepath;
+static cstring_t   s_fctsuffix    = cstring_INIT;
+static cstring_t   s_headertag    = cstring_INIT;
+static cstring_t   s_typename2    = cstring_INIT;
+static cstring_t   s_unittestname = cstring_INIT;
 
 
-enum variable_e {
+typedef enum variable_e {
       variable_TITLE,
       variable_FCTSUFFIX,
       variable_HEADERPATH,
@@ -44,11 +44,10 @@ enum variable_e {
       variable_TYPENAME2,
       variable_TYPENAME,
       variable_UNITTESTNAME
-};
+} variable_e;
 
-typedef enum variable_e                variable_e;
 
-static const char * s_templateheader =
+static const char* s_templateheader =
 "/* title: @TITLE\n\n\
    TO""DO: describe module interface\n\n\
    Copyright:\n\
@@ -86,11 +85,11 @@ struct @TYPENAME {\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
  * TO""DO: Describe Initializes object. */\n\
-int init_@FCTSUFFIX(/*out*/@TYPENAME * obj);\n\
+int init_@FCTSUFFIX(/*out*/@TYPENAME* obj);\n\
 \n\
 /* function: free_@FCTSUFFIX\n\
  * TO""DO: Describe Frees all associated resources. */\n\
-int free_@FCTSUFFIX(@TYPENAME * obj);\n\
+int free_@FCTSUFFIX(@TYPENAME* obj);\n\
 \n\
 // group: query\n\
 \n\
@@ -105,7 +104,7 @@ int free_@FCTSUFFIX(@TYPENAME * obj);\n\
 \n\n\
 #endif\n";
 
-static const char * s_templatesource =
+static const char* s_templatesource =
 "/* title: @TITLE impl\n\n\
    Implements <@TITLE>.\n\n\
    Copyright:\n\
