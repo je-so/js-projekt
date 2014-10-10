@@ -28,6 +28,7 @@
 #define CKERN_IO_FILESYSTEM_FILE_HEADER
 
 // forward
+struct wbuffer_t;
 struct directory_t;
 
 /* typedef: file_t
@@ -58,7 +59,7 @@ typedef enum file_e {
 
 /* function: remove_file
  * Removes created file from filesystem. */
-int remove_file(const char * filepath, struct directory_t * relative_to) ;
+int remove_file(const char * filepath, struct directory_t* relative_to) ;
 
 // group: test
 
@@ -82,14 +83,14 @@ int unittest_io_file(void) ;
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int init_file(/*out*/file_t* fileobj, const char* filepath, accessmode_e iomode, const struct directory_t* relative_to/*0 => current working dir*/) ;
 
 /* function: initappend_file
  * Opens or creates a file to append only.
  * See <init_file> for a description of parameters *filepath* and *relative_to*.
  * The file can be only be written to. Every written content is appended to end of the file
  * even if more than one process is writing to the same file. */
-int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/) ;
 
 /* function: initcreate_file
  * Creates a file identified by its path and name.
@@ -97,15 +98,27 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initcreate_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/) ;
+
+/* function: inittemp_file
+ * Erzeugt eine temporäre Datei im Systemverzeichnis P_tmpdir und gibt sie in file zurück.
+ * Die Datei wird sofort nach dem Erzeugen als gelöscht markiert, so daß kein Dateiname im
+ * System sichtbar ist. Die Datei kann gelesen und beschrieben werden. */
+int inittemp_file(/*out*/file_t* file);
+
+/* function: initcreatetemp_file
+ * Erzeugt eine temporäre Datei im Systemverzeichnis P_tmpdir und gibt sie in file zurück.
+ * Die Datei kann gelesen und beschrieben werden.
+ * Der '\0' terminierte Pfad der temporären Datei wird in path zurückgegeben. */
+int initcreatetemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path);
 
 /* function: initmove_file
  * Moves content of sourcefile to destfile. sourcefile is also reset to <file_FREE>. */
-static inline void initmove_file(/*out*/file_t * restrict destfile, file_t * restrict sourcefile) ;
+static inline void initmove_file(/*out*/file_t* restrict destfile, file_t* restrict sourcefile) ;
 
 /* function: free_file
  * Closes an opened file and frees held resources. */
-int free_file(file_t * fileobj) ;
+int free_file(file_t* fileobj) ;
 
 // group: query
 
@@ -148,11 +161,13 @@ int read_file(file_t fileobj, size_t size, /*out*/void * buffer/*[size]*/, size_
  * See <write_iochannel>. */
 int write_file(file_t fileobj, size_t size, const void * buffer/*[size]*/, size_t * bytes_written) ;
 
+// TODO: implement seek_file, seekrelative_file
+
 /* function: advisereadahead_file
  * Expects data to be accessed sequentially and in the near future.
  * The operating system is advised to read ahead the data beginning at offset and extending for length bytes
  * right now. The value 0 for length means: until the end of the file. */
-int advisereadahead_file(file_t fileobj, off_t offset, off_t length) ;
+int advisereadahead_file(file_t fileobj, off_t offset, off_t length);
 
 /* function: advisedontneed_file
  * Expects data not to be accessed in the near future.
@@ -184,7 +199,7 @@ int allocate_file(file_t fileobj, off_t file_size) ;
 
 /* function: initmove_file
  * Implements <file_t.initmove_file>. */
-static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
+static inline void initmove_file(file_t* restrict destfile, file_t* restrict sourcefile)
 {
    *destfile   = *sourcefile ;
    *sourcefile = file_FREE ;

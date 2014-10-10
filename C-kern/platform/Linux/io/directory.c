@@ -103,7 +103,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    err = stat("/", &filestat);
    if (err) {
       err = errno;
-      TRACESYSCALL_ERRLOG("stat('/',...)", err);
+      TRACESYSCALL_ERRLOG("stat('/')", err);
       goto ONERR;
    }
 
