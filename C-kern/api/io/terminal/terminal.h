@@ -106,16 +106,13 @@ int unittest_io_terminal_terminal(void);
  * */
 struct terminal_t {
    /* variable: input
-    * Eingabe IOchannel zum Lesen der Tastatureingaben des Terminals. */
-   sys_iochannel_t input;
-   /* variable: output
-    * Ausgabe IOchannel zum Schreiben von Text auf das Terminal. */
-   sys_iochannel_t output;
+    * Ein-/Ausgabe IOchannel zum Lesen und Schreiben der Tastatureingaben des Terminals. */
+   sys_iochannel_t sysio;
    /* variable: ctrl_lnext
     * Taste, um die Nachfolgende als Wert und nicht als Kommando zu verstehen. */
    uint8_t         ctrl_lnext;
    /* variable: ctrl_susp
-    * Taste, um das Vordergrundprogrammzu stoppen und auf die Shell zurückzuschalten. */
+    * Taste, um das Vordergrundprogramm zu stoppen und auf die Shell zurückzuschalten. */
    uint8_t         ctrl_susp;
    /* variable: oldconf_vmin
     * Speichert den alten VMIN Wert des Terminals.
@@ -166,35 +163,53 @@ struct terminal_t {
 /* define: terminal_FREE
  * Static initializer. */
 #define terminal_FREE \
-         { sys_iochannel_FREE, sys_iochannel_FREE, 0,0,0,0,0,0,0,0,0,0,0 }
+         { sys_iochannel_FREE, 0,0,0,0,0,0,0,0,0,0,0 }
 
 /* function: init_terminal
- * Initialisiert terml mit dem »controlling Terminal«.
+ * Initialisiert term mit dem »controlling Terminal«.
  * Falls <sys_iochannel_STDIN>, <sys_iochannel_STDOUT> mit dem controlling Terminal
  * verbunden sind, werden diese Filedescriptoren verwendet.
  * Ansonsten wird versucht, eine neue Verbindung zum controlling Terminal aufzubauen. */
-int init_terminal(/*out*/terminal_t* terml);
+int init_terminal(/*out*/terminal_t* term);
+
+/* function: initPpath_terminal
+ * Öffnet Terminal path und initialisiert term mit dem geöffneten <sys_iochannel_t>.
+ * Der '\0' terminierte C-string path muss dabei auf eine Terminalgerätedatei zeigen.
+ *
+ * Return:
+ * 0      - term wurde korrekt initialisiert. path wird nicht mehr länger benötigt und kann gelöscht werden.
+ * ENOENT - Der Pfad path exisitert nicht.
+ * ENOTTY - Der Pfad path existiert, es ist aber kein Terminalgerät oder Pseudoterminal. */
+int initPpath_terminal(/*out*/terminal_t* term, const uint8_t* path);
+
+/* function: initPio_terminal
+ *
+ * Return:
+ * 0      - term wurde korrekt initialisiert. Falls doClose auf true gesetzt wurde, dann gibt <free_terminal>
+ *          den I/O Kanal frei – die Ownership von io wurde auf term übertragen.
+ *          Ist doClose false, dann muß io solange gültig bleiben, wie term exisitiert.
+ * ENOTTY - Der <sys_iochannel_t> io zeigt nicht auf ein Terminalgerät oder Pseudoterminal.
+ *          Auch wenn doClose auf true gesetzt ist, bleibt io unangetastet. */
+int initPio_terminal(/*out*/terminal_t* term, sys_iochannel_t io, bool doClose);
 
 /* function: free_terminal
  * Schliesst geöffneten IOchannel, falls nicht <sys_iochannel_STDIN> und <sys_iochannel_STDOUT> verwendet wurden.
  * Falls <configrawedit_terminal> aufgerufen wurde, muss vor <free_terminal> explizit <configrestore_terminal>
  * aufgerufen werden, um das Terminal wieder in den regulären Modus zurückzuschalten. */
-int free_terminal(terminal_t* terml);
+int free_terminal(terminal_t* term);
 
 // group: query
 
-/* function: input_terminal
- * Gibt den Eingabekanal vom Terminal terml zurück.
+/* function: io_terminal
+ * Gibt den Ein/-Ausgabekanal des Terminals term zurück.
+ *
  * Eingelesene Bytes sind die UTF8-Codes der Zeichen plus als Esacpesequenzen kodierte Sondertasten.
- * Mit der Funktion <querykey_termcdb> können diese Sondertasten dekodiert werden. */
-sys_iochannel_t input_terminal(terminal_t* terml);
-
-/* function: output_terminal
- * Gibt den Ausgabekanal vom Terminal terml zurück.
+ * Mit der Funktion <querykey_termcdb> können diese Sondertasten dekodiert werden.
+ *
  * Geschriebene Bytes sollten in UTF8 kodierte Zeichen sein plus als Esacpesequenzen kodierte Sonderfunktionen.
  * Die Typ <termcdb_t> bietet Funktionen wie <movecursor_termcdb> und weitere, welche diese Escapesequenzen
  * dem Typ des Terminals entsprechend erzeugen. */
-sys_iochannel_t output_terminal(terminal_t* terml);
+sys_iochannel_t io_terminal(terminal_t* term);
 
 /* function: hascontrolling_terminal
  * Gibt true zurück, falls der Prozess mit einem »controlling Terminal« verbunden ist.
@@ -232,7 +247,7 @@ int waitsizechange_terminal(void);
 
 /* function: isutf8_terminal
  * Gibt true zurück, wenn das Terminal auf Verarbeitung von UTF8 konfiguriert ist. */
-bool isutf8_terminal(terminal_t* terml);
+bool isutf8_terminal(terminal_t* term);
 
 /* function: type_terminal
  * Liefert den Typ controlling Terminals als String zurück.
@@ -252,35 +267,35 @@ int type_terminal(uint16_t len, /*out*/uint8_t type[len]);
  *
  * Return:
  * 0      - name enthält \0 terminierten Dateipfad des von Dateideskriptor fd referenzierten Terminals.
- * EBADF  - terml ist uninitialisiert und besitzt keinen gültigen Dateideskriptor.
+ * EBADF  - term ist uninitialisiert und besitzt keinen gültigen Dateideskriptor.
  * ENOBUFS - Der Buffer name ist zu klein, um alle Zeichen und das abschließende \0 Zeichen aufzunehmen.
  *          Der Inhalt von name wurde möglicherweise aber trotzdem teilweise geändert.
  *
  * Alle Fehler außer ENOBUFS werden geloggt! */
-int pathname_terminal(const terminal_t* terml, uint16_t len, /*err;out*/uint8_t name[len]);
+int pathname_terminal(const terminal_t* term, uint16_t len, /*err;out*/uint8_t name[len]);
 
 /* function: ctrlsusp_terminal
  * Gibt CTRL-? Keycode zurück, der den aktuellen Vordergrundprozess schlafen legt (Signal SIGTSTP).
  * Defaultwert ist CTRL-Z. */
-uint8_t ctrlsusp_terminal(const terminal_t* terml);
+uint8_t ctrlsusp_terminal(const terminal_t* term);
 
 /* function: ctrllnext_terminal
  * Gibt CTRL-? Keycode zurück, der die nächste Kommandotaste als Wert markiert und sie ihrer Kommandofunktion enthebt.
  * Defaultwert ist CTRL-V. */
-uint8_t ctrllnext_terminal(const terminal_t* terml);
+uint8_t ctrllnext_terminal(const terminal_t* term);
 
 // group: read
 
 /* function: tryread_terminal
  * Liest maximal len Datenbytes von der Terminaleingabe.
- * Sie wartet immer ca. 50 ms (Millisekunden) auf ankommende Daten, auch wenn schon welche vorhanden sind.
- * Diese Funktion kann zum Lesen für Spezialtasten, die 2 und mehr Bytes pro Taste (etwa "\033""OC") übertragen,
+ * Die Funktion wartet immer ca. 50 ms (Millisekunden) auf ankommende Daten, auch wenn schon welche vorhanden sind.
+ * Sie kann zum Lesen für Spezialtasten, die 2 und mehr Bytes pro Taste (etwa "\033""OC") übertragen,
  * aufgerufen werden, wenn am Ende des gelesenen Buffer das Präfix einer unvollständigen Spezialtaste vorliegt.
  *
  * Return:
  * 0      - Fehler oder keine Daten innerhalb von 50 ms Sekunde gelesen.
  * != 0   - Anzahl an Bytes, die nach keys gelesen wurden. Der Wert ist immer <= len. */
-size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len]);
+size_t tryread_terminal(terminal_t* term, size_t len, /*out*/uint8_t keys[len]);
 
 /* function: size_terminal
  * Liest die aktuelle Höhe und Breite des Terminals in Zeichen.
@@ -288,7 +303,7 @@ size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len])
  * bzw. <issizechange_terminal> die Änderung ermittelt werden.
  * Meldet eine der beiden Funktionen eine Änderung, muss die Funktion <size_terminal>
  * aufgerufen werden, um die Größe auf den neuesten Stand zu bringen. */
-int size_terminal(terminal_t* terml, unsigned* nrcolsX, unsigned* nrrowsY);
+int size_terminal(terminal_t* term, uint16_t* nrcolsX, uint16_t* nrrowsY);
 
 // group: update
 
@@ -308,26 +323,75 @@ int size_terminal(terminal_t* terml, unsigned* nrcolsX, unsigned* nrrowsY);
  * */
 int removecontrolling_terminal(void);
 
+/* function: setsize_terminal
+ * Ändert die Größe des Fensters auf nrcolsX Spalten und nrrowsY Zeilen.
+ *
+ * Return:
+ * 0      - OK. Die Größe des Fensters wurde auf (nrcolsX, nrrowsY) geändert.
+ *          <issizechange_terminal> gibt beim nächsten Aufruf true zurück, falls sich die Größe geändert hat.
+ * EINVAL - Parameter sind zu groß (nrcolsX > UINT16_MAX || nrrowsY > UINT16_MAX). */
+int setsize_terminal(terminal_t* term, uint16_t nrcolsX, uint16_t nrrowsY);
+
+/* function: setstdio_terminal
+ * Läßt alle standard <iochannel_e> auf term zeigen.
+ * Nach erfolgreicher Ausführung kann term geschlossen werden,
+ * ohne daß sich dies auf die gesetzten <iochannel_e> auswirken würde.
+ *
+ * Falls während der Bearbeitung ein Fehler auftritt, können gemachte Änderungen nicht mehr
+ * rückgängig gemacht werden.
+ *
+ * Return:
+ * 0      - OK. Alle <iochannel_e> zeigen jetzt auf <input_terminal> bzw. <output__terminal>.
+ * EMFILE - Die Standard-I/O-Känale waren geschlossen und konnten nicht geöffnet werden, da zu wenig freie
+ *          I/O kanäle zur Verfügung stehen.
+ * EBADF  - term ist in einem nicht initialisierten Zustand. */
+int setstdio_terminal(terminal_t* term);
+
+/* function: switchcontrolling_terminal
+ * Der Kindprozess macht das Gerät unter path zu seinem neuen Controlling Terminal.
+ *
+ * Falls während der Bearbeitung ein Fehler auftritt, können gemachte Änderungen nicht mehr
+ * rückgängig gemacht werden.
+ *
+ * Funktionsweise:
+ * 1. Dazu erzeugt diese Funktion eine neue Sitzung und macht diesen Prozess zum Session-Leader,
+ *    damit wird die Verbindung zum bisherigen Controlling Terminal geschlossen.
+ * 2. Danach öffnet sie path (zeigt in der Regel auf Slave-Pseudoterminal – siehe <pathname_pseudoterm>).
+ *    Das Öffnen des Terminals macht es automatisch zum neuen Controlling Terminal,
+ *    da der Kindprozess ja keines mehr hat.
+ * 3. Jetzt wird der Filedescriptor des geöffneten Terminals nach <sys_iochannel_STDIN>,
+ *    <sys_iochannel_STDOUT>, <sys_iochannel_STDERR> (siehe auch <file_e>) kopiert
+ * 4. Das geöffnete Terminal wird wieder geschlossen,
+ *    das der Kindprozess mittels seiner Standardein- und -Ausgabekanäle auf sein
+ *    Controlling Terminal zugreift. */
+int switchcontrolling_terminal(const uint8_t* path);
+
 // group: config line discipline
+
+/* function: configcopy_terminal
+ * Kopiert die aktuelle Konfiguration des src Terminals nach dest.
+ * Danach kann <configstore_terminal> aufgerufen werden, um die neue
+ * Konfiguration als alte (Basis-)Konfiguration zu speichern. */
+int configcopy_terminal(terminal_t* dest, terminal_t* src);
 
 /* function: configstore_terminal
  * Merkt sich die aktuellen Terminaleinstellungen.
  * Wird von <init_terminal> automatisch aufgerufen.
  * Die gespeicherten Einstellungen können mit <configrestore_terminal> wiederhergestellt werden.
  * Dies Funktion sollte immer dann aufgerufen werden, wenn der Prozess das Signal SIGCONT empfängt. */
-int configstore_terminal(terminal_t* terml);
+int configstore_terminal(terminal_t* term);
 
 /* function: configrestore_terminal
  * Macht Änderungen von <configrawedit_terminal> rückgängig.
  * Dies Funktion sollte immer dann aufgerufen werden, wenn der Prozess das Signal SIGTSTP empfängt. */
-int configrestore_terminal(terminal_t* terml);
+int configrestore_terminal(terminal_t* term);
 
 /* function: configrawedit_terminal
  * Schaltet um von zeilenweise Eingabe auf zeichenweise Eingabe und Funktion der Control-Tasten aus.
- * Die Änderung der Konfiguration muss vor Schließen von terml mit <configrestore_terminal>
+ * Die Änderung der Konfiguration muss vor Schließen von term mit <configrestore_terminal>
  * wieder rückgängig gemacht werden, ansonsten muß der Benutzer manuell "stty sane" blind auf
  * der Kommandozeile eingeben, da die Echofunktion auch ausgeschalten ist. */
-int configrawedit_terminal(terminal_t* terml);
+int configrawedit_terminal(terminal_t* term);
 
 
 
@@ -335,23 +399,18 @@ int configrawedit_terminal(terminal_t* terml);
 
 /* define: ctrllnext_terminal
  * Implements <terminal_t.ctrllnext_terminal>. */
-#define ctrllnext_terminal(terml) \
-         ((terml)->ctrl_lnext)
+#define ctrllnext_terminal(term) \
+         ((term)->ctrl_lnext)
 
 /* define: ctrlsusp_terminal
  * Implements <terminal_t.ctrlsusp_terminal>. */
-#define ctrlsusp_terminal(terml) \
-         ((terml)->ctrl_susp)
+#define ctrlsusp_terminal(term) \
+         ((term)->ctrl_susp)
 
-/* define: input_terminal
- * Implements <terminal_t.input_terminal>. */
-#define input_terminal(terml) \
-         ((sys_iochannel_t) (terml)->input)
-
-/* define: output_terminal
- * Implements <terminal_t.output_terminal>. */
-#define output_terminal(terml) \
-         ((sys_iochannel_t) (terml)->output)
+/* define: io_terminal
+ * Implements <terminal_t.io_terminal>. */
+#define io_terminal(term) \
+         ((sys_iochannel_t) (term)->sysio)
 
 
 #endif

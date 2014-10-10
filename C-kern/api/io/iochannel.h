@@ -20,7 +20,7 @@
 
 /* typedef: struct iochannel_t
  * Make <iochannel_t> an alias of <sys_iochannel_t>. */
-typedef sys_iochannel_t                   iochannel_t ;
+typedef sys_iochannel_t iochannel_t;
 
 /* enums: iochannel_e
  * Standard channels which are usually open at process start by convention.
@@ -29,13 +29,11 @@ typedef sys_iochannel_t                   iochannel_t ;
  * iochannel_STDOUT - The default standard output channel.
  * iochannel_STDERR - The default standard error (output) channel.
  * */
-enum iochannel_e {
+typedef enum iochannel_e {
    iochannel_STDIN  = sys_iochannel_STDIN,
    iochannel_STDOUT = sys_iochannel_STDOUT,
    iochannel_STDERR = sys_iochannel_STDERR
-} ;
-
-typedef enum iochannel_e                  iochannel_e ;
+} iochannel_e;
 
 
 // section: Functions
@@ -48,14 +46,14 @@ typedef enum iochannel_e                  iochannel_e ;
  * could reference the same data object.
  * You can use this function at the beginning and end of any transaction to check if
  * an I/O object (file, network socket...) was not closed properly. */
-int nropen_iochannel(/*out*/size_t * number_open) ;
+int nropen_iochannel(/*out*/size_t * number_open);
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_iochannel
  * Test <iochannel_t> functionality. */
-int unittest_io_iochannel(void) ;
+int unittest_io_iochannel(void);
 #endif
 
 
@@ -69,7 +67,7 @@ int unittest_io_iochannel(void) ;
  *
  * If you use <initcopy_iochannel> to initialize an <iochannel_t> from a value acquired
  * by a call to <io_socket> or any other such function, you need to call <free_iochannel>. */
-typedef sys_iochannel_t    iochannel_t ;
+typedef sys_iochannel_t iochannel_t;
 
 // group: lifetime
 
@@ -81,20 +79,20 @@ typedef sys_iochannel_t    iochannel_t ;
  * Makes ioc a duplicate of from_ioc.
  * Freeing ioc does not affect from_ioc.
  * Writing to ioc or reading from it does affect the content of the underlying I/O data stream. */
-int initcopy_iochannel(/*out*/iochannel_t * ioc, iochannel_t from_ioc) ;
+int initcopy_iochannel(/*out*/iochannel_t* ioc, iochannel_t from_ioc);
 
 /* function: free_iochannel
  * Closes the I/O channel (file descriptor).
  * If any other iochannel_t references the same I/O data stream (file, network connection,...)
  * the stream keeps opened. Do not call this function if you got the iochannel_t from an io_XXX function.
  * Such functions return the original <iochannel_t> and do not make a copy. */
-int free_iochannel(iochannel_t * ioc) ;
+int free_iochannel(iochannel_t* ioc);
 
 // group: query
 
 /* function: isfree_iochannel
  * Returns true if ioc equals <iochannel_FREE>. */
-static inline bool isfree_iochannel(const iochannel_t ioc) ;
+static inline bool isfree_iochannel(const iochannel_t ioc);
 
 /* function: isvalid_iochannel
  * Returns *true* if ioc is initialized and valid.
@@ -132,7 +130,7 @@ bool isclosedwrite_iochannel(const iochannel_t ioc);
  * Returns <accessmode_e> for an io channel.
  * Returns <accessmode_READ>, <accessmode_WRITE> or the combination <accessmode_RDWR>.
  * In case of an error <accessmode_NONE> is returned. */
-uint8_t accessmode_iochannel(const iochannel_t ioc) ;
+uint8_t accessmode_iochannel(const iochannel_t ioc);
 
 /* function: sizeread_iochannel
  * Returns number of bytes to read.
@@ -157,7 +155,7 @@ int sizeread_iochannel(const iochannel_t ioc, /*out*/size_t * size);
  *          If bytes_read is 0 end of input (end of file) is reached.
  * EAGAIN - Data stream operates in non blocking mode and no bytes could be read. No error log is written.
  * EBADF  - ioc is closed, has an invalid value or is not open for reading. */
-int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/, /*out*/size_t * bytes_read) ;
+int read_iochannel(iochannel_t ioc, size_t size, /*out*/void* buffer/*[size]*/, /*out*/size_t* bytes_read);
 
 /* function: write_iochannel
  * Writes size bytes from buffer to the data stream referenced by ioc.
@@ -173,7 +171,7 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
  * EPIPE  - Receiver has closed its connection or closed it during a blocking write. No error log is written.
  * EBADF  - ioc is closed, has an invalid value or is not open for writing.
  * */
-int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/, /*out*/size_t * bytes_written) ;
+int write_iochannel(iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*out*/size_t* bytes_written);
 
 
 
@@ -183,7 +181,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
  * Implements <iochannel_t.isfree_iochannel>. */
 static inline bool isfree_iochannel(iochannel_t ioc)
 {
-   return iochannel_FREE == ioc ;
+   return iochannel_FREE == ioc;
 }
 
 

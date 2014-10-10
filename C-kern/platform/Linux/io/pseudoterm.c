@@ -188,13 +188,15 @@ static void sighandler_sigchld(int signr)
 
 static int test_helper(void)
 {
-   int fd = -1;
+   int  fd = -1;
+   int  fd2 = -1;
    bool isoldact = false;
    struct sigaction oldact;
    struct sigaction newact;
    const char* name;
-   uint8_t* logbuffer;
-   size_t   logsize1, logsize2;
+   uint8_t*    logbuffer;
+   size_t      logsize1, logsize2;
+   char        buffer[16];
 
    // TEST prepare_pseudoterm: normal operation
    for (int flag = 0; flag <= SA_SIGINFO; flag += SA_SIGINFO) {
@@ -214,7 +216,7 @@ static int test_helper(void)
 
       // check open is not possible
       name = ptsname(fd);
-      TEST(-1 == open(name, O_RDWR|O_CLOEXEC));
+      TEST(-1 == open(name, O_RDWR|O_NOCTTY|O_CLOEXEC));
       TEST(EIO == errno);
 
       GETBUFFER_ERRLOG(&logbuffer, &logsize1);
@@ -223,19 +225,18 @@ static int test_helper(void)
       TEST(logsize1 == logsize2);
 
       // check open is possible now
-      int fd2 = open(name, O_RDWR|O_CLOEXEC);
+      fd2 = open(name, O_RDWR|O_NOCTTY|O_CLOEXEC);
       TEST(fd2 > 0);
-      // check data transfer
-      char buffer[16];
-      TEST(4 == write(fd, "123\n", 4));
+      // check I/O
+      TEST(3 == write(fd2, "xyc", 3));
+      TEST(3 == read(fd, buffer, sizeof(buffer)));
+      TEST(0 == memcmp("xyc", buffer, 3));
+      TEST(4 == write(fd, "asd\n", 4));
       TEST(4 == read(fd2, buffer, sizeof(buffer)));
-      TEST(0 == memcmp(buffer, "123\n", 4));
-      TEST(4 == write(fd2, "567\n", 4));
-      TEST(10 == read(fd, buffer, sizeof(buffer)));
-      TEST(0 == memcmp(buffer, "123\r\n567\r\n", 10));
-      TEST(0 == close(fd2));
+      TEST(0 == memcmp("asd\n", buffer, 4));
 
       // unprepare
+      TEST(0 == close(fd2));
       TEST(0 == close(fd));
       isoldact = true;
       TEST(0 == sigaction(SIGCHLD, &oldact, 0));
@@ -259,7 +260,7 @@ static int test_helper(void)
 
       // check open is not possible
       name = ptsname(fd);
-      TEST(-1 == open(name, O_RDWR|O_NOCTTY));
+      TEST(-1 == open(name, O_RDWR|O_NOCTTY|O_CLOEXEC));
       TEST(EIO == errno);
 
       GETBUFFER_ERRLOG(&logbuffer, &logsize1);
@@ -268,20 +269,19 @@ static int test_helper(void)
       TEST(logsize2 > logsize1); // state error (SIGCHLD) written into ERRLOG
 
       // check open is possible now
-      int fd2 = open(name, O_RDWR|O_NOCTTY);
+      fd2 = open(name, O_RDWR|O_NOCTTY|O_CLOEXEC);
       TEST(fd2 > 0);
-      // check data transfer
-      char buffer[16];
-      TEST(4 == write(fd, "123\n", 4));
+      // check I/O
+      TEST(3 == write(fd2, "xyc", 3));
+      TEST(3 == read(fd, buffer, sizeof(buffer)));
+      TEST(0 == memcmp("xyc", buffer, 3));
+      TEST(4 == write(fd, "asd\n", 4));
       TEST(4 == read(fd2, buffer, sizeof(buffer)));
-      TEST(0 == memcmp(buffer, "123\n", 4));
-      TEST(4 == write(fd2, "567\n", 4));
-      TEST(10 == read(fd, buffer, sizeof(buffer)));
-      TEST(0 == memcmp(buffer, "123\r\n567\r\n", 10));
-      TEST(0 == close(fd2));
+      TEST(0 == memcmp("asd\n", buffer, 4));
 
       // unprepare
       TEST(0 == close(fd));
+      TEST(0 == close(fd2));
       isoldact = true;
       TEST(0 == sigaction(SIGCHLD, &oldact, 0));
    }
@@ -292,6 +292,7 @@ static int test_helper(void)
    return 0;
 ONERR:
    if (fd != -1) close(fd);
+   if (fd2 != -1) close(fd2);
    if (isoldact) sigaction(SIGCHLD, &oldact, 0);
    return EINVAL;
 }
@@ -476,7 +477,7 @@ static int test_query(void)
    TEST(0 == pathname_pseudoterm(&pty2, sizeof(ptypath), ptypath, &namesize));
    TEST(0 == s_pseudoterm_lock);
    TEST(S <= namesize);
-   TEST(0 == memcmp(ptypath, expect, S-2));
+   TEST(0 == memcmp(ptypath, expect, S-3));
    TEST(0 != memcmp(ptypath, expect, S));
 
    // unprepare

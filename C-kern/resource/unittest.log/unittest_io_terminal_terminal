@@ -1,42 +1,79 @@
-[1: 1412744534.692495s]
-init_terminal() C-kern/platform/Linux/io/terminal.c:182
+[1: 1412926916.464542s]
+init_terminal() C-kern/platform/Linux/io/terminal.c:200
 Error 22 - Invalid argument
-[1: 1412744534.692525s]
-init_terminal() C-kern/platform/Linux/io/terminal.c:182
+[1: 1412926916.464578s]
+init_terminal() C-kern/platform/Linux/io/terminal.c:200
 Error 22 - Invalid argument
-[1: 1412744534.692539s]
-init_terminal() C-kern/platform/Linux/io/terminal.c:182
+[1: 1412926916.464592s]
+init_terminal() C-kern/platform/Linux/io/terminal.c:200
 Error 22 - Invalid argument
-[1: 1412744534.692573s]
-init_terminal() C-kern/platform/Linux/io/terminal.c:182
+[1: 1412926916.464753s]
+initPpath_terminal() C-kern/platform/Linux/io/terminal.c:225
 Error 22 - Invalid argument
-[1: 1412744534.692586s]
-init_terminal() C-kern/platform/Linux/io/terminal.c:182
+[1: 1412926916.464861s]
+initPpath_terminal() C-kern/platform/Linux/io/terminal.c:225
+Error 25 - Inappropriate ioctl for device
+[1: 1412926916.464900s]
+initPpath_terminal() C-kern/platform/Linux/io/terminal.c:210
+Error 2 - No such file or directory
+System call 'open(path)' failed
+path=/tmp/temp.xXq_Yz
+[1: 1412926916.464913s]
+initPpath_terminal() C-kern/platform/Linux/io/terminal.c:210
+Error 14 - Bad address
+System call 'open(path)' failed
+path=(null)
+[1: 1412926916.465134s]
+initPio_terminal() C-kern/platform/Linux/io/terminal.c:242
 Error 22 - Invalid argument
-[1: 1412744534.692636s]
-isutf8_terminal() C-kern/platform/Linux/io/terminal.c:263
+[1: 1412926916.465196s]
+initPio_terminal() C-kern/platform/Linux/io/terminal.c:242
+Error 25 - Inappropriate ioctl for device
+[1: 1412926916.465265s]
+isutf8_terminal() C-kern/platform/Linux/io/terminal.c:316
 Error 22 - Invalid argument
-[1: 1412744534.692659s]
-pathname_terminal() C-kern/platform/Linux/io/terminal.c:282
+[1: 1412926916.465292s]
+pathname_terminal() C-kern/platform/Linux/io/terminal.c:335
 Error 9 - Bad file descriptor
-[1: 1412744534.802021s]
-configstore_terminal() C-kern/platform/Linux/io/terminal.c:391
-Error 22 - Invalid argument
-[1: 1412744534.802039s]
-configstore_terminal() C-kern/platform/Linux/io/terminal.c:391
-Error 22 - Invalid argument
-[1: 1412744534.916832s]
-size_terminal() C-kern/platform/Linux/io/terminal.c:346
+[1: 1412926916.574166s]
+setsize_terminal() C-kern/platform/Linux/io/terminal.c:443
 Error 9 - Bad file descriptor
-[1: 1412744534.919418s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
+[1: 1412926916.583166s]
+setstdio_terminal() C-kern/platform/Linux/io/terminal.c:456
+Error 9 - Bad file descriptor
+System call 'dup3(sysio, _STDIN, O_CLOEXEC)' failed
+term->sysio=-1
+iochannel_STDIN=0
+[1: 1412926916.584746s]
+initPpath_terminal() C-kern/platform/Linux/io/terminal.c:225
+Error 25 - Inappropriate ioctl for device
+[1: 1412926916.584758s]
+switchcontrolling_terminal() C-kern/platform/Linux/io/terminal.c:530
+Error 25 - Inappropriate ioctl for device
+[1: 1412926916.584851s]
+configcopy_terminal() C-kern/platform/Linux/io/terminal.c:549
+Error 9 - Bad file descriptor
+[1: 1412926916.584858s]
+configcopy_terminal() C-kern/platform/Linux/io/terminal.c:549
+Error 9 - Bad file descriptor
+[1: 1412926916.584867s]
+configstore_terminal() C-kern/platform/Linux/io/terminal.c:562
+Error 22 - Invalid argument
+[1: 1412926916.584871s]
+configstore_terminal() C-kern/platform/Linux/io/terminal.c:562
+Error 22 - Invalid argument
+[1: 1412926916.703749s]
+size_terminal() C-kern/platform/Linux/io/terminal.c:399
+Error 9 - Bad file descriptor
+[1: 1412926916.706143s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:429
 Error 6 - No such device or address
-[1: 1412744534.925201s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
+[1: 1412926916.711869s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:429
 Error 6 - No such device or address
-[1: 1412744534.930910s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
+[1: 1412926916.716726s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:429
 Error 6 - No such device or address
-[1: 1412744534.937200s]
-removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:376
+[1: 1412926916.720977s]
+removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:429
 Error 6 - No such device or address

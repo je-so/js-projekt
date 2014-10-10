@@ -18,12 +18,15 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/terminal/terminal.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
@@ -121,9 +124,23 @@ ONERR:
    return err;
 }
 
+static inline int writewinsize(struct winsize* size, sys_iochannel_t fd)
+{
+   int err;
+
+   if (ioctl(fd, TIOCSWINSZ, size)) {
+      err = errno;
+      goto ONERR;
+   }
+
+   return 0;
+ONERR:
+   return err;
+}
+
 /* function: configstore
  * Calls <readconfig> and stores values into <terminal_t.ctrl_lnext> ... <terminal_t.oldconf_onlcr>. */
-static inline int configstore(/*out*/terminal_t* terml, sys_iochannel_t fd)
+static inline int configstore(/*out*/terminal_t* term, sys_iochannel_t fd)
 {
    int err;
    struct termios tconf;
@@ -132,16 +149,16 @@ static inline int configstore(/*out*/terminal_t* terml, sys_iochannel_t fd)
    SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
    if (err) goto ONERR;
 
-   terml->ctrl_lnext     = tconf.c_cc[VLNEXT];
-   terml->ctrl_susp      = tconf.c_cc[VSUSP];
-   terml->oldconf_vmin   = tconf.c_cc[VMIN];
-   terml->oldconf_vtime  = tconf.c_cc[VTIME];
-   terml->oldconf_echo   = (0 != (tconf.c_lflag & ECHO));
-   terml->oldconf_icanon = (0 != (tconf.c_lflag & ICANON));
-   terml->oldconf_icrnl  = (0 != (tconf.c_iflag & ICRNL));
-   terml->oldconf_isig   = (0 != (tconf.c_lflag & ISIG));
-   terml->oldconf_ixon   = (0 != (tconf.c_iflag & IXON));
-   terml->oldconf_onlcr  = (0 != (tconf.c_oflag & ONLCR));
+   term->ctrl_lnext     = tconf.c_cc[VLNEXT];
+   term->ctrl_susp      = tconf.c_cc[VSUSP];
+   term->oldconf_vmin   = tconf.c_cc[VMIN];
+   term->oldconf_vtime  = tconf.c_cc[VTIME];
+   term->oldconf_echo   = (0 != (tconf.c_lflag & ECHO));
+   term->oldconf_icanon = (0 != (tconf.c_lflag & ICANON));
+   term->oldconf_icrnl  = (0 != (tconf.c_iflag & ICRNL));
+   term->oldconf_isig   = (0 != (tconf.c_lflag & ISIG));
+   term->oldconf_ixon   = (0 != (tconf.c_iflag & IXON));
+   term->oldconf_onlcr  = (0 != (tconf.c_oflag & ONLCR));
 
    return 0;
 ONERR:
@@ -150,60 +167,96 @@ ONERR:
 
 // group: lifetime
 
-int init_terminal(/*out*/terminal_t* terml)
+/* define: INIT
+ * Helper macro to set all fields of terminal_t. */
+#define INIT(term, _io, _doclose) \
+         /* inits all term->oldconf_<name> values */ \
+         err = configstore(term, _io); \
+         if (err) goto ONERR;          \
+         (term)->sysio   = _io;        \
+         (term)->doclose = _doclose;
+
+
+int init_terminal(/*out*/terminal_t* term)
 {
    int err;
-   file_t input = sys_iochannel_STDIN;
-   file_t output = sys_iochannel_STDOUT;
+   file_t sysio = iochannel_STDIN;
    bool doclose = false;
 
-   if (  ! iscontrolling_terminal(input)
-         || ! iscontrolling_terminal(output)) {
+   if (  ! iscontrolling_terminal(sysio)) {
       ONERROR_testerrortimer(&s_terminal_errtimer, &err, ONERR);
-      err = init_file(&input, "/dev/tty", accessmode_RDWR, 0);
+      err = init_file(&sysio, "/dev/tty", accessmode_RDWR, 0);
       if (err) goto ONERR;
-      output = input;
       doclose = true;
    }
 
-   // inits all terml->oldconf_<name> values
-   err = configstore(terml, input);
-   if (err) goto ONERR;
-
-   terml->input  = input;
-   terml->output = output;
-   terml->doclose = doclose;
+   INIT(term, sysio, doclose);
 
    return 0;
 ONERR:
    if (doclose) {
-      free_file(&input);
+      free_file(&sysio);
    }
    TRACEEXIT_ERRLOG(err);
    return err;
 }
 
-int free_terminal(terminal_t* terml)
+int initPpath_terminal(/*out*/terminal_t* term, const uint8_t* path)
+{
+   int err;
+   int sysio = open((const char*)path, O_RDWR|O_CLOEXEC|O_NONBLOCK);
+   if (sysio == -1) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("open(path)", err);
+      PRINTCSTR_ERRLOG(path);
+      goto ONERR;
+   }
+
+   if (!isatty(sysio)) {
+      err = ENOTTY;
+      goto ONERR;
+   }
+
+   INIT(term, sysio, true);
+
+   return 0;
+ONERR:
+   if (sysio != -1) close(sysio);
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int initPio_terminal(/*out*/terminal_t* term, sys_iochannel_t io, bool doClose)
 {
    int err;
 
-   if (terml->doclose) {
-      terml->doclose = false;
+   if (!isatty(io)) {
+      err = ENOTTY;
+      goto ONERR;
+   }
 
-      bool issame = (terml->input == terml->output);
-      err = free_file(&terml->input);
+   INIT(term, io, doClose);
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int free_terminal(terminal_t* term)
+{
+   int err;
+
+   if (term->doclose) {
+      term->doclose = false;
+
+      err = free_file(&term->sysio);
       SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
-      if (issame) terml->output = sys_iochannel_FREE;
-
-      int err2 = free_file(&terml->output);
-      SETONERROR_testerrortimer(&s_terminal_errtimer, &err2);
-      if (err2) err = err2;
 
       if (err) goto ONERR;
 
    } else {
-      terml->input  = sys_iochannel_FREE;
-      terml->output = sys_iochannel_FREE;
+      term->sysio = sys_iochannel_FREE;
    }
 
    return 0;
@@ -249,12 +302,12 @@ bool issizechange_terminal()
    return (SIGWINCH == sigtimedwait(&signset, &info, & (const struct timespec) { 0, 0 }));
 }
 
-bool isutf8_terminal(terminal_t* terml)
+bool isutf8_terminal(terminal_t* term)
 {
    int err;
    struct termios tconf;
 
-   err = readconfig(&tconf, terml->input);
+   err = readconfig(&tconf, term->sysio);
    SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
    if (err) goto ONERR;
 
@@ -264,11 +317,11 @@ ONERR:
    return false;
 }
 
-int pathname_terminal(const terminal_t* terml, uint16_t len, uint8_t name[len])
+int pathname_terminal(const terminal_t* term, uint16_t len, uint8_t name[len])
 {
    int err;
 
-   err = ttyname_r(terml->input, (char *)name, len);
+   err = ttyname_r(term->sysio, (char *)name, len);
    if (err) {
       err = errno;
       goto ONERR;
@@ -310,10 +363,10 @@ int type_terminal(uint16_t len, /*out*/uint8_t type[len])
 
 // group: read
 
-size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len])
+size_t tryread_terminal(terminal_t* term, size_t len, /*out*/uint8_t keys[len])
 {
    size_t        nrbytes = 0;
-   struct pollfd pfd = { .events = POLLIN, .fd = terml->input };
+   struct pollfd pfd = { .events = POLLIN, .fd = term->sysio };
 
    for (unsigned i = 0; i < 5 && nrbytes < len; ++i) {
       int nr = poll(&pfd, 1, 10);
@@ -321,7 +374,7 @@ size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len])
          if (! (pfd.revents & POLLIN)) break;
          ssize_t bytes;
          do {
-            bytes = read(terml->input, keys+nrbytes, len+nrbytes);
+            bytes = read(term->sysio, keys+nrbytes, len+nrbytes);
          } while (bytes == -1 && errno == EINTR);
          if (bytes > 0) nrbytes += (size_t) bytes;
       }
@@ -330,12 +383,12 @@ size_t tryread_terminal(terminal_t* terml, size_t len, /*out*/uint8_t keys[len])
    return nrbytes;
 }
 
-int size_terminal(terminal_t* terml, unsigned* nrcolsX, unsigned* nrrowsY)
+int size_terminal(terminal_t* term, uint16_t* nrcolsX, uint16_t* nrrowsY)
 {
    int err;
    struct winsize size;
 
-   err = readwinsize(&size, terml->input);
+   err = readwinsize(&size, term->sysio);
    if (err) goto ONERR;
 
    *nrcolsX = size.ws_col;
@@ -377,13 +430,12 @@ ONERR:
    return err;
 }
 
-// group: config line discipline
-
-int configstore_terminal(terminal_t* terml)
+int setsize_terminal(terminal_t* term, uint16_t nrcolsX, uint16_t nrrowsY)
 {
    int err;
+   struct winsize size = { .ws_col = nrcolsX, .ws_row = nrrowsY };
 
-   err = configstore(terml, terml->input);
+   err = writewinsize(&size, term->sysio);
    if (err) goto ONERR;
 
    return 0;
@@ -392,36 +444,155 @@ ONERR:
    return err;
 }
 
-int configrestore_terminal(terminal_t* terml)
+int setstdio_terminal(terminal_t* term)
+{
+   int err;
+   int fd;
+
+   if (term->sysio != iochannel_STDIN) {
+      fd = dup3(term->sysio, iochannel_STDIN, O_CLOEXEC);
+      if (-1 == fd) {
+         err = errno;
+         TRACESYSCALL_ERRLOG("dup3(sysio, _STDIN, O_CLOEXEC)", err);
+         PRINTINT_ERRLOG(term->sysio);
+         PRINTINT_ERRLOG(iochannel_STDIN);
+         goto ONERR;
+      }
+   }
+
+   if (term->sysio != iochannel_STDOUT) {
+      fd = dup3(term->sysio, iochannel_STDOUT, O_CLOEXEC);
+      if (-1 == fd) {
+         err = errno;
+         TRACESYSCALL_ERRLOG("dup3(sysio, _STDOUT, O_CLOEXEC)", err);
+         PRINTINT_ERRLOG(term->sysio);
+         PRINTINT_ERRLOG(iochannel_STDOUT);
+         goto ONERR;
+      }
+   }
+
+   if (term->sysio != iochannel_STDERR) {
+      fd = dup3(term->sysio, iochannel_STDERR, O_CLOEXEC);
+      if (-1 == fd) {
+         err = errno;
+         TRACESYSCALL_ERRLOG("dup3(sysio, _STDERR, O_CLOEXEC)", err);
+         PRINTINT_ERRLOG(term->sysio);
+         PRINTINT_ERRLOG(iochannel_STDERR);
+         goto ONERR;
+      }
+   }
+
+   if (term->doclose) {
+      static_assert( iochannel_STDIN == 0 && iochannel_STDOUT == 1 && iochannel_STDERR == 2, );
+      term->doclose = (term->sysio > iochannel_STDERR);
+   }
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int switchcontrolling_terminal(const uint8_t* path)
+{
+   int err;
+   terminal_t term = terminal_FREE;
+
+   // check that path is OK
+   err = initPpath_terminal(&term, path);
+   if (err) goto ONERR;
+   err = free_terminal(&term);
+   if (err) goto ONERR;
+
+   // new sesion detaches current process from controlling terminal
+   if ((pid_t) -1 == setsid()) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("setsid", err);
+      goto ONERR;
+   }
+
+   // opening terminal now makes it the controlling terminal and
+   // the calling process is the controlling process
+   err = initPpath_terminal(&term, path);
+   if (err) goto ONERR;
+
+   // connect standard I/O with new controlling terminal
+   err = setstdio_terminal(&term);
+   if (err) goto ONERR;
+
+   // done
+   err = free_terminal(&term);
+   if (err) goto ONERR;
+
+   return 0;
+ONERR:
+   free_terminal(&term);
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+// group: config line discipline
+
+int configcopy_terminal(terminal_t* dest, terminal_t* src)
 {
    int err;
    struct termios tconf;
 
-   err = readconfig(&tconf, terml->input);
+   err = readconfig(&tconf, src->sysio);
    if (err) goto ONERR;
 
-   tconf.c_cc[VMIN]  = terml->oldconf_vmin;
-   tconf.c_cc[VTIME] = terml->oldconf_vtime;
-   if (terml->oldconf_icrnl) {
+   err = writeconfig(&tconf, dest->sysio);
+   if (err) goto ONERR;
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int configstore_terminal(terminal_t* term)
+{
+   int err;
+
+   err = configstore(term, term->sysio);
+   if (err) goto ONERR;
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int configrestore_terminal(terminal_t* term)
+{
+   int err;
+   struct termios tconf;
+
+   err = readconfig(&tconf, term->sysio);
+   if (err) goto ONERR;
+
+   tconf.c_cc[VMIN]  = term->oldconf_vmin;
+   tconf.c_cc[VTIME] = term->oldconf_vtime;
+   if (term->oldconf_icrnl) {
       tconf.c_iflag |= ICRNL;
    }
-   if (terml->oldconf_ixon) {
+   if (term->oldconf_ixon) {
       tconf.c_iflag |= IXON;
    }
-   if (terml->oldconf_onlcr) {
+   if (term->oldconf_onlcr) {
       tconf.c_oflag |= ONLCR;
    }
-   if (terml->oldconf_icanon) {
+   if (term->oldconf_icanon) {
       tconf.c_lflag |= ICANON;
    }
-   if (terml->oldconf_echo) {
+   if (term->oldconf_echo) {
       tconf.c_lflag |= ECHO;
    }
-   if (terml->oldconf_isig) {
+   if (term->oldconf_isig) {
       tconf.c_lflag |= ISIG;
    }
 
-   err = writeconfig(&tconf, terml->input);
+   err = writeconfig(&tconf, term->sysio);
    if (err) goto ONERR;
 
    return 0;
@@ -430,12 +601,12 @@ ONERR:
    return err;
 }
 
-int configrawedit_terminal(terminal_t* terml)
+int configrawedit_terminal(terminal_t* term)
 {
    int err;
    struct termios tconf;
 
-   err = readconfig(&tconf, terml->input);
+   err = readconfig(&tconf, term->sysio);
    if (err) goto ONERR;
 
    // set raw mode, receive characters immediately, and receive them unaltered
@@ -447,7 +618,7 @@ int configrawedit_terminal(terminal_t* terml)
    tconf.c_cc[VMIN]  = 1;
    tconf.c_cc[VTIME] = 0;
 
-   err = writeconfig(&tconf, terml->input);
+   err = writeconfig(&tconf, term->sysio);
    if (err) goto ONERR;
 
    return 0;
@@ -472,8 +643,8 @@ static int test_helper(void)
    struct termios oldconf;
    struct winsize size;
    struct winsize size2 = { 0 };
-   terminal_t     terml;
-   terminal_t     terml2;
+   terminal_t     term;
+   terminal_t     term2;
    file_t         file = file_FREE;
    bool           isoldconf = false;
 
@@ -482,8 +653,8 @@ static int test_helper(void)
    isoldconf = true;
    memset(&tconf, 0, sizeof(tconf));
    memset(&tconf2, 0, sizeof(tconf2));
-   memset(&terml, 0, sizeof(terml));
-   memset(&terml2, 0, sizeof(terml2));
+   memset(&term, 0, sizeof(term));
+   memset(&term2, 0, sizeof(term2));
    TEST(0 == memcmp(&tconf, &tconf2, sizeof(tconf)));
    TEST(0 == initcreate_file(&file, "./xxx", 0));
 
@@ -518,6 +689,35 @@ static int test_helper(void)
    TEST(EBADF == readwinsize(&size, sys_iochannel_FREE));
    TEST(0 == memcmp(&size, &size2, sizeof(size)));
 
+   // TEST writewinsize: size changes
+   TEST(0 == readwinsize(&size2, sys_iochannel_STDIN));
+   size2.ws_col = (uint16_t) (size2.ws_col - 3);
+   size2.ws_row = (uint16_t) (size2.ws_row - 1);
+   TEST(! issizechange_terminal());
+   TEST(0 == writewinsize(&size2, sys_iochannel_STDIN));
+   TEST( issizechange_terminal());
+   TEST(0 == readwinsize(&size, sys_iochannel_STDIN));
+   TEST(size.ws_col == size2.ws_col);
+   TEST(size.ws_row == size2.ws_row);
+   size2.ws_col = (uint16_t) (size2.ws_col + 3);
+   size2.ws_row = (uint16_t) (size2.ws_row + 1);
+   TEST(! issizechange_terminal());
+   TEST(0 == writewinsize(&size2, sys_iochannel_STDIN));
+   TEST( issizechange_terminal());
+   TEST(0 == readwinsize(&size, sys_iochannel_STDIN));
+   TEST(size.ws_col == size2.ws_col);
+   TEST(size.ws_row == size2.ws_row);
+
+   // TEST writewinsize: size does not change
+   TEST(0 == writewinsize(&size2, sys_iochannel_STDIN));
+   TEST(! issizechange_terminal());
+
+   // TEST writewinsize: ENOTTY
+   TEST(ENOTTY == writewinsize(&size, io_file(file)));
+
+   // TEST writewinsize: EBADF
+   TEST(EBADF == writewinsize(&size, sys_iochannel_FREE));
+
    // TEST configstore
    TEST(0 == readconfig(&tconf, sys_iochannel_STDIN));
    for (int i = 0; i < 10; ++i) {
@@ -541,31 +741,31 @@ static int test_helper(void)
          TEST(0 == writeconfig(&tconf2, sys_iochannel_STDIN));
 
          // test
-         TEST(0 == configstore(&terml, sys_iochannel_STDIN));
+         TEST(0 == configstore(&term, sys_iochannel_STDIN));
          // compare result
-         TEST(0 != memcmp(&terml, &terml2, sizeof(terml)));
-         TEST(terml.ctrl_lnext     == tconf2.c_cc[VLNEXT]);
-         TEST(terml.ctrl_susp      == tconf2.c_cc[VSUSP]);
-         TEST(terml.oldconf_vmin   == tconf2.c_cc[VMIN]);
-         TEST(terml.oldconf_vtime  == tconf2.c_cc[VTIME]);
-         TEST(terml.oldconf_echo   == (0 != (tconf2.c_lflag & ECHO)));
-         TEST(terml.oldconf_icanon == (0 != (tconf2.c_lflag & ICANON)));
-         TEST(terml.oldconf_icrnl  == (0 != (tconf2.c_iflag & ICRNL)));
-         TEST(terml.oldconf_isig   == (0 != (tconf2.c_lflag & ISIG)));
-         TEST(terml.oldconf_ixon   == (0 != (tconf2.c_iflag & IXON)));
-         TEST(terml.oldconf_onlcr  == (0 != (tconf2.c_oflag & ONLCR)));
+         TEST(0 != memcmp(&term, &term2, sizeof(term)));
+         TEST(term.ctrl_lnext     == tconf2.c_cc[VLNEXT]);
+         TEST(term.ctrl_susp      == tconf2.c_cc[VSUSP]);
+         TEST(term.oldconf_vmin   == tconf2.c_cc[VMIN]);
+         TEST(term.oldconf_vtime  == tconf2.c_cc[VTIME]);
+         TEST(term.oldconf_echo   == (0 != (tconf2.c_lflag & ECHO)));
+         TEST(term.oldconf_icanon == (0 != (tconf2.c_lflag & ICANON)));
+         TEST(term.oldconf_icrnl  == (0 != (tconf2.c_iflag & ICRNL)));
+         TEST(term.oldconf_isig   == (0 != (tconf2.c_lflag & ISIG)));
+         TEST(term.oldconf_ixon   == (0 != (tconf2.c_iflag & IXON)));
+         TEST(term.oldconf_onlcr  == (0 != (tconf2.c_oflag & ONLCR)));
       }
    }
    TEST(0 == writeconfig(&tconf, sys_iochannel_STDIN));
 
    // TEST configstore: ENOTTY
-   memset(&terml, 0, sizeof(terml));
-   TEST(ENOTTY == configstore(&terml, io_file(file)));
-   TEST(0 == memcmp(&terml, &terml2, sizeof(terml)));
+   memset(&term, 0, sizeof(term));
+   TEST(ENOTTY == configstore(&term, io_file(file)));
+   TEST(0 == memcmp(&term, &term2, sizeof(term)));
 
    // TEST configstore: EBADF
-   TEST(EBADF == configstore(&terml, sys_iochannel_FREE));
-   TEST(0 == memcmp(&terml, &terml2, sizeof(terml)));
+   TEST(EBADF == configstore(&term, sys_iochannel_FREE));
+   TEST(0 == memcmp(&term, &term2, sizeof(term)));
 
    // unprepare
    TEST(0 == free_file(&file));
@@ -584,138 +784,210 @@ ONERR:
 
 static int test_initfree(void)
 {
-   terminal_t     terml = terminal_FREE;
+   terminal_t     term = terminal_FREE;
    struct termios tconf;
    int            stdfd;
    file_t         oldstd = file_FREE;
+   file_t         file = file_FREE;
+   uint8_t        filename[100] = { 0 };
+   uint8_t        buffer[16];
+   const char*    name;
 
    // prepare
    TEST(0 == readconfig(&tconf, sys_iochannel_STDIN));
 
    // TEST terminal_FREE
-   TEST(isfree_file(terml.input));
-   TEST(isfree_file(terml.output));
-   TEST(0 == terml.oldconf_vmin);
-   TEST(0 == terml.oldconf_vtime);
-   TEST(0 == terml.oldconf_echo);
-   TEST(0 == terml.oldconf_icanon);
-   TEST(0 == terml.oldconf_icrnl);
-   TEST(0 == terml.oldconf_isig);
-   TEST(0 == terml.oldconf_onlcr);
-   TEST(0 == terml.doclose);
+   TEST(isfree_file(term.sysio));
+   TEST(0 == term.oldconf_vmin);
+   TEST(0 == term.oldconf_vtime);
+   TEST(0 == term.oldconf_echo);
+   TEST(0 == term.oldconf_icanon);
+   TEST(0 == term.oldconf_icrnl);
+   TEST(0 == term.oldconf_isig);
+   TEST(0 == term.oldconf_onlcr);
+   TEST(0 == term.doclose);
 
-   // TEST init_terminal: use sys_iochannel_STDIN/sys_iochannel_STDOUT
-   TEST(0 == init_terminal(&terml));
-   TEST(sys_iochannel_STDIN  == terml.input);
-   TEST(sys_iochannel_STDOUT == terml.output);
-   TEST(terml.ctrl_lnext     == tconf.c_cc[VLNEXT]);
-   TEST(terml.ctrl_susp      == tconf.c_cc[VSUSP]);
-   TEST(terml.oldconf_vmin   == tconf.c_cc[VMIN]);
-   TEST(terml.oldconf_vtime  == tconf.c_cc[VTIME]);
-   TEST(terml.oldconf_echo   == (0 != (tconf.c_lflag & ECHO)));
-   TEST(terml.oldconf_icanon == (0 != (tconf.c_lflag & ICANON)));
-   TEST(terml.oldconf_icrnl  == (0 != (tconf.c_iflag & ICRNL)));
-   TEST(terml.oldconf_isig   == (0 != (tconf.c_lflag & ISIG)));
-   TEST(terml.oldconf_ixon   == (0 != (tconf.c_iflag & IXON)));
-   TEST(terml.oldconf_onlcr  == (0 != (tconf.c_oflag & ONLCR)));
-   TEST(0 == terml.doclose);
+   // TEST init_terminal: use sys_iochannel_STDIN
+   TEST(0 == init_terminal(&term));
+   TEST(sys_iochannel_STDIN  == term.sysio);
+   TEST(term.ctrl_lnext     == tconf.c_cc[VLNEXT]);
+   TEST(term.ctrl_susp      == tconf.c_cc[VSUSP]);
+   TEST(term.oldconf_vmin   == tconf.c_cc[VMIN]);
+   TEST(term.oldconf_vtime  == tconf.c_cc[VTIME]);
+   TEST(term.oldconf_echo   == (0 != (tconf.c_lflag & ECHO)));
+   TEST(term.oldconf_icanon == (0 != (tconf.c_lflag & ICANON)));
+   TEST(term.oldconf_icrnl  == (0 != (tconf.c_iflag & ICRNL)));
+   TEST(term.oldconf_isig   == (0 != (tconf.c_lflag & ISIG)));
+   TEST(term.oldconf_ixon   == (0 != (tconf.c_iflag & IXON)));
+   TEST(term.oldconf_onlcr  == (0 != (tconf.c_oflag & ONLCR)));
+   TEST(0 == term.doclose);
 
    // TEST free_terminal: fd not closed
-   TEST(0 == terml.doclose);
-   TEST(0 == free_terminal(&terml));
-   TEST(isfree_file(terml.input));
-   TEST(isfree_file(terml.output));
-   TEST(0 == terml.doclose);
+   TEST(0 == term.doclose);
+   TEST(0 == free_terminal(&term));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == term.doclose);
    TEST(isvalid_file(sys_iochannel_STDIN));
-   TEST(isvalid_file(sys_iochannel_STDOUT));
 
    // TEST init_terminal: ERROR
    for (unsigned i = 1; i <= 1; ++i) {
       init_testerrortimer(&s_terminal_errtimer, i, EINVAL);
-      TEST(EINVAL == init_terminal(&terml));
-      TEST(isfree_file(terml.input));
-      TEST(isfree_file(terml.output));
-      TEST(0 == terml.doclose);
+      TEST(EINVAL == init_terminal(&term));
+      TEST(isfree_file(term.sysio));
+      TEST(0 == term.doclose);
    }
 
    // TEST free_terminal: NO ERROR possible (fd not closed)
-   TEST(0 == init_terminal(&terml));
-   TEST(0 == terml.doclose);
+   TEST(0 == init_terminal(&term));
+   TEST(0 == term.doclose);
    init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
-   TEST(0 == free_terminal(&terml));
-   TEST(isfree_file(terml.input));
-   TEST(isfree_file(terml.output));
-   TEST(0 == terml.doclose);
+   TEST(0 == free_terminal(&term));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == term.doclose);
    TEST(isvalid_file(sys_iochannel_STDIN));
-   TEST(isvalid_file(sys_iochannel_STDOUT));
    init_testerrortimer(&s_terminal_errtimer, 0, EINVAL);
 
-   static_assert(sys_iochannel_STDIN+1 == sys_iochannel_STDOUT, "used as bounds in for loop");
-   for (stdfd = sys_iochannel_STDIN; stdfd <= sys_iochannel_STDOUT; ++stdfd) {
-      // prepare
-      memset(&terml, 0, sizeof(terml));
-      oldstd = dup(stdfd);
-      TEST(oldstd > 0);
-      close(stdfd);
+   // prepare
+   stdfd = iochannel_STDIN;
+   memset(&term, 0, sizeof(term));
+   oldstd = dup(stdfd);
+   TEST(oldstd > 0);
+   TEST(0 == close(stdfd));
 
-      // TEST init_terminal: open file
-      TEST(! isvalid_file(stdfd));
-      TEST(0 == init_terminal(&terml));
-      TEST( isvalid_file(stdfd));
-      TEST(stdfd == terml.input);
-      TEST(stdfd == terml.output);
-      TEST(terml.ctrl_lnext     == tconf.c_cc[VLNEXT]);
-      TEST(terml.ctrl_susp      == tconf.c_cc[VSUSP]);
-      TEST(terml.oldconf_vmin   == tconf.c_cc[VMIN]);
-      TEST(terml.oldconf_vtime  == tconf.c_cc[VTIME]);
-      TEST(terml.oldconf_echo   == (0 != (tconf.c_lflag & ECHO)));
-      TEST(terml.oldconf_icanon == (0 != (tconf.c_lflag & ICANON)));
-      TEST(terml.oldconf_icrnl  == (0 != (tconf.c_iflag & ICRNL)));
-      TEST(terml.oldconf_isig   == (0 != (tconf.c_lflag & ISIG)));
-      TEST(terml.oldconf_ixon   == (0 != (tconf.c_iflag & IXON)));
-      TEST(terml.oldconf_onlcr  == (0 != (tconf.c_oflag & ONLCR)));
-      TEST(0 != terml.doclose);
+   // TEST init_terminal: open file
+   TEST(! isvalid_file(stdfd));
+   TEST(0 == init_terminal(&term));
+   TEST( isvalid_file(stdfd));
+   TEST(stdfd == term.sysio);
+   TEST(term.ctrl_lnext     == tconf.c_cc[VLNEXT]);
+   TEST(term.ctrl_susp      == tconf.c_cc[VSUSP]);
+   TEST(term.oldconf_vmin   == tconf.c_cc[VMIN]);
+   TEST(term.oldconf_vtime  == tconf.c_cc[VTIME]);
+   TEST(term.oldconf_echo   == (0 != (tconf.c_lflag & ECHO)));
+   TEST(term.oldconf_icanon == (0 != (tconf.c_lflag & ICANON)));
+   TEST(term.oldconf_icrnl  == (0 != (tconf.c_iflag & ICRNL)));
+   TEST(term.oldconf_isig   == (0 != (tconf.c_lflag & ISIG)));
+   TEST(term.oldconf_ixon   == (0 != (tconf.c_iflag & IXON)));
+   TEST(term.oldconf_onlcr  == (0 != (tconf.c_oflag & ONLCR)));
+   TEST(0 != term.doclose);
 
-      // TEST free_terminal: fd closed
-      TEST( isvalid_file(stdfd));
-      TEST(0 == free_terminal(&terml));
-      TEST(! isvalid_file(stdfd));
-      TEST(isfree_file(terml.input));
-      TEST(isfree_file(terml.output));
-      TEST(0 == terml.doclose);
+   // TEST free_terminal: fd closed
+   TEST( isvalid_file(stdfd));
+   TEST(0 == free_terminal(&term));
+   TEST(! isvalid_file(stdfd));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == term.doclose);
 
-      // TEST init_terminal: ERROR
-      for (unsigned i = 1; i <= 2; ++i) {
-         init_testerrortimer(&s_terminal_errtimer, i, EINVAL);
-         TEST(EINVAL == init_terminal(&terml));
-         TEST(isfree_file(terml.input));
-         TEST(isfree_file(terml.output));
-         TEST(0 == terml.doclose);
-      }
-
-      // TEST free_terminal: ERROR (fd closed)
-      for (unsigned i = 1; i <= 2; ++i) {
-         TEST(0 == init_terminal(&terml));
-         TEST( isvalid_file(stdfd));
-         // test
-         TEST(0 != terml.doclose);
-         init_testerrortimer(&s_terminal_errtimer, i, EINVAL);
-         TEST(EINVAL == free_terminal(&terml));
-         TEST(! isvalid_file(stdfd));
-         TEST(isfree_file(terml.input));
-         TEST(isfree_file(terml.output));
-         TEST(0 == terml.doclose);
-      }
-
-      // unprepare
-      TEST(stdfd == dup2(oldstd, stdfd));
-      TEST(0 == close(oldstd));
-      oldstd = file_FREE;
-      TEST( isvalid_file(stdfd));
+   // TEST init_terminal: ERROR
+   for (unsigned i = 1; i <= 2; ++i) {
+      init_testerrortimer(&s_terminal_errtimer, i, EINVAL);
+      TEST(EINVAL == init_terminal(&term));
+      TEST(isfree_file(term.sysio));
+      TEST(0 == term.doclose);
    }
+
+   // TEST free_terminal: ERROR (fd closed)
+   TEST(0 == init_terminal(&term));
+   TEST( isvalid_file(stdfd));
+   // test
+   TEST(0 != term.doclose);
+   init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
+   TEST(EINVAL == free_terminal(&term));
+   TEST(! isvalid_file(stdfd));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == term.doclose);
+
+   // unprepare
+   TEST(stdfd == dup2(oldstd, stdfd));
+   TEST(0 == close(oldstd));
+   oldstd = file_FREE;
+   TEST( isvalid_file(stdfd));
+
+   // TEST initPpath_terminal
+   file = posix_openpt(O_RDWR|O_NOCTTY);
+   TEST(0 <  file);
+   TEST(0 == grantpt(file));
+   TEST(0 == unlockpt(file));
+   name = ptsname(file);
+   TEST(0 != name);
+   TEST(0 == initPpath_terminal(&term, (const uint8_t*)name));
+   // check fields
+   TEST(! isfree_file(term.sysio));
+   TEST(1 == term.doclose);
+   // check I/O
+   TEST(3 == write(term.sysio, "xyc", 3));
+   TEST(3 == read(file, buffer, sizeof(buffer)));
+   TEST(0 == memcmp("xyc", buffer, 3));
+   TEST(4 == write(file, "asd\n", 4));
+   struct pollfd pfd = { .fd = term.sysio, .events = POLLIN };
+   TEST(1 == poll(&pfd, 1, 10000));
+   TEST(4 == read(term.sysio, buffer, sizeof(buffer)));
+   TEST(0 == memcmp("asd\n", buffer, 4));
+   TEST(0 == free_terminal(&term));
+
+   // TEST initPpath_terminal: configstore fails
+   init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
+   TEST(EINVAL == initPpath_terminal(&term, (const uint8_t*)name));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == free_file(&file));
+
+   // TEST initPpath_terminal: ENOTTY
+   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(ENOTTY == initPpath_terminal(&term, filename));
+   TEST(isfree_file(term.sysio));
+   TEST(0 == removefile_directory(0, (char*)filename));
+   TEST(0 == free_file(&file));
+
+   // TEST initPpath_terminal: ENOENT
+   memcpy(filename+strlen((char*)filename)-6, "xXq_Yz", 6);
+   TEST(ENOENT == initPpath_terminal(&term, filename));
+   TEST(isfree_file(term.sysio));
+
+   // TEST initPpath_terminal: EFAULT (NULL parameter)
+   TEST(EFAULT == initPpath_terminal(&term, 0));
+   TEST(isfree_file(term.sysio));
+
+   // TEST initPio_terminal
+   for (int isClose = 0; isClose <= 1; ++isClose) {
+      file = posix_openpt(O_RDWR|O_NOCTTY);
+      TEST(0 <  file);
+      TEST(0 == initPio_terminal(&term, file, isClose));
+      // check fields
+      TEST(file == term.sysio);
+      TEST(isClose == term.doclose);
+      TEST(0 == free_terminal(&term));
+      if (!isClose) {
+         TEST(0 == free_file(&file));
+      }
+   }
+
+   // TEST initPio_terminal: configstore fails
+   file = posix_openpt(O_RDWR|O_NOCTTY);
+   TEST(0 < file);
+   init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
+   TEST(EINVAL == initPio_terminal(&term, file, true));
+   // check fields
+   TEST(isfree_file(term.sysio));
+   TEST(!term.doclose);
+   TEST(0 == free_file(&file));
+
+   // TEST initPio_terminal: ENOTTY
+   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(ENOTTY == initPio_terminal(&term, file, true));
+   // check fields
+   TEST(isfree_file(term.sysio));
+   TEST(!term.doclose);
+   TEST(0 == removefile_directory(0, (char*)filename));
+   TEST(0 == free_file(&file));
 
    return 0;
 ONERR:
+   if (! isfree_file(file)) {
+      if (filename[0]) {
+         removefile_directory(0, (char*)filename);
+      }
+      free_file(&file);
+   }
    if (! isfree_file(oldstd)) {
       dup2(oldstd, stdfd);
       close(oldstd);
@@ -760,8 +1032,8 @@ ONERR:
 
 static int test_query(void)
 {
-   terminal_t     terml  = terminal_FREE;
-   terminal_t     terml2 = terminal_FREE; // keeps unitialized
+   terminal_t     term  = terminal_FREE;
+   terminal_t     term2 = terminal_FREE; // keeps unitialized
    file_t         file   = file_FREE;
    int            pfd[2] = { sys_iochannel_FREE, sys_iochannel_FREE };
    uint8_t        name[100];
@@ -772,7 +1044,7 @@ static int test_query(void)
    itimerspec     exptime;
    timer_t        timerid;
    bool           istimer = false;
-   thread_t     * thread = 0;
+   thread_t*      thread = 0;
    sigset_t       sigmask;
    sigset_t       oldmask;
    struct sigaction act;
@@ -782,7 +1054,7 @@ static int test_query(void)
    file = dup(sys_iochannel_STDERR);
    TEST(0 < file);
    TEST(0 == pipe2(pfd, O_CLOEXEC));
-   TEST(0 == init_terminal(&terml));
+   TEST(0 == init_terminal(&term));
    sigevent_t sigev;
    sigev.sigev_notify = SIGEV_SIGNAL;
    sigev.sigev_signo  = SIGWINCH;
@@ -790,37 +1062,30 @@ static int test_query(void)
    TEST(0 == timer_create(CLOCK_MONOTONIC, &sigev, &timerid));
    istimer = true;
 
-   // TEST input_terminal
-   TEST(sys_iochannel_STDIN == input_terminal(&terml));
+   // TEST io_terminal
+   TEST(sys_iochannel_STDIN == io_terminal(&term));
    for (sys_iochannel_t i = 1; i; i = i << 1) {
-      terminal_t tx = { .input = i };
-      TEST(i == input_terminal(&tx));
-   }
-
-   // TEST input_terminal
-   TEST(sys_iochannel_STDOUT == output_terminal(&terml));
-   for (sys_iochannel_t i = 1; i; i = i << 1) {
-      terminal_t tx = { .output = i };
-      TEST(i == output_terminal(&tx));
+      terminal_t tx = { .sysio = i };
+      TEST(i == io_terminal(&tx));
    }
 
    // TEST isutf8_terminal
-   TEST(0 != isutf8_terminal(&terml));
+   TEST(0 != isutf8_terminal(&term));
 
    // TEST isutf8_terminal: ERROR
    init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
-   TEST(0 == isutf8_terminal(&terml));
+   TEST(0 == isutf8_terminal(&term));
 
    // TEST pathname_terminal
-   TEST(0 == pathname_terminal(&terml, sizeof(name), name));
+   TEST(0 == pathname_terminal(&term, sizeof(name), name));
    TEST(5 <  strlen((char*)name));
    TEST(0 == strncmp((char*)name, "/dev/", 5));
 
    // TEST pathname_terminal: ENOBUFS
-   TEST(ENOBUFS == pathname_terminal(&terml, 5, name));
+   TEST(ENOBUFS == pathname_terminal(&term, 5, name));
 
    // TEST pathname_terminal: EBADF
-   TEST(EBADF == pathname_terminal(&terml2, sizeof(name), name));
+   TEST(EBADF == pathname_terminal(&term2, sizeof(name), name));
 
    // TEST hascontrolling_terminal: true (false is tested in test_controlterm)
    TEST(0 != hascontrolling_terminal());
@@ -932,17 +1197,17 @@ static int test_query(void)
    TEST(0 == err);
 
    // TEST ctrllnext_terminal
-   TEST(ctrllnext_terminal(&terml) == terml.ctrl_lnext);
+   TEST(ctrllnext_terminal(&term) == term.ctrl_lnext);
    for (uint8_t i = 1; i; i = (uint8_t)(i << 1)) {
-      terml2.ctrl_lnext = i;
-      TEST(i == ctrllnext_terminal(&terml2));
+      term2.ctrl_lnext = i;
+      TEST(i == ctrllnext_terminal(&term2));
    }
 
    // TEST ctrlsusp_terminal
-   TEST(ctrlsusp_terminal(&terml) == terml.ctrl_susp);
+   TEST(ctrlsusp_terminal(&term) == term.ctrl_susp);
    for (uint8_t i = 1; i; i = (uint8_t)(i << 1)) {
-      terml2.ctrl_susp = i;
-      TEST(i == ctrlsusp_terminal(&terml2));
+      term2.ctrl_susp = i;
+      TEST(i == ctrlsusp_terminal(&term2));
    }
 
    // unprepare
@@ -951,7 +1216,7 @@ static int test_query(void)
    TEST(0 == close(file));
    TEST(0 == close(pfd[0]));
    TEST(0 == close(pfd[1]));
-   TEST(0 == free_terminal(&terml));
+   TEST(0 == free_terminal(&term));
 
    return 0;
 ONERR:
@@ -961,7 +1226,7 @@ ONERR:
    close(file);
    close(pfd[0]);
    close(pfd[1]);
-   free_terminal(&terml);
+   free_terminal(&term);
    return EINVAL;
 }
 
@@ -973,10 +1238,10 @@ static void sigalarm_signalhandler(int nr)
 
 static int test_read(void)
 {
-   terminal_t     terml = terminal_FREE;
+   terminal_t     term = terminal_FREE;
    struct winsize oldsize;
-   unsigned       nrcols;
-   unsigned       nrrows;
+   uint16_t       nrcols;
+   uint16_t       nrrows;
    systimer_t     timer = systimer_FREE;
    uint64_t       duration_ms;
    int            fd[2];
@@ -988,37 +1253,36 @@ static int test_read(void)
 
    // prepare
    TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
-   // TEST(0 == init_terminal(&terml));
-   terml.input = 0;
-   terml.output = 1;
-   TEST(0 == ioctl(terml.input, TIOCGWINSZ, &oldsize));
-   tcflush(terml.input, TCIFLUSH); // discards any pressed keys
+   // TEST(0 == init_terminal(&term));
+   term.sysio = iochannel_STDIN;
+   TEST(0 == ioctl(term.sysio, TIOCGWINSZ, &oldsize));
+   tcflush(term.sysio, TCIFLUSH); // discards any pressed keys
 
    // TEST tryread_terminal: waits 50ms
    TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .seconds = 0, .nanosec = 1000000 }));
-   TEST(0 == tryread_terminal(&terml, sizeof(buf), buf));
+   TEST(0 == tryread_terminal(&term, sizeof(buf), buf));
    TEST(0 == expirationcount_systimer(timer, &duration_ms));
    TESTP(40 <= duration_ms && duration_ms <= 100, "duration=%" PRIu64, duration_ms);
 
    // TEST tryread_terminal: EBADF
-   terminal_t terml2 = terminal_FREE;
-   TEST(0 == tryread_terminal(&terml2, sizeof(buf), buf));
+   terminal_t term2 = terminal_FREE;
+   TEST(0 == tryread_terminal(&term2, sizeof(buf), buf));
 
    // TEST tryread_terminal: closed pipe
    TEST(0 == pipe2(fd, O_CLOEXEC));
    TEST(0 == close(fd[1]));
-   terml2 = terml;
-   terml2.input = fd[0];
-   TEST(0 == tryread_terminal(&terml2, sizeof(buf), buf));
+   term2 = term;
+   term2.sysio = fd[0];
+   TEST(0 == tryread_terminal(&term2, sizeof(buf), buf));
    TEST(0 == close(fd[0]));
 
    // TEST tryread_terminal: read bytes from pipe
    TEST(0 == pipe2(fd, O_CLOEXEC));
-   terml2 = terml;
-   terml2.input = fd[0];
+   term2 = term;
+   term2.sysio = fd[0];
    TEST(10 == write(fd[1], "1234567890", 10));
    memset(buf, 0, sizeof(buf));
-   TEST(10 == tryread_terminal(&terml2, sizeof(buf), buf));
+   TEST(10 == tryread_terminal(&term2, sizeof(buf), buf));
    TEST(0 == memcmp(buf, "1234567890", 10));
 
    // TEST tryread_terminal: EINTR (!!ignored in tryread!!)
@@ -1036,14 +1300,14 @@ static int test_read(void)
 
    // test interrupt is working
    for (int i = 0; i < 3; ++i) {
-      struct pollfd pfd = { .events = POLLIN, .fd = terml.input };
+      struct pollfd pfd = { .events = POLLIN, .fd = term.sysio };
       TEST(-1 == poll(&pfd, 1, -1));
       TEST(EINTR == errno);
    }
 
    // test (no input)
    for (int i = 0; i < 2; ++i) {
-      TEST(0 == tryread_terminal(&terml2, sizeof(buf), buf));
+      TEST(0 == tryread_terminal(&term2, sizeof(buf), buf));
    }
 
    // test with input
@@ -1054,7 +1318,7 @@ static int test_read(void)
       } while (err == -1 && errno == EINTR);
       TEST(10 == err);
       memset(buf, 0, sizeof(buf));
-      TEST(10 == tryread_terminal(&terml2, sizeof(buf), buf));
+      TEST(10 == tryread_terminal(&term2, sizeof(buf), buf));
       TEST(0 == memcmp(buf, "1234567890", 10));
    }
 
@@ -1071,88 +1335,283 @@ static int test_read(void)
    // TEST size_terminal
    nrcols = 0;
    nrrows = 0;
-   TEST(0 == size_terminal(&terml, &nrcols, &nrrows));
+   TEST(0 == size_terminal(&term, &nrcols, &nrrows));
    TEST(2 < nrcols);
    TEST(2 < nrrows);
    TEST(oldsize.ws_col == nrcols);
    TEST(oldsize.ws_row == nrrows);
 
    // TEST size_terminal: read changed size
-   tcdrain(terml.input);
+   tcdrain(term.sysio);
    struct winsize newsize = oldsize;
    newsize.ws_col = (unsigned short) (newsize.ws_col - 2);
    newsize.ws_row = (unsigned short) (newsize.ws_row - 2);
-   TEST(0 == ioctl(terml.input, TIOCSWINSZ, &newsize)); // change size
+   TEST(0 == writewinsize(&newsize, term.sysio)); // change size
    TEST(0 != issizechange_terminal()); // we received notification
-   TEST(0 == size_terminal(&terml, &nrcols, &nrrows));
+   TEST(0 == size_terminal(&term, &nrcols, &nrrows));
    TEST(newsize.ws_col == nrcols);
    TEST(newsize.ws_row == nrrows);
-   TEST(0 == ioctl(terml.input, TIOCSWINSZ, &oldsize)); // change size
+   TEST(0 == writewinsize(&oldsize, term.sysio)); // restore size
    TEST(0 != issizechange_terminal()); // we received notification
-   TEST(0 == size_terminal(&terml, &nrcols, &nrrows));
+   TEST(0 == size_terminal(&term, &nrcols, &nrrows));
    TEST(oldsize.ws_col == nrcols);
    TEST(oldsize.ws_row == nrrows);
 
    // unprepare
-   TEST(0 == configrestore_terminal(&terml));
-   TEST(0 == free_terminal(&terml));
+   TEST(0 == configrestore_terminal(&term));
+   TEST(0 == free_terminal(&term));
    TEST(0 == free_systimer(&timer));
 
    // TEST size_terminal: EBADF
-   TEST(EBADF == size_terminal(&terml, &nrcols, &nrrows));
+   TEST(EBADF == size_terminal(&term, &nrcols, &nrrows));
 
    return 0;
 ONERR:
-   configrestore_terminal(&terml);
-   free_terminal(&terml);
+   configrestore_terminal(&term);
+   free_terminal(&term);
    free_systimer(&timer);
+   return EINVAL;
+}
+
+static int s_param_iochannel;
+
+static int process_setstdio(void)
+{
+   terminal_t term;
+   bool       isclose;
+
+   if (-1 == s_param_iochannel) {
+      isclose = false;
+      TEST(0 == init_terminal(&term));
+      TEST(iochannel_STDIN == term.sysio);
+
+      TEST(isvalid_iochannel(iochannel_STDOUT));
+      TEST(isvalid_iochannel(iochannel_STDERR));
+      TEST(0 == close(iochannel_STDOUT));
+      TEST(0 == close(iochannel_STDERR));
+      term.doclose = 1;
+
+   } else {
+      isclose = true;
+      TEST(0 == initPio_terminal(&term, s_param_iochannel, true));
+
+      static_assert( iochannel_STDIN+1 == iochannel_STDOUT
+                     && iochannel_STDOUT+1 == iochannel_STDERR, "used in for loop");
+      for (int i = iochannel_STDIN; i <= iochannel_STDERR; ++i) {
+         if (s_param_iochannel != i) {
+            TEST(0 == close(i));
+         } else {
+            isclose = false;
+         }
+      }
+   }
+
+   TEST(0 == setstdio_terminal(&term));
+   TEST(isclose == term.doclose);
+   TEST(isvalid_iochannel(iochannel_STDIN));
+   TEST(isvalid_iochannel(iochannel_STDOUT));
+   TEST(isvalid_iochannel(iochannel_STDERR));
+
+   if (isclose) {
+      term.doclose = 0;
+      TEST(0 == setstdio_terminal(&term));
+      TEST(0 == term.doclose); // does not switch flag on
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int process_switchcontrolling(void)
+{
+   const char* name;
+   struct stat st;
+
+   name = ptsname(s_param_iochannel);
+   TEST(0 == stat(name, &st));
+   pid_t pid = getpid();
+   pid_t sid = getsid(pid);
+   TEST(0 == switchcontrolling_terminal((const uint8_t*)name));
+   TEST(sid != getsid(pid));
+   TEST(pid == getsid(pid));
+   for (int i = iochannel_STDIN; i <= iochannel_STDERR; ++i) {
+      struct stat st2;
+      TEST(0 == fstat(i, &st2));
+      TEST(st.st_dev == st2.st_dev);
+      TEST(st.st_rdev == st2.st_rdev);
+      TEST(st.st_ino == st2.st_ino);
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int test_update(void)
+{
+   int err;
+   terminal_t term = terminal_FREE;
+   uint16_t   x, y;
+   uint16_t   x2, y2;
+   file_t     file = file_FREE;
+   const char* name;
+
+   // prepare
+   TEST(0 == init_terminal(&term));
+
+   // TEST setsize_terminal: size changed
+   TEST(0 == size_terminal(&term, &x, &y));
+   TEST(! issizechange_terminal());
+   TEST(0 == setsize_terminal(&term, (uint16_t) (x+1), (uint16_t) (y+2)));
+   TEST( issizechange_terminal());
+   TEST(0 == size_terminal(&term, &x2, &y2));
+   TEST(x2 == x+1);
+   TEST(y2 == y+2);
+   TEST(0 == setsize_terminal(&term, x, y));
+   TEST( issizechange_terminal());
+   TEST(0 == size_terminal(&term, &x2, &y2));
+   TEST(x2 == x);
+   TEST(y2 == y);
+
+   // TEST setsize_terminal: size not changed
+   TEST(0 == setsize_terminal(&term, x, y));
+   TEST(! issizechange_terminal());
+
+   // unprepare
+   TEST(0 == free_terminal(&term));
+
+   // TEST setsize_terminal: EBADF
+   TEST(EBADF == setsize_terminal(&term, x, y));
+
+   // TEST setstdio_terminal: set iochannel_STDIN iochannel_STDOUT
+   s_param_iochannel = -1;
+   TEST(0 == execasprocess_unittest(&process_setstdio, &err));
+   TEST(0 == err);
+
+   // TEST setstdio_terminal: one of iochannel_STDIN ...
+   static_assert( iochannel_STDIN+1 == iochannel_STDOUT
+                  && iochannel_STDOUT+1 == iochannel_STDERR, "used in for loop");
+   for (int i = iochannel_STDIN; i <= iochannel_STDERR; ++i) {
+      s_param_iochannel = i;
+      TEST(0 == execasprocess_unittest(&process_setstdio, &err));
+      TEST(0 == err);
+   }
+
+   // TEST setstdio_terminal: other fd
+   file = posix_openpt(O_RDWR|O_NOCTTY);
+   TEST(0 <  file);
+   TEST(0 == grantpt(file));
+   TEST(0 == unlockpt(file));
+   name = ptsname(file);
+   TEST(0 == initPpath_terminal(&term, (const uint8_t*)name));
+   s_param_iochannel = term.sysio;
+   TEST(term.sysio > iochannel_STDERR);
+   TEST(0 == execasprocess_unittest(&process_setstdio, &err));
+   TEST(0 == err);
+   TEST(0 == free_terminal(&term));
+   TEST(0 == free_file(&file));
+
+   // TEST setstdio_terminal: EBADF
+   TEST(EBADF == setstdio_terminal(&term));
+
+   // TEST switchcontrolling_terminal:
+   file = posix_openpt(O_RDWR|O_NOCTTY);
+   TEST(0 <  file);
+   TEST(0 == grantpt(file));
+   TEST(0 == unlockpt(file));
+   TEST(0 != ptsname(file));
+   s_param_iochannel = file;
+   TEST(0 == execasprocess_unittest(&process_switchcontrolling, &err));
+   TEST(0 == err);
+   TEST(0 == free_file(&file));
+
+   // TEST switchcontrolling_terminal: ENOTTY
+   uint8_t filename[100];
+   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(ENOTTY == switchcontrolling_terminal(filename));
+   TEST(0 == free_file(&file));
+
+   return 0;
+ONERR:
+   free_file(&file);
+   free_terminal(&term);
    return EINVAL;
 }
 
 static int test_config(void)
 {
-   terminal_t     terml = terminal_FREE;
+   terminal_t     term = terminal_FREE;
+   terminal_t     psterm = terminal_FREE;
    struct termios oldconf;
    struct termios tconf;
    bool           isold = false;
 
    // prepare
-   TEST(0 == init_terminal(&terml));
-   TEST(0 == readconfig(&oldconf, terml.input));
+   TEST(0 == initPio_terminal(&psterm, posix_openpt(O_RDWR|O_NOCTTY), true));
+   TEST(0 == init_terminal(&term));
+   TEST(0 == readconfig(&oldconf, term.sysio));
    isold = true;
+
+   // TEST configcopy_terminal
+   tconf = oldconf;
+   ++ tconf.c_cc[VLNEXT];
+   ++ tconf.c_cc[VSUSP];
+   ++ tconf.c_cc[VMIN];
+   ++ tconf.c_cc[VTIME];
+   tconf.c_lflag = ~ tconf.c_lflag;
+   tconf.c_iflag = ~ tconf.c_iflag;
+   tconf.c_oflag = ~ tconf.c_oflag;
+   TEST(0 == writeconfig(&tconf, psterm.sysio));
+   TEST(0 == configcopy_terminal(&psterm, &term));
+   TEST(0 == readconfig(&tconf, psterm.sysio));
+   TEST(tconf.c_cc[VLNEXT] == oldconf.c_cc[VLNEXT]);
+   TEST(tconf.c_cc[VSUSP]  == oldconf.c_cc[VSUSP]);
+   TEST(tconf.c_cc[VMIN]   == oldconf.c_cc[VMIN]);
+   TEST(tconf.c_cc[VTIME]  == oldconf.c_cc[VTIME]);
+   TEST(tconf.c_lflag      == oldconf.c_lflag);
+   TEST(tconf.c_iflag      == oldconf.c_iflag);
+   TEST(tconf.c_oflag      == oldconf.c_oflag);
+
+   // TEST configcopy_terminal: EBADF
+   {
+      terminal_t term2 = terminal_FREE;
+      TEST(EBADF == configcopy_terminal(&psterm, &term2));
+      TEST(EBADF == configcopy_terminal(&term2, &psterm));
+   }
 
    // TEST configstore_terminal: line edit mode
    for (int i = 0; i <= 1; ++i) {
-      terminal_t terml2;
-      memset(&terml2, i ? 255 : 0, sizeof(terml2));
-      terml2.input = terml.input;
-      TEST(0 == configstore_terminal(&terml2));
-      TEST(terml2.ctrl_lnext     == oldconf.c_cc[VLNEXT]);
-      TEST(terml2.ctrl_susp      == oldconf.c_cc[VSUSP]);
-      TEST(terml2.oldconf_vmin   == oldconf.c_cc[VMIN]);
-      TEST(terml2.oldconf_vtime  == oldconf.c_cc[VTIME]);
-      TEST(terml2.oldconf_echo   == (0 != (oldconf.c_lflag & ECHO)));
-      TEST(terml2.oldconf_icanon == (0 != (oldconf.c_lflag & ICANON)));
-      TEST(terml2.oldconf_icrnl  == (0 != (oldconf.c_iflag & ICRNL)));
-      TEST(terml2.oldconf_isig   == (0 != (oldconf.c_lflag & ISIG)));
-      TEST(terml2.oldconf_ixon   == (0 != (oldconf.c_iflag & IXON)));
-      TEST(terml2.oldconf_onlcr  == (0 != (oldconf.c_oflag & ONLCR)));
+      terminal_t term2;
+      memset(&term2, i ? 255 : 0, sizeof(term2));
+      term2.sysio = term.sysio;
+      TEST(0 == configstore_terminal(&term2));
+      TEST(term2.ctrl_lnext     == oldconf.c_cc[VLNEXT]);
+      TEST(term2.ctrl_susp      == oldconf.c_cc[VSUSP]);
+      TEST(term2.oldconf_vmin   == oldconf.c_cc[VMIN]);
+      TEST(term2.oldconf_vtime  == oldconf.c_cc[VTIME]);
+      TEST(term2.oldconf_echo   == (0 != (oldconf.c_lflag & ECHO)));
+      TEST(term2.oldconf_icanon == (0 != (oldconf.c_lflag & ICANON)));
+      TEST(term2.oldconf_icrnl  == (0 != (oldconf.c_iflag & ICRNL)));
+      TEST(term2.oldconf_isig   == (0 != (oldconf.c_lflag & ISIG)));
+      TEST(term2.oldconf_ixon   == (0 != (oldconf.c_iflag & IXON)));
+      TEST(term2.oldconf_onlcr  == (0 != (oldconf.c_oflag & ONLCR)));
    }
 
    // TEST configstore_terminal: ERROR
    for (int i = 0; i <= 1; ++i) {
-      terminal_t terml2;
-      terminal_t terml3;
-      memset(&terml2, i ? 255 : 0, sizeof(terml2));
-      memset(&terml3, i ? 255 : 0, sizeof(terml2));
+      terminal_t term2;
+      terminal_t term3;
+      memset(&term2, i ? 255 : 0, sizeof(term2));
+      memset(&term3, i ? 255 : 0, sizeof(term2));
       init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
-      TEST(EINVAL == configstore_terminal(&terml2));
-      TEST(0 == memcmp(&terml2, &terml3, sizeof(terml2))); // not changed
+      TEST(EINVAL == configstore_terminal(&term2));
+      TEST(0 == memcmp(&term2, &term3, sizeof(term2))); // not changed
    }
 
    // TEST configrawedit_terminal
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_iflag & ICRNL));
    TEST(0 == (tconf.c_oflag & ONLCR));
    TEST(0 == (tconf.c_lflag & ICANON));
@@ -1165,25 +1624,25 @@ static int test_config(void)
 
    // TEST configstore_terminal: raw edit mode
    {
-      terminal_t terml2;
-      memset(&terml2, 255, sizeof(terml2));
-      terml2.input = terml.input;
-      TEST(0 == configstore_terminal(&terml2));
-      TEST(terml2.ctrl_lnext     == oldconf.c_cc[VLNEXT]);
-      TEST(terml2.ctrl_susp      == oldconf.c_cc[VSUSP]);
-      TEST(terml2.oldconf_vmin   == 1);
-      TEST(terml2.oldconf_vtime  == 0);
-      TEST(terml2.oldconf_echo   == 0);
-      TEST(terml2.oldconf_icanon == 0);
-      TEST(terml2.oldconf_icrnl  == 0);
-      TEST(terml2.oldconf_isig   == 0);
-      TEST(terml2.oldconf_ixon   == 0);
-      TEST(terml2.oldconf_onlcr  == 0);
+      terminal_t term2;
+      memset(&term2, 255, sizeof(term2));
+      term2.sysio = term.sysio;
+      TEST(0 == configstore_terminal(&term2));
+      TEST(term2.ctrl_lnext     == oldconf.c_cc[VLNEXT]);
+      TEST(term2.ctrl_susp      == oldconf.c_cc[VSUSP]);
+      TEST(term2.oldconf_vmin   == 1);
+      TEST(term2.oldconf_vtime  == 0);
+      TEST(term2.oldconf_echo   == 0);
+      TEST(term2.oldconf_icanon == 0);
+      TEST(term2.oldconf_icrnl  == 0);
+      TEST(term2.oldconf_isig   == 0);
+      TEST(term2.oldconf_ixon   == 0);
+      TEST(term2.oldconf_onlcr  == 0);
    }
 
    // TEST configrestore_terminal
-   TEST(0 == configrestore_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrestore_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(oldconf.c_iflag == tconf.c_iflag);
    TEST(oldconf.c_oflag == tconf.c_oflag);
    TEST(oldconf.c_lflag == tconf.c_lflag);
@@ -1192,142 +1651,144 @@ static int test_config(void)
    // TEST configrawedit_terminal, configrestore_terminal: VMIN
    if (tconf.c_cc[VMIN]) {
       tconf.c_cc[VMIN] = 0;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // sets VMIN to 1
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(1 == tconf.c_cc[VMIN]);
    for (int i = 2; i >= 0; --i) {
-      terml.oldconf_vmin = (uint8_t) i;
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_vmin = (uint8_t) i;
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == tconf.c_cc[VMIN]);
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: VTIME
    if (0 == tconf.c_cc[VTIME]) {
       tconf.c_cc[VTIME] = 1;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // sets VTIME to 0
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == tconf.c_cc[VTIME]);
    for (int i = 2; i >= 0; --i) {
-      terml.oldconf_vtime = (uint8_t) i;
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_vtime = (uint8_t) i;
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == tconf.c_cc[VTIME]);
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: ICRNL
    if (! (tconf.c_iflag & ICRNL)) {
       tconf.c_iflag |= ICRNL;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears ICRNL
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_iflag & ICRNL));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_icrnl = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_icrnl = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_iflag & ICRNL)));
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: ONLCR
    if (! (tconf.c_oflag & ONLCR)) {
       tconf.c_oflag |= ONLCR;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears ONLCR
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_oflag & ONLCR));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_onlcr = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_onlcr = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_oflag & ONLCR)));
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: ICANON
    if (! (tconf.c_lflag & ICANON)) {
       tconf.c_lflag |= ICANON;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears ICANON
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_lflag & ICANON));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_icanon = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_icanon = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_lflag & ICANON)));
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: ECHO
    if (! (tconf.c_lflag & ECHO)) {
       tconf.c_lflag |= ECHO;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears ECHO
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_lflag & ECHO));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_echo = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_echo = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_lflag & ECHO)));
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: ISIG
    if (! (tconf.c_lflag & ISIG)) {
       tconf.c_lflag |= ISIG;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears ISIG
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_lflag & ISIG));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_isig = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_isig = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_lflag & ISIG)));
    }
 
    // TEST configrawedit_terminal, configrestore_terminal: IXON
    if (! (tconf.c_iflag & IXON)) {
       tconf.c_iflag |= IXON;
-      TEST(0 == writeconfig(&tconf, terml.input));
+      TEST(0 == writeconfig(&tconf, term.sysio));
    }
    // clears IXON
-   TEST(0 == configrawedit_terminal(&terml));
-   TEST(0 == readconfig(&tconf, terml.input));
+   TEST(0 == configrawedit_terminal(&term));
+   TEST(0 == readconfig(&tconf, term.sysio));
    TEST(0 == (tconf.c_iflag & IXON));
    for (int i = 0; i <= 1; ++i) {
-      terml.oldconf_ixon = (i != 0);
-      TEST(0 == configrestore_terminal(&terml));
-      TEST(0 == readconfig(&tconf, terml.input));
+      term.oldconf_ixon = (i != 0);
+      TEST(0 == configrestore_terminal(&term));
+      TEST(0 == readconfig(&tconf, term.sysio));
       TEST(i == (0 != (tconf.c_iflag & IXON)));
    }
 
    // unprepare
    isold = false;
-   TEST(0 == writeconfig(&oldconf, terml.input));
-   TEST(0 == free_terminal(&terml));
+   TEST(0 == writeconfig(&oldconf, term.sysio));
+   TEST(0 == free_terminal(&term));
+   TEST(0 == free_terminal(&psterm));
 
    return 0;
 ONERR:
    if (isold) {
-      writeconfig(&oldconf, terml.input);
+      writeconfig(&oldconf, term.sysio);
    }
-   free_terminal(&terml);
+   free_terminal(&term);
+   free_terminal(&psterm);
    return EINVAL;
 }
 
@@ -1459,6 +1920,7 @@ int unittest_io_terminal_terminal()
    if (test_helper())         goto ONERR;
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;
+   if (test_update())         goto ONERR;
    if (test_config())         goto ONERR;
    if (test_read())           goto ONERR;
    if (test_controlterm())    goto ONERR;

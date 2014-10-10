@@ -55,7 +55,7 @@ int unittest_io_terminal_pseudoterm(void);
  * Jetzt kann das Programm mittels fork() einen Kindprozess von sich
  * erzeugen, der eine neue Sitzung öffnet und damit die Verbindung
  * zu seinem bisherigen Controlling-Terminal verliert. Danach öffnet der Kindprozess
- * das Slave-Pseudoterminal, kopiert den Filedescriptor nach stdin,stdout und stderr
+ * das Slave-Pseudoterminal, kopiert den Filedescriptor nach std-in, std-out und std-err
  * und hat somit ein Pseudoterminal als neues Controlling Terminal eingerichtet.
  * Die vom Kinprozess aufzurufende Funktion <switchcontrolling_terminal> erledigt dies.
  *
@@ -81,8 +81,8 @@ int unittest_io_terminal_pseudoterm(void);
  * > │ Dieses   │  -----------> │ Terminal │
  * > │ Programm │  ( + exec())  │ Programm │
  * > ╰──────────╯               ╰──────────╯
- * >     | ▴                 stdin ▴ | stdout
- * >     | |   (user space)        | | stderr
+ * >     | ▴               std- in ▴ | -out
+ * >     | |   (user space)        | | -err
  * > ----|-|-----------------------|-|------------
  * >     | |   (kernel space)      | |
  * >     ▾ |                       | ▾
@@ -147,30 +147,6 @@ sys_iochannel_t io_pseudoterm(const pseudoterm_t* pty);
  * ENOTTY  - pty enthält einen ungültigen <sys_iochannel_t>. Weder name noch namesize wurden geändert. */
 int pathname_pseudoterm(const pseudoterm_t* pty, size_t len, /*out*/uint8_t name[len], /*err;out*/size_t* namesize);
 
-// group: child-process
-
-/* function: switchcontrolling_terminal
- *
- * TODO: move to terminal_t
- *
- * TODO: implement initPpath_terminal
- *
- * Der Kindprozess macht mit dieser Funktion pty zu seinem neuen Controlling Terminal.
- *
- * Nach erfolgreicher Rückkehr aus dieser Funktion sollte der Kinprozess
- * <free_pseudoterm> aufrufen, da in der Regel nur der Elternprozess auf das
- * Master-Pseudoterminal zugreift.
- *
- * Funktionsweise:
- * Dazu erzeugt diese Funktion eine neue Sitzung und macht diesen Prozess zum Session-Leader,
- * damit wird die Verbindung zum bisherigen Controlling Terminal geschlossen.
- * Danach öffnet sie den Pfad des über <pathname_pseudoterm> ermittelten Slave-Pseudoterminal Gerätes.
- * Das Öffnen macht das Pseudoterminal automatisch zum neuen Controlling Terminal,
- * da der Kindprozess ja keines mehr hat. Jetzt wird der Filedescriptor nach stdin,
- * stdout und stderr (siehe <file_e> oder sys_iochannel_STDIN>,...) kopiert und
- * der Kindprozess kann mittels seiner Standardein- und -Ausgabekanäle auf sein
- * (Pseudo-) Controlling Terminal zugreifen. */
-// int switchcontrolling_terminal(/*out*/terminal* term, uint8_t* path);
 
 
 // section: inline implementation
