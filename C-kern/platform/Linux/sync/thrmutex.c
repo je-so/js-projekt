@@ -42,11 +42,11 @@ int free_thrmutex(thrmutex_t * mutex)
    int err ;
    bool isFree ;
 
-   isFree = (0 == atomicset_int(&mutex->lockflag)) ;
+   isFree = (0 == set_atomicflag(&mutex->lockflag)) ;
 
    if (isFree) {
       isFree = (0 == mutex->last && 0 == mutex->lockholder) ;
-      atomicclear_int(&mutex->lockflag) ;
+      clear_atomicflag(&mutex->lockflag) ;
    }
 
    if (! isFree) {
@@ -64,24 +64,24 @@ ONERR:
 
 bool isfree_thrmutex(thrmutex_t * mutex)
 {
-   return   0 == atomicread_int((uintptr_t*)&mutex->last)
+   return   0 == read_atomicint((uintptr_t*)&mutex->last)
             && 0 == mutex->lockholder
             && 0 == mutex->lockflag ;
 }
 
 bool islocked_thrmutex(thrmutex_t * mutex)
 {
-   return 0 != atomicread_int((uintptr_t*)&mutex->lockholder) ;
+   return 0 != read_atomicint((uintptr_t*)&mutex->lockholder) ;
 }
 
 bool iswaiting_thrmutex(thrmutex_t * mutex)
 {
-   return 0 != atomicread_int((uintptr_t*)&mutex->last) ;
+   return 0 != read_atomicint((uintptr_t*)&mutex->last) ;
 }
 
 thread_t * lockholder_thrmutex(thrmutex_t * mutex)
 {
-   return (thread_t*) atomicread_int((uintptr_t*)&mutex->lockholder) ;
+   return (thread_t*) read_atomicint((uintptr_t*)&mutex->lockholder) ;
 }
 
 // group: synchronize
@@ -92,7 +92,7 @@ thread_t * lockholder_thrmutex(thrmutex_t * mutex)
  * was written by other threads before the flag was set. */
 static inline void lockflag_thrmutex(thrmutex_t * mutex)
 {
-   while (0 != atomicset_int(&mutex->lockflag)) {
+   while (0 != set_atomicflag(&mutex->lockflag)) {
       yield_thread() ;
    }
 }
@@ -103,7 +103,7 @@ static inline void lockflag_thrmutex(thrmutex_t * mutex)
  * flag is cleared. */
 static inline void unlockflag_thrmutex(thrmutex_t * mutex)
 {
-   atomicclear_int(&mutex->lockflag) ;
+   clear_atomicflag(&mutex->lockflag) ;
 }
 
 int lock_thrmutex(thrmutex_t * mutex)
@@ -210,10 +210,10 @@ static int test_initfree(void)
    TEST(0 == free_thrmutex(&mutex)) ;
 
    // TEST free_thrmutex: EBUSY
-   TEST(0 == atomicset_int(&mutex.lockflag)) ;
+   TEST(0 == set_atomicflag(&mutex.lockflag)) ;
    TEST(EBUSY == free_thrmutex(&mutex)) ;
-   TEST(0 != atomicset_int(&mutex.lockflag)) ;
-   atomicclear_int(&mutex.lockflag) ;
+   TEST(0 != set_atomicflag(&mutex.lockflag)) ;
+   clear_atomicflag(&mutex.lockflag) ;
    mutex.last = (void*) 1 ;
    TEST(EBUSY == free_thrmutex(&mutex)) ;
    mutex.last = 0 ;
@@ -242,9 +242,9 @@ static int test_query(void)
    TEST(0 == isfree_thrmutex(&mutex)) ;
    mutex.lockholder = 0 ;
    TEST(1 == isfree_thrmutex(&mutex)) ;
-   atomicset_int(&mutex.lockflag) ;
+   set_atomicflag(&mutex.lockflag) ;
    TEST(0 == isfree_thrmutex(&mutex)) ;
-   atomicclear_int(&mutex.lockflag) ;
+   clear_atomicflag(&mutex.lockflag) ;
    TEST(1 == isfree_thrmutex(&mutex)) ;
 
    // TEST islocked_thrmutex
@@ -279,18 +279,18 @@ static unsigned s_thread_runcount = 0 ;
 
 static int thread_calllock(thrmutex_t * mutex)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = lock_thrmutex(mutex) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
 static int thread_callunlock(thrmutex_t * mutex)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = unlock_thrmutex(mutex) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
@@ -326,17 +326,17 @@ static int test_synchronize(void)
    // TEST lock_thrmutex: active waiting on lockflag
    lockflag_thrmutex(&mutex) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_calllock, &mutex)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_thrmutex(&mutex) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == mutex.last) ;
    TEST(threads[0] == mutex.lockholder) ;
    TEST(0 == mutex.lockflag) ;
@@ -348,11 +348,11 @@ static int test_synchronize(void)
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       uintptr_t oldlast = (uintptr_t) mutex.last ;
       TEST(0 == newgeneric_thread(&threads[i], &thread_calllock, &mutex)) ;
-      while (oldlast == atomicread_int((uintptr_t*)&mutex.last)
-             || 0 != atomicread_int(&mutex.lockflag)) {
+      while (oldlast == read_atomicint((uintptr_t*)&mutex.last)
+             || 0 != read_atomicint(&mutex.lockflag)) {
          yield_thread() ;
       }
-      TEST(i+1              == atomicread_int(&s_thread_runcount)) ;
+      TEST(i+1              == read_atomicint(&s_thread_runcount)) ;
       TEST(mutex.last       == cast2node_thrmutexlist(threads[i])) ;
       TEST(mutex.lockholder == self_thread()) ;
       TEST(mutex.lockflag   == 0) ;
@@ -366,7 +366,7 @@ static int test_synchronize(void)
       resume_thread(threads[i]) ;   // spurious wakeup
       for (int i2 = 0; i2 < 5; ++i2) {
          yield_thread() ;
-         TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+         TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
       }
       lockflag_thrmutex(&mutex) ;   // acquired during wakeup
       thread_t * firstthread = 0 ;
@@ -376,13 +376,13 @@ static int test_synchronize(void)
       resume_thread(threads[i]) ;   // real wakeup
       for (int i2 = 0; i2 < 10; ++i2) {
          yield_thread() ;
-         TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+         TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
       }
       unlockflag_thrmutex(&mutex) ;
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
-      TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+      TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
       TEST(mutex.last            == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder      == 0) ; // not set in lock_thrmutex
       TEST(mutex.lockflag        == 0) ;
@@ -398,18 +398,18 @@ static int test_synchronize(void)
    // TEST unlock_thrmutex: active waiting on lockflag
    lockflag_thrmutex(&mutex) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_callunlock, &mutex)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
-   atomicwrite_int((uintptr_t*)&mutex.lockholder, (uintptr_t)threads[0]) ;
+   write_atomicint((uintptr_t*)&mutex.lockholder, (uintptr_t)threads[0]) ;
    unlockflag_thrmutex(&mutex) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == mutex.last) ;
    TEST(0 == mutex.lockholder) ;
    TEST(0 == mutex.lockflag) ;
@@ -422,7 +422,7 @@ static int test_synchronize(void)
    TEST(0 == mutex.lockflag) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_calllock, &mutex)) ;
    TEST(0 == join_thread(threads[0])) ;
-   TEST(threads[0] == (thread_t*)atomicread_int((uintptr_t*)&mutex.lockholder)) ;
+   TEST(threads[0] == (thread_t*)read_atomicint((uintptr_t*)&mutex.lockholder)) ;
    TEST(EPERM == unlock_thrmutex(&mutex)) ;
    TEST(0 == mutex.last) ;
    TEST(threads[0] == mutex.lockholder) ;
@@ -435,18 +435,18 @@ static int test_synchronize(void)
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       uintptr_t oldlast = (uintptr_t) mutex.last ;
       TEST(0 == newgeneric_thread(&threads[i], &thread_calllock, &mutex)) ;
-      while (oldlast == atomicread_int((uintptr_t*)&mutex.last)) {
+      while (oldlast == read_atomicint((uintptr_t*)&mutex.last)) {
          yield_thread() ;
       }
    }
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      atomicwrite_int((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
+      write_atomicint((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
       TEST(0 == unlock_thrmutex(&mutex)) ;
       TEST(mutex.last       == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder == threads[i]) ;  // set in unlock_thrmutex
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
-      TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+      TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
       TEST(mutex.last       == (i+1 < lengthof(threads) ? cast2node_thrmutexlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(mutex.lockholder == threads[i]) ;  // set in unlock_thrmutex
       TEST(mutex.lockflag   == 0) ;
@@ -457,7 +457,7 @@ static int test_synchronize(void)
 ONERR:
    unlockflag_thrmutex(&mutex) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      atomicwrite_int((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
+      write_atomicint((uintptr_t*)&mutex.lockholder, (uintptr_t)self_thread()) ;
       unlock_thrmutex(&mutex) ;
       delete_thread(&threads[i]) ;
    }

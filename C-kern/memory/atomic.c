@@ -24,364 +24,410 @@
 #endif
 
 
-// section: atomic_uint32_t
-
+// section: Functions
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct intargs_t   intargs_t ;
+typedef struct intargs_t {
+   uint32_t    u32;
+   uint64_t    u64;
+   uintptr_t   uptr;
+   uint8_t     intop;
+} intargs_t;
 
-struct intargs_t {
-   uint32_t    u32 ;
-   uint64_t    u64 ;
-   uintptr_t   uptr ;
-   uint8_t     intop ;
-} ;
-
-static int thread_readwrite(intargs_t * intargs)
+static int thread_readwrite(intargs_t* intargs)
 {
    for (uint32_t i = 1; i; i <<= 1) {
       for (;;) {
-         uint32_t val = atomicread_int(&intargs->u32) ;
-         if (i == val) break ;
-         assert((i >> 1) == val) ;
-         yield_thread() ;
+         uint32_t val = read_atomicint(&intargs->u32);
+         if (i == val) break;
+         assert((i >> 1) == val);
+         yield_thread();
       }
-      atomicwrite_int(&intargs->u64, ((uint64_t)i << 32)) ;
+      write_atomicint(&intargs->u64, ((uint64_t)i << 32));
    }
 
-   return 0 ;
+   return 0;
 }
 
 static int test_readwrite(void)
 {
-   thread_t *  threads[8] = { 0 } ;
-   intargs_t   intargs ;
+   thread_t*  threads[8] = { 0 };
+   intargs_t  intargs;
 
-   // TEST atomicread_int
-   intargs.u32 = 0 ;
-   intargs.u64 = 0 ;
-   intargs.uptr = 0 ;
-   TEST(0 == atomicread_int(&intargs.u32)) ;
-   TEST(0 == atomicread_int(&intargs.u64)) ;
-   TEST(0 == atomicread_int(&intargs.uptr)) ;
+   // TEST read_atomicint
+   intargs.u32 = 0;
+   intargs.u64 = 0;
+   intargs.uptr = 0;
+   TEST(0 == read_atomicint(&intargs.u32));
+   TEST(0 == read_atomicint(&intargs.u64));
+   TEST(0 == read_atomicint(&intargs.uptr));
    for (uint32_t i = 1; i; i <<= 1) {
-      TEST(i == atomicread_int(&i)) ;
+      TEST(i == read_atomicint(&i));
    }
    for (uint64_t i = 1; i; i <<= 1) {
-      TEST(i == atomicread_int(&i)) ;
+      TEST(i == read_atomicint(&i));
    }
    for (uintptr_t i = 1; i; i <<= 1) {
-      TEST(i == atomicread_int(&i)) ;
+      TEST(i == read_atomicint(&i));
    }
 
-   // TEST atomicwrite_int
-   atomicwrite_int(&intargs.u32, 0) ;
-   atomicwrite_int(&intargs.u64, 0) ;
-   atomicwrite_int(&intargs.uptr, 0) ;
-   TEST(0 == atomicread_int(&intargs.u32)) ;
-   TEST(0 == atomicread_int(&intargs.u64)) ;
-   TEST(0 == atomicread_int(&intargs.uptr)) ;
+   // TEST write_atomicint
+   write_atomicint(&intargs.u32, 0);
+   write_atomicint(&intargs.u64, 0);
+   write_atomicint(&intargs.uptr, 0);
+   TEST(0 == read_atomicint(&intargs.u32));
+   TEST(0 == read_atomicint(&intargs.u64));
+   TEST(0 == read_atomicint(&intargs.uptr));
    for (uint32_t i = 1; i; i <<= 1) {
-      atomicwrite_int(&intargs.u32, i) ;
-      TEST(i == intargs.u32) ;
+      write_atomicint(&intargs.u32, i);
+      TEST(i == intargs.u32);
    }
    for (uint64_t i = 1; i; i <<= 1) {
-      atomicwrite_int(&intargs.u64, i) ;
-      TEST(i == intargs.u64) ;
+      write_atomicint(&intargs.u64, i);
+      TEST(i == intargs.u64);
    }
    for (uintptr_t i = 1; i; i <<= 1) {
-      atomicwrite_int(&intargs.uptr, i) ;
-      TEST(i == intargs.uptr) ;
+      write_atomicint(&intargs.uptr, i);
+      TEST(i == intargs.uptr);
    }
 
-   // TEST atomicread_int, atomicwrite_int: multi thread
-   intargs.u32  = 0 ;
-   intargs.u64  = 0 ;
-   intargs.uptr = 0 ;
-   TEST(0 == newgeneric_thread(&threads[0], &thread_readwrite, &intargs)) ;
+   // TEST read_atomicint, write_atomicint: multi thread
+   intargs.u32  = 0;
+   intargs.u64  = 0;
+   intargs.uptr = 0;
+   TEST(0 == newgeneric_thread(&threads[0], &thread_readwrite, &intargs));
    for (uint32_t i = 1, old = 0; i; old = i, i <<= 1) {
-      atomicwrite_int(&intargs.u32, i) ;
+      write_atomicint(&intargs.u32, i);
       for (;;) {
-         uint64_t val = atomicread_int(&intargs.u64) ;
-         if (val == (uint64_t)i << 32) break ;
-         TEST(val == (uint64_t)old << 32) ;
-         yield_thread() ;
+         uint64_t val = read_atomicint(&intargs.u64);
+         if (val == (uint64_t)i << 32) break;
+         TEST(val == (uint64_t)old << 32);
+         yield_thread();
       }
    }
-   TEST(0 == delete_thread(&threads[0])) ;
+   TEST(0 == delete_thread(&threads[0]));
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
-      TEST(0 == delete_thread(&threads[i])) ;
+      TEST(0 == delete_thread(&threads[i]));
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
-enum intop_e {
+typedef enum intop_e {
    intop_add32,
    intop_add64,
    intop_addptr,
    intop_sub32,
    intop_sub64,
    intop_subptr,
-   intop_swap32,
-   intop_swap64,
-   intop_swapptr,
+   intop_cmpxchg32,
+   intop_cmpxchg64,
+   intop_cmpxchgptr,
+   intop_clear32,
+   intop_clear64,
+   intop_clearptr,
    intop_NROFINTOPS
-} ;
+} intop_e;
 
-typedef enum intop_e    intop_e ;
-
-static int thread_addsub(intargs_t * intargs)
+static int thread_atomicop(intargs_t * intargs)
 {
-   for (unsigned i = 0, o = 0; i < 100000; ++i) {
+   uint32_t u32;
+   uint64_t u64;
+   uintptr_t uptr;
+   for (unsigned i = 0; i < 100000; ++i) {
       switch (intargs->intop) {
       case intop_add32:
-         atomicadd_int(&intargs->u32, 1) ;
-         break ;
+         add_atomicint(&intargs->u32, 1);
+         break;
       case intop_add64:
-         atomicadd_int(&intargs->u64, 1) ;
-         break ;
+         add_atomicint(&intargs->u64, 1);
+         break;
       case intop_addptr:
-         atomicadd_int(&intargs->uptr, 1) ;
-         break ;
+         add_atomicint(&intargs->uptr, 1);
+         break;
       case intop_sub32:
-         atomicsub_int(&intargs->u32, 1) ;
-         break ;
+         sub_atomicint(&intargs->u32, 1);
+         break;
       case intop_sub64:
-         atomicsub_int(&intargs->u64, 1) ;
-         break ;
+         sub_atomicint(&intargs->u64, 1);
+         break;
       case intop_subptr:
-         atomicsub_int(&intargs->uptr, 1) ;
-         break ;
-      case intop_swap32:
-         o = (unsigned) atomicswap_int(&intargs->u32, o, i+1) ;
-         i = o?o-1:0 ;
-         break ;
-      case intop_swap64:
-         o = (unsigned) atomicswap_int(&intargs->u64, o, i+1) ;
-         i = o?o-1:0 ;
-         break ;
-      case intop_swapptr:
-         o = (unsigned) atomicswap_int(&intargs->uptr, o, i+1) ;
-         i = o?o-1:0 ;
-         break ;
+         sub_atomicint(&intargs->uptr, 1);
+         break;
+      case intop_cmpxchg32:
+         u32 = intargs->u32;
+         while (u32 != cmpxchg_atomicint(&intargs->u32, u32, u32+1)) {
+            u32 = intargs->u32;
+         }
+         break;
+      case intop_cmpxchg64:
+         u64 = intargs->u64;
+         while (u64 != cmpxchg_atomicint(&intargs->u64, u64, u64+1)) {
+            u64 = intargs->u64;
+         }
+         break;
+      case intop_cmpxchgptr:
+         uptr = intargs->uptr;
+         while (uptr != cmpxchg_atomicint(&intargs->uptr, uptr, uptr+1)) {
+            uptr = intargs->uptr;
+         }
+         break;
+      case intop_clear32:
+         u32 = clear_atomicint(&intargs->u32)-1;
+         add_atomicint(&intargs->u32, u32);
+         break;
+      case intop_clear64:
+         u64 = clear_atomicint(&intargs->u64)-1;
+         add_atomicint(&intargs->u64, u64);
+         break;
+      case intop_clearptr:
+         uptr = clear_atomicint(&intargs->uptr)-1;
+         add_atomicint(&intargs->uptr, uptr);
+         break;
       }
    }
 
-   return 0 ;
+   return 0;
 }
 
-static int test_addsubswap(void)
+static int test_atomicops(void)
 {
-   thread_t *  threads[4] = { 0 } ;
-   intargs_t   intargs ;
+   thread_t*  threads[4] = { 0 };
+   intargs_t  intargs;
 
-   // TEST atomicadd_int: single thread
-   intargs.u32 = 0 ;
-   intargs.u64 = 0 ;
-   intargs.uptr = 0 ;
+   // TEST add_atomicint: single thread
+   intargs.u32 = 0;
+   intargs.u64 = 0;
+   intargs.uptr = 0;
    for (uint32_t i = 1; i; i <<= 1) {
-      uint32_t o = (i-1) ;
-      TEST(o == atomicadd_int(&intargs.u32, i)) ;
+      uint32_t o = (i-1);
+      TEST(o == add_atomicint(&intargs.u32, i));
    }
-   TEST(UINT32_MAX == atomicread_int(&intargs.u32)) ;
+   TEST(UINT32_MAX == read_atomicint(&intargs.u32));
    for (uint64_t i = 1; i; i <<= 1) {
-      uint64_t o = (i-1) ;
-      TEST(o == atomicadd_int(&intargs.u64, i)) ;
+      uint64_t o = (i-1);
+      TEST(o == add_atomicint(&intargs.u64, i));
    }
-   TEST(UINT64_MAX == atomicread_int(&intargs.u64)) ;
+   TEST(UINT64_MAX == read_atomicint(&intargs.u64));
    for (uintptr_t i = 1; i; i <<= 1) {
-      uintptr_t o = (i-1) ;
-      TEST(o == atomicadd_int(&intargs.uptr, i)) ;
+      uintptr_t o = (i-1);
+      TEST(o == add_atomicint(&intargs.uptr, i));
    }
-   TEST(UINTPTR_MAX == atomicread_int(&intargs.uptr)) ;
+   TEST(UINTPTR_MAX == read_atomicint(&intargs.uptr));
 
-   // TEST atomicsub_int: single thread
-   intargs.u32 = UINT32_MAX ;
-   intargs.u64 = UINT64_MAX ;
-   intargs.uptr = UINTPTR_MAX ;
+   // TEST sub_atomicint: single thread
+   intargs.u32 = UINT32_MAX;
+   intargs.u64 = UINT64_MAX;
+   intargs.uptr = UINTPTR_MAX;
    for (uint32_t i = 1; i; i <<= 1) {
-      uint32_t o = UINT32_MAX - (i-1) ;
-      TEST(o == atomicsub_int(&intargs.u32, i)) ;
+      uint32_t o = UINT32_MAX - (i-1);
+      TEST(o == sub_atomicint(&intargs.u32, i));
    }
-   TEST(0 == atomicread_int(&intargs.u32)) ;
+   TEST(0 == read_atomicint(&intargs.u32));
    for (uint64_t i = 1; i; i <<= 1) {
-      uint64_t o = UINT64_MAX - (i-1) ;
-      TEST(o == atomicsub_int(&intargs.u64, i)) ;
+      uint64_t o = UINT64_MAX - (i-1);
+      TEST(o == sub_atomicint(&intargs.u64, i));
    }
-   TEST(0 == atomicread_int(&intargs.u64)) ;
+   TEST(0 == read_atomicint(&intargs.u64));
    for (uintptr_t i = 1; i; i <<= 1) {
-      uintptr_t o = UINTPTR_MAX - (i-1) ;
-      TEST(o == atomicsub_int(&intargs.uptr, i)) ;
+      uintptr_t o = UINTPTR_MAX - (i-1);
+      TEST(o == sub_atomicint(&intargs.uptr, i));
    }
-   TEST(0 == atomicread_int(&intargs.uptr)) ;
+   TEST(0 == read_atomicint(&intargs.uptr));
 
-   // TEST atomicswap_int: single thread
-   intargs.u32 = 0 ;
-   intargs.u64 = 0 ;
-   intargs.uptr = 0 ;
+   // TEST cmpxchg_atomicint: single thread
+   intargs.u32 = 0;
+   intargs.u64 = 0;
+   intargs.uptr = 0;
    for (uint32_t i = 1, o = 0; i; o = i, i <<= 1) {
-      TEST(o == atomicswap_int(&intargs.u32, o, i)) ;
-      TEST(i == atomicswap_int(&intargs.u32, i, i)) ;
+      TEST(o == cmpxchg_atomicint(&intargs.u32, o, i));
+      TEST(i == cmpxchg_atomicint(&intargs.u32, i, i));
    }
-   TEST(((uint32_t)1<<31) == atomicread_int(&intargs.u32)) ;
+   TEST(((uint32_t)1<<31) == read_atomicint(&intargs.u32));
    for (uint64_t i = 1, o = 0; i; o = i, i <<= 1) {
-      TEST(o == atomicswap_int(&intargs.u64, o, i)) ;
-      TEST(i == atomicswap_int(&intargs.u64, i, i)) ;
+      TEST(o == cmpxchg_atomicint(&intargs.u64, o, i));
+      TEST(i == cmpxchg_atomicint(&intargs.u64, i, i));
    }
-   TEST(((uint64_t)1<<63) == atomicread_int(&intargs.u64)) ;
+   TEST(((uint64_t)1<<63) == read_atomicint(&intargs.u64));
    for (uintptr_t i = 1, o = 0; i; o = i, i <<= 1) {
-      TEST(o == atomicswap_int(&intargs.uptr, o, i)) ;
-      TEST(i == atomicswap_int(&intargs.uptr, i, i)) ;
+      TEST(o == cmpxchg_atomicint(&intargs.uptr, o, i));
+      TEST(i == cmpxchg_atomicint(&intargs.uptr, i, i));
    }
-   TEST(((uintptr_t)1<<(bitsof(uintptr_t)-1)) == atomicread_int(&intargs.uptr)) ;
+   TEST(((uintptr_t)1<<(bitsof(uintptr_t)-1)) == read_atomicint(&intargs.uptr));
 
-   // TEST atomicadd_int, atomicsub_int, atomicswap_int: multi thread
-   intargs.u32 = 0 ;
-   intargs.u64 = 0 ;
-   intargs.uptr = 0 ;
+   // TEST clear_atomicint: single thread
+   for (uint32_t i = 1; i; i <<= 1) {
+      uint32_t o = UINT32_MAX - (i-1);
+      intargs.u32 = o;
+      TEST(o == clear_atomicint(&intargs.u32));
+      TEST(0 == intargs.u32);
+   }
+   for (uint64_t i = 1; i; i <<= 1) {
+      uint64_t o = UINT64_MAX - (i-1);
+      intargs.u64 = o;
+      TEST(o == clear_atomicint(&intargs.u64));
+      TEST(0 == intargs.u64);
+   }
+   for (uintptr_t i = 1; i; i <<= 1) {
+      uintptr_t o = UINTPTR_MAX - (i-1);
+      intargs.uptr = o;
+      TEST(o == clear_atomicint(&intargs.uptr));
+      TEST(0 == intargs.uptr);
+   }
+
+   // TEST add_atomicint, sub_atomicint, cmpxchg_atomicint, clear_atomicint: multi thread
+   intargs.u32 = 0;
+   intargs.u64 = 0;
+   intargs.uptr = 0;
    for (intop_e intop = 0; intop < intop_NROFINTOPS; ++intop) {
-      intargs.intop  = intop ;
+      intargs.intop  = intop;
       for (unsigned i = 0; i < lengthof(threads); i += 1) {
-         TEST(0 == newgeneric_thread(&threads[i], &thread_addsub, &intargs)) ;
+         TEST(0 == newgeneric_thread(&threads[i], &thread_atomicop, &intargs));
       }
       for (unsigned i = 0; i < lengthof(threads); i += 1) {
-         TEST(0 == delete_thread(&threads[i])) ;
+         TEST(0 == delete_thread(&threads[i]));
       }
       switch (intop) {
       case intop_add32:
-         TEST(lengthof(threads)*100000 == atomicread_int(&intargs.u32)) ;
-         break ;
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.u32));
+         break;
       case intop_add64:
-         TEST(lengthof(threads)*100000 == atomicread_int(&intargs.u64)) ;
-         break ;
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.u64));
+         break;
       case intop_addptr:
-         TEST(lengthof(threads)*100000 == atomicread_int(&intargs.uptr)) ;
-         break ;
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.uptr));
+         break;
       case intop_sub32:
-         TEST(0 == atomicread_int(&intargs.u32)) ;
-         break ;
+         TEST(0 == read_atomicint(&intargs.u32));
+         break;
       case intop_sub64:
-         TEST(0 == atomicread_int(&intargs.u64)) ;
-         break ;
+         TEST(0 == read_atomicint(&intargs.u64));
+         break;
       case intop_subptr:
-         TEST(0 == atomicread_int(&intargs.uptr)) ;
-         break ;
-      case intop_swap32:
-         TEST(100000 == atomicread_int(&intargs.u32)) ;
-         break ;
-      case intop_swap64:
-         TEST(100000 == atomicread_int(&intargs.u64)) ;
-         break ;
-      case intop_swapptr:
-         TEST(100000 == atomicread_int(&intargs.uptr)) ;
-         break ;
+         TEST(0 == read_atomicint(&intargs.uptr));
+         break;
+      case intop_cmpxchg32:
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.u32));
+         break;
+      case intop_cmpxchg64:
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.u64));
+         break;
+      case intop_cmpxchgptr:
+         TEST(lengthof(threads)*100000 == read_atomicint(&intargs.uptr));
+         break;
+      case intop_clear32:
+         TEST(0 == read_atomicint(&intargs.u32));
+         break;
+      case intop_clear64:
+         TEST(0 == read_atomicint(&intargs.u64));
+         break;
+      case intop_clearptr:
+         TEST(0 == read_atomicint(&intargs.uptr));
+         break;
       case intop_NROFINTOPS:
-         break ;
+         break;
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
-      TEST(0 == delete_thread(&threads[i])) ;
+      TEST(0 == delete_thread(&threads[i]));
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
-typedef struct flagarg_t   flagarg_t ;
-
-struct flagarg_t {
-   uint8_t  *  flag ;
+typedef struct flagarg_t {
+   uint8_t*  flag;
    volatile
-   uint32_t *  value ;
-} ;
+   uint32_t* value;
+} flagarg_t;
 
-static volatile int s_flag_dummy = 0 ;
+static volatile int s_flag_dummy = 0;
 
-static int thread_setclear(flagarg_t * arg)
+static int thread_setclear(flagarg_t* arg)
 {
    for (uint32_t i = 0; i < 10000; ++i) {
-      for (unsigned w = 0; ; ++w) {
-         if (0 == atomicset_int(arg->flag)) break ;
+      for (unsigned w = 0;; ++w) {
+         if (0 == set_atomicflag(arg->flag)) break;
          if (w == 10) {
-            w = 0 ;
-            yield_thread() ;
+            w = 0;
+            yield_thread();
          }
       }
-      uint32_t val = *arg->value ;
-      s_flag_dummy += 1000 ;
-      s_flag_dummy /= 31 ;
-      *arg->value = val + 1 ;
-      atomicclear_int(arg->flag) ;
+      uint32_t val = *arg->value;
+      s_flag_dummy += 1000;
+      s_flag_dummy /= 31;
+      *arg->value = val + 1;
+      clear_atomicflag(arg->flag);
    }
 
-   return 0 ;
+   return 0;
 }
 
-static int test_setclear(void)
+static int test_atomicflag(void)
 {
-   thread_t *  threads[8] = { 0 } ;
-   flagarg_t   arg[8] ;
-   uint8_t     flag ;
-   uint8_t     oldflag ;
+   thread_t*  threads[8] = { 0 };
+   flagarg_t  arg[8];
+   uint8_t    flag;
+   uint8_t    oldflag;
 
-   // TEST atomicset_int: single thread
-   flag = 0 ;
-   TEST(0 == atomicset_int(&flag)) ;
-   TEST(0 != flag) ;
-   oldflag = flag ;
+   // TEST set_atomicflag: single thread
+   flag = 0;
+   TEST(0 == set_atomicflag(&flag));
+   TEST(0 != flag);
+   oldflag = flag;
    for (unsigned i = 0; i < 10; ++i) {
-      TEST(oldflag == atomicset_int(&flag)) ;
-      TEST(oldflag == flag) ;
+      TEST(oldflag == set_atomicflag(&flag));
+      TEST(oldflag == flag);
    }
 
-   // TEST atomicclear_int: single thread
-   TEST(0 != oldflag) ;
+   // TEST clear_atomicflag: single thread
+   TEST(0 != oldflag);
    for (unsigned i = 0; i < 10; ++i) {
-      atomicclear_int(&flag) ;
-      TEST(0 == flag) ;
-      atomicclear_int(&flag) ;
-      TEST(0 == flag) ;
-      flag = oldflag ;
+      clear_atomicflag(&flag);
+      TEST(0 == flag);
+      clear_atomicflag(&flag);
+      TEST(0 == flag);
+      flag = oldflag;
    }
 
-   // TEST atomicset_int, atomicclear_int: multi thread
-   uint32_t value = 0 ;
-   flag = 0 ;
+   // TEST set_atomicflag, clear_atomicflag: multi thread
+   uint32_t value = 0;
+   flag = 0;
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
-      arg[i].flag  = &flag ;
-      arg[i].value = &value ;
-      TEST(0 == newgeneric_thread(&threads[i], &thread_setclear, &arg[i])) ;
+      arg[i].flag  = &flag;
+      arg[i].value = &value;
+      TEST(0 == newgeneric_thread(&threads[i], &thread_setclear, &arg[i]));
    }
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
-      TEST(0 == delete_thread(&threads[i])) ;
+      TEST(0 == delete_thread(&threads[i]));
    }
-   TEST(atomicread_int(&flag)  == 0) ;
-   TEST(atomicread_int(&value) == lengthof(threads)*10000) ;
+   TEST(read_atomicint(&flag)  == 0);
+   TEST(read_atomicint(&value) == lengthof(threads)*10000);
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
-      TEST(0 == delete_thread(&threads[i])) ;
+      TEST(0 == delete_thread(&threads[i]));
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_memory_atomic()
 {
-   if (test_readwrite())      goto ONERR;
-   if (test_addsubswap())     goto ONERR;
-   if (test_setclear())       goto ONERR;
+   if (test_readwrite())   goto ONERR;
+   if (test_atomicops())   goto ONERR;
+   if (test_atomicflag())  goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

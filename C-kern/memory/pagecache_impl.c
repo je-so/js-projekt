@@ -200,7 +200,7 @@ static inline pagecache_block_t * at_pagecacheblockmap(pagecache_blockmap_t * bl
    blockentry = (pagecache_block_t *) (blockmap->array_addr + sizeof(pagecache_block_t) * idx) ;
 
    if (  idx >= blockmap->array_len
-         || tcontext_maincontext() != (threadcontext_t*)atomicread_int((uintptr_t*)&blockentry->threadcontext)) {
+         || tcontext_maincontext() != (threadcontext_t*)read_atomicint((uintptr_t*)&blockentry->threadcontext)) {
       goto ONERR;
    }
 
@@ -220,7 +220,7 @@ static inline int assign_pagecacheblockmap(pagecache_blockmap_t * blockmap, cons
    blockentry = (pagecache_block_t *) (blockmap->array_addr + sizeof(pagecache_block_t) * idx) ;
 
    if (  idx >= blockmap->array_len
-         || 0 != atomicswap_int((uintptr_t*)&blockentry->threadcontext, 0, (uintptr_t)tcontext_maincontext())) {
+         || 0 != cmpxchg_atomicint((uintptr_t*)&blockentry->threadcontext, 0, (uintptr_t)tcontext_maincontext())) {
       err = ENOMEM ;
       goto ONERR;
    }
@@ -235,7 +235,7 @@ ONERR:
 static inline void clear_pagecacheblockmap(pagecache_blockmap_t * blockmap, pagecache_block_t * block)
 {
    (void) blockmap ;
-   atomicwrite_int((uintptr_t*)&block->threadcontext, 0) ;
+   write_atomicint((uintptr_t*)&block->threadcontext, 0) ;
 }
 
 

@@ -421,12 +421,12 @@ static int thread_donothing(void * dummy)
 static int thread_returncode(intptr_t retcode)
 {
    s_thread_id = pthread_self();
-   atomicadd_int(&s_thread_runcount, 1);
-   while (0 == atomicread_int(&s_thread_signal)) {
+   add_atomicint(&s_thread_runcount, 1);
+   while (0 == read_atomicint(&s_thread_signal)) {
       pthread_yield();
    }
    s_thread_signal = 0;
-   atomicsub_int(&s_thread_runcount, 1);
+   sub_atomicint(&s_thread_runcount, 1);
    return (int) retcode;
 }
 
@@ -474,7 +474,7 @@ static int test_initfree(void)
    uint8_t *    tls_addr   = thread->tls_addr ;
    sys_thread_t T          = thread->sys_thread ;
    // test thread is running
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    TEST(s_thread_id        == T) ;
@@ -485,7 +485,7 @@ static int test_initfree(void)
    TEST(thread->returncode == 0) ;
    TEST(thread->sys_thread == T) ;
    TEST(thread->tls_addr   == tls_addr  ) ;
-   atomicwrite_int(&s_thread_signal, 1) ;
+   write_atomicint(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
    TEST(0 == thread) ;
    TEST(0 == delete_thread(&thread)) ;
@@ -501,9 +501,9 @@ static int test_initfree(void)
    TEST(thread->sys_thread != sys_thread_FREE) ;
    TEST(thread->tls_addr   != 0) ;
    T = thread->sys_thread ;
-   atomicwrite_int(&s_thread_signal, 1) ;
+   write_atomicint(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
-   TEST(0 == atomicread_int(&s_thread_signal)) ; // => delete has waited until thread has run
+   TEST(0 == read_atomicint(&s_thread_signal)) ; // => delete has waited until thread has run
    TEST(T == s_thread_id) ;
 
    // TEST new_thread: ERROR
@@ -519,12 +519,12 @@ static int test_initfree(void)
       TEST(i == err) ;
    }
    free_testerrortimer(&s_thread_errtimer) ;
-   atomicwrite_int(&s_thread_signal, 1) ;
+   write_atomicint(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
 ONERR:
-   atomicwrite_int(&s_thread_signal, 1) ;
+   write_atomicint(&s_thread_signal, 1) ;
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -602,9 +602,9 @@ static int test_join(void)
 
    // TEST join_thread
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 12));
-   atomicwrite_int(&s_thread_signal, 1);
+   write_atomicint(&s_thread_signal, 1);
    TEST(0 == join_thread(thread));
-   TEST(0 == atomicread_int(&s_thread_signal));
+   TEST(0 == read_atomicint(&s_thread_signal));
    TEST(thread->nextwait   == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
    TEST(thread->main_arg   == (void*)12);
@@ -629,8 +629,8 @@ static int test_join(void)
    TEST(sys_thread_FREE != thread->sys_thread);
 
    // TEST tryjoin_thread
-   atomicwrite_int(&s_thread_signal, 1);
-   while(1 == atomicread_int(&s_thread_signal)) {
+   write_atomicint(&s_thread_signal, 1);
+   while(1 == read_atomicint(&s_thread_signal)) {
       sleepms_thread(1);
    }
    for (;;) {
@@ -661,10 +661,10 @@ static int test_join(void)
       const intptr_t arg = 1111 * i;
       TEST(0 == newgeneric_thread(&thread, thread_returncode, arg));
       TEST(thread->sys_thread != sys_thread_FREE);
-      atomicwrite_int(&s_thread_signal, 1);
+      write_atomicint(&s_thread_signal, 1);
       for (int t = 0; t < 2; ++t) {
          TEST(0 == join_thread(thread));
-         TEST(0 == atomicread_int(&s_thread_signal));
+         TEST(0 == read_atomicint(&s_thread_signal));
          TEST(thread->nextwait   == 0);
          TEST(thread->main_task  == (thread_f)&thread_returncode);
          TEST(thread->main_arg   == (void*)arg);
@@ -681,7 +681,7 @@ static int test_join(void)
       s_thread_runcount = 0;
       TEST(0 == newgeneric_thread(&thread, thread_returncode, arg));
       TEST(EBUSY == tryjoin_thread(thread));
-      atomicwrite_int(&s_thread_signal, 1);
+      write_atomicint(&s_thread_signal, 1);
       for (int w = 0; w < 10000; ++w) {
          TEST(sys_thread_FREE != thread->sys_thread);
          int err = tryjoin_thread(thread);
@@ -714,7 +714,7 @@ static int test_join(void)
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 0));
    thread_t copied_thread1 = *thread;
    thread_t copied_thread2 = *thread;
-   atomicwrite_int(&s_thread_signal, 1);
+   write_atomicint(&s_thread_signal, 1);
    TEST(0 == join_thread(thread));
    TEST(sys_thread_FREE == thread->sys_thread);
    TEST(0 == returncode_thread(thread));
@@ -732,7 +732,7 @@ static int test_join(void)
 
    return 0;
 ONERR:
-   atomicwrite_int(&s_thread_signal, 1);
+   write_atomicint(&s_thread_signal, 1);
    delete_thread(&thread);
    return EINVAL;
 }
@@ -1406,16 +1406,16 @@ static int thread_countyield(void * dummy)
 {
    (void) dummy ;
 
-   atomicwrite_int(&s_countyield_counter, 0) ;
+   write_atomicint(&s_countyield_counter, 0) ;
 
    while (  s_countyield_counter < 10000000
-            && ! atomicread_int(&s_countyield_exit)) {
+            && ! read_atomicint(&s_countyield_exit)) {
       yield_thread() ;
-      atomicadd_int(&s_countyield_counter, 1) ;
+      add_atomicint(&s_countyield_counter, 1) ;
    }
 
-   if (! atomicread_int(&s_countyield_exit)) {
-      atomicwrite_int(&s_countyield_counter, 0) ;
+   if (! read_atomicint(&s_countyield_exit)) {
+      write_atomicint(&s_countyield_counter, 0) ;
    }
 
    return 0 ;
@@ -1425,16 +1425,16 @@ static int thread_countnoyield(void * dummy)
 {
    (void) dummy ;
 
-   atomicwrite_int(&s_countnoyield_counter, 0) ;
+   write_atomicint(&s_countnoyield_counter, 0) ;
 
    while (  s_countnoyield_counter < 10000000
-            && ! atomicread_int(&s_countyield_exit)) {
+            && ! read_atomicint(&s_countyield_exit)) {
       // give other thread a chance to run
       if (s_countnoyield_counter < 3) yield_thread() ;
-      atomicadd_int(&s_countnoyield_counter , 1) ;
+      add_atomicint(&s_countnoyield_counter , 1) ;
    }
 
-   atomicwrite_int(&s_countnoyield_counter, 0) ;
+   write_atomicint(&s_countnoyield_counter, 0) ;
 
    return 0 ;
 }
@@ -1449,12 +1449,12 @@ static int test_yield(void)
    TEST(0 == new_thread(&thread_yield, &thread_countyield, 0)) ;
    TEST(0 == new_thread(&thread_noyield, &thread_countnoyield, 0)) ;
    TEST(0 == join_thread(thread_noyield)) ;
-   atomicwrite_int(&s_countyield_exit, 1) ;
+   write_atomicint(&s_countyield_exit, 1) ;
    TEST(0 == join_thread(thread_yield)) ;
    // no yield ready
-   TEST(0 == atomicread_int(&s_countnoyield_counter)) ;
+   TEST(0 == read_atomicint(&s_countnoyield_counter)) ;
    // yield not ready
-   TEST(0 != atomicread_int(&s_countyield_counter)) ;
+   TEST(0 != read_atomicint(&s_countyield_counter)) ;
    TEST(s_countyield_counter < 1000000) ;
    TEST(0 == delete_thread(&thread_noyield)) ;
    TEST(0 == delete_thread(&thread_yield)) ;
@@ -1506,12 +1506,12 @@ ONERR:
 
 static int thread_lockflag(int * runcount)
 {
-   while (0 == atomicread_int(&self_thread()->lockflag)) {
+   while (0 == read_atomicint(&self_thread()->lockflag)) {
       yield_thread() ;
    }
-   atomicadd_int(runcount, 1) ;
+   add_atomicint(runcount, 1) ;
    lockflag_thread(self_thread()) ;
-   atomicsub_int(runcount, 1) ;
+   sub_atomicint(runcount, 1) ;
    return 0 ;
 }
 
@@ -1548,19 +1548,19 @@ static int test_update(void)
    TEST(0 == thread2->lockflag) ;
    lockflag_thread(thread2) ;
    TEST(0 != thread2->lockflag) ;
-   while (0 == atomicread_int(&runcount)) {
+   while (0 == read_atomicint(&runcount)) {
       yield_thread() ;
    }
    // waits until unlock
    for (int i = 0; i < 5; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&runcount)) ;
+      TEST(1 == read_atomicint(&runcount)) ;
    }
    unlockflag_thread(thread2) ;
    TEST(0 == join_thread(thread2)) ;
 
    // TEST unlockflag_thread: works from another thread
-   TEST(0 != atomicread_int(&thread2->lockflag)) ;
+   TEST(0 != read_atomicint(&thread2->lockflag)) ;
    unlockflag_thread(thread2) ;
    TEST(0 == thread2->lockflag) ;
    TEST(0 == delete_thread(&thread2)) ;

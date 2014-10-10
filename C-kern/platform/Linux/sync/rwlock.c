@@ -42,7 +42,7 @@ int free_rwlock(rwlock_t * rwlock)
 {
    int err ;
 
-   if (  atomicread_int((uintptr_t*)&rwlock->readers.last)
+   if (  read_atomicint((uintptr_t*)&rwlock->readers.last)
          // race beetwen query single data members
          // but after calling free lockXXX works without error
          // solution: introduce init_or_free flag which prevents calling lockXXX on rwlock
@@ -64,12 +64,12 @@ ONERR:
 
 uint32_t nrofreader_rwlock(rwlock_t * rwlock)
 {
-   return atomicread_int(&rwlock->nrofreader) ;
+   return read_atomicint(&rwlock->nrofreader) ;
 }
 
 bool iswriter_rwlock(rwlock_t * rwlock)
 {
-   return 0 != atomicread_int((uintptr_t*)&rwlock->writer) ;
+   return 0 != read_atomicint((uintptr_t*)&rwlock->writer) ;
 }
 
 // group: synchronize
@@ -80,7 +80,7 @@ bool iswriter_rwlock(rwlock_t * rwlock)
  * was written by other threads before the flag was set. */
 static inline void lockflag_rwlock(rwlock_t * rwlock)
 {
-   while (0 != atomicset_int(&rwlock->lockflag)) {
+   while (0 != set_atomicflag(&rwlock->lockflag)) {
       yield_thread() ;
    }
 }
@@ -91,7 +91,7 @@ static inline void lockflag_rwlock(rwlock_t * rwlock)
  * flag was cleared. */
 static inline void unlockflag_rwlock(rwlock_t * rwlock)
 {
-   atomicclear_int(&rwlock->lockflag) ;
+   clear_atomicflag(&rwlock->lockflag) ;
 }
 
 /* function: wakeupreader_rwlock
@@ -376,36 +376,36 @@ static unsigned s_thread_runcount = 0 ;
 
 static int thread_lockreader(rwlock_t * rwlock)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = lockreader_rwlock(rwlock) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
 static int thread_unlockreader(rwlock_t * rwlock)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = unlockreader_rwlock(rwlock) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
 static int thread_lockwriter(rwlock_t * rwlock)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = lockwriter_rwlock(rwlock) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
 static int thread_unlockwriter(rwlock_t * rwlock)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = unlockwriter_rwlock(rwlock) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
@@ -451,17 +451,17 @@ static int test_synchronize(void)
    // TEST lockreader_rwlock: active waiting on lockflag
    lockflag_rwlock(&rwlock) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_lockreader, &rwlock)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_rwlock(&rwlock) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(0 == rwlock.writer) ;
@@ -478,11 +478,11 @@ static int test_synchronize(void)
       for (unsigned i = 0; i < lengthof(threads); ++i) {
          uintptr_t oldlast = (uintptr_t) rwlock.readers.last ;
          TEST(0 == newgeneric_thread(&threads[i], &thread_lockreader, &rwlock)) ;
-         while (oldlast == atomicread_int((uintptr_t*)&rwlock.readers.last)
-                || 0 != atomicread_int(&rwlock.lockflag)) {
+         while (oldlast == read_atomicint((uintptr_t*)&rwlock.readers.last)
+                || 0 != read_atomicint(&rwlock.lockflag)) {
             yield_thread() ;
          }
-         TEST(i+1                 == atomicread_int(&s_thread_runcount)) ;
+         TEST(i+1                 == read_atomicint(&s_thread_runcount)) ;
          TEST(rwlock.readers.last == cast2node_rwlocklist(threads[i])) ;
          TEST(rwlock.writers.last == (waitreason == 1 ? (void*)1      : 0)) ;
          TEST(rwlock.writer       == (waitreason == 0 ? self_thread() : 0)) ;
@@ -499,24 +499,24 @@ static int test_synchronize(void)
          resume_thread(threads[i]) ;   // spurious wakeup
          for (int i2 = 0; i2 < 10; ++i2) {
             yield_thread() ;
-            TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+            TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
          thread_t * firstthread = 0 ;
          TEST(0 == removefirst_rwlocklist(cast_slist(&rwlock.readers), &firstthread)) ;
          TEST(threads[i]           == firstthread) ;
          TEST(threads[i]->nextwait == 0) ;
-         atomicadd_int(&rwlock.nrofreader, 1) ; // wakeup increments nrofreader
+         add_atomicint(&rwlock.nrofreader, 1) ; // wakeup increments nrofreader
          resume_thread(threads[i]) ;            // real wakeup
          for (int i2 = 0; i2 < 10; ++i2) {
             yield_thread() ;
-            TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+            TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          unlockflag_thread(threads[i]) ;
          TEST(0 == join_thread(threads[i])) ;
          TEST(0 == returncode_thread(threads[i])) ;
          TEST(0 == delete_thread(&threads[i])) ;
-         TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+         TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
          TEST(rwlock.readers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
          TEST(rwlock.writers.last   == 0) ;
          TEST(rwlock.writer         == 0) ;
@@ -547,17 +547,17 @@ static int test_synchronize(void)
    // TEST lockwriter_rwlock: active waiting on lockflag
    lockflag_rwlock(&rwlock) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_lockwriter, &rwlock)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_rwlock(&rwlock) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(threads[0] == rwlock.writer) ;
@@ -574,11 +574,11 @@ static int test_synchronize(void)
       for (unsigned i = 0; i < lengthof(threads); ++i) {
          uintptr_t oldlast = (uintptr_t) rwlock.writers.last ;
          TEST(0 == newgeneric_thread(&threads[i], &thread_lockwriter, &rwlock)) ;
-         while (oldlast == atomicread_int((uintptr_t*)&rwlock.writers.last)
-                || 0 != atomicread_int(&rwlock.lockflag)) {
+         while (oldlast == read_atomicint((uintptr_t*)&rwlock.writers.last)
+                || 0 != read_atomicint(&rwlock.lockflag)) {
             yield_thread() ;
          }
-         TEST(i+1                 == atomicread_int(&s_thread_runcount)) ;
+         TEST(i+1                 == read_atomicint(&s_thread_runcount)) ;
          TEST(rwlock.readers.last == 0) ;
          TEST(rwlock.writers.last == cast2node_rwlocklist(threads[i])) ;
          TEST(rwlock.writer       == (waitreason == 0 ? self_thread() : 0)) ;
@@ -595,7 +595,7 @@ static int test_synchronize(void)
          resume_thread(threads[i]) ;   // spurious wakeup
          for (int i2 = 0; i2 < 10; ++i2) {
             yield_thread() ;
-            TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+            TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
          thread_t * firstthread = 0 ;
@@ -605,12 +605,12 @@ static int test_synchronize(void)
          resume_thread(threads[i]) ;   // real wakeup
          for (int i2 = 0; i2 < 10; ++i2) {
             yield_thread() ;
-            TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+            TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          unlockflag_thread(threads[i]) ;
          TEST(0 == join_thread(threads[i])) ;
          TEST(0 == returncode_thread(threads[i])) ;
-         TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+         TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
          TEST(rwlock.readers.last   == 0) ;
          TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
          TEST(rwlock.writer         == 0) ;  // set in unlockwriter during resume
@@ -644,18 +644,18 @@ static int test_synchronize(void)
    lockflag_rwlock(&rwlock) ;    // flag is acquired in unlockreader
    rwlock.nrofreader = 1 ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_unlockreader, &rwlock)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 10; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_rwlock(&rwlock) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(0 == rwlock.writer) ;
@@ -668,18 +668,18 @@ static int test_synchronize(void)
    lockflag_thread(self_thread()) ; // flag is acquired in unlockreader
    trysuspend_thread() ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_unlockreader, &rwlock)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 10; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_thread(self_thread()) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;
    TEST(0 == self_thread()->nextwait) ;
    TEST(0 == rwlock.readers.last) ;
@@ -695,11 +695,11 @@ static int test_synchronize(void)
       uintptr_t oldlast = (uintptr_t) rwlock.readers.last ;
       TEST(0 == newgeneric_thread(&threads[i], i == 0 ? &thread_lockwriter : &thread_lockreader, &rwlock)) ;
       if (i == 0) {
-         while (0 == atomicread_int((uintptr_t*)&rwlock.writers.last)) {
+         while (0 == read_atomicint((uintptr_t*)&rwlock.writers.last)) {
             yield_thread() ;
          }
       } else {
-         while (oldlast == atomicread_int((uintptr_t*)&rwlock.readers.last)) {
+         while (oldlast == read_atomicint((uintptr_t*)&rwlock.readers.last)) {
             yield_thread() ;
          }
      }
@@ -726,7 +726,7 @@ static int test_synchronize(void)
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
    }
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(0 == rwlock.writer) ;
@@ -762,19 +762,19 @@ static int test_synchronize(void)
    // TEST unlockwriter_rwlock: active waiting on lockflag of rwlock
    lockflag_rwlock(&rwlock) ;    // flag is acquired in unlockwriter
    TEST(0 == newgeneric_thread(&threads[0], &thread_unlockwriter, &rwlock)) ;
-   atomicwrite_int((uintptr_t*)&rwlock.writer, (uintptr_t)threads[0]) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   write_atomicint((uintptr_t*)&rwlock.writer, (uintptr_t)threads[0]) ;
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 10; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_rwlock(&rwlock) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == rwlock.readers.last) ;
    TEST(0 == rwlock.writers.last) ;
    TEST(0 == rwlock.writer) ;
@@ -787,20 +787,20 @@ static int test_synchronize(void)
    trysuspend_thread() ;
    lockflag_rwlock(&rwlock) ;       // flag is acquired in unlockwriter
    TEST(0 == newgeneric_thread(&threads[0], &thread_unlockwriter, &rwlock)) ;
-   atomicwrite_int((uintptr_t*)&rwlock.writer, (uintptr_t)threads[0]) ;
+   write_atomicint((uintptr_t*)&rwlock.writer, (uintptr_t)threads[0]) ;
    unlockflag_rwlock(&rwlock) ;     // now let unlockwriter run
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 10; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_thread(self_thread()) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;
    TEST(0 == self_thread()->nextwait) ;
    TEST(0 == rwlock.readers.last) ;
@@ -816,11 +816,11 @@ static int test_synchronize(void)
       uintptr_t oldlast = (uintptr_t) rwlock.writers.last ;
       TEST(0 == newgeneric_thread(&threads[i], i == 0 ? &thread_lockreader : &thread_lockwriter, &rwlock)) ;
       if (i == 0) {
-         while (0 == atomicread_int((uintptr_t*)&rwlock.readers.last)) {
+         while (0 == read_atomicint((uintptr_t*)&rwlock.readers.last)) {
             yield_thread() ;
          }
       } else {
-         while (oldlast == atomicread_int((uintptr_t*)&rwlock.writers.last)) {
+         while (oldlast == read_atomicint((uintptr_t*)&rwlock.writers.last)) {
             yield_thread() ;
          }
      }
@@ -851,7 +851,7 @@ static int test_synchronize(void)
       TEST(rwlock.nrofreader     == 0) ;
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
-      TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+      TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
       TEST(rwlock.readers.last   == 0) ;
       TEST(rwlock.writers.last   == (i+1 < lengthof(threads) ? cast2node_rwlocklist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(rwlock.writer         == threads[i]) ;

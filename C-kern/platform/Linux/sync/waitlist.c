@@ -60,13 +60,13 @@ int free_waitlist(waitlist_t * wlist)
 
 bool isempty_waitlist(waitlist_t * wlist)
 {
-   bool isempty = (0 == atomicread_int(&wlist->nr_waiting)) ;
+   bool isempty = (0 == read_atomicint(&wlist->nr_waiting)) ;
    return isempty ;
 }
 
 size_t nrwaiting_waitlist(waitlist_t * wlist)
 {
-   size_t nr_waiting = atomicread_int(&wlist->nr_waiting) ;
+   size_t nr_waiting = read_atomicint(&wlist->nr_waiting) ;
    return nr_waiting ;
 }
 
@@ -78,7 +78,7 @@ size_t nrwaiting_waitlist(waitlist_t * wlist)
  * was written by other threads before the flag was set. */
 static inline void lockflag_waitlist(waitlist_t * wlist)
 {
-   while (0 != atomicset_int(&wlist->lockflag)) {
+   while (0 != set_atomicflag(&wlist->lockflag)) {
       yield_thread() ;
    }
 }
@@ -89,7 +89,7 @@ static inline void lockflag_waitlist(waitlist_t * wlist)
  * flag was cleared. */
 static inline void unlockflag_waitlist(waitlist_t * wlist)
 {
-   atomicclear_int(&wlist->lockflag) ;
+   clear_atomicflag(&wlist->lockflag) ;
 }
 
 int wait_waitlist(waitlist_t * wlist)
@@ -213,18 +213,18 @@ static unsigned s_thread_runcount = 0 ;
 
 static int thread_waitonwlist(waitlist_t * wlist)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = wait_waitlist(wlist) ;
-   atomicsub_int(&s_thread_runcount, 1) ;
+   sub_atomicint(&s_thread_runcount, 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
 static int thread_callwakeup(waitlist_t * wlist)
 {
-   atomicadd_int(&s_thread_runcount, 1) ;
+   add_atomicint(&s_thread_runcount, 1) ;
    int err = trywakeup_waitlist(wlist, (thread_f)3, (void*)4) ;
-   atomicsub_int(&s_thread_runcount , 1) ;
+   sub_atomicint(&s_thread_runcount , 1) ;
    if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
@@ -248,10 +248,10 @@ static int test_synchronize(void)
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_waitonwlist, &wlist)) ;
    while (  0 == nrwaiting_waitlist(&wlist)
-            || 0 != atomicread_int(&wlist.lockflag)) {
+            || 0 != read_atomicint(&wlist.lockflag)) {
       yield_thread() ;
    }
-   TEST(1                == atomicread_int(&s_thread_runcount)) ;
+   TEST(1                == read_atomicint(&s_thread_runcount)) ;
    TEST(wlist.last       == cast2node_wlist(threads[0])) ;
    TEST(wlist.nr_waiting == 1) ;
    TEST(wlist.lockflag   == 0) ;
@@ -265,9 +265,9 @@ static int test_synchronize(void)
    resume_thread(threads[0]) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int((uintptr_t*)&wlist.last)) ;
+   TEST(0 == read_atomicint((uintptr_t*)&wlist.last)) ;
    TEST(1 == wlist.nr_waiting) ; // not changed (changed in trywakeup)
    TEST(0 == wlist.lockflag) ;
    wlist.nr_waiting = 0 ;
@@ -275,17 +275,17 @@ static int test_synchronize(void)
    // TEST wait_waitlist: active waiting on lockflag
    lockflag_waitlist(&wlist) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_waitonwlist, &wlist)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
       TEST(0 == nrwaiting_waitlist(&wlist)) ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_waitlist(&wlist) ;
    while (  0 == nrwaiting_waitlist(&wlist)
-            || 0 != atomicread_int(&wlist.lockflag)) {
+            || 0 != read_atomicint(&wlist.lockflag)) {
       yield_thread() ;
    }
    TEST(wlist.last       == cast2node_wlist(threads[0])) ;
@@ -295,17 +295,17 @@ static int test_synchronize(void)
    // wait_waitlist locks lockflag of thread
    lockflag_thread(threads[0]) ;
    threads[0]->nextwait = 0 ;
-   atomicwrite_int((uintptr_t*)&wlist.last, 0) ;
+   write_atomicint((uintptr_t*)&wlist.last, 0) ;
    resume_thread(threads[0]) ;
    for (int i = 0; i < 5; ++i) {
       yield_thread() ;
-      TEST(1 == atomicread_int(&s_thread_runcount)) ;
+      TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
    unlockflag_thread(threads[0]) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == wlist.last) ;
    TEST(1 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -315,10 +315,10 @@ static int test_synchronize(void)
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == newgeneric_thread(&threads[i], &thread_waitonwlist, &wlist)) ;
       while (  i == nrwaiting_waitlist(&wlist)
-               || 0 != atomicread_int(&wlist.lockflag)) {
+               || 0 != read_atomicint(&wlist.lockflag)) {
          yield_thread() ;
       }
-      TEST(i+1              == atomicread_int(&s_thread_runcount)) ;
+      TEST(i+1              == read_atomicint(&s_thread_runcount)) ;
       TEST(wlist.last       == cast2node_wlist(threads[i])) ;
       TEST(wlist.nr_waiting == i+1) ;
       TEST(wlist.lockflag   == 0) ;
@@ -329,7 +329,7 @@ static int test_synchronize(void)
       resume_thread(threads[i]) ;   // spurious wakeup
       for (int i2 = 0; i2 < 5; ++i2) {
          yield_thread() ;
-         TEST(lengthof(threads)-i == atomicread_int(&s_thread_runcount)) ;
+         TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
       }
       lockflag_thread(threads[i]) ;
       thread_t * firstthread = 0 ;
@@ -341,7 +341,7 @@ static int test_synchronize(void)
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
-      TEST(lengthof(threads)-1-i == atomicread_int(&s_thread_runcount)) ;
+      TEST(lengthof(threads)-1-i == read_atomicint(&s_thread_runcount)) ;
       TEST(wlist.last        == (i+1 < lengthof(threads) ? cast2node_wlist(threads[lengthof(threads)-1]) : 0)) ;
       TEST(wlist.nr_waiting  == lengthof(threads)) ;
       TEST(wlist.lockflag    == 0) ;
@@ -372,12 +372,12 @@ static int test_synchronize(void)
    settask_thread(self_thread(), 0, 0) ;
    lockflag_waitlist(&wlist) ;
    trysuspend_thread() ;   // consume any previous resume
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_callwakeup, &wlist)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
-   TEST(1 == atomicread_int(&s_thread_runcount)) ;
+   TEST(1 == read_atomicint(&s_thread_runcount)) ;
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
       TEST(EAGAIN == trysuspend_thread()) ;  // no resume cause of waiting
@@ -386,7 +386,7 @@ static int test_synchronize(void)
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->nextwait) ;               // resumed
    TEST(3 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
@@ -403,12 +403,12 @@ static int test_synchronize(void)
    settask_thread(self_thread(), 0, 0) ;
    lockflag_thread(self_thread()) ;
    trysuspend_thread() ;   // consume any previous resume
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_callwakeup, &wlist)) ;
-   while (0 == atomicread_int(&s_thread_runcount)) {
+   while (0 == read_atomicint(&s_thread_runcount)) {
       yield_thread() ;
    }
-   TEST(1 == atomicread_int(&s_thread_runcount)) ;
+   TEST(1 == read_atomicint(&s_thread_runcount)) ;
    for (int i = 0; i < 3; ++i) {
       yield_thread() ;
       TEST(EAGAIN == trysuspend_thread()) ;  // no resume cause of waiting
@@ -417,7 +417,7 @@ static int test_synchronize(void)
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
-   TEST(0 == atomicread_int(&s_thread_runcount)) ;
+   TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->nextwait) ;               // resumed
    TEST(3 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
@@ -436,7 +436,7 @@ static int test_synchronize(void)
          yield_thread() ;
       }
    }
-   TEST(lengthof(threads) == atomicread_int(&s_thread_runcount)) ;
+   TEST(lengthof(threads) == read_atomicint(&s_thread_runcount)) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == trywakeup_waitlist(&wlist, (thread_f)i, (void*)i)) ;
       TEST(i == (uintptr_t) maintask_thread(threads[i])) ;
