@@ -75,11 +75,11 @@ struct signalhandler_t ;
  * Sets up a process wide signal handler and signal masks at process initialization.
  * The configuration is read from "C-kern/resource/config/signalhandler"
  * during compilation time. */
-int initonce_signalhandler(void) ;
+int initonce_signalhandler(void);
 
 /* function: freeonce_signalhandler
  * Restores default signal configuration. */
-int freeonce_signalhandler(void) ;
+int freeonce_signalhandler(void);
 
 // group: query
 

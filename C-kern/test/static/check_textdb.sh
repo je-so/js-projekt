@@ -25,18 +25,18 @@ echo '"module",            "inittype",  "parameter",    "header-name"' > $temp_p
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
-   init_process_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
+   init_once_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_thread_calls=( `grep "initthread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    interface_thread=( `grep "interface_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_process_calls=( `grep "freeonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_thread_calls=( `grep "freethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
    # filter input initonce_
-   for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
-      result="${init_process_calls[$testnr]}"
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result="${init_once_calls[$testnr]}"
       if [ "${result/define initonce_*(/}" != "$result" ]; then
-         init_process_calls[$testnr]="${init_process_calls[${#init_process_calls[*]}-1]}"
-         unset init_process_calls[${#init_process_calls[*]}-1]
+         init_once_calls[$testnr]="${init_once_calls[${#init_once_calls[*]}-1]}"
+         unset init_once_calls[${#init_once_calls[*]}-1]
          let "testnr=testnr-1"
       fi
    done
@@ -77,23 +77,21 @@ for i in $files; do
 
 
    # test for correct interface
-   for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
-      result=${init_process_calls[$testnr]}
-      result=${result#extern }
-      if [ "${result#int initonce_*(/\*out\*/* \*[\* ]*) ;}" = "" ]; then
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result=${init_once_calls[$testnr]}
+      if [ "${result#int initonce_*(/\*out\*/*\*[\* ]*);}" = "" ]; then
          continue
       fi
-      if [ "${result#int initonce_*(void) ;}" != "" ]; then
+      if [ "${result#int initonce_*(void);}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
       result=${free_process_calls[$testnr]}
-      result=${result#extern }
-      if [ "${result#int freeonce_*(* \*[\* ]*) ;}" = "" ]; then
+      if [ "${result#int freeonce_*(*\*[\* ]*);}" = "" ]; then
          continue
       fi
-      if [ "${result#int freeonce_*(void) ;}" != "" ]; then
+      if [ "${result#int freeonce_*(void);}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
@@ -127,8 +125,8 @@ for i in $files; do
    done
 
    # test for matching init and free calls
-   for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
-      result=${init_process_calls[$testnr]}
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result=${init_once_calls[$testnr]}
       result=${result#extern }
       name1=${result#int initonce_}
       name1=${name1%%(*}
@@ -140,7 +138,7 @@ for i in $files; do
       name2=${name2%%(*}
       param2=${result#*(}
       if [ "$name1" != "$name2" ] || [ "$param1" != "$param2" ]; then
-         info="$info  file: <${i}> '${init_process_calls[$testnr]}' does not match '${free_process_calls[$testnr]}'\n"
+         info="$info  file: <${i}> '${init_once_calls[$testnr]}' does not match '${free_process_calls[$testnr]}'\n"
          continue
       fi
       parameter=${param1%)*}
@@ -158,7 +156,7 @@ for i in $files; do
          echo "\"${name1}\",${space2}\"initonce\",  \"${parameter}\",${space:0:13-${#parameter}}\"${i}\"" >> $temp_process_db
       fi
    done
-   for((testnr=${#init_process_calls[*]};testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
+   for((testnr=${#init_once_calls[*]};testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
       info="$info  file: <${i}> missing initonce for '${free_process_calls[$testnr]}'\n"
    done
 

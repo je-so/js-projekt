@@ -45,11 +45,11 @@ int unittest_platform_X11(void) ;
  *
  * This may be removed if every thread has its own <x11display_t>
  * connection and draws into its own window. */
-int initonce_X11(void) ;
+int initonce_X11(void);
 
 /* function: freeonce_X11
  * Does nothing at the moment. */
-int freeonce_X11(void) ;
+int freeonce_X11(void);
 
 // group: query
 

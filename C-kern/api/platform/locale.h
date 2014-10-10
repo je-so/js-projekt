@@ -25,18 +25,18 @@
 
 /* function: initonce_locale
  * Called from <maincontext_t.init_maincontext>. */
-int initonce_locale(void) ;
+int initonce_locale(void);
 
 /* function: freeonce_locale
  * Called from <maincontext_t.free_maincontext>. */
-int freeonce_locale(void) ;
+int freeonce_locale(void);
 
 // group: query
 
 /* function: charencoding_locale
  * Returns the name of the character encoding of the current selected locale.
  * For example "UTF-8" for utf-8 multibyte character encoding. */
-const char * charencoding_locale(void) ;
+const char* charencoding_locale(void);
 
 /* function: current_locale
  * Returns the name of the current active locale.

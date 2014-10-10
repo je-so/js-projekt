@@ -63,7 +63,7 @@ struct errorcontext_t {
  * Called from <maincontext_t.init_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>. */
-int initonce_errorcontext(/*out*/errorcontext_t * error);
+int initonce_errorcontext(/*out*/errorcontext_t* error);
 
 /* function: freeonce_errorcontext
  * Called from <maincontext_t.free_maincontext>.
@@ -71,7 +71,7 @@ int initonce_errorcontext(/*out*/errorcontext_t * error);
  * has the same structure as <errorcontext_t>.
  * This operation is a no op. This ensures that errorcontext_t works
  * in an uninitialized (static) context. */
-int freeonce_errorcontext(errorcontext_t * error);
+int freeonce_errorcontext(errorcontext_t* error);
 
 // group: lifetime
 
