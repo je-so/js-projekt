@@ -21,7 +21,7 @@
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/init.h"
-#include "C-kern/api/platform/sysuser.h"
+#include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
@@ -280,40 +280,40 @@ ONERR:
 static int test_querymacros(void)
 {
    // TEST blockmap_maincontext
-   TEST(&blockmap_maincontext()    == &pcontext_maincontext()->blockmap) ;
+   TEST(&blockmap_maincontext()    == &pcontext_maincontext()->blockmap);
 
    // TEST error_maincontext
-   TEST(&error_maincontext()       == &pcontext_maincontext()->error) ;
+   TEST(&error_maincontext()       == &pcontext_maincontext()->error);
 
    // TEST log_maincontext
-   TEST(&log_maincontext()         == &tcontext_maincontext()->log) ;
+   TEST(&log_maincontext()         == &tcontext_maincontext()->log);
 
    // TEST log_maincontext
-   TEST(&objectcache_maincontext() == &tcontext_maincontext()->objectcache) ;
+   TEST(&objectcache_maincontext() == &tcontext_maincontext()->objectcache);
 
    // TEST pagecache_maincontext
-   TEST(&pagecache_maincontext()   == &tcontext_maincontext()->pagecache) ;
+   TEST(&pagecache_maincontext()   == &tcontext_maincontext()->pagecache);
 
    // TEST pcontext_maincontext
-   TEST(pcontext_maincontext()     == &g_maincontext.pcontext) ;
+   TEST(pcontext_maincontext()     == &g_maincontext.pcontext);
 
    // TEST progname_maincontext
-   TEST(&progname_maincontext()    == &g_maincontext.progname) ;
+   TEST(&progname_maincontext()    == &g_maincontext.progname);
 
    // TEST self_maincontext
-   TEST(self_maincontext()         == &g_maincontext) ;
+   TEST(self_maincontext()         == &g_maincontext);
 
    // TEST sizestatic_maincontext
-   TEST(&sizestatic_maincontext()  == &g_maincontext.size_staticmem) ;
+   TEST(&sizestatic_maincontext()  == &g_maincontext.size_staticmem);
 
-   // TEST sysuser_maincontext
-   TEST(&sysuser_maincontext()     == &pcontext_maincontext()->sysuser) ;
+   // TEST syslogin_maincontext
+   TEST(&syslogin_maincontext()    == &pcontext_maincontext()->syslogin);
 
    // TEST syncrunner_maincontext
    TEST(&syncrunner_maincontext()  == &tcontext_maincontext()->syncrunner);
 
    thread_tls_t tls ;
-   tls = current_threadtls(&tls) ;
+   tls = current_threadtls(&tls);
 
    // TEST tcontext_maincontext
    TEST(tcontext_maincontext()     == context_threadtls(&tls)) ;
@@ -371,65 +371,65 @@ static int test_initmain(void)
    maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE } ;
    for (unsigned i = 0 ; i < lengthof(mainmode); ++i) {
       // TEST init_maincontext: maincontext_DEFAULT, maincontext_CONSOLE
-      const char * argv[2] = { "1", "2" } ;
-      TEST(0 == init_maincontext(mainmode[i], 2, argv)) ;
-      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-      TEST(g_maincontext.type == mainmode[i]) ;
-      TEST(g_maincontext.argc == 2) ;
-      TEST(g_maincontext.argv == argv) ;
-      TEST(g_maincontext.progname == argv[0]) ;
-      TEST(0 != g_maincontext.pcontext.valuecache) ;
-      TEST(0 != g_maincontext.pcontext.sysuser) ;
-      TEST(0 != tcontext_maincontext()->initcount) ;
-      TEST(0 != tcontext_maincontext()->log.object) ;
-      TEST(0 != tcontext_maincontext()->log.iimpl) ;
-      TEST(0 != tcontext_maincontext()->objectcache.object) ;
-      TEST(0 != tcontext_maincontext()->objectcache.iimpl) ;
-      TEST(0 != strcmp("C", current_locale())) ;
-      TEST(tcontext_maincontext()->log.object != 0) ;
-      TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface) ;
+      const char * argv[2] = { "1", "2" };
+      TEST(0 == init_maincontext(mainmode[i], 2, argv));
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext);
+      TEST(g_maincontext.type == mainmode[i]);
+      TEST(g_maincontext.argc == 2);
+      TEST(g_maincontext.argv == argv);
+      TEST(g_maincontext.progname == argv[0]);
+      TEST(0 != g_maincontext.pcontext.valuecache);
+      TEST(0 != g_maincontext.pcontext.syslogin);
+      TEST(0 != tcontext_maincontext()->initcount);
+      TEST(0 != tcontext_maincontext()->log.object);
+      TEST(0 != tcontext_maincontext()->log.iimpl);
+      TEST(0 != tcontext_maincontext()->objectcache.object);
+      TEST(0 != tcontext_maincontext()->objectcache.iimpl);
+      TEST(0 != strcmp("C", current_locale()));
+      TEST(tcontext_maincontext()->log.object != 0);
+      TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface);
       switch (mainmode[i]) {
       case maincontext_STATIC:
-         break ;
+         break;
       case maincontext_DEFAULT:
-         TEST(log_state_IGNORED  == GETSTATE_LOG(log_channel_USERERR)) ;
-         TEST(log_state_BUFFERED == GETSTATE_LOG(log_channel_ERR)) ;
-         break ;
+         TEST(log_state_IGNORED  == GETSTATE_LOG(log_channel_USERERR));
+         TEST(log_state_BUFFERED == GETSTATE_LOG(log_channel_ERR));
+         break;
       case maincontext_CONSOLE:
-         TEST(log_state_UNBUFFERED == GETSTATE_LOG(log_channel_USERERR)) ;
-         TEST(log_state_IGNORED    == GETSTATE_LOG(log_channel_ERR)) ;
-         break ;
+         TEST(log_state_UNBUFFERED == GETSTATE_LOG(log_channel_USERERR));
+         TEST(log_state_IGNORED    == GETSTATE_LOG(log_channel_ERR));
+         break;
       }
 
       // TEST free_maincontext
-      TEST(0 == free_maincontext()) ;
-      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
-      TEST(0 == g_maincontext.type) ;
-      TEST(0 == g_maincontext.progname) ;
-      TEST(0 == g_maincontext.argc) ;
-      TEST(0 == g_maincontext.argv) ;
-      TEST(0 == g_maincontext.size_staticmem) ;
-      TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
-      TEST(0 == strcmp("C", current_locale())) ;
-      TEST(0 == free_maincontext()) ;
-      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
-      TEST(0 == g_maincontext.type) ;
-      TEST(0 == g_maincontext.progname) ;
-      TEST(0 == g_maincontext.argc) ;
-      TEST(0 == g_maincontext.argv) ;
-      TEST(0 == g_maincontext.size_staticmem) ;
-      TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
-      TEST(0 == strcmp("C", current_locale())) ;
+      TEST(0 == free_maincontext());
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext);
+      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
+      TEST(0 == g_maincontext.type);
+      TEST(0 == g_maincontext.progname);
+      TEST(0 == g_maincontext.argc);
+      TEST(0 == g_maincontext.argv);
+      TEST(0 == g_maincontext.size_staticmem);
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
+      TEST(0 == strcmp("C", current_locale()));
+      TEST(0 == free_maincontext());
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext);
+      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
+      TEST(0 == g_maincontext.type);
+      TEST(0 == g_maincontext.progname);
+      TEST(0 == g_maincontext.argc);
+      TEST(0 == g_maincontext.argv);
+      TEST(0 == g_maincontext.size_staticmem);
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
+      TEST(0 == strcmp("C", current_locale()));
    }
 
    // TEST free_maincontext: ENOTEMPTY
-   g_maincontext.type = maincontext_DEFAULT ;
-   g_maincontext.size_staticmem = 1 ;
-   TEST(ENOTEMPTY == free_maincontext()) ;
-   TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
-   TEST(0 == g_maincontext.type) ;
+   g_maincontext.type = maincontext_DEFAULT;
+   g_maincontext.size_staticmem = 1;
+   TEST(ENOTEMPTY == free_maincontext());
+   TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
+   TEST(0 == g_maincontext.type);
    TEST(0 == g_maincontext.progname) ;
    TEST(0 == g_maincontext.argc) ;
    TEST(0 == g_maincontext.argv) ;

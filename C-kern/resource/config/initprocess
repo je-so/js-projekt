@@ -15,7 +15,7 @@
 "locale",            "initonce",  "",             "C-kern/api/platform/locale.h"
 "signalhandler",     "initonce",  "",             "C-kern/api/platform/sync/signal.h"
 "valuecache",        "object",    "valuecache",   "C-kern/api/cache/valuecache.h"
-"sysuser",           "object",    "sysuser",      "C-kern/api/platform/sysuser.h"
+"syslogin",          "object",    "syslogin",     "C-kern/api/platform/syslogin.h"
 # module pagecacheblockmap needs valuecache cause of their use of virtual memory !
 "pagecacheblockmap", "object",    "blockmap",     "C-kern/api/memory/pagecache_impl.h"
 "X11",               "initonce",  "",             "C-kern/api/platform/X11/x11.h"

@@ -283,7 +283,7 @@ int run_unittest(void * argv)
       RUN(unittest_platform_locale);
       RUN(unittest_platform_malloc);
       RUN(unittest_platform_init);
-      RUN(unittest_platform_sysuser);
+      RUN(unittest_platform_syslogin);
       RUN(unittest_platform_vm);
       // user interface subsystem
 #if defined(KONFIG_USERINTERFACE_X11)

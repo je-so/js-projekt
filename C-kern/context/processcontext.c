@@ -24,7 +24,7 @@
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/platform/sysuser.h"
+#include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
@@ -139,7 +139,7 @@ static int inithelper4_processcontext(/*out*/processcontext_t * pcontext)
 
 static int inithelper5_processcontext(/*out*/processcontext_t * pcontext)
 {
-   INITOBJECT(sysuser, typeof(*pcontext->sysuser), pcontext->sysuser)
+   INITOBJECT(syslogin, typeof(*pcontext->syslogin), pcontext->syslogin)
 }
 
 static int inithelper6_processcontext(/*out*/processcontext_t * pcontext)
@@ -190,7 +190,7 @@ static int freehelper4_processcontext(processcontext_t * pcontext)
 
 static int freehelper5_processcontext(processcontext_t * pcontext)
 {
-   FREEOBJECT(sysuser, typeof(*pcontext->sysuser), pcontext->sysuser)
+   FREEOBJECT(syslogin, typeof(*pcontext->syslogin), pcontext->syslogin)
 }
 
 static int freehelper6_processcontext(processcontext_t * pcontext)
@@ -257,48 +257,48 @@ ONERR:
 
 int free_processcontext(processcontext_t * pcontext)
 {
-   int err ;
-   int err2 ;
+   int err;
+   int err2;
 
-   err = 0 ;
+   err = 0;
 
    switch (pcontext->initcount) {
-   default: assert(false && "initcount out of bounds")  ;
-            break ;
-// TEXTDB:SELECT(\n"   case "row-id":  err2 = freehelper"row-id"_processcontext(pcontext) ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
+   default: assert(false && "initcount out of bounds");
+            break;
+// TEXTDB:SELECT(\n"   case "row-id":  err2 = freehelper"row-id"_processcontext(pcontext);"\n"            if (err2) err = err2;")FROM("C-kern/resource/config/initprocess")DESCENDING
 
-   case 7:  err2 = freehelper7_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 7:  err2 = freehelper7_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 6:  err2 = freehelper6_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 6:  err2 = freehelper6_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 5:  err2 = freehelper5_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 5:  err2 = freehelper5_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 4:  err2 = freehelper4_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 4:  err2 = freehelper4_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 3:  err2 = freehelper3_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 3:  err2 = freehelper3_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 2:  err2 = freehelper2_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 2:  err2 = freehelper2_processcontext(pcontext);
+            if (err2) err = err2;
 
-   case 1:  err2 = freehelper1_processcontext(pcontext) ;
-            if (err2) err = err2 ;
+   case 1:  err2 = freehelper1_processcontext(pcontext);
+            if (err2) err = err2;
 // TEXTDB:END
-   case 0:  break ;
+   case 0:  break;
    }
 
-   pcontext->initcount = 0 ;
+   pcontext->initcount = 0;
 
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query
@@ -306,10 +306,10 @@ ONERR:
 bool isstatic_processcontext(const processcontext_t * pcontext)
 {
    return   0 == pcontext->valuecache
-            && 0 == pcontext->sysuser
+            && 0 == pcontext->syslogin
             && g_errorcontext_stroffset == pcontext->error.stroffset && g_errorcontext_strdata == pcontext->error.strdata
             && 0 == pcontext->blockmap
-            && 0 == pcontext->initcount ;
+            && 0 == pcontext->initcount;
 }
 
 
@@ -319,12 +319,12 @@ bool isstatic_processcontext(const processcontext_t * pcontext)
 
 static int test_initfree(void)
 {
-   processcontext_t  pcontext = processcontext_INIT_STATIC ;
-   const uint16_t    I        = 7 ;
+   processcontext_t  pcontext = processcontext_INIT_STATIC;
+   const uint16_t    I        = 7;
 
    // TEST processcontext_INIT_STATIC
-   TEST(0 == pcontext.valuecache) ;
-   TEST(0 == pcontext.sysuser) ;
+   TEST(0 == pcontext.valuecache);
+   TEST(0 == pcontext.syslogin);
    TEST(0 != pcontext.error.stroffset) ;
    TEST(0 != pcontext.error.strdata) ;
    TEST(0 == pcontext.blockmap) ;
@@ -333,7 +333,7 @@ static int test_initfree(void)
    // TEST init_processcontext
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(0 != pcontext.valuecache) ;
-   TEST(0 != pcontext.sysuser) ;
+   TEST(0 != pcontext.syslogin) ;
    TEST(0 != pcontext.error.stroffset) ;
    TEST(0 != pcontext.error.strdata) ;
    TEST(0 != pcontext.blockmap) ;
@@ -343,7 +343,7 @@ static int test_initfree(void)
    // TEST free_processcontext
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.valuecache) ;
-   TEST(0 == pcontext.sysuser) ;
+   TEST(0 == pcontext.syslogin) ;
    TEST(0 != pcontext.error.stroffset) ;
    TEST(0 != pcontext.error.strdata) ;
    TEST(0 == pcontext.blockmap) ;
@@ -351,40 +351,40 @@ static int test_initfree(void)
    TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
 
    // TEST free_processcontext: initcount == 0
-   pcontext.initcount = 0 ;
-   pcontext.valuecache = (struct valuecache_t*) 1 ;
-   pcontext.sysuser    = (struct sysuser_t*) 2 ;
-   pcontext.error.stroffset = (uint16_t*)3 ;
-   pcontext.error.strdata   = (uint8_t*)4 ;
-   pcontext.blockmap   = (struct pagecache_blockmap_t*) 5 ;
-   TEST(0 == free_processcontext(&pcontext)) ;
-   TEST(pcontext.valuecache == (struct valuecache_t*) 1) ;
-   TEST(pcontext.sysuser    == (struct sysuser_t*) 2) ;
-   TEST(pcontext.error.stroffset == (uint16_t*)3) ;
-   TEST(pcontext.error.strdata   == (uint8_t*)4) ;
-   TEST(pcontext.blockmap   == (struct pagecache_blockmap_t*) 5) ;
-   TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
+   pcontext.initcount = 0;
+   pcontext.valuecache = (struct valuecache_t*) 1;
+   pcontext.syslogin   = (struct syslogin_t*) 2;
+   pcontext.error.stroffset = (uint16_t*)3;
+   pcontext.error.strdata   = (uint8_t*)4;
+   pcontext.blockmap   = (struct pagecache_blockmap_t*) 5;
+   TEST(0 == free_processcontext(&pcontext));
+   TEST(pcontext.valuecache == (struct valuecache_t*) 1);
+   TEST(pcontext.syslogin    == (struct syslogin_t*) 2);
+   TEST(pcontext.error.stroffset == (uint16_t*)3);
+   TEST(pcontext.error.strdata   == (uint8_t*)4);
+   TEST(pcontext.blockmap   == (struct pagecache_blockmap_t*) 5);
+   TEST(sizestatic_maincontext() == processcontext_STATICSIZE);
 
    // TEST init_processcontext: ERROR
-   pcontext = (processcontext_t) processcontext_INIT_STATIC ;
+   pcontext = (processcontext_t) processcontext_INIT_STATIC;
    for(int i = 1; i; ++i) {
-      init_testerrortimer(&s_processcontext_errtimer, (unsigned)i, i) ;
-      int err = init_processcontext(&pcontext) ;
+      init_testerrortimer(&s_processcontext_errtimer, (unsigned)i, i);
+      int err = init_processcontext(&pcontext);
       if (err == 0) {
-         TEST(0 == free_processcontext(&pcontext)) ;
-         TEST(i > I) ;
-         break ;
+         TEST(0 == free_processcontext(&pcontext));
+         TEST(i > I);
+         break;
       }
-      TEST(i == err) ;
-      TEST(0 == pcontext.valuecache) ;
-      TEST(0 == pcontext.sysuser) ;
-      TEST(0 != pcontext.error.stroffset) ;
-      TEST(0 != pcontext.error.strdata) ;
-      TEST(0 == pcontext.blockmap) ;
-      TEST(0 == pcontext.initcount) ;
-      TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
+      TEST(i == err);
+      TEST(0 == pcontext.valuecache);
+      TEST(0 == pcontext.syslogin);
+      TEST(0 != pcontext.error.stroffset);
+      TEST(0 != pcontext.error.strdata);
+      TEST(0 == pcontext.blockmap);
+      TEST(0 == pcontext.initcount);
+      TEST(sizestatic_maincontext() == processcontext_STATICSIZE);
    }
-   init_testerrortimer(&s_processcontext_errtimer, 0, 0) ;
+   init_testerrortimer(&s_processcontext_errtimer, 0, 0);
 
    // TEST init_processcontext: restore default environment
    pcontext = (processcontext_t) processcontext_INIT_STATIC ;
@@ -392,10 +392,10 @@ static int test_initfree(void)
    TEST(I == pcontext.initcount) ;
    TEST(sizestatic_maincontext() == 2*processcontext_STATICSIZE) ;
    TEST(0 == free_valuecache(pcontext.valuecache)) ;
-   TEST(0 == free_sysuser(pcontext.sysuser)) ;
+   TEST(0 == free_syslogin(pcontext.syslogin)) ;
    TEST(0 == free_pagecacheblockmap(pcontext.blockmap)) ;
    // restore (if setuid)
-   switchtoreal_sysuser(sysuser_maincontext()) ;
+   switchtorealuser_syslogin(syslogin_maincontext()) ;
    TEST(0 == freestatic_maincontext(processcontext_STATICSIZE)) ;
    TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
 
@@ -414,9 +414,9 @@ static int test_query(void)
    pcontext.valuecache = (void*)1 ;
    TEST(0 == isstatic_processcontext(&pcontext)) ;
    pcontext.valuecache = 0 ;
-   pcontext.sysuser = (void*)1 ;
+   pcontext.syslogin = (void*)1 ;
    TEST(0 == isstatic_processcontext(&pcontext)) ;
-   pcontext.sysuser = 0 ;
+   pcontext.syslogin = 0 ;
    pcontext.error.stroffset = 0 ;
    TEST(0 == isstatic_processcontext(&pcontext)) ;
    pcontext.error.stroffset = g_errorcontext_stroffset ;

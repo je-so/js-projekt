@@ -19,13 +19,13 @@
 #define CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 
 // forward
-struct pagecache_blockmap_t ;
-struct sysuser_t ;
-struct valuecache_t ;
+struct pagecache_blockmap_t;
+struct syslogin_t;
+struct valuecache_t;
 
 /* typedef: struct processcontext_t
  * Export <processcontext_t>. */
-typedef struct processcontext_t           processcontext_t ;
+typedef struct processcontext_t processcontext_t;
 
 
 // section: Functions
@@ -36,7 +36,7 @@ typedef struct processcontext_t           processcontext_t ;
 /* function: unittest_context_processcontext
  * Test initialization context of whole process succeeds.
  * And global variables are set correctly. */
-int unittest_context_processcontext(void) ;
+int unittest_context_processcontext(void);
 #endif
 
 
@@ -48,25 +48,25 @@ int unittest_context_processcontext(void) ;
 struct processcontext_t {
    /* variable: valuecache
     * Points to global read only variables. */
-   struct valuecache_t *      valuecache ;
-   /* variable: sysuser
-    * Context for <sysuser_t> module. */
-   struct sysuser_t *         sysuser ;
+   struct valuecache_t*      valuecache;
+   /* variable: syslogin
+    * Context for <syslogin_t> module. */
+   struct syslogin_t*        syslogin;
    /* variable: error
     * Data for <errorcontext_t> module. */
    struct {
-      uint16_t *  stroffset ;
-      uint8_t  *  strdata ;
-   }                          error ;
+      uint16_t* stroffset;
+      uint8_t*  strdata;
+   }                         error;
    /* variable: error
     * Shared <pagecache_blockmap_t> used in <pagecache_impl_t>. */
    struct
-   pagecache_blockmap_t *     blockmap ;
+   pagecache_blockmap_t*     blockmap;
    /* variable: initcount
     * Counts the number of successfull initialized services/subsystems.
     * This number is can be higher than 1 cause there are subsystems which
     * do not have a reference stored in <processcontext_t>. */
-   uint16_t                   initcount ;
+   uint16_t                  initcount;
 } ;
 
 // group: constants
@@ -74,7 +74,7 @@ struct processcontext_t {
 /* define: processcontext_STATICSIZE
  * Defines the number of bytes needed from <processcontext_t>.
  * Static memory is allocated in <init_processcontext>. */
-#define processcontext_STATICSIZE (sizeof(sysuser_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
+#define processcontext_STATICSIZE (sizeof(syslogin_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
 
 // group: lifetime
 

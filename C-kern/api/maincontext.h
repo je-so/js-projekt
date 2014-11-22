@@ -241,16 +241,16 @@ struct pagecache_blockmap_t * blockmap_maincontext(void);
 /* function: syncrunner_maincontext
  * Returns <syncrunner_t> of current <maincontext_t>. It is used to store and run
  * all <syncfunc_t> of the current thread. */
-struct syncrunner_t *      syncrunner_maincontext(void);
+struct syncrunner_t*      syncrunner_maincontext(void);
 
-/* function: sysuser_maincontext
- * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
-/*ref*/struct sysuser_t *  sysuser_maincontext(void);
+/* function: syslogin_maincontext
+ * Returns <syslogin_t> of current <maincontext_t>. It is used in module <SystemLogin>. */
+/*ref*/struct syslogin_t* syslogin_maincontext(void);
 
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.
  * Every value is cached as a single copy for the whole process. */
-struct valuecache_t *      valuecache_maincontext(void);
+struct valuecache_t*      valuecache_maincontext(void);
 
 // group: static-memory
 
@@ -259,7 +259,7 @@ struct valuecache_t *      valuecache_maincontext(void);
  * Used by modules during execution of their initonce_ functions.
  * This memory lives as long <maincontext_t> lives.
  * Must be called in reverse order of calls to <allocstatic_maincontext>. */
-void * allocstatic_maincontext(uint8_t size);
+void* allocstatic_maincontext(uint8_t size);
 
 /* function: freestatic_maincontext
  * Frees size bytes of last allocated memory.
@@ -323,9 +323,10 @@ uint16_t sizestatic_maincontext(void);
  * Inline implementation of <maincontext_t.syncrunner_maincontext>. */
 #define syncrunner_maincontext()          (tcontext_maincontext()->syncrunner)
 
-/* define: sysuser_maincontext
- * Inline implementation of <maincontext_t.sysuser_maincontext>. */
-#define sysuser_maincontext()             (pcontext_maincontext()->sysuser)
+/* define: syslogin_maincontext
+ * Inline implementation of <maincontext_t.syslogin_maincontext>. */
+#define syslogin_maincontext() \
+         (pcontext_maincontext()->syslogin)
 
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */

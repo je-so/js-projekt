@@ -61,7 +61,6 @@
         <File Name="../../C-kern/api/platform/sync/rwlock.h"/>
         <File Name="../../C-kern/api/platform/sync/thrmutex.h"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/platform/sysuser.h"/>
       <VirtualDirectory Name="X11">
         <File Name="../../C-kern/api/platform/X11/x11.h"/>
         <File Name="../../C-kern/api/platform/X11/x11display.h"/>
@@ -82,6 +81,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/init.h"/>
+      <File Name="../../C-kern/api/platform/syslogin.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
@@ -386,7 +386,6 @@
     <VirtualDirectory Name="Linux">
       <File Name="../../C-kern/platform/Linux/locale.c"/>
       <File Name="../../C-kern/platform/Linux/malloc.c"/>
-      <File Name="../../C-kern/platform/Linux/sysuser.c"/>
       <File Name="../../C-kern/platform/Linux/vm.c"/>
       <VirtualDirectory Name="io">
         <File Name="../../C-kern/platform/Linux/io/directory.c"/>
@@ -418,6 +417,7 @@
         <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/init.c"/>
+      <File Name="../../C-kern/platform/Linux/syslogin.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="X11">
       <File Name="../../C-kern/platform/X11/x11.c"/>

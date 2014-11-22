@@ -46,7 +46,7 @@ typedef enum iochannel_e {
  * could reference the same data object.
  * You can use this function at the beginning and end of any transaction to check if
  * an I/O object (file, network socket...) was not closed properly. */
-int nropen_iochannel(/*out*/size_t * number_open);
+int nropen_iochannel(/*out*/size_t* number_open);
 
 // group: test
 

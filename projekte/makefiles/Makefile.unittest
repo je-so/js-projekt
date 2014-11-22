@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Nov.22  08:10:47
+GenerationDate  := 2014.Nov.22  08:25:30
 GeneratedBy     := je-so
 
 ## Debug
@@ -75,10 +75,10 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
@@ -190,10 +190,10 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
@@ -312,9 +312,6 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
@@ -322,6 +319,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/mallo
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
@@ -651,9 +651,6 @@ $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittes
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Release)
 
@@ -661,6 +658,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/mal
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c

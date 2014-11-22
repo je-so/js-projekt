@@ -63,6 +63,7 @@
 #include <fcntl.h>
 #include <fenv.h>
 #include <float.h>
+#include <grp.h>
 #include <inttypes.h>
 #include <langinfo.h>
 #include <limits.h>

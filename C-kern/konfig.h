@@ -58,10 +58,10 @@
  * Supported values are:
  * NONE       -  Support a minimal system.
  * THREAD     -  Support also threads.
- * SYSUSER    -  Support system users and authentication.
+ * SYSLOGIN   -  Support real user and privileged user.
  * SYNCRUNNER -  Support thread local <syncrunner_t> which manages <syncfunc_t>.
  */
-#define KONFIG_SUBSYS                  (THREAD|SYSUSER|SYNCRUNNER)
+#define KONFIG_SUBSYS                  (THREAD|SYSLOGIN|SYNCRUNNER)
 #endif
 #if 0
 /* define: KONFIG_UNITTEST
@@ -84,7 +84,7 @@
 #define EGL 1
 #define X11 4
 #define THREAD   8
-#define SYSUSER 16
+#define SYSLOGIN 16
 #define SYNCRUNNER 32
 
 #if ((KONFIG_SUBSYS)&THREAD)
@@ -92,17 +92,17 @@
  * Will be automatically defined if <KONFIG_SUBSYS> contains THREAD. */
 #define KONFIG_SUBSYS_THREAD
 #endif
-#if ((KONFIG_SUBSYS)&SYSUSER)
-/* define: KONFIG_SUBSYS_SYSUSER
- * Will be automatically defined if <KONFIG_SUBSYS> contains SYSUSER. */
-#define KONFIG_SUBSYS_SYSUSER
+#if ((KONFIG_SUBSYS)&SYSLOGIN)
+/* define: KONFIG_SUBSYS_SYSLOGIN
+ * Will be automatically defined if <KONFIG_SUBSYS> contains SYSLOGIN. */
+#define KONFIG_SUBSYS_SYSLOGIN
 #endif
 #if ((KONFIG_SUBSYS)&SYNCRUNNER)
 /* define: KONFIG_SUBSYS_SYNCRUNNER
  * Will be automatically defined if <KONFIG_SUBSYS> contains SYNCRUNNER. */
 #define KONFIG_SUBSYS_SYNCRUNNER
 #endif
-#if ((KONFIG_SUBSYS)&(THREAD|SYSUSER|SYNCRUNNER))
+#if ((KONFIG_SUBSYS)&(THREAD|SYSLOGIN|SYNCRUNNER))
 /* define: KONFIG_SUBSYS_NONE
  * Will be automatically defined if <KONFIG_SUBSYS> contains no other valid option. */
 #define KONFIG_SUBSYS_NONE
@@ -126,7 +126,7 @@
 #undef EGL
 #undef X11
 #undef THREAD
-#undef SYSUSER
+#undef SYSLOGIN
 #undef SYNCRUNNER
 //}
 
