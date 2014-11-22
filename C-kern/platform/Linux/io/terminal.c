@@ -1441,6 +1441,7 @@ static int process_switchcontrolling(void)
       TEST(st.st_dev == st2.st_dev);
       TEST(st.st_rdev == st2.st_rdev);
       TEST(st.st_ino == st2.st_ino);
+      TEST(iscontrolling_terminal(i));
    }
 
    return 0;
