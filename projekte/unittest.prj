@@ -26,9 +26,9 @@ Src           += C-kern/task/*.c
 Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/*.c
 
 # No graphic subsystem
-Libs           = m pthread rt pam
+Libs           = m pthread rt
 Defines        = KONFIG_UNITTEST
 
 # With graphic subsystem (also uncomment includes for graphic subsystem)
-#Libs          += m pthread rt pam X11 Xrandr Xrender Xext GL EGL GLESv2
+#Libs          += m pthread rt X11 Xrandr Xrender Xext GL EGL GLESv2
 #Defines       += KONFIG_UNITTEST KONFIG_USERINTERFACE="(X11|EGL)"

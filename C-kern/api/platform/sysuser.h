@@ -1,11 +1,8 @@
 /* title: SystemUser
 
-   Offers interface for accessing current system user
-   and authentication of users.
+   Offers interface for accessing current system user.
 
-   On Linux the implementation uses PAM so the
-   authentication is not restricted to a local password file
-   instead it can also be configured to use LDAP.
+   Authentication of users is currently not supported.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -24,15 +21,15 @@
 
 /* typedef: struct sysuser_t
  * Export <sysuser_t> into global namespace. */
-typedef struct sysuser_t                  sysuser_t ;
+typedef struct sysuser_t sysuser_t;
 
 /* typedef: struct sysuser_id_t
  * Make <sysuser_id_t> an alias of <sys_userid_t>. */
-typedef sys_userid_t                      sysuser_id_t ;
+typedef sys_userid_t sysuser_id_t;
 
 /* typedef: struct sysuser_info_t
  * Export <sysuser_info_t> into global namespace. */
-typedef struct sysuser_info_t             sysuser_info_t ;
+typedef struct sysuser_info_t sysuser_info_t;
 
 
 // section: Functions
@@ -47,13 +44,13 @@ typedef struct sysuser_info_t             sysuser_info_t ;
  * The unit test uses username="guest" and password="GUEST" to test <authenticate_sysuser> for success.
  * Configure your system either with this test account or adapt the unit test with a valid username/password combination.
  * Also this test works only if <unittest_platform_sysuser> is started as user "root" or as "guest". */
-int unittest_platform_sysuser(void) ;
+int unittest_platform_sysuser(void);
 #endif
 
 
 /* struct: sysuser_id_t
  * This type is an alias of <sys_userid_t>. */
-typedef sys_userid_t                      sysuser_id_t ;
+typedef sys_userid_t sysuser_id_t;
 
 // group: lifetime
 
@@ -65,11 +62,11 @@ typedef sys_userid_t                      sysuser_id_t ;
 
 /* function: isadmin_sysuserid
  * Returns true if this user is administrator (== root). */
-bool isadmin_sysuserid(sysuser_id_t uid) ;
+bool isadmin_sysuserid(sysuser_id_t uid);
 
 /* function: isequal_sysuserid
  * Compares two <sysuser_id_t> for equality. */
-bool isequal_sysuserid(sysuser_id_t luid, sysuser_id_t ruid) ;
+bool isequal_sysuserid(sysuser_id_t luid, sysuser_id_t ruid);
 
 
 /* struct: sysuser_t
@@ -87,14 +84,14 @@ struct sysuser_t {
    /* variable: current
     * Contains the current user the process uses.
     * It is either set to the value of <realuser> or <privilegeduser>. */
-   sysuser_id_t   current ;
+   sysuser_id_t   current;
    /* variable: realuser
     * Contains user which started the process. */
-   sysuser_id_t   realuser ;
+   sysuser_id_t   realuser;
    /* variable: privilegeduser
     * Contains privileged user which is set at process creation from the system. */
-   sysuser_id_t   privilegeduser ;
-} ;
+   sysuser_id_t   privilegeduser;
+};
 
 // group: lifetime
 
@@ -106,92 +103,60 @@ struct sysuser_t {
  * Initializes system user of process at process start.
  *
  * Posix (Linux):
- * On Posix like system a process can have an effective user id which is different from the real
- * user id which started the process. The effectice user id is set from the system to the owner
+ * On a Posix like system a process can have an effective user id which is different from the id of
+ * the real user which started the process. The effectice user id is set from the system to the owner
  * of the program file if the setuid bit is set.
  *
  * This function sets the effective user id to the real user id but remembers it.
  * To get privileged rights call <switchtoprivilege_sysuser>. */
-int init_sysuser(/*out*/sysuser_t * sysusr) ;
+int init_sysuser(/*out*/sysuser_t* sysusr);
 
 /* function: free_sysuser
  * Clears sysusr and resets system user ids.
  * The system user ids are set to the values before <init_sysuser> was called. */
-int free_sysuser(sysuser_t * sysusr) ;
+int free_sysuser(sysuser_t* sysusr);
 
 // group: query
 
 /* function: isequal_sysuser
  * Returns true if lsysusr equals rsysusr. */
-bool isequal_sysuser(const sysuser_t * lsysusr, const sysuser_t * rsysusr) ;
+bool isequal_sysuser(const sysuser_t* lsysusr, const sysuser_t* rsysusr);
 
 /* function: current_sysuser
  * Returns the current active system user. */
-sysuser_id_t current_sysuser(sysuser_t * sysusr) ;
+sysuser_id_t current_sysuser(sysuser_t* sysusr);
 
 /* function: real_sysuser
  * Returns <sysuser_id_t> of the user which started the process. */
-sysuser_id_t real_sysuser(sysuser_t * sysusr) ;
+sysuser_id_t real_sysuser(sysuser_t* sysusr);
 
 /* function: privileged_sysuser
  * Returns <sysuser_id_t> of the user which has other privileges.
  * If this user is equal to <real_sysuser> the process has no special privileges.
  * A privileged user is not necessarily an administrator but it can. */
-sysuser_id_t privileged_sysuser(sysuser_t * sysusr) ;
+sysuser_id_t privileged_sysuser(sysuser_t* sysusr);
 
 // group: switch
 
 /* function: switchtoprivilege_sysuser
  * Switches current user to <privileged_sysuser>.
  * See <current_sysuser>. */
-int switchtoprivilege_sysuser(sysuser_t * sysusr) ;
+int switchtoprivilege_sysuser(sysuser_t* sysusr);
 
 /* function: switchtoreal_sysuser
  * Switches current user to <real_sysuser>.
  * See <current_sysuser>. */
-int switchtoreal_sysuser(sysuser_t * sysusr) ;
+int switchtoreal_sysuser(sysuser_t* sysusr);
 
 // group: set
 
 /* function: setusers_sysuser
- * Changes realuser and privileged user. See <real_sysuser> and <privileged_sysuser> and <current_sysuser>.
+ * Changes realuser and privileged user. The current user is switched to the real user.
+ * See <real_sysuser> and <privileged_sysuser> and <current_sysuser>.
  * If you set privilegeduser to the same value as realuser you will give up your privileges.
- * The current user is switch to the real user.
  * If you want to change the user ids to arbitrary values other than realuser or privilegeduser
  * this call will only work if <current_sysuser> is admin. */
-int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t privilegeduser) ;
-
-// group: authentication
-
-/* function: authenticate_sysuser
- * Checks that a certain user / password combination is valid.
- *
- * Return codes:
- * 0               - Success
- * EACCES          - User unknown or password wrong.
- * ENOMEM          - Buffer allocation failed.
- * ERANGE          - Number of tries of wrong authentication reqeusts reached.
- * EPERM           - Not enough rights to authenticate user.
- * ENOTRECOVERABLE - Caller should exit process after this value has been returned.
- * ELIBACC         - Shared system library not found.
- *
- * Some underlying implementations are returns EACCES in case of EPERM or other error codes.
- *
- * Uses authentication service of the operating system to authenticate system users.
- * This means loading shated libraries into the running process. It is best to shield the caller by
- * spawing a child process which does the authentication (see <process_t>).
- * Only username / password combinations can be authenticated which are known to the underlying operating system.
- * The user of the running process is not changed. To authenticate other users
- * than the calling user the running process needs to have spedial rights.
- * On Linux it should be running as root.
- *
- * Linux specific:
- * The configuration file for PAM is stored in /etc/pam.d/service_name alternatively in /etc/pam.conf.
- * The fallback to /etc/pam.d/other is made if no service with this name exists. Currently the service name
- * "passwd" (see <sysuser_SYS_SERVICE_NAME>) is used therefore the configuration file /etc/pam.d/passwd
- * is used which is the configuration of the passwd command to change the own password.
- * This configuration should always exist. */
-int authenticate_sysuser(const char * username, const char * password) ;
+int setusers_sysuser(sysuser_t* sysusr, sysuser_id_t realuser, sysuser_id_t privilegeduser);
 
 
 /* struct: sysuser_info_t
@@ -199,8 +164,8 @@ int authenticate_sysuser(const char * username, const char * password) ;
 struct sysuser_info_t {
    /* variable: size
     * Size in bytes of allocated memory this structure uses. */
-   size_t         size;
-   const char *   name ;
+   size_t      size;
+   const char* name;
 } ;
 
 // group: lifetime
@@ -210,17 +175,17 @@ struct sysuser_info_t {
  * The system database is searched for an entry.
  *
  * If no one exists ENOENT is returned and no error log is written in this case. */
-int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid) ;
+int new_sysuserinfo(/*out*/sysuser_info_t** usrinfo, sysuser_id_t uid);
 
 /* function: delete_sysuserinfo
  * Frees memory holding system user information. */
-int delete_sysuserinfo(sysuser_info_t ** usrinfo) ;
+int delete_sysuserinfo(sysuser_info_t** usrinfo);
 
 // group: query
 
 /* function: name_sysuserinfo
  * Returns user name stored in usrinfo. */
-const char * name_sysuserinfo(sysuser_info_t * usrinfo) ;
+const char* name_sysuserinfo(sysuser_info_t* usrinfo);
 
 
 

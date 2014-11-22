@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Okt.10  11:18:39
+GenerationDate  := 2014.Nov.22  08:10:47
 GeneratedBy     := je-so
 
 ## Debug
@@ -18,7 +18,7 @@ CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall 
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
 Includes_Debug      := $(IncludeFlag_Debug).
-Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)pam
+Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
 Libpath_Debug       :=
 ObjectDir_Debug     := bin/Debug/unittest
 TargetDir_Debug     := bin
@@ -36,7 +36,7 @@ CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wal
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
 Includes_Release      := $(IncludeFlag_Release).
-Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)pam
+Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
 Libpath_Release       :=
 ObjectDir_Release     := bin/Release/unittest
 TargetDir_Release     := bin

@@ -7,14 +7,6 @@
 
 "module",      "name",                                "value"
 
-# 1. The name of service used during authentication.
-# sysuser_t registers itself to the underlying authentication
-# service provider with this name.
-# 2./3. The user/password combination used to test switching to priviledged user in setuid program.
-"sysuser_t",    "SYS_SERVICE_NAME",       "passwd"
-"sysuser_t",    "UNITTEST_USERNAME",      "guest"
-"sysuser_t",    "UNITTEST_PASSWORD",      "GUEST"
-
 # The buffersize used in filereader_t. Two buffers of size SYS_BUFFER_SIZE/2 are allocated.
 "filereader_t", "SYS_BUFFER_SIZE",        "4*4096"
 

@@ -54,10 +54,6 @@
  * May be changed:
  * This rule may be changed in the future to speed up compilation.
  *
- * libpam:
- * If you call functions of PAM (Pluggable Authentication Modules) included from
- * > #include <security/pam_appl.h>
- * you need to link the binary with libpam (-lpam).
  * */
 
 #include <arpa/inet.h>
@@ -89,9 +85,6 @@
 #include <ucontext.h>
 #include <unistd.h>
 #include <wchar.h>
-#if defined(KONFIG_SUBSYS_SYSUSER)
-#include <security/pam_appl.h>   // -lpam
-#endif
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>
