@@ -80,4 +80,5 @@ static inline void compiletime_tests_standardtypes(void)
    static_assert( OFF_MAX == INT64_MAX, "OFF_MAX has correct value") ;
 
 }
+
 #endif

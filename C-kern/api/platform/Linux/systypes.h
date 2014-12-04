@@ -60,7 +60,8 @@
 #define sys_groupid_FREE               ((gid_t)(-1))
 
 /* define: sys_ioblock_SIZE
- * Support up to 4K disk drives. */
+ * Support up to 4K disk drives.
+ * Must be a power of two. */
 #define sys_ioblock_SIZE               4096
 
 /* define: sys_iochannel_t
