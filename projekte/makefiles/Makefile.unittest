@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Nov.22  08:25:30
+GenerationDate  := 2014.Dez.04  15:54:27
 GeneratedBy     := je-so
 
 ## Debug
@@ -173,6 +173,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
@@ -288,6 +289,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!textpos.c.o \
  $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
@@ -604,6 +606,9 @@ $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
@@ -943,6 +948,9 @@ $(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c

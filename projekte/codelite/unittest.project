@@ -32,6 +32,7 @@
       <File Name="../../C-kern/api/string/format_string.h"/>
       <File Name="../../C-kern/api/string/textpos.h"/>
       <File Name="../../C-kern/api/string/splitstring.h"/>
+      <File Name="../../C-kern/api/string/strsearch.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <VirtualDirectory Name="Linux">
@@ -347,6 +348,7 @@
     <File Name="../../C-kern/string/format_string.c"/>
     <File Name="../../C-kern/string/textpos.c"/>
     <File Name="../../C-kern/string/splitstring.c"/>
+    <File Name="../../C-kern/string/strsearch.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding conventions">

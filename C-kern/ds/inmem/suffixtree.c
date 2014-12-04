@@ -1440,10 +1440,8 @@ static int test_matchfile(void)
    mmfile_t       sourcefile    = mmfile_FREE ;
    const uint8_t  * iterposstr  = (const uint8_t*) "suffixtree_iterator_t" ;
    // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
-   /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
-    * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
-    * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44760,44931,59500,59624,59737,59792};
+   /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
+   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44760,44931,59500,59624};
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;
