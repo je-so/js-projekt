@@ -932,7 +932,7 @@ static int test_initfree(void)
    TEST(0 == free_file(&file));
 
    // TEST initPpath_terminal: ENOTTY
-   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(0 == inittemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
    TEST(ENOTTY == initPpath_terminal(&term, filename));
    TEST(isfree_file(term.sysio));
    TEST(0 == removefile_directory(0, (char*)filename));
@@ -972,7 +972,7 @@ static int test_initfree(void)
    TEST(0 == free_file(&file));
 
    // TEST initPio_terminal: ENOTTY
-   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(0 == inittemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
    TEST(ENOTTY == initPio_terminal(&term, file, true));
    // check fields
    TEST(isfree_file(term.sysio));
@@ -1529,7 +1529,7 @@ static int test_update(void)
 
    // TEST switchcontrolling_terminal: ENOTTY
    uint8_t filename[100];
-   TEST(0 == initcreatetemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
+   TEST(0 == inittemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
    TEST(ENOTTY == switchcontrolling_terminal(filename));
    TEST(0 == free_file(&file));
 

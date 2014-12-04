@@ -46,10 +46,10 @@ Error 17 - File exists
 System call 'openat' failed
 File name '/tmp/iofiletest.123456/testcreate'
 [1: 1412772147.738625s]
-initcreatetemp_file() C-kern/platform/Linux/io/file.c:233
+inittemp_file() C-kern/platform/Linux/io/file.c:233
 Error 12 - Cannot allocate memory
 [1: 1412772147.738628s]
-initcreatetemp_file() C-kern/platform/Linux/io/file.c:233
+inittemp_file() C-kern/platform/Linux/io/file.c:233
 Error 24 - Too many open files
 [1: 1412772148.590958s]
 truncate_file() C-kern/platform/Linux/io/file.c:369

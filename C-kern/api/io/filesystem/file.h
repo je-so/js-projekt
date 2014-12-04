@@ -100,17 +100,17 @@ int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct d
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
 int initcreate_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/) ;
 
-/* function: inittemp_file
+/* function: inittempdeleted_file
  * Erzeugt eine temporäre Datei im Systemverzeichnis P_tmpdir und gibt sie in file zurück.
  * Die Datei wird sofort nach dem Erzeugen als gelöscht markiert, so daß kein Dateiname im
  * System sichtbar ist. Die Datei kann gelesen und beschrieben werden. */
-int inittemp_file(/*out*/file_t* file);
+int inittempdeleted_file(/*out*/file_t* file);
 
-/* function: initcreatetemp_file
+/* function: inittemp_file
  * Erzeugt eine temporäre Datei im Systemverzeichnis P_tmpdir und gibt sie in file zurück.
  * Die Datei kann gelesen und beschrieben werden.
  * Der '\0' terminierte Pfad der temporären Datei wird in path zurückgegeben. */
-int initcreatetemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path);
+int inittemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path);
 
 /* function: initmove_file
  * Moves content of sourcefile to destfile. sourcefile is also reset to <file_FREE>. */
@@ -179,7 +179,7 @@ int advisedontneed_file(file_t fileobj, off_t offset, off_t length) ;
 
 /* function: truncate_file
  * Truncates file to file_size bytes.
- * Data beyond file_size is lost. If file_size is bigger than the value <size_file> returns
+ * Data beyond file_size is lost. If file_size is bigger than the value returned by <size_file>
  * the file is either extended with 0 bytes or EPERM is returned. This call only changes the length
  * but does not allocate data blocks on the file system. */
 int truncate_file(file_t fileobj, off_t file_size) ;

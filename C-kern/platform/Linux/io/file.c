@@ -174,7 +174,7 @@ ONERR:
    return err;
 }
 
-int inittemp_file(/*out*/file_t* file)
+int inittempdeleted_file(/*out*/file_t* file)
 {
    int err;
    int fd;
@@ -201,7 +201,7 @@ ONERR:
    return err;
 }
 
-int initcreatetemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path)
+int inittemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path)
 {
    int err;
    int fd;
@@ -710,8 +710,8 @@ static int test_create(directory_t* tempdir)
    TEST(file == file_FREE);
    if (compare_file_content(tempdir, "testcreate", 1)) goto ONERR;
 
-   // TEST inittemp_file
-   TEST(0 == inittemp_file(&file));
+   // TEST inittempdeleted_file
+   TEST(0 == inittempdeleted_file(&file));
    // check O_CLOEXEC
    TEST(FD_CLOEXEC == fcntl(file, F_GETFD));
    // check read / write
@@ -723,10 +723,10 @@ static int test_create(directory_t* tempdir)
    TEST(0 == memcmp(buffer, buffer2, 256));
    TEST(0 == free_file(&file));
 
-   // TEST initcreatetemp_file
+   // TEST inittemp_file
    memset(filename, 255, sizeof(filename));
    wbuffer_t wbuf = wbuffer_INIT_STATIC(sizeof(filename)-1, filename);
-   TEST(0 == initcreatetemp_file(&file, &wbuf));
+   TEST(0 == inittemp_file(&file, &wbuf));
    TEST(sizeof(TEMPFILENAME) == size_wbuffer(&wbuf));
    TEST(0 == memcmp(TEMPFILENAME, filename, sizeof(TEMPFILENAME)-7));
    TEST(0   == filename[sizeof(TEMPFILENAME)-1]);
@@ -740,20 +740,20 @@ static int test_create(directory_t* tempdir)
    TEST(0 == free_file(&file));
    TEST(0 == removefile_directory(tempdir, (char*)filename));
 
-   // TEST initcreatetemp_file: ENOMEM (wbuffer too small)
+   // TEST inittemp_file: ENOMEM (wbuffer too small)
    memset(filename, 1, sizeof(filename));
    wbuf = (wbuffer_t) wbuffer_INIT_STATIC(3, filename);
-   TEST(ENOMEM == initcreatetemp_file(&file, &wbuf));
+   TEST(ENOMEM == inittemp_file(&file, &wbuf));
    TEST(0 == size_wbuffer(&wbuf));
    TEST(1 == filename[0]);
    TEST( isfree_file(file));
 
-   // TEST initcreatetemp_file: simulated EMFILE (too many open files)
+   // TEST inittemp_file: simulated EMFILE (too many open files)
    uint8_t* dummy;
    wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename)-1, filename);
    TEST(0 == appendbytes_wbuffer(&wbuf, 10, &dummy));
    init_testerrortimer(&s_file_errtimer, 1, EMFILE);
-   TEST(EMFILE == initcreatetemp_file(&file, &wbuf));
+   TEST(EMFILE == inittemp_file(&file, &wbuf));
    TEST(10 == size_wbuffer(&wbuf)); // length not changed
    TEST( isfree_file(file));
 
