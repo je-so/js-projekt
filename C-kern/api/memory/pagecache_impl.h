@@ -73,9 +73,9 @@ int unittest_memory_pagecacheimpl(void) ;
 struct pagecache_impl_t {
    /* variable: blocklist
     * A list of <pagecache_block_t>.
-    * This list contains all allocated blocks and serves to free all allocated blocks.
-    * Objects of type <pagecache_block_t> are managed on the memory heap and are not
-    * part of the block of the allocated pages. */
+    * This collection is used to free all allocated memory blocks.
+    * Objects of type <pagecache_block_t> are stored on the memory heap
+    * (managed by <pagecache_blockmap_t>) and are not part of the allocated memory blocks. */
    struct {
       struct dlist_node_t *   last ;
    }                       blocklist ;

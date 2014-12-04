@@ -121,6 +121,7 @@ dlist_IMPLEMENT(_freepagelist, freepage_t, )
  * It stores a reference to the first page and the size of all pages together.
  * It also manages allocation and releasing of pages cut out from the big memory block. */
 struct pagecache_block_t {
+   // TODO: reduce size to 32 byte (or 64 byte in 64 bit case !!)
    /* variable:   threadcontext
     * Thread which allocated the memory block. */
    threadcontext_t * threadcontext ;
@@ -158,6 +159,9 @@ int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap)
 {
    int err ;
 
+   // TODO: Add konfig variable to diff. between 32/64 bit mode !!
+   // Change pagecache_blockmap_ARRAYSIZE to support 256 GB in 64 bit mode
+   // And only 4 GB on 32 bit mode
    err = init_vmpage(cast_vmpage(blockmap, array_), pagecache_blockmap_ARRAYSIZE) ;
    if (err) goto ONERR;
 

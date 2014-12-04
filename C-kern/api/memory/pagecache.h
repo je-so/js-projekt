@@ -40,12 +40,15 @@ typedef struct pagecache_it               pagecache_it ;
  * pagesize_1MB   - Request page size of 1024*1024 byte aligned to a 1MB byte boundary.
  * */
 enum pagesize_e {
+   // TODO: support all pagesizes doubling in size until 1MB
    pagesize_256,
    pagesize_1024,
    pagesize_4096,
    pagesize_16384,
    pagesize_65536,
    pagesize_1MB,
+   // TODO: change formatting (remove spaces)
+   // TODO: rename pagesize_NROFPAGESIZE into pagesize__NROF (also in all other modules)
    pagesize_NROFPAGESIZE
 } ;
 
