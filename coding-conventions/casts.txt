@@ -21,7 +21,7 @@ group: cast from type1 into type2
 Cast is part of type2:
 
 The same as generic cast except that the name of the function is
-> castPtype1_type2(type1_t * addr).
+> castPtype1_type2(type1_t* addr).
 
 It casts a pointer to type1 into a pointer to type2 and is part of interface
 of type2. The 'P' in the function name is a prefix to state that a parameter type
@@ -30,7 +30,7 @@ is following.
 Cast is part of type1:
 
 The following function casts a pointer to type1 into a pointer to type2 also
-> cast2type2_type1(type1_t * addr)
+> cast2type2_type1(type1_t* addr)
 
 But it is part of interface of type1. The '2' in the function name is a prefix
 to state that the target type is following.

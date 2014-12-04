@@ -194,6 +194,7 @@ int run_unittest(void * argv)
       RUN(unittest_memory_hwcache);
       RUN(unittest_memory_memblock);
       RUN(unittest_memory_memstream);
+      RUN(unittest_memory_memvec);
       RUN(unittest_memory_pagecache);
       RUN(unittest_memory_pagecacheimpl);
       RUN(unittest_memory_pagecache_macros);

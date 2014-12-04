@@ -121,6 +121,7 @@
       <File Name="../../C-kern/api/memory/memstream.h"/>
       <File Name="../../C-kern/api/memory/ptr.h"/>
       <File Name="../../C-kern/api/memory/atomic.h"/>
+      <File Name="../../C-kern/api/memory/memvec.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
@@ -476,6 +477,7 @@
     <File Name="../../C-kern/memory/memstream.c"/>
     <File Name="../../C-kern/memory/ptr.c"/>
     <File Name="../../C-kern/memory/atomic.c"/>
+    <File Name="../../C-kern/memory/memvec.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">
