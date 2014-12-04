@@ -64,9 +64,14 @@ void init_memvec(/*out*/memvec_t* memvec);
 
 // group: generic
 
-/* function: memvec_DECLARE
- * Deklariert einen zu <memvec_t> kompatiblen Typ, der size <memblock_t> aufnehmen kann. */
-void memvec_DECLARE(unsigned size);
+/* function: memvec_T
+ * Deklariert einen zu <memvec_t> kompatiblen Typ, der maximal vecsize <memblock_t> aufnehmen kann.
+ * Parameter vecsize ist vom Typ size_t. */
+#define memvec_T(vecsize) \
+         struct {                    \
+            size_t     size;         \
+            memblock_t vec[vecsize]; \
+         }
 
 /* function: cast_memvec
  * Caste memvec in Zeiger auf <memvec_t>. */
@@ -91,14 +96,6 @@ memvec_t* cast_memvec(void* memvec);
             "ensure type is compatible");          \
             (memvec_t*) (memvec);                  \
          }))
-
-/* define: memvec_DECLARE
- * Implements <memvec_t.memvec_DECLARE>. */
-#define memvec_DECLARE(_size) \
-         struct {                  \
-            size_t     size;       \
-            memblock_t vec[_size]; \
-         }
 
 /* define: init_memvec
  * Implements <memvec_t.init_memvec>. */

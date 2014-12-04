@@ -31,8 +31,8 @@
 
 static int test_initfree(void)
 {
-   memvec_t           vec = memvec_FREE;
-   memvec_DECLARE(33) vec33 = memvec_FREE;
+   memvec_t     vec = memvec_FREE;
+   memvec_T(33) vec33 = memvec_FREE;
 
    // TEST memvec_FREE
    TEST(0 == vec.size);
@@ -59,11 +59,11 @@ static int test_generic(void)
       size_t      size;
       memblock_t  vec[99];
       int xxx_unused_xxx; // test that extra fields are ignored genericcast_memblocklist
-   }                  vec99;
-   memvec_DECLARE(10) vec10 = memvec_FREE;
-   memvec_DECLARE(25) vec25 = memvec_FREE;
+   }            vec99;
+   memvec_T(10) vec10 = memvec_FREE;
+   memvec_T(25) vec25 = memvec_FREE;
 
-   // TEST memvec_DECLARE: parameter defines array size
+   // TEST memvec_T: parameter defines array size
    static_assert(10 == lengthof(vec10.vec), "");
    static_assert(25 == lengthof(vec25.vec), "");
 
