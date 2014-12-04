@@ -63,9 +63,9 @@ struct processcontext_t {
    struct
    pagecache_blockmap_t*     blockmap;
    /* variable: initcount
-    * Counts the number of successfull initialized services/subsystems.
-    * This number is can be higher than 1 cause there are subsystems which
-    * do not have a reference stored in <processcontext_t>. */
+    * Counts the number of successfully initialized services/subsystems.
+    * This number counts all subsystems even if they
+    * do not have state stored in <processcontext_t>. */
    uint16_t                  initcount;
 } ;
 
