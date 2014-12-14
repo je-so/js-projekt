@@ -1,6 +1,6 @@
-[1: 1418545109.618041s]
+[1: 1418545255.805479s]
 removefirst_queue() C-kern/ds/inmem/queue.c:369
 Error 61 - No data available
-[1: 1418545109.618052s]
+[1: 1418545255.805485s]
 removelast_queue() C-kern/ds/inmem/queue.c:393
 Error 61 - No data available

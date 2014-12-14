@@ -101,7 +101,7 @@ static bool isempty_staticpage(staticpage_t* staticpage)
 
 
 /* struct: freepage_t
- * Header of free page located in <pagecache_block_t.pageblock>. */
+ * Header of free page located in <pagecache_block_t.blockaddr>. */
 struct freepage_t {
    dlist_node_t*      next;
    dlist_node_t*      prev;
@@ -121,14 +121,13 @@ dlist_IMPLEMENT(_freepagelist, freepage_t, )
  * It stores a reference to the first page and the size of all pages together.
  * It also manages allocation and releasing of pages cut out from the big memory block. */
 struct pagecache_block_t {
-   // TODO: reduce size to 32 byte (or 64 byte in 64 bit case !!)
    /* variable:   threadcontext
     * Thread which allocated the memory block. */
    threadcontext_t* threadcontext;
-   /* variable: pageblock
-    * System memory page where free pages are located.
-    * See also <freepagelist>. */
-   vmpage_t       pageblock;
+   /* variable: blockaddr
+    * Address of allocated system memory page of size <pagecache_block_BLOCKSIZE>.
+    * One allocated block contains one or more pages of size <pagecache_t.pagesizeinbytes_pagecache>(<pagesize__>). */
+   uint8_t*       blockaddr;
    /* variable: next_block
     * Used to store all allocated <pagecache_block_t> in a list. */
    dlist_node_t   next_block;
@@ -138,16 +137,14 @@ struct pagecache_block_t {
    /* variable: freepagelist
     * List of free pages. If this list is empty <next_freeblock> is not in use. */
    dlist_t        freepagelist;
-   /* variable: pagesize
-    * Size of a single page stored in freepagelist. */
-   size_t         pagesize;
    /* variable: usedpagecount
     * Counts the number of allocated pages in use.
     * If this value is 0 the whole block could be freed. */
    uint16_t       usedpagecount;
-   /* variable: freelistidx
-    * Index into <pagecache_impl_t.freeblocklist>. */
-   uint8_t        freelistidx;
+   /* variable: pgsize
+    * Size of page encoded as <pagesize_e>.
+    * Used as index into <pagecache_impl_t.freeblocklist>. */
+   uint8_t        pgsize;
 };
 
 
@@ -166,6 +163,7 @@ int init_pagecacheblockmap(/*out*/pagecache_blockmap_t* blockmap)
    if (err) goto ONERR;
 
    memset(blockmap->array_addr, 0, blockmap->array_size);
+   static_assert(sizeof(pagecache_block_t) == 32 || sizeof(pagecache_block_t) == 64, "Size optimized for access (only shift required)");
    blockmap->array_len = blockmap->array_size / sizeof(pagecache_block_t);
    blockmap->indexmask = makepowerof2_int(blockmap->array_len) - 1;
 
@@ -266,21 +264,15 @@ dlist_IMPLEMENT(_blocklist, pagecache_block_t, next_block.)
 dlist_IMPLEMENT(_freeblocklist, pagecache_block_t, next_freeblock.)
 
 /* function: arrayindex_pagecacheblock
- * Returns an array index for an addr located in a <pagecache_block_t.pageblock>.
+ * Returns an array index for an addr located in
+ * [<pagecache_block_t.blockaddr>..<pagecache_block_t.blockaddr>+pagecache_block_BLOCKSIZE-1].
  * It is used to access <pagecache_blockmap_t>. */
-static inline size_t arrayindex_pagecacheblock(const void * addr)
+static inline size_t arrayindex_pagecacheblock(const void* addr)
 {
    return (uintptr_t)addr / pagecache_block_BLOCKSIZE;
 }
 
 // group: lifetime
-
-/* function: initpageblock_pagecacheblock
- * Allocates resources of <pagecache_block_t> stored in <pagecache_block_t.pageblock>. */
-static inline int initpageblock_pagecacheblock(vmpage_t* pageblock, size_t blocksize)
-{
-   return initaligned_vmpage(pageblock, blocksize);
-}
 
 /* function: freepageblock_pagecacheblock
  * Frees resources of <pagecache_block_t> stored in <pagecache_block_t.pageblock>. */
@@ -306,7 +298,7 @@ static int new_pagecacheblock(
                   "pagecache_block_BLOCKSIZE supports the largest value of pagesize_e");
 
    ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
-   err = initpageblock_pagecacheblock(&pageblock, pagecache_block_BLOCKSIZE);
+   err = initaligned_vmpage(&pageblock, pagecache_block_BLOCKSIZE);
    if (err) goto ONERR;
 
    ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
@@ -314,14 +306,14 @@ static int new_pagecacheblock(
    if (err) goto ONERR;
 
    // Member newblock->threadcontext is set in assign_pagecacheblockmap
-   newblock->pageblock    = pageblock;
+   newblock->blockaddr    = pageblock.addr;
    // Member newblock->next_block set in calling function
    // Member newblock->next_freeblock set in calling function
-   newblock->freepagelist = (dlist_t) dlist_INIT;
-   newblock->pagesize     = pagesizeinbytes_pagecache(pgsize);
-   newblock->usedpagecount= 0;
-   newblock->freelistidx  = pgsize;
-   for (size_t pageoffset = 0; pageoffset < newblock->pageblock.size; pageoffset += newblock->pagesize) {
+   newblock->freepagelist  = (dlist_t) dlist_INIT;
+   newblock->usedpagecount = 0;
+   newblock->pgsize        = pgsize;
+   size_t pagesizeinbytes = pagesizeinbytes_pagecache(pgsize);
+   for (size_t pageoffset = 0; pageoffset < pagecache_block_BLOCKSIZE; pageoffset += pagesizeinbytes) {
       freepage_t* freepage = (freepage_t*) (pageblock.addr + pageoffset);
       freepage->marker = newblock;
       insertlast_freepagelist(&newblock->freepagelist, freepage);
@@ -346,13 +338,19 @@ static int free_pagecacheblock(pagecache_block_t* block, pagecache_blockmap_t* b
 
    clear_pagecacheblockmap(blockmap, block);
 
-   err = freepageblock_pagecacheblock(&block->pageblock);
+   if (block->blockaddr) {
+      vmpage_t pageblock = vmpage_INIT(pagecache_block_BLOCKSIZE, block->blockaddr);
+      block->blockaddr = 0;
+
+      err = free_vmpage(&pageblock);
+
 #ifdef KONFIG_UNITTEST
-   int err2 = process_testerrortimer(&s_pagecacheblock_errtimer);
-   if (err2) err = err2;
+      int err2 = process_testerrortimer(&s_pagecacheblock_errtimer);
+      if (err2) err = err2;
 #endif
 
-   if (err) goto ONERR;
+      if (err) goto ONERR;
+   }
 
    return 0;
 ONERR:
@@ -371,6 +369,7 @@ static int releasepage_pagecacheblock(struct pagecache_block_t* block, freepage_
             return EALREADY;  // already stored in freepagelist
          }
       }
+      // false positive
    } else {
       freepage->marker = block;
    }
@@ -520,7 +519,7 @@ static inline int freeblock_pagecacheimpl(pagecache_impl_t* pgcache, pagecache_b
 {
    int err;
 
-   err = remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->freelistidx]), block);
+   err = remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]), block);
    if (err) return err;
    err = remove_blocklist(cast_dlist(&pgcache->blocklist), block);
    if (err) return err;
@@ -649,10 +648,11 @@ int releasepage_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* page
    int err;
 
    if (!isfree_memblock(page)) {
+      size_t pagesizeinbytes;
       pagecache_block_t* block = at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(page->addr));
       if (  0 == block
-            || block->pagesize != page->size
-            || 0 != (((uintptr_t)page->addr) & ((uintptr_t)block->pagesize-1))) {
+            || page->size != (pagesizeinbytes = pagesizeinbytes_pagecache(block->pgsize))
+            || 0 != (((uintptr_t)page->addr) & ((uintptr_t)pagesizeinbytes-1))) {
          err = EINVAL;
          goto ONERR;
       }
@@ -665,15 +665,15 @@ int releasepage_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* page
       err = releasepage_pagecacheblock(block, freepage);
       if (err) goto ONERR;
 
-      pgcache->sizeallocated -= block->pagesize;
+      pgcache->sizeallocated -= pagesizeinbytes;
       if (!isinlist_freeblocklist(block)) {
-         insertfirst_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->freelistidx]), block);
+         insertfirst_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]), block);
       }
 
       if (! block->usedpagecount) {
          // delete block if not used and at least another block is stored in free list
-         pagecache_block_t* firstblock = last_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->freelistidx]));
-         pagecache_block_t* lastblock  = first_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->freelistidx]));
+         pagecache_block_t* firstblock = last_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]));
+         pagecache_block_t* lastblock  = first_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]));
          if (firstblock != lastblock) {
             err = freeblock_pagecacheimpl(pgcache, block);
             if (err) goto ONERR;
@@ -872,38 +872,36 @@ static int test_block(void)
    // TEST new_pagecacheblock
    for (uint8_t i = 0; i < lengthof(block); ++i) {
       TEST(0 == new_pagecacheblock(&block[i], i, &blockmap));
-      TEST(1 == ismapped_vm(&block[i]->pageblock, accessmode_RDWR_PRIVATE));
+      vmpage_t pageblock = vmpage_INIT(pagecache_block_BLOCKSIZE, block[i]->blockaddr);
+      TEST(1 == ismapped_vm(&pageblock, accessmode_RDWR_PRIVATE));
       TEST(0 != block[i]);
       TEST(block[i]->threadcontext == tcontext_maincontext());
-      TEST(0 == ((uintptr_t)block[i]->pageblock.addr % pagecache_block_BLOCKSIZE));
-      TEST(0 == block[i]->pageblock.size - pagecache_block_BLOCKSIZE);
+      TEST(0 != block[i]->blockaddr);
+      TEST(0 == ((uintptr_t)block[i]->blockaddr % pagecache_block_BLOCKSIZE));
       TEST(0 != block[i]->freepagelist.last);
-      TEST(0 == block[i]->pagesize - pagesizeinbytes_pagecache(i));
       TEST(0 == block[i]->usedpagecount);
-      TEST(i == block[i]->freelistidx);
+      TEST(i == block[i]->pgsize);
       // check list of free pages
       size_t pgoffset = 0;
       foreach (_dlist, freepage, &block[i]->freepagelist) {
-         TEST(freepage == (void*)(block[i]->pageblock.addr + pgoffset));
+         TEST(freepage == (void*)(block[i]->blockaddr + pgoffset));
          TEST(block[i] == *(pagecache_block_t**)&freepage[1]);
-         pgoffset += block[i]->pagesize;
+         pgoffset += pagesizeinbytes_pagecache(i);
       }
    }
 
    // TEST free_pagecacheblock
    for (unsigned i = 0; i < lengthof(block); ++i) {
+      vmpage_t pageblock = vmpage_INIT(pagecache_block_BLOCKSIZE, block[i]->blockaddr);
       TEST(0 != block[i]->threadcontext);
-      TEST(0 != block[i]->pageblock.addr);
-      TEST(0 != block[i]->pageblock.size);
+      TEST(0 != block[i]->blockaddr);
       TEST(0 == free_pagecacheblock(block[i], &blockmap));
-      TEST(1 == isunmapped_vm(&block[i]->pageblock));
+      TEST(1 == isunmapped_vm(&pageblock));
       TEST(0 == block[i]->threadcontext);
-      TEST(0 == block[i]->pageblock.addr);
-      TEST(0 == block[i]->pageblock.size);
+      TEST(0 == block[i]->blockaddr);
       TEST(0 == free_pagecacheblock(block[i], &blockmap));
       TEST(0 == block[i]->threadcontext);
-      TEST(0 == block[i]->pageblock.addr);
-      TEST(0 == block[i]->pageblock.size);
+      TEST(0 == block[i]->blockaddr);
       block[i] = 0;
    }
 
@@ -916,27 +914,31 @@ static int test_block(void)
    TEST(block[0] == 0);
 
    // TEST free_pagecacheblock: ENOMEM
-   TEST(0 == new_pagecacheblock(&block[0], pagesize_4096, &blockmap));
-   init_testerrortimer(&s_pagecacheblock_errtimer, 1, ENOMEM);
-   TEST(ENOMEM == free_pagecacheblock(block[0], &blockmap));
-   TEST(0 == block[0]->threadcontext);
-   TEST(0 == block[0]->pageblock.addr);
-   TEST(0 == block[0]->pageblock.size);
+   {
+      TEST(0 == new_pagecacheblock(&block[0], pagesize_4096, &blockmap));
+      vmpage_t pageblock = vmpage_INIT(pagecache_block_BLOCKSIZE, block[0]->blockaddr);
+      TEST(0 == isunmapped_vm(&pageblock));
+      init_testerrortimer(&s_pagecacheblock_errtimer, 1, ENOMEM);
+      TEST(ENOMEM == free_pagecacheblock(block[0], &blockmap));
+      TEST(1 == isunmapped_vm(&pageblock));
+      TEST(0 == block[0]->threadcontext);
+      TEST(0 == block[0]->blockaddr);
+   }
 
    // TEST new_pagecacheblock: blockmap is filled correctly
    for (uint8_t i = 0; i < lengthof(block); ++i) {
       TEST(0 == new_pagecacheblock(&block[i], pagesize_16384, &blockmap));
    }
    for (uint8_t i = 0; i < lengthof(block); ++i) {
-      for (size_t offset = 0; offset < block[i]->pageblock.size-3; offset += 16384) {
-         TEST(block[i] == at_pagecacheblockmap(&blockmap, arrayindex_pagecacheblock(block[i]->pageblock.addr + offset)));
-         TEST(block[i] == at_pagecacheblockmap(&blockmap, arrayindex_pagecacheblock(block[i]->pageblock.addr + offset + 3)));
+      for (size_t offset = 0; offset < pagecache_block_BLOCKSIZE-3; offset += 16384) {
+         TEST(block[i] == at_pagecacheblockmap(&blockmap, arrayindex_pagecacheblock(block[i]->blockaddr + offset)));
+         TEST(block[i] == at_pagecacheblockmap(&blockmap, arrayindex_pagecacheblock(block[i]->blockaddr + offset + 3)));
       }
    }
 
    // TEST free_pagecacheblock: blockmap is updated
    for (uint8_t i = 0; i < lengthof(block); ++i) {
-      void * addr = block[i]->pageblock.addr;
+      void* addr = block[i]->blockaddr;
       TEST(0 == free_pagecacheblock(block[i], &blockmap));
       TEST(0 == at_pagecacheblockmap(&blockmap, arrayindex_pagecacheblock(addr)));
    }
@@ -947,15 +949,15 @@ static int test_block(void)
    }
    for (unsigned i = 0; i < lengthof(block); ++i) {
       size_t offset;
-      for (offset = 0; offset < block[i]->pageblock.size; offset += block[i]->pagesize) {
+      for (offset = 0; offset < pagecache_block_BLOCKSIZE; offset += pagesizeinbytes_pagecache(i)) {
          freepage_t* freepage = 0;
          TEST(0 == allocpage_pagecacheblock(block[i], &freepage));
          TEST(0 != freepage);
          TEST(0 == freepage->marker);
-         TEST(freepage == (void*) (block[i]->pageblock.addr + offset));
-         TEST(0 == block[i]->usedpagecount - 1u - (offset/block[i]->pagesize));
+         TEST(freepage == (void*) (block[i]->blockaddr + offset));
+         TEST(0 == block[i]->usedpagecount - 1u - (offset/pagesizeinbytes_pagecache(i)));
       }
-      TEST(offset == block[i]->pageblock.size);
+      TEST(offset == pagecache_block_BLOCKSIZE);
       TEST(isempty_freepagelist(&block[i]->freepagelist));
    }
 
@@ -965,17 +967,17 @@ static int test_block(void)
       TEST(isempty_freepagelist(&block[i]->freepagelist));
       TEST(EINVAL   == allocpage_pagecacheblock(block[i], &freepage));
       TEST(freepage == 0);
-      TEST(block[i]->usedpagecount == (block[i]->pageblock.size / block[i]->pagesize));
+      TEST(block[i]->usedpagecount == (pagecache_block_BLOCKSIZE / pagesizeinbytes_pagecache(i)));
    }
 
    // TEST releasepage_pagecacheblock
    for (unsigned i = 0; i < lengthof(block); ++i) {
       TEST(0 == block[i]->freepagelist.last);
-      for (size_t offset = block[i]->pageblock.size; offset > 0; ) {
-         offset -= block[i]->pagesize;
-         freepage_t* freepage = (void*) (block[i]->pageblock.addr + offset);
+      for (size_t offset = pagecache_block_BLOCKSIZE; offset > 0; ) {
+         offset -= pagesizeinbytes_pagecache(i);
+         freepage_t* freepage = (void*) (block[i]->blockaddr + offset);
          TEST(0 == releasepage_pagecacheblock(block[i], freepage));
-         TEST(0 == block[i]->usedpagecount - (offset / block[i]->pagesize));
+         TEST(0 == block[i]->usedpagecount - (offset / pagesizeinbytes_pagecache(i)));
          TEST(freepage         == first_freepagelist(cast_dlist(&block[i]->freepagelist)));
          TEST(freepage->marker == block[i]);
          // double free does nothing
@@ -988,9 +990,9 @@ static int test_block(void)
       // check list of free pages
       size_t pgoffset = 0;
       foreach (_dlist, freepage, &block[i]->freepagelist) {
-         TEST(freepage == (void*)(block[i]->pageblock.addr + pgoffset));
+         TEST(freepage == (void*)(block[i]->blockaddr + pgoffset));
          TEST(block[i] == *(pagecache_block_t**)&freepage[1]);
-         pgoffset += block[i]->pagesize;
+         pgoffset += pagesizeinbytes_pagecache(i);
       }
       TEST(0 == free_pagecacheblock(block[i], &blockmap));
    }
@@ -1135,10 +1137,10 @@ static int test_helper(void)
          TEST(0 != block[i]);
          TEST(block[i] == last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
          TEST(block[i] == last_blocklist(cast_dlist(&pgcache.blocklist)));
-         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr)));
-         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr + pagecache_block_BLOCKSIZE-1)));
-         TEST(block[i] != at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr -1)));
-         TEST(block[i] != at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr + pagecache_block_BLOCKSIZE)));
+         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->blockaddr)));
+         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->blockaddr + pagecache_block_BLOCKSIZE-1)));
+         TEST(block[i] != at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->blockaddr -1)));
+         TEST(block[i] != at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->blockaddr + pagecache_block_BLOCKSIZE)));
       }
       for (pagesize_e pgsize2 = 0; pgsize2 < pagesize__NROF; ++pgsize2) {
          if (pgsize == pgsize2) continue;
@@ -1147,10 +1149,10 @@ static int test_helper(void)
       for (uint8_t i = 0; i < lengthof(block); ++i) {
          size_t offset = 0;
          foreach (_freepagelist, nextpage, &block[i]->freepagelist) {
-            TEST(nextpage == (void*) (block[i]->pageblock.addr + offset));
-            offset += block[i]->pagesize;
+            TEST(nextpage == (void*) (block[i]->blockaddr + offset));
+            offset += pagesizeinbytes_pagecache(pgsize);
          }
-         TEST(offset == block[i]->pageblock.size);
+         TEST(offset == pagecache_block_BLOCKSIZE);
       }
       for (uint8_t i = 0; i < lengthof(block); ++i) {
          block[i] = 0;
@@ -1183,9 +1185,10 @@ static int test_helper(void)
       for (uint8_t i = 0; i < lengthof(block); ++i) {
          TEST(block[i] == first_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
          TEST(block[i] == first_blocklist(cast_dlist(&pgcache.blocklist)));
-         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr)));
+         void* blockaddr = block[i]->blockaddr;
+         TEST(block[i] == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(blockaddr)));
          TEST(0 == freeblock_pagecacheimpl(&pgcache, block[i]));
-         TEST(0 == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(block[i]->pageblock.addr)));
+         TEST(0 == at_pagecacheblockmap(blockmap_maincontext(), arrayindex_pagecacheblock(blockaddr)));
       }
       TEST(0 == pgcache.freeblocklist[pgsize].last);
       TEST(0 == pgcache.blocklist.last);
@@ -1265,15 +1268,15 @@ static int test_alloc(void)
       TEST(0 == allocpage_pagecacheimpl(&pgcache, pgsize, &page));
       block = last_blocklist(cast_dlist(&pgcache.blocklist));
       TEST(block != 0);   // new block allocated and stored in list
-      TEST(block->pagesize == pagesizeinbytes_pagecache(pgsize));
-      for (size_t offset = 0; offset < block->pageblock.size; offset += block->pagesize) {
-         TEST(page.addr == block->pageblock.addr + offset);
-         TEST(page.size == block->pagesize);
-         TEST(0         == ((uintptr_t)page.addr % block->pagesize)/*aligned to pagesize*/);
-         TEST(pgcache.sizeallocated == oldsize + offset + block->pagesize);
+      TEST(block->pgsize == pgsize);
+      for (size_t offset = 0; offset < pagecache_block_BLOCKSIZE; offset += pagesizeinbytes_pagecache(pgsize)) {
+         TEST(page.addr == block->blockaddr + offset);
+         TEST(page.size == pagesizeinbytes_pagecache(pgsize));
+         TEST(0         == ((uintptr_t)page.addr % pagesizeinbytes_pagecache(pgsize))/*aligned to pagesize*/);
+         TEST(pgcache.sizeallocated == oldsize + offset + pagesizeinbytes_pagecache(pgsize));
          TEST(pgcache.sizestatic    == 0);
          TEST(block == last_blocklist(cast_dlist(&pgcache.blocklist)));                 // reuse block
-         if (offset == block->pageblock.size - block->pagesize) {
+         if (offset == pagecache_block_BLOCKSIZE - pagesizeinbytes_pagecache(pgsize)) {
             TEST(0 == last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));  // removed from free list
          } else {
             TEST(block == last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize]))); // reuse block
@@ -1283,13 +1286,13 @@ static int test_alloc(void)
       TEST(block == first_blocklist(cast_dlist(&pgcache.blocklist)));
       TEST(block != last_blocklist(cast_dlist(&pgcache.blocklist)));              // new block
       block = last_blocklist(cast_dlist(&pgcache.blocklist));
-      if (block->pagesize < block->pageblock.size) {
+      if (pagesizeinbytes_pagecache(pgsize) < pagecache_block_BLOCKSIZE) {
          TEST(0 != last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));  // new block
          TEST(block == last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
          TEST(block == first_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
       }
-      TEST(page.addr == block->pageblock.addr);
-      TEST(page.size == block->pagesize);
+      TEST(page.addr == block->blockaddr);
+      TEST(page.size == pagesizeinbytes_pagecache(pgsize));
       // free blocks
       block = first_blocklist(cast_dlist(&pgcache.blocklist));
       TEST(0 == free_pagecacheblock(block, blockmap_maincontext()));
@@ -1311,29 +1314,29 @@ static int test_alloc(void)
       page = (memblock_t) memblock_FREE;
       TEST(0 == allocpage_pagecacheimpl(&pgcache, pgsize, &page));
       pagecache_block_t* firstblock = last_blocklist(cast_dlist(&pgcache.blocklist));
-      for (size_t offset = 0; offset < firstblock->pageblock.size; offset += firstblock->pagesize) {
+      for (size_t offset = 0; offset < pagecache_block_BLOCKSIZE; offset += pagesizeinbytes_pagecache(pgsize)) {
          TEST(0 == allocpage_pagecacheimpl(&pgcache, pgsize, &page));
       }
       TEST(firstblock == first_blocklist(cast_dlist(&pgcache.blocklist)));
       block = last_blocklist(cast_dlist(&pgcache.blocklist));
-      if (block->pagesize < block->pageblock.size) {
+      if (pagesizeinbytes_pagecache(pgsize) < pagecache_block_BLOCKSIZE) {
          TEST(block == last_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
          TEST(block == first_freeblocklist(cast_dlist(&pgcache.freeblocklist[pgsize])));
       }
       TEST(block != firstblock);
-      TEST(pgcache.sizeallocated == oldsize + block->pageblock.size + block->pagesize)
+      TEST(pgcache.sizeallocated == oldsize + pagecache_block_BLOCKSIZE + pagesizeinbytes_pagecache(pgsize))
       TEST(0 == releasepage_pagecacheimpl(&pgcache, &page));
       TEST(0 == page.addr);
       TEST(0 == page.size);
-      TEST(pgcache.sizeallocated == oldsize + block->pageblock.size)
+      TEST(pgcache.sizeallocated == oldsize + pagecache_block_BLOCKSIZE)
       TEST(pgcache.sizestatic    == 0);
       TEST(block->usedpagecount  == 0);
-      for (size_t offset = 0; offset < block->pageblock.size; offset += block->pagesize) {
-         page.addr = firstblock->pageblock.addr + offset;
-         page.size = firstblock->pagesize;
-         TEST(pgcache.sizeallocated     == oldsize + block->pageblock.size-offset)
+      for (size_t offset = 0; offset < pagecache_block_BLOCKSIZE; offset += pagesizeinbytes_pagecache(pgsize)) {
+         page.addr = firstblock->blockaddr + offset;
+         page.size = pagesizeinbytes_pagecache(pgsize);
+         TEST(pgcache.sizeallocated     == oldsize + pagecache_block_BLOCKSIZE-offset)
          TEST(pgcache.sizestatic        == 0);
-         TEST(firstblock->usedpagecount == (block->pageblock.size-offset)/block->pagesize);
+         TEST(firstblock->usedpagecount == (pagecache_block_BLOCKSIZE-offset)/pagesizeinbytes_pagecache(pgsize));
          TEST(block == last_blocklist(cast_dlist(&pgcache.blocklist)));
          TEST(firstblock == first_blocklist(cast_dlist(&pgcache.blocklist)));
          if (offset) {
@@ -1416,8 +1419,8 @@ static int test_alloc(void)
       sizestatic += alignedsize;
       TEST(pgcache.sizeallocated       == oldsize + 4096);
       TEST(pgcache.sizestatic          == sizestatic);
-      TEST(pgcache.staticpagelist.last == (void*)block->pageblock.addr);
-      TEST(page.addr == block->pageblock.addr + alignedheadersize + sizestatic - alignedsize);
+      TEST(pgcache.staticpagelist.last == (void*)block->blockaddr);
+      TEST(page.addr == block->blockaddr + alignedheadersize + sizestatic - alignedsize);
       TEST(page.size == alignedsize);
    }
 
@@ -1427,21 +1430,21 @@ static int test_alloc(void)
    // nothing changed
    TEST(pgcache.sizeallocated       == oldsize + 4096);
    TEST(pgcache.sizestatic          == sizestatic);
-   TEST(pgcache.staticpagelist.last == (void*)block->pageblock.addr);
-   TEST(page.addr == block->pageblock.addr + alignedheadersize + sizestatic - 256);
+   TEST(pgcache.staticpagelist.last == (void*)block->blockaddr);
+   TEST(page.addr == block->blockaddr + alignedheadersize + sizestatic - 256);
    TEST(page.size == 256);
 
    // TEST freestatic_pagecacheimpl: 1 byte -> 256 bytes
    for (unsigned i = 256; i >= 1; i /= 2) {
       unsigned alignedsize = (i % KONFIG_MEMALIGN) ? i + KONFIG_MEMALIGN - (i % KONFIG_MEMALIGN) : i;
       sizestatic -= alignedsize;
-      page = (memblock_t) memblock_INIT(i, block->pageblock.addr + alignedheadersize + sizestatic);
+      page = (memblock_t) memblock_INIT(i, block->blockaddr + alignedheadersize + sizestatic);
       TEST(0 == freestatic_pagecacheimpl(&pgcache, &page));
       TEST(0 == page.addr);
       TEST(0 == page.size);
       TEST(pgcache.sizeallocated       == oldsize + (i > 1 ? 4096 : 0));
       TEST(pgcache.sizestatic          == sizestatic);
-      TEST(pgcache.staticpagelist.last == (i > 1 ? (void*)block->pageblock.addr : 0));
+      TEST(pgcache.staticpagelist.last == (i > 1 ? (void*)block->blockaddr : 0));
       // calling it twice does nothing
       TEST(0 == freestatic_pagecacheimpl(&pgcache, &page));
       TEST(0 == page.addr);
@@ -1458,7 +1461,7 @@ static int test_alloc(void)
          sizest += 128;
          TEST(pgcache.sizeallocated    == oldsize + size + 4096);
          TEST(pgcache.sizestatic       == sizest);
-         TEST(page.addr == block->pageblock.addr + size + offset);
+         TEST(page.addr == block->blockaddr + size + offset);
          TEST(page.size == 128);
       }
    }
@@ -1466,7 +1469,7 @@ static int test_alloc(void)
    // TEST freestatic_pagecacheimpl: several pages
    for (; size; size -= 4096) {
       for (size_t offset = alignedheadersize+(4096-alignedheadersize)/128*128; offset > 128; sizest -= 128, offset -= 128) {
-         page.addr = block->pageblock.addr + size - 4096 + offset - 128;
+         page.addr = block->blockaddr + size - 4096 + offset - 128;
          page.size = 128;
          TEST(pgcache.sizeallocated == oldsize + size);
          TEST(pgcache.sizestatic    == sizest);
@@ -1574,7 +1577,7 @@ static int test_initthread(void)
    TEST(pgcacheimpl->sizestatic == alignedobjsize)
    size_t alignedheadersize = !(sizeof(staticpage_t) % KONFIG_MEMALIGN) ? sizeof(staticpage_t) : sizeof(staticpage_t) + KONFIG_MEMALIGN - (sizeof(staticpage_t) % KONFIG_MEMALIGN);
    pagecache_block_t* block = first_freeblocklist(cast_dlist(&pgcacheimpl->freeblocklist[pagesize_4096]));
-   TEST(pgcache.object == (void*)(block->pageblock.addr + alignedheadersize));
+   TEST(pgcache.object == (void*)(block->blockaddr + alignedheadersize));
    TEST(pgcache.iimpl  == cast_pagecacheit(&s_pagecacheimpl_interface, pagecache_impl_t));
 
    // TEST initthread_pagecacheimpl: EINVAL (pgcache.object != 0)
