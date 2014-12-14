@@ -88,7 +88,7 @@ struct pagecache_impl_t {
     * This may be changed for example by using the the "buddy memory allocation" technique. */
    struct {
       struct dlist_node_t* last;
-   }        freeblocklist[6];
+   }        freeblocklist[13];
    /* variable: staticpagelist
     * A list of static memory blocks.
     * Functions <allocstatic_pagecacheimpl> and <freestatic_pagecacheimpl> could change this list. */

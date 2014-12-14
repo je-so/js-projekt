@@ -4,6 +4,10 @@
 
    Do not use the interface directly instead include <PageCacheMacros>.
 
+   Additional Includes:
+   You have to include "C-kern/api/math/int/log2.h" if you want to call
+   <pagecache_t.pagesizefrombytes_pagecache>.
+
    Copyright:
    This program is free software. See accompanying LICENSE file.
 
@@ -33,24 +37,38 @@ typedef struct pagecache_it pagecache_it;
 /* enums: pagesize_e
  * List of supported page sizes.
  *
- * pagesize_256   - Request page size of 256 byte aligned to a 256 byte boundary.
- * pagesize_1024  - Request page size of 1024 byte aligned to a 1024 byte boundary.
- * pagesize_4096  - Request page size of 4096 byte aligned to a 4096 byte boundary.
- * pagesize_16384 - Request page size of 16384 byte aligned to a 16384 byte boundary.
- * pagesize_65536 - Request page size of 65536 byte aligned to a 65536 byte boundary.
- * pagesize_1MB   - Request page size of 1048576 byte aligned to a 1MB byte boundary.
+ * pagesize_256    - Request page size of 256 bytes aligned to a 256 byte boundary.
+ * pagesize_512    - Request page size of 512 bytes aligned to a 512 byte boundary.
+ * pagesize_1024   - Request page size of 1024 bytes aligned to a 1024 byte boundary.
+ * pagesize_2048   - Request page size of 2048 bytes aligned to a 2048 byte boundary.
+ * pagesize_4096   - Request page size of 4096 bytes aligned to a 4096 byte boundary.
+ * pagesize_8192   - Request page size of 8192 bytes aligned to a 8192 byte boundary.
+ * pagesize_16384  - Request page size of 16384 bytes aligned to a 16384 byte boundary.
+ * pagesize_32768  - Request page size of 32768 bytes aligned to a 32768 byte boundary.
+ * pagesize_65536  - Request page size of 65536 bytes aligned to a 65536 byte boundary.
+ * pagesize_131072 - Request page size of 131072 bytes aligned to a 131072 byte boundary.
+ * pagesize_262144 - Request page size of 262144 bytes aligned to a 262144 byte boundary.
+ * pagesize_524288 - Request page size of 524288 bytes aligned to a 524288 byte boundary.
+ * pagesize_1MB    - Request page size of 1048576 bytes aligned to a 1MB byte boundary.
+ * pagesize__NROF  - The number of named values of <pagesize_e>.
  * */
 typedef enum pagesize_e {
    pagesize_256,
+   pagesize_512,
    pagesize_1024,
+   pagesize_2048,
    pagesize_4096,
+   pagesize_8192,
    pagesize_16384,
+   pagesize_32768,
    pagesize_65536,
+   pagesize_131072,
+   pagesize_262144,
+   pagesize_524288,
    pagesize_1MB,
-   pagesize_NROFPAGESIZE
+   pagesize__NROF
 } pagesize_e;
 
-// TODO: support all pagesizes doubling in size until 1MB
 // TODO: rename pagesize_NROFPAGESIZE into pagesize__NROF (also in all other modules)
 // TODO: change iobj_DECLARE into iobj_T
 
@@ -86,9 +104,26 @@ iobj_DECLARE(pagecache_t, pagecache);
 
 // group: query
 
+// group: query
+
 /* function: isobject_pagecache
  * Returns true if member <pagecache_t.object> of pgcache is not null. */
 bool isobject_pagecache(const pagecache_t* pgcache);
+
+/* function: pagesizeinbytes_pagecache
+ * Translates enum <pagesize_e> into size in bytes.
+ *
+ * Unchecked Precondition:
+ * o pagesize < <pagesize__NROF> */
+static inline size_t pagesizeinbytes_pagecache(pagesize_e pagesize);
+
+/* function: pagesizefrombytes_pagecache
+ * Translates size in bytes into enum <pagesize_e>.
+ *
+ * Unchecked Preconditions:
+ * o pagesize is a power of two
+ * o pagesize <= 1024*1024 */
+pagesize_e pagesizefrombytes_pagecache(size_t size_in_bytes);
 
 // group: call
 
@@ -186,23 +221,13 @@ struct pagecache_it {
             (emptycache_f)                                                 \
          }
 
-// group: query
-
-/* function: pagesizeinbytes_pagecacheit
- * Translates enum <pagesize_e> into size in bytes.
- *
- * Precondition:
- * o pagesize is a value out of <pagesize_e>
- *   else an invalid value is returned. */
-size_t pagesizeinbytes_pagecacheit(pagesize_e pagesize);
-
 // group: generic
 
 /* function: cast_pagecacheit
  * Casts pointer pgcacheif into pointer to interface <pagecache_it>.
  * Parameter *pgcacheif* must point to a type declared with <pagecache_IT>.
  * The other parameters must be the same as in <pagecache_IT> without the first. */
-pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
+pagecache_it* cast_pagecacheit(void* pgcacheif, TYPENAME pagecache_t);
 
 /* function: pagecache_IT
  * Declare generic type interface type with pagecache_t as first parameter.
@@ -244,6 +269,11 @@ pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
 #define allocstatic_pagecache(pgcache, bytesize, memblock)  \
          ((pgcache).iimpl->allocstatic((pgcache).object, (bytesize), (memblock)))
 
+/* define: emptycache_pagecache
+ * Implements <pagecache_t.emptycache_pagecache>. */
+#define emptycache_pagecache(pgcache)  \
+         ((pgcache).iimpl->emptycache((pgcache).object))
+
 /* define: freestatic_pagecache
  * Implements <pagecache_t.freestatic_pagecache>. */
 #define freestatic_pagecache(pgcache, memblock) \
@@ -254,10 +284,23 @@ pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
 #define isobject_pagecache(pgcache) \
          (0 != (pgcache)->object)
 
-/* define: emptycache_pagecache
- * Implements <pagecache_t.emptycache_pagecache>. */
-#define emptycache_pagecache(pgcache)  \
-         ((pgcache).iimpl->emptycache((pgcache).object))
+/* define: pagesizefrombytes_pagecache
+ * Implements <pagecache_t.pagesizefrombytes_pagecache>. */
+#define pagesizefrombytes_pagecache(size_in_bytes) \
+         ( __extension__ ({               \
+            size_t _sz = (size_in_bytes); \
+            _sz /= 256;                   \
+            _sz += (_sz == 0);            \
+            unsigned _e = log2_int(_sz);  \
+            (pagesize_e) _e;              \
+         }))
+
+/* define: pagesizeinbytes_pagecache
+ * Implements <pagecache_t.pagesizeinbytes_pagecache>. */
+static inline size_t pagesizeinbytes_pagecache(pagesize_e pagesize)
+{
+         return (size_t)256 << pagesize;
+}
 
 /* define: releasepage_pagecache
  * Implements <pagecache_t.releasepage_pagecache>. */
@@ -307,15 +350,5 @@ pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
          "ensure compatible structure");                           \
       (pagecache_it*) _if;                                         \
    }))
-
-/* define: pagesizeinbytes_pagecacheit
- * Implements <pagecache_it.pagesizeinbytes_pagecacheit>. */
-#define pagesizeinbytes_pagecacheit(pagesize) \
-         ( __extension__ ({                   \
-            unsigned _pgsize;                 \
-            _pgsize = (pagesize);             \
-            (size_t)256 << (2u*_pgsize + 2u*(_pgsize == pagesize_1MB)); \
-         }))
-
 
 #endif

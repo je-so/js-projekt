@@ -141,7 +141,7 @@ struct queue_t {
 
 /* define: queue_INIT
  * Static initializer. */
-#define queue_INIT { 0,  2/*4096 bytes pagesize*/ }
+#define queue_INIT { 0,  4/*4096 bytes pagesize*/ }
 
 /* function: init_queue
  * Initialisiert queue. Kein Speicher wird allokiert.
@@ -504,7 +504,7 @@ struct queue_page_t {
 /* define: pagesize_queue
  * Implements <queue_t.pagesize_queue>. */
 #define pagesize_queue(queue) \
-         ((uint16_t)(256u << (2*(queue)->pagesize)))
+         ((uint16_t)(256u << (queue)->pagesize))
 
 /* define: defaultpagesize_queue
  * Implements <queue_t.defaultpagesize_queue>. */

@@ -20,6 +20,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/math/int/log2.h"
 #endif
 
 
@@ -134,21 +135,32 @@ static int test_query(void)
    pgcache.object = (void*)0;
    TEST(0 == isobject_pagecache(&pgcache));
 
-   return 0;
-ONERR:
-   return EINVAL;
-}
+   // TEST pagesizeinbytes_pagecache
+   static_assert(0 == pagesize_256, "256 bytes is smallest page size");
+   size_t bytes = 256;
+   for (pagesize_e pgsz = 0; pgsz < pagesize__NROF; ++pgsz, bytes *= 2) {
+      TEST(bytes == pagesizeinbytes_pagecache(pgsz));
+   }
 
-static int test_queryit(void)
-{
-   // TEST pagesizeinbytes_pagecacheit
-   static_assert(6 == pagesize_NROFPAGESIZE, "tested all possible values");
-   TEST(256   == pagesizeinbytes_pagecacheit(pagesize_256));
-   TEST(1024  == pagesizeinbytes_pagecacheit(pagesize_1024));
-   TEST(4096  == pagesizeinbytes_pagecacheit(pagesize_4096));
-   TEST(16384 == pagesizeinbytes_pagecacheit(pagesize_16384));
-   TEST(65536 == pagesizeinbytes_pagecacheit(pagesize_65536));
-   TEST(1048576 == pagesizeinbytes_pagecacheit(pagesize_1MB));
+   // TEST pagesizeinbytes_pagecache: invalid value
+   TEST(bytes == pagesizeinbytes_pagecache(pagesize__NROF));
+   TEST(0 == pagesizeinbytes_pagecache((pagesize_e) (sizeof(size_t)*8-1)));
+
+   // TEST pagesizefrombytes_pagecache: less than 256 mapped to 256 bytes
+   for (bytes = 0; bytes < 256; ++bytes) {
+      TEST(pagesize_256 == pagesizefrombytes_pagecache(bytes));
+   }
+
+   // TEST pagesizefrombytes_pagecache: values mapped to next !!lower!! power of two
+   for (pagesize_e pgsz = 0; pgsz < pagesize__NROF; ++bytes, pgsz += !(bytes&(bytes-1))) {
+      TEST(pgsz == pagesizefrombytes_pagecache(bytes));
+   }
+
+   // TEST pagesizefrombytes_pagecache: invalid value
+   TEST(pagesize__NROF == pagesizefrombytes_pagecache(bytes));
+   TEST(pagesize__NROF == pagesizefrombytes_pagecache(2*bytes-1));
+   TEST(pagesize__NROF+1 == pagesizefrombytes_pagecache(2*bytes));
+   TEST(8*sizeof(size_t)-9 == pagesizefrombytes_pagecache((size_t)-1));
 
    return 0;
 ONERR:
@@ -320,7 +332,6 @@ int unittest_memory_pagecache()
    if (test_initfreeit())     goto ONERR;
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;
-   if (test_queryit())        goto ONERR;
    if (test_genericit())      goto ONERR;
    if (test_call())           goto ONERR;
 

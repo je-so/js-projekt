@@ -23,6 +23,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/ds/foreach.h"
+#include "C-kern/api/memory/pagecache.h"
 #endif
 
 
@@ -105,7 +106,7 @@ static int test_initfree(void)
       memset(&syncqueue, 255, sizeof(syncqueue)) ;
       init_syncqueue(&syncqueue, (uint16_t)i, (uint8_t)(i+1));
       TEST(0 == syncqueue.last);
-      TEST(1 == syncqueue.pagesize);
+      TEST(pagesize_1024 == syncqueue.pagesize);
       TEST(syncqueue_PAGESIZE == pagesize_queue(cast_queue(&syncqueue)));
       TEST(i == syncqueue.qidx-1);
       TEST(i == syncqueue.elemsize);

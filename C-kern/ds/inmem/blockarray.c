@@ -113,12 +113,12 @@ int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t ele
 {
    int err ;
    datablock_t *  datablock ;
-   size_t         blocksize_in_bytes = pagesizeinbytes_pagecacheit(pagesize) ;
+   size_t         blocksize_in_bytes = pagesizeinbytes_pagecache(pagesize);
 
-   static_assert(pagesize_NROFPAGESIZE < 255, "fits in uint8_t") ;
+   static_assert(pagesize__NROF < 255, "fits in uint8_t") ;
    static_assert(4 == sizeof(void*) || 8 == sizeof(void*), "ptr_per_block is power of two") ;
 
-   VALIDATE_INPARAM_TEST(pagesize < pagesize_NROFPAGESIZE, ONERR,) ;
+   VALIDATE_INPARAM_TEST(pagesize < pagesize__NROF, ONERR,) ;
    VALIDATE_INPARAM_TEST(0 < elementsize && elementsize <= blocksize_in_bytes, ONERR,) ;
 
    err = new_datablock(&datablock, pagesize);
@@ -151,8 +151,8 @@ int free_blockarray(blockarray_t * barray)
    err = 0 ;
 
    if (barray->root) {
-      size_t   pagesize_in_bytes = pagesizeinbytes_pagecacheit(barray->pagesize) ;
-      size_t   ptr_per_block     = (size_t)1 << barray->log2ptr_per_block ;
+      size_t   pagesize_in_bytes = pagesizeinbytes_pagecache(barray->pagesize);
+      size_t   ptr_per_block     = (size_t)1 << barray->log2ptr_per_block;
 
       struct {
          ptrblock_t *   block ;
@@ -346,8 +346,8 @@ static int test_helpertypes(void)
    size_t         blocksize = 0 ;
 
    // TEST new_ptrblock, delete_memoryblock
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      blocksize = pagesizeinbytes_pagecache(pgsize) ;
       TEST(blocksize >= 256) ;
       TEST(ispowerof2_int(blocksize)) ;
 
@@ -365,8 +365,8 @@ static int test_helpertypes(void)
    }
 
    // TEST new_datablock, delete_memoryblock
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      blocksize = pagesizeinbytes_pagecache(pgsize) ;
 
       size_t oldsize = sizeallocated_pagecache(pagecache_maincontext()) ;
 
@@ -414,7 +414,7 @@ static int build_test_node(void ** block, pagesize_e pgsize, uint8_t depth)
       TEST(0 == build_test_node(&child, pgsize, (uint8_t)(depth-1))) ;
       ptrblock->childs[0] = child ;
       TEST(0 == build_test_node(&child, pgsize, (uint8_t)(depth-1))) ;
-      size_t maxindex = pagesizeinbytes_pagecacheit(pgsize)/sizeof(void*)-1 ;
+      size_t maxindex = pagesizeinbytes_pagecache(pgsize)/sizeof(void*)-1 ;
       ptrblock->childs[maxindex] = child ;
    }
 
@@ -431,7 +431,7 @@ ONERR:
 static int build_test_tree(blockarray_t * barray, pagesize_e pgsize, uint8_t depth)
 {
    TEST(0 == barray->depth) ;
-   TEST(0 == delete_memoryblock(barray->root, pagesizeinbytes_pagecacheit(pgsize))) ;
+   TEST(0 == delete_memoryblock(barray->root, pagesizeinbytes_pagecache(pgsize))) ;
    barray->root  = 0 ;
    barray->depth = depth ;
    TEST(0 == build_test_node(&barray->root, pgsize, depth)) ;
@@ -443,15 +443,15 @@ ONERR:
 
 static int test_initfree(void)
 {
-   blockarray_t   barray  = blockarray_FREE ;
+   blockarray_t barray = blockarray_FREE;
 
    // TEST blockarray_FREE
-   TEST(1 == isfree_blockarray(&barray)) ;
+   TEST(1 == isfree_blockarray(&barray));
 
    // TEST init_blockarray, free_blockarray: elementsize not power of two
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t oldsize   = sizeallocated_pagecache(pagecache_maincontext()) ;
-      size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      size_t oldsize   = sizeallocated_pagecache(pagecache_maincontext());
+      size_t blocksize = pagesizeinbytes_pagecache(pgsize);
 
       barray.depth = 1 ;
       barray.log2elements_per_block = 1 ;
@@ -474,9 +474,9 @@ static int test_initfree(void)
    }
 
    // TEST init_blockarray, free_blockarray: elementsize power of two
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
       size_t oldsize   = sizeallocated_pagecache(pagecache_maincontext()) ;
-      size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+      size_t blocksize = pagesizeinbytes_pagecache(pgsize) ;
 
       barray.depth = 1 ;
       TEST(0 == init_blockarray(&barray, pgsize, 32)) ;
@@ -496,14 +496,14 @@ static int test_initfree(void)
 
    // TEST init_blockarray: EINVAL
    TEST(EINVAL == init_blockarray(&barray, (uint8_t)-1, 16)) ;
-   TEST(EINVAL == init_blockarray(&barray, pagesize_NROFPAGESIZE, 16)) ;
+   TEST(EINVAL == init_blockarray(&barray, pagesize__NROF, 16)) ;
    TEST(EINVAL == init_blockarray(&barray, pagesize_16384, 0)) ;
    TEST(EINVAL == init_blockarray(&barray, pagesize_16384, 16385)) ;
 
    // TEST init_blockarray, free_blockarray: one per page, free whole tree
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
       size_t oldsize   = sizeallocated_pagecache(pagecache_maincontext()) ;
-      size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+      size_t blocksize = pagesizeinbytes_pagecache(pgsize) ;
       uint16_t elemsize = (uint16_t) (blocksize < UINT16_MAX ? blocksize : 32768) ;
 
       TEST(0 == init_blockarray(&barray, pgsize, elemsize)) ;
@@ -618,8 +618,8 @@ static int test_update(void)
    TEST(sizeallocated_pagecache(pagecache_maincontext()) == oldsize) ;
 
    // TEST assign_blockarray: first block
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      size_t blocksize = pagesizeinbytes_pagecache(pgsize) ;
       // test elemsize power of two and not
       uint16_t maxelemsize = (uint16_t) (blocksize <= UINT16_MAX ? blocksize : UINT16_MAX) ;
       uint16_t elemsize[5] = { 1, 2, (uint16_t)(maxelemsize/2-1), (uint16_t)(maxelemsize-1), maxelemsize } ;
@@ -654,8 +654,8 @@ static int test_update(void)
    }
 
    // TEST assign_blockarray: test hierarchy
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      size_t blocksize = pagesizeinbytes_pagecache(pgsize) ;
       // test elemsize power of two and not
       uint16_t maxelemsize = (uint16_t) (blocksize <= UINT16_MAX ? blocksize : UINT16_MAX) ;
       uint16_t elemsize[5] = { 1, 2, (uint16_t)(maxelemsize/2-1), (uint16_t)(maxelemsize-1), maxelemsize } ;
@@ -769,8 +769,8 @@ static int test_read(void)
    uint16_t       elemsize[]   = { 1, 3, 4, 8, 12, 16, 24, 30, 32, 55 } ;
 
    // TEST at_blockarray
-   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t blocksize    = pagesizeinbytes_pagecacheit(pgsize) ;
+   for (pagesize_e pgsize = 0; pgsize < pagesize__NROF; ++pgsize) {
+      size_t blocksize    = pagesizeinbytes_pagecache(pgsize) ;
       for (size_t sizeindex = 0; sizeindex < lengthof(elemsize); ++sizeindex) {
          size_t nreleminblock = blocksize / elemsize[sizeindex] ;
          size_t maxblockindex = SIZE_MAX / nreleminblock ;
