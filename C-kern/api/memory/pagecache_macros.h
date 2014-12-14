@@ -76,7 +76,7 @@
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_pagecache_macros
  * Test <pagecache_t> functionality. */
-int unittest_memory_pagecache_macros(void) ;
+int unittest_memory_pagecache_macros(void);
 #endif
 
 

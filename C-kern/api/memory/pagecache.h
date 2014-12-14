@@ -51,8 +51,8 @@ typedef enum pagesize_e {
 } pagesize_e;
 
 // TODO: support all pagesizes doubling in size until 1MB
-// TODO: change formatting (remove spaces)
 // TODO: rename pagesize_NROFPAGESIZE into pagesize__NROF (also in all other modules)
+// TODO: change iobj_DECLARE into iobj_T
 
 
 // section: Functions

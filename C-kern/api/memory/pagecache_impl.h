@@ -27,24 +27,24 @@
 #define CKERN_MEMORY_PAGECACHEIMPL_HEADER
 
 // forward
-struct memblock_t ;
-struct dlist_node_t ;
-struct pagecache_t ;
+struct memblock_t;
+struct dlist_node_t;
+struct pagecache_t;
 
 /* typedef: struct pagecache_impl_t
  * Export <pagecache_impl_t> into global namespace. */
-typedef struct pagecache_impl_t           pagecache_impl_t ;
+typedef struct pagecache_impl_t pagecache_impl_t;
 
 /* typedef: struct pagecache_block_t
  * Export opaque type <pagecache_block_t> into global namespace.
  * This type stores information about a large block of memory of at least 1MB. */
-typedef struct pagecache_block_t          pagecache_block_t ;
+typedef struct pagecache_block_t pagecache_block_t;
 
 /* typedef: struct pagecache_blockmap_t
  * Export type <pagecache_blockmap_t> into global namespace.
  * It serves as hashtable for a set of <pagecache_block_t>.
  * The hashtable is shared between all <pagecache_impl_t>. */
-typedef struct pagecache_blockmap_t       pagecache_blockmap_t ;
+typedef struct pagecache_blockmap_t pagecache_blockmap_t;
 
 
 // section: Functions
@@ -54,7 +54,7 @@ typedef struct pagecache_blockmap_t       pagecache_blockmap_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_pagecacheimpl
  * Test <pagecache_impl_t> functionality. */
-int unittest_memory_pagecacheimpl(void) ;
+int unittest_memory_pagecacheimpl(void);
 #endif
 
 
@@ -69,62 +69,65 @@ int unittest_memory_pagecacheimpl(void) ;
  * TODO: To prevent fragmentation of large blocks introduce page lifetime (long, short lifetime, ...).
  *       This helps to place longer living pages on one big block and short living pages on another.
  *       Blocks with pages with short lifetime can be reclaimed faster.
+ *       -- See also "Region-based memory management"
  */
 struct pagecache_impl_t {
+   // group: private fields
    /* variable: blocklist
     * A list of <pagecache_block_t>.
     * This collection is used to free all allocated memory blocks.
     * Objects of type <pagecache_block_t> are stored on the memory heap
     * (managed by <pagecache_blockmap_t>) and are not part of the allocated memory blocks. */
    struct {
-      struct dlist_node_t *   last ;
-   }                       blocklist ;
+      struct dlist_node_t* last;
+   }        blocklist;
    /* variable: freelist
     * An array of list of allocated blocks which contain free pages.
     * A single large block contains only pages of one size. Different blocks serve different sizes.
     * Therefore every page size has its own free list.
     * This may be changed for example by using the the "buddy memory allocation" technique. */
    struct {
-      struct dlist_node_t *   last ;
-   }                       freeblocklist[6] ;
+      struct dlist_node_t* last;
+   }        freeblocklist[6];
    /* variable: staticpagelist
     * A list of static memory blocks.
     * Functions <allocstatic_pagecacheimpl> and <freestatic_pagecacheimpl> could change this list. */
    struct {
-      struct dlist_node_t *   last ;
-   }                       staticpagelist ;
+      struct dlist_node_t* last;
+   }        staticpagelist;
    /* variable: sizeallocated
     * Number of allocated bytes.
     * This number is incremented by every call to <allocpage_pagecacheimpl>
     * and decremented by every call to <releasepage_pagecacheimpl>. */
-   size_t                  sizeallocated ;
+   size_t   sizeallocated;
    /* variable: sizestatic
     * Number of allocated bytes from static memory. Value is incremented by every
     * call to <allocstatic_pagecacheimpl> and decremented by every call to <freestatic_pagecacheimpl>. */
-   size_t                  sizestatic ;
-} ;
+   size_t   sizestatic;
+};
 
 // group: init
 
 /* function: initthread_pagecacheimpl
  * Calls <init_pagecacheimpl> and adds interface <pagecache_it> to object.
  * This function is called from <threadcontext_t.init_threadcontext>. */
-int initthread_pagecacheimpl(/*out*/struct pagecache_t * pagecache) ;
+int initthread_pagecacheimpl(/*out*/struct pagecache_t* pagecache);
 
 /* function: freethread_pagecacheimpl
  * Calls <free_pagecacheimpl> with for object pointer in <pagecache_t>.
  * This function is called from <threadcontext_t.free_threadcontext>. */
-int freethread_pagecacheimpl(struct pagecache_t * pagecache) ;
+int freethread_pagecacheimpl(struct pagecache_t* pagecache);
 
 // group: lifetime
 
 /* define: pagecache_impl_FREE
  * Static initializer. */
-#define pagecache_impl_FREE { { 0 }, { { 0 } }, { 0 }, 0, 0 }
+#define pagecache_impl_FREE \
+         { { 0 }, { { 0 } }, { 0 }, 0, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
-int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache) ;
+int init_pagecacheimpl(/*out*/pagecache_impl_t* pgcache);
 
 /* function: free_pagecacheimpl
  * Frees all allocated memory pages even if they are in use.
@@ -134,36 +137,36 @@ int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache) ;
  * used after calling this function.
  * In not all memory has been freed the error ENOTEMPTY is returned but
  * memory is freed nevertheless. */
-int free_pagecacheimpl(pagecache_impl_t * pgcache) ;
+int free_pagecacheimpl(pagecache_impl_t* pgcache);
 
 // group: query
 
 /* function: sizeallocated_pagecacheimpl
  * Returns the sum of the size of all allocated pages.
  * Static memory is also allocated with help of <allocpage_pagecacheimpl>. */
-size_t sizeallocated_pagecacheimpl(const pagecache_impl_t * pgcache) ;
+size_t sizeallocated_pagecacheimpl(const pagecache_impl_t* pgcache);
 
 /* function: sizestatic_pagecacheimpl
  * Returns wize of memory allocated with <allocstatic>. */
-size_t sizestatic_pagecacheimpl(const pagecache_impl_t * pgcache) ;
+size_t sizestatic_pagecacheimpl(const pagecache_impl_t* pgcache);
 
 /* function: isfree_pagecacheimpl
  * Returns true if pgcache equals <pagecache_impl_FREE>. */
-bool isfree_pagecacheimpl(const pagecache_impl_t * pgcache) ;
+bool isfree_pagecacheimpl(const pagecache_impl_t* pgcache);
 
 // group: alloc
 
 /* function: allocpage_pagecacheimpl
  * Allocates a single memory page of size pgsize.
  * The page is aligned to its own size. */
-int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;
+int allocpage_pagecacheimpl(pagecache_impl_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page);
 
 /* function: releasepage_pagecacheimpl
  * Releases a single memory page. It is kept in the cache and only returned to
  * the operating system if a big chunk of memory is not in use.
  * After return page is set to <memblock_FREE>. Calling this function with
  * page set to <memblock_FREE> does nothing. */
-int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * page) ;
+int releasepage_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* page);
 
 /* function: allocstatic_pagecacheimpl
  * Allocates static memory which should live as long as pgcache.
@@ -173,7 +176,7 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
  * In case of no memory ENOMEM is returned. The size of the block if restricted to 128 bytes.
  * Calling this function increases <sizeallocated_pagecacheimpl> or not if bytesize bytes fits
  * on a previously allocated page. */
-int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;
+int allocstatic_pagecacheimpl(pagecache_impl_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock);
 
 /* function: freestatic_pagecacheimpl
  * Frees static memory.
@@ -181,13 +184,13 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
  * the value EINVAL is returned and nothing is done.
  * After return memblock is set to <memblock_FREE>.
  * Calling this function with memblock set to <memblock_FREE> does nothing. */
-int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * memblock) ;
+int freestatic_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* memblock);
 
 // group: cache
 
 /* function: emptycache_pagecacheimpl
  * Releases all unused memory blocks back to the operating system. */
-int emptycache_pagecacheimpl(pagecache_impl_t * pgcache) ;
+int emptycache_pagecacheimpl(pagecache_impl_t* pgcache);
 
 
 /* struct: pagecache_blockmap_t
@@ -199,11 +202,11 @@ int emptycache_pagecacheimpl(pagecache_impl_t * pgcache) ;
  *
  * Use <pagecache_blockmap_ARRAYSIZE> to configure the static size of the array. */
 struct pagecache_blockmap_t {
-   uint8_t *   array_addr ;
-   size_t      array_size ;
-   size_t      array_len ;
-   size_t      indexmask ;
-} ;
+   uint8_t* array_addr;
+   size_t   array_size;
+   size_t   array_len;
+   size_t   indexmask;
+};
 
 // group: config
 
@@ -212,21 +215,23 @@ struct pagecache_blockmap_t {
  * The number of supported <pagecache_block_t> is fixed cause only
  * one entry per hash bucket is supported with no overflow handling.
  * pagecache_blockmap_t is considered to be implemented in hardware. */
-#define pagecache_blockmap_ARRAYSIZE (2*1024*1024)
+#define pagecache_blockmap_ARRAYSIZE \
+         (2*1024*1024)
 
 // group: lifetime
 
 /* define: pagecache_blockmap_FREE
  * Static initializer. */
-#define pagecache_blockmap_FREE { 0, 0, 0, 0 }
+#define pagecache_blockmap_FREE \
+         { 0, 0, 0, 0 }
 
 /* function: init_pagecacheblockmap
  * Allocates a shared hash table of size <pagecache_blockmap_FREE>. */
-int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap) ;
+int init_pagecacheblockmap(/*out*/pagecache_blockmap_t* blockmap);
 
 /* function: free_pagecacheblockmap
  * Frees allocated hash table. Make sure that no <pagecache_block_t> is in use. */
-int free_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
+int free_pagecacheblockmap(pagecache_blockmap_t* blockmap);
 
 
 #endif
