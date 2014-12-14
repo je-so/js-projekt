@@ -219,8 +219,8 @@ static int emptycache2_dummy(struct pagecachex_t* pgcache)
    return 0;
 }
 
-// TEST pagecache_it_DECLARE
-pagecache_it_DECLARE(pagecachex_it, struct pagecachex_t)
+// TEST pagecache_IT
+typedef pagecache_IT(struct pagecachex_t) pagecachex_it;
 
 static int test_genericit(void)
 {

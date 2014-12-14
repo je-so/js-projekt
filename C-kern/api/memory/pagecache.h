@@ -200,12 +200,12 @@ size_t pagesizeinbytes_pagecacheit(pagesize_e pagesize);
 
 /* function: cast_pagecacheit
  * Casts pointer pgcacheif into pointer to interface <pagecache_it>.
- * Parameter *pgcacheif* must point to a type declared with <pagecache_it_DECLARE>.
- * The other parameters must be the same as in <pagecache_it_DECLARE> without the first. */
+ * Parameter *pgcacheif* must point to a type declared with <pagecache_IT>.
+ * The other parameters must be the same as in <pagecache_IT> without the first. */
 pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
 
-/* function: pagecache_it_DECLARE
- * Declares an interface function table for accessing pagecache.
+/* function: pagecache_IT
+ * Declare generic type interface type with pagecache_t as first parameter.
  * The declared interface is structural compatible with <pagecache_it>.
  * The difference between the newly declared interface and the generic interface
  * is the type of the first parameter.
@@ -217,7 +217,16 @@ pagecache_it * cast_pagecacheit(void * pgcacheif, TYPENAME pagecache_t);
  *                 The name should have the suffix "_it".
  * pagecache_t   - The type of the pagecache object which is the first parameter of all interface functions.
  * */
-void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t);
+#define pagecache_IT(pagecache_t) \
+   struct {                       \
+      int    (*allocpage)     (pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page);      \
+      int    (*releasepage)   (pagecache_t* pgcache, struct memblock_t* page);                             \
+      size_t (*sizeallocated) (const pagecache_t* pgcache);                                                \
+      int    (*allocstatic)   (pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock); \
+      int    (*freestatic)    (pagecache_t* pgcache, struct memblock_t* memblock);                         \
+      size_t (*sizestatic)    (const pagecache_t* pgcache);                                                \
+      int    (*emptycache)    (pagecache_t* pgcache);                                                      \
+   }
 
 
 
@@ -298,20 +307,6 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t);
          "ensure compatible structure");                           \
       (pagecache_it*) _if;                                         \
    }))
-
-/* define: pagecache_it_DECLARE
- * Implements <pagecache_it.pagecache_it_DECLARE>. */
-#define pagecache_it_DECLARE(declared_it, pagecache_t) \
-   typedef struct declared_it declared_it;             \
-   struct declared_it {                                \
-      int    (*allocpage)     (pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page);      \
-      int    (*releasepage)   (pagecache_t* pgcache, struct memblock_t* page);                             \
-      size_t (*sizeallocated) (const pagecache_t* pgcache);                                                \
-      int    (*allocstatic)   (pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock); \
-      int    (*freestatic)    (pagecache_t* pgcache, struct memblock_t* memblock);                         \
-      size_t (*sizestatic)    (const pagecache_t* pgcache);                                                \
-      int    (*emptycache)    (pagecache_t* pgcache);                                                      \
-   };
 
 /* define: pagesizeinbytes_pagecacheit
  * Implements <pagecache_it.pagesizeinbytes_pagecacheit>. */

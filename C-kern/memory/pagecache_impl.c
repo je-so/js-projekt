@@ -32,25 +32,25 @@
 
 /* typedef: struct freepage_t
  * Export type <freepage_t> into global namespace. */
-typedef struct freepage_t                 freepage_t ;
+typedef struct freepage_t freepage_t;
 
 /* typedef: pagecache_impl_it
- * Defines interface pagecache_impl_it - see <pagecache_it_DECLARE>.
+ * Defines interface pagecache_impl_it - see <pagecache_IT>.
  * The interface supports object type <pagecache_impl_t> and is compatible with <pagecache_it>. */
-pagecache_it_DECLARE(pagecache_impl_it, pagecache_impl_t)
+typedef pagecache_IT(pagecache_impl_t) pagecache_impl_it;
 
 /* typedef: struct staticpage_t
  * Export type <staticpage_t> into global namespace. */
-typedef struct staticpage_t               staticpage_t ;
+typedef struct staticpage_t staticpage_t;
 
 
 /* struct: staticpage_t
  * Header of last allocated static memory page. */
 struct staticpage_t {
-   dlist_node_t *       next ;
-   dlist_node_t *       prev ;
-   memblock_t           memblock ;
-} ;
+   dlist_node_t*  next;
+   dlist_node_t*  prev;
+   memblock_t     memblock;
+};
 
 // group: helper
 
