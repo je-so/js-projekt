@@ -1,4 +1,4 @@
-/* title: MemoryPageCache
+/* title: PageCacheImpl
 
    Cache for virtual memory pages.
 
@@ -18,10 +18,10 @@
    (C) 2013 Jörg Seebohn
 
    file: C-kern/api/memory/pagecache_impl.h
-    Header file <MemoryPageCache>.
+    Header file <PageCacheImpl>.
 
    file: C-kern/memory/pagecache_impl.c
-    Implementation file <MemoryPageCache impl>.
+    Implementation file <PageCacheImpl impl>.
 */
 #ifndef CKERN_MEMORY_PAGECACHEIMPL_HEADER
 #define CKERN_MEMORY_PAGECACHEIMPL_HEADER

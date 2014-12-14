@@ -1,6 +1,6 @@
-/* title: MemoryPageCache impl
+/* title: PageCacheImpl impl
 
-   Implements <MemoryPageCache>.
+   Implements <PageCacheImpl>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -9,10 +9,10 @@
    (C) 2013 Jörg Seebohn
 
    file: C-kern/api/memory/pagecache_impl.h
-    Header file <MemoryPageCache>.
+    Header file <PageCacheImpl>.
 
    file: C-kern/memory/pagecache_impl.c
-    Implementation file <MemoryPageCache impl>.
+    Implementation file <PageCacheImpl impl>.
 */
 
 #include "C-kern/konfig.h"
