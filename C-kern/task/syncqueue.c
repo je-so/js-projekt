@@ -43,7 +43,6 @@ int init_syncqueue(/*out*/syncqueue_t * syncqueue, uint16_t elemsize, uint8_t qi
    syncqueue->elemsize = elemsize;
    syncqueue->qidx     = qidx;
    syncqueue->size     = 0;
-   syncqueue->nextfree = 0;
 
    return 0;
 ONERR:
@@ -82,56 +81,55 @@ bool isfree_syncqueue(const syncqueue_t * syncqueue)
 
 static int test_initfree(void)
 {
-   syncqueue_t    syncqueue = syncqueue_FREE ;
-   queue_t        queue ;
+   syncqueue_t    syncqueue = syncqueue_FREE;
+   queue_t        queue;
 
    // TEST syncqueue_t compatible with queue_t
-   queue = (queue_t) queue_FREE ;
-   TEST(0 == queue.last) ;
-   queue = (queue_t) queue_INIT ;
-   TEST(0 == queue.last) ;
-   TEST((queue_t*)&syncqueue == cast_queue(&syncqueue)) ;
+   queue = (queue_t) queue_FREE;
+   TEST(0 == queue.last);
+   queue = (queue_t) queue_INIT;
+   TEST(0 == queue.last);
+   TEST((queue_t*)&syncqueue == cast_queue(&syncqueue));
 
    // TEST syncqueue_FREE
    TEST(0 == syncqueue.last);
    TEST(0 == syncqueue.pagesize);
    TEST(0 == syncqueue.qidx);
    TEST(0 == syncqueue.elemsize);
-   TEST(0 == syncqueue.size) ;
-   TEST(0 == syncqueue.nextfree);
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
+   TEST(0 == syncqueue.size);
+   TEST(1 == isfree_syncqueue(&syncqueue));
 
    // TEST init_syncqueue
    for (int i = 1; i <= 128; ++i) {
-      memset(&syncqueue, 255, sizeof(syncqueue)) ;
+      memset(&syncqueue, 255, sizeof(syncqueue));
       init_syncqueue(&syncqueue, (uint16_t)i, (uint8_t)(i+1));
       TEST(0 == syncqueue.last);
       TEST(pagesize_1024 == syncqueue.pagesize);
       TEST(syncqueue_PAGESIZE == pagesize_queue(cast_queue(&syncqueue)));
       TEST(i == syncqueue.qidx-1);
       TEST(i == syncqueue.elemsize);
-      TEST(0 == syncqueue.size) ;
-      TEST(0 == syncqueue.nextfree);
+      TEST(0 == syncqueue.size);
 
-      // preapre free: allocate some memory
-      TEST(0 == preallocate_syncqueue(&syncqueue));
+      // prepare free: allocate some memory
+      void* node;
+      TEST(0 == preallocate_syncqueue(&syncqueue, &node));
       TEST(0 != syncqueue.last);
       TEST(0 != syncqueue.size);
-      TEST(0 != syncqueue.nextfree);
-      TEST(&syncqueue == castPaddr_syncqueue(syncqueue.nextfree));
+      TEST(0 != node);
+      TEST(&syncqueue == castPaddr_syncqueue(node));
 
       // TEST free_syncqueue
-      TEST(0 == free_syncqueue(&syncqueue)) ;
+      TEST(0 == free_syncqueue(&syncqueue));
       TEST(0 == syncqueue.last);
-      TEST(0 == syncqueue.size) ;
-      TEST(0 == free_syncqueue(&syncqueue)) ;
+      TEST(0 == syncqueue.size);
+      TEST(0 == free_syncqueue(&syncqueue));
       TEST(0 == syncqueue.last);
-      TEST(0 == syncqueue.size) ;
+      TEST(0 == syncqueue.size);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_query(void)
@@ -143,18 +141,18 @@ static int test_query(void)
    static_assert(syncqueue_PAGESIZE == 1024, "supported by queue_t");
 
    // TEST isfree_syncqueue
-   memset(&syncqueue, 255 ,sizeof(syncqueue)) ;
-   TEST(0 == isfree_syncqueue(&syncqueue)) ;
-   syncqueue.last = 0 ;
-   syncqueue.size = 0 ;
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
-   syncqueue.last = (void*)1 ;
-   TEST(0 == isfree_syncqueue(&syncqueue)) ;
-   syncqueue.last = 0 ;
-   syncqueue.size = 1 ;
-   TEST(0 == isfree_syncqueue(&syncqueue)) ;
-   syncqueue.size = 0 ;
-   TEST(1 == isfree_syncqueue(&syncqueue)) ;
+   memset(&syncqueue, 255 ,sizeof(syncqueue));
+   TEST(0 == isfree_syncqueue(&syncqueue));
+   syncqueue.last = 0;
+   syncqueue.size = 0;
+   TEST(1 == isfree_syncqueue(&syncqueue));
+   syncqueue.last = (void*)1;
+   TEST(0 == isfree_syncqueue(&syncqueue));
+   syncqueue.last = 0;
+   syncqueue.size = 1;
+   TEST(0 == isfree_syncqueue(&syncqueue));
+   syncqueue.size = 0;
+   TEST(1 == isfree_syncqueue(&syncqueue));
 
    // TEST elemsize_syncqueue
    for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
@@ -170,8 +168,8 @@ static int test_query(void)
 
    // TEST size_syncqueue
    for (size_t i = 1; i; i <<= 1 ) {
-      syncqueue.size = i ;
-      TEST(i == size_syncqueue(&syncqueue)) ;
+      syncqueue.size = i;
+      TEST(i == size_syncqueue(&syncqueue));
    }
    syncqueue.size = 0;
    TEST(0 == size_syncqueue(&syncqueue));
@@ -181,8 +179,7 @@ static int test_query(void)
    isinit = true;
    void * nodeaddr[128] = { 0 };
    for (unsigned i = 0; i < lengthof(nodeaddr); ++i) {
-      TEST(0 == preallocate_syncqueue(&syncqueue));
-      nodeaddr[i] = nextfree_syncqueue(&syncqueue);
+      TEST(0 == preallocate_syncqueue(&syncqueue, &nodeaddr[i]));
    }
    for (unsigned i = 0; i < lengthof(nodeaddr); ++i) {
       for (unsigned offset = 0; offset < 512; ++offset) {
@@ -191,14 +188,6 @@ static int test_query(void)
    }
    isinit = false;
    TEST(0 == free_syncqueue(&syncqueue));
-
-   // TEST nextfree_syncqueue
-   for (uintptr_t i = 1; i; i <<= 1 ) {
-      syncqueue.nextfree = (void*)i;
-      TEST((void*)i == nextfree_syncqueue(&syncqueue));
-   }
-   syncqueue.nextfree = 0;
-   TEST(0 == nextfree_syncqueue(&syncqueue));
 
    return 0;
 ONERR:
@@ -225,21 +214,11 @@ static int test_update(void)
    init_syncqueue(&syncqueue, sizeof(testelem_t), 1);
    init_queue(&testelemlist, defaultpagesize_queue());
 
-   // TEST setnextfree_syncqueue
-   for (uintptr_t i = 1; i; i <<= 1) {
-      void * old = nextfree_syncqueue(&syncqueue);
-      setnextfree_syncqueue(&syncqueue, (void*)i);
-      TEST(syncqueue.nextfree == (void*)i);
-      TEST(syncqueue.size     == 0);
-      setnextfree_syncqueue(&syncqueue, old);
-      TEST(syncqueue.nextfree == old);
-   }
-
    // TEST preallocate_syncqueue
-   TEST(0 == nextfree_syncqueue(&syncqueue));
    for (unsigned i = 1; i <= 5000; ++i) {
-      TEST(0 == preallocate_syncqueue(&syncqueue));
-      testelem_t * testelem = nextfree_syncqueue(&syncqueue);
+      void* node;
+      TEST(0 == preallocate_syncqueue(&syncqueue, &node));
+      testelem_t* testelem = node;
       TEST(0 != testelem);
       testelem->id = i;
       TEST(i == syncqueue.size);
@@ -258,7 +237,7 @@ static int test_update(void)
    for (unsigned i = 0; i == 0; ) {
       foreach (_queue, elem, cast_queue(&syncqueue), sizeof(testelem_t)) {
          void * ptr;
-         TEST(0 == insertlast_queue(&testelemlist, &ptr, sizeof(void*)));
+         TEST(0 == insertlast_queue(&testelemlist, sizeof(void*), &ptr));
          *(void**)ptr = elem;
          ++ i;
       }

@@ -297,7 +297,7 @@ ONERR:
 
 // group: update
 
-int insertfirst_queue(queue_t* queue, /*out*/void** nodeaddr, uint16_t nodesize)
+int insertfirst_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr)
 {
    int err;
 
@@ -321,7 +321,7 @@ ONERR:
    return err;
 }
 
-int insertlast_queue(queue_t* queue, /*out*/void** nodeaddr, uint16_t nodesize)
+int insertlast_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr)
 {
    int err;
 
@@ -994,7 +994,7 @@ static int test_iterator(void)
    for (unsigned size = 16384; size <= 65536; size *= 2) {
       for (uint16_t step = 2; step <= 256; step = (uint16_t) (step * 2)) {
          TEST(0 == free_queue(&queue));
-         TEST(0 == insertlast_queue(&queue, &node, step));
+         TEST(0 == insertlast_queue(&queue, step, &node));
          *(uint16_t*)node = (uint16_t) 0;
          // insert elements
          unsigned nrelem = 0;
@@ -1002,7 +1002,7 @@ static int test_iterator(void)
             TEST(*(uint16_t*)node2 == (uint16_t) nrelem);
             ++ nrelem;
             if (nrelem < size / step) {
-               TEST(0 == insertlast_queue(&queue, &node, step));
+               TEST(0 == insertlast_queue(&queue, step, &node));
                *(uint16_t*)node = (uint16_t) nrelem;
             }
          }
@@ -1040,7 +1040,7 @@ static int test_iterator(void)
    for (unsigned size = 16384; size <= 65536; size *= 2) {
       for (uint16_t step = 2; step <= 256; step = (uint16_t) (step * 2)) {
          TEST(0 == free_queue(&queue));
-         TEST(0 == insertfirst_queue(&queue, &node, step));
+         TEST(0 == insertfirst_queue(&queue, step, &node));
          *(uint16_t*)node = (uint16_t) 0;
          // insert elements
          unsigned nrelem = 0;
@@ -1048,7 +1048,7 @@ static int test_iterator(void)
             TEST(*(uint16_t*)node2 == (uint16_t) nrelem);
             ++ nrelem;
             if (nrelem < size / step) {
-               TEST(0 == insertfirst_queue(&queue, &node, step));
+               TEST(0 == insertfirst_queue(&queue, step, &node));
                *(uint16_t*)node = (uint16_t) nrelem;
             }
          }
@@ -1100,7 +1100,7 @@ static int test_update(void)
    // TEST insertfirst_queue: empty queue
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
       TEST(0 == queue.last);
-      TEST(0 == insertfirst_queue(&queue, &node, nodesize));
+      TEST(0 == insertfirst_queue(&queue, nodesize, &node));
       TEST(0 != queue.last);
       queue_page_t* last = (void*) queue.last;
       TEST(last->next  == (void*) last);
@@ -1115,7 +1115,7 @@ static int test_update(void)
    // TEST insertlast_queue: empty queue
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
       TEST(0 == queue.last);
-      TEST(0 == insertlast_queue(&queue, &node, nodesize));
+      TEST(0 == insertlast_queue(&queue, nodesize, &node));
       TEST(0 != queue.last);
       queue_page_t* last = (void*) queue.last;
       TEST(last->next  == (void*) last);
@@ -1129,7 +1129,7 @@ static int test_update(void)
 
    // TEST insertfirst_queue: add pages
    TEST(0 == queue.last);
-   TEST(0 == insertfirst_queue(&queue, &node, 0));
+   TEST(0 == insertfirst_queue(&queue, 0, &node));
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
       queue_page_t* last  = last_pagelist(cast_dlist(&queue));
@@ -1137,7 +1137,7 @@ static int test_update(void)
       queue_page_t* old   = (void*)first->next;
       bool           isNew = (first->start_offset - sizeof(queue_page_t)) < nodesize;
       uint32_t       off   = isNew ? defaultpagesize_queue() : first->start_offset;
-      TEST(0 == insertfirst_queue(&queue, &node, nodesize));
+      TEST(0 == insertfirst_queue(&queue, nodesize, &node));
       if (isNew) {
          TEST(first == next_pagelist(first_pagelist(cast_dlist(&queue))));
          old   = first;
@@ -1154,7 +1154,7 @@ static int test_update(void)
 
    // TEST insertlast_queue: add pages
    TEST(0 == queue.last);
-   TEST(0 == insertlast_queue(&queue, &node, 0));
+   TEST(0 == insertlast_queue(&queue, 0, &node));
    TEST(0 != queue.last);
    for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
       queue_page_t* last  = last_pagelist(cast_dlist(&queue));
@@ -1162,7 +1162,7 @@ static int test_update(void)
       queue_page_t* old   = (void*)last->prev;
       bool           isNew = (defaultpagesize_queue() - last->end_offset) < nodesize;
       uint32_t       off   = isNew ? sizeof(queue_page_t) : last->end_offset;
-      TEST(0 == insertlast_queue(&queue, &node, nodesize));
+      TEST(0 == insertlast_queue(&queue, nodesize, &node));
       if (isNew) {
          TEST(queue.last == last->next);
          old  = last;
@@ -1179,21 +1179,21 @@ static int test_update(void)
 
    // TEST insertfirst_queue: ENOMEM
    init_testerrortimer(&s_queuepage_errtimer, 1, ENOMEM);
-   TEST(ENOMEM == insertfirst_queue(&queue, &node, 1));
+   TEST(ENOMEM == insertfirst_queue(&queue, 1, &node));
    TEST(0 == queue.last); // nothing added
 
    // TEST insertlast_queue: ENOMEM
    init_testerrortimer(&s_queuepage_errtimer, 1, ENOMEM);
-   TEST(ENOMEM == insertlast_queue(&queue, &node, 1));
+   TEST(ENOMEM == insertlast_queue(&queue, 1, &node));
    TEST(0 == queue.last); // nothing added
 
    // TEST insertfirst_queue: EINVAL
-   TEST(EINVAL == insertfirst_queue(&queue, &node, 513));
-   TEST(EINVAL == insertfirst_queue(&queue, &node, 65535));
+   TEST(EINVAL == insertfirst_queue(&queue, 513, &node));
+   TEST(EINVAL == insertfirst_queue(&queue, 65535, &node));
 
    // TEST insertlast_queue: EINVAL
-   TEST(EINVAL == insertlast_queue(&queue, &node, 513));
-   TEST(EINVAL == insertlast_queue(&queue, &node, 65535));
+   TEST(EINVAL == insertlast_queue(&queue, 513, &node));
+   TEST(EINVAL == insertlast_queue(&queue, 65535, &node));
 
    // TEST removefirst_queue: empty queue
    TEST(0 == queue.last);

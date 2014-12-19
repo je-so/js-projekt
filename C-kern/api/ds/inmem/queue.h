@@ -225,7 +225,7 @@ typedef void *                iteratedtype_queue;
  * a new memory page is allocated and made the new first one.
  * The error ENOMEM is returned in case no new memory page could be allocated.
  * The error EINVAL is returned in case nodesize > 512. */
-int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize);
+int insertfirst_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr);
 
 /* function: insertlast_queue
  * Allocates nodesize bytes on the last memory page.
@@ -234,7 +234,7 @@ int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesiz
  * a new memory page is allocated and made the new last one.
  * The error ENOMEM is returned in case no new memory page could be allocated.
  * The error EINVAL is returned in case nodesize > 512. */
-int insertlast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize);
+int insertlast_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr);
 
 /* function: removefirst_queue
  * Removes nodesize bytes from the first memory page.
@@ -599,10 +599,10 @@ struct queue_page_t {
       return sizelast_queue(queue); \
    } \
    static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) { \
-      return insertfirst_queue(queue, (void**)new_node, sizeof(object_t)); \
+      return insertfirst_queue(queue, sizeof(object_t), (void**)new_node); \
    } \
    static inline int insertlast##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) { \
-      return insertlast_queue(queue, (void**)new_node, sizeof(object_t)); \
+      return insertlast_queue(queue, sizeof(object_t), (void**)new_node); \
    } \
    static inline int removefirst##_fsuffix(queue_t * queue) { \
       return removefirst_queue(queue, sizeof(object_t)); \

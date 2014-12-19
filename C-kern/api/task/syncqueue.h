@@ -72,9 +72,6 @@ struct syncqueue_t {
    /* variable: size
     * Anzahl gespeicherter Elemente. */
    size_t                  size;
-   /* variable: nextfree
-    * Nächstes freies Element in der Queue. */
-   void                *   nextfree;
 };
 
 // group: lifetime
@@ -82,7 +79,7 @@ struct syncqueue_t {
 /* define: syncqueue_FREE
  * Static initializer. */
 #define syncqueue_FREE \
-         { 0, 0, 0, 0, 0, 0 }
+         { 0, 0, 0, 0, 0 }
 
 /* function: init_syncqueue
  * Initializes syncqueue. */
@@ -119,41 +116,24 @@ size_t size_syncqueue(const syncqueue_t * syncqueue);
  * See <castPaddr_queue>. */
 syncqueue_t * castPaddr_syncqueue(void * nodeaddr);
 
-/* function: nextfree_syncqueue
- * Returns address of preallocated element. */
-void * nextfree_syncqueue(const syncqueue_t * syncqueue);
-
 // group: update
 
-/* function: setnextfree_syncqueue
- * Changes address of next free element.
- *
- * Unchecked Precondition:
- * - Returned value from <nextfree_syncqueue> is invalid. */
-void setnextfree_syncqueue(syncqueue_t * syncqueue, void * freenode);
-
 /* function: preallocate_syncqueue
- * Preallocate an element which is stored in <nextfree>.
+ * Preallocate an element which is returned in node.
  * The size of the queue is incremented by one.
- *
- * Unchecked Precondition:
- * - Returned value from <nextfree_syncqueue> is invalid or already in use. */
-int preallocate_syncqueue(syncqueue_t * syncqueue);
+ * */
+int preallocate_syncqueue(syncqueue_t* syncqueue, /*out*/void** node);
 
 /* function: removefirst_syncqueue
  * Removes an element from the queue by freeing syncqueue memory.
  * The size of the queue is decremented by one.
- *
- * Unchecked Precondition:
- * - <nextfree_syncqueue> != first element */
+ * */
 int removefirst_syncqueue(syncqueue_t * syncqueue);
 
 /* function: removelast_syncqueue
  * Removes an element from the queue by freeing syncqueue memory.
  * The size of the queue is decremented by one.
- *
- * Unchecked Precondition:
- * - <nextfree_syncqueue> != last element */
+ * */
 int removelast_syncqueue(syncqueue_t * syncqueue);
 
 
@@ -170,21 +150,16 @@ int removelast_syncqueue(syncqueue_t * syncqueue);
 #define idx_syncqueue(syncqueue) \
          ((syncqueue)->qidx)
 
-/* define: nextfree_syncqueue
- * Implements <syncqueue_t.nextfree_syncqueue>. */
-#define nextfree_syncqueue(syncqueue) \
-         ((syncqueue)->nextfree)
-
 /* define: preallocate_syncqueue
  * Implements <syncqueue_t.preallocate_syncqueue>. */
-#define preallocate_syncqueue(syncqueue) \
+#define preallocate_syncqueue(syncqueue, node) \
          ( __extension__ ({                  \
             int _err;                        \
             syncqueue_t * _sq = (syncqueue); \
             _err = insertlast_queue(         \
                         cast_queue(_sq),     \
-                        &_sq->nextfree,      \
-                        _sq->elemsize);      \
+                        _sq->elemsize,       \
+                        node);               \
             _sq->size += (_err == 0);        \
             _err;                            \
          }))
@@ -217,11 +192,6 @@ int removelast_syncqueue(syncqueue_t * syncqueue);
             _sq->size -= (_err == 0);        \
             _err;                            \
          }))
-
-/* define: setnextfree_syncqueue
- * Implements <syncqueue_t.setnextfree_syncqueue>. */
-#define setnextfree_syncqueue(syncqueue, freenode) \
-         do { (syncqueue)->nextfree = freenode; } while (0)
 
 /* define: size_syncqueue
  * Implements <syncqueue_t.size_syncqueue>. */
