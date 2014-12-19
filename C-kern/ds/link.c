@@ -262,24 +262,24 @@ static int test_update(void)
    TEST(&linkd[2] == linkd[3].prev);
    TEST(&linkd[1] == linkd[3].next);
 
-   // TEST unlink_linkd: self connected node
+   // TEST unlink0_linkd: self connected node
    initself_linkd(&linkd[0]);
-   unlink_linkd(&linkd[0]);
+   unlink0_linkd(&linkd[0]);
    TEST(0 == linkd[0].prev);
    TEST(0 == linkd[0].next);
 
-   // TEST unlink_linkd: 2 nodes connected
+   // TEST unlink0_linkd: 2 nodes connected
    init_linkd(&linkd[0], &linkd[2]);
-   unlink_linkd(&linkd[0]);
+   unlink0_linkd(&linkd[0]);
    TEST(0 == linkd[2].prev);
    TEST(0 == linkd[2].next);
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[2] == linkd[0].next); // not changed
 
-   // TEST unlink_linkd: 3 nodes connected
+   // TEST unlink0_linkd: 3 nodes connected
    init_linkd(&linkd[0], &linkd[1]);
    initprev_linkd(&linkd[2], &linkd[0]);
-   unlink_linkd(&linkd[0]);
+   unlink0_linkd(&linkd[0]);
    TEST(&linkd[2] == linkd[1].prev);
    TEST(&linkd[2] == linkd[1].next);
    TEST(&linkd[1] == linkd[2].prev);
@@ -287,24 +287,24 @@ static int test_update(void)
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[1] == linkd[0].next); // not changed
 
-   // TEST unlinkkeepself_linkd: self connected node
+   // TEST unlinkself_linkd: self connected node
    initself_linkd(&linkd[0]);
-   unlinkkeepself_linkd(&linkd[0]);
+   unlinkself_linkd(&linkd[0]);
    TEST(&linkd[0] == linkd[0].prev); // links to self !!
    TEST(&linkd[0] == linkd[0].next);
 
-   // TEST unlinkkeepself_linkd: 2 nodes connected
+   // TEST unlinkself_linkd: 2 nodes connected
    init_linkd(&linkd[0], &linkd[2]);
-   unlinkkeepself_linkd(&linkd[0]);
+   unlinkself_linkd(&linkd[0]);
    TEST(&linkd[2] == linkd[2].prev); // links to self !!
    TEST(&linkd[2] == linkd[2].next);
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[2] == linkd[0].next); // not changed
 
-   // TEST unlinkkeepself_linkd: 3 nodes connected
+   // TEST unlinkself_linkd: 3 nodes connected
    init_linkd(&linkd[0], &linkd[1]);
    initprev_linkd(&linkd[2], &linkd[0]);
-   unlinkkeepself_linkd(&linkd[0]);
+   unlinkself_linkd(&linkd[0]);
    TEST(&linkd[2] == linkd[1].prev);
    TEST(&linkd[2] == linkd[1].next);
    TEST(&linkd[1] == linkd[2].prev);
@@ -312,20 +312,20 @@ static int test_update(void)
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[1] == linkd[0].next); // not changed
 
-   // TEST spliceprev_linkd: self connected nodes
+   // TEST splice_linkd: self connected nodes
    initself_linkd(&linkd[0]);
    initself_linkd(&linkd[1]);
-   spliceprev_linkd(&linkd[0], &linkd[1]);
+   splice_linkd(&linkd[0], &linkd[1]);
    TEST(&linkd[1] == linkd[0].prev);
    TEST(&linkd[1] == linkd[0].next);
    TEST(&linkd[0] == linkd[1].prev);
    TEST(&linkd[0] == linkd[1].next);
 
-   // TEST spliceprev_linkd: self connected node + list and vice versa
+   // TEST splice_linkd: self connected node + list and vice versa
    for (int isswitch = 0; isswitch <= 1; ++isswitch) {
       initself_linkd(&linkd[0]);
       init_linkd(&linkd[1], &linkd[2]);
-      spliceprev_linkd(&linkd[isswitch], &linkd[1-isswitch]);
+      splice_linkd(&linkd[isswitch], &linkd[1-isswitch]);
       TEST(&linkd[2] == linkd[0].prev);
       TEST(&linkd[1] == linkd[0].next);
       TEST(&linkd[0] == linkd[1].prev);
@@ -334,12 +334,12 @@ static int test_update(void)
       TEST(&linkd[0] == linkd[2].next);
    }
 
-   // TEST spliceprev_linkd: each list has 3 nodes
+   // TEST splice_linkd: each list has 3 nodes
    init_linkd(&linkd[0], &linkd[1]);
    initnext_linkd(&linkd[2], &linkd[1]);
    init_linkd(&linkd[3], &linkd[4]);
    initnext_linkd(&linkd[5], &linkd[4]);
-   spliceprev_linkd(&linkd[0], &linkd[3]);
+   splice_linkd(&linkd[0], &linkd[3]);
    for (int i = 0; i < 6; ++i) {
       int n = (i+1) % 6;
       int p = (i+5) % 6;

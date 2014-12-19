@@ -55,13 +55,12 @@
  * Invalid Value      - *Ein*: Das Kommando wird von <start_syncfunc> ignoriert.
  *                      *Aus*: Das Kommando wird als <synccmd_RUN> interpretiert.
  * */
-enum synccmd_e {
+typedef enum synccmd_e {
    synccmd_RUN,
    synccmd_CONTINUE,
    synccmd_EXIT,
    synccmd_WAIT
-} ;
+} synccmd_e;
 
-typedef enum synccmd_e synccmd_e;
 
 #endif

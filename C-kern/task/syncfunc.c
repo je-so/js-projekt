@@ -66,7 +66,7 @@ void unlink_syncfunc(syncfunc_t * sfunc, const size_t structsize)
    if (0 != (sfunc->optfields & syncfunc_opt_WAITLIST)) {
       linkd_t * waitlist = addrwaitlist_syncfunc(sfunc, iswaitfor);
       if (isvalid_linkd(waitlist)) {
-         unlink_linkd(waitlist);
+         unlink0_linkd(waitlist);
       }
    }
 

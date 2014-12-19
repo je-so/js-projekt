@@ -78,18 +78,18 @@ struct link_t {
 
 /* function: init_link
  * Initialisiert zwei Link-Seiten zu einem verbundenen Link. */
-void init_link(/*out*/link_t * __restrict__ link, /*out*/link_t * __restrict__ other);
+void init_link(/*out*/link_t* __restrict__ link, /*out*/link_t* __restrict__ other);
 
 /* function: free_link
  * Trennt einen link. Der Pointer dieses und der gegenüberliegenden Seite
  * werden auf 0 gesetzt. */
-void free_link(link_t * link);
+void free_link(link_t* link);
 
 // group: query
 
 /* function: isvalid_link
  * Return (link->link != 0). */
-int isvalid_link(const link_t * link);
+int isvalid_link(const link_t* link);
 
 // group: update
 
@@ -99,7 +99,7 @@ int isvalid_link(const link_t * link);
  *
  * Ungeprüfte Precondition:
  * o isvalid_link(link) */
-void relink_link(link_t * __restrict__ link);
+void relink_link(link_t* link);
 
 /* function: unlink_link
  * Invalidiert link->link->link, setzt ihn auf 0.
@@ -108,7 +108,7 @@ void relink_link(link_t * __restrict__ link);
  *
  * Unchecked Precondition:
  * o isvalid_link(link) */
-void unlink_link(link_t * __restrict__ link);
+void unlink_link(const link_t* link);
 
 
 /* struct: linkd_t
@@ -134,7 +134,7 @@ void unlink_link(link_t * __restrict__ link);
  *
  * >           ╭─────────╮
  * >           ┤ linkd_t ├
- * >  0 == next╰─────────╯prev == 0
+ * >  0 == prev╰─────────╯next == 0
  *
  * Unchecked Invariant:
  * o (<prev> == 0 && <next> == 0) || (<prev> != 0 && <next> != 0)
@@ -143,10 +143,10 @@ struct linkd_t {
    // group: private fields
    /* variable: prev
     * Zeigt auf vorherigen Link Nachbarn. */
-   linkd_t * prev;
+   linkd_t* prev;
    /* variable: next
     * Zeigt auf nächsten Link Nachbarn. */
-   linkd_t * next;
+   linkd_t* next;
 };
 
 // group: lifetime
@@ -205,18 +205,20 @@ int isself_linkd(const linkd_t * link);
  *
  * Unchecked Precondition:
  * o isvalid_linkd(link) */
-void relink_linkd(linkd_t * link);
+void relink_linkd(linkd_t* link);
 
-/* function: unlink_linkd
+/* function: unlink0_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link selbst wird nicht verändert.
  * Dies ist eine Optimierung gegenüber <free_linkd>.
+ * Falls link der vorletzte Knoten in der Kette ist,
+ * dann gilt (! <isvalid_linkd>(link->next)) nach Return.
  *
  * Unchecked Precondition:
  * o isvalid_linkd(link) */
-void unlink_linkd(link_t * __restrict__ link);
+void unlink0_linkd(const link_t* link);
 
-/* function: unlinkkeepself_linkd
+/* function: unlinkself_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link selbst wird nicht verändert.
  * Dies ist eine Optimierung gegenüber <free_linkd>.
@@ -225,18 +227,42 @@ void unlink_linkd(link_t * __restrict__ link);
  *
  * Unchecked Precondition:
  * o isvalid_linkd(link) */
-void unlinkkeepself_linkd(link_t * __restrict__ link);
+void unlinkself_linkd(const link_t* link);
 
-/* function: spliceprev_linkd
+/* function: splice_linkd
  * Fügt Liste der Knoten, auf die prev zeigt, vor Knoten link ein.
  * Nach Return zeigt link->prev auf alten Wert von prev->prev und prev->prev zeigt
  * alten Wert von link->prev.
+ *
+ * Darstellung alte Listen:
+ *
+ *  > list1 + list2 representation:
+ *  > ╭───────────────────────────────────╮
+ *  > |╭───────╮ ╭────────╮     ╭────────╮|
+ *  > ╰┤ list  ├─┤ list   ├─...─┤ list   ├╯
+ *  >  | (head)| | ->next |     | ->prev |
+ *  >  ╰───────╯ ╰────────╯     ╰────────╯
+ *  > (first node)              (last node)
+ *
+ * Darstellung verbundene Liste:
+ *
+ *  > spliced representation:
+ *  > ╭──────────────────────────────────────╮
+ *  > |╭───────╮ ╭────────╮     ╭────────╮   |
+ *  > ╰┤ list1 ├─┤ list1  ├─...─┤ list1  ├─╮ |
+ *  >  | (head)| | ->next |     | ->prev | | |
+ *  >  ╰───────╯ ╰────────╯     ╰────────╯ | |
+ *  > ╭────────────────────────────────────╯ |
+ *  > |╭───────╮ ╭────────╮     ╭────────╮   |
+ *  > ╰┤ list2 ├─┤ list2  ├─...─┤ list2  ├───╯
+ *  >  | (head)| | ->next |     | ->prev |
+ *  >  ╰───────╯ ╰────────╯     ╰────────╯
  *
  * Unchecked Precondition:
  * o isvalid_linkd(link)
  * o isvalid_linkd(prev)
  * */
-void spliceprev_linkd(linkd_t * prev, linkd_t * link);
+static inline void splice_linkd(linkd_t* list1, linkd_t* list2);
 
 
 // section: inline implementation
@@ -280,9 +306,9 @@ void spliceprev_linkd(linkd_t * prev, linkd_t * link);
 /* define: unlink_link
  * Implementiert <link_t.unlink_link>. */
 #define unlink_link(_link) \
-         do {                       \
-            link_t * _l = (_link);  \
-            _l->link->link = 0;     \
+         do {                     \
+            link_t* _l = (_link); \
+            _l->link->link = 0;   \
          } while (0)
 
 // group: linkd_t
@@ -293,7 +319,7 @@ void spliceprev_linkd(linkd_t * prev, linkd_t * link);
          do {                       \
             linkd_t * _l2 = (link); \
             if (_l2->prev) {        \
-               unlink_linkd(_l2);   \
+               unlink0_linkd(_l2);  \
             }                       \
             _l2->next = 0;          \
             _l2->prev = 0;          \
@@ -366,25 +392,23 @@ void spliceprev_linkd(linkd_t * prev, linkd_t * link);
             _l->next->prev = _l;    \
          } while (0)
 
-/* define: spliceprev_linkd
- * Implementiert <link_t.spliceprev_linkd>. */
-#define spliceprev_linkd(_prev, link) \
-         do {                          \
-            linkd_t * _l = (link);     \
-            linkd_t * _pr = (_prev);   \
-            linkd_t * _ppr;            \
-            _ppr = _pr->prev;          \
-            _pr->prev = _l->prev;      \
-            _pr->prev->next = _pr;     \
-            _ppr->next = _l;           \
-            _l->prev = _ppr;           \
-         } while (0)
+/* define: splice_linkd
+ * Implementiert <link_t.splice_linkd>. */
+static inline void splice_linkd(linkd_t* list1, linkd_t* list2)
+{
+         linkd_t* l1_last = list1->prev;
+         linkd_t* l2_last = list2->prev;
+         list1->prev = l2_last;
+         l2_last->next = list1;
+         list2->prev = l1_last;
+         l1_last->next = list2;
+}
 
-/* define: unlink_linkd
- * Implementiert <link_t.unlink_linkd>. */
-#define unlink_linkd(link) \
+/* define: unlink0_linkd
+ * Implementiert <link_t.unlink0_linkd>. */
+#define unlink0_linkd(link) \
          do {                             \
-            linkd_t * _l = (link);        \
+            linkd_t* _l = (link);         \
             if (_l->prev == _l->next) {   \
                _l->next->prev = 0;        \
                _l->next->next = 0;        \
@@ -394,9 +418,9 @@ void spliceprev_linkd(linkd_t * prev, linkd_t * link);
             }                             \
          } while (0)
 
-/* define: unlinkkeepself_linkd
- * Implementiert <link_t.unlinkkeepself_linkd>. */
-#define unlinkkeepself_linkd(link) \
+/* define: unlinkself_linkd
+ * Implementiert <link_t.unlinkself_linkd>. */
+#define unlinkself_linkd(link) \
          do {                          \
             linkd_t * _l = (link);     \
             _l->next->prev = _l->prev; \

@@ -328,7 +328,7 @@ static inline void link_to_wakeup(syncrunner_t * srun, linkd_t * waitlist)
  * Füge waitlist von <syncfunc_t> und alle, auf die es zeigt, zu <syncrunner_t.wakeup> hinzu. */
 static inline void linkall_to_wakeup(syncrunner_t * srun, linkd_t * waitlist)
 {
-   spliceprev_linkd(waitlist, &srun->wakeup);
+   splice_linkd(waitlist, &srun->wakeup);
 }
 
 /* function: wakeup_caller
@@ -379,7 +379,7 @@ static inline int wakeup2_syncrunner(syncrunner_t * srun, synccond_t * scond, co
    } else {
       syncfunc_t * sfunc = castPwaitlist_syncfunc(waitlist->next, true);
       link_synccond(scond, sfunc);
-      unlink_linkd(waitlist);
+      unlink0_linkd(waitlist);
       link_to_wakeup(srun, waitlist);
    }
 
@@ -528,7 +528,7 @@ static inline int process_wakeup_list(syncrunner_t * srun)
 
    while (wakeup.next != &wakeup) {
       sfunc  = castPwaitlist_syncfunc(wakeup.next, true);
-      unlinkkeepself_linkd(wakeup.next);
+      unlinkself_linkd(wakeup.next);
       squeue = castPaddr_syncqueue(sfunc);
       size   = elemsize_syncqueue(squeue);
       isstate = (sfunc->optfields & syncfunc_opt_STATE);
@@ -616,8 +616,8 @@ static inline int process_wakeup_list(syncrunner_t * srun)
    return 0;
 ONERR:
    if (!isself_linkd(&wakeup)) {
-      spliceprev_linkd(&srun->wakeup, &wakeup);
-      unlinkkeepself_linkd(&wakeup);
+      splice_linkd(&srun->wakeup, &wakeup);
+      unlinkself_linkd(&wakeup);
    }
    return err;
 }
