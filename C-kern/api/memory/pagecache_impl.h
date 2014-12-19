@@ -26,10 +26,11 @@
 #ifndef CKERN_MEMORY_PAGECACHEIMPL_HEADER
 #define CKERN_MEMORY_PAGECACHEIMPL_HEADER
 
+#include "C-kern/api/memory/pagecache.h"
+
 // forward
 struct memblock_t;
 struct dlist_node_t;
-struct pagecache_t;
 
 /* typedef: struct pagecache_impl_t
  * Export <pagecache_impl_t> into global namespace. */
@@ -111,12 +112,12 @@ struct pagecache_impl_t {
 /* function: initthread_pagecacheimpl
  * Calls <init_pagecacheimpl> and adds interface <pagecache_it> to object.
  * This function is called from <threadcontext_t.init_threadcontext>. */
-int initthread_pagecacheimpl(/*out*/struct pagecache_t* pagecache);
+int initthread_pagecacheimpl(/*out*/pagecache_t* pagecache);
 
 /* function: freethread_pagecacheimpl
  * Calls <free_pagecacheimpl> with for object pointer in <pagecache_t>.
  * This function is called from <threadcontext_t.free_threadcontext>. */
-int freethread_pagecacheimpl(struct pagecache_t* pagecache);
+int freethread_pagecacheimpl(pagecache_t* pagecache);
 
 // group: lifetime
 

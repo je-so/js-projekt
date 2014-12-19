@@ -18,19 +18,16 @@
 // forward
 struct memblock_t;
 
-/* typedef: struct objectcache_t
- * Export <objectcache_t>. <objectcache_it> implementing object. */
-typedef struct objectcache_t objectcache_t ;
-
 /* typedef: struct objectcache_it
  * Export interface <objectcache_it>. */
 typedef struct objectcache_it objectcache_it;
 
 
 /* struct: objectcache_t
- * Uses <iobj_DECLARE> to declare interfaceable object.
+ * Defined as <iobj_t.iobj_T>(objectcache).
  * See also <objectcache_impl_t> which is the default implementation. */
-iobj_DECLARE(objectcache_t, objectcache);
+typedef iobj_T(objectcache) objectcache_t;
+
 
 // group: lifetime
 

@@ -224,19 +224,19 @@ struct pagecache_blockmap_t * blockmap_maincontext(void);
  * Returns log service <log_t> (see <logwriter_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/iobj_DECLARE(,log)  log_maincontext(void);
+/*ref*/struct iobj_log_t log_maincontext(void);
 
 /* function: mm_maincontext
  * Returns interfaceable object <mm_t> for access of memory manager. */
-/*ref*/iobj_DECLARE(,mm)   mm_maincontext(void);
+/*ref*/struct iobj_mm_t mm_maincontext(void);
 
 /* function: objectcache_maincontext
  * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
-/*ref*/iobj_DECLARE(,objectcache) objectcache_maincontext(void);
+/*ref*/struct iobj_objectcache_t objectcache_maincontext(void);
 
 /* function: pagecache_maincontext
  * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
-/*ref*/iobj_DECLARE(,pagecache) pagecache_maincontext(void);
+/*ref*/struct iobj_pagecache_t pagecache_maincontext(void);
 
 /* function: syncrunner_maincontext
  * Returns <syncrunner_t> of current <maincontext_t>. It is used to store and run

@@ -28,7 +28,7 @@ struct memblock_t;
 
 /* typedef: struct pagecache_t
  * Export <pagecache_t> into global namespace. */
-typedef struct pagecache_t pagecache_t;
+struct pagecache_t;
 
 /* typedef: struct pagecache_it
  * Export <pagecache_it> into global namespace. */
@@ -70,7 +70,6 @@ typedef enum pagesize_e {
 } pagesize_e;
 
 // TODO: rename pagesize_NROFPAGESIZE into pagesize__NROF (also in all other modules)
-// TODO: change iobj_DECLARE into iobj_T
 
 
 // section: Functions
@@ -86,9 +85,9 @@ int unittest_memory_pagecache(void);
 
 
 /* struct: pagecache_t
- * Uses <iobj_DECLARE> to declare interfaceable object.
+ * Defined as <iobj_t.iobj_T>(pagecache).
  * See also <pagecache_impl_t> which is the default implementation. */
-iobj_DECLARE(pagecache_t, pagecache);
+typedef iobj_T(pagecache) pagecache_t;
 
 // group: lifetime
 
@@ -101,8 +100,6 @@ iobj_DECLARE(pagecache_t, pagecache);
  * Static initializer. See <iobj_t.iobj_INIT>. */
 #define pagecache_INIT(object, iimpl) \
          iobj_INIT(object, iimpl)
-
-// group: query
 
 // group: query
 
@@ -163,36 +160,36 @@ struct pagecache_it {
    /* function: allocpage
     * Allocates a single memory page of size pgsize.
     * The page is aligned to its own size. pgsize must be a value from <pagesize_e>. */
-   int    (*allocpage)     (pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page);
+   int    (*allocpage)     (struct pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page);
    /* function: releasepage
     * Releases a single memory page. It is kept in the cache and only returned to
     * the operating system if a big chunk of memory is not in use.
     * After return page is set to <memblock_FREE>. Calling this function with
     * page set to <memblock_FREE> does nothing. */
-   int    (*releasepage)   (pagecache_t* pgcache, struct memblock_t* page);
+   int    (*releasepage)   (struct pagecache_t* pgcache, struct memblock_t* page);
    /* function: sizeallocated
     * Returns the sum of the size of all allocated pages. */
-   size_t (*sizeallocated) (const pagecache_t* pgcache);
+   size_t (*sizeallocated) (const struct pagecache_t* pgcache);
    /* function: allocstatic
     * Allocates static memory which should live as long as pgcache.
     * These blocks can only be freed by freeing pgcache.
     * The size of memory is set in bytes with parameter bytesize.
     * The allocated memory block (aligned to <KONFIG_MEMALIGN>) is returned in memblock.
     * In case of no memory ENOMEM is returned. The size of the block if restricted to 128 bytes. */
-   int    (*allocstatic)   (pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock);
+   int    (*allocstatic)   (struct pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock);
    /* function: freestatic
     * Frees static memory.
     * If this function is not called in the reverse order of the call sequence of <allocstatic_pagecacheimpl>
     * the value EINVAL is returned and nothing is done.
     * After return memblock is set to <memblock_FREE>.
     * Calling this function with memblock set to <memblock_FREE> does nothing. */
-   int    (*freestatic)    (pagecache_t* pgcache, struct memblock_t* memblock);
+   int    (*freestatic)    (struct pagecache_t* pgcache, struct memblock_t* memblock);
    /* function: sizestatic
     * Size of memory allocated with <allocstatic>. */
-   size_t (*sizestatic)    (const pagecache_t* pgcache);
+   size_t (*sizestatic)    (const struct pagecache_t* pgcache);
    /* function: emptycache
     * Releases all unused memory blocks back to the operating system. */
-   int    (*emptycache) (pagecache_t* pgcache);
+   int    (*emptycache)    (struct pagecache_t* pgcache);
 };
 
 // group: lifetime

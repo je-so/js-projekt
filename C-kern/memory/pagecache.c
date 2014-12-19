@@ -31,7 +31,7 @@
 
 #ifdef KONFIG_UNITTEST
 
-static int allocpage1_dummy(pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page)
+static int allocpage1_dummy(struct pagecache_t* pgcache, uint8_t pgsize, /*out*/struct memblock_t* page)
 {
    (void)pgcache;
    (void)pgsize;
@@ -39,20 +39,20 @@ static int allocpage1_dummy(pagecache_t* pgcache, uint8_t pgsize, /*out*/struct 
    return 0;
 }
 
-static int releasepage1_dummy(pagecache_t* pgcache, struct memblock_t* page)
+static int releasepage1_dummy(struct pagecache_t* pgcache, struct memblock_t* page)
 {
    (void)pgcache;
    (void)page;
    return 0;
 }
 
-static size_t sizeallocated1_dummy(const pagecache_t* pgcache)
+static size_t sizeallocated1_dummy(const struct pagecache_t* pgcache)
 {
    (void)pgcache;
    return 0;
 }
 
-static int allocstatic1_dummy(pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock)
+static int allocstatic1_dummy(struct pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock)
 {
    (void)pgcache;
    (void)bytesize;
@@ -60,20 +60,20 @@ static int allocstatic1_dummy(pagecache_t* pgcache, size_t bytesize, /*out*/stru
    return 0;
 }
 
-static int freestatic1_dummy(pagecache_t* pgcache, struct memblock_t* memblock)
+static int freestatic1_dummy(struct pagecache_t* pgcache, struct memblock_t* memblock)
 {
    (void)pgcache;
    (void)memblock;
    return 0;
 }
 
-static size_t sizestatic1_dummy(const pagecache_t* pgcache)
+static size_t sizestatic1_dummy(const struct pagecache_t* pgcache)
 {
    (void)pgcache;
    return 0;
 }
 
-static int emptycache1_dummy(pagecache_t* pgcache)
+static int emptycache1_dummy(struct pagecache_t* pgcache)
 {
    (void)pgcache;
    return 0;
@@ -116,7 +116,7 @@ static int test_initfree(void)
    TEST(0 == pgcacheobj.iimpl);
 
    // TEST pagecache_INIT
-   pgcacheobj = (pagecache_t) pagecache_INIT((pagecache_t*)4, (pagecache_it*)5);
+   pgcacheobj = (pagecache_t) pagecache_INIT((struct pagecache_t*)4, (struct pagecache_it*)5);
    TEST(4 == (uintptr_t)pgcacheobj.object);
    TEST(5 == (uintptr_t)pgcacheobj.iimpl);
 
@@ -272,7 +272,7 @@ int test_call(void)
                            &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &allocstatic2_dummy,
                            &freestatic2_dummy, &sizestatic2_dummy, &emptycache2_dummy
                         );
-   pagecache_t    pgcache = pagecache_INIT((pagecache_t*)&obj, cast_pagecacheit(&iimpl, struct pagecachex_t));
+   pagecache_t    pgcache = pagecache_INIT((struct pagecache_t*)&obj, cast_pagecacheit(&iimpl, struct pagecachex_t));
 
    // TEST allocpage_pagecache
    for (unsigned i = 0; i <= 10; ++i) {

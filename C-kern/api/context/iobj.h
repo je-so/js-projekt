@@ -50,40 +50,33 @@ int unittest_context_iobj(void);
  * The object is accessed only through the interface.
  *
  * Usage:
- * Use <iobj_DECLARE> to declare your own interfaceable object type.
+ * Use <iobj_T> to declare your own interfaceable object type.
  * Use <cast_iobj> to a type into its standard type.
  *
  * Example:
  * Consider an interfaceable object example_t with its interface example_it.
  * > struct example_it {
- * >    int (*fct1) (struct example_t * obj, ...) ;
- * >    int (*fct2) (struct example_t * obj, ...) ;
+ * >    int (*fct1) (struct example_t* obj, ...);
+ * >    int (*fct2) (struct example_t* obj, ...);
  * > } ;
  * >
  * > struct example_t {
- * >    struct example_t *  object ;
- * >    struct example_it * iimpl ;
- * > } ;
+ * >    struct example_t*  object;
+ * >    struct example_it* iimpl;
+ * > };
  *
- * The interfaceable object example_t can be declared with
- * > iobj_DECLARE(example_t, example) ;
+ * The interfaceable object example_t could also be declared as
+ * > typedef iobj_T(example) example_t;
  *
  * An anonymous type which is compatible with example_t can
  * be declared with:
- * > struct mystructure_t {
- * >    iobj_DECLARE(, example) iexample ;
- * > } ;
- * > // this declares the structure
- * > struct mystructure_t {
- * >    struct { struct example_t * object ; struct example_it * iimpl } iexample ;
- * > } ;
+ * > iobj_T(example) anon_example;
  *
  * The anonymous type is useful to prevent header inclusion and makes compilation faster.
- * To cast such an anonymous type to the standard type use
- * > struct mystructure_t my ;
- * > struct example_t * iexample = cast_iobj(&my.iexample, example) ;
+ * To cast such an anonymous type to the canonical type example_t use
+ * > example_t* iexample = cast_iobj(&anon_example, example);
  *
- * The macro <cast_iobj> checks that my.iexample is compatible with example_t.
+ * The macro <cast_iobj> checks that anon_example is compatible with example_t.
  *
  * */
 struct iobj_t {
@@ -92,19 +85,20 @@ struct iobj_t {
     * The object data is accessed through interface <iobj_it>.
     * The pointer to type <iobj_t> is casted into a custom type in the
     * implementation of the interface <iobj_it>. */
-   iobj_t *    object;
+   iobj_t*  object;
    /* variable: iimpl
     * A pointer to the implementation of the interface <iobj_it>.
     * This pointer to a function table is used to access the functionality
     * of the object. */
-   iobj_it *   iimpl;
+   iobj_it* iimpl;
 };
 
 // group: lifetime
 
 /* define: iobj_FREE
  * Static initializer. Sets both pointer to NULL. */
-#define iobj_FREE { 0, 0 }
+#define iobj_FREE \
+         { 0, 0 }
 
 /* define: iobj_INIT
  * Static initializer.
@@ -112,22 +106,23 @@ struct iobj_t {
  * Parameter:
  * object - Pointer to object data.
  * iimpl  - Pointer to function table/interface implementation of object. */
-#define iobj_INIT(object, iimpl)          { (object), (iimpl) }
+#define iobj_INIT(object, iimpl) \
+         { (object), (iimpl) }
 
 /* function: init_iobj
  * Generic initialization. Same as assigning <iobj_INIT>.
- * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
-void init_iobj(/*out*/iobj_t * iobj, void * object, void * iimpl);
+ * Can be used for any declared interfaceable object (see <iobj_T>). */
+void init_iobj(/*out*/iobj_t* iobj, void* object, void* iimpl);
 
 /* function: initcopy_iobj
  * Generic initialization. Same as assigning <iobj_INIT>(srciobj->object, srciobj->iimpl).
- * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
-void initcopy_iobj(/*out*/iobj_t * destiobj, const iobj_t * srciobj);
+ * Can be used for any declared interfaceable object (see <iobj_T>). */
+void initcopy_iobj(/*out*/iobj_t* destiobj, const iobj_t* srciobj);
 
 /* function: free_iobj
  * Generic free operation. Same as assigning <iobj_FREE>.
- * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
-void free_iobj(iobj_t * iobj);
+ * Can be used for any declared interfaceable object (see <iobj_T>). */
+void free_iobj(iobj_t* iobj);
 
 // group: generic
 
@@ -135,16 +130,19 @@ void free_iobj(iobj_t * iobj);
  * Casts pointer to an interfaceable object to its standard type name.
  * The standard type name is the prefix "typenameprefix" with the suffix "_t".
  * The first parameter is the pointer to a compatible type and the second is the same
- * as used in <iobj_DECLARE>. */
-void * cast_iobj(void * iobj, IDNAME typenameprefix);
+ * as used in <iobj_T>. */
+void* cast_iobj(void* iobj, IDNAME typenameprefix);
 
-/* function: iobj_DECLARE
- * Declares an interfaceable object of type declared_t.
- * See <iobj_t> for the generic structure. The object type
- * and interface type are derived from parameter typenameprefix.
- * The object type name has the prefix typenameprefix and the suffix "_t".
- * The interface type name has the prefix typenameprefix and the suffix "_it". */
-void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix);
+/* function: iobj_T
+ * Declares a generic interfaceable object compatible with <iobj_t>.
+ * The object type and interface type are derived from parameter type name *objecttype*.
+ * The object type is constructed as objecttype ## _t and the interface type
+ * as objecttype ## _it. */
+#define iobj_T(objecttype) \
+         struct {                           \
+            struct objecttype##_t*  object; \
+            struct objecttype##_it* iimpl;  \
+         }
 
 
 
@@ -167,11 +165,9 @@ void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix);
             _o = (iobj);                                 \
             static_assert(                               \
                &(_o->object)                             \
-               == (struct typenameprefix##_t**)          \
-                  &((typenameprefix##_t*) _o)->object    \
+               == &((typenameprefix##_t*) _o)->object    \
                && &(_o->iimpl)                           \
-                  == (struct typenameprefix##_it**)      \
-                     &((typenameprefix##_t*) _o)->iimpl, \
+                  == &((typenameprefix##_t*) _o)->iimpl, \
                "compatible structure");                  \
             (typenameprefix##_t*) _o;                    \
          }))
@@ -194,13 +190,5 @@ void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix);
             _dest->object = _src->object;        \
             _dest->iimpl  = _src->iimpl;         \
          } while (0)
-
-/* define: iobj_DECLARE
- * Implements <iobj_t.iobj_DECLARE>. */
-#define iobj_DECLARE(declared_t, typenameprefix) \
-         struct declared_t {                      \
-            struct typenameprefix##_t *   object; \
-            struct typenameprefix##_it *  iimpl;  \
-         }
 
 #endif

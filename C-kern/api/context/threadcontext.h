@@ -28,6 +28,10 @@ struct syncrunner_t;
  * Export <threadcontext_t>. */
 typedef struct threadcontext_t threadcontext_t;
 
+/* typedef: iobj_mm_t
+ * Defines iobj_mm_t as <iobj_T>(mm). */
+typedef iobj_T(mm) iobj_mm_t;
+
 
 // section: Functions
 
@@ -36,7 +40,7 @@ typedef struct threadcontext_t threadcontext_t;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_context_threadcontext
  * Test interface of <threadcontext_t>. */
-int unittest_context_threadcontext(void) ;
+int unittest_context_threadcontext(void);
 #endif
 
 
@@ -46,31 +50,31 @@ int unittest_context_threadcontext(void) ;
 struct threadcontext_t {
    /* variable: pcontext
     * Points to shared <processcontext_t>. */
-   struct processcontext_t *  pcontext ;
+   struct processcontext_t*   pcontext;
    /* variable: pagecache
     * Thread local virtual memory page manager. */
-   iobj_DECLARE(,pagecache)   pagecache ;
+   iobj_T(pagecache)    pagecache;
    /* variable: mm
     * Thread local memory manager. */
-   iobj_DECLARE(,mm)          mm ;
+   iobj_T(mm)           mm;
    /* variable: syncrunner
     * Synchronous task support. */
-   struct syncrunner_t *      syncrunner;
+   struct syncrunner_t* syncrunner;
    /* variable: objectcache
     * Thread local erorr object cache. */
-   iobj_DECLARE(,objectcache) objectcache ;
+   iobj_T(objectcache)  objectcache;
    /* variable: log
     * Thread local erorr log. */
-   iobj_DECLARE(,log)         log ;
+   iobj_T(log)          log;
    /* variable: thread_id
     * Identification number which is incremented every time a thread is created.
     * The main thread has id 1. If SIZE_MAX is reached the value is wrapped around
     * to number 2 which may be no more unique. */
-   size_t                     thread_id ;
+   size_t               thread_id;
    /* variable: initcount
     * Number of correct initialized objects. */
-   size_t                     initcount ;
-} ;
+   size_t               initcount;
+};
 
 // group: lifetime
 
@@ -114,6 +118,6 @@ void resetthreadid_threadcontext(void) ;
 
 /* function: setmm_threadcontext
  * Overwrites old mm_t of threadcontext_t with new_mm. */
-void setmm_threadcontext(threadcontext_t * tcontext, const struct mm_t * new_mm) ;
+void setmm_threadcontext(threadcontext_t* tcontext, const iobj_mm_t* new_mm);
 
 #endif

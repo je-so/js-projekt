@@ -23,7 +23,6 @@
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST

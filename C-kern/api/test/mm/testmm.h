@@ -20,14 +20,13 @@
 #define CKERN_TEST_MM_TESTMM_HEADER
 
 // forward
-struct memblock_t ;
-struct mm_t ;
-struct testmm_page_t ;
-struct test_errortimer_t ;
+struct memblock_t;
+struct testmm_page_t;
+struct test_errortimer_t;
 
 /* typedef: struct testmm_t
  * Exports <testmm_t>. */
-typedef struct testmm_t                   testmm_t ;
+typedef struct testmm_t testmm_t;
 
 
 // section: Functions
@@ -37,7 +36,7 @@ typedef struct testmm_t                   testmm_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_mm_testmm
  * Test <testmm_t> - memory manager for tests. */
-int unittest_test_mm_testmm(void) ;
+int unittest_test_mm_testmm(void);
 #endif
 
 
@@ -77,27 +76,28 @@ int switchoff_testmm(void) ;
 
 /* define: testmm_FREE
  * Static initializer. */
-#define testmm_FREE { 0, 0 }
+#define testmm_FREE \
+         { 0, 0 }
 
 /* function: init_testmm
  * Initializes a new test memory manager. */
-int init_testmm(/*out*/testmm_t * mman) ;
+int init_testmm(/*out*/testmm_t* mman);
 
 /* function: free_testmm
  * Frees all memory managed by this manager.
  * Before freeing it make sure that every object allocated on
  * this memory heap is no more reachable or already freed. */
-int free_testmm(testmm_t * mman) ;
+int free_testmm(testmm_t* mman);
 
-/* function: initasmm_testmm
+/* function: initPiobj_testmm
  * Calls <init_testmm> and wraps object into interface object <mm_t>.
  * This function is called from <switchon_testmm>. */
-int initasmm_testmm(/*out*/struct mm_t * testmm) ;
+int initPiobj_testmm(/*out*/iobj_mm_t* testmm);
 
-/* function: freeasmm_testmm
+/* function: freePiobj_testmm
  * Calls <free_testmm> with object pointer from <mm_t>.
  * This function is called from <switchoff_testmm>. */
-int freeasmm_testmm(struct mm_t * testmm) ;
+int freePiobj_testmm(iobj_mm_t* testmm);
 
 // group: query
 

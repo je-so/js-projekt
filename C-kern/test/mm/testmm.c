@@ -463,7 +463,7 @@ static int getpreviousmm_testmm(const testmm_t * mman, /*out*/memblock_t * previ
    err = getblock_testmmpage(mmpage, 1, previous_mm);
    if (err) return err;
 
-   if (sizeof(mm_t) != previous_mm->size) return EINVAL;
+   if (sizeof(iobj_mm_t) != previous_mm->size) return EINVAL;
 
    return 0;
 }
@@ -471,7 +471,7 @@ static int getpreviousmm_testmm(const testmm_t * mman, /*out*/memblock_t * previ
 /* function: installold_testmm
  * Installs the previous mm_t if the current mm is of type <testmm_t>.
  * The mm of type <testmm_t> is returnd in testmm. */
-static int installold_testmm(/*out*/mm_t * testmm)
+static int installold_testmm(/*out*/iobj_mm_t* testmm)
 {
    int err;
    if (cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) return EINVAL;
@@ -485,7 +485,7 @@ static int installold_testmm(/*out*/mm_t * testmm)
    initcopy_iobj(testmm, &mm_maincontext());
    // install old mm
    threadcontext_t * tcontext = tcontext_maincontext();
-   setmm_threadcontext(tcontext, (mm_t*)previous_mm.addr);
+   setmm_threadcontext(tcontext, (iobj_mm_t*)previous_mm.addr);
 
    return 0;
 }
@@ -493,7 +493,7 @@ static int installold_testmm(/*out*/mm_t * testmm)
 /* function: installnew_testmm
  * Installs mm_t which must be of type <testmm_t>.
  * The previous mm is stored in the first allocated block of testmm. */
-static int installnew_testmm(const mm_t * testmm)
+static int installnew_testmm(const iobj_mm_t* testmm)
 {
    int err;
    if (cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) return EINVAL;
@@ -507,7 +507,7 @@ static int installnew_testmm(const mm_t * testmm)
    initcopy_iobj((mm_t*)previous_mm.addr, &mm_maincontext());
    // install new
    threadcontext_t * tcontext = tcontext_maincontext();
-   setmm_threadcontext(tcontext, testmm);
+   setmm_threadcontext(tcontext, (const iobj_mm_t*)testmm);
 
    return 0;
 }
@@ -515,15 +515,15 @@ static int installnew_testmm(const mm_t * testmm)
 int switchon_testmm()
 {
    int  err;
-   mm_t testmm = mm_FREE;
+   iobj_mm_t testmm = mm_FREE;
 
    if (cast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       memblock_t  previous_mm;
 
-      err = initasmm_testmm(&testmm);
+      err = initPiobj_testmm(&testmm);
       if (err) goto ONERR;
 
-      err = malloc_mm(testmm, sizeof(mm_t), &previous_mm);
+      err = malloc_mm(testmm, sizeof(iobj_mm_t), &previous_mm);
       if (err) goto ONERR;
 
       err = installnew_testmm(&testmm);
@@ -532,7 +532,7 @@ int switchon_testmm()
 
    return 0 ;
 ONERR:
-   freeasmm_testmm(&testmm) ;
+   freePiobj_testmm(&testmm) ;
    TRACEEXIT_ERRLOG(err);
    return err ;
 }
@@ -543,12 +543,12 @@ int switchoff_testmm()
 
    if (cast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) {
 
-      mm_t testmm;
+      iobj_mm_t testmm;
 
       err = installold_testmm(&testmm);
       if (err) goto ONERR;
 
-      err = freeasmm_testmm(&testmm);
+      err = freePiobj_testmm(&testmm);
       if (err) goto ONERR;
    }
 
@@ -604,7 +604,7 @@ ONERR:
    return err ;
 }
 
-int initasmm_testmm(/*out*/mm_t * testmm)
+int initPiobj_testmm(/*out*/iobj_mm_t* testmm)
 {
    int err ;
    memblock_t     memblock ;
@@ -619,7 +619,7 @@ int initasmm_testmm(/*out*/mm_t * testmm)
 
    memcpy(memblock.addr, &testmmobj, objsize) ;
 
-   *testmm = (mm_t) mm_INIT((struct mm_t*) memblock.addr, cast_mmit(&s_testmm_interface, testmm_t)) ;
+   *testmm = (iobj_mm_t) mm_INIT((struct mm_t*) memblock.addr, cast_mmit(&s_testmm_interface, testmm_t)) ;
 
    return err ;
 ONERR:
@@ -628,7 +628,7 @@ ONERR:
    return err ;
 }
 
-int freeasmm_testmm(mm_t * testmm)
+int freePiobj_testmm(iobj_mm_t* testmm)
 {
    int err ;
    testmm_t       testmmobj = testmm_FREE ;
@@ -640,15 +640,15 @@ int freeasmm_testmm(mm_t * testmm)
       memcpy(&testmmobj, testmm->object, objsize) ;
       err = free_testmm(&testmmobj) ;
 
-      *testmm = (mm_t) mm_FREE ;
+      *testmm = (iobj_mm_t) mm_FREE;
 
       if (err) goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query
@@ -962,7 +962,7 @@ ONERR:
 
 static int test_initfree(void)
 {
-   mm_t         mmobj    = mm_FREE ;
+   iobj_mm_t    mmobj    = mm_FREE ;
    testmm_t     testmm   = testmm_FREE ;
    memblock_t   memblock = memblock_FREE ;
    const size_t headersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
@@ -1002,17 +1002,17 @@ static int test_initfree(void)
    // TEST initiot, double freeiot
    TEST(0 == mmobj.object);
    TEST(0 == mmobj.iimpl);
-   TEST(0 == initasmm_testmm(&mmobj));
+   TEST(0 == initPiobj_testmm(&mmobj));
    TEST(mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize));
    TEST(mmobj.iimpl  == cast_mmit(&s_testmm_interface, testmm_t));
-   TEST(0 == freeasmm_testmm(&mmobj));
+   TEST(0 == freePiobj_testmm(&mmobj));
    TEST(0 == mmobj.object);
    TEST(0 == mmobj.iimpl);
 
    return 0;
 ONERR:
    free_testmm(&testmm);
-   freeasmm_testmm(&mmobj);
+   freePiobj_testmm(&mmobj);
    return EINVAL;
 }
 
@@ -1186,8 +1186,8 @@ static int test_context(void * dummy)
 {
    (void)dummy;
    const bool istestmm = isinstalled_testmm() ;
-   mm_t testmm;
-   mm_t oldmm;
+   iobj_mm_t testmm;
+   iobj_mm_t oldmm;
 
    // prepare
    if (istestmm) {

@@ -19,10 +19,6 @@
 // forward
 struct logbuffer_t;
 
-/* typedef: struct log_t
- * Export <log_t>. Interfaceable log object. */
-typedef struct log_t log_t;
-
 /* typedef: struct log_it
  * Export interface <log_it>.
  * See <log_it_DECLARE> for a description of the functional interface. */
@@ -142,15 +138,17 @@ typedef enum log_state_e log_state_e;
 
 
 /* struct: log_t
- * Uses <iobj_DECLARE> to declare object supporting interface <log_it>. */
-iobj_DECLARE(log_t, log);
+ * Defined as <iobj_t.iobj_T>(log).
+ * See also <logwriter_t> which is the default implementation. */
+typedef iobj_T(log) log_t;
 
 // group: generic
 
 /* function: cast_log
  * Casts parameter iobj to pointer to <log_t>.
  * iobj must be a pointer to an anonymous interfaceable log object. */
-log_t * cast_log(void * iobj);
+#define cast_log(iobj) \
+         cast_iobj(iobj, log)
 
 
 /* struct: log_it
@@ -243,13 +241,6 @@ struct log_header_t {
 
 
 // section: inline implementation
-
-// group: log_t
-
-/* define: cast_log
- * Implements <log_t.cast_log>. */
-#define cast_log(iobj) \
-         cast_iobj(iobj, log)
 
 // group: log_it
 

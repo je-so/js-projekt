@@ -21,14 +21,10 @@
 // forward
 struct memblock_t ;
 
-/* typedef: struct mm_t
- * Export <mm_t>. Memory manager interfaceable object. */
-typedef struct mm_t                       mm_t ;
-
 /* typedef: struct mm_it
  * Export interface <mm_it>.
  * See <mm_it_DECLARE> for adaption to a specific implementation. */
-typedef struct mm_it                      mm_it ;
+typedef struct mm_it mm_it;
 
 
 // section: Functions
@@ -38,23 +34,25 @@ typedef struct mm_it                      mm_it ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_mm_mm
  * Test <mm_it> functionality. */
-int unittest_memory_mm_mm(void) ;
+int unittest_memory_mm_mm(void);
 #endif
 
 /* struct: mm_t
- * Uses <iobj_DECLARE> to declare interfaceable object.
+ * Defined as <iobj_t.iobj_T>(mm).
  * See also <mm_impl_t> which is the default implementation. */
-iobj_DECLARE(mm_t, mm) ;
+typedef iobj_T(mm) mm_t;
 
 // group: lifetime
 
 /* define: mm_FREE
  * Static initializer. */
-#define mm_FREE iobj_FREE
+#define mm_FREE \
+         iobj_FREE
 
 /* define: mm_INIT
  * Static initializer. */
-#define mm_INIT(object, iimpl)            iobj_INIT(object, iimpl)
+#define mm_INIT(object, iimpl) \
+         iobj_INIT(object, iimpl)
 
 // group: call
 

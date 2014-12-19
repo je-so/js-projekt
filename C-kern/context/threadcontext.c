@@ -410,9 +410,9 @@ void resetthreadid_threadcontext()
    write_atomicint(&s_threadcontext_nextid, 0) ;
 }
 
-void setmm_threadcontext(threadcontext_t * tcontext, const mm_t * new_mm)
+void setmm_threadcontext(threadcontext_t* tcontext, const iobj_mm_t* new_mm)
 {
-   initcopy_iobj(&tcontext->mm, new_mm) ;
+   initcopy_iobj(&tcontext->mm, new_mm);
 }
 
 
@@ -420,26 +420,24 @@ void setmm_threadcontext(threadcontext_t * tcontext, const mm_t * new_mm)
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct testmodule_impl_t    testmodule_impl_t ;
+typedef struct testmodule_impl_t {
+   double   dummy[4];
+} testmodule_impl_t;
 
-struct testmodule_impl_t {
-   double   dummy[4] ;
-} ;
+typedef iobj_T(testmodule) testmodule_t;
 
-iobj_DECLARE(testmodule_t, testmodule) ;
+static testmodule_impl_t*  s_test_testmodule = 0;
 
-static struct testmodule_impl_t *  s_test_testmodule = 0 ;
-
-static int init_testmoduleimpl(/*out*/struct testmodule_impl_t * object)
+static int init_testmoduleimpl(/*out*/testmodule_impl_t* object)
 {
-   s_test_testmodule = object ;
-   return 0 ;
+   s_test_testmodule = object;
+   return 0;
 }
 
-static int free_testmoduleimpl(struct testmodule_impl_t * object)
+static int free_testmoduleimpl(testmodule_impl_t* object)
 {
-   s_test_testmodule = object ;
-   return 0 ;
+   s_test_testmodule = object;
+   return 0;
 }
 
 static struct testmodule_it * interface_testmoduleimpl(void)
@@ -447,14 +445,14 @@ static struct testmodule_it * interface_testmoduleimpl(void)
    return (struct testmodule_it*) 33 ;
 }
 
-static int call_initiobj(struct testmodule_t * testiobj)
+static int call_initiobj(testmodule_t* testiobj)
 {
    INITIOBJ(testmoduleimpl, struct testmodule_impl_t, *testiobj)
 }
 
-static int call_freeiobj(struct testmodule_t * testiobj)
+static int call_freeiobj(testmodule_t* testiobj)
 {
-   struct testmodule_t staticiobj = { (void*)1, (void*)2 } ;
+   testmodule_t staticiobj = { (void*)1, (void*)2 };
    FREEIOBJ(testmoduleimpl, struct testmodule_impl_t, *testiobj, staticiobj)
 }
 
@@ -462,23 +460,23 @@ static int call_freeiobj(struct testmodule_t * testiobj)
 #define free_testmoduleimpl2(testiobj)    (ENOSYS) /* not called */
 #define interface_testmoduleimpl2()       (0)      /* INITIOBJ now checks for value 0 */
 
-static int call_initiobj2(struct testmodule_t * testiobj)
+static int call_initiobj2(testmodule_t* testiobj)
 {
    INITIOBJ(testmoduleimpl2, struct testmodule_impl_t, *testiobj)
 }
 
-static int call_freeiobj2(struct testmodule_t * testiobj)
+static int call_freeiobj2(testmodule_t* testiobj)
 {
    FREEIOBJ(testmoduleimpl2, struct testmodule_impl_t, *testiobj, *testiobj)
 }
 
 static int test_iobjhelper(void)
 {
-   struct testmodule_t  testiobj ;
-   memblock_t           memblock = memblock_FREE ;
+   testmodule_t  testiobj;
+   memblock_t    memblock = memblock_FREE;
 
    // TEST INITIOBJ
-   size_t stsize = SIZESTATIC_PAGECACHE() ;
+   size_t stsize = SIZESTATIC_PAGECACHE();
    s_test_testmodule = 0 ;
    free_iobj(&testiobj) ;
    TEST(0 == call_initiobj(&testiobj)) ;
@@ -803,10 +801,10 @@ static int test_change(void)
    TEST(0 == s_threadcontext_nextid) ;
 
    // TEST setmm_threadcontext
-   setmm_threadcontext(&tcontext, &(mm_t) iobj_INIT((void*)1, (void*)2)) ;
-   TEST(tcontext.mm.object == (mm_t*)1) ;
-   TEST(tcontext.mm.iimpl  == (mm_it*)2) ;
-   setmm_threadcontext(&tcontext, &(mm_t) iobj_INIT(0, 0)) ;
+   setmm_threadcontext(&tcontext, &(iobj_mm_t) iobj_INIT((void*)1, (void*)2)) ;
+   TEST(tcontext.mm.object == (struct mm_t*)1) ;
+   TEST(tcontext.mm.iimpl  == (struct mm_it*)2) ;
+   setmm_threadcontext(&tcontext, &(iobj_mm_t) iobj_INIT(0, 0)) ;
    TEST(tcontext.mm.object == 0) ;
    TEST(tcontext.mm.iimpl  == 0) ;
 

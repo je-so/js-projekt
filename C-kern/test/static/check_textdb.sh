@@ -106,14 +106,14 @@ for i in $files; do
          continue ;
       fi
       if    [ "${result/,/}" != "$result" ] \
-         || [ "${result#int initthread_*(*/\*out\*/*) ;}" != "" ]; then
+         || [ "${result#int initthread_*(*/\*out\*/*);}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
       result=${free_thread_calls[$testnr]}
       result=${result#extern }
-      if [ "${result#int freethread_*(*) ;}" != "" ]; then
+      if [ "${result#int freethread_*(*);}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done

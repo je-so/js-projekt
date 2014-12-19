@@ -68,7 +68,7 @@ static int test_initfree(void)
    TEST(0 == mman.iimpl) ;
 
    // TEST mm_INIT
-   mman = (mm_t) mm_INIT((mm_t*)2, (mm_it*)3) ;
+   mman = (mm_t) mm_INIT((struct mm_t*)2, (struct mm_it*)3) ;
    TEST(2 == (uintptr_t)mman.object) ;
    TEST(3 == (uintptr_t)mman.iimpl) ;
 
@@ -167,7 +167,7 @@ static int test_call(void)
 {
    mmx_it mmxif = mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx);
    mmx_t  mmx   = { 0, 0, 0, 0 } ;
-   mm_t   mm    = mm_INIT((mm_t*)&mmx, cast_mmit(&mmxif, struct mmx_t));
+   mm_t   mm    = mm_INIT((struct mm_t*)&mmx, cast_mmit(&mmxif, struct mmx_t));
 
    // TEST malloc_mm
    TEST(0 == malloc_mm(mm, 1000, (struct memblock_t*)10001)) ;
