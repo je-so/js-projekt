@@ -93,7 +93,7 @@ struct syncfunc_t * waitfunc_synccond(const synccond_t * scond);
 /* function: link_synccond
  * Verlinkt eine wartende <syncfunc_t>.
  * Es kann nur eine einzige verlinkt werden, weitere
- * <syncfunc_t> müssen mittels über das optionale Felde
+ * <syncfunc_t> müssen mittels des optionalen Feldes
  * <syncfunc_t.waitlist> verwaltet werden.
  * Siehe <syncrunner_t> für die Implementierung.
  *

@@ -378,9 +378,9 @@ static inline void splice_linkd(linkd_t* list1, linkd_t* list2);
 /* define: isself_linkd
  * Implementiert <linkd_t.isself_linkd>. */
 #define isself_linkd(link) \
-         ( __extension__ ({         \
-            linkd_t * _l = (link);  \
-            _l->prev == _l;         \
+         ( __extension__ ({             \
+            const linkd_t* _l = (link); \
+            _l->prev == _l;             \
          }))
 
 /* define: relink_linkd

@@ -334,21 +334,21 @@ size_t offcaller_syncfunc(size_t structsize, const bool isstate, const bool isca
 size_t offstate_syncfunc(size_t structsize, const bool isstate);
 
 /* function: addrwaitresult_syncfunc
- * Liefere die Adresse Wert des optionalen Feldes <waitresult>.
+ * Liefere die Adresse des optionalen Feldes <waitresult>.
  *
  * Precondition:
  * Feld <waitresult> ist vorhanden. */
 int * addrwaitresult_syncfunc(syncfunc_t * sfunc);
 
 /* function: addrwaitfor_syncfunc
- * Liefere die Adresse Wert des optionalen Feldes <waitfor>.
+ * Liefere die Adresse des optionalen Feldes <waitfor>.
  *
  * Precondition:
  * Feld <waitfor> ist vorhanden. */
 link_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
 
 /* function: addrwaitlist_syncfunc
- * Liefere die Adresse Wert des optionalen Feldes <waitlist>.
+ * Liefere die Adresse des optionalen Feldes <waitlist>.
  * Parameter iswaitfor gibt an, ob Feld <waitfor> vorhanden ist.
  *
  * Precondition:
@@ -356,7 +356,7 @@ link_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
 linkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
 
 /* function: addrcaller_syncfunc
- * Liefere die Adresse Wert des optionalen Feldes <state>.
+ * Liefere die Adresse des optionalen Feldes <state>.
  * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an
  * und isstate, ob Feld <state> vorhanden ist.
  *
@@ -365,7 +365,7 @@ linkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
 link_t * addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize, const bool isstate);
 
 /* function: addrstate_syncfunc
- * Liefere die Adresse Wert des optionalen Feldes <state>.
+ * Liefere die Adresse des optionalen Feldes <state>.
  * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an.
  *
  * Precondition:
@@ -387,10 +387,10 @@ static inline void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
 void relink_syncfunc(syncfunc_t * sfunc, const size_t structsize);
 
 /* function: setresult_syncfunc
- * Setzt <waitresult> auf Wert result.
+ * Setzt <waitresult> auf result.
  *
  * Precondition:
- * Feld <waitfor> bzw. <waitresult> ist vorhanden. */
+ * Felder <waitfor> bzw. <waitresult> sind vorhanden. */
 static inline void setresult_syncfunc(syncfunc_t * sfunc, int result);
 
 /* function: unlink_syncfunc

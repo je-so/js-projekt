@@ -109,6 +109,7 @@ int init_syncrunner(/*out*/syncrunner_t * srun)
 
    srun->caller = 0;
    initself_linkd(&srun->wakeup);
+   srun->isrun = 0;
 
    return 0;
 ONERR:
@@ -225,6 +226,11 @@ static inline syncqueue_t * wait_queue(syncrunner_t * srun, syncfunc_t * sfunc)
 }
 
 // group: query
+
+bool iswakeup_syncrunner(const syncrunner_t* srun)
+{
+   return ! isself_linkd(&srun->wakeup);
+}
 
 size_t size_syncrunner(const syncrunner_t * srun)
 {
@@ -954,6 +960,7 @@ static int test_initfree(void)
       TEST(0 == size_syncqueue(&srun.rwqueue[i]));
       TEST(s_syncrunner_rwqsize[i] == elemsize_syncqueue(&srun.rwqueue[i]));
    }
+   TEST(0 == srun.isrun);
 
    // TEST free_syncrunner: free queues
    for (unsigned i = 0; i < lengthof(srun.rwqueue); ++i) {
@@ -1148,9 +1155,21 @@ ONERR:
 static int test_query(void)
 {
    syncrunner_t srun;
+   syncfunc_t   sfunc;
 
    // prepare
    TEST(0 == init_syncrunner(&srun));
+
+   // TEST iswakeup_syncrunner: after init
+   TEST(0 == iswakeup_syncrunner(&srun));
+
+   // TEST iswakeup_syncrunner: true ==> wakeup list not empty
+   link_to_wakeup(&srun, &sfunc.waitlist);
+   TEST(1 == iswakeup_syncrunner(&srun));
+
+   // TEST iswakeup_syncrunner: false ==> wakeup list empty
+   unlinkself_linkd(&sfunc.waitlist);
+   TEST(0 == iswakeup_syncrunner(&srun));
 
    // TEST size_syncrunner: after init
    TEST(0 == size_syncrunner(&srun));

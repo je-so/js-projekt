@@ -1,6 +1,6 @@
-[1: 1418135004.564181s]
-wakeup_syncrunner() C-kern/task/syncrunner.c:398
+[1: 1418189322.843376s]
+wakeup_syncrunner() C-kern/task/syncrunner.c:404
 Error 22 - Invalid argument
-[1: 1418135004.564193s]
-wakeupall_syncrunner() C-kern/task/syncrunner.c:411
+[1: 1418189322.843386s]
+wakeupall_syncrunner() C-kern/task/syncrunner.c:417
 Error 22 - Invalid argument

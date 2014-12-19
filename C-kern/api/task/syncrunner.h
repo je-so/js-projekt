@@ -73,7 +73,7 @@ struct syncrunner_t {
     * Falls 0, dann wurde <addcall_syncrunner> noch nicht von der gerade ablaufenden <syncfunc_t> aufgerufen. */
    link_t       * caller;
    /* variable: wakeup
-    * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist>ist vorhanden. */
+    * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist> sind vorhanden. */
    linkd_t        wakeup;
    /* variable: rwqueue
     * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
@@ -110,6 +110,12 @@ int free_syncrunner(syncrunner_t * srun);
 /* function: size_syncrunner
  * Liefere Anzahl wartender und auszuführender <syncfunc_t>. */
 size_t size_syncrunner(const syncrunner_t * srun);
+
+/* function: iswakeup_syncrunner
+ * Liefert true, falls Funktionen aufgeweckt aber noch nicht ausgeführt wurden.
+ * Funktionen werden mittels <wakeup_syncrunner> oder <wakeupall_syncrunner> aufgeweckt,
+ * sie warten mit der Ausführung aber auf den nächsten Aufruf von <run_syncrunner>. */
+bool iswakeup_syncrunner(const syncrunner_t * srun);
 
 // group: update
 
@@ -163,7 +169,9 @@ int wakeupall_syncrunner(syncrunner_t * srun, struct synccond_t * scond);
  * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
  * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
  * stehen in einer Warteschlange und werden nicht ausgeführt. Erst mit
- * der Erfüllung der Wartebedingung werden sie wieder ausgeführt. */
+ * der Erfüllung der Wartebedingung werden sie wieder ausgeführt.
+ *
+ * Ruft <run2_syncrunner>(srun,true) auf. */
 int run_syncrunner(syncrunner_t * srun);
 
 /* function: run2_syncrunner
