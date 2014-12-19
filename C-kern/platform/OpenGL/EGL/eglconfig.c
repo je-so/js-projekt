@@ -110,7 +110,7 @@ static inline int convertAttribToEGL_eglconfig(int attribute, int32_t value, /*o
    return 0;
 }
 
-static int convertConfigListToEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*gconfig_NROFELEMENTS], const int32_t config_attributes[])
+static int convertConfigListToEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*gconfig__NROF], const int32_t config_attributes[])
 {
    int err;
    unsigned idx;
@@ -133,7 +133,7 @@ static int convertConfigListToEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*g
 int init_eglconfig(/*out*/eglconfig_t * eglconf, opengl_display_t * egldisp, const int32_t config_attributes[])
 {
    int err;
-   EGLint   egl_attrib_list[2*gconfig_NROFELEMENTS];
+   EGLint   egl_attrib_list[2*gconfig__NROF];
 
    err = convertConfigListToEGL_eglconfig(&egl_attrib_list, config_attributes);
    if (err) goto ONERR;
@@ -163,7 +163,7 @@ ONERR:
 int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user)
 {
    int err;
-   EGLint      egl_attrib_list[2*gconfig_NROFELEMENTS];
+   EGLint      egl_attrib_list[2*gconfig__NROF];
    EGLConfig * eglconfig = 0;
    memblock_t  mblock;
 
@@ -379,7 +379,7 @@ static bool filter_test_attriboff(eglconfig_t eglconf, int32_t visualid, void * 
 static int test_initfree(egldisplay_t egldisp)
 {
    eglconfig_t eglconf = eglconfig_FREE;
-   int32_t     attrlist[2*gconfig_NROFELEMENTS+1];
+   int32_t     attrlist[2*gconfig__NROF+1];
 
    // TEST eglconfig_FREE
    TEST(0 == eglconf);
@@ -390,7 +390,7 @@ static int test_initfree(egldisplay_t egldisp)
 
    // TEST init_eglconfig: EINVAL (values in config_attributes wrong)
    const int32_t errattr1[][3] = {
-      { gconfig_NROFELEMENTS/*!*/, 1, gconfig_NONE },
+      { gconfig__NROF/*!*/, 1, gconfig_NONE },
       { gconfig_TYPE, 0x0f/*!*/, gconfig_NONE },
       { gconfig_CONFORMANT, 0x1f/*!*/, gconfig_NONE }
    };
@@ -401,7 +401,7 @@ static int test_initfree(egldisplay_t egldisp)
    // TEST init_eglconfig: E2BIG (config_attributes list too long)
    memset(attrlist, gconfig_NONE, sizeof(attrlist));
    for (int i = 0; i < (int)lengthof(attrlist)-2; i += 2) {
-      attrlist[i]   = 1 + (i % (gconfig_NROFELEMENTS-1));
+      attrlist[i]   = 1 + (i % (gconfig__NROF-1));
       attrlist[i+1] = 1;
    }
    TEST(E2BIG == init_eglconfig(&eglconf, egldisp, attrlist));
@@ -415,7 +415,7 @@ static int test_initfree(egldisplay_t egldisp)
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: all gconfig_XXX supported
-   for (int i = 1; i < gconfig_NROFELEMENTS; ++i) {
+   for (int i = 1; i < gconfig__NROF; ++i) {
       int32_t value = 1;
       switch (i) {
       case gconfig_TYPE:
@@ -433,8 +433,8 @@ static int test_initfree(egldisplay_t egldisp)
       attrlist[2*i-2] = i;
       attrlist[2*i-1] = value;
    }
-   static_assert(2*gconfig_NROFELEMENTS-2 < lengthof(attrlist), "enough space for all attributes");
-   attrlist[2*gconfig_NROFELEMENTS-2] = gconfig_NONE;
+   static_assert(2*gconfig__NROF-2 < lengthof(attrlist), "enough space for all attributes");
+   attrlist[2*gconfig__NROF-2] = gconfig_NONE;
    TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
    TEST(0 != eglconf);
    TEST(0 == free_eglconfig(&eglconf));

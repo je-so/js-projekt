@@ -1,16 +1,16 @@
 [1: 1410603208.392744s]
 compare_logwriter() C-kern/io/writer/log/logwriter.c:194
 Error 22 - Invalid argument
-Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function input violates condition (channel < log_channel__NROF)
 [1: 1410603208.392753s]
 compare_logwriter() C-kern/io/writer/log/logwriter.c:194
 Error 22 - Invalid argument
-Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function input violates condition (channel < log_channel__NROF)
 [1: 1410603208.395197s]
 vprintf_logwriter() C-kern/io/writer/log/logwriter.c:297
 Error 22 - Invalid argument
-Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function input violates condition (channel < log_channel__NROF)
 [1: 1410603208.395588s]
 printtext_logwriter() C-kern/io/writer/log/logwriter.c:323
 Error 22 - Invalid argument
-Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function input violates condition (channel < log_channel__NROF)

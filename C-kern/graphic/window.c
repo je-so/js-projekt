@@ -358,7 +358,7 @@ static int test_initfree(display_t * disp)
    TEST(0 == init_gconfig(&gconf, disp, surfattr[0]));
 
    // TEST init_window: E2BIG
-   windowconfig_t winattr2big[3*windowconfig_NROFELEMENTS+2];
+   windowconfig_t winattr2big[3*windowconfig__NROF+2];
    for (unsigned i = 0; i < lengthof(winattr2big)-1; ++i) {
       winattr2big[i] = (windowconfig_t)windowconfig_INIT_FRAME;
    }

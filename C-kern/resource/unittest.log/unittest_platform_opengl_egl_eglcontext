@@ -1,7 +1,7 @@
 [1: 1410603388.584640s]
 init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:55
 Error 22 - Invalid argument
-Function input violates condition (api < gcontext_api_NROFELEMENTS)
+Function input violates condition (api < gcontext_api__NROF)
 [1: 1410603388.586692s]
 free_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:107
 Error 9 - Bad file descriptor

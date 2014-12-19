@@ -65,11 +65,10 @@ typedef enum pagesize_e {
    pagesize_131072,
    pagesize_262144,
    pagesize_524288,
-   pagesize_1MB,
-   pagesize__NROF
+   pagesize_1MB
 } pagesize_e;
 
-// TODO: rename pagesize_NROFPAGESIZE into pagesize__NROF (also in all other modules)
+#define pagesize__NROF (pagesize_1MB + 1)
 
 
 // section: Functions

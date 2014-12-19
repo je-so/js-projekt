@@ -1,89 +1,89 @@
-[1: 1410604583.362290s]
+[1: 1417882072.471796s]
 clear_signalhandler() C-kern/platform/Linux/sync/signal.c:96
 Error 22 - Invalid argument
 Function input violates condition (signr > 0)
-[1: 1410604583.362301s]
+[1: 1417882072.471807s]
 clear_signalhandler() C-kern/platform/Linux/sync/signal.c:97
 Error 22 - Invalid argument
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
-[1: 1410604583.362308s]
+[1: 1417882072.471814s]
 set_signalhandler() C-kern/platform/Linux/sync/signal.c:130
 Error 22 - Invalid argument
 Function input violates condition (signr > 0)
-[1: 1410604583.362314s]
+[1: 1417882072.471820s]
 set_signalhandler() C-kern/platform/Linux/sync/signal.c:131
 Error 22 - Invalid argument
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
-[1: 1410604583.362319s]
+[1: 1417882072.471825s]
 setignore_signalhandler() C-kern/platform/Linux/sync/signal.c:169
 Error 22 - Invalid argument
 Function input violates condition (signr > 0)
-[1: 1410604583.362324s]
+[1: 1417882072.471830s]
 setignore_signalhandler() C-kern/platform/Linux/sync/signal.c:170
 Error 22 - Invalid argument
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
-[1: 1410604583.368381s]
+[1: 1417882072.476976s]
 trywait_signalrt() C-kern/platform/Linux/sync/signal.c:627
 Error 22 - Invalid argument
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
-[1: 1410604583.368626s]
+[1: 1417882072.477212s]
 wait_signalrt() C-kern/platform/Linux/sync/signal.c:583
 Error 22 - Invalid argument
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
-[1: 1410604583.465826s]
+[1: 1417882072.568542s]
 send_signalrt() C-kern/platform/Linux/sync/signal.c:545
 Error 22 - Invalid argument
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
-[1: 1410604583.486547s]
+[1: 1417882072.591678s]
 send_signalrt() C-kern/platform/Linux/sync/signal.c:550
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.486559s]
+[1: 1417882072.591690s]
 send_signalrt() C-kern/platform/Linux/sync/signal.c:550
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.486564s]
+[1: 1417882072.591695s]
 send2_signalrt() C-kern/platform/Linux/sync/signal.c:568
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.580417s]
+[1: 1417882072.693228s]
 send2_signalrt() C-kern/platform/Linux/sync/signal.c:564
 Error 22 - Invalid argument
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
-[1: 1410604583.603717s]
+[1: 1417882072.720249s]
 send2_signalrt() C-kern/platform/Linux/sync/signal.c:568
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.603729s]
+[1: 1417882072.720277s]
 send2_signalrt() C-kern/platform/Linux/sync/signal.c:568
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.603735s]
+[1: 1417882072.720286s]
 send_signalrt() C-kern/platform/Linux/sync/signal.c:550
 Error 11 - Resource temporarily unavailable
 System call 'sigqueue' failed
-[1: 1410604583.620663s]
+[1: 1417882072.738521s]
 initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:479
 Error 22 - Invalid argument
 Function input violates condition (minrt <= maxrt)
-[1: 1410604583.620674s]
+[1: 1417882072.738532s]
 initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:480
 Error 22 - Invalid argument
 Function input violates condition (maxrt <= maxnr_signalrt())
-[1: 1410604583.620678s]
+[1: 1417882072.738536s]
 free_iochannel() C-kern/platform/Linux/io/iochannel.c:72
 Error 9 - Bad file descriptor
 System call 'close' failed
 close_ioc=3
 One or more resources could not be freed
-[1: 1410604583.620682s]
+[1: 1417882072.738540s]
 free_signalwait() C-kern/platform/Linux/sync/signal.c:524
 Error 9 - Bad file descriptor
 One or more resources could not be freed

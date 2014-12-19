@@ -44,14 +44,13 @@ typedef struct gcontext_t gcontext_t;
  * gcontext_api_OPENVG   - The client uses api OpenVG for drawing.
  * gcontext_api_OPENGL   - The client uses api OpenGL for drawing.
  * */
-enum gcontext_api_e {
+typedef enum gcontext_api_e {
    gcontext_api_OPENGLES, // version 2
    gcontext_api_OPENVG,
-   gcontext_api_OPENGL,
-   gcontext_api_NROFELEMENTS
-};
+   gcontext_api_OPENGL
+} gcontext_api_e;
 
-typedef enum gcontext_api_e gcontext_api_e;
+#define gcontext_api__NROF (gcontext_api_OPENGL + 1)
 
 
 // section: Functions

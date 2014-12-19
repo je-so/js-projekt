@@ -39,10 +39,10 @@ typedef struct windowconfig_t windowconfig_t;
  * windowconfig_TRANSPARENCY - Sets a transparency value for the whole window.
  *                             Value 255: Window is fully opaque. Value 0: Window is fully transparent.
  *                             DEfault value is 255.
- * windowconfig_NROFELEMENTS - Gives the number of all valid configuration options excluding <windowconfig_NROFELEMENTS>.
+ * windowconfig__NROF  - Gives the number of all valid configuration options excluding <windowconfig__NROF>.
  *
  * */
-enum windowconfig_e {
+typedef enum windowconfig_e {
       windowconfig_NONE,
       windowconfig_FRAME,
       windowconfig_MAXSIZE,
@@ -50,11 +50,10 @@ enum windowconfig_e {
       windowconfig_POS,
       windowconfig_SIZE,
       windowconfig_TITLE,
-      windowconfig_TRANSPARENCY,
-      windowconfig_NROFELEMENTS,
-};
+      windowconfig_TRANSPARENCY
+} windowconfig_e;
 
-typedef enum windowconfig_e windowconfig_e;
+#define windowconfig__NROF (windowconfig_TRANSPARENCY + 1)
 
 
 // section: Functions

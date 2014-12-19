@@ -261,7 +261,7 @@ int bold_termadapt(const termadapt_t* termadapt, /*ret*/memstream_t* ctrlcodes)
 int fgcolor_termadapt(const termadapt_t* termadapt, /*ret*/memstream_t* ctrlcodes, bool bright, unsigned fgcolor)
 {
    (void) termadapt;
-   CHECK_PARAM_MAX(fgcolor, termcol_NROFCOLOR-1);
+   CHECK_PARAM_MAX(fgcolor, termcol__NROF-1);
    CHECK_SIZE(5);
 
    // is bright supported ?
@@ -279,7 +279,7 @@ int fgcolor_termadapt(const termadapt_t* termadapt, /*ret*/memstream_t* ctrlcode
 int bgcolor_termadapt(const termadapt_t* termadapt, /*ret*/memstream_t* ctrlcodes, bool bright, unsigned bgcolor)
 {
    (void) termadapt;
-   CHECK_PARAM_MAX(bgcolor, termcol_NROFCOLOR-1);
+   CHECK_PARAM_MAX(bgcolor, termcol__NROF-1);
 
    // is bright supported ?
    bright &= (termadapt->termid != termid_LINUXCONSOLE);
@@ -942,7 +942,7 @@ static int test_controlcodes2(void)
       }}
 
       for (unsigned p1 = 0; p1 <= 1; ++p1) {
-      for (unsigned p2 = 0; p2 < termcol_NROFCOLOR; ++p2) {
+      for (unsigned p2 = 0; p2 < termcol__NROF; ++p2) {
 
          unsigned p1_expect = (termadapt->termid == termid_LINUXCONSOLE) ? 0 : p1;
 
@@ -961,7 +961,7 @@ static int test_controlcodes2(void)
          TEST(0 == memcmp(zerobuf, zerobuf2, sizeof(zerobuf))); // not changed
 
          // fgcolor_termadapt: EINVAL
-         TEST(EINVAL == fgcolor_termadapt(termadapt, &strbuf, p1, termcol_NROFCOLOR));
+         TEST(EINVAL == fgcolor_termadapt(termadapt, &strbuf, p1, termcol__NROF));
 
          // bgcolor_termadapt
          codelen = (size_t) snprintf(buffer2, sizeof(buffer2), "\x1b[%dm", p2 + (p1_expect ? 100 : 40));
@@ -978,7 +978,7 @@ static int test_controlcodes2(void)
          TEST(0 == memcmp(zerobuf, zerobuf2, sizeof(zerobuf))); // not changed
 
          // bgcolor_termadapt: EINVAL
-         TEST(EINVAL == bgcolor_termadapt(termadapt, &strbuf, p1, termcol_NROFCOLOR));
+         TEST(EINVAL == bgcolor_termadapt(termadapt, &strbuf, p1, termcol__NROF));
 
       }}
 

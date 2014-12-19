@@ -45,7 +45,7 @@ typedef struct termkey_t termkey_t;
  * termcol_MAGENTA    - Farbe Magenta (blau und rot).
  * termcol_CYAN       - Farbe Türkis (blau und grün).
  * termcol_WHITE      - Farbe Weiß.
- * termcol_NROFCOLOR  - Anzahl Farben. Die Zahlcodes gehen von 0 bis termcol_NROFCOLOR-1.
+ * termcol__NROF      - Anzahl Farben. Die Zahlcodes gehen von 0 bis termcol__NROF-1.
  * */
 typedef enum termcol_e {
    termcol_BLACK,
@@ -55,9 +55,10 @@ typedef enum termcol_e {
    termcol_BLUE,
    termcol_MAGENTA,
    termcol_CYAN,
-   termcol_WHITE,
-   termcol_NROFCOLOR
+   termcol_WHITE
 } termcol_e;
+
+#define termcol__NROF (termcol_WHITE + 1)
 
 /* enums: termkey_e
  * Special Key Number.

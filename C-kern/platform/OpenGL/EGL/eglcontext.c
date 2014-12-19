@@ -52,7 +52,7 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
    EGLContext ctx;
    EGLenum eglapi = eglQueryAPI();
 
-   VALIDATE_INPARAM_TEST(api < gcontext_api_NROFELEMENTS, ONERR_INPARAM,);
+   VALIDATE_INPARAM_TEST(api < gcontext_api__NROF, ONERR_INPARAM,);
 
    static_assert( EGL_OPENGL_ES_API != 0
                   && EGL_OPENVG_API == EGL_OPENGL_ES_API+1
@@ -60,7 +60,7 @@ int init_eglcontext(/*out*/eglcontext_t * eglcont, egldisplay_t egldisp, eglconf
                   && gcontext_api_OPENGLES == 0
                   && gcontext_api_OPENVG   == 1
                   && gcontext_api_OPENGL   == 2
-                  && gcontext_api_NROFELEMENTS == 3, "simple conversion");
+                  && gcontext_api__NROF == 3, "simple conversion");
 
    if (EGL_FALSE == eglBindAPI((EGLenum)(EGL_OPENGL_ES_API + api))) {
       goto ONERR;
@@ -126,7 +126,7 @@ int api_eglcontext(const eglcontext_t eglcont, egldisplay_t egldisp, /*out*/uint
                   && gcontext_api_OPENGLES == 0
                   && gcontext_api_OPENVG   == 1
                   && gcontext_api_OPENGL   == 2
-                  && gcontext_api_NROFELEMENTS == 3, "simple conversion");
+                  && gcontext_api__NROF == 3, "simple conversion");
 
    *api = (uint8_t) (value - EGL_OPENGL_ES_API);
 
@@ -299,7 +299,7 @@ static int test_initfree(egldisplay_t disp)
    TEST(1 == listsize);
 
    // TEST init_eglcontext: EINVAL
-   TEST(EINVAL == init_eglcontext(&cont, disp, conflist[0], gcontext_api_NROFELEMENTS));
+   TEST(EINVAL == init_eglcontext(&cont, disp, conflist[0], gcontext_api__NROF));
    TEST(0 == cont);
    TEST(EGL_OPENGL_ES_API == eglQueryAPI());
 

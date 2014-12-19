@@ -166,7 +166,7 @@ static int test_query(display_t * disp)
       TEST(0 == init_gcontext(&cont, disp, &conf, api[i]));
 
       // TEST api_gcontext
-      uint8_t api2 = gcontext_api_NROFELEMENTS;
+      uint8_t api2 = gcontext_api__NROF;
       TEST(0 == api_gcontext(&cont, disp, &api2));
       TEST(api2 == api[i]);
 

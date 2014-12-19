@@ -120,7 +120,7 @@ static inline void compiletimetest_config_enums(void)
    static_assert(8 == gconfig_BITS_DEPTH, "number of bits of depth channel");
    static_assert(9 == gconfig_BITS_STENCIL, "number of bits of stencil channel");
    static_assert(10 == gconfig_CONFORMANT, "type of supported conformant API");
-   static_assert(11 == gconfig_NROFELEMENTS, "number of all configuration values including gconfig_NONE");
+   static_assert(11 == gconfig__NROF, "number of all configuration values including gconfig_NONE");
 
    static_assert(1 == gconfig_value_TYPE_PBUFFER_BIT, "surface type value");
    static_assert(2 == gconfig_value_TYPE_PIXMAP_BIT, "surface type value");
@@ -212,7 +212,7 @@ static int test_initfree(display_t * display)
    gconfig_t config = gconfig_FREE;
    int config_attributes[10];
    int config_attriberr1[] = { gconfig_TYPE, -1, gconfig_NONE };
-   int config_attriberr2[2*gconfig_NROFELEMENTS+1];
+   int config_attriberr2[2*gconfig__NROF+1];
    int config_attriberr3[] = { gconfig_BITS_RED, 1024, gconfig_NONE };
 
    // TEST gconfig_FREE

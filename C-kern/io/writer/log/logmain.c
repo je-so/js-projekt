@@ -173,13 +173,13 @@ static int test_query(void)
    getbuffer_logmain(0, log_channel_ERR, &logbuffer, &logsize);
    TEST(0 == logbuffer);
    TEST(0 == logsize);
-   getbuffer_logmain(0, log_channel_NROFCHANNEL/*not used*/, &logbuffer, &logsize);
+   getbuffer_logmain(0, log_channel__NROF/*not used*/, &logbuffer, &logsize);
    TEST(0 == logbuffer);
    TEST(0 == logsize);
 
    // TEST getstate_logmain
    TEST(log_state_IMMEDIATE == getstate_logmain(0, 0/*not used*/));
-   TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel_NROFCHANNEL/*not used*/));
+   TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel__NROF/*not used*/));
 
    // TEST compare_logmain
    TEST(0 == compare_logmain(0, 0, 0/*logsize == 0*/, 0));
@@ -223,7 +223,7 @@ static int test_update(void)
    }
 
    // TEST printf_logmain: all channels flushed immediately
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       printf_logmain(0, i, log_flags_NONE, 0, "1%c%s%d", '2', "3", 4) ;
       TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(0 == strncmp("1234", readbuffer, 4)) ;
@@ -234,7 +234,7 @@ static int test_update(void)
    }
 
    // TEST printf_logmain: header
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       log_header_t header = log_header_INIT("func", "file", 10, EPERM) ;
       printf_logmain(0, i, log_flags_NONE, &header, "%s", "xxx") ;
       memset(readbuffer, 0, sizeof(readbuffer)) ;
@@ -245,7 +245,7 @@ static int test_update(void)
    }
 
    // TEST printf_logmain: format == 0
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       printf_logmain(0, i, log_flags_NONE, 0, 0);
       // nothing written
       TEST(-1 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
@@ -253,7 +253,7 @@ static int test_update(void)
    }
 
    // TEST printtext_logmain: all channels flushed immediately
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       // 2%c%s%d
       printtext_logmain(0, i, log_flags_NONE, 0, text_resource_test, '3', "45", 6) ;
       TEST(5 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
@@ -266,7 +266,7 @@ static int test_update(void)
    }
 
    // TEST printtext_logmain: header
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       log_header_t header = log_header_INIT("func", "file", 1, 2) ;
       printtext_logmain(0, i, log_flags_NONE, &header, text_resource_test, '4', maxstring, 6) ;
       TEST(log_config_MINSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
@@ -281,7 +281,7 @@ static int test_update(void)
    }
 
    // TEST setstate_logmain
-   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+   for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       setstate_logmain(0, i, log_state_BUFFERED) ;   // ignored
       TEST(log_state_IMMEDIATE == getstate_logmain(0, i)) ;
    }

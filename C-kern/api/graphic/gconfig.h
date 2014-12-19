@@ -74,10 +74,10 @@ typedef struct gconfig_filter_t gconfig_filter_t;
  *                        Supported values are any combination of bits ored together from
  *                        <gconfig_value_CONFORMANT_ES1_BIT>, <gconfig_value_CONFORMANT_ES2_BIT>,
  *                        <gconfig_value_CONFORMANT_OPENGL_BIT>, <gconfig_value_CONFORMANT_OPENVG_BIT>.
- * gconfig_NROFELEMENTS - Gives the number of all valid configuration options excluding <gconfig_NROFELEMENTS>.
+ * gconfig__NROF - Gives the number of all valid configuration options excluding <gconfig__NROF>.
  *
  * */
-enum gconfig_e {
+typedef enum gconfig_e {
    gconfig_NONE,
    gconfig_TYPE,
    gconfig_TRANSPARENT_ALPHA,
@@ -88,11 +88,10 @@ enum gconfig_e {
    gconfig_BITS_ALPHA,
    gconfig_BITS_DEPTH,
    gconfig_BITS_STENCIL,
-   gconfig_CONFORMANT,
-   gconfig_NROFELEMENTS
-};
+   gconfig_CONFORMANT
+} gconfig_e;
 
-typedef enum gconfig_e gconfig_e;
+#define gconfig__NROF (gconfig_CONFORMANT + 1)
 
 /* enums: gconfig_value_e
  * gconfig_value_TYPE_PBUFFER_BIT  - The config supports drawing into a OpenGL (ES) pixel buffer surface.

@@ -97,19 +97,17 @@ typedef enum log_flags_e log_flags_e;
  *                       The error channel is used to log system error which should not occur
  *                       and which are not critical to the running process.
  *                       This channel is written to STDERR if not configured otherwise.
- * log_channel_NROFCHANNEL - Use this value to determine the number of different channels
- *                           numbered from 0 up to (log_channel_NROFCHANNEL-1).
+ * log_channel__NROF   - Use this value to determine the number of different channels
+ *                           numbered from 0 up to (log_channel__NROF-1).
  * */
-enum log_channel_e {
+typedef enum log_channel_e {
    log_channel_USERERR,
    log_channel_TEST,
    log_channel_WARN,
    log_channel_ERR
-};
+} log_channel_e;
 
-typedef enum log_channel_e log_channel_e;
-
-#define log_channel_NROFCHANNEL (log_channel_ERR + 1)
+#define log_channel__NROF (log_channel_ERR + 1)
 
 
 /* enums: log_state_e
@@ -122,19 +120,17 @@ typedef enum log_channel_e log_channel_e;
  *                        written out as a whole.
  * log_state_IMMEDIATE  - Every part of a log entry is written immediately without waiting for the last part end.
  *
- * log_state_NROFSTATE  - Use this value to determine the number of different states
- *                        numbered from 0 up to (log_state_NROFSTATE-1).
+ * log_state__NROF      - Use this value to determine the number of different states
+ *                        numbered from 0 up to (log_state__NROF-1).
  * */
-enum log_state_e {
+typedef enum log_state_e {
    log_state_IGNORED    = 0,
    log_state_BUFFERED   = 1,
    log_state_UNBUFFERED = 2,
    log_state_IMMEDIATE  = 3,
-};
+} log_state_e;
 
-typedef enum log_state_e log_state_e;
-
-#define log_state_NROFSTATE (log_state_IMMEDIATE + 1)
+#define log_state__NROF (log_state_IMMEDIATE + 1)
 
 
 /* struct: log_t

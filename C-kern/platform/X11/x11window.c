@@ -65,7 +65,7 @@ static int matchvisual_x11window(
    bool     isOpacity = false;
 
    for (unsigned i = 0; gconf_attrib[i] != gconfig_NONE; i += 2) {
-      if (i >= 2*gconfig_NROFELEMENTS) {
+      if (i >= 2*gconfig__NROF) {
          return E2BIG;
       }
       switch ((gconfig_e)gconf_attrib[i]) {
@@ -194,7 +194,7 @@ int initvid_x11window(
    if (winconf_attrib) {
       uint_fast8_t i = 0;
       for (windowconfig_e type; windowconfig_NONE != (type = readtype_windowconfig(winconf_attrib, &i)); ) {
-         if (i > 3*windowconfig_NROFELEMENTS) {
+         if (i > 3*windowconfig__NROF) {
             err = E2BIG;
             goto ONERR;
          }
@@ -663,7 +663,7 @@ static bool matchtransparentalphafilter_x11window(gconfig_t * gconf, struct disp
 int configfilter_x11window(/*out*/gconfig_filter_t * filter, const int32_t config_attributes[])
 {
    for (unsigned i = 0; config_attributes[i] != gconfig_NONE; i += 2) {
-      if (i >= 2*gconfig_NROFELEMENTS) {
+      if (i >= 2*gconfig__NROF) {
          return E2BIG;
       }
 
@@ -1517,7 +1517,7 @@ static int test_configfilter(x11display_t * x11disp)
    XVisualInfo    vinfo_pattern;
    XVisualInfo *  vinfo    = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
    gconfig_filter_t filter = gconfig_filter_FREE;
-   int            config_attributes[2*gconfig_NROFELEMENTS+2];
+   int            config_attributes[2*gconfig__NROF+2];
 
    // TEST configfilter_x11window: E2BIG
    for (unsigned i = 0; i < lengthof(config_attributes)-1; i += 2) {

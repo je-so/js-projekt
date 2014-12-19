@@ -130,9 +130,10 @@ typedef enum intop_e {
    intop_cmpxchgptr,
    intop_clear32,
    intop_clear64,
-   intop_clearptr,
-   intop_NROFINTOPS
+   intop_clearptr
 } intop_e;
+
+#define intop__NROF (intop_clearptr + 1)
 
 static int thread_atomicop(intargs_t * intargs)
 {
@@ -284,7 +285,7 @@ static int test_atomicops(void)
    intargs.u32 = 0;
    intargs.u64 = 0;
    intargs.uptr = 0;
-   for (intop_e intop = 0; intop < intop_NROFINTOPS; ++intop) {
+   for (intop_e intop = 0; intop < intop__NROF; ++intop) {
       intargs.intop  = intop;
       for (unsigned i = 0; i < lengthof(threads); i += 1) {
          TEST(0 == newgeneric_thread(&threads[i], &thread_atomicop, &intargs));
@@ -328,8 +329,6 @@ static int test_atomicops(void)
          break;
       case intop_clearptr:
          TEST(0 == read_atomicint(&intargs.uptr));
-         break;
-      case intop_NROFINTOPS:
          break;
       }
    }
