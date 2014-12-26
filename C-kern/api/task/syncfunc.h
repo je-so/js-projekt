@@ -64,10 +64,9 @@ typedef int (* syncfunc_f) (syncfunc_param_t * sfparam, uint32_t sfcmd);
  *                           gesetzt ist.
  * syncfunc_opt_WAITLIST  - Das Feld <syncfunc_t.waitlist> ist vorhanden.
  * syncfunc_opt_CALLER    - Das Feld <syncfunc_t.caller> ist vorhanden.
- * syncfunc_opt_STATE     - Das Feld <syncfunc_t.state> ist vorhanden.
  * syncfunc_opt_ALL       - Alle Felder sind vorhanden, wobei <syncfunc_opt_WAITFOR_CONDITION> gültig ist und
  *                          nicht <syncfunc_opt_WAITFOR_CALLER>. */
-enum syncfunc_opt_e {
+typedef enum syncfunc_opt_e {
    syncfunc_opt_NONE              = 0,
    syncfunc_opt_WAITFOR_CALLED    = 1,
    syncfunc_opt_WAITFOR_CONDITION = 2,
@@ -75,11 +74,8 @@ enum syncfunc_opt_e {
    syncfunc_opt_WAITRESULT        = 4,
    syncfunc_opt_WAITLIST          = 8,
    syncfunc_opt_CALLER            = 16,
-   syncfunc_opt_STATE             = 32,
-   syncfunc_opt_ALL               = 63
-};
-
-typedef enum syncfunc_opt_e syncfunc_opt_e;
+   syncfunc_opt_ALL               = 31
+} syncfunc_opt_e;
 
 
 // section: Functions
@@ -194,6 +190,10 @@ struct syncfunc_t {
    /* variable: mainfct
     * Zeiger auf immer wieder auszuführende Funktion. */
    syncfunc_f  mainfct;
+   /* variable: state
+    * Zeigt auf gesicherten Zustand der Funktion.
+    * Der Wert ist anfangs 0 (ungültig). Wird von <mainfct> verwaltet. */
+   void*       state;
    /* variable: contoffset
     * Speichert Offset von syncfunc_START (siehe <start_syncfunc>)
     * zu einer Labeladresse und erlaubt es so, die Ausführung an dieser Stelle fortzusetzen.
@@ -246,10 +246,6 @@ struct syncfunc_t {
    /* variable: caller
     * *Optional*: Zeigt auf aufrufende syncfunc_t und ist verbunden mit <syncfunc_t.waitfor>. */
    link_t      caller;
-   /* variable: state
-    * *Optional*: Zeigt auf gesicherten Zustand der Funktion.
-    * Der Wert ist anfangs 0 (ungültig). Der Speicher wird von <mainfct> verwaltet. */
-   void *      state;
 };
 
 // group: lifetime
@@ -257,13 +253,13 @@ struct syncfunc_t {
 /* define: syncfunc_FREE
  * Static initializer. */
 #define syncfunc_FREE \
-         { 0, 0, 0, link_FREE, linkd_FREE, link_FREE, 0 }
+         { 0, 0, 0, 0, link_FREE, linkd_FREE, link_FREE }
 
 /* function: init_syncfunc
  * Initialisiert alle, außer den optionalen Feldern. */
-static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, syncfunc_opt_e optfields);
+static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optfields);
 
-/* function: initmove_syncfunc
+/* function: init2_syncfunc
  * Kopiert <mainfct>, setzt <optfields>, <contoffset> und optionale Felder <state> und <caller>.
  * <mainfct> und <caller> werden von src kopiert.
  * Die Felder <contoffset>, <optfields> und <state> werden mit destcontoffset, destoptfields bzw. deststate initialisiert.
@@ -277,12 +273,12 @@ static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, 
  * Unchecked Preconditon:
  * o srcsize  == getsize_syncfunc(src->optfields)
  * o destsize == getsize_syncfunc(destoptfields)
- * o isstate  == (0 != (src->optfields & syncfunc_opt_STATE))
- * o (destisstate != 0) == (0 != (destoptfields & syncfunc_opt_STATE))
  * o (destoptfields & syncfunc_opt_CALLER)
  *   == (src->optfields & syncfunc_opt_CALLER)
  * */
-static inline void initmove_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize, int isstate);
+static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize);
+
+// TODO: implement + test initmove_syncfunc(/*out*/syncfunc_t* dest, syncfunc_t* src);
 
 // group: query
 
@@ -324,14 +320,8 @@ size_t offwaitlist_syncfunc(const bool iswaitfor);
 
 /* function: offcaller_syncfunc
  * Liefere den BYteoffset zum Feld <caller>.
- * Die Parameter isstate und iscaller zeigen an, ob Felder <state> und/oder Feld <caller> vorhanden sind. */
-size_t offcaller_syncfunc(size_t structsize, const bool isstate, const bool iscaller);
-
-/* function: offstate_syncfunc
- * Liefere den Byteoffset zum Feld <state>.
- * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an
- * und isstate, ob das Feld state vorhanden ist. */
-size_t offstate_syncfunc(size_t structsize, const bool isstate);
+ * Der Parameter iscaller zeigt an, ob Feld <caller> vorhanden ist. */
+size_t offcaller_syncfunc(size_t structsize, const bool iscaller);
 
 /* function: addrwaitresult_syncfunc
  * Liefere die Adresse des optionalen Feldes <waitresult>.
@@ -357,20 +347,11 @@ linkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
 
 /* function: addrcaller_syncfunc
  * Liefere die Adresse des optionalen Feldes <state>.
- * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an
- * und isstate, ob Feld <state> vorhanden ist.
- *
- * Precondition:
- * Feld <caller> ist vorhanden. */
-link_t * addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize, const bool isstate);
-
-/* function: addrstate_syncfunc
- * Liefere die Adresse des optionalen Feldes <state>.
  * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an.
  *
  * Precondition:
- * Feld <state> ist vorhanden. */
-void ** addrstate_syncfunc(syncfunc_t * sfunc, const size_t structsize);
+ * Feld <caller> ist vorhanden. */
+link_t* addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize);
 
 // group: update
 
@@ -524,7 +505,7 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 
 /* define: addrcaller_syncfunc
  * Implementiert <syncfunc_t.addrcaller_syncfunc>. */
-#define addrcaller_syncfunc(sfunc, structsize, isstate) \
+#define addrcaller_syncfunc(sfunc, structsize) \
          ( __extension__ ({               \
             syncfunc_t * _sf;             \
             link_t * _ptr;                \
@@ -532,21 +513,6 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
             _ptr = (link_t*) (            \
                    (uint8_t*) _sf         \
                   + offcaller_syncfunc(   \
-                    (structsize),         \
-                    (isstate), true));    \
-            _ptr;                         \
-         }))
-
-/* define: addrstate_syncfunc
- * Implementiert <syncfunc_t.addrstate_syncfunc>. */
-#define addrstate_syncfunc(sfunc, structsize) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf;             \
-            void ** _ptr;                 \
-            _sf = (sfunc);                \
-            _ptr = (void**) (             \
-                   (uint8_t*) _sf         \
-                  + offstate_syncfunc(    \
                     (structsize), true)); \
             _ptr;                         \
          }))
@@ -578,9 +544,7 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
             + (((optfields) & syncfunc_opt_WAITLIST)  \
               ? sizeof(linkd_t) : 0)                  \
             + (((optfields) & syncfunc_opt_CALLER)    \
-              ? sizeof(link_t) : 0)                   \
-            + (((optfields) & syncfunc_opt_STATE)     \
-              ? sizeof(void*) : 0)))
+              ? sizeof(link_t) : 0)))
 
 /* define: state_syncfunc
  * Implementiert <syncfunc_t.state_syncfunc>. */
@@ -589,9 +553,10 @@ int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode
 
 /* define: init_syncfunc
  * Implementiert <syncfunc_t.init_syncfunc>. */
-static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, syncfunc_opt_e optfields)
+static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optfields)
          {
             sfunc->mainfct = mainfct;
+            sfunc->state = state;
             sfunc->contoffset = 0;
             sfunc->optfields = (uint8_t) optfields;
          }
@@ -608,13 +573,8 @@ static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, 
 
 /* define: offcaller_syncfunc
  * Implementiert <syncfunc_t.offcaller_syncfunc>. */
-#define offcaller_syncfunc(structsize, isstate, iscaller) \
-         (offstate_syncfunc(structsize, isstate) - ((iscaller) ? sizeof(link_t) : 0))
-
-/* define: offstate_syncfunc
- * Implementiert <syncfunc_t.offstate_syncfunc>. */
-#define offstate_syncfunc(structsize, isstate) \
-         ((structsize) - ((isstate) ? sizeof(void*) : 0))
+#define offcaller_syncfunc(structsize, iscaller) \
+         ((structsize) - ((iscaller) ? sizeof(link_t) : 0))
 
 /* define: setopt_syncfunc
  * Implementiert <syncfunc_t.setopt_syncfunc>. */
@@ -732,21 +692,18 @@ static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool
             continue_after_yield: ;                         \
          }))
 
-/* define: initmove_syncfunc
- * Implementiert <syncfunc_t.initmove_syncfunc>. */
-static inline void initmove_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize, int isstate)
+/* define: init2_syncfunc
+ * Implementiert <syncfunc_t.init2_syncfunc>. */
+static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize)
          {
             dest->mainfct    = src->mainfct;
+            dest->state      = deststate;
             dest->contoffset = destcontoffset;
             dest->optfields  = destoptfields;
 
-            if (deststate) {
-               *addrstate_syncfunc(dest, destsize) = deststate;
-            }
-
             if (0 != (src->optfields & syncfunc_opt_CALLER)) {
-               link_t * caller = addrcaller_syncfunc(dest, destsize, deststate);
-               *caller = *addrcaller_syncfunc(src, srcsize, isstate);
+               link_t * caller = addrcaller_syncfunc(dest, destsize);
+               *caller = *addrcaller_syncfunc(src, srcsize);
                if (isvalid_link(caller)) {
                   relink_link(caller);
                }

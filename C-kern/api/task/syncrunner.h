@@ -78,7 +78,7 @@ struct syncrunner_t {
    /* variable: rwqueue
     * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmet sich aus dem Vorhandensein optionaler Felder. */
-   syncqueue_t    rwqueue[3+3];
+   syncqueue_t    rwqueue[2+2];
    /* variable: isrun
     * Falls true, wird <run_syncrunner> bzw. <teminate_syncrunner> ausgeführt. */
    bool           isrun;
@@ -90,7 +90,7 @@ struct syncrunner_t {
  * Static initializer. */
 #define syncrunner_FREE \
          {  0, linkd_FREE, \
-            { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
+            { syncqueue_FREE, syncqueue_FREE, syncqueue_FREE, syncqueue_FREE }, \
             false, \
          }
 
@@ -129,7 +129,7 @@ bool iswakeup_syncrunner(const syncrunner_t * srun);
  * state   - Zustand, welcher mainfct mit Hilfe des ersten Parameter
  *           (siehe <syncfunc_param_t.state> übergeben wird.
  */
-int addfunc_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void * state);
+int addfunc_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void* state);
 
 /* function: addcall_syncrunner
  * Erzeugt neue <syncfunc_t> und fügt diese in die Runqueue ein.
@@ -144,7 +144,7 @@ int addfunc_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void * state);
  *           genau einmal ausgeführt.
  * state   - Zustand, welcher mainfct mit Hilfe des ersten Parameter
  *           (siehe <syncfunc_param_t.state> übergeben wird. */
-int addcall_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void * state);
+int addcall_syncrunner(syncrunner_t * srun, syncfunc_f mainfct, void* state);
 
 /* function: wakeup_syncrunner
  * Wecke die erste wartende <syncfunc_t> auf.
