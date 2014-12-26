@@ -66,6 +66,7 @@ static int test_sfparam(void)
 
    // TEST syncfunc_param_FREE
    TEST(0 == sfparam.srun);
+   TEST(0 == sfparam.sfunc);
    TEST(0 == sfparam.contoffset);
    TEST(0 == sfparam.state);
    TEST(0 == sfparam.condition);
@@ -73,6 +74,7 @@ static int test_sfparam(void)
 
    // TEST syncfunc_param_INIT
    TEST(R == sfparam2.srun);
+   TEST(0 == sfparam.sfunc);
    TEST(0 == sfparam2.contoffset);
    TEST(0 == sfparam2.state);
    TEST(0 == sfparam2.condition);

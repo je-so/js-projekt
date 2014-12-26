@@ -84,6 +84,9 @@ struct syncfunc_param_t {
     * Eingabe-Param: Der Verwalter-Kontext von <syncfunc_t>. */
    struct
    syncrunner_t* const  srun;
+   /* variable: srun
+    * Eingabe-Param: Zeigt auf aktuell ausgeführte Funktion. */
+   syncfunc_t*          sfunc;
    /* variable: contoffset
     * Ein- Ausgabe-Param: Die Stelle, and der mit der Ausführung weitergemacht werden soll.
     * Nur gültig, wenn Parameter sfcmd den Wert <synccmd_CONTINUE> besitzt.
@@ -104,6 +107,7 @@ struct syncfunc_param_t {
     * frei waren, um die Funktion in die Warteliste einzutragen.
     * Nur gültig, wenn das Kommando <synccmd_CONTINUE> ist und zuletzt die Funktion mit
     * »return <synccmd_WAIT>« beendet wurde.
+    *
     * Ausgabe-Param: Der Returnwert der Funktion.
     * Beendet sich die Funktion mit »return <synccmd_EXIT>«, dann steht in diesem Wert
     * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode). */
@@ -115,12 +119,12 @@ struct syncfunc_param_t {
 /* define: syncfunc_param_FREE
  * Static initializer. */
 #define syncfunc_param_FREE \
-         { 0, 0, 0, 0, 0 }
+         { 0, 0, 0, 0, 0, 0 }
 
 /* define: syncfunc_param_INIT
  * Static initializer. Parameter syncrun zeigt auf gültigen <syncrunner_t>. */
 #define syncfunc_param_INIT(syncrun) \
-         { syncrun, 0, 0, 0, 0 }
+         { syncrun, 0, 0, 0, 0, 0 }
 
 /* struct: syncfunc_t
  * Der Ausführungskontext einer Funktion der Signatur <syncfunc_f>.
