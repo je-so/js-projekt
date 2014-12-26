@@ -54,27 +54,22 @@ typedef int (* syncfunc_f) (syncfunc_param_t * sfparam, uint32_t sfcmd);
  * Bitfeld das die vorhandenen Felder in <syncfunc_t> kodiert.
  *
  * syncfunc_opt_NONE      - Weder <syncfunc_t.state> noch <syncfunc_t.contlabel> sind vorhanden.
- * syncfunc_opt_WAITFOR_CALLED    - Das Feld <syncfunc_t.waitfor> ist vorhanden und zeigt auf einen <syncfunc_t.caller>.
- * syncfunc_opt_WAITFOR_CONDITION - Das Feld <syncfunc_t.waitfor> ist vorhanden und zeigt auf einen <synccond_t.waitfunc>.
- * syncfunc_opt_WAITFOR_MASK - Maskiert die Bits für <syncfunc_opt_WAITFOR_CALLED> und <syncfunc_opt_WAITFOR_CONDITION>.
- *                             Entweder sind alle Bits in <syncfunc_opt_WAITFOR_MASK> 0 oder gleich
- *                             <syncfunc_opt_WAITFOR_CALLED> bzw. gleich <syncfunc_opt_WAITFOR_CONDITION>.
- * syncfunc_opt_WAITRESULT - Ist diese Bit gesetzt, dann ist nicht <syncfunc_t.waitfor>, sondern <syncfunc_t.waitresult> gültig.
- *                           Ist nur gültig, wenn entweder <syncfunc_opt_WAITFOR_CALLED> oder <syncfunc_opt_WAITFOR_CONDITION>
- *                           gesetzt ist.
- * syncfunc_opt_WAITLIST  - Das Feld <syncfunc_t.waitlist> ist vorhanden.
- * syncfunc_opt_CALLER    - Das Feld <syncfunc_t.caller> ist vorhanden.
- * syncfunc_opt_ALL       - Alle Felder sind vorhanden, wobei <syncfunc_opt_WAITFOR_CONDITION> gültig ist und
- *                          nicht <syncfunc_opt_WAITFOR_CALLER>. */
+ * syncfunc_opt_WAIT_RESULT - Die Felder <syncfunc_t.waitresult> und <syncfunc_t.waitlist> sind vorhanden.
+ *                          Feld <syncfunc_t.waitlist> ist mit der waitlist einer anderen <syncfunc_t> verbunden.
+ * syncfunc_opt_WAIT_FORCONDITION - Die Felder <syncfunc_t.waitfor> und <syncfunc_t.waitlist> sind vorhanden.
+ *                          Feld <syncfunc_t.waitfor> ist verbunden mit <synccond_t.waitfunc> oder ungültig
+ *                          und dafür ist <syncfunc_t.waitlist> mit der waitlist einer anderen <syncfunc_t> verbunden.
+ * syncfunc_opt_WAIT_MASK - Maskiert Bits für die optionalen Felder <syncfunc_t.waitresult> und <syncfunc_t.waitfor>.
+ *                          Entweder sind alle maskierten Bits 0 oder entsprechen dem Wert eines
+ *                          Wertes aus der Liste: <syncfunc_opt_WAIT_FORCONDITION>, <syncfunc_opt_WAIT_RESULT>.
+ * syncfunc_opt_ALL       - Alle Felder sind vorhanden, wobei <syncfunc_opt_WAIT_FORCONDITION> gültig ist.
+ *                          */
 typedef enum syncfunc_opt_e {
    syncfunc_opt_NONE              = 0,
-   syncfunc_opt_WAITFOR_CALLED    = 1,
-   syncfunc_opt_WAITFOR_CONDITION = 2,
-   syncfunc_opt_WAITFOR           = syncfunc_opt_WAITFOR_CALLED + syncfunc_opt_WAITFOR_CONDITION,
-   syncfunc_opt_WAITRESULT        = 4,
-   syncfunc_opt_WAITLIST          = 8,
-   syncfunc_opt_CALLER            = 16,
-   syncfunc_opt_ALL               = 31
+   syncfunc_opt_WAIT_RESULT       = 1,
+   syncfunc_opt_WAIT_FORCONDITION = 3,
+   syncfunc_opt_WAIT_MASK         = 3, // masks all bits indicating the reason for waiting or the result of the waiting operation
+   syncfunc_opt_ALL               = 3
 } syncfunc_opt_e;
 
 
@@ -94,38 +89,32 @@ int unittest_task_syncfunc(void);
 struct syncfunc_param_t {
    /* variable: syncrun
     * Eingabe-Param: Der Verwalter-Kontext von <syncfunc_t>. */
-   struct syncrunner_t *
-         const syncrun;
+   struct
+   syncrunner_t* const  syncrun;
    /* variable: contoffset
     * Ein- Ausgabe-Param: Die Stelle, and der mit der Ausführung weitergemacht werden soll.
     * Nur gültig, wenn Parameter sfcmd den Wert <synccmd_CONTINUE> besitzt.
     * Der Wert wird nach »return« gespeichert, wenn die Funktion <synccmd_CONTINUE>
     * oder <synccmd_WAIT> zurückgibt. */
-   uint16_t    contoffset;
+   uint16_t             contoffset;
    /* variable: state
     * Ein- Ausgabe-Param: Der gespeicherte Funktionszustand.
     * Muss von der Funktion verwaltet werden. */
-   void *      state;
+   void*                state;
    /* variable: condition
     * Ausgabe-Param: Referenziert die Bedingung, auf die gewartet werden soll.
     * Der Wert wird genau dann verwendet, wenn die Funktion den Wert <synccmd_WAIT> zurückgibt. */
-   struct synccond_t
-             * condition;
-   /* variable: waiterr
+   struct synccond_t*   condition;
+   /* variable: err
     * Eingabe-Param: Das Ergebnis der Warteoperation.
     * Eine 0 zeigt Erfolg an, != 0 ist ein Fehlercode – etwa ENOMEM wenn zu wenig Ressourcen
     * frei waren, um die Funktion in die Warteliste einzutragen.
     * Nur gültig, wenn das Kommando <synccmd_CONTINUE> ist und zuletzt die Funktion mit
-    * »return <synccmd_WAIT>« beendet wurde. */
-   int         waiterr;
-   /* variable: retcode
-    * Ein- Ausgabe-Param: Der Returnwert der Funktion.
+    * »return <synccmd_WAIT>« beendet wurde.
+    * Ausgabe-Param: Der Returnwert der Funktion.
     * Beendet sich die Funktion mit »return <synccmd_EXIT>«, dann steht in diesem Wert
-    * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode).
-    * Der Eingabewert ist nur gültig, wenn das Kommando <synccmd_CONTINUE> ist, zuletzt
-    * die Funktion mit »return <synccmd_WAIT>« beendet wurde, wobei <condition> 0 war.
-    * Der Wert trägt dann den Erfolgswert der Funktion, auf deren Ende gewartet wurde. */
-   int         retcode;
+    * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode). */
+   int                  err;
 };
 
 // group: lifetime
@@ -133,10 +122,12 @@ struct syncfunc_param_t {
 /* define: syncfunc_param_FREE
  * Static initializer. */
 #define syncfunc_param_FREE \
-         { 0, 0, 0, 0, 0, 0 }
+         { 0, 0, 0, 0, 0 }
 
+/* define: syncfunc_param_INIT
+ * Static initializer. Parameter syncrun zeigt auf gültigen <syncrunner_t>. */
 #define syncfunc_param_INIT(syncrun) \
-         { syncrun, 0, 0, 0, 0, 0 }
+         { syncrun, 0, 0, 0, 0 }
 
 /* struct: syncfunc_t
  * Der Ausführungskontext einer Funktion der Signatur <syncfunc_f>.
@@ -178,7 +169,7 @@ struct syncfunc_param_t {
  * >    err = wait_syncfunc(sfparam, condition);
  * >    if (err) goto ONERR;
  * >    ...
- * >    exit_syncfunc(sfparam, 0);
+ * >    // err == 0
  * > ONERR:
  * >    free_memory( state_syncfunc(sfparam) );
  * >    exit_syncfunc(sfparam, err);
@@ -222,9 +213,9 @@ struct syncfunc_t {
     * >    ...
     * > } */
    uint16_t    contoffset;
-   /* variable: optfields
+   /* variable: optflags
     * Kodiert, welche optionalen Felder vorhanden sind – siehe <syncfunc_opt_e>. */
-   uint8_t     optfields;
+   uint8_t     optflags;
 
    // == optional fields for use in wait operations ==
 
@@ -233,7 +224,8 @@ struct syncfunc_t {
        * *Optional*: Das Ergebnis der Warteoperation. */
       int      waitresult;
       /* variable: waitfor
-       * *Optional*: Entweder ist der Link verbunden mit <syncfunc_t.caller> oder mit <synccond_t.waitfunc>. */
+       * *Optional*: Link zeigt auf was gewartet wird.
+       * (<optflags> & syncfunc_opt_WAIT_FORCONDITION) != 0 ==> Link ist verbunden mit <synccond_t.waitfunc>. */
       link_t   waitfor;
    };
    /* variable: waitlist
@@ -241,11 +233,6 @@ struct syncfunc_t {
     * Nur der Kopf der Liste besitzt das Feld <waitfor> alle anderen Wartenden sind mit dem Kopf
     * über waitlist verbunden. */
    linkd_t     waitlist;
-   // == optional fields describing run state ==
-
-   /* variable: caller
-    * *Optional*: Zeigt auf aufrufende syncfunc_t und ist verbunden mit <syncfunc_t.waitfor>. */
-   link_t      caller;
 };
 
 // group: lifetime
@@ -253,16 +240,16 @@ struct syncfunc_t {
 /* define: syncfunc_FREE
  * Static initializer. */
 #define syncfunc_FREE \
-         { 0, 0, 0, 0, link_FREE, linkd_FREE, link_FREE }
+         { 0, 0, 0, 0, link_FREE, linkd_FREE }
 
 /* function: init_syncfunc
  * Initialisiert alle, außer den optionalen Feldern. */
-static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optfields);
+static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optflags);
 
 /* function: init2_syncfunc
- * Kopiert <mainfct>, setzt <optfields>, <contoffset> und optionale Felder <state> und <caller>.
+ * Kopiert <mainfct>, setzt <optflags>, <contoffset> und optionale Felder <state> und <caller>.
  * <mainfct> und <caller> werden von src kopiert.
- * Die Felder <contoffset>, <optfields> und <state> werden mit destcontoffset, destoptfields bzw. deststate initialisiert.
+ * Die Felder <contoffset>, <optflags> und <state> werden mit destcontoffset, destoptflags bzw. deststate initialisiert.
  * <state> wird nur dann gesetzt, wenn deststate != 0.
  *
  * Nach Return sind die Felder in src ungültig.
@@ -271,25 +258,33 @@ static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, 
  * Alle anderen optionalen Felder bleiben unitialisiert.
  *
  * Unchecked Preconditon:
- * o srcsize  == getsize_syncfunc(src->optfields)
- * o destsize == getsize_syncfunc(destoptfields)
- * o (destoptfields & syncfunc_opt_CALLER)
- *   == (src->optfields & syncfunc_opt_CALLER)
+ * o srcsize  == getsize_syncfunc(src->optflags)
+ * o destsize == getsize_syncfunc(destoptflags)
+ * o (destoptflags & syncfunc_opt_CALLER)
+ *   == (src->optflags & syncfunc_opt_CALLER)
  * */
-static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize);
+static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptflags, void * deststate, syncfunc_t * src, uint16_t srcsize);
+
+// TODO: remove init2_syncfunc !! put parameter contoffset in init_syncfunc !!
 
 // TODO: implement + test initmove_syncfunc(/*out*/syncfunc_t* dest, syncfunc_t* src);
 
 // group: query
 
+/* function: waitresult_syncfunc
+ * Liefert Wert, den <setwaitresult_syncfunc> gesetzt hat.
+ * Falls <setwaitresult_syncfunc> nicht aufgerufen wurde,
+ * wird automatisch der Wert 0 für OK zurückgeliefert. */
+static inline int waitresult_syncfunc(const syncfunc_t* sfunc);
+
 /* function: getsize_syncfunc
- * Liefere die aus den optionalen Feldern optfields berechnte Größe in Byte einer <syncfunc_t>.
+ * Liefere die aus den optionalen Feldern optflags berechnte Größe in Byte einer <syncfunc_t>.
  * Siehe auch <syncfunc_opt_e>.
  *
  * Precondition:
- * Das Argument optfields wird mehrfach ausgewertet, es muss daher ein konstanter Ausdruck
+ * Das Argument optflags wird mehrfach ausgewertet, es muss daher ein konstanter Ausdruck
  * ohne Nebeneffekte sein. */
-uint16_t getsize_syncfunc(const syncfunc_opt_e optfields);
+uint16_t getsize_syncfunc(const syncfunc_opt_e optflags);
 
 /* function: castPwaitfor_syncfunc
  * Caste waitfor nach <syncfunc_t>.
@@ -297,87 +292,60 @@ uint16_t getsize_syncfunc(const syncfunc_opt_e optfields);
  * Precondition:
  * o waitfor != 0
  * o waitfor == addrwaitfor_syncfunc(...) || waitfor == addrcaller_syncfunc(...)->link */
-static inline syncfunc_t * castPwaitfor_syncfunc(link_t * waitfor);
+static inline syncfunc_t* castPwaitfor_syncfunc(link_t* waitfor);
 
 /* function: castPwaitlist_syncfunc
  * Caste waitlist nach <syncfunc_t>.
  *
  * Precondition:
  * o waitlist != 0
- * o waitlist == addrwaitlist_syncfunc(...)
- *   || waitfor == addrwaitlist_syncfunc(...)->next
- *   || waitfor == addrwaitlist_syncfunc(...)->prev */
-static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool iswaitfor);
+ * o waitlist == waitlist_syncfunc(...) */
+static inline syncfunc_t* castPwaitlist_syncfunc(linkd_t* waitlist);
 
-/* function: offwaitfor_syncfunc
- * Liefere den Byteoffset zum Feld <waitfor>. */
-size_t offwaitfor_syncfunc(void);
-
-/* function: offwaitlist_syncfunc
- * Liefere den Byteoffset zum Feld <waitlist>.
- * Parameter iswaitfor gibt an, ob Feld <waitfor> vorhanden ist. */
-size_t offwaitlist_syncfunc(const bool iswaitfor);
-
-/* function: offcaller_syncfunc
- * Liefere den BYteoffset zum Feld <caller>.
- * Der Parameter iscaller zeigt an, ob Feld <caller> vorhanden ist. */
-size_t offcaller_syncfunc(size_t structsize, const bool iscaller);
-
-/* function: addrwaitresult_syncfunc
- * Liefere die Adresse des optionalen Feldes <waitresult>.
- *
- * Precondition:
- * Feld <waitresult> ist vorhanden. */
-int * addrwaitresult_syncfunc(syncfunc_t * sfunc);
+// TODO: remove addrwaitfor
+// TODO: remove castPwaitfor_syncfunc
 
 /* function: addrwaitfor_syncfunc
  * Liefere die Adresse des optionalen Feldes <waitfor>.
  *
  * Precondition:
  * Feld <waitfor> ist vorhanden. */
-link_t * addrwaitfor_syncfunc(syncfunc_t * sfunc);
+link_t* addrwaitfor_syncfunc(syncfunc_t* sfunc);
 
-/* function: addrwaitlist_syncfunc
+/* function: waitlist_syncfunc
  * Liefere die Adresse des optionalen Feldes <waitlist>.
  * Parameter iswaitfor gibt an, ob Feld <waitfor> vorhanden ist.
  *
  * Precondition:
  * Feld <waitlist> ist vorhanden. */
-linkd_t * addrwaitlist_syncfunc(syncfunc_t * sfunc, const bool iswaitfor);
-
-/* function: addrcaller_syncfunc
- * Liefere die Adresse des optionalen Feldes <state>.
- * Parameter structsize gibt die mit <getsize_syncfunc> ermittelte Größe der Struktur an.
- *
- * Precondition:
- * Feld <caller> ist vorhanden. */
-link_t* addrcaller_syncfunc(syncfunc_t * sfunc, const size_t structsize);
+linkd_t* waitlist_syncfunc(syncfunc_t* sfunc);
 
 // group: update
 
-/* function: clearopt_syncfunc
- * Löscht alle Bits in sfunc->optfields, die in optfield gesetzt sind. */
-void clearopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
-
-/* function: setopt_syncfunc
- * Setzt alle Bits in sfunc->optfields, die in optfield gesetzt sind. */
-static inline void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield);
+/* function: changewaitflag_syncfunc
+ * Löscht alle Bits in sfunc->optflags, die in waitflag gesetzt sind.
+ *
+ * Unchecked Precondition:
+ * o 0 != waitflag
+ * o 0 != (sfunc->optflags & syncfunc_opt_WAIT_MASK)
+ * o waitflag == (syncfunc_opt_WAIT_MASK & waitflag) */
+static inline void changewaitflag_syncfunc(syncfunc_t* sfunc, syncfunc_opt_e waitflag);
 
 /* function: relink_syncfunc
  * Korrigiert die Ziellinks von <waitfor>, <waitlist> und <caller>, nachdem sfunc im Speicher verschoben wurde. */
-void relink_syncfunc(syncfunc_t * sfunc, const size_t structsize);
+void relink_syncfunc(syncfunc_t* sfunc);
 
-/* function: setresult_syncfunc
+/* function: setwaitresult_syncfunc
  * Setzt <waitresult> auf result.
  *
  * Precondition:
  * Felder <waitfor> bzw. <waitresult> sind vorhanden. */
-static inline void setresult_syncfunc(syncfunc_t * sfunc, int result);
+static inline void setwaitresult_syncfunc(syncfunc_t* sfunc, int result);
 
 /* function: unlink_syncfunc
  * Invalidiert die Ziellinks von <waitfor>, <waitlist> und <caller>.
  * Inhalte von <waitfor>, <waitlist> und <caller> sind danach ungültig, aber unverändert. */
-void unlink_syncfunc(syncfunc_t * sfunc, const size_t structsize);
+void unlink_syncfunc(syncfunc_t* sfunc);
 
 // group: implementation-support
 // Macros which makes implementing a <syncfunc_f> possible.
@@ -390,7 +358,7 @@ void unlink_syncfunc(syncfunc_t * sfunc, const size_t structsize);
  * aus dem Parameter <syncfunc_param_t> herausgelesen.
  * Er trägt eine Kopie des Zustandes und
  * andere nützliche, über <syncfunc_t> hinausgehende Informationen. */
-void * state_syncfunc(const syncfunc_param_t * sfparam);
+void * state_syncfunc(const syncfunc_param_t* sfparam);
 
 /* function: setstate_syncfunc
  * Setzt den Zustand der gerade ausgeführten Funktion.
@@ -399,7 +367,7 @@ void * state_syncfunc(const syncfunc_param_t * sfparam);
  * in den Parameter <syncfunc_param_t> geschrieben.
  * Er trägt eine Kopie des Zustandes und
  * andere nützliche, über <syncfunc_t> hinausgehende Informationen. */
-void setstate_syncfunc(syncfunc_param_t * sfparam, void * new_state);
+void setstate_syncfunc(syncfunc_param_t* sfparam, void* new_state);
 
 /* function: start_syncfunc
  * Springt zu onrun, onexit oder zu einer vorher gespeicherten Adresse.
@@ -418,7 +386,8 @@ void setstate_syncfunc(syncfunc_param_t * sfparam, void * new_state);
  *                       (free_memory(<state_syncfunc>(sfparam)) und <exit_syncfunc>(sfparam,EINTR) aufrufen.
  * Alle anderen Werte  - Das Makro tut nichts und kehrt zum Aufrufer zurück.
  * */
-void start_syncfunc(const syncfunc_param_t * sfparam, uint32_t sfcmd, LABEL onrun, IDNAME onexit);
+// TODO: rename into continue_syncfunc // remove onrun (fall through) // wrong value ==> onexit //
+void start_syncfunc(const syncfunc_param_t* sfparam, uint32_t sfcmd, LABEL onrun, IDNAME onexit);
 
 /* function: yield_syncfunc
  * Tritt Prozessor an andere <syncfunc_t> ab.
@@ -441,158 +410,82 @@ void exit_syncfunc(const syncfunc_param_t * sfparam, int retcode);
  * <start_syncfunc> am Anfang dieser Funktion aufgerufen wird. */
 int wait_syncfunc(const syncfunc_param_t * sfparam, struct synccond_t * condition);
 
-/* function: waitexit_syncfunc
- * Wartet auf Exit der zuletzt gestarteten Funktionen.
- * In retcode wird der Rückgabewert der beendeten Funktion abgelegt (siehe <exit_syncfunc>),
- * auch im Fehlerfall, dann ist der Wert allerdings ungültig.
- *
- * Gibt 0 im Erfolgsfall zurück. Der Fehler EINVAL zeigt an,
- * daß keine Funktion innerhalb der aktuellen Ausführung dieser Funktion gestartet wurde
- * und somit kein Warten mölich ist. Im Falle zu weniger Ressourcen wird ENOMEM zurückgegeben.
- *
- * Die nächste Ausführung beginnt nach waitexit_syncfunc, sofern
- * <start_syncfunc> am Anfang dieser Funktion aufgerufen wird. */
-int waitexit_syncfunc(const syncfunc_param_t * sfparam, /*out;err*/int * retcode);
-
 
 
 // section: inline implementation
 
 // group: syncfunc_t
 
-/* define: addrwaitresult_syncfunc
- * Implementiert <syncfunc_t.addrwaitresult_syncfunc>. */
-#define addrwaitresult_syncfunc(sfunc) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf;             \
-            int        * _ptr;            \
-            _sf = (sfunc);                \
-            _ptr = (int*) (               \
-                   (uint8_t*) _sf         \
-                  + offwaitfor_syncfunc() \
-                   );                     \
-            _ptr;                         \
-         }))
-
-
 /* define: addrwaitfor_syncfunc
  * Implementiert <syncfunc_t.addrwaitfor_syncfunc>. */
 #define addrwaitfor_syncfunc(sfunc) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf;             \
-            link_t * _ptr;                \
-            _sf = (sfunc);                \
-            _ptr = (link_t*) (            \
-                   (uint8_t*) _sf         \
-                  + offwaitfor_syncfunc() \
-                   );                     \
-            _ptr;                         \
-         }))
+         (&(sfunc)->waitfor)
 
-/* define: addrwaitlist_syncfunc
- * Implementiert <syncfunc_t.addrwaitlist_syncfunc>. */
-#define addrwaitlist_syncfunc(sfunc, iswaitfor) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf;             \
-            linkd_t * _ptr;               \
-            _sf = (sfunc);                \
-            _ptr = (linkd_t*) (           \
-                   (uint8_t*) _sf         \
-                  + offwaitlist_syncfunc( \
-                     (iswaitfor)));       \
-            _ptr;                         \
-         }))
+/* define: waitlist_syncfunc
+ * Implementiert <syncfunc_t.waitlist_syncfunc>. */
+#define waitlist_syncfunc(sfunc) \
+         (&(sfunc)->waitlist)
 
-/* define: addrcaller_syncfunc
- * Implementiert <syncfunc_t.addrcaller_syncfunc>. */
-#define addrcaller_syncfunc(sfunc, structsize) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf;             \
-            link_t * _ptr;                \
-            _sf = (sfunc);                \
-            _ptr = (link_t*) (            \
-                   (uint8_t*) _sf         \
-                  + offcaller_syncfunc(   \
-                    (structsize), true)); \
-            _ptr;                         \
-         }))
-
-/* define: clearopt_syncfunc
- * Implementiert <syncfunc_t.clearopt_syncfunc>. */
-#define clearopt_syncfunc(sfunc, optfield) \
-         ( __extension__ ({               \
-            syncfunc_t * _sf = (sfunc);   \
-            _sf->optfields = (uint8_t) (  \
-                     _sf->optfields       \
-                     & ~(optfield));      \
-         }))
+/* define: changewaitflag_syncfunc
+ * Implementiert <syncfunc_t.changewaitflag_syncfunc>. */
+static inline void changewaitflag_syncfunc(syncfunc_t* sfunc, syncfunc_opt_e waitflag)
+{
+         sfunc->optflags = (uint8_t) ((sfunc->optflags & ~syncfunc_opt_WAIT_MASK) | (int)waitflag);
+}
 
 /* define: exit_syncfunc
  * Implementiert <syncfunc_t.exit_syncfunc>. */
 #define exit_syncfunc(sfparam, _rc) \
-         {                                \
-            (sfparam)->retcode = (_rc);   \
-            return synccmd_EXIT;          \
+         {                          \
+            (sfparam)->err = (_rc); \
+            return synccmd_EXIT;    \
          }
 
 /* define: getsize_syncfunc
  * Implementiert <syncfunc_t.getsize_syncfunc>. */
-#define getsize_syncfunc(optfields) \
-         ( (uint16_t) (  offwaitfor_syncfunc()        \
-            + (((optfields) & syncfunc_opt_WAITFOR)   \
-              ? sizeof(link_t) : 0)                   \
-            + (((optfields) & syncfunc_opt_WAITLIST)  \
-              ? sizeof(linkd_t) : 0)                  \
-            + (((optfields) & syncfunc_opt_CALLER)    \
-              ? sizeof(link_t) : 0)))
-
-/* define: state_syncfunc
- * Implementiert <syncfunc_t.state_syncfunc>. */
-#define state_syncfunc(sfparam) \
-         ((sfparam)->state)
+#define getsize_syncfunc(optflags) \
+         ( (uint16_t) (             \
+            + (((optflags) & syncfunc_opt_WAIT_MASK) \
+              ? sizeof(syncfunc_t)                    \
+              : offsetof(syncfunc_t, waitfor))))
 
 /* define: init_syncfunc
  * Implementiert <syncfunc_t.init_syncfunc>. */
-static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optfields)
-         {
-            sfunc->mainfct = mainfct;
-            sfunc->state = state;
-            sfunc->contoffset = 0;
-            sfunc->optfields = (uint8_t) optfields;
-         }
-
-/* define: offwaitfor_syncfunc
- * Implementiert <syncfunc_t.offwaitfor_syncfunc>. */
-#define offwaitfor_syncfunc() \
-         (offsetof(syncfunc_t, waitfor))
-
-/* define: offwaitlist_syncfunc
- * Implementiert <syncfunc_t.offwaitlist_syncfunc>. */
-#define offwaitlist_syncfunc(iswaitfor) \
-         (offwaitfor_syncfunc() + ((iswaitfor) ? sizeof(link_t) : 0))
-
-/* define: offcaller_syncfunc
- * Implementiert <syncfunc_t.offcaller_syncfunc>. */
-#define offcaller_syncfunc(structsize, iscaller) \
-         ((structsize) - ((iscaller) ? sizeof(link_t) : 0))
-
-/* define: setopt_syncfunc
- * Implementiert <syncfunc_t.setopt_syncfunc>. */
-static inline void setopt_syncfunc(syncfunc_t * sfunc, syncfunc_opt_e optfield)
+static inline void init_syncfunc(/*out*/syncfunc_t* sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optflags)
 {
-         sfunc->optfields = (uint8_t) (
-                              sfunc->optfields
-                              | optfield
-                           );
+         sfunc->mainfct = mainfct;
+         sfunc->state = state;
+         sfunc->contoffset = 0;
+         sfunc->optflags = (uint8_t) optflags;
 }
 
-/* define: setresult_syncfunc
- * Implementiert <syncfunc_t.setresult_syncfunc>. */
-static inline void setresult_syncfunc(syncfunc_t * sfunc, int result)
-         {
-            sfunc->optfields = (uint8_t) (sfunc->optfields | syncfunc_opt_WAITRESULT);
-            *addrwaitresult_syncfunc(sfunc) = result;
-         }
+// TODO: remove function !!
+/* define: init2_syncfunc
+ * Implementiert <syncfunc_t.init2_syncfunc>. */
+static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptflags, void * deststate, syncfunc_t * src, uint16_t srcsize)
+{
+   (void) destsize; (void) srcsize;
+         dest->mainfct    = src->mainfct;
+         dest->state      = deststate;
+         dest->contoffset = destcontoffset;
+         dest->optflags  = destoptflags;
+}
+
+/* define: waitresult_syncfunc
+ * Implementiert <syncfunc_t.waitresult_syncfunc>. */
+static inline int waitresult_syncfunc(const syncfunc_t* sfunc)
+{
+         return (syncfunc_opt_WAIT_RESULT == (sfunc->optflags & syncfunc_opt_WAIT_MASK))
+                ? sfunc->waitresult : 0;
+}
+
+/* define: setwaitresult_syncfunc
+ * Implementiert <syncfunc_t.setwaitresult_syncfunc>. */
+static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
+{
+         changewaitflag_syncfunc(sfunc, syncfunc_opt_WAIT_RESULT);
+         sfunc->waitresult = result;
+}
 
 /* define: setstate_syncfunc
  * Implementiert <syncfunc_t.setstate_syncfunc>. */
@@ -619,6 +512,11 @@ static inline void setresult_syncfunc(syncfunc_t * sfunc, int result)
                break;                        \
          }}))
 
+/* define: state_syncfunc
+ * Implementiert <syncfunc_t.state_syncfunc>. */
+#define state_syncfunc(sfparam) \
+         ((sfparam)->state)
+
 /* define: wait_syncfunc
  * Implementiert <syncfunc_t.wait_syncfunc>. */
 #define wait_syncfunc(sfparam, _condition) \
@@ -636,42 +534,21 @@ static inline void setresult_syncfunc(syncfunc_t * sfunc, int result)
                            - (uintptr_t)&&syncfunc_START);  \
             return synccmd_WAIT;                            \
             continue_after_wait: ;                          \
-            (sfparam)->waiterr;                             \
-         }))
-
-/* define: waitexit_syncfunc
- * Implementiert <syncfunc_t.waitexit_syncfunc>. */
-#define waitexit_syncfunc(sfparam, _retcode) \
-         ( __extension__ ({                                 \
-            __label__ continue_after_wait;                  \
-            (sfparam)->condition = 0;                       \
-            static_assert(                                  \
-               (uintptr_t)&&continue_after_wait >           \
-               (uintptr_t)&&syncfunc_START                  \
-               && (uintptr_t)&&continue_after_wait -        \
-                  (uintptr_t)&&syncfunc_START < 65536,      \
-                  "conversion to uint16_t works");          \
-            (sfparam)->contoffset = (uint16_t) (            \
-                           (uintptr_t)&&continue_after_wait \
-                           - (uintptr_t)&&syncfunc_START);  \
-            return synccmd_WAIT;                            \
-            continue_after_wait: ;                          \
-            *(_retcode) = (sfparam)->retcode;               \
-            (sfparam)->waiterr;                             \
+            (sfparam)->err;                                 \
          }))
 
 /* define: castPwaitfor_syncfunc
  * Implementiert <syncfunc_t.castPwaitfor_syncfunc>. */
 static inline syncfunc_t * castPwaitfor_syncfunc(link_t * waitfor)
 {
-         return (syncfunc_t*) ((uint8_t*) (waitfor) - offwaitfor_syncfunc());
+         return (syncfunc_t*) ((uint8_t*) (waitfor) - offsetof(syncfunc_t, waitfor));
 }
 
 /* define: castPwaitlist_syncfunc
  * Implementiert <syncfunc_t.castPwaitlist_syncfunc>. */
-static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool iswaitfor)
+static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist)
 {
-         return (syncfunc_t*) ((uint8_t*) (waitlist) - offwaitlist_syncfunc(iswaitfor));
+         return (syncfunc_t*) ((uint8_t*) (waitlist) - offsetof(syncfunc_t, waitlist));
 }
 
 /* define: yield_syncfunc
@@ -691,23 +568,5 @@ static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist, const bool
             return synccmd_CONTINUE;                        \
             continue_after_yield: ;                         \
          }))
-
-/* define: init2_syncfunc
- * Implementiert <syncfunc_t.init2_syncfunc>. */
-static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptfields, void * deststate, syncfunc_t * src, uint16_t srcsize)
-         {
-            dest->mainfct    = src->mainfct;
-            dest->state      = deststate;
-            dest->contoffset = destcontoffset;
-            dest->optfields  = destoptfields;
-
-            if (0 != (src->optfields & syncfunc_opt_CALLER)) {
-               link_t * caller = addrcaller_syncfunc(dest, destsize);
-               *caller = *addrcaller_syncfunc(src, srcsize);
-               if (isvalid_link(caller)) {
-                  relink_link(caller);
-               }
-            }
-         }
 
 #endif

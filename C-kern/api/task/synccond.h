@@ -33,6 +33,9 @@ struct syncrunner_t;
 typedef struct synccond_t synccond_t;
 
 
+// TODO: add syncfunc_param_t to wakeup interface instead of srun !!
+
+
 // section: Functions
 
 // group: test
