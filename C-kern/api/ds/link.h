@@ -207,6 +207,10 @@ int isself_linkd(const linkd_t * link);
  * o isvalid_linkd(link) */
 void relink_linkd(linkd_t* link);
 
+// TODO: remove unlink0
+// TODO: rename unlinkself -> unlink (always refer to self)
+// TODO: add parameter to relink_sync (oldaddr) to be able to detect self reference !!
+
 /* function: unlink0_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link selbst wird nicht verändert.

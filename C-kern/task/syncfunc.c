@@ -29,44 +29,26 @@
 
 void relink_syncfunc(syncfunc_t* sfunc)
 {
-   const int waitop = (sfunc->optflags & syncfunc_opt_WAIT_MASK);
+   const int waitop = (sfunc->optflags & syncfunc_opt_WAITFIELDS);
 
    if (waitop) {
-      if (syncfunc_opt_WAIT_RESULT != waitop) {
-         link_t* waitfor = addrwaitfor_syncfunc(sfunc);
-         if (isvalid_link(waitfor)) {
-            relink_link(waitfor);
-         }
-      }
-
       linkd_t * waitlist = waitlist_syncfunc(sfunc);
       if (isvalid_linkd(waitlist)) {
          relink_linkd(waitlist);
       }
    }
-
 }
 
 void unlink_syncfunc(syncfunc_t* sfunc)
 {
-   const int waitop = (sfunc->optflags & syncfunc_opt_WAIT_MASK);
+   const int waitop = (sfunc->optflags & syncfunc_opt_WAITFIELDS);
 
    if (waitop) {
-      static_assert(syncfunc_opt_WAIT_RESULT == 1 && syncfunc_opt_WAIT_MASK == 3,
-                  "syncfunc_opt_WAIT_RESULT is smallest possible value of syncfunc_opt_WAIT_MASK");
-      if (syncfunc_opt_WAIT_RESULT < waitop) {
-         link_t * waitfor = addrwaitfor_syncfunc(sfunc);
-         if (isvalid_link(waitfor)) {
-            unlink_link(waitfor);
-         }
-      }
-
       linkd_t * waitlist = waitlist_syncfunc(sfunc);
       if (isvalid_linkd(waitlist)) {
          unlink0_linkd(waitlist);
       }
    }
-
 }
 
 
@@ -83,14 +65,14 @@ static int test_sfparam(void)
    syncfunc_param_t sfparam2 = (syncfunc_param_t) syncfunc_param_INIT(R);
 
    // TEST syncfunc_param_FREE
-   TEST(0 == sfparam.syncrun);
+   TEST(0 == sfparam.srun);
    TEST(0 == sfparam.contoffset);
    TEST(0 == sfparam.state);
    TEST(0 == sfparam.condition);
    TEST(0 == sfparam.err);
 
    // TEST syncfunc_param_INIT
-   TEST(R == sfparam2.syncrun);
+   TEST(R == sfparam2.srun);
    TEST(0 == sfparam2.contoffset);
    TEST(0 == sfparam2.state);
    TEST(0 == sfparam2.condition);
@@ -115,7 +97,7 @@ static int test_initfree(void)
    TEST(0 == sfunc.state);
    TEST(0 == sfunc.contoffset);
    TEST(0 == sfunc.optflags);
-   TEST(0 == sfunc.waitfor.link);
+   TEST(0 == sfunc.waitresult);
    TEST(0 == sfunc.waitlist.prev);
    TEST(0 == sfunc.waitlist.next);
 
@@ -129,7 +111,7 @@ static int test_initfree(void)
          TEST(sfunc.contoffset == 0);
          TEST(sfunc.optflags   == opt);
          // not initialised
-         TEST(sfunc.waitfor.link  != 0);
+         TEST(sfunc.waitresult    != 0);
          TEST(sfunc.waitlist.prev != 0);
          TEST(sfunc.waitlist.next != 0);
       }
@@ -151,8 +133,8 @@ static int test_initfree(void)
          TEST(sfunc2.contoffset == contoff);
          TEST(sfunc2.optflags   == opt2);
          // not initialised
-         if (opt2 & syncfunc_opt_WAIT_MASK) {
-            TEST(0 == sfunc2.waitfor.link);
+         if (opt2 & syncfunc_opt_WAITFIELDS) {
+            TEST(0 == sfunc2.waitresult);
             TEST(0 == sfunc2.waitlist.prev);
             TEST(0 == sfunc2.waitlist.next);
          }
@@ -172,70 +154,31 @@ static int test_getset(void)
    // TEST getsize_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
       uint16_t size   = getsize_syncfunc(opt);
-      uint16_t expect = (0 != (opt & syncfunc_opt_WAIT_MASK)) ? sizeof(syncfunc_t) : offsetof(syncfunc_t, waitfor);
+      uint16_t expect = (0 != (opt & syncfunc_opt_WAITFIELDS)) ? sizeof(syncfunc_t) : offsetof(syncfunc_t, waitresult);
       TEST(expect == size);
    }
-
-   // TEST addrwaitfor_syncfunc
-   TEST(&sfunc.waitfor == addrwaitfor_syncfunc(&sfunc));
 
    // TEST waitlist_syncfunc
    TEST(waitlist_syncfunc(&sfunc)  == &sfunc.waitlist);
 
-   // TEST castPwaitfor_syncfunc: Invalid value 0 ==> return invalid address != 0
-   TEST(0 != castPwaitfor_syncfunc(0));
-
    // TEST castPwaitlist_syncfunc: Invalid value 0 ==> return invalid address != 0
    TEST(0 != castPwaitlist_syncfunc(0));
 
-   // TEST castPwaitfor_syncfunc: correct value
-   TEST(&sfunc == castPwaitfor_syncfunc(addrwaitfor_syncfunc(&sfunc)));
-
    // TEST castPwaitlist_syncfunc: correct value
    TEST(&sfunc == castPwaitlist_syncfunc(waitlist_syncfunc(&sfunc)));
-
-   // TEST castPwaitfor_syncfunc: connected link
-   link_t waitedfor;
-   init_link(&sfunc.waitfor, &waitedfor);
-   TEST(&sfunc == castPwaitfor_syncfunc(waitedfor.link));
 
    // TEST castPwaitlist_syncfunc: connected link
    init_linkd(&sfunc.waitlist, &sfunc2.waitlist);
    TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.next));
    TEST(&sfunc == castPwaitlist_syncfunc(sfunc2.waitlist.prev));
 
-   // TEST changewaitflag_syncfunc
-   static_assert(syncfunc_opt_WAIT_RESULT == 1 && syncfunc_opt_WAIT_MASK == 3,
-               "syncfunc_opt_WAIT_RESULT is smallest possible value of syncfunc_opt_WAIT_MASK");
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      if (0 != (opt & syncfunc_opt_WAIT_MASK)) continue;
-      for (syncfunc_opt_e opt1 = syncfunc_opt_WAIT_RESULT; opt1 <= syncfunc_opt_WAIT_MASK; ++opt1) {
-         for (syncfunc_opt_e opt2 = syncfunc_opt_WAIT_RESULT; opt2 <= syncfunc_opt_WAIT_MASK; ++opt2) {
-            sfunc.optflags = (uint8_t) (opt | opt1);
-            changewaitflag_syncfunc(&sfunc, opt2);
-            sfunc.optflags = (uint8_t) (opt | opt2);
-         }
-      }
-   }
-
-   // TEST changewaitflag_syncfunc: invalid value
-   sfunc.optflags = (uint8_t) syncfunc_opt_WAIT_MASK;
-   changewaitflag_syncfunc(&sfunc, syncfunc_opt_NONE);
-   TEST(0 == sfunc.optflags);
-   sfunc.optflags = 0;
-   changewaitflag_syncfunc(&sfunc, syncfunc_opt_WAIT_MASK);
-   TEST(syncfunc_opt_WAIT_MASK == sfunc.optflags);
-
    // TEST waitresult_syncfunc
+   sfunc = (syncfunc_t) syncfunc_FREE;
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
       for (int result = -10; result <= 10; ++result) {
-         int expect = 0;
-         sfunc = (syncfunc_t) syncfunc_FREE;
+         int expect = (opt & syncfunc_opt_WAITFIELDS) ? result : 0;
          sfunc.optflags = opt;
          sfunc.waitresult = result;
-         if (syncfunc_opt_WAIT_RESULT == (opt & syncfunc_opt_WAIT_MASK)) {
-            expect = result;
-         }
          TEST(expect == waitresult_syncfunc(&sfunc));
          // no fields changed
          TEST(sfunc.optflags   == opt);
@@ -244,22 +187,19 @@ static int test_getset(void)
    }
 
    // TEST setwaitresult_syncfunc
+   sfunc = (syncfunc_t) syncfunc_FREE;
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
       for (int result = -10; result <= 10; ++result) {
-         sfunc = (syncfunc_t) syncfunc_FREE;
          sfunc.optflags = opt;
          setwaitresult_syncfunc(&sfunc, result);
-         syncfunc_opt_e expect = opt & (syncfunc_opt_e) ~syncfunc_opt_WAIT_MASK;
-         expect |= syncfunc_opt_WAIT_RESULT;
-         TEST(sfunc.optflags   == expect);
+         TEST(sfunc.optflags   == opt);
          TEST(sfunc.waitresult == result);
       }
    }
 
    // TEST relink_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      const int  iswait = (opt & syncfunc_opt_WAIT_MASK);
-      const int  isresult = (iswait == syncfunc_opt_WAIT_RESULT);
+      const int iswait = (opt & syncfunc_opt_WAITFIELDS);
 
       sfunc  = (syncfunc_t) syncfunc_FREE;
       sfunc2 = (syncfunc_t) syncfunc_FREE;
@@ -267,24 +207,21 @@ static int test_getset(void)
 
       // test relink_syncfunc: invalid links
       relink_syncfunc(&sfunc);
-      TEST(!isvalid_link(&sfunc.waitfor));
+      TEST(0 == sfunc.waitresult);
       TEST(!isvalid_linkd(&sfunc.waitlist));
-      TEST(!isvalid_link(&sfunc2.waitfor));
+      TEST(0 == sfunc2.waitresult);
       TEST(!isvalid_linkd(&sfunc2.waitlist));
 
       // test relink_syncfunc: valid links
-      sfunc.waitfor.link = &sfunc2.waitfor;
       sfunc.waitlist.prev = &sfunc2.waitlist;
       sfunc.waitlist.next = &sfunc2.waitlist;
       relink_syncfunc(&sfunc);
-      TEST(sfunc.waitfor.link == &sfunc2.waitfor);
+      // check sfunc not changed
+      TEST(sfunc.waitresult == 0);
       TEST(sfunc.waitlist.prev == &sfunc2.waitlist);
       TEST(sfunc.waitlist.next == &sfunc2.waitlist);
-      if (iswait && !isresult) {
-         TEST(sfunc2.waitfor.link == &sfunc.waitfor);
-      } else {
-         TEST(! isvalid_link(&sfunc2.waitfor));
-      }
+      // check sfunc2 adapted if iswait != 0
+      TEST(sfunc2.waitresult == 0);
       if (iswait) {
          TEST(sfunc2.waitlist.prev == &sfunc.waitlist);
          TEST(sfunc2.waitlist.next == &sfunc.waitlist);
@@ -295,8 +232,7 @@ static int test_getset(void)
 
    // TEST unlink_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      const int  iswait = (opt & syncfunc_opt_WAIT_MASK);
-      const int  isresult = (iswait == syncfunc_opt_WAIT_RESULT);
+      const int  iswait = (opt & syncfunc_opt_WAITFIELDS);
 
       sfunc  = (syncfunc_t) syncfunc_FREE;
       sfunc2 = (syncfunc_t) syncfunc_FREE;
@@ -304,25 +240,20 @@ static int test_getset(void)
 
       // test unlink_syncfunc: invalid links (nothing is done)
       unlink_syncfunc(&sfunc);
-      TEST(!isvalid_link(&sfunc.waitfor));
+      TEST(0 == sfunc.waitresult);
       TEST(!isvalid_linkd(&sfunc.waitlist));
-      TEST(!isvalid_link(&sfunc2.waitfor));
+      TEST(0 == sfunc2.waitresult);
       TEST(!isvalid_linkd(&sfunc2.waitlist));
 
       // test unlink_syncfunc: valid links
-      init_link(&sfunc.waitfor, &sfunc2.waitfor);
       init_linkd(&sfunc.waitlist, &sfunc2.waitlist);
       unlink_syncfunc(&sfunc);
       // check sfunc is not changed
-      TEST(sfunc.waitfor.link == &sfunc2.waitfor);
+      TEST(sfunc.waitresult    == 0);
       TEST(sfunc.waitlist.prev == &sfunc2.waitlist);
       TEST(sfunc.waitlist.next == &sfunc2.waitlist);
-      // check link target sfunc2 is made invalid
-      if (iswait && !isresult) {
-         TEST(! isvalid_link(&sfunc2.waitfor));
-      } else {
-         TEST(sfunc2.waitfor.link == &sfunc.waitfor);
-      }
+      // check sfunc2 waitlist invalidated if iswait != 0
+      TEST(sfunc2.waitresult == 0);
       if (iswait) {
          TEST(! isvalid_linkd(&sfunc2.waitlist));
       } else {
@@ -443,11 +374,11 @@ static int test_implsupport(void)
    for (int cmd = synccmd_RUN; cmd <= synccmd_EXIT; ++cmd) {
       sfparam.err = 0;
       TEST(cmd == test_start_sf(&sfparam, (uint32_t)cmd));
-      TEST(sfparam.syncrun     == 0);
-      TEST(sfparam.contoffset  != 0);
-      TEST(sfparam.state       == 0);
-      TEST(sfparam.condition   == 0);
-      TEST(sfparam.err         == 10 + cmd);
+      TEST(sfparam.srun       == 0);
+      TEST(sfparam.contoffset != 0);
+      TEST(sfparam.state      == 0);
+      TEST(sfparam.condition  == 0);
+      TEST(sfparam.err        == 10 + cmd);
    }
 
    // TEST start_syncfunc: invalid sfcmd value
@@ -455,7 +386,7 @@ static int test_implsupport(void)
    for (int cmd = synccmd_WAIT; cmd <= synccmd_WAIT+16; ++cmd) {
       sfparam.err = 0;
       TEST(-1 == test_start_sf(&sfparam, (uint32_t)cmd));
-      TEST( 0 == sfparam.syncrun);
+      TEST( 0 == sfparam.srun);
       TEST( 0 == sfparam.contoffset);
       TEST( 0 == sfparam.state);
       TEST( 0 == sfparam.condition);
@@ -466,11 +397,11 @@ static int test_implsupport(void)
    for (uint32_t cmd = 0; cmd <= 100000; cmd += 10000) {
       sfparam.err = -1;
       TEST(synccmd_EXIT == test_exit_sf(&sfparam, cmd));
-      TEST(sfparam.syncrun   == 0);
+      TEST(sfparam.srun       == 0);
       TEST(sfparam.contoffset == 0);
-      TEST(sfparam.state     == 0);
-      TEST(sfparam.condition == 0);
-      TEST(sfparam.err       == (int)cmd);
+      TEST(sfparam.state      == 0);
+      TEST(sfparam.condition  == 0);
+      TEST(sfparam.err        == (int)cmd);
    }
 
    // TEST wait_syncfunc: waiterr == 0
@@ -480,7 +411,7 @@ static int test_implsupport(void)
       int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.condition = 0;
       TEST(result == test_wait_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
-      TEST(0 == sfparam.syncrun);
+      TEST(0 == sfparam.srun);
       TEST(0 == sfparam.state);
       if (i != 4) {
          TEST(oldoff   != sfparam.contoffset);
@@ -500,7 +431,7 @@ static int test_implsupport(void)
       sfparam.condition = 0;
       sfparam.err       = i;
       TEST(result == test_waiterr_sf(&sfparam, i == 1 ? synccmd_RUN : synccmd_CONTINUE));
-      TEST(0 == sfparam.syncrun);
+      TEST(0 == sfparam.srun);
       TEST(0 == sfparam.state);
       if (i != 4) {
          TEST(oldoff   != sfparam.contoffset);
@@ -519,7 +450,7 @@ static int test_implsupport(void)
       int      result = i != 21 ? synccmd_CONTINUE : synccmd_EXIT;
       sfparam.err = 0;
       TEST(result == test_yield_sf(&sfparam, i == 19 ? synccmd_RUN : synccmd_CONTINUE));
-      TEST(0 == sfparam.syncrun);
+      TEST(0 == sfparam.srun);
       TEST(0 == sfparam.state);
       TEST(oldoff != sfparam.contoffset);
       TEST(0 == sfparam.condition);

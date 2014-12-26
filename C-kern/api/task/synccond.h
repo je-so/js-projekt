@@ -26,14 +26,12 @@
 
 // forward
 struct syncfunc_t;
+struct syncfunc_param_t;
 struct syncrunner_t;
 
 /* typedef: struct synccond_t
  * Export <synccond_t> into global namespace. */
 typedef struct synccond_t synccond_t;
-
-
-// TODO: add syncfunc_param_t to wakeup interface instead of srun !!
 
 
 // section: Functions
@@ -57,7 +55,7 @@ int unittest_task_synccond(void);
  * von mehreren <syncrunner_t> gleichzeitig benutzt werden,
  * ist das Verhalten undefiniert/fehlerhaft. */
 struct synccond_t {
-   link_t  waitfunc;
+   linkd_t waitfunc;
 };
 
 // group: lifetime
@@ -65,59 +63,67 @@ struct synccond_t {
 /* define: synccond_FREE
  * Static initializer. */
 #define synccond_FREE \
-         { link_FREE }
+         { linkd_FREE }
 
 /* function: init_synccond
  * Setze scond auf Initialwert - eine leere Warteliste. */
-int init_synccond(/*out*/synccond_t * scond);
+void init_synccond(/*out*/synccond_t* scond);
 
 /* function: free_synccond
  * Setze scond auf <synccond_FREE>.
  * Falls noch eine wartende <syncfunc_t> verlinkt ist,
  * sollte vor dieser Funktion <wakeupall_synccond> aufgerufen werden.
  * Ansonsten gibt es einen verwaisten link. */
-int free_synccond(synccond_t * scond);
+void free_synccond(synccond_t* scond);
 
 // group: query
 
 /* function: iswaiting_synccond
  * Gib true zurück, falls mindestens eine Funktion wartet, sonst false. */
-int iswaiting_synccond(const synccond_t * scond);
+static inline int iswaiting_synccond(const synccond_t* scond);
 
 /* function: waitfunc_synccond
- * Gib die wartende <syncfunc_t> zurück.
+ * Gib die erste wartende <syncfunc_t> zurück.
  *
  * Unchecked Precondition:
  * o iswaiting_synccond(scond) */
-struct syncfunc_t * waitfunc_synccond(const synccond_t * scond);
+struct syncfunc_t* waitfunc_synccond(const synccond_t* scond);
 
 // group: update
 
 /* function: link_synccond
- * Verlinkt eine wartende <syncfunc_t>.
- * Es kann nur eine einzige verlinkt werden, weitere
- * <syncfunc_t> müssen mittels des optionalen Feldes
- * <syncfunc_t.waitlist> verwaltet werden.
- * Siehe <syncrunner_t> für die Implementierung.
+ * Verlinkt eine wartende <syncfunc_t> am Ende der Warteliste.
+ * Siehe <syncrunner_t> für die Verwendung dieser Funktion.
  *
  * Unchecked Precondition:
- * o ! iswaiting_synccond(scond)
- * o ! isvalid_link(addrwaitfor_syncfunc(sfunc)) */
-void link_synccond(synccond_t * scond, struct syncfunc_t * sfunc);
+ * o ! isvalid_link(waitlist_syncfunc(sfunc)) */
+void link_synccond(synccond_t* scond, struct syncfunc_t* sfunc);
 
 /* function: unlink_synccond
- * Löscht die Verlinkung zur wartenden Funktion <syncfunc_t>. */
-void unlink_synccond(synccond_t * scond);
+ * Löscht die Verlinkung zur ersten wartenden Funktion <waitfunc_synccond>.
+ *
+ * Unchecked Precondition:
+ * o iswaiting_synccond(scond) */
+void unlink_synccond(synccond_t* scond);
+
+/* function: unlinkall_synccond
+ * Löscht die Verlinkung zu allen wartenden Funktionen.
+ * Mittels Aufruf von <waitfunc_synccond> vor Aufruf dieser Funktion
+ * kann der Kopf der Warteliste ermittelt werden.
+ *
+ * Unchecked Precondition:
+ * o iswaiting_synccond(scond) */
+void unlinkall_synccond(synccond_t* scond);
 
 /* function: wakeup_synccond
  * Wecke die erste wartende Funktion auf. NO-OP, wenn <iswaiting_synccond>(srun)==false.
  * Leitet Aufruf weiter an <wakeup_syncrunner>. */
-int wakeup_synccond(struct synccond_t * scond, struct syncrunner_t * srun);
+int wakeup_synccond(struct synccond_t* scond, const struct syncfunc_param_t* sfparam);
 
 /* function: wakeupall_synccond
  * Wecke alle wartende Funktionen auf. NO-OP, wenn <iswaiting_synccond>(srun)==false.
  * Leitet Aufruf weiter an <wakeupall_syncrunner>. */
-int wakeupall_synccond(struct synccond_t * scond, struct syncrunner_t * srun);
+int wakeupall_synccond(struct synccond_t* scond, const struct syncfunc_param_t* sfparam);
 
 
 // section: inline implementation
@@ -125,41 +131,52 @@ int wakeupall_synccond(struct synccond_t * scond, struct syncrunner_t * srun);
 /* define: free_synccond
  * Implements <synccond_t.free_synccond>. */
 #define free_synccond(scond) \
-         (*(scond) = (synccond_t) synccond_FREE, 0)
+         ((void)(*(scond) = (synccond_t) synccond_FREE))
 
 /* define: init_synccond
  * Implements <synccond_t.init_synccond>. */
 #define init_synccond(scond) \
-         (*(scond) = (synccond_t) synccond_FREE, 0)
+         initself_linkd(&(scond)->waitfunc)
 
 /* define: iswaiting_synccond
  * Implements <synccond_t.iswaiting_synccond>. */
-#define iswaiting_synccond(scond) \
-         (isvalid_link(&(scond)->waitfunc))
+static inline int iswaiting_synccond(const synccond_t* scond)
+{
+         return ! isself_linkd(&scond->waitfunc) && isvalid_linkd(&scond->waitfunc);
+}
 
 /* define: link_synccond
  * Implements <synccond_t.link_synccond>. */
 #define link_synccond(scond, sfunc) \
-         init_link(&(scond)->waitfunc, addrwaitfor_syncfunc(sfunc))
+         initprev_linkd(waitlist_syncfunc(sfunc), &(scond)->waitfunc)
 
 /* define: unlink_synccond
  * Implements <synccond_t.unlink_synccond>. */
 #define unlink_synccond(scond) \
-         free_link(&(scond)->waitfunc)
+         unlinkself_linkd((scond)->waitfunc.next)
+
+/* define: unlinkall_synccond
+ * Implements <synccond_t.unlinkall_synccond>. */
+#define unlinkall_synccond(scond) \
+         do {                                 \
+            synccond_t* _sc=(scond);          \
+            unlinkself_linkd(&_sc->waitfunc); \
+            init_synccond(_sc);               \
+         } while(0)
 
 /* define: waitfunc_synccond
  * Implements <synccond_t.waitfunc_synccond>. */
 #define waitfunc_synccond(scond) \
-         (castPwaitfor_syncfunc((scond)->waitfunc.link))
+         (castPwaitlist_syncfunc((scond)->waitfunc.next))
 
 /* define: wakeup_synccond
  * Implements <synccond_t.wakeup_synccond>. */
-#define wakeup_synccond(scond, srun) \
-         wakeup_syncrunner(srun, scond)
+#define wakeup_synccond(scond, sfparam) \
+         wakeup_syncrunner((sfparam)->srun, scond)
 
 /* define: wakeupall_synccond
  * Implements <synccond_t.wakeupall_synccond>. */
-#define wakeupall_synccond(scond, srun) \
-         wakeupall_syncrunner(srun, scond)
+#define wakeupall_synccond(scond, sfparam) \
+         wakeupall_syncrunner((sfparam)->srun, scond)
 
 #endif
