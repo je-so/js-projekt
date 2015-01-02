@@ -114,9 +114,9 @@ static int sf_wait(syncfunc_param_t* param, uint32_t cmd)
    int err = EINVAL;
    synccond_t* scond = state_syncfunc(param);
 
-   start_syncfunc(param, cmd, ONRUN, ONEXIT);
+   start_syncfunc(param, cmd, ONEXIT);
 
-ONRUN:
+// RUN
 
    err = wait_syncfunc(param, scond);
    ++ s_runcount;

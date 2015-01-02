@@ -145,21 +145,22 @@ struct syncfunc_param_t {
  * > {
  * >    int err = EINTR; // Melde Unterbrochen-Fehler, falls
  * >                     // synccmd_EXIT empfangen wird
- * >    start_syncfunc(sfparam, sfcmd, ONRUN, ONERR);
- * >    goto ONERR;
- * > ONRUN:
- * >    void * state = alloc_memory(...);
+ * >    start_syncfunc(sfparam, sfcmd, ONERR);
+ * > // init
+ * >    void* state = alloc_memory(...);
  * >    setstate_syncfunc(sfparam, state);
  * >    ...
  * >    yield_syncfunc(sfparam);
  * >    ...
- * >    synccond_t * condition = ...;
+ * >    synccond_t* condition = ...;
  * >    err = wait_syncfunc(sfparam, condition);
  * >    if (err) goto ONERR;
  * >    ...
  * >    // err == 0
  * > ONERR:
- * >    free_memory( state_syncfunc(sfparam) );
+ * >    if (0 != state_syncfunc(sfparam)) {
+ * >       free_memory( state_syncfunc(sfparam) );
+ * >    }
  * >    exit_syncfunc(sfparam, err);
  * > }
  * */
@@ -323,24 +324,23 @@ void* state_syncfunc(const syncfunc_param_t* sfparam);
 void setstate_syncfunc(syncfunc_param_t* sfparam, void* new_state);
 
 /* function: start_syncfunc
- * Springt zu onrun, onexit oder zu einer vorher gespeicherten Adresse.
+ * Springt zu onexit oder zu einer vorher gespeicherten Adresse.
  * Die ersten beiden Parameter müssen die Namen der Parameter von der aktuell
  * ausgeführten <syncfunc_f> sein. Das Verhalten des Makros hängt vom zweiten
- * Parameter sfcmd ab. Der erste ist nur von Interesse, falls sfcmd == <synccmd_CONTINUE>.
+ * Parameter sfcmd ab.
  *
- * Implementiert als Makro definiert start_syncfunc zusätzlich das Label syncfunc_START.
+ * Als Makro implementiert definiert start_syncfunc zusätzlich das Label syncfunc_START.
  * Es findet Verwendung bei der Berechnung von Sprungzielen.
  *
  * Verarbeitete sfcmd Werte:
- * synccmd_RUN         - Springe zu Label onrun. Dies ist der normale Ausführungszweig.
- * synccmd_CONTINUE    - Springt zu der Adresse, die bei der vorherigen Ausführung in
- *                       <syncfunc_param_t.contlabel> gespeichert wurde.
  * synccmd_EXIT        - Springe zu Label onexit. Dieser Zweig sollte alle Ressourcen freigeben
  *                       (free_memory(<state_syncfunc>(sfparam)) und <exit_syncfunc>(sfparam,EINTR) aufrufen.
- * Alle anderen Werte  - Das Makro tut nichts und kehrt zum Aufrufer zurück.
+ * Alle anderen Werte  - Falls <contoffset_syncfunc> != 0: Springt zu der Adresse, die bei der vorherigen Ausführung
+ *                       mit <setcontoffset_syncfunc> gespeichert wurde.
+ *                       Falls <contoffset_syncfunc> == 0: Das Makro tut nichts und kehrt zum Aufrufer zurück.
+ *                       Dies dient der Initialisierung der Funktion.
  * */
-// TODO: rename into continue_syncfunc // remove onrun (fall through) // wrong value ==> onexit //
-void start_syncfunc(const syncfunc_param_t* sfparam, uint32_t sfcmd, LABEL onrun, IDNAME onexit);
+void start_syncfunc(const syncfunc_param_t* sfparam, uint32_t sfcmd, IDNAME onexit);
 
 /* function: yield_syncfunc
  * Tritt Prozessor an andere <syncfunc_t> ab.
@@ -441,23 +441,21 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
 
 /* define: start_syncfunc
  * Implementiert <syncfunc_t.start_syncfunc>. */
-#define start_syncfunc(sfparam, sfcmd, onrun, onexit) \
+#define start_syncfunc(sfparam, sfcmd, onexit) \
          syncfunc_START:                     \
          ( __extension__ ({                  \
             const syncfunc_param_t * _sf;    \
             _sf = (sfparam);                 \
-            switch ( (synccmd_e) (sfcmd)) {  \
-            case synccmd_RUN:                \
-               goto onrun;                   \
-            case synccmd_CONTINUE:           \
+            if (synccmd_EXIT == (sfcmd)) {   \
+               goto onexit;                  \
+            }                                \
+            /*map to synccmd_RUN */          \
+            if (_sf->sfunc->contoffset) {    \
                goto * (void*) ( (uintptr_t)  \
                   &&syncfunc_START           \
                   + _sf->sfunc->contoffset); \
-            case synccmd_EXIT:               \
-               goto onexit;                  \
-            default: /*ignoring all other*/  \
-               break;                        \
-         }}))
+            }                                \
+         }))
 
 /* define: state_syncfunc
  * Implementiert <syncfunc_t.state_syncfunc>. */
@@ -511,7 +509,7 @@ static inline int waitresult_syncfunc(const syncfunc_t* sfunc)
             (sfparam)->sfunc->contoffset = (uint16_t) (     \
                         (uintptr_t)&&continue_after_yield   \
                         - (uintptr_t)&&syncfunc_START);     \
-            return synccmd_CONTINUE;                        \
+            return synccmd_RUN;                             \
             continue_after_yield: ;                         \
          }))
 

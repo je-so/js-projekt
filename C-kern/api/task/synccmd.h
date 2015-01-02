@@ -22,13 +22,9 @@
  * synccmd_RUN         - *Ein*: Das Kommando wird von <start_syncfunc> verarbeitet und
  *                            startet die Ausführung an einer zumeist mit »ONRUN:« gekennzeichneten Stelle.
  *                       *Aus*: Als Rückgabewert verlangt es, die nächste Ausführung mit dem Kommando <synccmd_RUN>
- *                            zu starten – <syncfunc_param_t.contlabel> ist ungültig.
- * synccmd_CONTINUE    - *Ein*: Das Kommando wird von <start_syncfunc> verarbeitet und
- *                            setzt die Ausführung an der Stelle, die in <syncfunc_param_t.contlabel> gespeichert wurde.
- *                       *Aus*: Als Rückgabewert verlangt es, die nächste Ausführung mit dem Kommando <synccmd_CONTINUE>
- *                            zu starten, genau an der Stelle, die in <syncfunc_param_t.contlabel> abgelegt wurde.
- *                            Der abgelegte Wert in <syncfunc_param_t.contlabel> darf nicht 0 sein,
- *                            sonst wird die nächste Ausführung mit dem Kommando <synccmd_RUN> gestartet.
+ *                            zu starten – genau an der Stelle, die in <syncfunc_t.contlabel> abgelegt wurde.
+ *                            Wird 0 in <syncfunc_t.contlabel> abgelegt, wird die nächste Ausführung
+ *                            am Anfang der Funktion gestartet.
  * synccmd_EXIT        - *Ein*: Das Kommando wird von <start_syncfunc> verarbeitet und
  *                            startet die Ausführung an einer zumeist mit »ONEXIT:« gekennzeichneten Stelle.
  *                            Die Umgebung hat zu wenig Ressourcen, um die Funktion weiter auszuführen. Deshalb sollte sie
@@ -46,18 +42,17 @@
  *                            gewartet werden soll – siehe <syncrunner_t>.
  *                            Die Ausführung pausiert und wird bei Erfüllung der Bedingung durch das Kommando <synccmd_CONTINUE>
  *                            wieder aufgenommen. Also genau an der Stelle wieder gestartet, die vor Return in
- *                            <syncfunc_param_t.contlabel> abgelegt wurde. Der abgelegte Wert in <syncfunc_param_t.contlabel>
+ *                            <syncfunc_t.contlabel> abgelegt wurde. Der abgelegte Wert in <syncfunc_t.contlabel>
  *                            darf dabei nicht 0 sein!  Falls die Warteoperation mangels Ressourcen nicht durchgeführt werden konnte,
  *                            wird in <syncfunc_param_t.waiterr> anstatt 0 ein Fehlercode != 0 abgelegt.
  *                            Falls auf die Beendigung einer anderen Funktion gewartet werden soll, aber keine weitere gestartet wurde,
  *                            wird die Warteoperation mit <syncfunc_param_t.waiterr> == EINVAL abgebrochen.
  *                            Die Funktionen <wait_syncfunc> und <waitexit_syncfunc> implementieren dieses Protokoll.
- * Invalid Value      - *Ein*: Das Kommando wird von <start_syncfunc> ignoriert.
+ * Invalid Value      - *Ein*: Das Kommando wird von <start_syncfunc> wie <synccmd_RUN> behandelt.
  *                      *Aus*: Das Kommando wird als <synccmd_RUN> interpretiert.
  * */
 typedef enum synccmd_e {
    synccmd_RUN,
-   synccmd_CONTINUE,
    synccmd_EXIT,
    synccmd_WAIT
 } synccmd_e;
