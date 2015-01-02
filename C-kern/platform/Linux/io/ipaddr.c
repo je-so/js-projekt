@@ -1391,7 +1391,7 @@ ONERR:
    return EINVAL ;
 }
 
-int unittest_io_ipaddr()
+int unittest_io_ip_ipaddr()
 {
    int err;
 

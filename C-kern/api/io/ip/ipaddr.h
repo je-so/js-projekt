@@ -75,9 +75,9 @@ typedef enum ipprotocol_e {
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_ipaddr
+/* function: unittest_io_ip_ipaddr
  * Unittest for resolving dns names into ip addresses. */
-int unittest_io_ipaddr(void);
+int unittest_io_ip_ipaddr(void);
 #endif
 
 

@@ -243,8 +243,8 @@ int run_unittest(void * argv)
       RUN(unittest_io_fileutil);
       RUN(unittest_io_mmfile);
       // IP
-      RUN(unittest_io_ipaddr);
-      RUN(unittest_io_ipsocket);
+      RUN(unittest_io_ip_ipaddr);
+      RUN(unittest_io_ip_ipsocket);
       // generic
       RUN(unittest_io_iochannel);
       RUN(unittest_io_url);

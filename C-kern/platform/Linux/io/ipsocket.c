@@ -1639,7 +1639,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_io_ipsocket()
+int unittest_io_ip_ipsocket()
 {
    if (test_initfree())       goto ONERR;
    if (test_connect())        goto ONERR;

@@ -41,9 +41,9 @@ typedef struct ipsocket_async_t ipsocket_async_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_ipsocket
+/* function: unittest_io_ip_ipsocket
  * Unittest client/server tcp/udp communications. */
-int unittest_io_ipsocket(void);
+int unittest_io_ip_ipsocket(void);
 #endif
 
 
