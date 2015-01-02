@@ -79,8 +79,6 @@ struct syncrunner_t {
     * Falls true, wird <run_syncrunner> bzw. <terminate_syncrunner> ausgeführt. */
    bool     isrun;
 };
-// TODO: add iterator to syncqueue_t + ... !!
-// TODO: remove every cast from syncqueue_t to queue_t !!!!!
 
 // group: lifetime
 

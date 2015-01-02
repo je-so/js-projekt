@@ -208,11 +208,6 @@ int isself_linkd(const linkd_t * link);
  * o ! isself_linkd(old_memory_addr_of_link) */
 void relink_linkd(linkd_t* link);
 
-// TODO: remove function relink_syncfunc !! + implement initmove_syncfunc which checks for self links !!
-// TODO: remove unlink0
-// TODO: rename unlinkself -> unlink (always refer to self)
-// TODO: add parameter to relink_sync (oldaddr) to be able to detect self reference !!
-
 /* function: unlink0_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link selbst wird nicht verändert.
@@ -224,7 +219,7 @@ void relink_linkd(linkd_t* link);
  * o isvalid_linkd(link) */
 void unlink0_linkd(const link_t* link);
 
-/* function: unlinkself_linkd
+/* function: unlink_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link selbst wird nicht verändert.
  * Dies ist eine Optimierung gegenüber <free_linkd>.
@@ -233,7 +228,7 @@ void unlink0_linkd(const link_t* link);
  *
  * Unchecked Precondition:
  * o isvalid_linkd(link) */
-void unlinkself_linkd(const link_t* link);
+void unlink_linkd(const link_t* link);
 
 /* function: splice_linkd
  * Fügt Liste der Knoten, auf die prev zeigt, vor Knoten link ein.
@@ -325,7 +320,7 @@ static inline void splice_linkd(linkd_t* list1, linkd_t* list2);
          do {                       \
             linkd_t * _l2 = (link); \
             if (_l2->prev) {        \
-               unlink0_linkd(_l2);  \
+               unlink_linkd(_l2);   \
             }                       \
             _l2->next = 0;          \
             _l2->prev = 0;          \
@@ -424,9 +419,9 @@ static inline void splice_linkd(linkd_t* list1, linkd_t* list2)
             }                             \
          } while (0)
 
-/* define: unlinkself_linkd
- * Implementiert <link_t.unlinkself_linkd>. */
-#define unlinkself_linkd(link) \
+/* define: unlink_linkd
+ * Implementiert <link_t.unlink_linkd>. */
+#define unlink_linkd(link) \
          do {                          \
             linkd_t * _l = (link);     \
             _l->next->prev = _l->prev; \

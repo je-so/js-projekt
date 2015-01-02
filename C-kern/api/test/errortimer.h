@@ -88,7 +88,7 @@ int process_testerrortimer(test_errortimer_t * errtimer) ;
  * No op if KONFIG_UNITTEST is not defined.
  * This function calls <process_testerrortimer>(errtimer) and if it returns 0 it does nothing.
  * Else it sets the variable err to the returned code and jumps to ONERROR_LABEL. */
-void ONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err, void ** ONERROR_LABEL) ;
+void ONERROR_testerrortimer(test_errortimer_t* errtimer, /*err*/int* err, IDNAME ONERROR_LABEL);
 
 /* function: PROCESS_testerrortimer
  * This function calls <process_testerrortimer>(errtimer) and returns its value.

@@ -27,26 +27,14 @@
 
 // group: update
 
-void relink_syncfunc(syncfunc_t* sfunc)
-{
-   const int waitop = (sfunc->optflags & syncfunc_opt_WAITFIELDS);
-
-   if (waitop) {
-      linkd_t * waitlist = waitlist_syncfunc(sfunc);
-      if (isvalid_linkd(waitlist)) {
-         relink_linkd(waitlist);
-      }
-   }
-}
-
 void unlink_syncfunc(syncfunc_t* sfunc)
 {
    const int waitop = (sfunc->optflags & syncfunc_opt_WAITFIELDS);
 
    if (waitop) {
-      linkd_t * waitlist = waitlist_syncfunc(sfunc);
+      linkd_t* waitlist = waitlist_syncfunc(sfunc);
       if (isvalid_linkd(waitlist)) {
-         unlink0_linkd(waitlist);
+         unlink_linkd(waitlist);
       }
    }
 }
@@ -117,7 +105,6 @@ static int test_initfree(void)
 
    // TEST initcopy_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      memset(&sfunc, 0, sizeof(sfunc));
       sfunc2.waitresult = 1;
       sfunc2.waitlist.prev = (void*)2;
       sfunc2.waitlist.next = (void*)3;
@@ -126,15 +113,90 @@ static int test_initfree(void)
          uint16_t contoff = (uint16_t) (11 + opt + opt2);
          init_syncfunc(&sfunc, &test_start_sf, state, opt);
          sfunc.contoffset = contoff;
+         // test
+         sfunc2.mainfct  = 0;
+         sfunc2.optflags = (uint8_t)-1;
          initcopy_syncfunc(&sfunc2, &sfunc, opt2);
+         // check content
          TEST(sfunc2.mainfct    == &test_start_sf);
          TEST(sfunc2.state      == state);
          TEST(sfunc2.contoffset == contoff);
          TEST(sfunc2.optflags   == opt2);
-         // not copied
+         // check not copied
          TEST(sfunc2.waitresult == 1);
          TEST(sfunc2.waitlist.prev == (void*)2);
          TEST(sfunc2.waitlist.next == (void*)3);
+      }
+   }
+
+   // TEST initmove_syncfunc: 0==(optfield&syncfunc_opt_WAITFIELDS)
+   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+      if (opt & syncfunc_opt_WAITFIELDS) continue;
+      for (int r = 1; r <= 3; ++r) {
+         void*    state   = (void*) (uintptr_t) (256 * r);
+         uint16_t contoff = (uint16_t) (11 + r);
+         init_syncfunc(&sfunc, &test_start_sf, state, opt);
+         sfunc.contoffset = contoff;
+         sfunc.waitresult = 1;
+         sfunc.waitlist.prev = (void*)2;
+         sfunc.waitlist.next = (void*)3;
+         // test self link
+         memset(&sfunc2, 0, sizeof(sfunc2));
+         initmove_syncfunc(&sfunc2, &sfunc);
+         // check content
+         TEST(sfunc2.mainfct    == &test_start_sf);
+         TEST(sfunc2.state      == state);
+         TEST(sfunc2.contoffset == contoff);
+         TEST(sfunc2.optflags   == opt);
+         // check not copied
+         TEST(sfunc2.waitresult == 0);
+         TEST(sfunc2.waitlist.prev == 0);
+         TEST(sfunc2.waitlist.next == 0);
+      }
+   }
+
+   // TEST initmove_syncfunc: 0!=(optfield&syncfunc_opt_WAITFIELDS)
+   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+      if (0 == (opt & syncfunc_opt_WAITFIELDS)) continue;
+      for (int r = 1; r <= 3; ++r) {
+         linkd_t  waitlist;
+         void*    state   = (void*) (uintptr_t) (256 * r);
+         uint16_t contoff = (uint16_t) (11 + r);
+         int   waitresult = (int) (10 * r);
+         init_syncfunc(&sfunc, &test_start_sf, state, opt);
+         sfunc.contoffset = contoff;
+         sfunc.waitresult = waitresult;
+         initself_linkd(&sfunc.waitlist);
+
+         // test self link
+         memset(&sfunc2, 0, sizeof(sfunc2));
+         initmove_syncfunc(&sfunc2, &sfunc);
+         // check content
+         TEST(sfunc2.mainfct    == &test_start_sf);
+         TEST(sfunc2.state      == state);
+         TEST(sfunc2.contoffset == contoff);
+         TEST(sfunc2.optflags   == opt);
+         TEST(sfunc2.waitresult == waitresult);
+         // check self link preserved
+         TEST(sfunc2.waitlist.prev == &sfunc2.waitlist);
+         TEST(sfunc2.waitlist.next == &sfunc2.waitlist);
+
+         // test no self
+         init_linkd(&sfunc.waitlist, &waitlist);
+         memset(&sfunc2, 0, sizeof(sfunc2));
+         initmove_syncfunc(&sfunc2, &sfunc);
+         // check content
+         TEST(sfunc2.mainfct    == &test_start_sf);
+         TEST(sfunc2.state      == state);
+         TEST(sfunc2.contoffset == contoff);
+         TEST(sfunc2.optflags   == opt);
+         TEST(sfunc2.waitresult == waitresult);
+         // check link copied
+         TEST(sfunc2.waitlist.prev == &waitlist);
+         TEST(sfunc2.waitlist.next == &waitlist);
+         // check waitlist relinked
+         TEST(waitlist.prev == &sfunc2.waitlist);
+         TEST(waitlist.next == &sfunc2.waitlist);
       }
    }
 
@@ -172,11 +234,10 @@ static int test_getset(void)
    // TEST waitresult_syncfunc
    sfunc = (syncfunc_t) syncfunc_FREE;
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+      sfunc.optflags = opt;
       for (int result = -10; result <= 10; ++result) {
-         int expect = (opt & syncfunc_opt_WAITFIELDS) ? result : 0;
-         sfunc.optflags = opt;
          sfunc.waitresult = result;
-         TEST(expect == waitresult_syncfunc(&sfunc));
+         TEST(result == waitresult_syncfunc(&sfunc));
          // no fields changed
          TEST(sfunc.optflags   == opt);
          TEST(sfunc.waitresult == result);
@@ -186,75 +247,47 @@ static int test_getset(void)
    // TEST setwaitresult_syncfunc
    sfunc = (syncfunc_t) syncfunc_FREE;
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+      sfunc.optflags = opt;
       for (int result = -10; result <= 10; ++result) {
-         sfunc.optflags = opt;
          setwaitresult_syncfunc(&sfunc, result);
          TEST(sfunc.optflags   == opt);
          TEST(sfunc.waitresult == result);
       }
    }
 
-   // TEST relink_syncfunc
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      const int iswait = (opt & syncfunc_opt_WAITFIELDS);
-
-      sfunc  = (syncfunc_t) syncfunc_FREE;
-      sfunc2 = (syncfunc_t) syncfunc_FREE;
-      sfunc.optflags = opt;
-
-      // test relink_syncfunc: invalid links
-      relink_syncfunc(&sfunc);
-      TEST(0 == sfunc.waitresult);
-      TEST(!isvalid_linkd(&sfunc.waitlist));
-      TEST(0 == sfunc2.waitresult);
-      TEST(!isvalid_linkd(&sfunc2.waitlist));
-
-      // test relink_syncfunc: valid links
-      sfunc.waitlist.prev = &sfunc2.waitlist;
-      sfunc.waitlist.next = &sfunc2.waitlist;
-      relink_syncfunc(&sfunc);
-      // check sfunc not changed
-      TEST(sfunc.waitresult == 0);
-      TEST(sfunc.waitlist.prev == &sfunc2.waitlist);
-      TEST(sfunc.waitlist.next == &sfunc2.waitlist);
-      // check sfunc2 adapted if iswait != 0
-      TEST(sfunc2.waitresult == 0);
-      if (iswait) {
-         TEST(sfunc2.waitlist.prev == &sfunc.waitlist);
-         TEST(sfunc2.waitlist.next == &sfunc.waitlist);
-      } else {
-         TEST(! isvalid_linkd(&sfunc2.waitlist));
-      }
-   }
-
    // TEST unlink_syncfunc
    for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      const int  iswait = (opt & syncfunc_opt_WAITFIELDS);
+      const int waitop = (opt & syncfunc_opt_WAITFIELDS);
 
       sfunc  = (syncfunc_t) syncfunc_FREE;
       sfunc2 = (syncfunc_t) syncfunc_FREE;
+      setwaitresult_syncfunc(&sfunc, 1);
+      setwaitresult_syncfunc(&sfunc2, 2);
       sfunc.optflags = opt;
 
       // test unlink_syncfunc: invalid links (nothing is done)
       unlink_syncfunc(&sfunc);
-      TEST(0 == sfunc.waitresult);
-      TEST(!isvalid_linkd(&sfunc.waitlist));
-      TEST(0 == sfunc2.waitresult);
-      TEST(!isvalid_linkd(&sfunc2.waitlist));
+      TEST(1 == sfunc.waitresult);
+      TEST(0 == sfunc.waitlist.prev);
+      TEST(0 == sfunc.waitlist.next);
 
       // test unlink_syncfunc: valid links
       init_linkd(&sfunc.waitlist, &sfunc2.waitlist);
       unlink_syncfunc(&sfunc);
       // check sfunc is not changed
-      TEST(sfunc.waitresult    == 0);
+      TEST(sfunc.waitresult    == 1);
       TEST(sfunc.waitlist.prev == &sfunc2.waitlist);
       TEST(sfunc.waitlist.next == &sfunc2.waitlist);
-      // check sfunc2 waitlist invalidated if iswait != 0
-      TEST(sfunc2.waitresult == 0);
-      if (iswait) {
-         TEST(! isvalid_linkd(&sfunc2.waitlist));
+      // check sfunc2 waitlist invalidated if waitop != 0
+      TEST(sfunc2.waitresult == 2);
+      if (waitop) {
+         // check unlinked
+         TEST(sfunc2.waitlist.prev == &sfunc2.waitlist);
+         TEST(sfunc2.waitlist.next == &sfunc2.waitlist);
       } else {
-         TEST(isvalid_linkd(&sfunc2.waitlist));
+         // check not changed
+         TEST(sfunc2.waitlist.prev == &sfunc.waitlist);
+         TEST(sfunc2.waitlist.next == &sfunc.waitlist);
       }
    }
 

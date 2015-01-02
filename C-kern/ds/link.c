@@ -156,10 +156,12 @@ static int test_initfree(void)
    // TEST free_linkd: 2 nodes connected
    init_linkd(&linkd, &linkd2);
    free_linkd(&linkd);
+   // check freed
    TEST(0 == linkd.prev);
    TEST(0 == linkd.next);
-   TEST(0 == linkd2.prev);
-   TEST(0 == linkd2.next);
+   // check links to self
+   TEST(&linkd2 == linkd2.prev);
+   TEST(&linkd2 == linkd2.next);
 
    // TEST free_linkd: 3 nodes connected
    init_linkd(&linkd, &linkd2);
@@ -287,24 +289,24 @@ static int test_update(void)
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[1] == linkd[0].next); // not changed
 
-   // TEST unlinkself_linkd: self connected node
+   // TEST unlink_linkd: self connected node
    initself_linkd(&linkd[0]);
-   unlinkself_linkd(&linkd[0]);
+   unlink_linkd(&linkd[0]);
    TEST(&linkd[0] == linkd[0].prev); // links to self !!
    TEST(&linkd[0] == linkd[0].next);
 
-   // TEST unlinkself_linkd: 2 nodes connected
+   // TEST unlink_linkd: 2 nodes connected
    init_linkd(&linkd[0], &linkd[2]);
-   unlinkself_linkd(&linkd[0]);
+   unlink_linkd(&linkd[0]);
    TEST(&linkd[2] == linkd[2].prev); // links to self !!
    TEST(&linkd[2] == linkd[2].next);
    TEST(&linkd[2] == linkd[0].prev); // not changed
    TEST(&linkd[2] == linkd[0].next); // not changed
 
-   // TEST unlinkself_linkd: 3 nodes connected
+   // TEST unlink_linkd: 3 nodes connected
    init_linkd(&linkd[0], &linkd[1]);
    initprev_linkd(&linkd[2], &linkd[0]);
-   unlinkself_linkd(&linkd[0]);
+   unlink_linkd(&linkd[0]);
    TEST(&linkd[2] == linkd[1].prev);
    TEST(&linkd[2] == linkd[1].next);
    TEST(&linkd[1] == linkd[2].prev);

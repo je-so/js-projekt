@@ -70,43 +70,6 @@ static uint8_t s_syncrunner_qsize[2] = {
    [WAITQ_ID] = WAITQ_ELEMSIZE
 };
 
-// group: memory
-
-/* define: MOVE
- * Verschiebe Speicher von src nach dest in Einheiten von long.
- *
- * Unchecked Precondition:
- * o (0 == structsize % sizeof(long)) */
-#define MOVE(dest, src, structsize) \
-         do { \
-            unsigned _nr = (structsize) / sizeof(long); \
-            unsigned _n  = 0; \
-            long * _s = (long*) (src); \
-            long * _d = (long*) (dest); \
-            do { \
-               _d[_n] = _s[_n]; \
-            } while (++_n < _nr); \
-         } while (0)
-
-/* function: move_syncfunc
- * Verschiebt <syncfunc_t> der Größe size von src nach dest.
- * In src enthaltene Links werden dabei angepasst, so daß
- * Linkziele nach dem Verschieben korrekt zurückzeigen. */
-static void move_syncfunc(syncfunc_t * dest, syncfunc_t * src, uint16_t structsize)
-{
-   if (src != dest) {
-      // move in memory
-
-      MOVE(dest, src, structsize);
-
-      // adapt links to new location
-
-      relink_syncfunc(dest);
-
-      // TODO: replace with initmove_syncfunc !!
-   }
-}
-
 // group: lifetime
 
 int init_syncrunner(/*out*/syncrunner_t * srun)
@@ -160,7 +123,9 @@ ONERR:
 // group: queue-helper
 
 /* function: allocfunc_syncrunner
- * TODO: descrfibe */
+ * Allokiert nodesize Bytes an Speicher für eine syncfunc_t in der Queue mit ID queueud.
+ * Unchecked Precondition:
+ * o queueid == RUNQ_ID || queueid == WAITQ_ID */
 static inline int allocfunc_syncrunner(syncrunner_t* srun, unsigned queueid, uint16_t nodesize, /*out*/syncfunc_t** sfunc)
 {
    int err;
@@ -195,8 +160,8 @@ ONERR:
 static inline int removefunc_syncrunner(syncrunner_t* srun, unsigned queueid, uint16_t nodesize, syncfunc_t* sfunc)
 {
    int err;
-   queue_t* queue = &srun->rwqueue[queueid];
-   void*    last  = last_queue(queue, nodesize);
+   queue_t*    queue = &srun->rwqueue[queueid];
+   syncfunc_t* last  = last_queue(queue, nodesize);
 
    if (!last) {
       // should never happen cause at least sfunc is stored in squeue
@@ -204,9 +169,12 @@ static inline int removefunc_syncrunner(syncrunner_t* srun, unsigned queueid, ui
       goto ONERR;
    }
 
-   // TODO: replace with initmove_syncfunc
-   // TODO: implement initmove_link / initmove_linkd which keeps self pointers
-   move_syncfunc(sfunc, last, nodesize);
+   if (sfunc != last) {
+      initmove_syncfunc(sfunc, last);
+   }
+
+   // in case of error let process crash !
+   last->mainfct = 0;
 
    -- srun->rwqsize[queueid];
 
@@ -347,17 +315,19 @@ ONERR:
  * param - Name von lokalem <syncfunc_param_t>
  * sfunc - Pointer auf <syncfunc_t>.
  *
- * // TODO: remove size
- *
  * Unchecked Precondition:
- * o param is initialized with pointer to <syncrunner_t> */
+ * o param is initialized with a valid pointer to <syncrunner_t> */
 #define RUN_SYNCFUNC(param, sf) \
          ( __extension__ ({                     \
             param.sfunc      = (sf);            \
             (sf)->mainfct(&param, synccmd_RUN); \
          }))
 
-// TODO: add doc
+/* define: EXIT_SYNCFUNC
+ * Ruft syncfunc_t* sf auf mit Kommando synccmd_EXIT.
+ * param.err wird vor dem Aufruf auf ECANCELED gesetzt.
+ * Unchecked Precondition:
+ * o param is initialized with a valid pointer to <syncrunner_t> */
 #define EXIT_SYNCFUNC(param, sf) \
          ( __extension__ ({                      \
             param.sfunc      = (sf);             \
@@ -425,14 +395,13 @@ static inline int process_wakeup_list(syncrunner_t * srun)
 
    while (wakeup.next != &wakeup) {
       sfunc = castPwaitlist_syncfunc(wakeup.next);
-      unlinkself_linkd(wakeup.next);
+      unlink_linkd(wakeup.next);
 
       param.err = waitresult_syncfunc(sfunc);
       cmd = RUN_SYNCFUNC(param, sfunc);
 
       if (synccmd_RUN != cmd) {
          if (synccmd_EXIT == cmd) {
-            // TODO: add test that fails for remove
             goto REMOVE_FROM_WAIT_QUEUE;
 
          } else if (synccmd_WAIT == cmd) {
@@ -441,21 +410,16 @@ static inline int process_wakeup_list(syncrunner_t * srun)
          }
       }
 
-      // synccmd_RUN or invalid value
-
-      // move from wait to run queue
+      // synccmd_RUN or invalid value: move from wait to run queue
 
       initcopy_syncfunc(sfunc2, sfunc, RUNQ_OPTFLAGS);
       sfunc2 = 0; // sfunc2 in use (if error)
+      ONERROR_testerrortimer(&s_syncrunner_errtimer, &err, ONERR);
       err = allocfunc_syncrunner(srun, RUNQ_ID, RUNQ_ELEMSIZE, &sfunc2);
-      // TODO: add test !! SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
       if (err) goto ONERR;
-      // TODO: add test that fails for remove
 
       REMOVE_FROM_WAIT_QUEUE: ;
 
-      // TODO: set mainfct == 0 in remove (in case of error) !! check mainfct == 0 in loop
-      // TODO: use !! sizefirst_queue !! to check number of bytes of queue
       err = removefunc_syncrunner(srun, WAITQ_ID, WAITQ_ELEMSIZE, sfunc);
       SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
       if (err) goto ONERR;
@@ -470,7 +434,7 @@ ONUNPREPARE:
 ONERR:
    if (!isself_linkd(&wakeup)) {
       splice_linkd(&srun->wakeup, &wakeup);
-      unlinkself_linkd(&wakeup);
+      unlink_linkd(&wakeup);
    }
    goto ONUNPREPARE;
 }
@@ -512,7 +476,6 @@ int runnowakeup_syncrunner(syncrunner_t* srun)
 
          if (synccmd_RUN != cmd) {
             if (synccmd_EXIT == cmd) {
-               // TODO: add test that fails for remove
                goto REMOVE_FROM_RUN_QUEUE;
 
             } else if (synccmd_WAIT == cmd) {
@@ -522,20 +485,19 @@ int runnowakeup_syncrunner(syncrunner_t* srun)
                // waitresult & waitlist are undefined ==> set it !
                link_waitfields(srun, sfunc2, &param);
                sfunc2 = 0; // in use (if error)
+               ONERROR_testerrortimer(&s_syncrunner_errtimer, &err, ONERR);
                err = allocfunc_syncrunner(srun, WAITQ_ID, WAITQ_ELEMSIZE, &sfunc2);
-               // TODO: add test !! SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
                if (err) goto ONERR;
-               // TODO: add test that fails for remove
                goto REMOVE_FROM_RUN_QUEUE;
             }
          }
+
+         // synccmd_RUN or invalid value: do nothing
 
          continue ;
 
          REMOVE_FROM_RUN_QUEUE: ;
 
-         // TODO: set mainfct == 0 in remove (in case of error) !! check mainfct == 0 in loop
-         // TODO: use !! sizefirst_queue !! to check number of bytes of queue
          err = removefunc_syncrunner(srun, RUNQ_ID, RUNQ_ELEMSIZE, sfunc);
          SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
          if (err) goto ONERR;
@@ -689,73 +651,44 @@ ONERR:
 
 static int test_memory(void)
 {
-   unsigned long src[100];
-   unsigned long dest[100];
+   unsigned long src[sizeof(syncfunc_t) / sizeof(long)];
+   unsigned long dest[sizeof(syncfunc_t) / sizeof(long)];
    linkd_t waitlist  = linkd_FREE;
 
-   // TEST MOVE: check precondition
-   for (unsigned i = 0; i < lengthof(s_syncrunner_qsize); ++i) {
-      TEST(0 == s_syncrunner_qsize[i] % sizeof(long));
+   static_assert(sizeof(s_syncrunner_qsize) == 2, "only two kind of optflags");
+
+   static_assert( RUNQ_ELEMSIZE < sizeof(syncfunc_t)
+                  && WAITQ_ELEMSIZE == sizeof(syncfunc_t), "src+dest has enough free space");
+
+   static_assert( 0 == (RUNQ_ELEMSIZE % sizeof(long))
+                  && 0 == (WAITQ_ELEMSIZE % sizeof(long)), "size multiple of sizeof(long)");
+
+   // TEST initmove_syncfunc: RUNQ_OPTFLAGS
+   memset(dest, 0, sizeof(dest));
+   for (unsigned i = 0; i < RUNQ_ELEMSIZE; ++i) {
+      ((uint8_t*)src)[i] = (uint8_t) (i+1);
+   }
+   ((syncfunc_t*)src)->optflags = RUNQ_OPTFLAGS;
+   initmove_syncfunc((syncfunc_t*)dest, (const syncfunc_t*)src);
+   // check content of dest
+   TEST(0 == memcmp(dest, src, RUNQ_ELEMSIZE));
+   for (unsigned i = RUNQ_ELEMSIZE; i < sizeof(dest); ++i) {
+      TEST(((uint8_t*)dest)[i] == 0);
    }
 
-   // TEST MOVE: copy memory
-   for (unsigned size = 1; size <= lengthof(src); ++size) {
-      for (unsigned offset = 0; offset + size <= lengthof(src); ++offset) {
-         memset(src, 0, sizeof(src));
-         memset(dest, 255, sizeof(dest));
-         MOVE(&dest[offset], src, size*sizeof(long));
-         for (unsigned i = 0; i < lengthof(src); ++i) {
-            TEST(0 == src[i]);
-         }
-         for (unsigned i = 0; i < offset; ++i) {
-            TEST(ULONG_MAX == dest[i]);
-         }
-         for (unsigned i = offset; i < offset+size; ++i) {
-            TEST(0 == dest[i]);
-         }
-         for (unsigned i = offset+size; i < lengthof(dest); ++i) {
-            TEST(ULONG_MAX == dest[i]);
-         }
-      }
+   // TEST initmove_syncfunc: WAITQ_OPTFLAGS
+   memset(dest, 0, sizeof(dest));
+   for (unsigned i = 0; i < WAITQ_ELEMSIZE; ++i) {
+      ((uint8_t*)src)[i] = (uint8_t) (i+1);
    }
-
-   // TEST move_syncfunc: memory is copied and links are adapted to new location
-   for (unsigned optflags = syncfunc_opt_NONE; optflags <= syncfunc_opt_ALL; ++optflags) {
-      uint16_t size = getsize_syncfunc(optflags);
-      for (unsigned soffset = 0; soffset <= 10; soffset += 10) {
-         for (unsigned doffset = 0; doffset <= 20; doffset += 5) {
-            syncfunc_t * src_func = (syncfunc_t*) &src[soffset];
-            syncfunc_t * dst_func = (syncfunc_t*) &dest[doffset];
-            void *       state    = (void*)(uintptr_t)(64 * soffset + doffset);
-
-            init_syncfunc(src_func, &dummy_sf, state, optflags);
-            src_func->waitresult = (int) soffset;
-            init_linkd(waitlist_syncfunc(src_func), &waitlist);
-
-            // test move_syncfunc
-            memset(dst_func, 255, sizeof(syncfunc_t));
-            move_syncfunc(dst_func, src_func, size);
-
-            // check src_func/dst_func valid & links adapted
-            for (int isdst = 0; isdst <= 1; ++isdst) {
-               syncfunc_t* sfunc = isdst ? dst_func : src_func;
-               TEST(sfunc->mainfct    == &dummy_sf);
-               TEST(sfunc->state      == state);
-               TEST(sfunc->contoffset == 0);
-               TEST(sfunc->optflags   == optflags);
-               if (optflags & syncfunc_opt_WAITFIELDS) {
-                  TEST((int)soffset == sfunc->waitresult);
-                  TEST(&waitlist == waitlist_syncfunc(sfunc)->prev);
-                  TEST(&waitlist == waitlist_syncfunc(sfunc)->next);
-               }
-            }
-            if (0 != (optflags & syncfunc_opt_WAITFIELDS)) {
-               TEST(waitlist.prev == waitlist_syncfunc(dst_func));
-               TEST(waitlist.next == waitlist_syncfunc(dst_func));
-            }
-         }
-      }
-   }
+   ((syncfunc_t*)src)->optflags = WAITQ_OPTFLAGS;
+   init_linkd(&waitlist, &((syncfunc_t*)src)->waitlist);
+   initmove_syncfunc((syncfunc_t*)dest, (const syncfunc_t*)src);
+   // check link adapted
+   TEST(waitlist.prev == &((syncfunc_t*)dest)->waitlist);
+   TEST(waitlist.next == &((syncfunc_t*)dest)->waitlist);
+   // check content equal
+   TEST(0 == memcmp(dest, src, WAITQ_ELEMSIZE));
 
    return 0;
 ONERR:
@@ -898,6 +831,10 @@ static int test_queuehelper(void)
       // check result
       TEST(0 == check_queue_size(&srun, 1, qidx));
       TEST(sfunc == (syncfunc_t*) (size + (uint8_t*)last_queue(queue, size)));
+      // check mainfct of last set to 0
+      TEST(0 == sfunc->mainfct);
+      memset(&sfunc->mainfct, 255, sizeof(sfunc->mainfct));
+      // check other content not changed
       for (uint8_t * data = (uint8_t*) sfunc; data != size + (uint8_t*)sfunc; ++data) {
          TEST(*data == 255); // content not changed
       }
@@ -937,7 +874,7 @@ static int test_query(void)
    TEST(1 == iswakeup_syncrunner(&srun));
 
    // TEST iswakeup_syncrunner: false ==> wakeup list empty
-   unlinkself_linkd(&sfunc.waitlist);
+   unlink_linkd(&sfunc.waitlist);
    TEST(0 == iswakeup_syncrunner(&srun));
 
    // TEST size_syncrunner: after init
@@ -1512,7 +1449,7 @@ static int test_exec_wakeup(void)
       }
    }
 
-   // TEST process_wakeup_list: EINVAL (remove_queue)
+   // TEST process_wakeup_list: EINVAL (removefunc_syncrunner + allocfunc_syncrunner)
    s_test_set_contoffset = 0;
    s_test_set_state = 0;
    s_test_expect_state = 0;
@@ -1530,7 +1467,7 @@ static int test_exec_wakeup(void)
          }
          // test process_wakeup_list
          s_test_runcount = 0;
-         init_testerrortimer(&s_syncrunner_errtimer, errcount, EINVAL);
+         init_testerrortimer(&s_syncrunner_errtimer, cmd ? 2*errcount-1 : errcount, EINVAL);
          TEST(EINVAL == process_wakeup_list(&srun));
          TEST(errcount < lengthof(sfunc) || isself_linkd(&srun.wakeup));
          // check result
@@ -1539,7 +1476,7 @@ static int test_exec_wakeup(void)
          TEST(0 == srun.isrun);
          // check size of queues
          for (unsigned i = 0; i < lengthof(srun.rwqueue); ++i) {
-            TEST(0 == check_queue_size(&srun, i == WAITQ_ID ? lengthof(sfunc)-errcount : cmd ? errcount : 0, i));
+            TEST(0 == check_queue_size(&srun, i == WAITQ_ID ? lengthof(sfunc)-errcount+cmd : cmd ? errcount : 0, i));
          }
          // check content of wakeup list
          if (errcount < lengthof(sfunc)) {
@@ -1834,44 +1771,49 @@ static int test_exec_run(void)
       }
    }
 
-   // TEST run_syncrunner: EINVAL (remove_queue)
-   s_test_set_cmd = synccmd_EXIT;
+   // TEST run_syncrunner: EINVAL (removefunc_syncrunner + allocfunc_syncrunner)
    s_test_expect_cmd = synccmd_RUN;
    s_test_expect_contoffset = 0;
    s_test_expect_state = 0;
-   for (unsigned errcount = 1; errcount <= lengthof(sfunc); ++errcount) {
-      for (unsigned i = 0; i < lengthof(sfunc); ++i) {
-         TEST(0 == allocfunc_syncrunner(&srun, RUNQ_ID, RUNQ_ELEMSIZE, &sfunc[i]));
-         init_syncfunc(sfunc[i], &test_run_sf, s_test_expect_state, syncfunc_opt_NONE);
+   s_test_set_condition = &scond;
+   s_test_set_contoffset = 0;
+   s_test_set_state = 0;
+   for (unsigned cmd = 0; cmd <= 1; ++cmd) {
+      s_test_set_cmd = cmd ? synccmd_WAIT : synccmd_EXIT;
+      for (unsigned errcount = 1; errcount <= lengthof(sfunc); ++errcount) {
+         for (unsigned i = 0; i < lengthof(sfunc); ++i) {
+            TEST(0 == allocfunc_syncrunner(&srun, RUNQ_ID, RUNQ_ELEMSIZE, &sfunc[i]));
+            init_syncfunc(sfunc[i], &test_run_sf, s_test_expect_state, syncfunc_opt_NONE);
+         }
+         // test run_syncrunner
+         s_test_runcount = 0;
+         init_testerrortimer(&s_syncrunner_errtimer, cmd ? 2*errcount-1 : errcount, EINVAL);
+         TEST(EINVAL == run_syncrunner(&srun));
+         // check result
+         TEST(0 == s_test_errcount);
+         TEST(errcount == s_test_runcount);
+         TEST(0 == srun.isrun);
+         TEST(isself_linkd(&srun.wakeup));
+         unlinkall_synccond(&scond); // in case of synccmd_WAIT
+         // check length of every single queue
+         for (unsigned i = 0; i < lengthof(srun.rwqueue); ++i) {
+            TEST(0 == check_queue_size(&srun, i == RUNQ_ID ? lengthof(sfunc)-errcount+cmd : cmd ? errcount : 0, i));
+         }
+         // check content of run queue
+         unsigned i = 0;
+         foreach (_queue, next, cast_queue(&srun.rwqueue[RUNQ_ID]), RUNQ_ELEMSIZE) {
+            TEST(sfunc[i] == next);
+            TEST(sfunc[i]->mainfct    == &test_run_sf);
+            TEST(sfunc[i]->state      == s_test_expect_state);
+            TEST(sfunc[i]->contoffset == 0);
+            TEST(sfunc[i]->optflags   == syncfunc_opt_NONE);
+            ++i;
+         }
+         TEST(i == lengthof(sfunc)-errcount+cmd/*alloc error no remove called*/);
+         // prepare for next run
+         TEST(0 == free_syncrunner(&srun));
+         TEST(0 == init_syncrunner(&srun));
       }
-      // test run_syncrunner
-      s_test_runcount = 0;
-      init_testerrortimer(&s_syncrunner_errtimer, errcount, EINVAL);
-      TEST(EINVAL == run_syncrunner(&srun));
-      // check result
-      TEST(0 == s_test_errcount);
-      TEST(errcount == s_test_runcount);
-      TEST(lengthof(sfunc)-errcount == size_syncrunner(&srun));
-      TEST(0 == srun.isrun);
-      TEST(isself_linkd(&srun.wakeup));
-      // check length of every single queue
-      for (unsigned i = 0; i < lengthof(srun.rwqueue); ++i) {
-         TEST(0 == check_queue_size(&srun, i == RUNQ_ID ? lengthof(sfunc)-errcount : 0, i));
-      }
-      // check content of run queue
-      unsigned i = 0;
-      foreach (_queue, next, cast_queue(&srun.rwqueue[RUNQ_ID]), RUNQ_ELEMSIZE) {
-         TEST(sfunc[i] == next);
-         TEST(sfunc[i]->mainfct    == &test_run_sf);
-         TEST(sfunc[i]->state      == s_test_expect_state);
-         TEST(sfunc[i]->contoffset == 0);
-         TEST(sfunc[i]->optflags   == syncfunc_opt_NONE);
-         ++i;
-      }
-      TEST(i == lengthof(sfunc)-errcount);
-      // prepare for next run
-      TEST(0 == free_syncrunner(&srun));
-      TEST(0 == init_syncrunner(&srun));
    }
 
    // TEST run_syncrunner: EINVAL ==> no woken up functions run

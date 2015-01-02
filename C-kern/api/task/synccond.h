@@ -153,15 +153,15 @@ static inline int iswaiting_synccond(const synccond_t* scond)
 /* define: unlink_synccond
  * Implements <synccond_t.unlink_synccond>. */
 #define unlink_synccond(scond) \
-         unlinkself_linkd((scond)->waitfunc.next)
+         unlink_linkd((scond)->waitfunc.next)
 
 /* define: unlinkall_synccond
  * Implements <synccond_t.unlinkall_synccond>. */
 #define unlinkall_synccond(scond) \
-         do {                                 \
-            synccond_t* _sc=(scond);          \
-            unlinkself_linkd(&_sc->waitfunc); \
-            init_synccond(_sc);               \
+         do {                             \
+            synccond_t* _sc=(scond);      \
+            unlink_linkd(&_sc->waitfunc); \
+            init_synccond(_sc);           \
          } while(0)
 
 /* define: waitfunc_synccond

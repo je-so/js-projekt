@@ -1,101 +1,161 @@
-[1: 1418799093.338889s]
-free_syncrunner() C-kern/task/syncrunner.c:156
+[1: 1418830900.024088s]
+free_syncrunner() C-kern/task/syncrunner.c:119
 Error 22 - Invalid argument
 One or more resources could not be freed
-[1: 1418799093.338894s]
-free_syncrunner() C-kern/task/syncrunner.c:156
+[1: 1418830900.024094s]
+free_syncrunner() C-kern/task/syncrunner.c:119
 Error 22 - Invalid argument
 One or more resources could not be freed
-[1: 1418799093.344006s]
-removefunc_syncrunner() C-kern/task/syncrunner.c:218
+[1: 1418830900.035704s]
+removefunc_syncrunner() C-kern/task/syncrunner.c:186
 Error 61 - No data available
-[1: 1418799093.344010s]
-removefunc_syncrunner() C-kern/task/syncrunner.c:218
+[1: 1418830900.035708s]
+removefunc_syncrunner() C-kern/task/syncrunner.c:186
 Error 61 - No data available
-[1: 1418799093.344058s]
-addfunc_syncrunner() C-kern/task/syncrunner.c:270
+[1: 1418830900.035951s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:238
 Error 12 - Cannot allocate memory
-[1: 1418799093.344124s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036213s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 115 - Operation now in progress
-[1: 1418799093.344156s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036350s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344158s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036352s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344161s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036360s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344163s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036363s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344166s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036367s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344168s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036373s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344170s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036378s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344172s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036380s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344175s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036385s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344176s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036387s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344179s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036392s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344181s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036394s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344183s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036399s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344185s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036405s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344188s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036410s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344190s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036413s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344192s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036418s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344194s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036420s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344197s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036425s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344199s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036428s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344201s]
-runnowakeup_syncrunner() C-kern/task/syncrunner.c:556
+[1: 1418830900.036431s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344203s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036433s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.344205s]
-run_syncrunner() C-kern/task/syncrunner.c:572
+[1: 1418830900.036438s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.344986s]
-terminate_syncrunner() C-kern/task/syncrunner.c:623
+[1: 1418830900.036440s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.345309s]
-terminate_syncrunner() C-kern/task/syncrunner.c:623
+[1: 1418830900.036445s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
 Error 22 - Invalid argument
-[1: 1418799093.345736s]
-terminate_syncrunner() C-kern/task/syncrunner.c:623
+[1: 1418830900.036447s]
+run_syncrunner() C-kern/task/syncrunner.c:534
 Error 22 - Invalid argument
-[1: 1418799093.346161s]
-terminate_syncrunner() C-kern/task/syncrunner.c:623
+[1: 1418830900.036452s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036454s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036460s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036461s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036467s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036469s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036475s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036476s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036482s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036484s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036491s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036492s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036499s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036501s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036510s]
+runnowakeup_syncrunner() C-kern/task/syncrunner.c:518
+Error 22 - Invalid argument
+[1: 1418830900.036512s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.036517s]
+run_syncrunner() C-kern/task/syncrunner.c:534
+Error 22 - Invalid argument
+[1: 1418830900.039821s]
+terminate_syncrunner() C-kern/task/syncrunner.c:585
+Error 22 - Invalid argument
+[1: 1418830900.041075s]
+terminate_syncrunner() C-kern/task/syncrunner.c:585
+Error 22 - Invalid argument
+[1: 1418830900.042623s]
+terminate_syncrunner() C-kern/task/syncrunner.c:585
+Error 22 - Invalid argument
+[1: 1418830900.044156s]
+terminate_syncrunner() C-kern/task/syncrunner.c:585
 Error 22 - Invalid argument
