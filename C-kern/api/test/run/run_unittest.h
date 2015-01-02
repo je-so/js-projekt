@@ -26,6 +26,6 @@
  * The list of all unit tests must maintained manually for newly written tests.
  * There is a static test »call_all_unittest.sh« in »C-kern/test/static/«
  * which lists every test which is not called. */
-int run_unittest(void * argv) ;
+int run_unittest(void* argv);
 
 #endif

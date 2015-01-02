@@ -57,7 +57,7 @@ struct thread_t {
    /* variable: nextwait
     * Points to next thread which waits on the same <thrmutex_t> or <waitlist_t>.
     * This ensures that waiting does not need to allocate list nodes and therefore never
-    * generate error ENOMEM. */
+    * generates error ENOMEM. */
    struct
    slist_node_t*  nextwait;
    /* variable: lockflag ;

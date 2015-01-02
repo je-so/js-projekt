@@ -541,10 +541,10 @@ static int test_generic(void)
    ptr = (thread_tls_t*)&tls2.prefix_addr ;
    TEST(ptr == cast_threadtls(&tls2,prefix_)) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_threadtls(&tls) ;
-   return EINVAL ;
+   free_threadtls(&tls);
+   return EINVAL;
 }
 
 int unittest_platform_task_thread_tls()
@@ -554,9 +554,9 @@ int unittest_platform_task_thread_tls()
    if (test_query())       goto ONERR;
    if (test_generic())     goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

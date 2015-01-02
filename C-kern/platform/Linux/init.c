@@ -66,9 +66,9 @@ static void callmain_platform(void)
       abort();
    }
 
-   void *         userarg     = mainarg_thread(thread);
-   mainthread_f   main_thread = maintask_thread(thread);
-   int            retcode     = main_thread(userarg);
+   void*        arg     = mainarg_thread(thread);
+   mainthread_f mainthr = maintask_thread(thread);
+   int          retcode = mainthr(arg);
 
    setreturncode_thread(thread, retcode);
 }
@@ -125,10 +125,10 @@ int init_platform(mainthread_f main_thread, void * user)
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
    thread_t * thread = thread_threadtls(&tls);
-   settask_thread(thread, main_thread, user);
 #if defined(KONFIG_SUBSYS_THREAD)
    initmain_thread(thread);
 #endif
+   settask_thread(thread, main_thread, user);
 
    linenr = __LINE__;
    ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);

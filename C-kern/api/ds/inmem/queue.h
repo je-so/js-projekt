@@ -201,7 +201,7 @@ size_t sizefirst_queue(const queue_t * queue);
  * If only one memory page is allocated this value equals to <sizenodesfirstpage_queue>. */
 size_t sizelast_queue(const queue_t * queue);
 
-/* function: sizefirst_queue
+/* function: sizebytes_queue
  * Returns the number of bytes allocated on the all memory pages.
  * O(n): This operation needs to iterate over the list of all allocated pages. */
 size_t sizebytes_queue(const queue_t * queue);
@@ -259,7 +259,7 @@ int removefirst_queue(queue_t * queue, uint16_t nodesize);
  * EOVERFLOW is returned and nothing is done. */
 int removelast_queue(queue_t * queue, uint16_t nodesize);
 
-/* function: removelast_queue
+/* function: removeall_queue
  * Removes all stored nodes at once.
  * If the queue is empty nothing is done. */
 int removeall_queue(queue_t* queue);
