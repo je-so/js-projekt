@@ -81,34 +81,24 @@ int unittest_task_syncfunc(void);
  * Definiert Ein- Ausgabeparameter von <syncfunc_f> Funktionen. */
 struct syncfunc_param_t {
    /* variable: srun
-    * Eingabe-Param: Der Verwalter-Kontext von <syncfunc_t>. */
+    * In-Param: Der Verwalter-Kontext von <syncfunc_t>. */
    struct
    syncrunner_t* const  srun;
    /* variable: srun
-    * Eingabe-Param: Zeigt auf aktuell ausgeführte Funktion. */
+    * In-Param: Zeigt auf aktuell ausgeführte Funktion. */
    syncfunc_t*          sfunc;
-   /* variable: contoffset
-    * Ein- Ausgabe-Param: Die Stelle, and der mit der Ausführung weitergemacht werden soll.
-    * Nur gültig, wenn Parameter sfcmd den Wert <synccmd_CONTINUE> besitzt.
-    * Der Wert wird nach »return« gespeichert, wenn die Funktion <synccmd_CONTINUE>
-    * oder <synccmd_WAIT> zurückgibt. */
-   uint16_t             contoffset;
-   /* variable: state
-    * Ein- Ausgabe-Param: Der gespeicherte Funktionszustand.
-    * Muss von der Funktion verwaltet werden. */
-   void*                state;
    /* variable: condition
-    * Ausgabe-Param: Referenziert die Bedingung, auf die gewartet werden soll.
+    * Out-Param: Referenziert die Bedingung, auf die gewartet werden soll.
     * Der Wert wird genau dann verwendet, wenn die Funktion den Wert <synccmd_WAIT> zurückgibt. */
    struct synccond_t*   condition;
    /* variable: err
-    * Eingabe-Param: Das Ergebnis der Warteoperation.
+    * In-Param: Das Ergebnis der Warteoperation.
     * Eine 0 zeigt Erfolg an, != 0 ist ein Fehlercode – etwa ENOMEM wenn zu wenig Ressourcen
     * frei waren, um die Funktion in die Warteliste einzutragen.
     * Nur gültig, wenn das Kommando <synccmd_CONTINUE> ist und zuletzt die Funktion mit
     * »return <synccmd_WAIT>« beendet wurde.
     *
-    * Ausgabe-Param: Der Returnwert der Funktion.
+    * Out-Param: Der Returnwert der Funktion.
     * Beendet sich die Funktion mit »return <synccmd_EXIT>«, dann steht in diesem Wert
     * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode). */
    int                  err;
@@ -119,12 +109,13 @@ struct syncfunc_param_t {
 /* define: syncfunc_param_FREE
  * Static initializer. */
 #define syncfunc_param_FREE \
-         { 0, 0, 0, 0, 0, 0 }
+         { 0, 0, 0, 0 }
 
 /* define: syncfunc_param_INIT
  * Static initializer. Parameter syncrun zeigt auf gültigen <syncrunner_t>. */
 #define syncfunc_param_INIT(syncrun) \
-         { syncrun, 0, 0, 0, 0, 0 }
+         { syncrun, 0, 0, 0 }
+
 
 /* struct: syncfunc_t
  * Der Ausführungskontext einer Funktion der Signatur <syncfunc_f>.
@@ -235,25 +226,13 @@ struct syncfunc_t {
  * Initialisiert alle, außer den optionalen Feldern. */
 static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optflags);
 
-/* function: init2_syncfunc
- * Kopiert <mainfct>.
- * <mainfct> wird von src kopiert.
- * Die Felder <contoffset>, <optflags> und <state> werden mit destcontoffset, destoptflags bzw. deststate initialisiert.
+/* function: initcopy_syncfunc
+ * Kopriert all nicht-optionalen Felder außer optflags von src nach dest.
+ * dest->optflags wird auf optflags gesetzt.
  *
- * Nach Return sind die Felder in src ungültig.
- *
- * Unitialisiert:
- * Alle anderen optionalen Felder bleiben unitialisiert.
- *
- * Unchecked Preconditon:
- * o srcsize  == getsize_syncfunc(src->optflags)
- * o destsize == getsize_syncfunc(destoptflags)
- * o (destoptflags & syncfunc_opt_CALLER)
- *   == (src->optflags & syncfunc_opt_CALLER)
+ * Optionale Felder bleiben unitialisiert !
  * */
-static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptflags, void * deststate, syncfunc_t * src, uint16_t srcsize);
-
-// TODO: remove init2_syncfunc !! put parameter contoffset in init_syncfunc !!
+static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncfunc_t* __restrict__ src, syncfunc_opt_e optflags);
 
 // TODO: implement + test initmove_syncfunc(/*out*/syncfunc_t* dest, syncfunc_t* src);
 
@@ -312,6 +291,18 @@ void unlink_syncfunc(syncfunc_t* sfunc);
 // group: implementation-support
 // Macros which makes implementing a <syncfunc_f> possible.
 
+/* function: contoffset_syncfunc
+ * Gibt gespeicherten Offset von syncfunc_START (siehe <start_syncfunc>)
+ * zu einer Labeladresse. Dieser Offset erlaubt es,
+ * die Ausführung an der Stelle des Labels fortzusetzen. */
+uint16_t contoffset_syncfunc(const syncfunc_param_t* sfparam);
+
+/* function: setcontoffset_syncfunc
+ * Setzt gespeicherten Offset von syncfunc_START (siehe <start_syncfunc>)
+ * zu einer Labeladresse. Dieser Offset erlaubt es,
+ * die Ausführung an der Stelle des Labels fortzusetzen. */
+void setcontoffset_syncfunc(const syncfunc_param_t* sfparam, uint16_t contoffset);
+
 /* function: state_syncfunc
  * Liest Zustand der aktuell ausgeführten Funktion.
  * Der Wert 0 ist ein ungültiger Wert und zeigt an, daß
@@ -369,7 +360,12 @@ void exit_syncfunc(const syncfunc_param_t * sfparam, int retcode);
  * und die Warteoperation abgebrochen oder gar nicht erst gestartet wurde.
  * Andere Fehlercodes sind auch möglich.
  * Die nächste Ausführung beginnt nach wait_syncfunc, sofern
- * <start_syncfunc> am Anfang dieser Funktion aufgerufen wird. */
+ * <start_syncfunc> am Anfang dieser Funktion aufgerufen wird.
+ *
+ * Unchecked Precondition:
+ * o sfparam will be evaluated more than once (implemented as macro)
+ *   ==> Use the name of the first parameter of <syncfunc_t> as only
+ *   argument; never use an expression with side effects. */
 int wait_syncfunc(const syncfunc_param_t * sfparam, struct synccond_t * condition);
 
 
@@ -378,10 +374,17 @@ int wait_syncfunc(const syncfunc_param_t * sfparam, struct synccond_t * conditio
 
 // group: syncfunc_t
 
-/* define: waitlist_syncfunc
- * Implementiert <syncfunc_t.waitlist_syncfunc>. */
-#define waitlist_syncfunc(sfunc) \
-         (&(sfunc)->waitlist)
+/* define: castPwaitlist_syncfunc
+ * Implementiert <syncfunc_t.castPwaitlist_syncfunc>. */
+static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist)
+{
+         return (syncfunc_t*) ((uint8_t*) (waitlist) - offsetof(syncfunc_t, waitlist));
+}
+
+/* define: contoffset_syncfunc
+ * Implementiert <syncfunc_t.contoffset_syncfunc>. */
+#define contoffset_syncfunc(sfparam) \
+         ((sfparam)->sfunc->contoffset)
 
 /* define: exit_syncfunc
  * Implementiert <syncfunc_t.exit_syncfunc>. */
@@ -409,25 +412,20 @@ static inline void init_syncfunc(/*out*/syncfunc_t* sfunc, syncfunc_f mainfct, v
          sfunc->optflags = (uint8_t) optflags;
 }
 
-// TODO: remove function !!
-/* define: init2_syncfunc
- * Implementiert <syncfunc_t.init2_syncfunc>. */
-static inline void init2_syncfunc(/*out*/syncfunc_t * dest, uint16_t destsize, uint16_t destcontoffset, syncfunc_opt_e destoptflags, void * deststate, syncfunc_t * src, uint16_t srcsize)
+/* define: initcopy_syncfunc
+ * Implementiert <syncfunc_t.initcopy_syncfunc>. */
+static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncfunc_t* __restrict__ src, syncfunc_opt_e optflags)
 {
-   (void) destsize; (void) srcsize;
          dest->mainfct    = src->mainfct;
-         dest->state      = deststate;
-         dest->contoffset = destcontoffset;
-         dest->optflags  = destoptflags;
+         dest->state      = src->state;
+         dest->contoffset = src->contoffset;
+         dest->optflags   = optflags;
 }
 
-/* define: waitresult_syncfunc
- * Implementiert <syncfunc_t.waitresult_syncfunc>. */
-static inline int waitresult_syncfunc(const syncfunc_t* sfunc)
-{
-         return (sfunc->optflags & syncfunc_opt_WAITFIELDS)
-                ? sfunc->waitresult : 0;
-}
+/* define: setcontoffset_syncfunc
+ * Implementiert <syncfunc_t.setcontoffset_syncfunc>. */
+#define setcontoffset_syncfunc(sfparam, _contoffset) \
+         do { (sfparam)->sfunc->contoffset = (_contoffset) ; } while(0)
 
 /* define: setwaitresult_syncfunc
  * Implementiert <syncfunc_t.setwaitresult_syncfunc>. */
@@ -439,7 +437,7 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
 /* define: setstate_syncfunc
  * Implementiert <syncfunc_t.setstate_syncfunc>. */
 #define setstate_syncfunc(sfparam, new_state) \
-         do { (sfparam)->state = (new_state) ; } while(0)
+         do { (sfparam)->sfunc->state = (new_state) ; } while(0)
 
 /* define: start_syncfunc
  * Implementiert <syncfunc_t.start_syncfunc>. */
@@ -454,7 +452,7 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
             case synccmd_CONTINUE:           \
                goto * (void*) ( (uintptr_t)  \
                   &&syncfunc_START           \
-                  + _sf->contoffset);        \
+                  + _sf->sfunc->contoffset); \
             case synccmd_EXIT:               \
                goto onexit;                  \
             default: /*ignoring all other*/  \
@@ -464,7 +462,7 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
 /* define: state_syncfunc
  * Implementiert <syncfunc_t.state_syncfunc>. */
 #define state_syncfunc(sfparam) \
-         ((sfparam)->state)
+         ((sfparam)->sfunc->state)
 
 /* define: wait_syncfunc
  * Implementiert <syncfunc_t.wait_syncfunc>. */
@@ -478,7 +476,7 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
                && (uintptr_t)&&continue_after_wait -        \
                   (uintptr_t)&&syncfunc_START < 65536,      \
                   "conversion to uint16_t works");          \
-            (sfparam)->contoffset = (uint16_t) (            \
+            (sfparam)->sfunc->contoffset = (uint16_t) (     \
                            (uintptr_t)&&continue_after_wait \
                            - (uintptr_t)&&syncfunc_START);  \
             return synccmd_WAIT;                            \
@@ -486,11 +484,17 @@ static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
             (sfparam)->err;                                 \
          }))
 
-/* define: castPwaitlist_syncfunc
- * Implementiert <syncfunc_t.castPwaitlist_syncfunc>. */
-static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist)
+/* define: waitlist_syncfunc
+ * Implementiert <syncfunc_t.waitlist_syncfunc>. */
+#define waitlist_syncfunc(sfunc) \
+         (&(sfunc)->waitlist)
+
+/* define: waitresult_syncfunc
+ * Implementiert <syncfunc_t.waitresult_syncfunc>. */
+static inline int waitresult_syncfunc(const syncfunc_t* sfunc)
 {
-         return (syncfunc_t*) ((uint8_t*) (waitlist) - offsetof(syncfunc_t, waitlist));
+         return (sfunc->optflags & syncfunc_opt_WAITFIELDS)
+                ? sfunc->waitresult : 0;
 }
 
 /* define: yield_syncfunc
@@ -504,7 +508,7 @@ static inline syncfunc_t * castPwaitlist_syncfunc(linkd_t * waitlist)
                && (uintptr_t)&&continue_after_yield -       \
                   (uintptr_t)&&syncfunc_START < 65536,      \
                   "conversion to uint16_t works");          \
-            (sfparam)->contoffset = (uint16_t) (            \
+            (sfparam)->sfunc->contoffset = (uint16_t) (     \
                         (uintptr_t)&&continue_after_yield   \
                         - (uintptr_t)&&syncfunc_START);     \
             return synccmd_CONTINUE;                        \

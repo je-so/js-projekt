@@ -75,8 +75,11 @@ struct syncrunner_t {
     * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmt sich aus dem Vorhandensein optionaler Felder. */
    syncqueue_t    rwqueue[1+1];
+   /* variable: rwqsize
+    * Speichert Anzahl <syncfunc_t>, die in der jeweiligen <rwqueue> gespeichert sind. */
+   size_t         rwqsize[1+1];
    /* variable: isrun
-    * Falls true, wird <run_syncrunner> bzw. <teminate_syncrunner> ausgeführt. */
+    * Falls true, wird <run_syncrunner> bzw. <terminate_syncrunner> ausgeführt. */
    bool           isrun;
 };
 // TODO: add iterator to syncqueue_t + ... !!
@@ -87,17 +90,17 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         {  linkd_FREE, { syncqueue_FREE, syncqueue_FREE }, false }
+         {  linkd_FREE, { syncqueue_FREE, syncqueue_FREE }, { 0, 0}, false }
 
 /* function: init_syncrunner
  * Initialisiere srun, insbesondere die Warte- und Run-Queues. */
 int init_syncrunner(/*out*/syncrunner_t * srun);
 
 /* function: free_syncrunner
- * Gib Speicher frei, insbesondere den SPeicher der Warte- und Run-Queues.
+ * Gib Speicher frei, insbesondere den Speicher der Warte- und Run-Queues.
  * Die Ressourcen noch auszuführender <syncfunc_t> und wartender <syncfunc_t>
  * werden nicht freigegeben! Falls dies erforderlich ist, bitte vorher
- * <teminate_syncrunner> aufrufen. */
+ * <terminate_syncrunner> aufrufen. */
 int free_syncrunner(syncrunner_t * srun);
 
 // group: query
@@ -151,20 +154,21 @@ int wakeupall_syncrunner(syncrunner_t* srun, struct synccond_t* scond);
  * stehen in einer Warteschlange und werden nicht ausgeführt. Erst mit
  * der Erfüllung der Wartebedingung werden sie wieder ausgeführt.
  *
- * Ruft <run2_syncrunner>(srun,true) auf. */
+ * Am Ende werden alle während der Ausführung aufgeweckten Funktionen
+ * (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>) einmal ausgeführt. */
 int run_syncrunner(syncrunner_t* srun);
 
-/* function: run2_syncrunner
+/* function: runnowakeup_syncrunner
  * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
  * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
  * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
  * stehen in einer Warteschlange und werden nicht ausgeführt. Erst mit
  * der Erfüllung der Wartebedingung werden sie wieder ausgeführt.
  *
- * Wenn Parameter runwakeup auf false gesetzt ist, werden gerade aufgeweckte
- * Funktionen (<wakeup_syncrunner>, <wakeupall_syncrunner>) nicht mit
- * ausgeführt, sondern verbleiben weiterhin in der Aufweckliste (<syncrunner_t.wakeup>). */
-int run2_syncrunner(syncrunner_t * srun, bool runwakeup);
+ * Aufgeweckte Funktionen (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>)
+ * werden *nicht* ausgeführt, sondern verbleiben weiterhin in der Aufweckliste
+ * (siehe <syncrunner_t.wakeup>). */
+int runnowakeup_syncrunner(syncrunner_t * srun);
 
 /* function: terminate_syncrunner
  * Führt alle Funktionen, auch die wartenden, genau einmal aus.
@@ -192,10 +196,5 @@ int terminate_syncrunner(syncrunner_t * srun);
          (0)
 
 #endif
-
-/* define: run_syncrunner
- * Implementiert <syncrunner_t.run_syncrunner>. */
-#define run_syncrunner(srun) \
-         (run2_syncrunner((srun), true))
 
 #endif

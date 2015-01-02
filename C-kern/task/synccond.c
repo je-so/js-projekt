@@ -273,25 +273,6 @@ static int test_update(void)
    TEST(10 == s_runcount);
    TEST(0  == s_runerr);
 
-   // prepare
-   syncfunc_t dummy = syncfunc_FREE;
-   link_synccond(&scond, &dummy);
-   TEST(iswaiting_synccond(&scond));
-
-   // TEST wakeup_synccond: EINVAL
-   TEST(EINVAL == wakeup_synccond(&scond, &sfparam));
-   // nothing changed
-   TEST(scond.waitfunc.next == &dummy.waitlist);
-   TEST(dummy.waitlist.next == &scond.waitfunc);
-   TEST(! iswakeup_syncrunner(&srun));
-
-   // TEST wakeupall_synccond: EINVAL
-   TEST(EINVAL == wakeupall_synccond(&scond, &sfparam));
-   // nothing changed
-   TEST(scond.waitfunc.next == &dummy.waitlist);
-   TEST(dummy.waitlist.next == &scond.waitfunc);
-   TEST(! iswakeup_syncrunner(&srun));
-
    // unprepare
    TEST(0 == free_syncrunner(&srun));
    free_synccond(&scond);

@@ -197,6 +197,11 @@ size_t sizefirst_queue(const queue_t * queue);
  * If only one memory page is allocated this value equals to <sizenodesfirstpage_queue>. */
 size_t sizelast_queue(const queue_t * queue);
 
+/* function: sizefirst_queue
+ * Returns the number of bytes allocated on the all memory pages.
+ * O(n): This operation needs to iterate over the list of all allocated pages. */
+size_t sizebytes_queue(const queue_t * queue);
+
 /* function: castPaddr_queue
  * Returns queue an inserted node with address nodeaddr belongs to. */
 queue_t * castPaddr_queue(void * nodeaddr);
@@ -249,6 +254,11 @@ int removefirst_queue(queue_t * queue, uint16_t nodesize);
  * If the last memory page contains less than nodesize bytes
  * EOVERFLOW is returned and nothing is done. */
 int removelast_queue(queue_t * queue, uint16_t nodesize);
+
+/* function: removelast_queue
+ * Removes all stored nodes at once.
+ * If the queue is empty nothing is done. */
+int removeall_queue(queue_t* queue);
 
 /* function: resizelast_queue
  * Removes oldsize bytes from the last memory page and add newsize bytes.
@@ -464,8 +474,7 @@ struct queue_page_t {
  * Implements <queue_t.cast_queue>. */
 #define cast_queue(queue) \
          ( __extension__ ({                      \
-            typeof(queue) _q;                    \
-            _q = (queue);                        \
+            typeof(queue) _q = (queue);          \
             static_assert(                       \
                &(_q->last)                       \
                == &((queue_t*) _q)->last         \
@@ -567,6 +576,7 @@ struct queue_page_t {
    static inline object_t * last##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
    static inline size_t sizefirst##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
    static inline size_t sizelast##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
+   static inline size_t sizebytes##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
    static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) __attribute__ ((always_inline)); \
    static inline int insertlast##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) __attribute__ ((always_inline)); \
    static inline int removefirst##_fsuffix(queue_t * queue) __attribute__ ((always_inline)); \
@@ -598,6 +608,9 @@ struct queue_page_t {
    static inline size_t sizelast##_fsuffix(const queue_t * queue) { \
       return sizelast_queue(queue); \
    } \
+   static inline size_t sizebytes##_fsuffix(const queue_t * queue) { \
+      return sizebytes_queue(queue); \
+   } \
    static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) { \
       return insertfirst_queue(queue, sizeof(object_t), (void**)new_node); \
    } \
@@ -609,6 +622,9 @@ struct queue_page_t {
    } \
    static inline int removelast##_fsuffix(queue_t * queue) { \
       return removelast_queue(queue, sizeof(object_t)); \
+   } \
+   static inline int removeall##_fsuffix(queue_t * queue) { \
+      return removeall_queue(queue); \
    } \
    static inline int initfirst##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t * queue) { \
       return initfirst_queueiterator(iter, queue, sizeof(object_t)); \

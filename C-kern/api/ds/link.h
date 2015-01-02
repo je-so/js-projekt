@@ -204,9 +204,11 @@ int isself_linkd(const linkd_t * link);
  * Stellt die Verbindung zu den Nachbarn wieder her, nachdem link im Speicher verschoben wurde.
  *
  * Unchecked Precondition:
- * o isvalid_linkd(link) */
+ * o isvalid_linkd(link)
+ * o ! isself_linkd(old_memory_addr_of_link) */
 void relink_linkd(linkd_t* link);
 
+// TODO: remove function relink_syncfunc !! + implement initmove_syncfunc which checks for self links !!
 // TODO: remove unlink0
 // TODO: rename unlinkself -> unlink (always refer to self)
 // TODO: add parameter to relink_sync (oldaddr) to be able to detect self reference !!
