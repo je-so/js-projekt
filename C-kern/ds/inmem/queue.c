@@ -287,7 +287,7 @@ size_t sizebytes_queue(const queue_t * queue)
    size_t size = 0;
 
    if (queue->last) {
-      queue_page_t* last = last_pagelist(cast_dlist(queue));
+      queue_page_t* last = last_pagelist(castconst_dlist(queue));
       queue_page_t* next = last;
       do {
          size += next->end_offset;
@@ -747,6 +747,12 @@ static int test_query(void)
    TEST(0 == isempty_queue(&queue));
    queue.last = 0;
    TEST(1 == isempty_queue(&queue));
+
+   // TEST isfree_queue
+   queue.last = (dlist_node_t*)1;
+   TEST(0 == isfree_queue(&queue));
+   queue.last = 0;
+   TEST(1 == isfree_queue(&queue));
 
    for (uint32_t pagesize = 256, p = 0; pagesize <= 16384; pagesize *= 4, ++p) {
 
@@ -1569,6 +1575,12 @@ static int test_generic(void)
    TEST(0 == isempty_testqueue(&queue));
    queue.last = 0;
    TEST(1 == isempty_testqueue(&queue));
+
+   // TEST isfree_queue
+   queue.last = (void*)1;
+   TEST(0 == isfree_queue(&queue));
+   queue.last = 0;
+   TEST(1 == isfree_queue(&queue));
 
    // TEST first_queue, last_queue, sizefirst_queue, sizelast_queue, sizebytes_queue
    TEST(queue.last == 0);

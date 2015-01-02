@@ -150,12 +150,12 @@ int isempty_dlist(const dlist_t * list) ;
 /* function: first_dlist
  * Returns the first element in the list.
  * Returns NULL in case list contains no elements. */
-struct dlist_node_t * first_dlist(dlist_t * list) ;
+struct dlist_node_t * first_dlist(const dlist_t * list);
 
 /* function: last_dlist
  * Returns the last element in the list.
  * Returns NULL in case list contains no elements. */
-struct dlist_node_t * last_dlist(dlist_t * list) ;
+struct dlist_node_t * last_dlist(const dlist_t * list);
 
 /* function: next_dlist
  * Returns the node coming after this node.
@@ -256,10 +256,16 @@ void transfer_dlist(dlist_t * tolist, dlist_t * fromlist);
 // group: generic
 
 /* function: cast_dlist
+ * Cast list into <dlist_t> if that is possible.
+ * The generic object list must have a last pointer
+ * as first member. */
+dlist_t* cast_dlist(void* list);
+
+/* function: castconst_dlist
  * Casts list into <dlist_t> if that is possible.
  * The generic object list must have a last pointer
  * as first member. */
-dlist_t * cast_dlist(void * list);
+const dlist_t* castconst_dlist(const void* list);
 
 /* define: dlist_IMPLEMENT
  * Generates interface of double linked list storing elements of type object_t.
@@ -363,6 +369,20 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix);
                   "compatible structure"   \
             );                             \
             (dlist_t*) _l2;                \
+         }))
+
+/* define: castconst_dlist
+ * Implements <dlist_t.castconst_dlist>. */
+#define castconst_dlist(list) \
+         ( __extension__ ({                \
+            typeof(list) _l2 = (list);     \
+            static_assert(                 \
+               &(_l2->last)                \
+               == &((dlist_t*) (uintptr_t) \
+                     _l2)->last,           \
+                  "compatible structure"   \
+            );                             \
+            (const dlist_t*) _l2;          \
          }))
 
 /* define: first_dlist

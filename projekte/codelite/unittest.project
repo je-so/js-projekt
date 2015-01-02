@@ -227,7 +227,6 @@
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="task">
-      <File Name="../../C-kern/api/task/syncqueue.h"/>
       <File Name="../../C-kern/api/task/syncfunc.h"/>
       <File Name="../../C-kern/api/task/syncrunner.h"/>
       <File Name="../../C-kern/api/task/synccond.h"/>
@@ -515,7 +514,6 @@
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="task">
-    <File Name="../../C-kern/task/syncqueue.c"/>
     <File Name="../../C-kern/task/syncfunc.c"/>
     <File Name="../../C-kern/task/syncrunner.c"/>
     <File Name="../../C-kern/task/synccond.c"/>

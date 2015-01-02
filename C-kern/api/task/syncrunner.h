@@ -20,12 +20,9 @@
 #ifndef CKERN_TASK_SYNCRUNNER_HEADER
 #define CKERN_TASK_SYNCRUNNER_HEADER
 
+#include "C-kern/api/ds/inmem/queue.h"
 #include "C-kern/api/task/synccmd.h"
 #include "C-kern/api/task/syncfunc.h"
-#include "C-kern/api/task/syncqueue.h"
-
-// forward
-struct syncfunc_t;
 
 /* typedef: struct syncrunner_t
  * Export <syncrunner_t> into global namespace. */
@@ -70,17 +67,17 @@ int unittest_task_syncrunner(void);
 struct syncrunner_t {
    /* variable: wakeup
     * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist> sind vorhanden. */
-   linkd_t        wakeup;
+   linkd_t  wakeup;
    /* variable: rwqueue
     * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmt sich aus dem Vorhandensein optionaler Felder. */
-   syncqueue_t    rwqueue[1+1];
+   queue_t  rwqueue[1+1];
    /* variable: rwqsize
     * Speichert Anzahl <syncfunc_t>, die in der jeweiligen <rwqueue> gespeichert sind. */
-   size_t         rwqsize[1+1];
+   size_t   rwqsize[1+1];
    /* variable: isrun
     * Falls true, wird <run_syncrunner> bzw. <terminate_syncrunner> ausgeführt. */
-   bool           isrun;
+   bool     isrun;
 };
 // TODO: add iterator to syncqueue_t + ... !!
 // TODO: remove every cast from syncqueue_t to queue_t !!!!!
@@ -90,11 +87,11 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         {  linkd_FREE, { syncqueue_FREE, syncqueue_FREE }, { 0, 0}, false }
+         {  linkd_FREE, { queue_FREE, queue_FREE }, { 0, 0 }, false }
 
 /* function: init_syncrunner
  * Initialisiere srun, insbesondere die Warte- und Run-Queues. */
-int init_syncrunner(/*out*/syncrunner_t * srun);
+int init_syncrunner(/*out*/syncrunner_t* srun);
 
 /* function: free_syncrunner
  * Gib Speicher frei, insbesondere den Speicher der Warte- und Run-Queues.

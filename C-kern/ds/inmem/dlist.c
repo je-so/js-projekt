@@ -1194,9 +1194,15 @@ static int test_generic(void)
 
    // TEST cast_dlist
    struct {
-      dlist_node_t * last ;
-   }  xlist ;
-   TEST((dlist_t*)&xlist == cast_dlist(&xlist)) ;
+      dlist_node_t * last;
+   }  xlist;
+   TEST((dlist_t*)&xlist == cast_dlist(&xlist));
+
+   // TEST castconst_dlist
+   const struct {
+      dlist_node_t * last;
+   } xlist2;
+   TEST((const dlist_t*)&xlist2 == castconst_dlist(&xlist2));
 
    // TEST empty list
    TEST(0 == first_glist1(&list1)) ;

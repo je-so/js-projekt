@@ -228,14 +228,20 @@ struct syncfunc_t {
 static inline void init_syncfunc(/*out*/syncfunc_t * sfunc, syncfunc_f mainfct, void* state, syncfunc_opt_e optflags);
 
 /* function: initcopy_syncfunc
- * Kopriert all nicht-optionalen Felder außer optflags von src nach dest.
+ * Kopiert all nicht-optionalen Felder außer optflags von src nach dest.
  * dest->optflags wird auf optflags gesetzt.
  *
  * Optionale Felder bleiben unitialisiert !
  * */
 static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncfunc_t* __restrict__ src, syncfunc_opt_e optflags);
 
-// TODO: implement + test initmove_syncfunc(/*out*/syncfunc_t* dest, syncfunc_t* src);
+// TODO: implement&test initmove_syncfunc
+/* function: initmove_syncfunc
+ *
+ * Unchecked Precondition:
+ * o size_allocated_memory(dest) == getsize_syncfunc(src->optflags)
+  * */
+void initmove_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncfunc_t* __restrict__ src);
 
 // group: query
 

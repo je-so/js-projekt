@@ -171,8 +171,12 @@ int free_queue(queue_t * queue);
 uint16_t pagesize_queue(const queue_t * queue);
 
 /* function: isempty_queue
- * Returns true if queue contains no elements. */
+ * Return true if queue contains no elements. */
 bool isempty_queue(const queue_t * queue);
+
+/* function: isfree_queue
+ * Return true if queue is freed. */
+bool isfree_queue(const queue_t * queue);
 
 /* function: first_queue
  * Returns the first element or 0.
@@ -490,6 +494,11 @@ struct queue_page_t {
 #define isempty_queue(queue) \
          (0 == (queue)->last)
 
+/* define: isfree_queue
+ * Implements <queue_t.isfree_queue>. */
+#define isfree_queue(queue) \
+         (0 == (queue)->last)
+
 /* define: last_queue
  * Implements <queue_t.last_queue>. */
 #define last_queue(queue, nodesize) \
@@ -595,6 +604,9 @@ struct queue_page_t {
    } \
    static inline bool isempty##_fsuffix(const queue_t * queue) { \
       return isempty_queue(queue); \
+   } \
+   static inline bool isfree##_fsuffix(const queue_t * queue) { \
+      return isfree_queue(queue); \
    } \
    static inline object_t * first##_fsuffix(const queue_t * queue) { \
       return first_queue(queue, sizeof(object_t)); \

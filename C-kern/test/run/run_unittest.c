@@ -219,7 +219,6 @@ int run_unittest(void * argv)
 //{ task unittest
       RUN(unittest_task_synccond);
       RUN(unittest_task_syncfunc);
-      RUN(unittest_task_syncqueue);
       RUN(unittest_task_syncrunner);
 //}
 
