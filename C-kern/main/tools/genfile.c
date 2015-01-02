@@ -153,7 +153,7 @@ int @UNITTESTNAME()\n\
 {\n\
    // select between (1) or (2)\n\
    // == (1) ==\n\
-   int err; \n\n\
+   int err;\n\n\
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));\n\n\
    return err;\n\
    // == (2) ==\n\

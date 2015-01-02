@@ -104,9 +104,9 @@ int execsingle_unittest(const char * testname, int (*test_f)(void));
  * Forks a child process which runs the test function.
  * The parameter retcode is set to the value returned by test_f.
  * If it is NULL nothing is returned.
- * If test_t exits abnormally with a signal retcode is set to EINTR.
+ * If test_f exits abnormally with a signal, retcode is set to EINTR.
  * Also the content of the buffered errorlog is transfered via pipe
- * at the end of test_f to the calling process and printed to its errorlog.
+ * at the end of test_f to the calling process and appended to its errorlog.
  *
  * Use this function only within the execution of a unittest. */
 int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);

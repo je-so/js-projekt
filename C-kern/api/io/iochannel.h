@@ -181,7 +181,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void* buffer/*[size]*/, 
  * Implements <iochannel_t.isfree_iochannel>. */
 static inline bool isfree_iochannel(iochannel_t ioc)
 {
-   return iochannel_FREE == ioc;
+         return iochannel_FREE == ioc;
 }
 
 

@@ -1,0 +1,32 @@
+[1: 1419259032.560708s]
+free_pipe() C-kern/platform/Linux/io/pipe.c:83
+Error 1 - Operation not permitted
+One or more resources could not be freed
+[1: 1419259032.560719s]
+free_pipe() C-kern/platform/Linux/io/pipe.c:83
+Error 2 - No such file or directory
+One or more resources could not be freed
+[1: 1419259032.560723s]
+readall_pipe() C-kern/platform/Linux/io/pipe.c:124
+Error 9 - Bad file descriptor
+[1: 1419259032.560726s]
+writeall_pipe() C-kern/platform/Linux/io/pipe.c:163
+Error 9 - Bad file descriptor
+[1: 1419259032.560972s]
+readall_pipe() C-kern/platform/Linux/io/pipe.c:124
+Error 11 - Resource temporarily unavailable
+[1: 1419259032.566059s]
+readall_pipe() C-kern/platform/Linux/io/pipe.c:124
+Error 110 - Connection timed out
+[1: 1419259032.566144s]
+writeall_pipe() C-kern/platform/Linux/io/pipe.c:163
+Error 11 - Resource temporarily unavailable
+[1: 1419259032.571235s]
+writeall_pipe() C-kern/platform/Linux/io/pipe.c:163
+Error 110 - Connection timed out
+[1: 1419259032.571325s]
+readall_pipe() C-kern/platform/Linux/io/pipe.c:124
+Error 11 - Resource temporarily unavailable
+[1: 1419259032.571447s]
+writeall_pipe() C-kern/platform/Linux/io/pipe.c:163
+Error 11 - Resource temporarily unavailable

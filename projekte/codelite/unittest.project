@@ -219,6 +219,7 @@
         <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
         <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/io/pipe.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -398,6 +399,7 @@
         <File Name="../../C-kern/platform/Linux/io/filepath.c"/>
         <File Name="../../C-kern/platform/Linux/io/terminal.c"/>
         <File Name="../../C-kern/platform/Linux/io/pseudoterm.c"/>
+        <File Name="../../C-kern/platform/Linux/io/pipe.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

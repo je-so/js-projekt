@@ -19,19 +19,19 @@
 
 /* typedef: struct process_t
  * Make <process_t> an alias of <sys_process_t>. */
-typedef sys_process_t                     process_t ;
+typedef sys_process_t                     process_t;
 
 /* typedef: process_task_f
  * Defines function type executed by <process_t>. */
-typedef int                            (* process_task_f) (void * task_arg) ;
+typedef int                            (* process_task_f) (void * task_arg);
 
 /* typedef: struct process_result_t
  * Export <process_result_t> into global namespace. */
-typedef struct process_result_t           process_result_t ;
+typedef struct process_result_t           process_result_t;
 
 /* typedef: struct process_stdio_t
  * Export <process_stdio_t> into global namespace. */
-typedef struct process_stdio_t            process_stdio_t ;
+typedef struct process_stdio_t            process_stdio_t;
 
 
 /* enums: process_state_e
@@ -44,14 +44,13 @@ typedef struct process_stdio_t            process_stdio_t ;
  * process_state_STOPPED     - The process has been stopped by a STOP signal. It it receives a CONT signal
  *                             it goes to state process_state_RUNNABLE.
  * */
-enum process_state_e {
+typedef enum process_state_e {
    process_state_TERMINATED,
    process_state_ABORTED,
    process_state_RUNNABLE,
    process_state_STOPPED
-} ;
+} process_state_e;
 
-typedef enum process_state_e              process_state_e ;
 
 
 // section: Functions

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Jan.02  07:08:04
+GenerationDate  := 2015.Jan.02  07:41:37
 GeneratedBy     := je-so
 
 ## Debug
@@ -85,6 +85,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -201,6 +202,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -342,6 +344,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
@@ -684,6 +689,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linu
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
