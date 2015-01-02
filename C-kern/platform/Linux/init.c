@@ -125,10 +125,7 @@ int init_platform(mainthread_f main_thread, void * user)
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
    thread_t * thread = thread_threadtls(&tls);
-#if defined(KONFIG_SUBSYS_THREAD)
-   initmain_thread(thread);
-#endif
-   settask_thread(thread, main_thread, user);
+   initmain_thread(thread, main_thread, user);
 
    linenr = __LINE__;
    ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);

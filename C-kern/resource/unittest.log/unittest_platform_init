@@ -6,11 +6,11 @@ init_platform() C-kern/platform/Linux/init.c:0101
 Error 0333
 init_platform() C-kern/platform/Linux/init.c:0116
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0133
+init_platform() C-kern/platform/Linux/init.c:0130
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0140
+init_platform() C-kern/platform/Linux/init.c:0137
 Error 0333
-init_platform() C-kern/platform/Linux/init.c:0146
+init_platform() C-kern/platform/Linux/init.c:0143
 Error 0333
 init_platform() C-kern/platform/Linux/init.c:62
 aborted

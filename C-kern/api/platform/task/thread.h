@@ -21,7 +21,7 @@
 #define CKERN_PLATFORM_TASK_THREAD_HEADER
 
 // forward
-struct slist_node_t ;
+struct slist_node_t;
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
@@ -39,7 +39,7 @@ typedef int (* thread_f) (void * main_arg);
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_task_thread
  * Tests <thread_t> interface. */
-int unittest_platform_task_thread(void) ;
+int unittest_platform_task_thread(void);
 #endif
 
 
@@ -60,7 +60,7 @@ struct thread_t {
     * generates error ENOMEM. */
    struct
    slist_node_t*  nextwait;
-   /* variable: lockflag ;
+   /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
    uint8_t        lockflag;
@@ -94,12 +94,13 @@ struct thread_t {
 /* define: thread_FREE
  * Static initializer.
  * Used to initialize thread in <thread_tls_t>. */
-#define thread_FREE { 0, 0, 0, 0, 0, sys_thread_FREE, 0, { .uc_link = 0 } }
+#define thread_FREE \
+         { 0, 0, 0, 0, 0, sys_thread_FREE, 0, { .uc_link = 0 } }
 
 /* function: initmain_thread
  * Initializes main thread. Called from <platform_t.init_platform>.
  * Returns EINVAL if thread is not the main thread. */
-int initmain_thread(/*out*/thread_t* thread);
+void initmain_thread(/*out*/thread_t* thread, thread_f thread_main, void* main_arg);
 
 /* function: new_thread
  * Creates and starts a new system thread.
@@ -109,7 +110,7 @@ int initmain_thread(/*out*/thread_t* thread);
  * If the internal preparation goes wrong <maincontext_t.abort_maincontext> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
-int new_thread(/*out*/thread_t** threadobj, thread_f thread_main, void* main_arg) ;
+int new_thread(/*out*/thread_t** threadobj, thread_f thread_main, void* main_arg);
 
 /* define: newgeneric_thread
  * Same as <new_thread> except that it accepts functions with generic argument type.
@@ -271,6 +272,18 @@ int setcontinue_thread(bool* is_abort);
             _thr = (thread);       \
             (0 == _thr->tls_addr); \
          }))
+
+/* define: initmain_thread
+ * Implements <thread_t.initmain_thread>. */
+#define initmain_thread(thread, _thread_main, _main_arg) \
+         do {                                   \
+            volatile thread_t* _thr;            \
+            _thr = (thread);                    \
+            _thr->main_task  = _thread_main;    \
+            _thr->main_arg   = _main_arg;       \
+            _thr->sys_thread = pthread_self();  \
+            _thr->tls_addr   = 0;               \
+         } while(0)
 
 /* define: lockflag_thread
  * Implements <thread_t.lockflag_thread>. */
