@@ -1,0 +1,17 @@
+# Runtime context needed for platform linux
+Src += C-kern/context/errorcontext.c
+Src += C-kern/context/maincontext.c
+Src += C-kern/context/processcontext.c
+Src += C-kern/context/threadcontext.c
+# default services
+Src += C-kern/cache/objectcache_impl.c
+Src += C-kern/cache/valuecache.c
+Src += C-kern/ds/inmem/blockarray.c
+Src += C-kern/ds/inmem/dlist.c
+Src += C-kern/ds/inmem/queue.c
+Src += C-kern/ds/inmem/slist.c
+Src += C-kern/memory/pagecache_impl.c C-kern/memory/wbuffer.c
+Src += C-kern/memory/mm/mm_impl.c
+Src += C-kern/io/writer/errlog.c C-kern/io/writer/log/logmain.c C-kern/io/writer/log/logbuffer.c C-kern/io/writer/log/logwriter.c
+Src += C-kern/string/cstring.c
+Src += C-kern/task/syncrunner.c C-kern/task/syncfunc.c

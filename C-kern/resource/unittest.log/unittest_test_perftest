@@ -1,0 +1,109 @@
+[1: 1419655258.606815s]
+new_perftest() C-kern/test/perftest.c:284
+Error 22 - Invalid argument
+[1: 1419655258.606818s]
+new_perftest() C-kern/test/perftest.c:284
+Error 22 - Invalid argument
+[1: 1419655258.606821s]
+new_perftest() C-kern/test/perftest.c:284
+Error 22 - Invalid argument
+[1: 1419655258.811129s]
+new_perftest() C-kern/test/perftest.c:284
+Error 1 - Operation not permitted
+[1: 1419655258.811171s]
+new_perftest() C-kern/test/perftest.c:284
+Error 2 - No such file or directory
+[1: 1419655258.811191s]
+new_perftest() C-kern/test/perftest.c:284
+Error 3 - No such process
+[1: 1419655258.811212s]
+new_perftest() C-kern/test/perftest.c:284
+Error 4 - Interrupted system call
+[1: 1419655258.811239s]
+new_perftest() C-kern/test/perftest.c:284
+Error 5 - Input/output error
+[1: 1419655258.812029s]
+new_perftest() C-kern/test/perftest.c:284
+Error 6 - No such device or address
+[1: 1419655258.813467s]
+new_perftest() C-kern/test/perftest.c:284
+Error 7 - Argument list too long
+[1: 1419655258.817811s]
+new_perftest() C-kern/test/perftest.c:284
+Error 8 - Exec format error
+[1: 1419655258.821961s]
+new_perftest() C-kern/test/perftest.c:284
+Error 9 - Bad file descriptor
+[1: 1419655258.826410s]
+new_perftest() C-kern/test/perftest.c:284
+Error 125 - Operation canceled
+[1: 1419655258.832096s]
+new_perftest() C-kern/test/perftest.c:284
+Error 125 - Operation canceled
+[1: 1419655258.839348s]
+new_perftest() C-kern/test/perftest.c:284
+Error 125 - Operation canceled
+[1: 1419655258.844507s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 1 - Operation not permitted
+One or more resources could not be freed
+[1: 1419655258.850446s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 2 - No such file or directory
+One or more resources could not be freed
+[1: 1419655258.855266s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 3 - No such process
+One or more resources could not be freed
+[1: 1419655258.862156s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 4 - Interrupted system call
+One or more resources could not be freed
+[1: 1419655258.869030s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 5 - Input/output error
+One or more resources could not be freed
+[1: 1419655258.874975s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 6 - No such device or address
+One or more resources could not be freed
+[1: 1419655258.880549s]
+delete_perftest() C-kern/test/perftest.c:321
+Error 7 - Argument list too long
+One or more resources could not be freed
+[1: 1419655258.906316s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.910942s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.915653s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.920285s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.925419s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.929426s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.934679s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.939562s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.944700s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.950040s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.958239s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled
+[1: 1419655258.965864s]
+measure_perftest() C-kern/test/perftest.c:387
+Error 125 - Operation canceled

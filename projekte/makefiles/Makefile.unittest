@@ -186,6 +186,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
+ $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o
@@ -303,6 +304,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
+ $(ObjectDir_Release)/C-kern!test!perftest.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o
@@ -649,6 +651,9 @@ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
 	@$(CC_Debug)
 
@@ -992,6 +997,9 @@ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c

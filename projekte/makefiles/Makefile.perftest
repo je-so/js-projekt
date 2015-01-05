@@ -1,0 +1,488 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := perftest
+ProjectModes    := Debug Release
+ProjectFile     := projekte/perftest.prj
+ProjectLinks    := 
+
+GenerationDate  := 2014.Dez.26  18:38:40
+GeneratedBy     := Jörg Seebohn
+
+## Debug
+DefineFlag_Debug    := -D
+IncludeFlag_Debug   := -I
+LibraryFlag_Debug   := -l
+LibPathFlag_Debug   := -L
+CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+LFlags_Debug        := -g 
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_PERFTEST
+Includes_Debug      := $(IncludeFlag_Debug).
+Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
+Libpath_Debug       :=
+ObjectDir_Debug     := bin/Debug/perftest
+TargetDir_Debug     := bin
+Target_Debug        := bin/perftest_Debug
+Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
+CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+
+## Release
+DefineFlag_Release    := -D
+IncludeFlag_Release   := -I
+LibraryFlag_Release   := -l
+LibPathFlag_Release   := -L
+CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+LFlags_Release        := -O2 
+Defines_Release       := $(DefineFlag_Release)KONFIG_PERFTEST
+Includes_Release      := $(IncludeFlag_Release).
+Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
+Libpath_Release       :=
+ObjectDir_Release     := bin/Release/perftest
+TargetDir_Release     := bin
+Target_Release        := bin/perftest
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+
+##
+## Targets
+##
+all:   Debug Release
+clean: clean_Debug clean_Release
+init:  init_Debug init_Release
+init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Debug: init_Debug $(Target_Debug)
+
+Release: init_Release $(Target_Release)
+
+clean_Debug:
+	@rm -f "$(ObjectDir_Debug)/"*.[od]
+	@rm -f "$(Target_Debug)"
+	@if [ -d "$(ObjectDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Debug)"; fi
+	@if [ -d "$(TargetDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Debug)"; fi
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
+ $(ObjectDir_Debug)/C-kern!main!test!perftest_main.c.o \
+ $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
+ $(ObjectDir_Debug)/C-kern!test!run!run_perftest.c.o
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
+ $(ObjectDir_Release)/C-kern!main!test!perftest_main.c.o \
+ $(ObjectDir_Release)/C-kern!test!perftest.c.o \
+ $(ObjectDir_Release)/C-kern!test!run!run_perftest.c.o
+
+$(Target_Debug): $(Objects_Debug)
+	@$(LD_Debug)
+
+$(Target_Release): $(Objects_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!main!test!perftest_main.c.o: C-kern/main/test/perftest_main.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!run!run_perftest.c.o: C-kern/test/run/run_perftest.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!main!test!perftest_main.c.o: C-kern/main/test/perftest_main.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!run!run_perftest.c.o: C-kern/test/run/run_perftest.c
+	@$(CC_Release)
+
+-include $(Objects_Debug:.o=.d)
+
+-include $(Objects_Release:.o=.d)

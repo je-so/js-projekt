@@ -193,7 +193,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
    switch(option) {
    case queryoption_NOWAIT:
       // WNOWAIT: Leave the child in a waitable state; a later wait call can
-      //          be used to again retrieve the child status information.
+      //          be used to retrieve the child status information again.
       flags = FLAGS|WNOHANG|WNOWAIT;
       break;
    case queryoption_WAIT:

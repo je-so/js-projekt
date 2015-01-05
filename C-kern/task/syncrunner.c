@@ -21,9 +21,14 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/inmem/queue.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
-#include "C-kern/api/test/errortimer.h"
+#endif
+#ifdef KONFIG_PERFTEST
+#include "C-kern/api/test/perftest.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/memory/memblock.h"
 #endif
 
 
@@ -439,7 +444,7 @@ ONERR:
    goto ONUNPREPARE;
 }
 
-int runnowakeup_syncrunner(syncrunner_t* srun)
+int runqueue_syncrunner(syncrunner_t* srun)
 {
    int err;
    int cmd;
@@ -463,6 +468,8 @@ int runnowakeup_syncrunner(syncrunner_t* srun)
       err = 0;
 
    } else  {
+      // TODO: add free-entry-cache for both queues !!
+      // add check: sfunc->mainfct != 0
       err = allocfunc_syncrunner(srun, WAITQ_ID, WAITQ_ELEMSIZE, &sfunc2);
       if (err) goto ONERR;
 
@@ -523,7 +530,7 @@ int run_syncrunner(syncrunner_t* srun)
 {
    int err;
 
-   err = runnowakeup_syncrunner(srun);
+   err = runqueue_syncrunner(srun);
    if (err) goto ONERR;
 
    err = process_wakeup_list(srun);
@@ -1722,7 +1729,7 @@ static int test_exec_run(void)
    TEST(lengthof(sfunc) == s_test_runcount);
    TEST(0 == size_syncrunner(&srun));
 
-   // TEST runnowakeup_syncrunner: wait error ==> add function to waitlist with wait result == EINVAL
+   // TEST runqueue_syncrunner: wait error ==> add function to waitlist with wait result == EINVAL
    s_test_set_cmd = synccmd_WAIT;
    s_test_expect_cmd = synccmd_RUN;
    s_test_expect_contoffset = 0;
@@ -1738,7 +1745,7 @@ static int test_exec_run(void)
          }
          // test run_syncrunner
          s_test_runcount = 0;
-         TEST(0 == runnowakeup_syncrunner(&srun));
+         TEST(0 == runqueue_syncrunner(&srun));
          // check result
          TEST(0 == s_test_errcount);
          TEST(lengthof(sfunc) == s_test_runcount);
@@ -2234,6 +2241,122 @@ int unittest_task_syncrunner()
    return 0;
 ONERR:
    return EINVAL;
+}
+
+#endif
+
+#ifdef KONFIG_PERFTEST
+
+typedef struct state_t {
+   unsigned count;
+   void*    msg;
+} state_t;
+
+static int syncfunc_client(syncfunc_param_t* param, uint32_t cmd) __attribute__((noinline));
+static int syncfunc_client(syncfunc_param_t* param, uint32_t cmd)
+{
+   if (cmd == synccmd_RUN) {
+      state_t* state = state_syncfunc(param);
+      if (state->msg) {
+         state->msg = 0; // processed !
+      }
+   }
+   return 0;
+}
+
+static int syncfunc_server(syncfunc_param_t* param, uint32_t cmd) __attribute__((noinline));
+static int syncfunc_server(syncfunc_param_t* param, uint32_t cmd)
+{
+   if (cmd == synccmd_RUN) {
+      state_t* state = state_syncfunc(param);
+      if (!state->msg) {
+         state->msg = (void*) (++state->count); // generate new msg
+      }
+   }
+   return 0;
+}
+
+static int pt_prepare(perftest_instance_t* tinst)
+{
+   int err;
+
+   memblock_t mblock;
+
+   err = ALLOC_MM(sizeof(state_t), &mblock);
+   if (err) return err;
+
+   memset(mblock.addr, 0, mblock.size);
+
+   err = addfunc_syncrunner(syncrunner_maincontext(), &syncfunc_client, mblock.addr);
+   if (err) return err;
+
+   err = addfunc_syncrunner(syncrunner_maincontext(), &syncfunc_server, mblock.addr);
+   if (err) return err;
+
+   tinst->nrops = 1000000;
+   tinst->addr  = mblock.addr;
+   tinst->size  = mblock.size;
+
+   return 0;
+}
+
+static int pt_unprepare(perftest_instance_t* tinst)
+{
+   memblock_t mblock = memblock_INIT(tinst->size, tinst->addr);
+   int err = FREE_MM(&mblock);
+   int err2 = terminate_syncrunner(syncrunner_maincontext());
+   if (err2) err = err2;
+   return err;
+}
+
+static int pt_run(perftest_instance_t* tinst)
+{
+   state_t* state = tinst->addr;
+   int count = 0;
+   while (state->count < tinst->nrops) {
+      int err = run_syncrunner(syncrunner_maincontext());
+      if (err) return err;
+      ++count;
+   }
+   return 0;
+}
+
+static int pt_run_raw(perftest_instance_t* tinst)
+{
+   state_t* state = tinst->addr;
+   int count = 0;
+   syncfunc_t sfunc = syncfunc_FREE;
+   sfunc.state = state;
+   syncfunc_param_t param = syncfunc_param_FREE;
+   param.sfunc = &sfunc;
+   while (state->count < tinst->nrops) {
+      syncfunc_server(&param, synccmd_RUN);
+      syncfunc_client(&param, synccmd_RUN);
+      ++count;
+   }
+   return 0;
+}
+
+int perftest_task_syncrunner(/*out*/perftest_info_t* info)
+{
+   *info = (perftest_info_t) perftest_info_INIT(
+               perftest_INIT(&pt_prepare, &pt_run, &pt_unprepare),
+               "Sending and receiving a message",
+               0, 0, 0
+            );
+
+   return 0;
+}
+
+int perftest_task_syncrunner_raw(/*out*/perftest_info_t* info)
+{
+   *info = (perftest_info_t) perftest_info_INIT(
+               perftest_INIT(&pt_prepare, &pt_run_raw, &pt_unprepare),
+               "Sending and receiving a message",
+               0, 0, 0
+            );
+
+   return 0;
 }
 
 #endif

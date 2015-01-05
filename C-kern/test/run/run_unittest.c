@@ -23,7 +23,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/run/run_unittest.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -224,6 +223,7 @@ int run_unittest(void * argv)
 
 //{ test unittest
       RUN(unittest_test_errortimer);
+      RUN(unittest_test_perftest);
       RUN(unittest_test_resourceusage);
       RUN(unittest_test_unittest);
       RUN(unittest_test_mm_mm_test);

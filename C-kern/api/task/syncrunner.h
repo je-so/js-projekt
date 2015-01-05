@@ -24,6 +24,8 @@
 #include "C-kern/api/task/synccmd.h"
 #include "C-kern/api/task/syncfunc.h"
 
+struct perftest_info_t;
+
 /* typedef: struct syncrunner_t
  * Export <syncrunner_t> into global namespace. */
 typedef struct syncrunner_t syncrunner_t;
@@ -37,6 +39,16 @@ typedef struct syncrunner_t syncrunner_t;
 /* function: unittest_task_syncrunner
  * Test <syncrunner_t> functionality. */
 int unittest_task_syncrunner(void);
+#endif
+
+#ifdef KONFIG_PERFTEST
+/* function: perftest_task_syncrunner
+ * Test <syncrunner_t> call performance. */
+int perftest_task_syncrunner(/*out*/struct perftest_info_t* info);
+
+/* function: perftest_task_syncrunner_raw
+ * Test raw call performance without <syncrunner_t>. */
+int perftest_task_syncrunner_raw(/*out*/struct perftest_info_t* info);
 #endif
 
 
@@ -153,7 +165,7 @@ int wakeupall_syncrunner(syncrunner_t* srun, struct synccond_t* scond);
  * (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>) einmal ausgeführt. */
 int run_syncrunner(syncrunner_t* srun);
 
-/* function: runnowakeup_syncrunner
+/* function: runqueue_syncrunner
  * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
  * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
  * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
@@ -163,7 +175,7 @@ int run_syncrunner(syncrunner_t* srun);
  * Aufgeweckte Funktionen (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>)
  * werden *nicht* ausgeführt, sondern verbleiben weiterhin in der Aufweckliste
  * (siehe <syncrunner_t.wakeup>). */
-int runnowakeup_syncrunner(syncrunner_t * srun);
+int runqueue_syncrunner(syncrunner_t * srun);
 
 /* function: terminate_syncrunner
  * Führt alle Funktionen, auch die wartenden, genau einmal aus.

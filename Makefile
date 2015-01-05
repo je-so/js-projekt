@@ -14,6 +14,7 @@ PROJECTS= pp-generrtab \
           textres2compiler_ \
           textdb_     \
           demo_       \
+          perftest_   \
           unittest_
 
 # list of targets
@@ -107,5 +108,7 @@ $(MAKEFILES_PREFIX)testchildprocess: projekte/subsys/Linux-mini projekte/subsys/
 $(MAKEFILES_PREFIX)textdb: projekte/subsys/Linux-mini projekte/subsys/context-mini
 
 $(MAKEFILES_PREFIX)textres2compiler: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)perftest: projekte/subsys/Linux projekte/subsys/context
 
 $(MAKEFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic

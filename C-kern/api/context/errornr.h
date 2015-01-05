@@ -20,7 +20,11 @@
 /* enums: errornr_e
  * Application specific error codes.
  *
+ * EALLOC     - Allocation of (window, printer or other) resource failed.
  * EINVARIANT - Invariant violated. This means for example corrupt memory, a software bug.
+ * ERESET     - A power management event has occurred. The application must destroy all contexts and reinitialise OpenGL ES state and objects to continue rendering.
+ * ESTATE     - Object not initialized.
+ *              // TODO: rename into ENOTINIT/errornr_STATE_NOTINIT
  * ELEAK      - Resource leak. This means for example memory not freed, file descriptors not closed and so on.
  * */
 enum errornr_e {

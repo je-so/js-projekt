@@ -13,6 +13,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="run">
         <File Name="../../C-kern/api/test/run/run_unittest.h"/>
+        <File Name="../../C-kern/api/test/run/run_perftest.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/test/assert.h"/>
       <File Name="../../C-kern/api/test/compiletime.h"/>
@@ -20,6 +21,7 @@
       <File Name="../../C-kern/api/test/resourceusage.h"/>
       <File Name="../../C-kern/api/test/validate.h"/>
       <File Name="../../C-kern/api/test/unittest.h"/>
+      <File Name="../../C-kern/api/test/perftest.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
@@ -288,10 +290,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <VirtualDirectory Name="test">
-      <File Name="../../C-kern/main/test/speedtest_main.c"/>
+      <File Name="../../C-kern/main/test/perftest_main.c"/>
       <File Name="../../C-kern/main/test/testchildprocess_main.c"/>
-      <File Name="../../C-kern/main/test/unittest_main.c"/>
       <File Name="../../C-kern/main/test/testmodule_main.c"/>
+      <File Name="../../C-kern/main/test/unittest_main.c"/>
       <VirtualDirectory Name="helper">
         <File Name="../../C-kern/main/test/helper/testmodule_helper1.c"/>
         <File Name="../../C-kern/main/test/helper/testmodule_helper1.h"/>
@@ -331,11 +333,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="run">
       <File Name="../../C-kern/test/run/run_unittest.c"/>
+      <File Name="../../C-kern/test/run/run_perftest.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/test/errortimer.c"/>
     <File Name="../../C-kern/test/resourceusage.c"/>
     <File Name="../../C-kern/test/run_statictest.sh"/>
     <File Name="../../C-kern/test/unittest.c"/>
+    <File Name="../../C-kern/test/perftest.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/string.c"/>
