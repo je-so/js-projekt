@@ -7,8 +7,8 @@
 # *****************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-filter='init_vmpage\|free_vmpage|\initaligned_vmpage'
-files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d'`
+filter='init_vmpage\|free_vmpage|\initaligned_vmpage\|init2_vmpage'
+files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d;/^C-kern\/resource\/unittest.log/d'`
 # array of files which are allowed to use vmpage functions ...
 ok=( C-kern/api/memory/vm.h
      C-kern/platform/Linux/vm.c

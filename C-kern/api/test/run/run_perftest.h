@@ -34,8 +34,8 @@ typedef int (*perftest_f) (/*out*/struct perftest_info_t* info);
 /* function: run_perftest
  * Ruft jeden registrierten Perfomanztest des C-kern(el) Systems auf.
  * Die Liste aller Tests wird manuell verwaltet.
- * TODO: Implement test skript »call_all_perftest.sh«
- * in »C-kern/test/static/«, das überprüft, ob alle Test aufgerufen werden. */
+ * Das statische Testskript »call_all_perftest.sh«
+ * in »C-kern/test/static/« überprüft, ob alle Tests aufgerufen werden. */
 int run_perftest(maincontext_t* maincontext);
 
 

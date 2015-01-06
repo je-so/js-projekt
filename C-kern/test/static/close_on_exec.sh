@@ -7,7 +7,7 @@
 # **********************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-files=" "`grep -rl '\(^\|[^0-9a-zA-Z]\)\(accept4\?\|creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\|socket\)[ \t]*(' C-kern/ | sed -e '/.*\.txt$/d' -e '/.*\/[^.]*$/d' -`
+files=" "`grep -rl '\(^\|[^0-9a-zA-Z_]\)\(accept4\?\|creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\|socket\)[ \t]*(' C-kern/ | sed -e '/.*\.txt$/d' -e '/.*\/[^.]*$/d' -`
 # array of files which are creating file descriptors
 ok=( C-kern/main/tools/genmake.c
      C-kern/main/tools/resource_textcompiler.c
@@ -19,7 +19,7 @@ info=""
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
-   function_calls=( `grep '\(^\|[^0-9a-zA-Z]\)\(creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\)[ \t]*(' ${i}` )
+   function_calls=( `grep '\(^\|[^0-9a-zA-Z_]\)\(creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\)[ \t]*(' ${i}` )
    function_calls2=( `grep '\(^\|[^0-9a-zA-Z>]\|[^-]>\)\(socket\|accept4\?\)[ \t]*(' ${i}` )
    IFS=$IFS_old
    info2=""
