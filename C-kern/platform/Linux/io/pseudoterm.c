@@ -371,6 +371,7 @@ static int test_initfree(void)
    return 0;
 ONERR:
    if (fd != -1) close(fd);
+   free_pseudoterm(&pty);
    return EINVAL;
 }
 
