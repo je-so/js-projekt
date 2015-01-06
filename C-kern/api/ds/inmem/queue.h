@@ -49,16 +49,24 @@ int unittest_ds_inmem_queue(void);
 
 /* struct: queue_iterator_t
  * Iterates over elements contained in <queue_t>.
- * The iterator allows to remove and insert elements after
- * or before the current position.
- * If elements are inserted after the current position then they are iterated over. */
+ * The iterator allows to remove and insert before the current position, i.e.
+ * the forward iterator <initfirst_queueiterator> supports <removefirst_queue> and
+ * <insertfirst_queue>, the backward iterator <initlast_queueiterator> supports <removelast_queue> and
+ * <insertlast_queue>.
+ *
+ * TODO: add support for removing the current element
+ * Trying to remove the current element could result in freeing the <queue_page_t> the iterator
+ * is currently referencing and therefore the result is undefined.
+ *
+ * Never try to remove elements which are iterted over in the future.
+ * The behaviour is undefined. Inserting "future" elements are possibly not iterated over. */
 struct queue_iterator_t {
-   /* variable: queue
-    * Die zu iterierende Queue. */
-   queue_t      * queue;
    /* variable: page
     * The memory page which is iterated. */
    queue_page_t * page;
+   /* variable: endpage
+    * Letzte zu iterierende Seite der Queue. */
+   queue_page_t * endpage;
    /* variable: offset
     * The offset into <page> which is the start address of the next node. */
    uint32_t       offset;
@@ -75,12 +83,14 @@ struct queue_iterator_t {
 
 /* function: initfirst_queueiterator
  * Initializes an iterator for <queue_t>.
- * Returns ENODATA in case parameter nodesize is 0 or queue is empty. */
+ * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
+ * first page of the queue contains less than nodesize bytes. */
 int initfirst_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uint16_t nodesize);
 
 /* function: initlast_queueiterator
  * Initializes a reverse iterator for <queue_t>.
- * Returns ENODATA in case parameter nodesize is 0 or queue is empty. */
+ * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
+ * last page of the queue contains less than nodesize bytes. */
 int initlast_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uint16_t nodesize);
 
 /* function: free_queueiterator
@@ -92,6 +102,8 @@ int free_queueiterator(queue_iterator_t * iter);
 /* function: next_queueiterator
  * Returns next iterated node.
  * The first call after a valid call to <initfirst_queueiterator> returns the first queue element.
+ *
+ * The iterator stops if it encounters a page with less than nodesize bytes (see <initfirst_queueiterator>).
  *
  * Returns:
  * true  - node contains a pointer to the next valid node in the queue.
@@ -111,6 +123,8 @@ bool nextskip_queueiterator(queue_iterator_t * iter, uint16_t extrasize);
 /* function: prev_queueiterator
  * Returns previous iterated node.
  * The first call after a valid call to <initlast_queueiterator> returns the last queue element.
+ *
+ * The iterator stops if it encounters a page with less than nodesize bytes (see <initlast_queueiterator>).
  *
  * Returns:
  * true  - node contains a pointer to the prev. valid node in the queue.
@@ -336,16 +350,22 @@ struct queue_page_t {
                uint16_t      _ns = (nodesize);           \
                int           _err;                       \
                if (_qu->last && _ns) {                   \
-                  queue_page_t * _fp = (queue_page_t*)   \
+                  queue_page_t * _lp = (queue_page_t*)   \
                                        _qu->last;        \
-                  _fp = (queue_page_t*) _fp->next;       \
-                  *_it = (typeof(*_it)) {                \
-                        _qu,                             \
-                        _fp,                             \
-                        _fp->start_offset,               \
-                        _ns                              \
-                     };                                  \
-                  _err = 0;                              \
+                  queue_page_t * _fp = (queue_page_t*)   \
+                                       _lp->next;        \
+                  if (_ns <= (_fp->end_offset            \
+                              - _fp->start_offset)) {    \
+                     *_it = (typeof(*_it)) {             \
+                           _fp,                          \
+                           _lp,                          \
+                           _fp->start_offset,            \
+                           _ns                           \
+                        };                               \
+                     _err = 0;                           \
+                  } else {                               \
+                     _err = ENODATA;                     \
+                  }                                      \
                } else {                                  \
                   _err = ENODATA;                        \
                }                                         \
@@ -360,12 +380,16 @@ struct queue_page_t {
                typeof(queue) _qu = (queue);              \
                uint16_t      _ns = (nodesize);           \
                int           _err;                       \
-               if (_qu->last && _ns) {                   \
-                  queue_page_t * _lp = (queue_page_t*)   \
-                                       _qu->last;        \
+               queue_page_t * _lp = (queue_page_t*)      \
+                                    _qu->last;           \
+               if (_qu->last && _ns                      \
+                   && _ns <= (_lp->end_offset            \
+                              - _lp->start_offset)) {    \
+                  queue_page_t * _fp = (queue_page_t*)   \
+                                       _lp->next;        \
                   *_it = (typeof(*_it)) {                \
-                        _qu,                             \
                         _lp,                             \
+                        _fp,                             \
                         _lp->end_offset,                 \
                         _ns                              \
                      };                                  \
@@ -393,13 +417,18 @@ struct queue_page_t {
                      _isnext = true;                     \
                      break;                              \
                   }                                      \
-                  if (_it->page == (queue_page_t*)       \
-                                   _it->queue->last) {   \
+                  if (_it->page == _it->endpage) {       \
                      _isnext = false;                    \
                      break;                              \
                   }                                      \
-                  _it->page   = (queue_page_t*)          \
-                                _it->page->next;         \
+                  _it->page = (queue_page_t*)            \
+                              _it->page->next;           \
+                  if ( _it->nodesize >                   \
+                          _it->page->end_offset          \
+                          - _it->page->start_offset) {   \
+                     _isnext = false;                    \
+                     break;                              \
+                  }                                      \
                   _it->offset = _it->page->start_offset; \
                }                                         \
                _isnext;                                  \
@@ -440,13 +469,18 @@ struct queue_page_t {
                      _isprev = true;                     \
                      break;                              \
                   }                                      \
-                  if (_it->page->prev ==                 \
-                                    _it->queue->last) {  \
+                  if (_it->page == _it->endpage) {       \
                      _isprev = false;                    \
                      break;                              \
                   }                                      \
-                  _it->page   = (queue_page_t*)          \
-                                _it->page->prev;         \
+                  _it->page = (queue_page_t*)            \
+                              _it->page->prev;           \
+                  if ( _it->nodesize >                   \
+                          _it->page->end_offset          \
+                          - _it->page->start_offset) {   \
+                     _isprev = false;                    \
+                     break;                              \
+                  }                                      \
                   _it->offset = _it->page->end_offset;   \
                }                                         \
                _isprev;                                  \
