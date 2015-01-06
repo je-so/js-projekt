@@ -78,12 +78,16 @@ int perftest_task_syncrunner_raw(/*out*/struct perftest_info_t* info);
  * */
 struct syncrunner_t {
    /* variable: wakeup
-    * Verlinkt Einträge in <waitqueue>. Die Felder <syncfunc.waitresult> und <syncfunc.waitlist> sind vorhanden. */
+    * Verlinkt Einträge in <rwqueue>[1]. Die Felder <syncfunc_t.waitresult> und <syncfunc_t.waitlist> sind vorhanden. */
    linkd_t  wakeup;
    /* variable: rwqueue
     * (Run-Wait-Queues) Speichert ausführbare und wartende <syncfunc_t> verschiedener Bytegrößen.
     * Die Größe in Bytes einer syncfunc_t bestimmt sich aus dem Vorhandensein optionaler Felder. */
    queue_t  rwqueue[1+1];
+   /* variable: freecache
+    * Einelement Cache einer Queue. Dieser verhindert das häufige Feigegeben und Allokieren einer Speicherseite,
+    * falls eine Queue leer ist oder genau x Speicherseiten belegt sind. */
+   void*    freecache[1+1];
    /* variable: rwqsize
     * Speichert Anzahl <syncfunc_t>, die in der jeweiligen <rwqueue> gespeichert sind. */
    size_t   rwqsize[1+1];
@@ -97,7 +101,7 @@ struct syncrunner_t {
 /* define: syncrunner_FREE
  * Static initializer. */
 #define syncrunner_FREE \
-         {  linkd_FREE, { queue_FREE, queue_FREE }, { 0, 0 }, false }
+         {  linkd_FREE, { queue_FREE, queue_FREE }, { 0, 0 }, { 0, 0 }, false }
 
 /* function: init_syncrunner
  * Initialisiere srun, insbesondere die Warte- und Run-Queues. */
@@ -165,7 +169,7 @@ int wakeupall_syncrunner(syncrunner_t* srun, struct synccond_t* scond);
  * (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>) einmal ausgeführt. */
 int run_syncrunner(syncrunner_t* srun);
 
-/* function: runqueue_syncrunner
+/* function: process_runq_syncrunner
  * Führt alle gespeicherten <syncfunc_t> genau einmal aus.
  * <syncfunc_t>, die auf eine Bedingung warten (<wait_syncfunc>)
  * oder auf die Beendigung einer anderen Funktion (<waitexit_syncfunc>),
@@ -175,7 +179,7 @@ int run_syncrunner(syncrunner_t* srun);
  * Aufgeweckte Funktionen (siehe <wakeup_syncrunner>, <wakeupall_syncrunner>)
  * werden *nicht* ausgeführt, sondern verbleiben weiterhin in der Aufweckliste
  * (siehe <syncrunner_t.wakeup>). */
-int runqueue_syncrunner(syncrunner_t * srun);
+int process_runq_syncrunner(syncrunner_t * srun);
 
 /* function: terminate_syncrunner
  * Führt alle Funktionen, auch die wartenden, genau einmal aus.
