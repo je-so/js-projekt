@@ -207,8 +207,8 @@ size_t sizelast_queue(const queue_t * queue);
 size_t sizebytes_queue(const queue_t * queue);
 
 /* function: castPaddr_queue
- * Returns queue an inserted node with address nodeaddr belongs to. */
-queue_t * castPaddr_queue(void * nodeaddr);
+ * Converts address of an inserted node into queue it belongs to. */
+queue_t * castPaddr_queue(void * nodeaddr, uint16_t pagesize);
 
 /* function: defaultpagesize_queue
  * Returns the default size of a memory page the queue uses.
