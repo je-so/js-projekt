@@ -109,12 +109,12 @@ ONERR:
 static int s_runcount;
 static int s_runerr;
 
-static int sf_wait(syncfunc_param_t* param, uint32_t cmd)
+static int sf_wait(syncfunc_param_t* param)
 {
    int err = EINVAL;
    synccond_t* scond = state_syncfunc(param);
 
-   start_syncfunc(param, cmd, ONEXIT);
+   start_syncfunc(param, ONEXIT);
 
 // RUN
 
@@ -134,7 +134,7 @@ static int test_update(void)
    syncrunner_t srun  = syncrunner_FREE;
    syncfunc_t   sfunc1 = syncfunc_FREE;
    syncfunc_t   sfunc2 = syncfunc_FREE;
-   syncfunc_param_t sfparam =  syncfunc_param_INIT(&srun);
+   syncfunc_param_t sfparam = syncfunc_param_INIT(&srun, 0);
 
    // prepare
    TEST(0 == init_syncrunner(&srun));
