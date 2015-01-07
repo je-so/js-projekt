@@ -476,14 +476,8 @@ int process_runq_syncrunner(syncrunner_t* srun)
       err = 0;
 
    } else  {
-      // TODO: speed up process_runq_syncrunner loop
-      // WHY? Even without RUN_SYNCFUNC only 40000ops/msec <==> raw 60000ops/msec
 
-      void* next;
-      bool  isNext = next_queueiterator(&iter, &next);
-      while (isNext) {
-         param.sfunc = next;
-         isNext = next_queueiterator(&iter, &next); // makes calling removefunc_syncrunner( rqueue ) safe
+      while (next_queueiterator(&iter, &param.sfunc)) {
 
          if (param.sfunc == srun->freecache[RUNQ_ID]) continue;
 
@@ -564,11 +558,8 @@ int terminate_syncrunner(syncrunner_t* srun)
          continue;
       }
 
-      void* next;
-      while (next_queueiterator(&iter, &next)) {
-         if (next == srun->freecache[qidx]) continue;
-
-         param.sfunc = next;
+      while (next_queueiterator(&iter, &param.sfunc)) {
+         if (param.sfunc == srun->freecache[qidx]) continue;
 
          unlink_syncfunc(param.sfunc);
 

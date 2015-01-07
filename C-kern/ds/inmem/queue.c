@@ -644,6 +644,7 @@ static int test_initfree(void)
 
    // TEST queue_FREE
    TEST(0 == queue.last);
+   TEST(0 == queue.pagesize);
 
    // TEST queue_INIT
    queue = (queue_t) queue_INIT;
@@ -842,6 +843,8 @@ ONERR:
    return EINVAL;
 }
 
+typedef struct opaque_t opaque_t;
+
 static int test_iterator(void)
 {
    queue_t          queue     = queue_INIT;
@@ -849,21 +852,21 @@ static int test_iterator(void)
    queue_iterator_t iter      = queue_iterator_FREE;
    void*            node      = 0;
    void*            N         = 0;
+   opaque_t*        obj       = 0;
 
    // TEST queue_iterator_FREE
-   TEST(0 == iter.page);
+   TEST(0 == iter.first);
+   TEST(0 == iter.last);
+   TEST(0 == iter.fpage);
    TEST(0 == iter.endpage);
-   TEST(0 == iter.offset);
    TEST(0 == iter.nodesize);
 
    for (int t = 0; t <= 1; ++t) {
 
       if (t == 1) {
-         // prepare: add list of qpages but no content
-         for (unsigned i = 0; i < lengthof(qpages); ++i) {
-            TEST(0 == addlastpage_queue(&queue));
-            qpages[i] = (queue_page_t*)queue.last;
-         }
+         // prepare: add single page
+         TEST(0 == addlastpage_queue(&queue));
+         qpages[0] = (queue_page_t*)queue.last;
       }
 
       // TEST initfirst_queueiterator: empty queue or page
@@ -888,6 +891,30 @@ static int test_iterator(void)
 
    }
 
+   // TEST initfirst_queueiterator: single page
+   qpages[0]->end_offset = (uint16_t) (qpages[0]->start_offset + 10);
+   TEST(0 == initfirst_queueiterator(&iter, &queue, 5));
+   TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+   TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t) + 10 - 5);
+   TEST(iter.fpage    == 0);
+   TEST(iter.endpage  == qpages[0]);
+   TEST(iter.nodesize == 5);
+
+   // TEST initlast_queueiterator: single page
+   TEST(0 == initlast_queueiterator(&iter, &queue, 3));
+   TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t) + 3);
+   TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t) + 10);
+   TEST(iter.fpage    == 0);
+   TEST(iter.endpage  == qpages[0]);
+   TEST(iter.nodesize == 3);
+
+   // prepare: add list of qpages but no content
+   TEST(0 == removeall_queue(&queue));
+   for (unsigned i = 0; i < lengthof(qpages); ++i) {
+      TEST(0 == addlastpage_queue(&queue));
+      qpages[i] = (queue_page_t*)queue.last;
+   }
+
    // TEST initfirst_queueiterator: first page size is compared with nodesize
    for (uint16_t s = 1; s <= 256; ++s) {
       qpages[0]->end_offset = (uint16_t) (qpages[0]->start_offset + s);
@@ -898,16 +925,18 @@ static int test_iterator(void)
 
       // test nodesize == pagesize
       TEST(0 == initfirst_queueiterator(&iter, &queue, s));
-      TEST(iter.page     == qpages[0]);
+      TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+      TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+      TEST(iter.fpage    == qpages[1]);
       TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
-      TEST(iter.offset   == sizeof(queue_page_t));
       TEST(iter.nodesize == s);
 
       // TEST free_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.page);
+      TEST(0 == iter.first);
+      TEST(0 == iter.last);
+      TEST(0 == iter.fpage);
       TEST(0 == iter.endpage);
-      TEST(0 == iter.offset);
       TEST(0 == iter.nodesize);
    }
 
@@ -926,16 +955,18 @@ static int test_iterator(void)
 
       // test nodesize == pagesize
       TEST(0 == initlast_queueiterator(&iter, &queue, s));
-      TEST(iter.page     == qpages[lengthof(qpages)-1]);
+      TEST(iter.first    == (uint8_t*)qpages[lengthof(qpages)-1] + sizeof(queue_page_t) + s);
+      TEST(iter.last     == (uint8_t*)qpages[lengthof(qpages)-1] + sizeof(queue_page_t) + s);
+      TEST(iter.fpage    == qpages[lengthof(qpages)-2]);
       TEST(iter.endpage  == qpages[0]);
-      TEST(iter.offset   == sizeof(queue_page_t) + s);
       TEST(iter.nodesize == s);
 
       // TEST free_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.page);
+      TEST(0 == iter.first);
+      TEST(0 == iter.last);
+      TEST(0 == iter.fpage);
       TEST(0 == iter.endpage);
-      TEST(0 == iter.offset);
       TEST(0 == iter.nodesize);
    }
 
@@ -956,8 +987,15 @@ static int test_iterator(void)
             for (int i = 0; i < np; ++i) {
                TEST(1 == next_queueiterator(&iter, &node));
                TEST(node == (uint8_t*)qpages[i] + qpages[i]->start_offset);
+               // check iter
+               TEST(iter.first    == (uint8_t*)qpages[i] + sizeof(queue_page_t) + s);
+               TEST(iter.last     == (uint8_t*)qpages[i] + sizeof(queue_page_t));
+               TEST(iter.fpage    == qpages[i+1]);
+               TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
+               TEST(iter.nodesize == s);
             }
-            TEST(0 == next_queueiterator(&iter, &node));
+            /*obj == other type than void* supported*/
+            TEST(0 == next_queueiterator(&iter, &obj));
             TEST(0 == free_queueiterator(&iter));
          }
       }
@@ -977,9 +1015,16 @@ static int test_iterator(void)
             TEST(0 == initlast_queueiterator(&iter, &queue, s));
             for (int i = lengthof(qpages)-1; i > np; --i) {
                TEST(1 == prev_queueiterator(&iter, &node));
-               TEST(node == (uint8_t*)qpages[i] + qpages[i]->end_offset - s);
+               TEST(node == (uint8_t*)qpages[i] + sizeof(queue_page_t));
+               // check iter
+               TEST(iter.first    == (uint8_t*)qpages[i] + sizeof(queue_page_t) + s);
+               TEST(iter.last     == (uint8_t*)qpages[i] + sizeof(queue_page_t));
+               TEST(iter.fpage    == qpages[i-1]);
+               TEST(iter.endpage  == qpages[0]);
+               TEST(iter.nodesize == s);
             }
-            TEST(0 == prev_queueiterator(&iter, &node));
+            /*obj == other type than void* supported*/
+            TEST(0 == prev_queueiterator(&iter, &obj));
             TEST(0 == free_queueiterator(&iter));
          }
       }
@@ -996,9 +1041,10 @@ static int test_iterator(void)
          TEST(0 == nextskip_queueiterator(&iter, s));
          TEST(0 == nextskip_queueiterator(&iter, 65535));
          // check nothing changed
-         TEST(iter.page     == qpages[0]);
+         TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+         TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+         TEST(iter.fpage    == qpages[1]);
          TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
-         TEST(iter.offset   == sizeof(queue_page_t));
          TEST(iter.nodesize == s2);
          TEST(0 == free_queueiterator(&iter));
       }
@@ -1012,9 +1058,10 @@ static int test_iterator(void)
    for (unsigned step = 1; step <= 1024; step *= 2, step += 1) {
       // TEST initfirst_queueiterator: list of qpages with content
       TEST(0 == initfirst_queueiterator(&iter, &queue, (uint16_t)step));
-      TEST(iter.page     == qpages[0]);
+      TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t));
+      TEST(iter.last     == (uint8_t*)qpages[0] + qpages[0]->end_offset - step);
+      TEST(iter.fpage    == qpages[1]);
       TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
-      TEST(iter.offset   == sizeof(queue_page_t));
       TEST(iter.nodesize == step);
 
       // TEST next_queueiterator: list of qpages with content
@@ -1022,18 +1069,20 @@ static int test_iterator(void)
          for (uint32_t offset = sizeof(queue_page_t); (offset + step) <= qpages[i]->end_offset; offset += step) {
             TEST(1 == next_queueiterator(&iter, &node));
             TEST(node == (uint8_t*)qpages[i] + offset);
-            TEST(iter.page     == qpages[i]);
+            TEST(iter.first    == (uint8_t*)qpages[i] + (offset + step));
+            TEST(iter.last     == (uint8_t*)qpages[i] + qpages[i]->end_offset - step);
+            TEST(iter.fpage    == (i+1==lengthof(qpages) ? 0 : qpages[i+1]));
             TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
-            TEST(iter.offset   == (offset + step));
             TEST(iter.nodesize == step);
          }
       }
 
       // TEST initlast_queueiterator: list of qpages with content
       TEST(0 == initlast_queueiterator(&iter, &queue, (uint16_t)step));
-      TEST(iter.page     == qpages[lengthof(qpages)-1]);
+      TEST(iter.first    == (uint8_t*)qpages[lengthof(qpages)-1] + sizeof(queue_page_t) + step);
+      TEST(iter.last     == (uint8_t*)qpages[lengthof(qpages)-1] + defaultpagesize_queue());
+      TEST(iter.fpage    == qpages[lengthof(qpages)-2]);
       TEST(iter.endpage  == qpages[0]);
-      TEST(iter.offset   == defaultpagesize_queue());
       TEST(iter.nodesize == step);
 
       // TEST prev_queueiterator: list of qpages with content
@@ -1043,36 +1092,40 @@ static int test_iterator(void)
             offset -= step;
             TEST(1 == prev_queueiterator(&iter, &node));
             TEST(node == (uint8_t*)qpages[i] + offset);
-            TEST(iter.page     == qpages[i]);
+            TEST(iter.first    == (uint8_t*)qpages[i] + sizeof(queue_page_t) + step);
+            TEST(iter.last     == (uint8_t*)qpages[i] + offset);
+            TEST(iter.fpage    == (i ? qpages[i-1] : 0));
             TEST(iter.endpage  == qpages[0]);
-            TEST(iter.offset   == offset);
             TEST(iter.nodesize == step);
          }
       }
 
       // TEST nextskip_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == initfirst_queueiterator(&iter, &queue, 1));
+      TEST(0 == initfirst_queueiterator(&iter, &queue, 100));
       for (unsigned i = 0; i < lengthof(qpages); ++i) {
          TEST(1 == next_queueiterator(&iter, &node));
-         iter.offset = sizeof(queue_page_t); // reset next step
+         TEST(iter.first == (uint8_t*)qpages[i] + sizeof(queue_page_t) + 100);
+         iter.first = (uint8_t*)qpages[i] + sizeof(queue_page_t); // reset
          for (uint32_t offset = sizeof(queue_page_t), step2 = step; offset < qpages[i]->end_offset; offset += step2) {
             if ((offset + step2) > qpages[i]->end_offset) {
                step2 = qpages[i]->end_offset - offset;
             }
             TEST(1 == nextskip_queueiterator(&iter, (uint16_t)step2));
-            TEST(iter.page     == qpages[i]);
+            TEST(iter.first    == (uint8_t*)qpages[i] + offset + step2);
+            TEST(iter.last     == (uint8_t*)qpages[i] + defaultpagesize_queue() - 100);
+            TEST(iter.fpage    == (i+1==lengthof(qpages) ? 0 : qpages[i+1]));
             TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
-            TEST(iter.offset   == (offset + step2));
-            TEST(iter.nodesize == 1);
+            TEST(iter.nodesize == 100);
          }
       }
 
-      // TEST free_queueiterator: list of qpages with content
+      // TEST free_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.page);
+      TEST(0 == iter.first);
+      TEST(0 == iter.last);
+      TEST(0 == iter.fpage);
       TEST(0 == iter.endpage);
-      TEST(0 == iter.offset);
       TEST(0 == iter.nodesize);
 
       // TEST foreach: full queue
@@ -1106,7 +1159,7 @@ static int test_iterator(void)
       TEST(offset <  qpages[i]->start_offset + step);
    }
 
-   // TEST next_queueiterator: insertlast_queue only supported on same page
+   // TEST next_queueiterator: insertlast_queue not considered on same page or any created page
    N = 0;
    TEST(0 == removeall_queue(&queue));
    TEST(0 == insertlast_queue(&queue, 1, &node));
@@ -1114,8 +1167,7 @@ static int test_iterator(void)
    TEST(1 == next_queueiterator(&iter, &N));
    TEST(N == node)
    TEST(0 == insertlast_queue(&queue, 1, &node));
-   TEST(1 == next_queueiterator(&iter, &N));
-   TEST(N == node)
+   TEST(0 == next_queueiterator(&iter, &N));
    TEST(0 == free_queueiterator(&iter));
    TEST(0 == removeall_queue(&queue));
    TEST(0 == insertfirst_queue(&queue, 1, &node));
@@ -1137,31 +1189,31 @@ static int test_iterator(void)
             *(uint16_t*)node = (uint16_t) nrelem;
          }
 
-         // remove first elements
+         // test remove current element
          nrelem = 0;
          foreach(_queue, node2, &queue, (uint16_t)step) {
             TEST(*(uint16_t*)node2 == (uint16_t) nrelem);
             ++ nrelem;
-            if (nrelem > 1) {
-               TEST(0 == removefirst_queue(&queue, step));
-            }
+            TEST(0 == removefirst_queue(&queue, step));
          }
          TEST(nrelem == size / step);
          // only 1 element left
          TEST(last_queue(&queue, step) == first_queue(&queue, step));
 
-         // insert first elements
+         // test insert first elements
+         TEST(0 == insertfirst_queue(&queue, step, &node));
+         *(uint16_t*)node = 5;
          nrelem = 0;
          foreach(_queue, node2, &queue, (uint16_t)step) {
             ++ nrelem;
-            TEST(*(uint16_t*)node2 == (uint16_t) ((size / step - nrelem)));
+            TEST(*(uint16_t*)node2 == 5);
             TEST(0 == insertfirst_queue(&queue, step, &node));
          }
          TEST(1 == nrelem);
       }
    }
 
-   // TEST prev_queueiterator: insertfirst_queue only supported on same page
+   // TEST prev_queueiterator: insertfirst_queue not considered on same page or any created page
    N = 0;
    TEST(0 == removeall_queue(&queue));
    TEST(0 == insertfirst_queue(&queue, 1, &node));
@@ -1169,8 +1221,7 @@ static int test_iterator(void)
    TEST(1 == prev_queueiterator(&iter, &N));
    TEST(N == node)
    TEST(0 == insertfirst_queue(&queue, 1, &node));
-   TEST(1 == prev_queueiterator(&iter, &N));
-   TEST(N == node)
+   TEST(0 == prev_queueiterator(&iter, &N));
    TEST(0 == free_queueiterator(&iter));
    TEST(0 == removeall_queue(&queue));
    TEST(0 == insertlast_queue(&queue, 1, &node));
@@ -1192,24 +1243,24 @@ static int test_iterator(void)
             *(uint16_t*)node = (uint16_t) nrelem;
          }
 
-         // remove last elements
+         // test remove current element
          nrelem = 0;
          foreachReverse(_queue, node2, &queue, (uint16_t)step) {
             TEST(*(uint16_t*)node2 == (uint16_t) nrelem);
             ++ nrelem;
-            if (nrelem > 1) {
-               TEST(0 == removelast_queue(&queue, step));
-            }
+            TEST(0 == removelast_queue(&queue, step));
          }
          TEST(nrelem == size / step);
          // only 1 element left
          TEST(last_queue(&queue, step) == first_queue(&queue, step));
 
-         // insert last elements
+         // test insert last elements
+         TEST(0 == insertlast_queue(&queue, step, &node));
+         *(uint16_t*)node = 6;
          nrelem = 0;
          foreachReverse(_queue, node2, &queue, (uint16_t)step) {
             ++ nrelem;
-            TEST(*(uint16_t*)node2 == (uint16_t) ((size / step - nrelem)));
+            TEST(*(uint16_t*)node2 == 6);
             TEST(0 == insertlast_queue(&queue, step, &node));
          }
          TEST(1 == nrelem);

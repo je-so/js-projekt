@@ -54,22 +54,24 @@ int unittest_ds_inmem_queue(void);
  * <insertfirst_queue>, the backward iterator <initlast_queueiterator> supports <removelast_queue> and
  * <insertlast_queue>.
  *
- * TODO: add support for removing the current element
- * Trying to remove the current element could result in freeing the <queue_page_t> the iterator
- * is currently referencing and therefore the result is undefined.
+ * Removing the current element is supported by the iterator.
  *
  * Never try to remove elements which are iterted over in the future.
  * The behaviour is undefined. Inserting "future" elements are possibly not iterated over. */
 struct queue_iterator_t {
-   /* variable: page
-    * The memory page which is iterated. */
-   queue_page_t * page;
+   /* variable: first
+    * Zeigt auf erstes Element. */
+   uint8_t *      first;
+   /* variable: last
+    * Zeigt auf letztes Element. */
+   uint8_t *      last;
+   /* variable: fpage
+    * Die Speicherseite, welche <page> folgt. Je nach Laufrichtung des Iterators die
+    * vorherige oder nächste Seite. */
+   queue_page_t * fpage;
    /* variable: endpage
     * Letzte zu iterierende Seite der Queue. */
    queue_page_t * endpage;
-   /* variable: offset
-    * The offset into <page> which is the start address of the next node. */
-   uint32_t       offset;
    /* variable: nodesize
     * The size of the returned node. */
    uint16_t       nodesize;
@@ -79,7 +81,7 @@ struct queue_iterator_t {
 
 /* define: queue_iterator_FREE
  * Static initializer. */
-#define queue_iterator_FREE { 0, 0, 0, 0 }
+#define queue_iterator_FREE { 0, 0, 0, 0, 0 }
 
 /* function: initfirst_queueiterator
  * Initializes an iterator for <queue_t>.
@@ -151,7 +153,7 @@ struct queue_t {
 
 /* define: queue_FREE
  * Static initializer. */
-#define queue_FREE queue_INIT
+#define queue_FREE { 0,  0 }
 
 /* define: queue_INIT
  * Static initializer. */
@@ -357,9 +359,13 @@ struct queue_page_t {
                   if (_ns <= (_fp->end_offset            \
                               - _fp->start_offset)) {    \
                      *_it = (typeof(*_it)) {             \
-                           _fp,                          \
+                           (uint8_t*)_fp                 \
+                           + _fp->start_offset,          \
+                           (uint8_t*)_fp                 \
+                           + _fp->end_offset - _ns,      \
+                           _fp == _lp                    \
+                        ? 0 : (queue_page_t*) _fp->next, \
                            _lp,                          \
-                           _fp->start_offset,            \
                            _ns                           \
                         };                               \
                      _err = 0;                           \
@@ -388,9 +394,13 @@ struct queue_page_t {
                   queue_page_t * _fp = (queue_page_t*)   \
                                        _lp->next;        \
                   *_it = (typeof(*_it)) {                \
-                        _lp,                             \
+                        (uint8_t*)_lp                    \
+                        + _lp->start_offset + _ns,       \
+                        (uint8_t*)_lp                    \
+                        + _lp->end_offset,               \
+                        _fp == _lp                       \
+                        ? 0 : (queue_page_t*) _lp->prev, \
                         _fp,                             \
-                        _lp->end_offset,                 \
                         _ns                              \
                      };                                  \
                   _err = 0;                              \
@@ -408,48 +418,46 @@ struct queue_page_t {
                typeof(iter) _it = (iter);                \
                typeof(node) _nd = (node);                \
                for (;;) {                                \
-                  uint32_t _off = _it->offset            \
-                                + _it->nodesize;         \
-                  if (_off <= _it->page->end_offset) {   \
-                     *_nd = (uint8_t*)_it->page          \
-                          + _it->offset;                 \
-                     _it->offset = _off;                 \
+                  if (_it->last >= _it->first) {         \
+                     *_nd = (void*) _it->first;          \
+                     _it->first += _it->nodesize;        \
                      _isnext = true;                     \
                      break;                              \
                   }                                      \
-                  if (_it->page == _it->endpage) {       \
+                  if ( ! _it->fpage                      \
+                       || (_it->nodesize >               \
+                           _it->fpage->end_offset        \
+                           -_it->fpage->start_offset)) { \
                      _isnext = false;                    \
                      break;                              \
                   }                                      \
-                  _it->page = (queue_page_t*)            \
-                              _it->page->next;           \
-                  if ( _it->nodesize >                   \
-                          _it->page->end_offset          \
-                          - _it->page->start_offset) {   \
-                     _isnext = false;                    \
-                     break;                              \
-                  }                                      \
-                  _it->offset = _it->page->start_offset; \
+                  _it->first = (uint8_t*)_it->fpage      \
+                             + _it->fpage->start_offset; \
+                  _it->last  = (uint8_t*)_it->fpage      \
+                             + _it->fpage->end_offset    \
+                             - _it->nodesize;            \
+                  _it->fpage = _it->fpage==_it->endpage  \
+                             ? 0 : (queue_page_t*)       \
+                               _it->fpage->next;         \
                }                                         \
                _isnext;                                  \
          }))
 
 /* define: nextskip_queueiterator
  * Implements <queue_iterator_t.nextskip_queueiterator>. */
-#define nextskip_queueiterator(iter, extrasize) \
-         ( __extension__ ({                              \
-               bool         _isskip;                     \
-               typeof(iter) _it = (iter);                \
-               uint16_t     _es = (extrasize);           \
-               uint32_t _off = _it->offset               \
-                             + _es;                      \
-               if (_off <= _it->page->end_offset) {      \
-                  _it->offset = _off;                    \
-                  _isskip = true;                        \
-               } else {                                  \
-                  _isskip = false;                       \
-               }                                         \
-               _isskip;                                  \
+#define nextskip_queueiterator(iter, extrasize)    \
+         ( __extension__ ({                        \
+               bool         _isskip;               \
+               typeof(iter) _it = (iter);          \
+               uint16_t     _es = (extrasize);     \
+               if (_it->last - _it->first          \
+                   + _it->nodesize >= _es) {       \
+                  _it->first += _es;               \
+                  _isskip = true;                  \
+               } else {                            \
+                  _isskip = false;                 \
+               }                                   \
+               _isskip;                            \
          }))
 
 /* define: prev_queueiterator
@@ -460,28 +468,27 @@ struct queue_page_t {
                typeof(iter) _it = (iter);                \
                typeof(node) _nd = (node);                \
                for (;;) {                                \
-                  if (_it->offset >=                     \
-                           (uint32_t) _it->nodesize      \
-                           + _it->page->start_offset) {  \
-                     _it->offset -= _it->nodesize;       \
-                     *_nd = (uint8_t*)_it->page          \
-                          + _it->offset;                 \
+                  if (_it->last >= _it->first) {         \
+                     _it->last -= _it->nodesize;         \
+                     *_nd = (void*) _it->last;           \
                      _isprev = true;                     \
                      break;                              \
                   }                                      \
-                  if (_it->page == _it->endpage) {       \
+                  if ( ! _it->fpage                      \
+                       || (_it->nodesize >               \
+                           _it->fpage->end_offset        \
+                           -_it->fpage->start_offset)) { \
                      _isprev = false;                    \
                      break;                              \
                   }                                      \
-                  _it->page = (queue_page_t*)            \
-                              _it->page->prev;           \
-                  if ( _it->nodesize >                   \
-                          _it->page->end_offset          \
-                          - _it->page->start_offset) {   \
-                     _isprev = false;                    \
-                     break;                              \
-                  }                                      \
-                  _it->offset = _it->page->end_offset;   \
+                  _it->first = (uint8_t*)_it->fpage      \
+                             + _it->fpage->start_offset  \
+                             + _it->nodesize;            \
+                  _it->last  = (uint8_t*)_it->fpage      \
+                             + _it->fpage->end_offset;   \
+                  _it->fpage = _it->fpage==_it->endpage  \
+                             ? 0 : (queue_page_t*)       \
+                               _it->fpage->prev;         \
                }                                         \
                _isprev;                                  \
          }))
