@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Jan.02  07:41:37
+GenerationDate  := 2015.Jan.07  07:23:05
 GeneratedBy     := je-so
 
 ## Debug
@@ -124,6 +124,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -184,9 +185,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
+ $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o
@@ -242,6 +243,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -302,9 +304,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!task!synccond.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!test!unittest.c.o \
+ $(ObjectDir_Release)/C-kern!test!perftest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Release)/C-kern!test!perftest.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o
@@ -463,6 +465,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
@@ -645,13 +650,13 @@ $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 $(ObjectDir_Debug)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
@@ -811,6 +816,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
@@ -993,13 +1001,13 @@ $(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 $(ObjectDir_Release)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c

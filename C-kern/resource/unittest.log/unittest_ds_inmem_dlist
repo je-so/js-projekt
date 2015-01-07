@@ -1,28 +1,52 @@
-[1: 1410603067.685219s]
+[1: 1420376980.963846s]
 free_dlist() C-kern/ds/inmem/dlist.c:65
-Error 12 - Cannot allocate memory
+Error 14 - Bad address
 One or more resources could not be freed
-[1: 1410603067.686372s]
-remove_dlist() C-kern/ds/inmem/dlist.c:172
-Error 22 - Invalid argument
-Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1410603067.686377s]
-remove_dlist() C-kern/ds/inmem/dlist.c:172
-Error 22 - Invalid argument
-Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1410603067.686379s]
-removefirst_dlist() C-kern/ds/inmem/dlist.c:135
-Error 22 - Invalid argument
-Function input violates condition (!isempty_dlist(list))
-[1: 1410603067.686382s]
-removelast_dlist() C-kern/ds/inmem/dlist.c:153
-Error 22 - Invalid argument
-Function input violates condition (!isempty_dlist(list))
-[1: 1410603067.686493s]
+[1: 1420376980.963996s]
 free_dlist() C-kern/ds/inmem/dlist.c:65
-Error 38 - Function not implemented
+Error 14 - Bad address
 One or more resources could not be freed
-[1: 1410603067.686505s]
+[1: 1420376980.964126s]
 free_dlist() C-kern/ds/inmem/dlist.c:65
-Error 22 - Invalid argument
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.964252s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.965533s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.965672s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.965811s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.965985s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.966137s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.966289s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.966451s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.966590s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
+One or more resources could not be freed
+[1: 1420376980.966730s]
+free_dlist() C-kern/ds/inmem/dlist.c:65
+Error 14 - Bad address
 One or more resources could not be freed

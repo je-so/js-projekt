@@ -165,6 +165,7 @@
         <File Name="../../C-kern/api/ds/inmem/blockarray.h"/>
         <File Name="../../C-kern/api/ds/inmem/trie.h"/>
         <File Name="../../C-kern/api/ds/inmem/heap.h"/>
+        <File Name="../../C-kern/api/ds/inmem/dlist2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
@@ -498,6 +499,7 @@
       <File Name="../../C-kern/ds/inmem/blockarray.c"/>
       <File Name="../../C-kern/ds/inmem/trie.c"/>
       <File Name="../../C-kern/ds/inmem/heap.c"/>
+      <File Name="../../C-kern/ds/inmem/dlist2.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">

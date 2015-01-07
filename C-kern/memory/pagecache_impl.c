@@ -379,17 +379,16 @@ static int releasepage_pagecacheblock(struct pagecache_block_t* block, freepage_
    return 0;
 }
 
-static int allocpage_pagecacheblock(struct pagecache_block_t* block, freepage_t** freepage)
+/* function: allocpage_pagecacheblock
+ *
+ * Ungeprüfte Precondition:
+ * o ! isempty_dlist(&block->freepagelist) */
+static void allocpage_pagecacheblock(struct pagecache_block_t* block, freepage_t** freepage)
 {
-   int err;
-
-   err = removefirst_freepagelist(&block->freepagelist, freepage);
-   if (err) return err;
+   removefirst_freepagelist(&block->freepagelist, freepage);
 
    (*freepage)->marker = 0;
    ++ block->usedpagecount;
-
-   return 0;
 }
 
 
@@ -513,19 +512,21 @@ static inline int allocblock_pagecacheimpl(pagecache_impl_t* pgcache, pagesize_e
 }
 
 /* function: freeblock_pagecacheimpl
- * Frees <pageblock_block_t> and removes it from freelist and blocklist. */
+ * Frees <pageblock_block_t> and removes it from freelist and blocklist.
+ *
+ * Ungeprüfte Precondition:
+ * o block ∊ pgcache->freeblocklist
+ * o block ∊ pgcache->blocklist */
 static inline int freeblock_pagecacheimpl(pagecache_impl_t* pgcache, pagecache_block_t* block)
 {
    int err;
 
-   err = remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]), block);
-   if (err) return err;
-   err = remove_blocklist(cast_dlist(&pgcache->blocklist), block);
-   if (err) return err;
-   err = free_pagecacheblock(block, blockmap_maincontext());
-   if (err) return err;
+   remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[block->pgsize]), block);
+   remove_blocklist(cast_dlist(&pgcache->blocklist), block);
 
-   return 0;
+   err = free_pagecacheblock(block, blockmap_maincontext());
+
+   return err;
 }
 
 // group: lifetime
@@ -624,12 +625,10 @@ int allocpage_pagecacheimpl(pagecache_impl_t* pgcache, uint8_t pgsize, /*out*/st
    if (err) goto ONERR;
 
    freepage_t* freepage;
-   err = allocpage_pagecacheblock(freeblock, &freepage);
-   if (err) goto ONERR;
+   allocpage_pagecacheblock(freeblock, &freepage);
    if (isempty_dlist(&freeblock->freepagelist)) {
       // freeblock is full => remove it from list of free blocks
-      err = remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[pgsize]), freeblock);
-      if (err) goto ONERR;
+      remove_freeblocklist(cast_dlist(&pgcache->freeblocklist[pgsize]), freeblock);
    }
 
    size_t pgsizeinbytes = pagesizeinbytes_pagecache(pgsize);
@@ -735,8 +734,7 @@ int freestatic_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* membl
       pgcache->sizestatic       -= alignedsize;
 
       if (isempty_staticpage(staticpage)) {
-         err = remove_staticpagelist(cast_dlist(&pgcache->staticpagelist), staticpage);
-         if (err) goto ONERR;
+         remove_staticpagelist(cast_dlist(&pgcache->staticpagelist), staticpage);
          memblock_t page = memblock_INIT(4096, (uint8_t*)staticpage);
          err = releasepage_pagecacheimpl(pgcache, &page);
          if (err) goto ONERR;
@@ -950,7 +948,7 @@ static int test_block(void)
       size_t offset;
       for (offset = 0; offset < pagecache_block_BLOCKSIZE; offset += pagesizeinbytes_pagecache(i)) {
          freepage_t* freepage = 0;
-         TEST(0 == allocpage_pagecacheblock(block[i], &freepage));
+         allocpage_pagecacheblock(block[i], &freepage);
          TEST(0 != freepage);
          TEST(0 == freepage->marker);
          TEST(freepage == (void*) (block[i]->blockaddr + offset));
@@ -958,15 +956,6 @@ static int test_block(void)
       }
       TEST(offset == pagecache_block_BLOCKSIZE);
       TEST(isempty_freepagelist(&block[i]->freepagelist));
-   }
-
-   // TEST allocpage_pagecacheblock: EINVAL
-   for (unsigned i = 0; i < lengthof(block); ++i) {
-      freepage_t* freepage = 0;
-      TEST(isempty_freepagelist(&block[i]->freepagelist));
-      TEST(EINVAL   == allocpage_pagecacheblock(block[i], &freepage));
-      TEST(freepage == 0);
-      TEST(block[i]->usedpagecount == (pagecache_block_BLOCKSIZE / pagesizeinbytes_pagecache(i)));
    }
 
    // TEST releasepage_pagecacheblock

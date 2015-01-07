@@ -453,35 +453,28 @@ ONERR:
 int process_runq_syncrunner(syncrunner_t* srun)
 {
    int err;
-   int cmd;
    syncfunc_param_t param = syncfunc_param_INIT(srun, 0);
-   queue_iterator_t iter = queue_iterator_FREE;
+   queue_iterator_t iter;
 
    if (srun->isrun) return EINPROGRESS;
 
    // prepare
-   srun->isrun = true;
-
    err = fillcache_syncrunner(srun, WAITQ_ID);
    if (err) goto ONERR;
-
-   queue_t* rqueue = &srun->rwqueue[RUNQ_ID];
 
    // run every entry in run queue once
    // new entries are added to end of queue ==> do not run them during this invocation
 
-   err = initfirst_queueiterator(&iter, rqueue, RUNQ_ELEMSIZE);
-   if (err) {
-      if (err != ENODATA) goto ONERR;
-      err = 0;
+   if (0 == initfirst_queueiterator(&iter, &srun->rwqueue[RUNQ_ID], RUNQ_ELEMSIZE)) {
 
-   } else  {
+      // prepare
+      srun->isrun = true;
 
       while (next_queueiterator(&iter, &param.sfunc)) {
 
          if (param.sfunc == srun->freecache[RUNQ_ID]) continue;
 
-         cmd = RUN_SYNCFUNC(param);
+         int cmd = RUN_SYNCFUNC(param);
 
          if (synccmd_RUN == cmd) continue;
 
@@ -515,7 +508,9 @@ ONUNPREPARE:
    srun->isrun = false;
    return err;
 ONERR:
-   free_queueiterator(&iter);
+   if (srun->isrun) {
+      (void) free_queueiterator(&iter);
+   }
    TRACEEXIT_ERRLOG(err);
    goto ONUNPREPARE;
 }
@@ -540,7 +535,7 @@ int terminate_syncrunner(syncrunner_t* srun)
 {
    int err;
    syncfunc_param_t param = syncfunc_param_INIT(srun, true);
-   queue_iterator_t iter = queue_iterator_FREE;
+   queue_iterator_t iter;
 
    if (srun->isrun) return EINPROGRESS;
 
@@ -566,9 +561,9 @@ int terminate_syncrunner(syncrunner_t* srun)
          RUN_SYNCFUNC(param);
       }
 
-      err = free_queueiterator(&iter);
+      err = clearqueue_syncrunner(srun, qidx);
 
-      int err2 = clearqueue_syncrunner(srun, qidx);
+      int err2 = free_queueiterator(&iter);
       if (err2) err = err2;
 
       SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
@@ -581,7 +576,6 @@ ONUNPREPARE:
    return err;
 
 ONERR:
-   free_queueiterator(&iter);
    TRACEEXIT_ERRLOG(err);
    goto ONUNPREPARE;
 }

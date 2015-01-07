@@ -23,7 +23,7 @@ Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/newC/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/task/*.c
-Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/*.c
+Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/run_unittest.c
 
 # No graphic subsystem
 Libs           = m pthread rt

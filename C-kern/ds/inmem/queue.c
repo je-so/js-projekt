@@ -207,8 +207,7 @@ static inline int removefirstpage_queue(queue_t* queue)
    int err;
    queue_page_t* first;
 
-   err = removefirst_pagelist(cast_dlist(queue), &first);
-   if (err) return err;
+   removefirst_pagelist(cast_dlist(queue), &first);
 
    err = delete_queuepage(&first, pagesize_queue(queue));
    if (err) return err;
@@ -221,8 +220,7 @@ static inline int removelastpage_queue(queue_t* queue)
    int err;
    queue_page_t* last;
 
-   err = removelast_pagelist(cast_dlist(queue), &last);
-   if (err) return err;
+   removelast_pagelist(cast_dlist(queue), &last);
 
    err = delete_queuepage(&last, pagesize_queue(queue));
    if (err) return err;
@@ -908,6 +906,14 @@ static int test_iterator(void)
    TEST(iter.endpage  == qpages[0]);
    TEST(iter.nodesize == 3);
 
+   // TEST free_queueiterator: does nothing !
+   TEST(0 == free_queueiterator(&iter));
+   TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t) + 3);
+   TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t) + 10);
+   TEST(iter.fpage    == 0);
+   TEST(iter.endpage  == qpages[0]);
+   TEST(iter.nodesize == 3);
+
    // prepare: add list of qpages but no content
    TEST(0 == removeall_queue(&queue));
    for (unsigned i = 0; i < lengthof(qpages); ++i) {
@@ -924,6 +930,7 @@ static int test_iterator(void)
       TEST(ENODATA == initfirst_queueiterator(&iter, &queue, 65535));
 
       // test nodesize == pagesize
+      iter = (queue_iterator_t) queue_iterator_FREE;
       TEST(0 == initfirst_queueiterator(&iter, &queue, s));
       TEST(iter.first    == (uint8_t*)qpages[0] + sizeof(queue_page_t));
       TEST(iter.last     == (uint8_t*)qpages[0] + sizeof(queue_page_t));
@@ -931,13 +938,7 @@ static int test_iterator(void)
       TEST(iter.endpage  == qpages[lengthof(qpages)-1]);
       TEST(iter.nodesize == s);
 
-      // TEST free_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.first);
-      TEST(0 == iter.last);
-      TEST(0 == iter.fpage);
-      TEST(0 == iter.endpage);
-      TEST(0 == iter.nodesize);
    }
 
    // TEST initfirst_queueiterator: nodesize == 0
@@ -954,6 +955,7 @@ static int test_iterator(void)
       TEST(ENODATA == initlast_queueiterator(&iter, &queue, 65535));
 
       // test nodesize == pagesize
+      iter = (queue_iterator_t) queue_iterator_FREE;
       TEST(0 == initlast_queueiterator(&iter, &queue, s));
       TEST(iter.first    == (uint8_t*)qpages[lengthof(qpages)-1] + sizeof(queue_page_t) + s);
       TEST(iter.last     == (uint8_t*)qpages[lengthof(qpages)-1] + sizeof(queue_page_t) + s);
@@ -961,13 +963,7 @@ static int test_iterator(void)
       TEST(iter.endpage  == qpages[0]);
       TEST(iter.nodesize == s);
 
-      // TEST free_queueiterator
-      TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.first);
-      TEST(0 == iter.last);
-      TEST(0 == iter.fpage);
-      TEST(0 == iter.endpage);
-      TEST(0 == iter.nodesize);
+      iter = (queue_iterator_t) queue_iterator_FREE;
    }
 
    // TEST initlast_queueiterator: nodesize == 0
@@ -1119,14 +1115,7 @@ static int test_iterator(void)
             TEST(iter.nodesize == 100);
          }
       }
-
-      // TEST free_queueiterator
       TEST(0 == free_queueiterator(&iter));
-      TEST(0 == iter.first);
-      TEST(0 == iter.last);
-      TEST(0 == iter.fpage);
-      TEST(0 == iter.endpage);
-      TEST(0 == iter.nodesize);
 
       // TEST foreach: full queue
       unsigned i = 0;

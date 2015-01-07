@@ -1,14 +1,14 @@
 /* title: DoubleLinkedList-Node
 
-   Defines node type <dlist_node_t> which can be stored in a
-   list of type <dlist_t>. Management overhead of objects which
-   wants to be stored in a <dlist_t>.
+   Definiert von <dlist_t> und <dlist2_t> verwalteten Knotentyp <dlist_node_t>
+   Objekte, die in einer doppelt verketteten Liste gepsiehcert werden wollen,
+   müssen diesen Knotentyp als Feld importieren.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
 
    Author:
-   (C) 2012 Jörg Seebohn
+   (C) 2015 Jörg Seebohn
 
    file: C-kern/api/ds/inmem/node/dlist_node.h
     Header file <DoubleLinkedList-Node>.
@@ -30,11 +30,11 @@ struct dlist_node_t {
    /* variable: next
     * Points to next node in the list.
     * If this node is currently not part of any list this value is set to NULL. */
-   dlist_node_t  * next;
+   dlist_node_t * next;
    /* variable: prev
     * Points to previous node in the list.
     * If this node is currently not part of any list this value is set to NULL. */
-   dlist_node_t  * prev;
+   dlist_node_t * prev;
 };
 
 // group: lifetime
@@ -57,6 +57,21 @@ struct dlist_node_t {
  * the same data members as <dlist_node_t>. */
 dlist_node_t * cast_dlistnode(void * node) ;
 
+// group: query
+
+/* function: next_dlistnode
+ * Returns the node coming after this node.
+ * If node is the last node in the list the first is returned instead. */
+dlist_node_t * next_dlistnode(const dlist_node_t * node);
+
+/* function: prev_dlistnode
+ * Returns the node coming before this node.
+ * If node is the first node in the list the last is returned instead. */
+dlist_node_t * prev_dlistnode(const dlist_node_t * node);
+
+/* function: isinlist_dlistnode
+ * Gibt true zurück, falls node in einer Liste steht, sonst false. */
+bool isinlist_dlistnode(const dlist_node_t * node);
 
 
 // section: inline implementation
@@ -76,5 +91,20 @@ dlist_node_t * cast_dlistnode(void * node) ;
             );                                         \
             (dlist_node_t*) &(node)->next;             \
          }))
+
+/* define: next_dlistnode
+ * Implements <dlist_node_t.next_dlistnode>. */
+#define next_dlistnode(node) \
+         ((node)->next)
+
+/* define: prev_dlistnode
+ * Implements <dlist_node_t.prev_dlistnode>. */
+#define prev_dlistnode(node) \
+         ((node)->prev)
+
+/* define: isinlist_dlistnode
+ * Implements <dlist_node_t.isinlist_dlistnode>. */
+#define isinlist_dlistnode(node) \
+         (0 != (node)->next)
 
 #endif

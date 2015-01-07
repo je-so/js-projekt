@@ -1,45 +1,42 @@
-/* title: DoubleLinkedList impl
+/* title: DoubleLinkedList2 impl
 
-   Implements <DoubleLinkedList>.
+   Implements <DoubleLinkedList2>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
 
    Author:
-   (C) 2012 Jörg Seebohn
+   (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/ds/inmem/dlist.h
-    Header file <DoubleLinkedList>.
+   file: C-kern/api/ds/inmem/dlist2.h
+    Header file <DoubleLinkedList2>.
 
-   file: C-kern/ds/inmem/dlist.c
-    Implementation file <DoubleLinkedList impl>.
+   file: C-kern/ds/inmem/dlist2.c
+    Implementation file <DoubleLinkedList2 impl>.
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/ds/inmem/dlist2.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/typeadapt.h"
-#include "C-kern/api/ds/inmem/dlist.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/errortimer.h"
 #endif
 
 
-// section: dlist_t
+// section: dlist2_t
 
 // group: lifetime
 
-int free_dlist(dlist_t *list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
+int free_dlist2(dlist2_t* list, uint16_t nodeoffset, struct typeadapt_t* typeadp/*0=>no free called*/)
 {
    int err;
 
    if (list->last) {
 
-      dlist_node_t * last = list->last;
-      dlist_node_t * next = last;
-
-      list->last = 0;
+      dlist_node_t * next = list->last;
 
       const bool isDelete = (typeadp && iscalldelete_typeadapt(typeadp));
 
@@ -48,14 +45,15 @@ int free_dlist(dlist_t *list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
       do {
          dlist_node_t * node = next;
          next = next->next;
-         node->prev = 0;
-         node->next = 0;
+         *node = (dlist_node_t) dlist_node_INIT;
          if (isDelete) {
             typeadapt_object_t * delobj = cast2object_typeadaptnodeoffset(nodeoffset, node);
             int err2 = calldelete_typeadapt(typeadp, &delobj);
             if (err2) err = err2;
          }
-      } while (next != last);
+      } while (next != list->last);
+
+      *list = (dlist2_t) dlist2_FREE;
 
       if (err) goto ONERR;
    }
@@ -66,38 +64,41 @@ ONERR:
    return err;
 }
 
-// group: change
+// group: update
 
-void insertfirst_dlist(dlist_t * list, dlist_node_t * new_node)
+void insertfirst_dlist2(dlist2_t* list, dlist_node_t * new_node)
 {
-   if (list->last) {
+   if (list->first) {
       new_node->prev = list->last;
-      new_node->next = list->last->next; /*old head*/
-      list->last->next     = new_node; /*new head*/
-      new_node->next->prev = new_node;
+      new_node->next = list->first;
+      list->last->next = new_node;
+      list->first->prev = new_node;
    } else {
       new_node->prev = new_node;
       new_node->next = new_node;
       list->last     = new_node;
    }
+
+   list->first = new_node;
 }
 
-void insertlast_dlist(dlist_t * list, dlist_node_t * new_node)
+void insertlast_dlist2(dlist2_t * list, dlist_node_t * new_node)
 {
    if (list->last) {
       new_node->prev = list->last;
-      new_node->next = list->last->next; /*head*/
-      list->last->next     = new_node; /*new tail*/
-      new_node->next->prev = new_node;
+      new_node->next = list->first;
+      list->last->next  = new_node;
+      list->first->prev = new_node;
    } else {
       new_node->prev = new_node;
       new_node->next = new_node;
+      list->first    = new_node;
    }
 
-   list->last = new_node; /*new tail*/
+   list->last = new_node;
 }
 
-void insertafter_dlist(dlist_t * list, dlist_node_t * prev_node, dlist_node_t * new_node)
+void insertafter_dlist2(dlist2_t * list, dlist_node_t * prev_node, dlist_node_t * new_node)
 {
    new_node->prev  = prev_node;
    new_node->next  = prev_node->next;
@@ -109,94 +110,123 @@ void insertafter_dlist(dlist_t * list, dlist_node_t * prev_node, dlist_node_t * 
    }
 }
 
-void insertbefore_dlist(dlist_node_t * next_node, dlist_node_t * new_node)
+void insertbefore_dlist2(dlist2_t * list, dlist_node_t * next_node, dlist_node_t * new_node)
 {
    new_node->prev  = next_node->prev;
    new_node->prev->next = new_node;
    new_node->next  = next_node;
    next_node->prev = new_node;
+
+   if (list->first == next_node) {
+      list->first = new_node;
+   }
 }
 
-static inline void removehelper_dlist(dlist_t * list, dlist_node_t * node)
+static inline void remove_helper(dlist_node_t * node)
+{
+   node->prev->next = node->next;
+   node->next->prev = node->prev;
+}
+
+void removefirst_dlist2(dlist2_t * list, struct dlist_node_t ** removed_node)
+{
+   dlist_node_t * const first = list->first;
+
+   if (list->last == first) {
+      list->last = 0;
+      list->first = 0;
+   } else {
+      list->first = first->next;
+      remove_helper(first);
+   }
+
+   first->next = 0;
+   first->prev = 0;
+
+   *removed_node = first;
+}
+
+void removelast_dlist2(dlist2_t * list, struct dlist_node_t ** removed_node)
+{
+   dlist_node_t * const last = list->last;
+
+   if (last == list->first) {
+      list->last = 0;
+      list->first = 0;
+   } else {
+      list->last = last->prev;
+      remove_helper(last);
+   }
+
+   last->next = 0;
+   last->prev = 0;
+
+   *removed_node = last;
+}
+
+void remove_dlist2(dlist2_t * list, struct dlist_node_t * node)
 {
    if (node == list->last) {
-      list->last = 0; /*removed last element*/
-   } else {
-      node->prev->next = node->next;
-      node->next->prev = node->prev;
+      if (node == list->first) {
+         list->last = 0;
+         list->first = 0;
+      } else {
+         list->last = node->prev;
+      }
+   } else if (node == list->first) {
+      list->first = node->next;
    }
+
+   remove_helper(node);
 
    node->next = 0;
    node->prev = 0;
 }
 
-void removefirst_dlist(dlist_t * list, dlist_node_t ** removed_node)
-{
-   dlist_node_t * const first = list->last->next;
-
-   removehelper_dlist(list, first);
-
-   *removed_node = first;
-}
-
-void removelast_dlist(dlist_t * list, dlist_node_t ** removed_node)
-{
-   dlist_node_t * const last = list->last;
-   list->last = last->prev;
-
-   removehelper_dlist(list, last);
-
-   *removed_node = last;
-}
-
-void remove_dlist(dlist_t * list, dlist_node_t * node)
-{
-   if (node == list->last) list->last = node->prev;
-
-   removehelper_dlist(list, node);
-}
-
-void replacenode_dlist(dlist_t * list, dlist_node_t * oldnode, dlist_node_t * newnode)
+void replacenode_dlist2(dlist2_t * list, dlist_node_t * oldnode, dlist_node_t * newnode)
 {
    if (list->last == oldnode) {
       list->last = newnode;
+      if (list->first == oldnode) {
+         list->first = newnode;
+         newnode->next = newnode;
+         newnode->prev = newnode;
+         oldnode->next = 0;
+         oldnode->prev = 0;
+         return;
+      }
+   } else if (list->first == oldnode) {
+      list->first = newnode;
    }
 
-   if (oldnode->next == oldnode) {
-      // ==> oldnode->prev == oldnode
-      newnode->next = newnode;
-      newnode->prev = newnode;
-   } else {
-      newnode->next = oldnode->next;
-      oldnode->next->prev = newnode;
-      newnode->prev = oldnode->prev;
-      oldnode->prev->next = newnode;
-   }
+   newnode->next = oldnode->next;
+   oldnode->next->prev = newnode;
+   newnode->prev = oldnode->prev;
+   oldnode->prev->next = newnode;
 
    oldnode->next = 0;
    oldnode->prev = 0;
 }
 
-// group: set-ops
+// group: set-update
 
-void insertlastPlist_dlist(dlist_t * list, dlist_t * nodes)
+void insertlastPlist_dlist2(dlist2_t * list, dlist2_t * nodes)
 {
-   if (!list->last) {
-      list->last = nodes->last;
 
-   } else if (nodes->last) {
-      dlist_node_t * first = list->last->next;
+   if (isempty_dlist2(list)) {
+      *list = *nodes;
 
-      list->last->next = nodes->last->next;
-      nodes->last->next->prev = list->last;
+   } else if (! isempty_dlist2(nodes)) {
+      list->last->next = nodes->first;
+      nodes->first->prev = list->last;
 
-      nodes->last->next = first;
-      first->prev       = nodes->last;
+      list->first->prev = nodes->last;
+      nodes->last->next = list->first;
 
       list->last = nodes->last;
    }
 
-   nodes->last = 0;
+   *nodes = (dlist2_t) dlist2_INIT;
 }
 
 
@@ -284,7 +314,7 @@ static int freenode_testdapt(testadapt_t * typeadp, testnode_t ** node)
 
 static int test_initfree(void)
 {
-   dlist_t list = dlist_FREE;
+   dlist2_t list = dlist2_FREE;
    testadapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 };
    typeadapt_t * typeadp    = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*);
    testadapt_t   typeadapt2 = { typeadapt_INIT_LIFETIME(0, 0/*==NULL*/), test_errortimer_FREE, 0 };
@@ -295,25 +325,32 @@ static int test_initfree(void)
    typeadapt2.lifetime.delete_object = 0;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST dlist_FREE
+   // TEST dlist2_FREE
    TEST(0 == list.last);
+   TEST(0 == list.first);
 
-   // TEST dlist_INIT_POINTER
-   list = (dlist_t) dlist_INIT_LAST((dlist_node_t*)3);
+   // TEST dlist2_INIT_POINTER
+   list = (dlist2_t) dlist2_INIT_POINTER((dlist_node_t*)3, (dlist_node_t*)4);
    TEST(list.last  == (void*)3);
-   list = (dlist_t) dlist_INIT_LAST(0);
+   TEST(list.first == (void*)4);
+   list = (dlist2_t) dlist2_INIT_POINTER(0, 0);
    TEST(list.last  == 0);
+   TEST(list.first == 0);
 
-   // TEST init_dlist
+   // TEST init_dlist2
    list.last = (void*)1;
-   init_dlist(&list);
+   list.first = (void*)1;
+   init_dlist2(&list);
    TEST(0 == list.last);
+   TEST(0 == list.first);
 
-   // TEST free_dlist
-   TEST(0 == free_dlist(&list, 0, typeadp));
+   // TEST free_dlist2
+   TEST(0 == free_dlist2(&list, 0, typeadp));
    TEST(0 == list.last);
-   TEST(0 == free_dlist(&list, 0, typeadp));
+   TEST(0 == list.first);
+   TEST(0 == free_dlist2(&list, 0, typeadp));
    TEST(0 == list.last);
+   TEST(0 == list.first);
 
    for (unsigned ta = 0; ta < 4; ++ta) {
       bool          isDelete   = ta < 2;
@@ -328,19 +365,20 @@ static int test_initfree(void)
          typeadp3 = typeadp2;
       }
 
-      // TEST free_dlist: free inserted nodes
+      // TEST free_dlist2: free inserted nodes
       // prepare
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
          if (nodeoffset == offsetof(testnode_t, node))
-            insertfirst_dlist(&list, &nodes[i].node);
+            insertfirst_dlist2(&list, &nodes[i].node);
          else
-            insertfirst_dlist(&list, &nodes[i].node2);
+            insertfirst_dlist2(&list, &nodes[i].node2);
       }
       // test
       typeadapt.freenode_count = 0;
-      TEST(0 == free_dlist(&list, nodeoffset, typeadp3));
+      TEST(0 == free_dlist2(&list, nodeoffset, typeadp3));
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
       // check nodes
       TEST(typeadapt.freenode_count == (isDelete ? lengthof(nodes) : 0));
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -352,20 +390,21 @@ static int test_initfree(void)
          nodes[i].is_freed = 0;
       }
 
-      // TEST free_dlist: simulated ERROR
+      // TEST free_dlist2: simulated ERROR
       // prepare
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
          if (nodeoffset == offsetof(testnode_t, node))
-            insertlast_dlist(&list, &nodes[i].node);
+            insertlast_dlist2(&list, &nodes[i].node);
          else
-            insertlast_dlist(&list, &nodes[i].node2);
+            insertlast_dlist2(&list, &nodes[i].node2);
       }
       // test
       typeadapt.freenode_count = 0;
       init_testerrortimer(&typeadapt.errcounter, ta+1u, EFAULT);
-      TEST(EFAULT == free_dlist(&list, nodeoffset, typeadp/*always call free*/));
+      TEST(EFAULT == free_dlist2(&list, nodeoffset, typeadp/*always call free*/));
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
       // check nodes
       TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
       unsigned I = (lengthof(nodes)-1+ta) % lengthof(nodes);
@@ -386,49 +425,48 @@ ONERR:
 
 static int test_query(void)
 {
-   dlist_t list = dlist_INIT;
+   dlist2_t list = dlist2_INIT;
    dlist_node_t node;
 
-   // TEST isempty_dlist
+   // TEST isempty_dlist2
    list.last = (void*) 1;
-   TEST(! isempty_dlist(&list));
+   TEST(! isempty_dlist2(&list));
    list.last = 0;
-   TEST(isempty_dlist(&list));
+   TEST(isempty_dlist2(&list));
 
-   // TEST first_dlist
-   list.last = &node;
+   // TEST first_dlist2
    for (intptr_t i = 1; i; i <<= 1) {
-      node.next = (void*) i;
-      TEST(first_dlist(&list) == (void*)i);
+      list.first = (void*)i;
+      TEST(first_dlist2(&list) == (void*)i);
    }
-   list.last = 0;
-   TEST(0 == first_dlist(&list));
+   list.first = 0;
+   TEST(0 == first_dlist2(&list));
 
-   // TEST last_dlist
+   // TEST last_dlist2
    for (intptr_t i = 1; i; i <<= 1) {
       list.last = (void*)i;
-      TEST(last_dlist(&list) == (void*)i);
+      TEST(last_dlist2(&list) == (void*)i);
    }
    list.last = 0;
-   TEST(0 == last_dlist(&list));
+   TEST(0 == last_dlist2(&list));
 
-   // TEST next_dlist
+   // TEST next_dlist2
    node.next = (void*)4;
-   TEST(next_dlist(&node) == (void*)4);
+   TEST(next_dlist2(&node) == (void*)4);
    node.next = 0;
-   TEST(next_dlist(&node) == 0);
+   TEST(next_dlist2(&node) == 0);
 
-   // TEST prev_dlist
+   // TEST prev_dlist2
    node.prev = (void*)4;
-   TEST(prev_dlist(&node) == (void*)4);
+   TEST(prev_dlist2(&node) == (void*)4);
    node.prev = 0;
-   TEST(prev_dlist(&node) == 0);
+   TEST(prev_dlist2(&node) == 0);
 
-   // TEST isinlist_dlist
+   // TEST isinlist_dlist2
    node.next = (void*)1;
-   TEST(isinlist_dlist(&node));
+   TEST(isinlist_dlist2(&node));
    node.next = 0;
-   TEST(! isinlist_dlist(&node));
+   TEST(! isinlist_dlist2(&node));
 
    return 0;
 ONERR:
@@ -437,42 +475,42 @@ ONERR:
 
 static int test_iterator(void)
 {
-   dlist_t          list = dlist_INIT;
-   dlist_iterator_t iter = dlist_iterator_FREE;
-   testnode_t       nodes[999];
-   dlist_node_t *   next;
-   dlist_node_t *   prev;
+   dlist2_t          list = dlist2_INIT;
+   dlist2_iterator_t iter = dlist2_iterator_FREE;
+   testnode_t        nodes[999];
+   dlist_node_t *    next;
+   dlist_node_t *    prev;
 
    // prepare
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST dlist_iterator_FREE
+   // TEST dlist2_iterator_FREE
    TEST(0 == iter.next);
    TEST(0 == iter.list);
 
-   // TEST initfirst_dlistiterator: empty list
-   TEST(ENODATA == initfirst_dlistiterator(&iter, &list));
+   // TEST initfirst_dlist2iterator: empty list
+   TEST(ENODATA == initfirst_dlist2iterator(&iter, &list));
 
-   // TEST initlast_dlistiterator: empty list
-   TEST(ENODATA == initlast_dlistiterator(&iter, &list));
+   // TEST initlast_dlist2iterator: empty list
+   TEST(ENODATA == initlast_dlist2iterator(&iter, &list));
 
    // TEST foreach, foreachReverse: empty list
    for (unsigned i = 0; 0 == i; i=1) {
-      foreach (_dlist, node, &list) {
+      foreach (_dlist2, node, &list) {
          ++ i;
       }
       TEST(0 == i);
 
-      foreachReverse (_dlist, node, &list) {
+      foreachReverse (_dlist2, node, &list) {
          ++ i;
       }
       TEST(0 == i);
    }
 
-   // TEST free_dlistiterator
+   // TEST free_dlist2iterator
    iter.next = &nodes[0].node;
    iter.list = &list;
-   TEST(0 == free_dlistiterator(&iter));
+   TEST(0 == free_dlist2iterator(&iter));
    TEST(iter.next == 0);
    TEST(iter.list == &list);
 
@@ -481,48 +519,48 @@ static int test_iterator(void)
 
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
 
-      // TEST initfirst_dlistiterator
-      iter = (dlist_iterator_t) dlist_iterator_FREE;
-      TEST(0 == initfirst_dlistiterator(&iter, &list));
-      TEST(iter.next == first_dlist(&list));
+      // TEST initfirst_dlist2iterator
+      iter = (dlist2_iterator_t) dlist2_iterator_FREE;
+      TEST(0 == initfirst_dlist2iterator(&iter, &list));
+      TEST(iter.next == first_dlist2(&list));
       TEST(iter.list == &list);
 
-      // TEST initlast_dlistiterator
-      iter = (dlist_iterator_t) dlist_iterator_FREE;
-      TEST(0 == initlast_dlistiterator(&iter, &list));
-      TEST(iter.next == last_dlist(&list));
+      // TEST initlast_dlist2iterator
+      iter = (dlist2_iterator_t) dlist2_iterator_FREE;
+      TEST(0 == initlast_dlist2iterator(&iter, &list));
+      TEST(iter.next == last_dlist2(&list));
       TEST(iter.list == &list);
 
-      // TEST next_dlistiterator
-      TEST(0 == initfirst_dlistiterator(&iter, &list));
+      // TEST next_dlist2iterator
+      TEST(0 == initfirst_dlist2iterator(&iter, &list));
       for (unsigned i = 0; i < s; ++i) {
-         TEST(next_dlistiterator(&iter, &next));
+         TEST(next_dlist2iterator(&iter, &next));
          TEST(next == &nodes[i].node);
          TEST(iter.next == (i == s-1 ? 0 : &nodes[i+1].node));
          TEST(iter.list == &list);
       }
-      TEST(0 == next_dlistiterator(&iter, &next));
+      TEST(0 == next_dlist2iterator(&iter, &next));
       TEST(iter.next == 0);
       TEST(iter.list == &list);
 
-      // TEST prev_dlistiterator
-      TEST(0 == initlast_dlistiterator(&iter, &list));
+      // TEST prev_dlist2iterator
+      TEST(0 == initlast_dlist2iterator(&iter, &list));
       for (unsigned i = 1; i <= s; ++i) {
-         TEST(prev_dlistiterator(&iter, &prev));
+         TEST(prev_dlist2iterator(&iter, &prev));
          TEST(prev == &nodes[s-i].node);
          TEST(iter.next == (i==s ? 0 : &nodes[s-i-1].node));
          TEST(iter.list == &list);
       }
-      TEST(0 == prev_dlistiterator(&iter, &prev))
+      TEST(0 == prev_dlist2iterator(&iter, &prev))
       TEST(iter.next == 0);
       TEST(iter.list == &list);
 
       // TEST foreach
       for (unsigned i = 0; i == 0; ) {
-         foreach (_dlist, node, &list) {
+         foreach (_dlist2, node, &list) {
             TEST(node == &nodes[i++].node);
          }
          TEST(i == s);
@@ -530,14 +568,14 @@ static int test_iterator(void)
 
       // TEST foreachReverse
       for (unsigned i = 0; i == 0; ) {
-         foreachReverse (_dlist, node, &list) {
+         foreachReverse (_dlist2, node, &list) {
             TEST(node == &nodes[s-1-i++].node);
          }
          TEST(i == s);
       }
 
       // reset
-      TEST(0 == removeall_dlist(&list, 0, 0));
+      TEST(0 == removeall_dlist2(&list, 0, 0));
    }
 
    for (unsigned s = 1; s <= lengthof(nodes); ++s) {
@@ -545,84 +583,84 @@ static int test_iterator(void)
 
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
 
-      // TEST next_dlistiterator: remove current node
+      // TEST next_dlist2iterator: remove current node
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
-      TEST(0 == initfirst_dlistiterator(&iter, &list));
+      TEST(0 == initfirst_dlist2iterator(&iter, &list));
       for (unsigned i = 0; i < s; ++i) {
          // test
-         TEST(next_dlistiterator(&iter, &next));
+         TEST(next_dlist2iterator(&iter, &next));
          TEST(next == &nodes[i].node);
-         remove_dlist(&list, next);
+         remove_dlist2(&list, next);
       }
       // check
-      TEST(! next_dlistiterator(&iter, &next));
-      TEST(isempty_dlist(&list));
+      TEST(! next_dlist2iterator(&iter, &next));
+      TEST(isempty_dlist2(&list));
 
-      // TEST next_dlistiterator: remove first node
+      // TEST next_dlist2iterator: remove first node
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
-      TEST(0 == initfirst_dlistiterator(&iter, &list));
+      TEST(0 == initfirst_dlist2iterator(&iter, &list));
       for (unsigned i = 0; i < s; ++i) {
          // test
-         TEST(next_dlistiterator(&iter, &next));
+         TEST(next_dlist2iterator(&iter, &next));
          TEST(next == &nodes[i].node);
          if (i) {
-            removefirst_dlist(&list, &next);
+            removefirst_dlist2(&list, &next);
             TEST(next == &nodes[i-1].node);
          }
       }
       // check
-      TEST(! next_dlistiterator(&iter, &next));
-      TEST(first_dlist(&list) == &nodes[s-1].node);
-      TEST(last_dlist(&list) == &nodes[s-1].node);
+      TEST(! next_dlist2iterator(&iter, &next));
+      TEST(first_dlist2(&list) == &nodes[s-1].node);
+      TEST(last_dlist2(&list) == &nodes[s-1].node);
       // reset
-      TEST(0 == removeall_dlist(&list, 0, 0));
+      TEST(0 == removeall_dlist2(&list, 0, 0));
 
-      // TEST prev_dlistiterator: remove current node
+      // TEST prev_dlist2iterator: remove current node
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
-      TEST(0 == initlast_dlistiterator(&iter, &list));
+      TEST(0 == initlast_dlist2iterator(&iter, &list));
       for (unsigned i = 0; i < s; ++i) {
          // test
-         TESTP(prev_dlistiterator(&iter, &prev), "s:%d i:%d", s, i);
+         TESTP(prev_dlist2iterator(&iter, &prev), "s:%d i:%d", s, i);
          TEST(prev == &nodes[s-1-i].node);
-         remove_dlist(&list, prev);
+         remove_dlist2(&list, prev);
       }
       // check
-      TEST(! prev_dlistiterator(&iter, &prev));
-      TEST(isempty_dlist(&list));
+      TEST(! prev_dlist2iterator(&iter, &prev));
+      TEST(isempty_dlist2(&list));
 
-      // TEST prev_dlistiterator: remove last node
+      // TEST prev_dlist2iterator: remove last node
       // prepare: fill list
       for (unsigned i = 0; i < s; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
-      TEST(0 == initlast_dlistiterator(&iter, &list));
+      TEST(0 == initlast_dlist2iterator(&iter, &list));
       for (unsigned i = 0; i < s; ++i) {
          // test
-         TEST(prev_dlistiterator(&iter, &prev));
+         TEST(prev_dlist2iterator(&iter, &prev));
          TEST(prev == &nodes[s-1-i].node);
          if (i) {
-            removelast_dlist(&list, &prev);
+            removelast_dlist2(&list, &prev);
             TEST(prev == &nodes[s-i].node);
          }
       }
       // check
-      TEST(! prev_dlistiterator(&iter, &prev));
-      TEST(first_dlist(&list) == &nodes[0].node);
-      TEST(last_dlist(&list) == &nodes[0].node);
+      TEST(! prev_dlist2iterator(&iter, &prev));
+      TEST(first_dlist2(&list) == &nodes[0].node);
+      TEST(last_dlist2(&list) == &nodes[0].node);
       // reset
-      TEST(0 == removeall_dlist(&list, 0, 0));
+      TEST(0 == removeall_dlist2(&list, 0, 0));
 
       // ! removing other nodes than the current or previously iterated is not supported !
 
@@ -635,7 +673,7 @@ ONERR:
 
 static int test_insert(void)
 {
-   dlist_t    list = dlist_INIT;
+   dlist2_t   list = dlist2_INIT;
    testnode_t nodes[1000];
 
    // prepare
@@ -643,55 +681,59 @@ static int test_insert(void)
 
    for (int tc = 0; tc <= 1; ++tc) {
 
-      // TEST insertfirst_dlist: single element (no error check)
-      insertfirst_dlist(&list, &nodes[0].node);
+      // TEST insertfirst_dlist2: single element (no error check)
+      insertfirst_dlist2(&list, &nodes[0].node);
       TEST(nodes[0].node.next == &nodes[0].node);
       TEST(nodes[0].node.prev == &nodes[0].node);
       TEST(list.last  == &nodes[0].node);
+      TEST(list.first == &nodes[0].node);
       // keep node to make sure no error check
-      list = (dlist_t) dlist_INIT;
+      list = (dlist2_t) dlist2_INIT;
 
-      // TEST insertlast_dlist: single element (no error check)
-      insertlast_dlist(&list, &nodes[1].node);
+      // TEST insertlast_dlist2: single element (no error check)
+      insertlast_dlist2(&list, &nodes[1].node);
       TEST(nodes[1].node.next == &nodes[1].node);
       TEST(nodes[1].node.prev == &nodes[1].node);
       TEST(list.last  == &nodes[1].node);
+      TEST(list.first == &nodes[1].node);
       // reset list (keep node to make sure no error check)
-      list = (dlist_t) dlist_INIT;
+      list = (dlist2_t) dlist2_INIT;
 
-      // TEST insertafter_dlist: single element (no error check)
-      insertfirst_dlist(&list, &nodes[0].node);
-      insertafter_dlist(&list, &nodes[0].node, &nodes[1].node);
+      // TEST insertafter_dlist2: single element (no error check)
+      insertfirst_dlist2(&list, &nodes[0].node);
+      insertafter_dlist2(&list, &nodes[0].node, &nodes[1].node);
       // check
       TEST(list.last  == &nodes[1].node);
+      TEST(list.first == &nodes[0].node);
       TEST(nodes[0].node.next == &nodes[1].node);
       TEST(nodes[0].node.prev == &nodes[1].node);
       TEST(nodes[1].node.next == &nodes[0].node);
       TEST(nodes[1].node.prev == &nodes[0].node);
       // reset
-      list = (dlist_t) dlist_INIT;
+      list = (dlist2_t) dlist2_INIT;
 
-      // TEST insertbefore_dlist: single element (no error check)
-      insertfirst_dlist(&list, &nodes[0].node);
-      insertbefore_dlist(&nodes[0].node, &nodes[1].node);
+      // TEST insertbefore_dlist2: single element (no error check)
+      insertfirst_dlist2(&list, &nodes[0].node);
+      insertbefore_dlist2(&list, &nodes[0].node, &nodes[1].node);
       // check
       TEST(list.last  == &nodes[0].node);
+      TEST(list.first == &nodes[1].node);
       TEST(nodes[0].node.next == &nodes[1].node);
       TEST(nodes[0].node.prev == &nodes[1].node);
       TEST(nodes[1].node.next == &nodes[0].node);
       TEST(nodes[1].node.prev == &nodes[0].node);
       // reset
-      list = (dlist_t) dlist_INIT;
+      list = (dlist2_t) dlist2_INIT;
    }
    // reset
    memset(nodes, 0, 2*sizeof(nodes[0]));
 
-   // TEST insertfirst_dlist: many
+   // TEST insertfirst_dlist2: many
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertfirst_dlist(&list, &nodes[i].node);
+      insertfirst_dlist2(&list, &nodes[i].node);
       // check list
-      TEST(list.last       == &nodes[0].node);
-      TEST(list.last->next == &nodes[i].node);
+      TEST(list.last  == &nodes[0].node);
+      TEST(list.first == &nodes[i].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -706,15 +748,15 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST insertlast_dlist: many
+   // TEST insertlast_dlist2: many
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
       // check list
-      TEST(list.last       == &nodes[i].node);
-      TEST(list.last->next == &nodes[0].node);
+      TEST(list.last  == &nodes[i].node);
+      TEST(list.first == &nodes[0].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -729,15 +771,15 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+lengthof(nodes)-1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST insertafter_dlist: many (after first)
-   insertfirst_dlist(&list, &nodes[0].node);
+   // TEST insertafter_dlist2: many (after first)
+   insertfirst_dlist2(&list, &nodes[0].node);
    for (unsigned i = 1; i < lengthof(nodes); ++i) {
-      insertafter_dlist(&list, &nodes[0].node, &nodes[i].node);
-      TEST(list.last       == &nodes[1].node);
-      TEST(list.last->next == &nodes[0].node);
+      insertafter_dlist2(&list, &nodes[0].node, &nodes[i].node);
+      TEST(list.last == &nodes[1].node);
+      TEST(list.first == &nodes[0].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -752,15 +794,15 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST insertafter_dlist: many (after last)
-   insertfirst_dlist(&list, &nodes[0].node);
+   // TEST insertafter_dlist2: many (after last)
+   insertfirst_dlist2(&list, &nodes[0].node);
    for (unsigned i = 1; i < lengthof(nodes); ++i) {
-      insertafter_dlist(&list, &nodes[i-1].node, &nodes[i].node);
-      TEST(list.last       == &nodes[i].node);
-      TEST(list.last->next == &nodes[0].node);
+      insertafter_dlist2(&list, &nodes[i-1].node, &nodes[i].node);
+      TEST(list.last == &nodes[i].node);
+      TEST(list.first == &nodes[0].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -775,15 +817,15 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+lengthof(nodes)-1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST insertbefore_dlist: many (before first)
-   insertfirst_dlist(&list, &nodes[0].node);
+   // TEST insertbefore_dlist2: many (before first)
+   insertfirst_dlist2(&list, &nodes[0].node);
    for (unsigned i = 1; i < lengthof(nodes); ++i) {
-      insertbefore_dlist(&nodes[i-1].node, &nodes[i].node);
-      TEST(list.last       == &nodes[0].node);
-      TEST(list.last->next == &nodes[i].node);
+      insertbefore_dlist2(&list, &nodes[i-1].node, &nodes[i].node);
+      TEST(list.last == &nodes[0].node);
+      TEST(list.first == &nodes[i].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -798,15 +840,15 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST insertbefore_dlist: many (before last)
-   insertfirst_dlist(&list, &nodes[0].node);
+   // TEST insertbefore_dlist2: many (before last)
+   insertfirst_dlist2(&list, &nodes[0].node);
    for (unsigned i = 1; i < lengthof(nodes); ++i) {
-      insertbefore_dlist(&nodes[0].node, &nodes[i].node);
-      TEST(list.last       == &nodes[0].node);
-      TEST(list.last->next == &nodes[1].node);
+      insertbefore_dlist2(&list, &nodes[0].node, &nodes[i].node);
+      TEST(list.last == &nodes[0].node);
+      TEST(list.first == &nodes[1].node);
       if (i < 4) {
          // check nodes
          for (unsigned i2 = 0; i2 <= i; ++i2) {
@@ -821,7 +863,7 @@ static int test_insert(void)
       TEST(nodes[i].node.prev == &nodes[(i+lengthof(nodes)-1)%lengthof(nodes)].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
    return 0;
@@ -831,27 +873,27 @@ ONERR:
 
 static int test_remove(void)
 {
-   dlist_t list = dlist_INIT;
+   dlist2_t list = dlist2_INIT;
    dlist_node_t* node;
    testnode_t    nodes[1000];
 
    // prepare
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST removefirst_dlist
+   // TEST removefirst_dlist2
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       // test
-      removefirst_dlist(&list, &node);
+      removefirst_dlist2(&list, &node);
       // check
       TEST(node == &nodes[i].node)
       TEST(0 == node->next);
       TEST(0 == node->prev);
       if (i < lengthof(nodes)-1) {
-         TEST(list.last       == &nodes[lengthof(nodes)-1].node);
-         TEST(list.last->next == &nodes[i+1].node);
+         TEST(list.last == &nodes[lengthof(nodes)-1].node);
+         TEST(list.first == &nodes[i+1].node);
          // check nodes
          TEST(nodes[i+1].node.next == &nodes[i+2<lengthof(nodes) ? i+2 : i+1].node);
          TEST(nodes[i+1].node.prev == &nodes[lengthof(nodes)-1].node);
@@ -860,29 +902,30 @@ static int test_remove(void)
       }
    }
    // check all
-   TEST(list.last == 0);
+   TEST(list.last  == 0);
+   TEST(list.first == 0);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next);
       TEST(0 == nodes[i].node.prev);
    }
 
-   // TEST removefirst_dlist: no error check
-   // removefirst_dlist(&list, &node); // dereference 0-pointer ==> segmentation fault
+   // TEST removefirst_dlist2: no error check
+   // removefirst_dlist2(&list, &node); // dereference 0-pointer ==> segmentation fault
 
-   // TEST removelast_dlist
+   // TEST removelast_dlist2
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       // test
-      removelast_dlist(&list, &node);
+      removelast_dlist2(&list, &node);
       // check
       TEST(node == &nodes[lengthof(nodes)-1-i].node)
       TEST(0 == node->next);
       TEST(0 == node->prev);
       if (i < lengthof(nodes)-1) {
-         TEST(list.last       == &nodes[lengthof(nodes)-2-i].node);
-         TEST(list.last->next == &nodes[0].node);
+         TEST(list.last == &nodes[lengthof(nodes)-2-i].node);
+         TEST(list.first == &nodes[0].node);
          // check nodes
          TEST(nodes[lengthof(nodes)-2-i].node.next == &nodes[0].node);
          TEST(nodes[lengthof(nodes)-2-i].node.prev == &nodes[i+2==lengthof(nodes) ? 0 : lengthof(nodes)-3-i].node);
@@ -891,28 +934,29 @@ static int test_remove(void)
       }
    }
    // check all
-   TEST(list.last == 0);
+   TEST(list.last  == 0);
+   TEST(list.first == 0);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next);
       TEST(0 == nodes[i].node.prev);
    }
 
-   // TEST removelast_dlist: no error check
-   // removelast_dlist(&list, &node); // dereference 0-pointer ==> segmentation fault
+   // TEST removelast_dlist2: no error check
+   // removelast_dlist2(&list, &node); // dereference 0-pointer ==> segmentation fault
 
-   // TEST remove_dlist: not first && not last
+   // TEST remove_dlist2: not first && not last
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
    }
    for (unsigned i = 1; i < lengthof(nodes)-1; ++i) {
       // test
-      remove_dlist(&list, &nodes[i].node);
+      remove_dlist2(&list, &nodes[i].node);
       // check param
       TEST(nodes[i].node.next == 0);
       TEST(nodes[i].node.prev == 0);
       // check list
-      TEST(list.last       == &nodes[lengthof(nodes)-1].node);
-      TEST(list.last->next == &nodes[0].node);
+      TEST(list.last == &nodes[lengthof(nodes)-1].node);
+      TEST(list.first == &nodes[0].node);
       // check surrounding nodes
       TEST(nodes[0].node.next == &nodes[i+1].node);
       TEST(nodes[0].node.prev == &nodes[lengthof(nodes)-1].node);
@@ -920,23 +964,23 @@ static int test_remove(void)
       TEST(nodes[i+1].node.prev == &nodes[0].node);
    }
    // reset
-   list = (dlist_t) dlist_INIT;
+   list = (dlist2_t) dlist2_INIT;
    memset(nodes, 0, sizeof(nodes));
 
-   // TEST remove_dlist: first node
+   // TEST remove_dlist2: first node
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       // test
-      remove_dlist(&list, &nodes[i].node);
+      remove_dlist2(&list, &nodes[i].node);
       // check param
       TEST(nodes[i].node.next == 0);
       TEST(nodes[i].node.prev == 0);
       if (i < lengthof(nodes)-1) {
          // check list
-         TEST(list.last       == &nodes[lengthof(nodes)-1].node);
-         TEST(list.last->next == &nodes[i+1].node);
+         TEST(list.last == &nodes[lengthof(nodes)-1].node);
+         TEST(list.first == &nodes[i+1].node);
          // check surrounding nodes
          TEST(nodes[i+1].node.next == &nodes[i+2==lengthof(nodes) ? lengthof(nodes)-1 : i+2].node);
          TEST(nodes[i+1].node.prev == &nodes[lengthof(nodes)-1].node);
@@ -944,24 +988,25 @@ static int test_remove(void)
          TEST(nodes[lengthof(nodes)-1].node.prev == &nodes[i+2==lengthof(nodes) ? lengthof(nodes)-1 : lengthof(nodes)-2].node);
       } else {
          // check list
-         TEST(0 == list.last);
+         TEST(list.last  == 0);
+         TEST(list.first == 0);
       }
    }
 
-   // TEST remove_dlist: last node
+   // TEST remove_dlist2: last node
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      insertlast_dlist(&list, &nodes[i].node);
+      insertlast_dlist2(&list, &nodes[i].node);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       // test
-      remove_dlist(&list, &nodes[lengthof(nodes)-1-i].node);
+      remove_dlist2(&list, &nodes[lengthof(nodes)-1-i].node);
       // check param
       TEST(nodes[lengthof(nodes)-1-i].node.next == 0);
       TEST(nodes[lengthof(nodes)-1-i].node.prev == 0);
       if (i < lengthof(nodes)-1) {
          // check list
-         TEST(list.last       == &nodes[lengthof(nodes)-2-i].node);
-         TEST(list.last->next == &nodes[0].node);
+         TEST(list.last  == &nodes[lengthof(nodes)-2-i].node);
+         TEST(list.first == &nodes[0].node);
          // check surrounding nodes
          TEST(nodes[lengthof(nodes)-2-i].node.next == &nodes[0].node);
          TEST(nodes[lengthof(nodes)-2-i].node.prev == &nodes[i+2==lengthof(nodes)?0:lengthof(nodes)-3-i].node);
@@ -969,26 +1014,27 @@ static int test_remove(void)
          TEST(nodes[0].node.prev == &nodes[lengthof(nodes)-2-i].node);
       } else {
          // check list
-         TEST(0 == list.last);
+         TEST(list.last  == 0);
+         TEST(list.first == 0);
       }
    }
 
-   // TEST replacenode_dlist: list length: 1..5 nodes
+   // TEST replacenode_dlist2: list length: 1..5 nodes
    for (int l = 1; l <= 5; ++l) {
       static_assert(lengthof(nodes) >= 10, "Verhindere Overflow bei Zugriff auf nodes");
 
       for (int i = 0; i < l; ++i) {
-         insertlast_dlist(&list, &nodes[i].node);
+         insertlast_dlist2(&list, &nodes[i].node);
       }
 
       for (int i = 0; i < l; ++i) {
-         replacenode_dlist(&list, &nodes[i].node, &nodes[5+i].node);
+         replacenode_dlist2(&list, &nodes[i].node, &nodes[5+i].node);
          // check parameter
          TEST(0 == nodes[i].node.next);
          TEST(0 == nodes[i].node.prev);
          // check list
-         TEST(list.last       == &nodes[l-1+(i+1==l?5:0)].node);
-         TEST(list.last->next == &nodes[5].node);
+         TEST(list.first == &nodes[5].node);
+         TEST(list.last  == &nodes[l-1+(i+1==l?5:0)].node);
          // check nodes
          for (int i2 = 0, p = l-1, n = l>1?1:0; i2 < l; ++i2, p = (p+1)%l, n = (n+1)%l) {
             TEST(nodes[i2+(i2<=i?5:0)].node.next = &nodes[n+(n<=i?5:0)].node);
@@ -997,7 +1043,7 @@ static int test_remove(void)
       }
 
       // reset
-      list = (dlist_t) dlist_INIT;
+      list = (dlist2_t) dlist2_INIT;
       memset(nodes, 0, sizeof(nodes));
    }
 
@@ -1008,8 +1054,8 @@ ONERR:
 
 static int test_setops(void)
 {
-   dlist_t list = dlist_INIT;
-   dlist_t list2 = dlist_INIT;
+   dlist2_t list = dlist2_INIT;
+   dlist2_t list2 = dlist2_INIT;
    testadapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 };
    typeadapt_t * typeadp    = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*);
    testadapt_t   typeadapt2 = { typeadapt_INIT_LIFETIME(0, 0/*==NULL*/), test_errortimer_FREE, 0 };
@@ -1032,15 +1078,16 @@ static int test_setops(void)
                             ? typeadp2 /*delete_object == 0*/
                             : 0; /*pointer to typeadapt_t == 0*/
 
-         // TEST removeall_dlist: remove all nodes (free called / or no free called)
+         // TEST removeall_dlist2: remove all nodes (free called / or no free called)
          for (unsigned i = 0; i < lengthof(nodes); ++i) {
-            insertlast_dlist(&list, no == 0 ? &nodes[i].node : no == 1 ? cast_dlistnode(&nodes[i]) : &nodes[i].node2);
+            insertlast_dlist2(&list, no == 0 ? &nodes[i].node : no == 1 ? cast_dlistnode(&nodes[i]) : &nodes[i].node2);
          }
          // test
          typeadapt.freenode_count = 0;
-         TEST(0 == removeall_dlist(&list, nodeoffset, TA));
+         TEST(0 == removeall_dlist2(&list, nodeoffset, TA));
          // check list
          TEST(0 == list.last);
+         TEST(0 == list.first);
          // check nodes
          TEST(typeadapt.freenode_count == (isNoDelete ? 0 : lengthof(nodes)));
          for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -1051,17 +1098,18 @@ static int test_setops(void)
             nodes[i].is_freed = 0;
          }
 
-         // TEST removeall_dlist: simulated ERROR
+         // TEST removeall_dlist2: simulated ERROR
          // prepare
          for (unsigned i = 0; i < lengthof(nodes); ++i) {
-            insertlast_dlist(&list, no == 0 ? &nodes[i].node : no == 1 ? cast_dlistnode(&nodes[i]) : &nodes[i].node2);
+            insertlast_dlist2(&list, no == 0 ? &nodes[i].node : no == 1 ? cast_dlistnode(&nodes[i]) : &nodes[i].node2);
          }
          // test
          typeadapt.freenode_count = 0;
          init_testerrortimer(&typeadapt.errcounter, (unsigned)(3*no+isNoDelete+1), EFAULT);
-         TEST(EFAULT == free_dlist(&list, nodeoffset, typeadp/*always call free*/));
+         TEST(EFAULT == free_dlist2(&list, nodeoffset, typeadp/*always call free*/));
          // check list
          TEST(0 == list.last);
+         TEST(0 == list.first);
          // check nodes
          TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
          unsigned I = (lengthof(nodes)-1+(unsigned)(3*no+isNoDelete)) % lengthof(nodes);
@@ -1075,23 +1123,25 @@ static int test_setops(void)
       }
    }
 
-   // TEST insertlastPlist_dlist: list length 0..5 nodes
+   // TEST insertlastPlist_dlist2: list length 0..5 nodes
    for (unsigned l1 = 0; l1 <= 5; ++l1) {
       for (unsigned l2 = 0, L = l1; l2 <= 5; ++l2, L = l1+l2) {
          for (unsigned i = 0; i < l1; ++i) {
-            insertlast_dlist(&list, &nodes[i].node);
+            insertlast_dlist2(&list, &nodes[i].node);
          }
          for (unsigned i = l1; i < l1+l2; ++i) {
-            insertlast_dlist(&list2, &nodes[i].node);
+            insertlast_dlist2(&list2, &nodes[i].node);
          }
-         insertlastPlist_dlist(&list, &list2);
+         insertlastPlist_dlist2(&list, &list2);
          // check parameter
          TEST(0 == list2.last)
+         TEST(0 == list2.first)
          if (!L) {
             TEST(list.last  == 0)
+            TEST(list.first == 0)
          } else {
-            TEST(list.last       == &nodes[L-1].node)
-            TEST(list.last->next == &nodes[0].node)
+            TEST(list.last  == &nodes[L-1].node)
+            TEST(list.first == &nodes[0].node)
             // check nodes
             for (unsigned i = 0, p=L-1, n=L>1?1:0; i < L; p=i, ++i, n = (n+1)%L) {
                TEST(nodes[i].node.next == &nodes[n].node);
@@ -1099,7 +1149,7 @@ static int test_setops(void)
             }
          }
          // reset
-         init_dlist(&list);
+         init_dlist2(&list);
          memset(nodes, 0, (unsigned) L * sizeof(nodes[0]));
       }
    }
@@ -1109,45 +1159,46 @@ ONERR:
    return EINVAL;
 }
 
-dlist_IMPLEMENT(_glist1, testnode_t, node.)
-dlist_IMPLEMENT(_glist2, testnode_t, )
-dlist_IMPLEMENT(_glist3, testnode_t, node2.)
+dlist2_IMPLEMENT(_glist1, testnode_t, node.)
+dlist2_IMPLEMENT(_glist2, testnode_t, )
+dlist2_IMPLEMENT(_glist3, testnode_t, node2.)
 
 static int test_generic(void)
 {
-   dlist_t list = dlist_INIT;
-   dlist_t list2 = dlist_INIT;
+   dlist2_t list = dlist2_INIT;
+   dlist2_t list2 = dlist2_INIT;
    testadapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_FREE, 0 };
    typeadapt_t * typeadp    = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*);
    testnode_t *  node;
    testnode_t    nodes[1000];
-   dlist_iterator_t iter;
+   dlist2_iterator_t iter;
 
    // prepare
    memset(&nodes, 0, sizeof(nodes));
 
-   // TEST cast_dlist
+   // TEST cast_dlist2
    struct {
       dlist_node_t * last;
       dlist_node_t * first;
    }  xlist;
-   TEST((dlist_t*)&xlist == cast_dlist(&xlist));
+   TEST((dlist2_t*)&xlist == cast_dlist2(&xlist));
 
-   // TEST castconst_dlist
+   // TEST castconst_dlist2
    const struct {
       dlist_node_t * last;
       dlist_node_t * first;
    } xlist2;
-   TEST((const dlist_t*)&xlist2 == castconst_dlist(&xlist2));
+   TEST((const dlist2_t*)&xlist2 == castconst_dlist2(&xlist2));
 
    // == initfree ==
 
-   // TEST init_dlist
+   // TEST init_dlist2
    memset(&list, 255, sizeof(list));
    init_glist1(&list);
    TEST(0 == list.last);
+   TEST(0 == list.first);
 
-   // TEST free_dlist
+   // TEST free_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
          switch (tc) {
@@ -1165,6 +1216,7 @@ static int test_generic(void)
       }
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
       // check nodes
       TEST(lengthof(nodes) == typeadapt.freenode_count);
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -1177,36 +1229,35 @@ static int test_generic(void)
 
    // == query ==
 
-   // TEST isempty_dlist
+   // TEST isempty_dlist2
    list.last = (void*) 1;
    TEST(0 == isempty_glist1(&list));
    list.last = (void*) 0;
    TEST(1 == isempty_glist1(&list));
 
-   // TEST first_dlist
-   list.last = (void*) &nodes[0].next;
-   nodes[0].next = (void*) &nodes[1].next;
-   TEST(&nodes[1] == first_glist2(&list));
-   list.last = (void*) 0;
+   // TEST first_dlist2
+   list.first = (void*) &nodes[0].next;
+   TEST(&nodes[0] == first_glist2(&list));
+   list.first = (void*) 0;
    TEST(0 == first_glist2(&list));
 
-   // TEST last_dlist
+   // TEST last_dlist2
    list.last = &nodes[4].node2;
    TEST(&nodes[4] == last_glist3(&list));
    list.last = (void*) 0;
    TEST(0 == last_glist3(&list));
 
-   // TEST next_dlist
+   // TEST next_dlist2
    nodes[0].node.next = (void*) &nodes[4].node;
    TEST(&nodes[4] == next_glist1(&nodes[0]));
    nodes[0].node.next = 0;
 
-   // TEST prev_dlist
+   // TEST prev_dlist2
    nodes[0].prev = (void*) &nodes[3].next;
    TEST(&nodes[3] == prev_glist2(&nodes[0]));
    nodes[0].prev = 0;
 
-   // TEST isinlist_dlist
+   // TEST isinlist_dlist2
    nodes[0].node2.next = (void*) 1;
    TEST(1 == isinlist_glist3(&nodes[0]));
    nodes[0].node2.next = (void*) 0;
@@ -1214,7 +1265,7 @@ static int test_generic(void)
 
    // == insert ==
 
-   // TEST insertfirst_dlist
+   // TEST insertfirst_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < 3; ++i) {
          switch (tc) {
@@ -1233,7 +1284,7 @@ static int test_generic(void)
       memset(&nodes, 0, 3*sizeof(nodes[0]));
    }
 
-   // TEST insertlast_dlist
+   // TEST insertlast_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < 3; ++i) {
          switch (tc) {
@@ -1252,7 +1303,7 @@ static int test_generic(void)
       memset(&nodes, 0, 3*sizeof(nodes[0]));
    }
 
-   // TEST insertafter_dlist
+   // TEST insertafter_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       switch (tc) {
       case 1: insertlast_glist1(&list, &nodes[0]); break;
@@ -1281,7 +1332,7 @@ static int test_generic(void)
       memset(&nodes, 0, 3*sizeof(nodes[0]));
    }
 
-   // TEST insertbefore_dlist
+   // TEST insertbefore_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       switch (tc) {
       case 1: insertlast_glist1(&list, &nodes[0]); break;
@@ -1290,9 +1341,9 @@ static int test_generic(void)
       }
       for (unsigned i = 1; i < 3; ++i) {
          switch (tc) {
-         case 1: insertbefore_glist1(&nodes[0], &nodes[i]); break;
-         case 2: insertbefore_glist2(&nodes[0], &nodes[i]); break;
-         case 3: insertbefore_glist3(&nodes[0], &nodes[i]); break;
+         case 1: insertbefore_glist1(&list, &nodes[0], &nodes[i]); break;
+         case 2: insertbefore_glist2(&list, &nodes[0], &nodes[i]); break;
+         case 3: insertbefore_glist3(&list, &nodes[0], &nodes[i]); break;
          }
          switch (tc) {
          case 1: TEST(last_glist1(&list) == &nodes[0]); TEST(first_glist1(&list) == &nodes[1]); break;
@@ -1312,7 +1363,7 @@ static int test_generic(void)
 
    // == remove ==
 
-   // TEST removefirst_dlist
+   // TEST removefirst_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < 3; ++i) {
          switch (tc) {
@@ -1350,9 +1401,10 @@ static int test_generic(void)
       }
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
    }
 
-   // TEST removelast_dlist
+   // TEST removelast_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < 3; ++i) {
          switch (tc) {
@@ -1390,9 +1442,10 @@ static int test_generic(void)
       }
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
    }
 
-   // TEST remove_dlist
+   // TEST remove_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned r = 0; r < 3; ++r) {
          for (unsigned i = 0; i < 3; ++i) {
@@ -1432,7 +1485,7 @@ static int test_generic(void)
       }
    }
 
-   // TEST replacenode_dlist
+   // TEST replacenode_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned r = 0; r < 3; ++r) {
          for (unsigned i = 0; i < 3; ++i) {
@@ -1474,13 +1527,13 @@ static int test_generic(void)
 
    // == iterator ==
 
-   // TEST initfirst_dlistiterator: empty list
+   // TEST initfirst_dlist2iterator: empty list
    TEST(ENODATA == initfirst_glist1iterator(&iter, &list));
 
-   // TEST initlast_dlistiterator: empty list
+   // TEST initlast_dlist2iterator: empty list
    TEST(ENODATA == initlast_glist2iterator(&iter, &list));
 
-   // TEST free_dlistiterator
+   // TEST free_dlist2iterator
    iter.next = (void*) 1;
    TEST(0 == free_glist3iterator(&iter));
    TEST(0 == iter.next);
@@ -1495,7 +1548,7 @@ static int test_generic(void)
          }
       }
 
-      // TEST initfirst_dlistiterator: filled list
+      // TEST initfirst_dlist2iterator: filled list
       switch (tc) {
       case 1: TEST(0 == initfirst_glist1iterator(&iter, &list)); break;
       case 2: TEST(0 == initfirst_glist2iterator(&iter, &list)); break;
@@ -1508,7 +1561,7 @@ static int test_generic(void)
       case 3: TEST(iter.next == &nodes[0].node2); break;
       }
 
-      // TEST initlast_dlistiterator: filled list
+      // TEST initlast_dlist2iterator: filled list
       switch (tc) {
       case 1: TEST(0 == initlast_glist1iterator(&iter, &list)); break;
       case 2: TEST(0 == initlast_glist2iterator(&iter, &list)); break;
@@ -1521,7 +1574,7 @@ static int test_generic(void)
       case 3: TEST(iter.next == &nodes[lengthof(nodes)-1].node2); break;
       }
 
-      // TEST prev_dlistiterator: foreach
+      // TEST prev_dlist2iterator: foreach
       unsigned i = 0;
       if (tc == 1) {
          foreach (_glist1, n, &list) {
@@ -1538,7 +1591,7 @@ static int test_generic(void)
       }
       TEST(i == lengthof(nodes));
 
-      // TEST next_dlistiterator: foreachReverse
+      // TEST next_dlist2iterator: foreachReverse
       i = lengthof(nodes);
       if (tc == 1) {
          foreachReverse (_glist1, n, &list) {
@@ -1562,7 +1615,7 @@ static int test_generic(void)
 
    // == setops ==
 
-   // TEST removeall_dlist
+   // TEST removeall_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
          switch (tc) {
@@ -1580,6 +1633,7 @@ static int test_generic(void)
       }
       // check list
       TEST(0 == list.last);
+      TEST(0 == list.first);
       // check nodes
       TEST(lengthof(nodes) == typeadapt.freenode_count);
       for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -1594,7 +1648,7 @@ static int test_generic(void)
       }
    }
 
-   // TEST insertlastPlist_dlist
+   // TEST insertlastPlist_dlist2
    for (int tc = 1; tc <= 3; ++tc) {
       for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
          switch (tc) {
@@ -1618,6 +1672,7 @@ static int test_generic(void)
       }
       // check list, list2
       TEST(0 == list2.last);
+      TEST(0 == list2.first);
       switch (tc) {
       case 1: TEST(first_glist1(&list) == &nodes[0]); TEST(last_glist1(&list) == &nodes[lengthof(nodes)-1]); break;
       case 2: TEST(first_glist2(&list) == &nodes[0]); TEST(last_glist2(&list) == &nodes[lengthof(nodes)-1]); break;
@@ -1643,7 +1698,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_ds_inmem_dlist()
+int unittest_ds_inmem_dlist2()
 {
    if (test_dlistnode())      goto ONERR;
    if (test_initfree())       goto ONERR;

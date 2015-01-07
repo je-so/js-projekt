@@ -96,7 +96,7 @@ int initfirst_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uin
 int initlast_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uint16_t nodesize);
 
 /* function: free_queueiterator
- * Frees an iterator of <queue_t>. All members are set to 0. */
+ * Does nothing! There are no allocated resources */
 int free_queueiterator(queue_iterator_t * iter);
 
 // group: iterate
@@ -341,7 +341,7 @@ struct queue_page_t {
 /* define: free_queueiterator
  * Implements <queue_iterator_t.free_queueiterator>. */
 #define free_queueiterator(iter) \
-         (*(iter) = (queue_iterator_t) queue_iterator_FREE, 0)
+         (0)
 
 /* define: initfirst_queueiterator
  * Implements <queue_iterator_t.initfirst_queueiterator>. */
@@ -686,6 +686,7 @@ struct queue_page_t {
       return initlast_queueiterator(iter, queue, sizeof(object_t)); \
    } \
    static inline int free##_fsuffix##iterator(queue_iterator_t * iter) { \
+      (void) iter; \
       return free_queueiterator(iter); \
    } \
    static inline bool next##_fsuffix##iterator(queue_iterator_t * iter, object_t ** node) { \
