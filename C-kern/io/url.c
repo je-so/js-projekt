@@ -19,7 +19,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/string/urlencode_string.h"
+#include "C-kern/api/string/urlencode.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/memblock.h"

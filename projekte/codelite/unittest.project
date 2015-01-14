@@ -28,12 +28,12 @@
       <File Name="../../C-kern/api/string/cstring.h"/>
       <File Name="../../C-kern/api/string/convertwchar.h"/>
       <File Name="../../C-kern/api/string/utf8.h"/>
-      <File Name="../../C-kern/api/string/urlencode_string.h"/>
-      <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
       <File Name="../../C-kern/api/string/textpos.h"/>
       <File Name="../../C-kern/api/string/splitstring.h"/>
       <File Name="../../C-kern/api/string/strsearch.h"/>
+      <File Name="../../C-kern/api/string/base64encode.h"/>
+      <File Name="../../C-kern/api/string/urlencode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <VirtualDirectory Name="Linux">
@@ -347,12 +347,12 @@
     <File Name="../../C-kern/string/cstring.c"/>
     <File Name="../../C-kern/string/convertwchar.c"/>
     <File Name="../../C-kern/string/utf8.c"/>
-    <File Name="../../C-kern/string/urlencode_string.c"/>
-    <File Name="../../C-kern/string/base64encode_string.c"/>
     <File Name="../../C-kern/string/format_string.c"/>
     <File Name="../../C-kern/string/textpos.c"/>
     <File Name="../../C-kern/string/splitstring.c"/>
     <File Name="../../C-kern/string/strsearch.c"/>
+    <File Name="../../C-kern/string/base64encode.c"/>
+    <File Name="../../C-kern/string/urlencode.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding conventions">

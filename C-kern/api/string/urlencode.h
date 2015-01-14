@@ -7,14 +7,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/string/urlencode_string.h
+   file: C-kern/api/string/urlencode.h
     Header file <URLEncodeString>.
 
-   file: C-kern/string/urlencode_string.c
+   file: C-kern/string/urlencode.c
     Implementation file <URLEncodeString impl>.
 */
-#ifndef CKERN_STRING_URLENCODE_STRING_HEADER
-#define CKERN_STRING_URLENCODE_STRING_HEADER
+#ifndef CKERN_STRING_URLENCODE_HEADER
+#define CKERN_STRING_URLENCODE_HEADER
 
 // forward
 struct wbuffer_t ;

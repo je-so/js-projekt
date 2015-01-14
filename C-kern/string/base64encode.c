@@ -7,15 +7,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/string/base64encode_string.h
+   file: C-kern/api/string/base64encode.h
     Header file <Base64EncodeString>.
 
-   file: C-kern/string/base64encode_string.c
+   file: C-kern/string/base64encode.c
     Implementation file <Base64EncodeString impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/string/base64encode_string.h"
+#include "C-kern/api/string/base64encode.h"
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/err.h"

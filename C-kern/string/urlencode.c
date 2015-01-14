@@ -7,15 +7,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/string/urlencode_string.h
+   file: C-kern/api/string/urlencode.h
     Header file <URLEncodeString>.
 
-   file: C-kern/string/urlencode_string.c
+   file: C-kern/string/urlencode.c
     Implementation file <URLEncodeString impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/string/urlencode_string.h"
+#include "C-kern/api/string/urlencode.h"
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/err.h"

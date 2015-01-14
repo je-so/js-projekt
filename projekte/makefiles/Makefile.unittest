@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Jan.07  07:23:05
+GenerationDate  := 2015.Jan.14  08:16:21
 GeneratedBy     := je-so
 
 ## Debug
@@ -173,14 +173,14 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Debug)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
+ $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
- $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
- $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o \
+ $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
@@ -292,14 +292,14 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Release)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
+ $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
- $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!textpos.c.o \
  $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
- $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o \
+ $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!synccond.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
@@ -614,6 +614,9 @@ $(ObjectDir_Debug)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Debug)
 
@@ -626,16 +629,13 @@ $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 $(ObjectDir_Debug)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
+$(ObjectDir_Debug)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
@@ -965,6 +965,9 @@ $(ObjectDir_Release)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Release)
 
@@ -977,16 +980,13 @@ $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 $(ObjectDir_Release)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
+$(ObjectDir_Release)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c

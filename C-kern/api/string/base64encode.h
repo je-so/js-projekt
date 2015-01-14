@@ -7,14 +7,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/string/base64encode_string.h
+   file: C-kern/api/string/base64encode.h
     Header file <Base64EncodeString>.
 
-   file: C-kern/string/base64encode_string.c
+   file: C-kern/string/base64encode.c
     Implementation file <Base64EncodeString impl>.
 */
-#ifndef CKERN_STRING_BASE64ENCODE_STRING_HEADER
-#define CKERN_STRING_BASE64ENCODE_STRING_HEADER
+#ifndef CKERN_STRING_BASE64ENCODE_HEADER
+#define CKERN_STRING_BASE64ENCODE_HEADER
 
 // forward
 struct wbuffer_t ;
