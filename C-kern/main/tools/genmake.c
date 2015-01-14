@@ -31,6 +31,8 @@
 
 
 const char*     g_programname = 0 ;
+unsigned        g_nrofVariables = 0;
+struct { const char* name; size_t len; int isDefined; } g_cmdlineVariables[8/*g_nrofVariables*/] = { { 0, 0, 0 } };
 #define         g_definesprefix  " $(DefineFlag_%s)"  // space needed
 #define         g_includesprefix " $(IncludeFlag_%s)" // space needed
 #define         g_libsprefix     " $(LibraryFlag_%s)" // space needed
@@ -50,8 +52,11 @@ const char * g_predefinedIDs[] = {
    0
 } ;
 
-const char * g_cmdInclude = "include" ;
-const char * g_cmdLink    = "link" ;
+const char * g_cmdElse    = "else";
+const char * g_cmdEndif   = "endif";
+const char * g_cmdIfdef   = "ifdef";
+const char * g_cmdInclude = "include";
+const char * g_cmdLink    = "link";
 
 const char * const g_varCompiler = "Compiler" ; // example: Compiler = gcc
 const char * const g_varCFlagDefine   = "CFlagDefine" ;    // example: CFlagDefine  = -D
@@ -646,7 +651,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
 }
 
 typedef enum command_e {
-   CmdIgnore, CmdAssign, CmdInclude, CmdLink
+   CmdIgnore, CmdAssign, CmdInclude, CmdLink, CmdIfdef, CmdElse, CmdEndif
 } command_e ;
 
 typedef struct parse_line_result_t
@@ -700,7 +705,10 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
    } else if ( linebuffer[ci] == '+' && linebuffer[ci+1] == '=') {
       assigntype = '+' ; ++ci ; ++ci ;
    } else if (  (strlen(g_cmdInclude) != idLen || strncmp(&linebuffer[idStart], g_cmdInclude, idLen))
-            &&  (strlen(g_cmdLink) != idLen || strncmp(&linebuffer[idStart], g_cmdLink, idLen))) {
+            &&  (strlen(g_cmdLink) != idLen || strncmp(&linebuffer[idStart], g_cmdLink, idLen))
+            &&  (strlen(g_cmdElse) != idLen || strncmp(&linebuffer[idStart], g_cmdElse, idLen))
+            &&  (strlen(g_cmdEndif) != idLen || strncmp(&linebuffer[idStart], g_cmdEndif, idLen))
+            &&  (strlen(g_cmdIfdef) != idLen || strncmp(&linebuffer[idStart], g_cmdIfdef, idLen))) {
       print_err( "line %d expected '=' in file '%s'\n", lineNr, filename ) ;
       return 1 ;
    }
@@ -719,9 +727,24 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
    size_t paramLen = ci - paramStart ;
    stringarray_t * modemap = 0 ;
 
-   if (strlen(g_cmdInclude) == idLen && !strncmp(&linebuffer[idStart], g_cmdInclude, idLen)) {
+   if (  (strlen(g_cmdElse) == idLen && !strncmp(&linebuffer[idStart], g_cmdElse, idLen))
+         || (strlen(g_cmdEndif) == idLen && !strncmp(&linebuffer[idStart], g_cmdEndif, idLen))
+         || (strlen(g_cmdIfdef) == idLen && !strncmp(&linebuffer[idStart], g_cmdIfdef, idLen))) {
+      /* parse ifdef/else/endif */
+      matchedCommand = linebuffer[idStart] != 'e' ? CmdIfdef : linebuffer[idStart+1] == 'l' ? CmdElse : CmdEndif;
+      if (assigntype) {
+         print_err( "line %d no '%s' expected in file '%s'\n", lineNr, '+'==assigntype?"+=":"=", filename );
+         return 1;
+      } else if (matchedCommand == CmdIfdef && !paramLen) {
+         print_err( "line %d expected cmdline-variable after %s in file '%s'\n", lineNr, g_cmdInclude, filename );
+         return 1;
+      } else if (matchedCommand != CmdIfdef && paramLen) {
+         print_err( "line %d expected no parameter after %.*s in file '%s'\n", lineNr, idLen, &linebuffer[idStart], filename);
+         return 1;
+      }
+   } else if (strlen(g_cmdInclude) == idLen && !strncmp(&linebuffer[idStart], g_cmdInclude, idLen)) {
       /* parse include */
-      matchedCommand = CmdInclude ;
+      matchedCommand = CmdInclude;
       if (assigntype) {
          print_err( "line %d no '%s' expected in file '%s'\n", lineNr, '+'==assigntype?"+=":"=", filename ) ;
          return 1 ;
@@ -730,8 +753,8 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
          return 1 ;
       }
    } else if (strlen(g_cmdLink) == idLen && !strncmp(&linebuffer[idStart], g_cmdLink, idLen)) {
-      /* parse read */
-      matchedCommand = CmdLink ;
+      /* parse link */
+      matchedCommand = CmdLink;
       if (assigntype) {
          print_err( "line %d no '%s' expected in file '%s'\n", lineNr, '+'==assigntype?"+=":"=", filename ) ;
          return 1 ;
@@ -747,13 +770,13 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
          while (*modemapStart == ' ' || *modemapStart == '\t')  ++modemapStart ;
       }
       if (!modemapStart || !*modemapStart) {
-         print_err( "line %d expected mode mapping after 'read %s' in file '%s'\n", lineNr, &linebuffer[paramStart], filename ) ;
+         print_err( "line %d expected mode mapping after '%s %s' in file '%s'\n", lineNr, g_cmdLink, &linebuffer[paramStart], filename ) ;
          return 1 ;
       }
       if (new_stringarray( modemapStart, " \t", &modemap)) {
          return 1 ;
       }
-      /* default mapping  'read <file> default=>'
+      /* default mapping  'link <file> default=>'
        * 'Debug=>* is an abbreviation for Debug=>Debug'
        * */
       bool isDefault = false ;
@@ -786,7 +809,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
                || ('\t' == c )
                || ('_' == c ) )
                continue ;
-            print_err( "line %d unexpected character '%c' in file '%s'\n", lineNr, c, filename ) ;
+            print_err( "'%s':%d: unexpected character '%c'\n", filename, lineNr, c);
             free_stringarray(&modemap) ;
             return 1 ;
          }
@@ -1243,18 +1266,21 @@ ONERR:
 typedef struct project_file project_file_t ;
 struct project_file
 {
-   FILE*            file ;
-   int              lineNr ;
-   char*            name ;
-   project_file_t*  included_from ;
+   FILE*            file;
+   int              lineNr;
+   char*            name;
+   project_file_t*  included_from;
+   int              isIfdefOrElse; /* 0 => no conditional compilation; CmdIfdef => in ifdef part; CmdElse => in else part; */
+   int              isIgnore;      /* 1 => ignore line (in ifdef or else part); 0 => use line */
 } ;
 
 static int read_projectfile(genmakeproject_t * genmake)
 {
-   int              err = 0 /*no error*/ ;
-   char             linebuffer[1000] ;
-   project_file_t   prj_file = { .file = NULL, .lineNr = 0, .name = genmake->filename, .included_from = NULL } ;
+   int  err = 0 /*no error*/;
+   char linebuffer[1000];
+   project_file_t   prj_file = { .file = NULL, .lineNr = 0, .name = genmake->filename, .included_from = NULL };
    project_file_t*  prj_file_stack = &prj_file ;
+
 
    FILE * file ;
    while (prj_file_stack)
@@ -1278,7 +1304,7 @@ static int read_projectfile(genmakeproject_t * genmake)
             print_err( "Cannot open project file '%s'\n", prj_file_stack[0].name ) ;
          err = 1 ;
       } else {
-         int lineNr = prj_file_stack[0].lineNr ;
+         int lineNr = prj_file_stack[0].lineNr;
          while (!feof(file) && !ferror(file)) {
             /* read one line */
             if (!fgets( linebuffer, sizeof(linebuffer), file)) continue ; /*read error or eof occured */
@@ -1291,9 +1317,61 @@ static int read_projectfile(genmakeproject_t * genmake)
             }
             if (len && linebuffer[len-1] == '\n') linebuffer[--len] = 0 ;
             /* parse line content */
-            parse_line_result_t  parsed ;
-            err = parse_line(&parsed, lineNr, linebuffer, prj_file_stack[0].name) ;
-            if (err) break ;
+            parse_line_result_t  parsed;
+            err = parse_line(&parsed, lineNr, linebuffer, prj_file_stack[0].name);
+            if (err) break;
+
+            if (CmdIfdef == parsed.command || CmdElse == parsed.command || CmdEndif == parsed.command) {
+               /* ifdef COMMAND_LINE_VARIABLE_NAME / else / endif */
+               if (CmdIfdef == parsed.command) {
+                  if (prj_file_stack[0].isIfdefOrElse) {
+                     print_err( "'%s':%d: expected endif instead of %s %.*s\n", prj_file_stack[0].name, lineNr, g_cmdIfdef, parsed.paramLen, &linebuffer[parsed.paramStart]);
+                     err = 1;
+                     break;
+                  }
+                  prj_file_stack[0].isIfdefOrElse = CmdIfdef;
+                  // check variable is known
+                  int isKnown = 0;
+                  for (unsigned i = 0; i < g_nrofVariables; ++i) {
+                     if (parsed.paramLen == g_cmdlineVariables[i].len
+                         && 0 == strcmp(g_cmdlineVariables[i].name, &linebuffer[parsed.paramStart])) {
+                        isKnown = 1;
+                        if (g_cmdlineVariables[i].isDefined < 0) {
+                           printf("\n");
+                           int ch = write(STDOUT_FILENO, "Define command line variable '", 30);
+                           ch = write(STDOUT_FILENO, g_cmdlineVariables[i].name, g_cmdlineVariables[i].len);
+                           ch = write(STDOUT_FILENO, "'? [Y/n]:", 9);
+                           ch = getchar();
+                           g_cmdlineVariables[i].isDefined = ('y' == ch) || ('Y' == ch) || ('\n' == ch);
+                           while (ch != '\n' && ch != EOF) ch = getchar();
+                        }
+                        prj_file_stack[0].isIgnore = ! g_cmdlineVariables[i].isDefined;
+                     }
+                  }
+                  if (!isKnown) {
+                     prj_file_stack[0].isIgnore = 1;
+                     print_warn("'%s':%d: unknown variable '%.*s'\n", prj_file_stack[0].name, lineNr, parsed.paramLen, &linebuffer[parsed.paramStart]);
+                  }
+               } else if (CmdElse == parsed.command) {
+                  if (CmdIfdef != prj_file_stack[0].isIfdefOrElse) {
+                     print_err( "'%s':%d: unexpected %s\n", prj_file_stack[0].name, lineNr, g_cmdElse);
+                     err = 1;
+                     break;
+                  }
+                  prj_file_stack[0].isIfdefOrElse = CmdElse;
+                  prj_file_stack[0].isIgnore = !prj_file_stack[0].isIgnore;
+               } else {
+                  if (!prj_file_stack[0].isIfdefOrElse) {
+                     print_err( "'%s':%d: unexpected %s\n", prj_file_stack[0].name, lineNr, g_cmdEndif);
+                     err = 1;
+                     break;
+                  }
+                  prj_file_stack[0].isIfdefOrElse = 0;
+                  prj_file_stack[0].isIgnore = 0;
+               }
+               continue;
+            } else if (prj_file_stack[0].isIgnore) continue;
+
             if (CmdInclude == parsed.command) {
                /* include filename */
                char * incfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
@@ -1332,9 +1410,9 @@ static int read_projectfile(genmakeproject_t * genmake)
                      break ;
                   }
                   prj_file_stack[0].lineNr = lineNr ; // remember position in file
-                  *include_file  = (project_file_t) { .file = NULL, .lineNr = 0, .name = incfilename, .included_from = prj_file_stack } ;
+                  *include_file  = (project_file_t) { .file = NULL, .lineNr = 0, .name = incfilename, .included_from = prj_file_stack };
                   prj_file_stack = include_file ;
-                  goto PROCESS_STACK ;
+                  goto PROCESS_STACK;
                }
 
             } else if (CmdLink == parsed.command) {
@@ -1464,11 +1542,16 @@ static int read_projectfile(genmakeproject_t * genmake)
             clearerr(file) ;
             print_err( "Cannot read file '%s'\n", prj_file_stack[0].name ) ;
             err = 1 ;
+         } else if (prj_file_stack[0].isIfdefOrElse) {
+            print_err( "'%s':%d: expected endif\n", prj_file_stack[0].name, lineNr);
+            err = 1;
          }
 
       }
 
+
       STACK_UNWIND:
+
 
       if (file) fclose( file ) ;
       project_file_t*  includedFrom = prj_file_stack[0].included_from ;
@@ -1651,24 +1734,40 @@ static int main_thread(maincontext_t * maincontext)
 
    g_programname = maincontext->argv[0] ;
 
-   if (maincontext->argc < 2) {
+   if (maincontext->argc > 1 && 0 == strcmp(maincontext->argv[1], "-h")) {
+      isPrintHelp = 1;
+      goto PRINT_USAGE;
+   }
+
+   int currentArgIndex = 1;
+
+   for (; currentArgIndex < maincontext->argc
+          && '-' == maincontext->argv[currentArgIndex][0]
+          && 'v' == maincontext->argv[currentArgIndex][1];
+          ++ currentArgIndex, ++g_nrofVariables) {
+      if (strlen(maincontext->argv[currentArgIndex]) < 4) goto PRINT_USAGE;
+      if (g_nrofVariables >= lengthof(g_cmdlineVariables)) goto PRINT_USAGE;
+      if (  '+' != maincontext->argv[currentArgIndex][2]
+            && '-' != maincontext->argv[currentArgIndex][2]
+            && '?' != maincontext->argv[currentArgIndex][2]) goto PRINT_USAGE;
+      g_cmdlineVariables[g_nrofVariables].name = &maincontext->argv[currentArgIndex][3];
+      g_cmdlineVariables[g_nrofVariables].len  = strlen(g_cmdlineVariables[g_nrofVariables].name);
+      g_cmdlineVariables[g_nrofVariables].isDefined = ('+' == maincontext->argv[currentArgIndex][2])
+                                                    - ('?' == maincontext->argv[currentArgIndex][2]);
+   }
+
+   if (maincontext->argc <= currentArgIndex) {
       goto PRINT_USAGE ;
    }
 
-   if (0 == strcmp(maincontext->argv[1], "-h")) {
-      isPrintHelp = 1 ;
-      goto PRINT_USAGE ;
-   }
-
-   const char * makefilename  = 0 ;
-   int currentArgIndex = 1 ;
+   const char * makefilename = 0;
    if (0 == strcmp(maincontext->argv[currentArgIndex], "-o")) {
-      if (maincontext->argc < 3) goto PRINT_USAGE ;
-      makefilename     = maincontext->argv[currentArgIndex+1] ;
-      currentArgIndex += 2 ;
+      if (currentArgIndex+1 >= maincontext->argc) goto PRINT_USAGE;
+      makefilename     = maincontext->argv[currentArgIndex+1];
+      currentArgIndex += 2;
    }
 
-   int isDirectory = (maincontext->argc > currentArgIndex+1) ;
+   int isDirectory = (maincontext->argc > currentArgIndex+1);
 
    for (; !err && currentArgIndex < maincontext->argc; ++currentArgIndex) {
       genmakeproject_t * genmake = 0 ;
@@ -1693,16 +1792,23 @@ ONERR:
    return err ;
 
 PRINT_USAGE:
-   fprintf(stderr, "Genmake version 0.1; Copyright (C) 2010 Joerg Seebohn\n" ) ;
-   fprintf(stderr, "\nUsage(1): %s -o <makefile.name> <filename>\n", g_programname ) ;
-   fprintf(stderr, "%s", "       -> generates a makefile from a project description\n" ) ;
-   fprintf(stderr, "     (2): %s -o <directory> <filename1> ... <filenameN>\n", g_programname ) ;
-   fprintf(stderr, "%s", "       -> generates N makefiles from N project descriptions in the specified directory.\n" ) ;
-   fprintf(stderr, "%s", "          Makefile names follow the pattern 'Makefile.<projectname>'.\n" ) ;
-   fprintf(stderr, "     (3): %s <filename1> ... <filenameN>\n", g_programname ) ;
-   fprintf(stderr, "%s", "       -> generates N makefiles and prints them to stdout.\n" ) ;
-   fprintf(stderr, "     (4): %s  -h\n", g_programname ) ;
-   fprintf(stderr, "%s", "       -> prints additional help.\n" ) ;
+   fprintf(stderr, "Genmake version 0.2 – copyright (C) 2015 Joerg Seebohn\n\n");
+   fprintf(stderr, "Usage:\n");
+   fprintf(stderr, "%s [VAR] -o <makefile.name> <filename>\n", g_programname);
+   fprintf(stderr, " -> Generate a makefile from a project description\n");
+   fprintf(stderr, "%s [VAR] -o <directory> <filename1> ... <filenameN>\n", g_programname);
+   fprintf(stderr, " -> Generate N makefiles in the specified directory.\n");
+   fprintf(stderr, "    Makefile names follow the pattern 'Makefile.<projectname>'.\n");
+   fprintf(stderr, "%s [VAR] <filename1> ... <filenameN>\n", g_programname);
+   fprintf(stderr, " -> Generate N makefiles and prints them to stdout.\n");
+   fprintf(stderr, "%s -h\n", g_programname);
+   fprintf(stderr, " -> Print additional help.\n\n");
+   fprintf(stderr, "[Optional arguments]:\n");
+   fprintf(stderr, "-v?VAR\n -> Query user if variable VAR should be enabled or disabled\n");
+   fprintf(stderr, "-v+VAR\n -> Command line variable VAR should be enabled\n");
+   fprintf(stderr, "-v-VAR\n -> Command line variable VAR should be disabled\n");
+   fprintf(stderr, "    (Up to %d variables are supported)\n", lengthof(g_cmdlineVariables));
+
 
    if (isPrintHelp) {
       fprintf(stderr, "%s", "\nGenmake reads in a project textfile decribing the compiler&linker" ) ;
@@ -1820,7 +1926,7 @@ PRINT_USAGE:
       fprintf(stderr, "%s", "\nObjectdir = bin/$(mode)" ) ;
       fprintf(stderr, "%s", "\nTarget    = bin/$(projectname).$(mode)\n" ) ;
       fprintf(stderr, "%s", "\n#$(mode): Name of current building mode (list of possible values is set by 'Modes'): " ) ;
-      fprintf(stderr, "%s", "\n#         'Modes = Debug Release' => 'bin/Debug' , 'bin/Release'n" ) ;
+      fprintf(stderr, "%s", "\n#         'Modes = Debug Release' => 'bin/Debug' , 'bin/Release'" ) ;
       fprintf(stderr, "%s", "\n#$(projectname): Filename of project description without path and extension: " ) ;
       fprintf(stderr, "%s", "\n#                'path/name.ext' => 'name' " ) ;
       fprintf(stderr, "%s", "\n") ;
@@ -1831,10 +1937,10 @@ PRINT_USAGE:
 
 int main(int argc, const char * argv[])
 {
-   int err ;
-
+   int err;
    maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread);
+
    err = initstart_maincontext(&startparam);
 
-   return err ;
+   return err;
 }

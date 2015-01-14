@@ -71,7 +71,8 @@ test:	unittest testmodule
 	bin/unittest
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/shared.gcc | genmake_Release
-	@bin/genmake $< > "$(@)"
+	@if [ -f "$(@)" ]; then rm "$(@)"; fi
+	@bin/genmake -v?KONFIG_GRAPHICS -o "$(@)" $<
 
 pp-generrtab: generrtab_Release
 
@@ -111,4 +112,4 @@ $(MAKEFILES_PREFIX)textres2compiler: projekte/subsys/Linux-mini projekte/subsys/
 
 $(MAKEFILES_PREFIX)perftest: projekte/subsys/Linux projekte/subsys/context
 
-$(MAKEFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic
+AOPHICFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic
