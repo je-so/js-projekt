@@ -241,40 +241,42 @@ ONERR:
    return err;
 }
 
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix)
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, /*ret*/struct wbuffer_t* dirpath/*could be set to 0*/)
 {
    int err;
    directory_t* newdir   = 0;
    char*        mkdpath  = 0;
    size_t       dir_len  = strlen(P_tmpdir);
    size_t       name_len = name_prefix ? strlen(name_prefix) : 0;
-   size_t       tmpsize  = dir_len + name_len + 1 + 7 + 1;
-   cstring_t    tmppath  = cstring_INIT;
+   size_t       tmpsize  = dir_len + name_len + 1 + 8;
+   cstring_t    strbuf   = cstring_INIT;
+   wbuffer_t*   tmppath  = dirpath ? dirpath : &(wbuffer_t) wbuffer_INIT_CSTRING(&strbuf);
+   size_t       oldsize  = size_wbuffer(tmppath);
+   uint8_t*     bytes;
 
-   err = allocate_cstring(&tmppath, tmpsize);
+   err = appendbytes_wbuffer(tmppath, tmpsize, &bytes);
    if (err) goto ONERR;
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
+   memcpy(bytes, P_tmpdir, dir_len);
+   bytes[dir_len] = '/';
+   memcpy((bytes+dir_len+1), name_prefix, name_len);
+   memcpy((bytes+dir_len+1)+name_len, ".XXXXXX", 8);
 
-   err = append_cstring(&tmppath, dir_len, P_tmpdir);
-   if (err) goto ONERR;
-   err = append_cstring(&tmppath, 1, "/");
-   if (err) goto ONERR;
-   err = append_cstring(&tmppath, name_len, name_prefix);
-   if (err) goto ONERR;
-   err = append_cstring(&tmppath, 7, ".XXXXXX");
-   if (err) goto ONERR;
-
-   mkdpath = mkdtemp(str_cstring(&tmppath));
+   mkdpath = mkdtemp((char*)bytes);
    if (!mkdpath) {
       err = errno;
       TRACESYSCALL_ERRLOG("mkdtemp",err);
       goto ONERR;
    }
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
 
    err = new_directory(&newdir, mkdpath, NULL);
    if (err) goto ONERR;
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
 
-   err = free_cstring(&tmppath);
+   err = free_cstring(&strbuf);
    if (err) goto ONERR;
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONERR);
 
    *dir = newdir;
 
@@ -283,8 +285,9 @@ ONERR:
    if (mkdpath) {
       rmdir(mkdpath);
    }
-   free_cstring(&tmppath);
+   free_cstring(&strbuf);
    delete_directory(&newdir);
+   shrink_wbuffer(tmppath, oldsize);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -402,7 +405,7 @@ ONERR:
    return err;
 }
 
-int makefile_directory(directory_t* dir, const char* file_path, off_t file_length)
+int makefile_directory(const directory_t* dir, const char* file_path, off_t file_length)
 {
    int err;
    int fd       = -1;
@@ -442,7 +445,7 @@ ONERR:
    return err;
 }
 
-int removedirectory_directory(directory_t* dir, const char* directory_path)
+int removedirectory_directory(const directory_t* dir, const char* directory_path)
 {
    int err;
    int unlinkatfd = AT_FDCWD;
@@ -466,7 +469,7 @@ ONERR:
    return err;
 }
 
-int removefile_directory(directory_t* dir, const char* file_path)
+int removefile_directory(const directory_t* dir, const char* file_path)
 {
    int err;
    int unlinkatfd = AT_FDCWD;
@@ -630,17 +633,50 @@ static int test_initfree(void)
    TEST(!dir);
 
    // TEST newtemp_directory
-   TEST(0 == newtemp_directory(&temp_dir, "test1"));
+   TEST(0 == newtemp_directory(&temp_dir, "test1", &tmppathwb));
+   // check
    TEST(0 != temp_dir);
-   TEST(0 == path_directory(temp_dir, &tmppathwb));
    TEST(18 == size_wbuffer(&tmppathwb));
    TEST(0 == strncmp(str_cstring(&tmppath), "/tmp/test1.", 11));
    TEST(0 == glob(str_cstring(&tmppath), GLOB_NOSORT, 0, &fndfiles));
    TEST(1 == fndfiles.gl_pathc);
    TEST(0 == strcmp(fndfiles.gl_pathv[0], str_cstring(&tmppath)));
+   // reset
    globfree(&fndfiles);
+   clear_wbuffer(&tmppathwb);
+   TEST(0 == delete_directory(&temp_dir));
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+
+   // TEST newtemp_directory: name_prefix == 0 && dirpath == 0
+   TEST(0 == newtemp_directory(&temp_dir, 0, 0));
+   // check
+   TEST(0 != temp_dir);
+   TEST(0 == path_directory(temp_dir, &tmppathwb));
+   TEST(13 == size_wbuffer(&tmppathwb));
+   TEST(0 == strncmp(str_cstring(&tmppath), "/tmp/.", 6));
+   TEST(0 == glob(str_cstring(&tmppath), GLOB_NOSORT, 0, &fndfiles));
+   TEST(1 == fndfiles.gl_pathc);
+   TEST(0 == strcmp(fndfiles.gl_pathv[0], str_cstring(&tmppath)));
+   // reset
+   globfree(&fndfiles);
+   clear_wbuffer(&tmppathwb);
+   TEST(0 == delete_directory(&temp_dir));
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
+
+   // TEST newtemp_directory: simulated ERROR
+   for (int i = 1; i <= 4; ++i) {
+      init_testerrortimer(&s_directory_errtimer, (unsigned)i, i);
+      TEST(i == newtemp_directory(&temp_dir, "xyzgamma", (i&1) ? &tmppathwb : 0));
+      // check
+      TEST(0 == temp_dir);
+      TEST(0 == size_wbuffer(&tmppathwb));
+      TEST(GLOB_NOMATCH == glob("/tmp/xyzgamma.*", GLOB_NOSORT, 0, &fndfiles));
+      // reset
+      TEST(0 == delete_directory(&temp_dir));
+   }
 
    // TEST new_directory: relative path
+   TEST(0 == newtemp_directory(&temp_dir, "test1", &tmppathwb));
    TEST(0 == mkdirat(io_directory(temp_dir), "reldir.123", 0777));
    TEST(0 == new_directory(&dir, "reldir.123", temp_dir));
    TEST(0 != dir);
@@ -750,13 +786,6 @@ static int test_initfree(void)
    TEST(0 == gofirst_directory(temp_dir));
    TEST(0 == test_directory_stream__nextdir(temp_dir, 0));
 
-   // TEST remove temp directory (now empty)
-   TEST(0 == new_directory(&dir, str_cstring(&tmppath), 0));
-   TEST(0 == delete_directory(&dir));
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-      // check it does no more exist
-   TEST(ENOENT == new_directory(&dir, str_cstring(&tmppath), 0));
-
    // adapt LOG
    uint8_t *logbuffer;
    size_t   logsize;
@@ -770,6 +799,8 @@ static int test_initfree(void)
       }
    }
 
+   // reset
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
    TEST(0 == delete_directory(&temp_dir));
    TEST(0 == free_cstring(&tmppath));
    TEST(0 == free_iochannel(&fd_oldwd));
@@ -819,12 +850,11 @@ static int test_filesize(void)
 {
    directory_t* workdir   = 0;
    directory_t* tempdir   = 0;
-   cstring_t    tmppath   = cstring_INIT;
-   wbuffer_t    tmppathwb = wbuffer_INIT_CSTRING(&tmppath);
+   uint8_t      tmppath[256];
 
    // prepare
    TEST(0 == new_directory(&workdir, "", 0));
-   TEST(0 == newtemp_directory(&tempdir, "tempdir"));
+   TEST(0 == newtemp_directory(&tempdir, "tempdir", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), tmppath)));
    for (int i = 0; i < 100; ++i) {
       char filename[100];
       sprintf( filename, "file_%06d", i);
@@ -862,10 +892,7 @@ static int test_filesize(void)
       sprintf( filename, "file_%06d", i);
       TEST(0 == removefile_directory(tempdir, filename));
    }
-   TEST(0 == path_directory(tempdir, &tmppathwb));
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-
-   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == removedirectory_directory(0, (const char*)tmppath));
    TEST(0 == delete_directory(&tempdir));
    TEST(0 == delete_directory(&workdir));
 
@@ -874,7 +901,6 @@ ONERR:
    if (workdir) {
       assert(0 == fchdir(io_directory(workdir)));
    }
-   free_cstring(&tmppath);
    delete_directory(&workdir);
    delete_directory(&tempdir);
    return EINVAL;
@@ -884,6 +910,7 @@ static int test_query_path(void)
 {
    directory_t * tempdir = 0;
    directory_t * dir     = 0;
+   char          tmppath[256];
    char          buffer[sys_path_MAXSIZE];
    wbuffer_t     pathwb  = wbuffer_INIT_STATIC(sizeof(buffer), (uint8_t*)buffer);
    cstring_t     parent  = cstring_INIT;
@@ -891,7 +918,8 @@ static int test_query_path(void)
    wbuffer_t     pathcstr = wbuffer_INIT_CSTRING(&cstrbuf);
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "qp"));
+   TEST(0 == newtemp_directory(&tempdir, "qp", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
+   TEST(0 == strncmp(tmppath, "/tmp/qp.", 8));
 
    // TEST path_directory: /
    TEST(0 == new_directory(&dir, "/", 0));
@@ -914,9 +942,8 @@ static int test_query_path(void)
    // TEST path_directory: temp directory
    clear_wbuffer(&pathwb);
    TEST(0 == path_directory(tempdir, &pathwb));
-   TEST(15 == size_wbuffer(&pathwb));
-   TEST(0 == strncmp(buffer, "/tmp/qp.", 8));
-   TEST(0 == buffer[14]);
+   TEST(strlen(tmppath)+1 == size_wbuffer(&pathwb));
+   TEST(0 == strcmp(buffer, tmppath));
    TEST(0 == new_directory(&dir, "..", tempdir));
    clear_wbuffer(&pathwb);
    TEST(0 == path_directory(dir, &pathwb));

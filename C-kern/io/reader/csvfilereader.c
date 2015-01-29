@@ -362,13 +362,12 @@ static int test_initfree(void)
    csvfilereader_t csvfile  = csvfilereader_FREE;
    mmfile_t        mmempty  = mmfile_FREE;
    directory_t*    tmpdir   = 0;
-   cstring_t       tmppath  = cstring_INIT;
    cstring_t       filepath = cstring_INIT;
    file_t          file     = file_FREE;
+   char            tmppath[128];
 
    // prepare
-   TEST(0 == newtemp_directory(&tmpdir, "test_initfree"));
-   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   TEST(0 == newtemp_directory(&tmpdir, "test_initfree", &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
    TEST(0 == makefile_directory(tmpdir, "single", 0));
    TEST(0 == init_file(&file, "single", accessmode_WRITE, tmpdir));
    TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0));
@@ -382,7 +381,7 @@ static int test_initfree(void)
    TEST(0 == csvfile.tablevalues);
 
    // TEST init_csvfilereader, free_csvfilereader
-   TEST(0 == printfappend_cstring(&filepath, "%s/single", str_cstring(&tmppath))) ;
+   TEST(0 == printfappend_cstring(&filepath, "%s/single", tmppath)) ;
    TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
    TEST(1 == csvfile.nrcolumns) ;
    TEST(1 == csvfile.nrrows) ;
@@ -402,19 +401,17 @@ static int test_initfree(void)
    TEST(0 == csvfile.tablevalues) ;
 
    // unprepare
-   TEST(0 == removefile_directory(tmpdir, "single")) ;
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == delete_directory(&tmpdir)) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == free_cstring(&filepath)) ;
+   TEST(0 == removefile_directory(tmpdir, "single"));
+   TEST(0 == removedirectory_directory(0, tmppath));
+   TEST(0 == delete_directory(&tmpdir));
+   TEST(0 == free_cstring(&filepath));
 
-   return 0 ;
+   return 0;
 ONERR:
-   delete_directory(&tmpdir) ;
-   free_cstring(&tmppath) ;
-   free_cstring(&filepath) ;
-   free_csvfilereader(&csvfile) ;
-   return EINVAL ;
+   delete_directory(&tmpdir);
+   free_cstring(&filepath);
+   free_csvfilereader(&csvfile);
+   return EINVAL;
 }
 
 static int test_query(void)
@@ -478,12 +475,12 @@ ONERR:
 
 static int test_reading(void)
 {
-   csvfilereader_t   csvfile  = csvfilereader_FREE ;
-   directory_t     * tmpdir   = 0 ;
-   mmfile_t          mmempty  = mmfile_FREE ;
-   cstring_t         tmppath  = cstring_INIT ;
-   cstring_t         filepath = cstring_INIT ;
-   file_t            file     = file_FREE ;
+   csvfilereader_t   csvfile  = csvfilereader_FREE;
+   directory_t     * tmpdir   = 0;
+   mmfile_t          mmempty  = mmfile_FREE;
+   cstring_t         filepath = cstring_INIT;
+   file_t            file     = file_FREE;
+   char              tmppath[256];
    const char        * errdata[] = {
                         "\"h1\", \"h2\" x",    // extra data in header
                          "\"h1\", \"h2\", \n\"h3\"",  // header field on next line
@@ -508,18 +505,17 @@ static int test_reading(void)
                      } ;
 
    // prepare
-   TEST(0 == newtemp_directory(&tmpdir, "test_reading")) ;
-   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
+   TEST(0 == newtemp_directory(&tmpdir, "test_reading", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
 
    // TEST init_csvfilereader: read filesize = 0
-   TEST(0 == makefile_directory(tmpdir, "zero", 0)) ;
-   TEST(0 == printfappend_cstring(&filepath, "%s/zero", str_cstring(&tmppath))) ;
-   TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
-   TEST(0 == nrcolumns_csvfilereader(&csvfile)) ;
-   TEST(0 == nrrows_csvfilereader(&csvfile)) ;
-   TEST(0 == csvfile.allocated_rows) ;
-   TEST(0 == csvfile.tablevalues) ;
-   TEST(0 == removefile_directory(tmpdir, "zero")) ;
+   TEST(0 == makefile_directory(tmpdir, "zero", 0));
+   TEST(0 == printfappend_cstring(&filepath, "%s/zero", tmppath));
+   TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath)));
+   TEST(0 == nrcolumns_csvfilereader(&csvfile));
+   TEST(0 == nrrows_csvfilereader(&csvfile));
+   TEST(0 == csvfile.allocated_rows);
+   TEST(0 == csvfile.tablevalues);
+   TEST(0 == removefile_directory(tmpdir, "zero"));
    TEST(0 == free_csvfilereader(&csvfile)) ;
 
    // TEST init_csvfilereader: read empty file (only comments)
@@ -529,8 +525,8 @@ static int test_reading(void)
    TEST(0 == write_file(file, strlen(empty), empty, 0)) ;
    TEST(0 == free_file(&file)) ;
    clear_cstring(&filepath) ;
-   TEST(0 == printfappend_cstring(&filepath, "%s/empty", str_cstring(&tmppath))) ;
-   TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
+   TEST(0 == printfappend_cstring(&filepath, "%s/empty", tmppath));
+   TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath)));
    TEST(0 == nrcolumns_csvfilereader(&csvfile)) ;
    TEST(0 == nrrows_csvfilereader(&csvfile)) ;
    TEST(0 == csvfile.allocated_rows) ;
@@ -545,10 +541,10 @@ static int test_reading(void)
       TEST(0 == write_file(file, strlen(errdata[i]), errdata[i], 0)) ;
       TEST(0 == free_file(&file)) ;
       clear_cstring(&filepath) ;
-      TEST(0 == printfappend_cstring(&filepath, "%s/error", str_cstring(&tmppath))) ;
-      memset(&csvfile, 255, sizeof(csvfile)) ;
-      uint8_t *logbuffer ;
-      size_t   logstart ;
+      TEST(0 == printfappend_cstring(&filepath, "%s/error", tmppath));
+      memset(&csvfile, 255, sizeof(csvfile));
+      uint8_t* logbuffer;
+      size_t   logstart;
       GETBUFFER_ERRLOG(&logbuffer, &logstart) ;
       TEST(EINVAL == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
       TEST(0 == memcmp(&mmempty, &csvfile.file, sizeof(mmempty))) ;
@@ -580,7 +576,7 @@ static int test_reading(void)
    }
    TEST(0 == free_file(&file)) ;
    clear_cstring(&filepath) ;
-   TEST(0 == printfappend_cstring(&filepath, "%s/content", str_cstring(&tmppath))) ;
+   TEST(0 == printfappend_cstring(&filepath, "%s/content", tmppath)) ;
    TEST(0 == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
    TEST(20 == nrcolumns_csvfilereader(&csvfile)) ;
    TEST(50 == nrrows_csvfilereader(&csvfile)) ;
@@ -597,20 +593,18 @@ static int test_reading(void)
    TEST(0 == free_csvfilereader(&csvfile)) ;
    TEST(0 == removefile_directory(tmpdir, "content")) ;
 
-   // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
-   TEST(0 == delete_directory(&tmpdir)) ;
-   TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == free_cstring(&filepath)) ;
+   // reset
+   TEST(0 == removedirectory_directory(0, tmppath));
+   TEST(0 == delete_directory(&tmpdir));
+   TEST(0 == free_cstring(&filepath));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_cstring(&tmppath) ;
-   free_cstring(&filepath) ;
-   free_file(&file) ;
-   delete_directory(&tmpdir) ;
-   free_csvfilereader(&csvfile) ;
-   return EINVAL ;
+   free_cstring(&filepath);
+   free_file(&file);
+   delete_directory(&tmpdir);
+   free_csvfilereader(&csvfile);
+   return EINVAL;
 }
 
 int unittest_io_reader_csvfilereader()

@@ -42,6 +42,9 @@
 /* variable: s_file_errtimer
  * Simulates an error in different functions. */
 static test_errortimer_t s_file_errtimer = test_errortimer_FREE;
+/* variable: s_file_errtimer_nametoolong
+ * Simuliert Fehler in path_file für ENAMETOOLONG. */
+static test_errortimer_t s_file_errtimer_nametoolong = test_errortimer_FREE;
 #endif
 
 // group: constants
@@ -49,6 +52,10 @@ static test_errortimer_t s_file_errtimer = test_errortimer_FREE;
 /* variable: TEMPFILENAME
  * Namenstemplate einer temporären Datei. */
 #define TEMPFILENAME    P_tmpdir "/temp.XXXXXX"
+
+/* variable: PROCSELF_FD
+ * Zeigt auf Verzeichnis "/proc/self/fd/", das alle geöffneten Dateideskriptoren auflistet. */
+#define PROCSELF_FD     "/proc/self/fd/"
 
 // group: functions
 
@@ -80,7 +87,7 @@ ONERR:
 
 // group: lifetime
 
-int init_file(/*out*/file_t* fileobj, const char* filepath, accessmode_e iomode, const struct directory_t* relative_to)
+int init_file(/*out*/file_t* file, const char* filepath, accessmode_e iomode, const struct directory_t* relative_to)
 {
    int err;
    int fd       = -1;
@@ -108,7 +115,7 @@ int init_file(/*out*/file_t* fileobj, const char* filepath, accessmode_e iomode,
       goto ONERR;
    }
 
-   *fileobj = fd;
+   *file = fd;
 
    return 0;
 ONERR:
@@ -116,7 +123,7 @@ ONERR:
    return err;
 }
 
-int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/)
+int initappend_file(/*out*/file_t* file, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/)
 {
    int err;
    int fd;
@@ -137,7 +144,7 @@ int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct d
       goto ONERR;
    }
 
-   *fileobj = fd;
+   *file = fd;
 
    return 0;
 ONERR:
@@ -145,7 +152,7 @@ ONERR:
    return err;
 }
 
-int initcreate_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to)
+int initcreate_file(/*out*/file_t* file, const char* filepath, const struct directory_t* relative_to)
 {
    int err;
    int fd;
@@ -166,7 +173,7 @@ int initcreate_file(/*out*/file_t* fileobj, const char* filepath, const struct d
       goto ONERR;
    }
 
-   *fileobj = fd;
+   *file = fd;
 
    return 0;
 ONERR:
@@ -234,13 +241,13 @@ ONERR:
    return err;
 }
 
-int free_file(file_t* fileobj)
+int free_file(file_t* file)
 {
    int err;
-   int close_fd = *fileobj;
+   int close_fd = *file;
 
    if (!isfree_file(close_fd)) {
-      *fileobj = file_FREE;
+      *file = file_FREE;
 
       err = close(close_fd);
       if (err) {
@@ -258,18 +265,18 @@ ONERR:
    return err;
 }
 
-// group: query
+// group: system-query
 
-accessmode_e accessmode_file(const file_t fileobj)
+accessmode_e accessmode_file(const file_t file)
 {
    int err;
    int flags;
 
-   flags = fcntl(fileobj, F_GETFL);
+   flags = fcntl(file, F_GETFL);
    if (-1 == flags) {
       err = errno;
       TRACESYSCALL_ERRLOG("fcntl", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       goto ONERR;
    }
 
@@ -286,25 +293,80 @@ ONERR:
 
 /* function: isvalid_file
  * Uses fcntl to query file descriptor flags (FD_CLOEXEC). */
-bool isvalid_file(file_t fileobj)
+bool isvalid_file(file_t file)
 {
    int err;
 
-   err = fcntl(fileobj, F_GETFD);
+   err = fcntl(file, F_GETFD);
 
    return (-1 != err);
 }
 
-int size_file(const file_t fileobj, /*out*/off_t * file_size)
+/* function: path_file
+ * Nutzt Zugriff auf "/proc/self/fd/%d:file:" zur Implementierung.
+ * Dieser Pfad ist ein Link, der auf den absoluten Pfad der Datei zeigt
+ * und wird mit readlink( "/proc/self/fd/filenr", path, sizeof(path) ) gelesen. */
+int path_file(const file_t file, /*ret*/struct wbuffer_t* path)
+{
+   int err;
+   char    link_path[] = { PROCSELF_FD "0000000000" };
+   ssize_t alloc_size  = 64;
+   size_t  oldsize = size_wbuffer(path);
+
+   snprintf(link_path + sizeof(PROCSELF_FD)-1, sizeof(link_path)-sizeof(PROCSELF_FD)+1, "%u", (uint32_t)file);
+
+   // set out/ret param
+
+   uint8_t* pathstr;
+   ssize_t  real_size;
+
+   for (;;) {
+      err = appendbytes_wbuffer(path, (size_t)alloc_size, &pathstr);
+      if (err) goto ONERR;
+
+      real_size = readlink(link_path, (char*)pathstr, (size_t)alloc_size);
+
+      if (real_size < alloc_size) break;
+
+      shrink_wbuffer(path, oldsize);
+
+      alloc_size *= 2;
+      SETONERROR_testerrortimer(&s_file_errtimer_nametoolong, &alloc_size/*in test: use -1 for err value*/);
+      if (alloc_size > 1024*1024) {
+         err = ENAMETOOLONG;
+         goto ONERR;
+      }
+   }
+
+   SETONERROR_testerrortimer(&s_file_errtimer, &real_size/*in test: use -1 for err value*/);
+   if (real_size < 0) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("readlink", err);
+      PRINTCSTR_ERRLOG(link_path);
+      shrink_wbuffer(path, oldsize);
+      goto ONERR;
+   }
+
+   // append '\0' byte
+   shrink_wbuffer(path, 1 + (size_t)real_size);
+   pathstr[real_size] = 0;
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+int size_file(const file_t file, /*out*/off_t * file_size)
 {
    int err;
    struct stat stat_result;
 
-   err = fstat(fileobj, &stat_result);
+   err = fstat(file, &stat_result);
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("fstat", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       goto ONERR;
    }
 
@@ -318,14 +380,14 @@ ONERR:
 
 // group: I/O
 
-int advisereadahead_file(file_t fileobj, off_t offset, off_t length)
+int advisereadahead_file(file_t file, off_t offset, off_t length)
 {
    int err;
 
-   err = posix_fadvise(fileobj, offset, length, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED);
+   err = posix_fadvise(file, offset, length, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED);
    if (err) {
       TRACESYSCALL_ERRLOG("posix_fadvise", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       PRINTINT64_ERRLOG(offset);
       PRINTINT64_ERRLOG(length);
       goto ONERR;
@@ -337,14 +399,14 @@ ONERR:
    return err;
 }
 
-int advisedontneed_file(file_t fileobj, off_t offset, off_t length)
+int advisedontneed_file(file_t file, off_t offset, off_t length)
 {
    int err;
 
-   err = posix_fadvise(fileobj, offset, length, POSIX_FADV_DONTNEED);
+   err = posix_fadvise(file, offset, length, POSIX_FADV_DONTNEED);
    if (err) {
       TRACESYSCALL_ERRLOG("posix_fadvise", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       PRINTINT64_ERRLOG(offset);
       PRINTINT64_ERRLOG(length);
       goto ONERR;
@@ -359,15 +421,15 @@ ONERR:
 
 // group: allocation
 
-int truncate_file(file_t fileobj, off_t file_size)
+int truncate_file(file_t file, off_t file_size)
 {
    int err;
 
-   err = ftruncate(fileobj, file_size);
+   err = ftruncate(file, file_size);
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("ftruncate", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       goto ONERR;
    }
 
@@ -377,15 +439,15 @@ ONERR:
    return err;
 }
 
-int allocate_file(file_t fileobj, off_t file_size)
+int allocate_file(file_t file, off_t file_size)
 {
    int err;
 
-   err = fallocate(fileobj, 0/*adapt file size*/, 0, file_size);
+   err = fallocate(file, 0/*adapt file size*/, 0, file_size);
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("fallocate", err);
-      PRINTINT_ERRLOG(fileobj);
+      PRINTINT_ERRLOG(file);
       goto ONERR;
    }
 
@@ -424,15 +486,20 @@ ONERR:
    return EINVAL;
 }
 
-static int test_query(directory_t* tempdir)
+static int test_query(directory_t* tempdir, const char* tempdir_path)
 {
-   file_t fd  = file_FREE;
-   file_t fd2 = file_FREE;
-   int    pipefd[2] = { file_FREE, file_FREE };
-   off_t  filesize;
+   file_t  fd  = file_FREE;
+   file_t  fd2 = file_FREE;
+   int     pipefd[2] = { file_FREE, file_FREE };
+   off_t   filesize;
+   char    buffer[1024];
+   wbuffer_t filepath = wbuffer_INIT_STATIC(sizeof(buffer), (uint8_t*)buffer);
+   const char* longname = "very-long-filename-1234567890-1234567890-1234567890-1234567890-1234567890-"
+                          "1234567890-1234567890-1234567890-1234567890-1234567890-testfile";
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "testfile", 1));
+   TEST(0 == makefile_directory(tempdir, longname, 1));
 
    // TEST static init
    TEST(0 == file_STDIN);
@@ -477,24 +544,60 @@ static int test_query(directory_t* tempdir)
    TEST(accessmode_WRITE == accessmode_file(fd2));
    TEST(0 == free_file(&fd));
    TEST(0 == free_file(&fd2));
-   TEST(fd == file_FREE);
-   TEST(fd2 == file_FREE);
 
    // TEST accessmode_file: accessmode_RDWR
    fd = openat(io_directory(tempdir), "testfile", O_RDWR|O_CLOEXEC);
-   fd2 = fd;
    TEST(fd > 0);
    TEST(accessmode_RDWR == accessmode_file(fd));
-   TEST(accessmode_RDWR == accessmode_file(fd2));
    TEST(0 == free_file(&fd));
-   TEST(fd == file_FREE);
 
    // TEST accessmode_file: accessmode_NONE
-   TEST(accessmode_NONE == accessmode_file(fd2));
-   TEST(accessmode_NONE == accessmode_file(fd2));
    TEST(accessmode_NONE == accessmode_file(fd));
-   TEST(accessmode_NONE == accessmode_file(fd));
-   fd2 = file_FREE;
+
+   // TEST path_file
+   for (int i = 0; i < 2; ++i) {
+      const char* fname = (i ? longname : "testfile");
+      fd = openat(io_directory(tempdir), fname, O_RDWR|O_CLOEXEC);
+      // test
+      clear_wbuffer(&filepath);
+      TEST(0 == path_file(fd, &filepath));
+      // check content of filepath
+      size_t S = strlen(tempdir_path) + strlen(fname) + 2/*'/' + '\0'*/;
+      TEST(S == size_wbuffer(&filepath));
+      TEST(0 == strncmp(tempdir_path, buffer, strlen(tempdir_path)));
+      TEST('/' == buffer[strlen(tempdir_path)]);
+      TEST(0 == strcmp(buffer + strlen(tempdir_path) + 1, fname));
+      // reset
+      TEST(0 == free_file(&fd));
+   }
+
+   // TEST path_file: ENAMETOOLONG
+   fd = openat(io_directory(tempdir), longname, O_RDWR|O_CLOEXEC);
+   // test
+   init_testerrortimer(&s_file_errtimer_nametoolong, 1, 1024*1024+1);
+   clear_wbuffer(&filepath);
+   TEST(ENAMETOOLONG == path_file(fd, &filepath));
+   // check filepath not changed
+   TEST(0 == size_wbuffer(&filepath));
+   // reset
+   TEST(0 == free_file(&fd));
+
+   // TEST path_file: readlink fails (bytes == -1)
+   for (int i = 0; i < 2; ++i) {
+      fd = openat(io_directory(tempdir), i ? longname : "testfile", O_RDWR|O_CLOEXEC);
+      clear_wbuffer(&filepath);
+      init_testerrortimer(&s_file_errtimer, 1, -1);
+      errno = EPERM;
+      TEST(EPERM == path_file(fd, &filepath));
+      TEST(0 == size_wbuffer(&filepath));
+      // reset
+      TEST(0 == free_file(&fd));
+   }
+
+   // TEST path_file: ENOENT (bad file descriptor)
+   clear_wbuffer(&filepath);
+   TEST(ENOENT == path_file((file_t)-1, &filepath));
+   TEST(0 == size_wbuffer(&filepath));
 
    // TEST size_file: regular file
    TEST(0 == initappend_file(&fd, "testfilesize", tempdir));
@@ -502,19 +605,23 @@ static int test_query(directory_t* tempdir)
    TEST(0 == size_file(fd, &filesize));
    TEST(0 == filesize);
    for (unsigned i = 1; i <= 256; ++i) {
-      uint8_t  buffer[257];
-      memset(buffer, 3, sizeof(buffer));
-      TEST(0 == write_file(fd, sizeof(buffer), buffer, 0));
+      static_assert(sizeof(buffer) > 257, "25 does not overflow buffer");
+      memset(buffer, 3, 257);
+      // prepare
+      TEST(0 == write_file(fd, 257, buffer, 0));
+      TEST(0 == filesize_directory(tempdir, "testfilesize", &filesize));
+      TEST(filesize == 257*i);
+      // test (already open)
+      filesize = 0;
       TEST(0 == size_file(fd, &filesize));
-      TEST(filesize == sizeof(buffer)*i);
+      TEST(filesize == 257*i);
+      // test (newly opened)
       filesize = 0;
       TEST(0 == init_file(&fd2, "testfilesize", accessmode_READ, tempdir));
       TEST(0 == size_file(fd2, &filesize));
+      TEST(filesize == 257*i);
+      // reset
       TEST(0 == free_file(&fd2));
-      TEST(filesize == sizeof(buffer)*i);
-      filesize = 0;
-      TEST(0 == filesize_directory(tempdir, "testfilesize", &filesize));
-      TEST(filesize == sizeof(buffer)*i);
    }
    TEST(0 == free_file(&fd));
 
@@ -527,12 +634,13 @@ static int test_query(directory_t* tempdir)
    TEST(0 == free_file(&pipefd[0]));
    TEST(0 == free_file(&pipefd[1]));
 
-   // TEST EBADF
+   // TEST size_file: EBADF
    TEST(EBADF == size_file(file_FREE, &filesize));
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "testfile"));
    TEST(0 == removefile_directory(tempdir, "testfilesize"));
+   TEST(0 == removefile_directory(tempdir, longname));
 
    return 0;
 ONERR:
@@ -1288,14 +1396,13 @@ ONERR:
 
 int unittest_io_file()
 {
-   cstring_t    tmppath = cstring_INIT;
    directory_t* tempdir = 0;
+   char         tmppath[128];
 
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest"));
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
 
    if (test_remove(tempdir))     goto ONERR;
-   if (test_query(tempdir))      goto ONERR;
+   if (test_query(tempdir, tmppath)) goto ONERR;
    if (test_initfree(tempdir))   goto ONERR;
    if (test_create(tempdir))     goto ONERR;
    if (test_append(tempdir))     goto ONERR;
@@ -1309,20 +1416,18 @@ int unittest_io_file()
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
    if (logsize) {
       char * found = (char*)logbuffer;
-      while ( (found = strstr(found, str_cstring(&tmppath))) ) {
+      while ( (found = strstr(found, tmppath)) ) {
          if (!strchr(found, '.')) break;
          memcpy( strchr(found, '.')+1, "123456", 6 );
-         found += size_cstring(&tmppath);
+         found += strlen(tmppath);
       }
    }
 
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == removedirectory_directory(0, tmppath));
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
 ONERR:
-   (void) free_cstring(&tmppath);
    (void) delete_directory(&tempdir);
    return EINVAL;
 }

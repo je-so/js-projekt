@@ -193,7 +193,7 @@ void clear_wbuffer(wbuffer_t* wbuf);
 int shrink_wbuffer(wbuffer_t* wbuf, size_t newsize);
 
 /* function: appendbytes_wbuffer
- * Appends buffer_size bytes of unitilaized memory to wbuf.
+ * Appends buffer_size bytes of unitialized memory to wbuf.
  * A pointer to the uninitialized memory block is returned in buffer.
  * The returned pointer in buffer is valid as long as no other function is called on wbuf. */
 int appendbytes_wbuffer(wbuffer_t* wbuf, size_t buffer_size, uint8_t** buffer);

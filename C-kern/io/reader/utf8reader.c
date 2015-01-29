@@ -482,11 +482,10 @@ ONERR:
 int unittest_io_reader_utf8reader()
 {
    directory_t* tempdir = 0;
-   cstring_t    tmppath = cstring_INIT;
+   char         tmppath[128];
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "utf8reader"));
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   TEST(0 == newtemp_directory(&tempdir, "utf8reader", &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
 
    if (test_initfree(tempdir))   goto ONERR;
    if (test_query())             goto ONERR;
@@ -495,14 +494,12 @@ int unittest_io_reader_utf8reader()
    if (test_match(tempdir))      goto ONERR;
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == removedirectory_directory(0, tmppath));
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
 ONERR:
-   removedirectory_directory(0, str_cstring(&tmppath));
-   free_cstring(&tmppath);
+   removedirectory_directory(0, tmppath);
    delete_directory(&tempdir);
    return EINVAL;
 }

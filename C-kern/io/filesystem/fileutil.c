@@ -183,17 +183,16 @@ ONERR:
 
 int unittest_io_fileutil()
 {
-   cstring_t    tmppath = cstring_INIT;
    directory_t* tempdir = 0;
+   char         tmppath[128];
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest"));
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest", &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
 
    if (test_loadsave(tempdir))   goto ONERR;
 
    /* adapt log */
-   uint8_t *logbuffer;
+   uint8_t* logbuffer;
    size_t   logsize;
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
    while (strstr((char*)logbuffer, "/iofiletest.")) {
@@ -202,13 +201,11 @@ int unittest_io_fileutil()
    }
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == removedirectory_directory(0, tmppath));
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
 ONERR:
-   (void) free_cstring(&tmppath);
    (void) delete_directory(&tempdir);
    return EINVAL;
 }

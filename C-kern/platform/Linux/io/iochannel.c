@@ -1651,8 +1651,7 @@ int unittest_io_iochannel()
    uint8_t      tmppath[256];
    directory_t* tempdir = 0;
 
-   TEST(0 == newtemp_directory(&tempdir, "iochanneltest"));
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), tmppath)));
+   TEST(0 == newtemp_directory(&tempdir, "iochanneltest", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), tmppath)));
 
    if (test_nropen())            goto ONERR;
    if (test_initfree())          goto ONERR;

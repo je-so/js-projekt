@@ -59,14 +59,14 @@ typedef enum file_e {
 
 /* function: remove_file
  * Removes created file from filesystem. */
-int remove_file(const char * filepath, struct directory_t* relative_to) ;
+int remove_file(const char * filepath, struct directory_t* relative_to);
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_file
  * Unittest for file interface. */
-int unittest_io_file(void) ;
+int unittest_io_file(void);
 #endif
 
 
@@ -83,14 +83,14 @@ int unittest_io_file(void) ;
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-int init_file(/*out*/file_t* fileobj, const char* filepath, accessmode_e iomode, const struct directory_t* relative_to/*0 => current working dir*/) ;
+int init_file(/*out*/file_t* file, const char* filepath, accessmode_e iomode, const struct directory_t* relative_to/*0 => current working dir*/);
 
 /* function: initappend_file
  * Opens or creates a file to append only.
  * See <init_file> for a description of parameters *filepath* and *relative_to*.
  * The file can be only be written to. Every written content is appended to end of the file
  * even if more than one process is writing to the same file. */
-int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/) ;
+int initappend_file(/*out*/file_t* file, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/);
 
 /* function: initcreate_file
  * Creates a file identified by its path and name.
@@ -98,7 +98,7 @@ int initappend_file(/*out*/file_t* fileobj, const char* filepath, const struct d
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-int initcreate_file(/*out*/file_t* fileobj, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/) ;
+int initcreate_file(/*out*/file_t* file, const char* filepath, const struct directory_t* relative_to/*0 => current working dir*/);
 
 /* function: inittempdeleted_file
  * Erzeugt eine temporäre Datei im Systemverzeichnis P_tmpdir und gibt sie in file zurück.
@@ -114,52 +114,58 @@ int inittemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path);
 
 /* function: initmove_file
  * Moves content of sourcefile to destfile. sourcefile is also reset to <file_FREE>. */
-static inline void initmove_file(/*out*/file_t* restrict destfile, file_t* restrict sourcefile) ;
+static inline void initmove_file(/*out*/file_t* restrict destfile, file_t* restrict sourcefile);
 
 /* function: free_file
  * Closes an opened file and frees held resources. */
-int free_file(file_t* fileobj) ;
+int free_file(file_t* file);
 
 // group: query
 
-/* function: accessmode_file
- * Returns access mode (read and or write) for a io channel.
- * Returns <accessmode_NONE> in case of an error. */
-accessmode_e accessmode_file(const file_t fileobj) ;
-
 /* function: io_file
  * Returns <iochannel_t> for a file. Do not free the returned value. */
-sys_iochannel_t io_file(const file_t fileobj) ;
+sys_iochannel_t io_file(const file_t file);
 
 /* function: isfree_file
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
  * has been called. */
-static inline bool isfree_file(const file_t fileobj) ;
+static inline bool isfree_file(const file_t file);
+
+// group: system-query
+
+/* function: accessmode_file
+ * Returns access mode (read and or write) for an I/O channel.
+ * Returns <accessmode_NONE> in case of an error. */
+accessmode_e accessmode_file(const file_t file);
 
 /* function: isvalid_file
- * Returns *true* if fileobj is valid.
+ * Returns *true* if file is valid.
  * A return value of true implies <isfree_file> returns false.
- * <isvalid_file> checks that fileobj refers to a valid file
+ * <isvalid_file> checks that file refers to a valid file
  * which is known to the operating system.
  * It is therefore more costly than <isfree_file>. */
-bool isvalid_file(const file_t fileobj) ;
+bool isvalid_file(const file_t file);
+
+/* function: path_file
+ * Gibt den absoluten und mit einem '\0' Byte beendeten Pfad der Datei file in path zurück. */
+int path_file(const file_t file, /*ret*/struct wbuffer_t* path);
 
 /* function: size_file
  * Returns the size in bytes of the file. */
-int size_file(const file_t fileobj, /*out*/off_t * file_size) ;
+int size_file(const file_t file, /*out*/off_t * file_size);
 
 // group: I/O
 
 /* function: read_file
- * Reads size bytes from file referenced by fileobj into buffer.
+ * Reads size bytes from file referenced by file into buffer.
  * See <read_iochannel>. */
-int read_file(file_t fileobj, size_t size, /*out*/void * buffer/*[size]*/, size_t * bytes_read) ;
+int read_file(file_t file, size_t size, /*out*/void * buffer/*[size]*/, size_t * bytes_read);
 
 /* function: write_file
- * Writes size bytes from buffer to file referenced by fileobj.
+ * Writes size bytes from buffer to file referenced by file.
  * See <write_iochannel>. */
-int write_file(file_t fileobj, size_t size, const void * buffer/*[size]*/, size_t * bytes_written) ;
+int write_file(file_t file, size_t size, const void * buffer/*[size]*/, size_t * bytes_written);
 
 // TODO: implement seek_file, seekrelative_file
 
@@ -167,13 +173,13 @@ int write_file(file_t fileobj, size_t size, const void * buffer/*[size]*/, size_
  * Expects data to be accessed sequentially and in the near future.
  * The operating system is advised to read ahead the data beginning at offset and extending for length bytes
  * right now. The value 0 for length means: until the end of the file. */
-int advisereadahead_file(file_t fileobj, off_t offset, off_t length);
+int advisereadahead_file(file_t file, off_t offset, off_t length);
 
 /* function: advisedontneed_file
  * Expects data not to be accessed in the near future.
  * The operating system is advised to free the page cache for the file beginning at offset and extending
  * for length bytes. The value 0 for length means: until the end of the file. */
-int advisedontneed_file(file_t fileobj, off_t offset, off_t length) ;
+int advisedontneed_file(file_t file, off_t offset, off_t length);
 
 // group: allocation
 
@@ -182,7 +188,7 @@ int advisedontneed_file(file_t fileobj, off_t offset, off_t length) ;
  * Data beyond file_size is lost. If file_size is bigger than the value returned by <size_file>
  * the file is either extended with 0 bytes or EPERM is returned. This call only changes the length
  * but does not allocate data blocks on the file system. */
-int truncate_file(file_t fileobj, off_t file_size) ;
+int truncate_file(file_t file, off_t file_size);
 
 /* function: allocate_file
  * Preallocates blocks on disk filled with 0 bytes.
@@ -190,7 +196,7 @@ int truncate_file(file_t fileobj, off_t file_size) ;
  * a writer does not run out of disk space.
  * This call can only grow the file size.
  * Returns ENOSPC if not enough space is available on the disk. */
-int allocate_file(file_t fileobj, off_t file_size) ;
+int allocate_file(file_t file, off_t file_size);
 
 
 // section: inline implementation
@@ -201,30 +207,31 @@ int allocate_file(file_t fileobj, off_t file_size) ;
  * Implements <file_t.initmove_file>. */
 static inline void initmove_file(file_t* restrict destfile, file_t* restrict sourcefile)
 {
-   *destfile   = *sourcefile ;
-   *sourcefile = file_FREE ;
+   *destfile   = *sourcefile;
+   *sourcefile = file_FREE;
 }
 
 /* define: io_file
  * Implements <file_t.io_file>. */
-#define io_file(fileobj)                  (fileobj)
+#define io_file(file) \
+         (file)
 
 /* function: isfree_file
  * Implements <file_t.isfree_file>.
  * This function assumes that file is a primitive type. */
-static inline bool isfree_file(file_t fileobj)
+static inline bool isfree_file(file_t file)
 {
-   return file_FREE == fileobj ;
+   return file_FREE == file;
 }
 
 /* function: read_file
  * Implements <file_t.read_file>. */
-#define read_file(fileobj, size, buffer, bytes_read)  \
-         (read_iochannel(fileobj, size, buffer, bytes_read))
+#define read_file(file, size, buffer, bytes_read)  \
+         (read_iochannel(file, size, buffer, bytes_read))
 
 /* function: write_file
  * Implements <file_t.write_file>. */
-#define write_file(fileobj, size, buffer, bytes_written) \
-         (write_iochannel(fileobj, size, buffer, bytes_written))
+#define write_file(file, size, buffer, bytes_written) \
+         (write_iochannel(file, size, buffer, bytes_written))
 
 #endif

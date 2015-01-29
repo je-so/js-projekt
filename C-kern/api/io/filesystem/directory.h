@@ -91,8 +91,11 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
 
 /* function: newtemp_directory
  * Creates a temporary directory read / writeable by the user and opens it for reading.
- * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory. */
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix);
+ * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory.
+ * The absolute path of the directory and a trailing '\0' byte is returned in *dirpath*.
+ * If dirpath is set to 0 nothing is returned. If name_prefix is set to 0 the generated filename has only a suffix
+ * comparable to ".XXXXXX" where X is replaced with a random character. */
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, /*ret*/struct wbuffer_t* dirpath/*could be set to 0*/);
 
 /* function: delete_directory
  * Closes open directory stream. Frees allocated memory. Calling free twice is safe. Calling it without a preceding init results in undefined behaviour. */
@@ -162,19 +165,19 @@ int makedirectory_directory(directory_t* dir/*0 => current working directory*/, 
  * Creates a new file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length);
+int makefile_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length);
 
 /* function: removedirectory_directory
  * Removes the empty directory with directory_path relative to dir.
  * If dir is 0 the directory_path is relative to the current working directory.
  * If directory_path is absolute then the parameter dir does not matter. */
-int removedirectory_directory(directory_t* dir/*0 => current working directory*/, const char* directory_path);
+int removedirectory_directory(const directory_t* dir/*0 => current working directory*/, const char* directory_path);
 
 /* function: removefile_directory
  * Removes the file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-int removefile_directory(directory_t* dir/*0 => current working directory*/, const char* file_path);
+int removefile_directory(const directory_t* dir/*0 => current working directory*/, const char* file_path);
 
 
 // section: inline implementation

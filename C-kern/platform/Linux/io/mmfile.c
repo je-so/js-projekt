@@ -779,28 +779,23 @@ ONERR:
 int unittest_io_mmfile()
 {
    directory_t* tempdir = 0;
-   const char*  tmpstr  = 0;
-   cstring_t    tmppath = cstring_INIT;
+   char         tmppath[128];
 
    // prepare
-   TEST(0 == newtemp_directory(&tempdir, "mmfile"));
-   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath)));
-   tmpstr = str_cstring(&tmppath);
+   TEST(0 == newtemp_directory(&tempdir, "mmfile", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), (uint8_t*)tmppath)));
 
    if (test_query())                      goto ONERR;
-   if (test_initfree(tempdir, tmpstr))    goto ONERR;
+   if (test_initfree(tempdir, tmppath))   goto ONERR;
    if (test_fileoffset(tempdir))          goto ONERR;
    if (test_seek(tempdir))                goto ONERR;
    if (test_generic())                    goto ONERR;
 
    // unprepare
-   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath)));
-   TEST(0 == free_cstring(&tmppath));
+   TEST(0 == removedirectory_directory(0, tmppath));
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
 ONERR:
-   (void) free_cstring(&tmppath);
    (void) delete_directory(&tempdir);
    return EINVAL;
 }

@@ -377,8 +377,9 @@ static int test_registerfd(void)
    TEST(EBADF == unregister_iopoll(&iopoll, fd[1][0]));
 
    // TEST register_iopoll: EPERM (directory descriptors can not be waited for)
+   uint8_t dir_path[sys_path_MAXSIZE];
    TEST(0 == init_iopoll(&iopoll));
-   TEST(0 == newtemp_directory(&dir, "iopoll_"));
+   TEST(0 == newtemp_directory(&dir, "iopoll_", &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(dir_path), dir_path)));
    TEST(EPERM == register_iopoll(&iopoll, io_directory(dir), &(ioevent_t) ioevent_INIT_VAL32(ioevent_READ, 0)));
 
    // TEST register_iopoll: EPERM (file descriptors can not be waited for)
@@ -388,11 +389,9 @@ static int test_registerfd(void)
    TEST(0 == free_file(&file));
 
    // unprepare
-   uint8_t path[sys_path_MAXSIZE];
-   TEST(0 == path_directory(dir, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(path), path)));
    TEST(0 == removefile_directory(dir, "file"));
    TEST(0 == delete_directory(&dir));
-   TEST(0 == removedirectory_directory(0, (const char*)path));
+   TEST(0 == removedirectory_directory(0, (const char*)dir_path));
    TEST(0 == free_iopoll(&iopoll));
    for (unsigned i = 0; i < lengthof(fd); ++i) {
       TEST(0 == free_iochannel(fd[i]));
