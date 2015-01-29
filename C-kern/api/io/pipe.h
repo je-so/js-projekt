@@ -1,6 +1,9 @@
 /* title: IOPipe
 
-   TODO: describe module interface
+   Unterstützt eine Pipe – zwei miteinander verbundene I/O Kanäle.
+   Ein Kanal ist für das Schreiben und der andere für das Lesen zuständig.
+   Über den lesende Kanal liest man all das, was in den schreibenden Kanal
+   geschrieben wurde.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -72,20 +75,35 @@ int free_pipe(pipe_t* pipe);
 /* function: readall_pipe
  * Wartet maximal msec_timeout Millisekunden, bis alle size Datenbytes gelesen werden konnten.
  * Im Fehlerfall werden schon gelesene Daten verworfen und
- * stattdessen der Fehlercode zurückegegeben. Der Inhalt von data wird auch im Fehlerfall
- * möglicherweise verändert. */
+ * stattdessen ein Fehlercode zurückgegeben. Der Inhalt von data wird daher auch im Fehlerfall
+ * möglicherweise teilweise verändert.
+ *
+ * Returncodes:
+ * 0 - OK
+ * EBADF - pipe nicht initialisiert.
+ * EPIPE - Schreibendes Ende wurde geschlossen (Fehler wird nicht geloggt).
+ * ETIME - Der Timeout ist abgelaufen, bevor alle Daten gelesen werden konnten, falls msec_timeout > 0.
+ *         Im Falle von msec_timeout < 0 wird unendlich lange gewartet und dieser Fehler wird nicht erzeugt. */
 int readall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
 
 /* function: writeall_pipe
  * Wartet maximal msec_timeout Millisekunden, bis alle size Datenbytes geschrieben werden konnten.
- * Im Fehlerfall wird trotz teilweise geschriebener Daten der Fehlercode zurückegegeben, die Länge
- * der schon geschr. Daten wird verworfen. Teilweise geschriebene Daten verbleiben im internen Pipepuffer. */
+ * Im Fehlerfall wird trotz teilweise geschriebener Daten der Fehlercode zurückgegeben, die Länge
+ * der schon geschr. Daten wird verworfen. Teilweise geschriebene Daten verbleiben im internen Pipepuffer.
+ *
+ * Returncodes:
+ * 0 - OK
+ * EBADF - pipe nicht initialisiert.
+ * EPIPE - Lesendes Ende wurde geschlossen (Fehler wird nicht geloggt).
+ * ETIME - Der Timeout ist abgelaufen, bevor alle Daten geschrieben werden konnten, falls msec_timeout > 0.
+ *         Im Falle von msec_timeout < 0 wird unendlich lange gewartet und dieser Fehler wird nicht erzeugt. */
 int writeall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
 
 // group: generic-cast
 
 /* function: cast_pipe
- * TODO: */
+ * Castet zwei Zeiger auf zwei im Speicher aufeinanderfolgende <sys_iochannel_t> in eine <pipe_t>.
+ * Dabei muss gelten: read+1 == write. */
 pipe_t* cast_pipe(sys_iochannel_t* read, sys_iochannel_t* write);
 
 

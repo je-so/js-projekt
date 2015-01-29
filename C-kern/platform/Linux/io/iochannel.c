@@ -27,8 +27,11 @@
 #include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/time/systimer.h"
+#include "C-kern/api/time/timevalue.h"
 #endif
 
 
@@ -336,6 +339,83 @@ ONERR:
    return err;
 }
 
+int readall_iochannel(iochannel_t ioc, size_t size, void* buffer/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
+{
+   int err;
+   size_t bytes = 0;
+
+   for (;;) {
+      int part = read(ioc, (uint8_t*)buffer + bytes, size-bytes);
+
+      if (part > 0) {
+         bytes += (unsigned) part;
+         if (bytes == size) break/*DONE*/;
+         continue;
+      }
+
+      if (part < 0) {
+         err = errno;
+         if (err == EAGAIN && msec_timeout) {
+            // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
+            struct pollfd pfd = { .events = POLLIN, .fd = ioc };
+            err = poll(&pfd, 1, msec_timeout);
+            if (err > 0) continue;
+            err = (err < 0) ? errno : ETIME;
+         }
+
+      } else { // end-of-input (not logged)
+         return EPIPE;
+      }
+
+      // error => discard read bytes
+      goto ONERR;
+   }
+
+/*DONE*/
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   PRINTINT_ERRLOG(ioc);
+   return err;
+}
+
+int writeall_iochannel(iochannel_t ioc, size_t size, const void* buffer/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
+{
+   int err;
+   size_t bytes = 0;
+
+   for (;;) {
+      int part = write(ioc, (const uint8_t*)buffer + bytes, size-bytes);
+
+      if (part >= 0) {
+         bytes += (unsigned) part;
+         if (bytes == size) break/*DONE*/;
+         continue;
+      }
+
+      err = errno;
+      if (err == EAGAIN && msec_timeout) {
+         // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
+         struct pollfd pfd = { .events = POLLOUT, .fd = ioc };
+         err = poll(&pfd, 1, msec_timeout);
+         if (err > 0) continue;
+         err = (err < 0) ? errno : ETIME;
+      }
+
+      // error => undo of already written data is not possible
+      goto ONERR;
+   }
+
+/*DONE*/
+   return 0;
+ONERR:
+   if (err != EPIPE) {
+      TRACEEXIT_ERRLOG(err);
+      PRINTINT_ERRLOG(ioc);
+   }
+   return err;
+}
+
 
 // group: test
 
@@ -513,6 +593,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == init_file(&file, "accessmode", accessmode_RDWR, tempdir));
    TEST(accessmode_RDWR == accessmode_iochannel(io_file(file)));
    TEST(0 == free_file(&file));
+   TEST(0 == removefile_directory(tempdir, "accessmode"));
 
    // TEST accessmode_iochannel: ipsocket_t
    ipaddr_storage_t ipaddr;
@@ -526,7 +607,7 @@ static int test_query(directory_t * tempdir)
    TEST(accessmode_RDWR == accessmode_iochannel(io_ipsocket(&sock)));
    TEST(0 == localaddr_ipsocket(&sock, (ipaddr_t*)&ipaddr));
    TEST(0 != initany_ipaddrstorage(&ipaddr2, ipprotocol_TCP, ipport_ANY, ipversion_4));
-   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
+   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
    TEST(accessmode_RDWR == accessmode_iochannel(io_ipsocket(&csock)));
    TEST(0 == free_ipsocket(&csock));
    TEST(0 == free_ipsocket(&sock));
@@ -633,7 +714,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == isclosedwrite_iochannel(io_ipsocket(&sock)));
    TEST(0 == localaddr_ipsocket(&sock, (ipaddr_t*)&ipaddr));
    TEST(0 != initany_ipaddrstorage(&ipaddr2, ipprotocol_TCP, ipport_ANY, ipversion_4));
-   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
+   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
    TEST(0 == isclosedread_iochannel(io_ipsocket(&sock)));
    TEST(0 == isclosedwrite_iochannel(io_ipsocket(&sock)));
    TEST(0 == isclosedread_iochannel(io_ipsocket(&csock)));
@@ -668,7 +749,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == initlisten_ipsocket(&sock, (ipaddr_t*)&ipaddr, 1));
    TEST(0 == localaddr_ipsocket(&sock, (ipaddr_t*)&ipaddr));
    TEST(0 != initany_ipaddrstorage(&ipaddr2, ipprotocol_TCP, ipport_ANY, ipversion_4));
-   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
+   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
    TEST(0 == initaccept_ipsocket(&ssock, &sock, 0));
    while (0 == write_iochannel(csock, sizeof(buf), buf, 0)) {
    }
@@ -753,7 +834,7 @@ static int test_query(directory_t * tempdir)
    TEST(0 == initlisten_ipsocket(&sock, (ipaddr_t*)&ipaddr, 1));
    TEST(EINVAL == sizeread_iochannel(io_ipsocket(&sock), &size));
    TEST(0 == localaddr_ipsocket(&sock, (ipaddr_t*)&ipaddr));
-   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
+   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
    pfd = (struct pollfd) { .events = POLLIN, .fd = io_ipsocket(&sock) };
    TEST(1 == poll(&pfd, 1, 100));
    TEST(0 == initaccept_ipsocket(&ssock, &sock, 0));
@@ -800,6 +881,29 @@ static void sigusr1_handler(int signr)
 {
    assert(signr == SIGUSR1);
    send_signalrt(0, 0);
+}
+
+   // calculate size of pipe buffer
+static size_t determine_buffer_size(void)
+{
+   int     fd[2] = { -1, -1 };
+   size_t  buffersize = 0;
+   uint8_t buffer[1024];
+
+   TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK));
+   for (ssize_t written; 0 < (written = write(fd[1], buffer, sizeof(buffer)));) {
+      buffersize += (size_t)written;
+   }
+   TEST(-1 == write(fd[1], buffer, 1));
+   TEST(EAGAIN == errno);
+   TEST(0 == free_iochannel(&fd[0]));
+   TEST(0 == free_iochannel(&fd[1]));
+
+   return buffersize;
+ONERR:
+   free_iochannel(&fd[0]);
+   free_iochannel(&fd[1]);
+   return 0;
 }
 
 static volatile size_t s_thread_count     = 0;
@@ -900,7 +1004,7 @@ static int test_readwrite(directory_t* tempdir)
    sigaction   newact;
    struct
    sigaction   oldact;
-   size_t      buffersize   = 0;
+   size_t      buffersize;
    size_t      bytes_read;
    size_t      bytes_written;
    uint8_t   * logbuffer;
@@ -908,6 +1012,8 @@ static int test_readwrite(directory_t* tempdir)
    size_t      logsize2;
 
    // prepare
+   buffersize = determine_buffer_size();
+   TEST(0 < buffersize && buffersize < 1024*1204);
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &buffer[0]));
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &buffer[1]));
    TEST(0 == sigemptyset(&signalmask));
@@ -919,19 +1025,6 @@ static int test_readwrite(directory_t* tempdir)
    newact.sa_handler = &sigusr1_handler;
    TEST(0 == sigaction(SIGUSR1, &newact, &oldact));
    isoldhandler = true;
-   // calculate size of pipe buffer
-   {
-      TEST(0 == pipe2(pipeioc, O_CLOEXEC|O_NONBLOCK));
-      ssize_t written;
-      while (0 < (written = write(pipeioc[1], buffer[0].addr, 1024*1024))) {
-         buffersize += (size_t)written;
-      }
-      TEST(-1 == write(pipeioc[1], buffer, 1));
-      TEST(EAGAIN == errno);
-      TEST(0 == free_iochannel(&pipeioc[0]));
-      TEST(0 == free_iochannel(&pipeioc[1]));
-   }
-   TEST(buffersize <= 1024*1204);
 
    // TEST read_iochannel: blocking I/O
    TEST(0 == pipe2(pipeioc, O_CLOEXEC));
@@ -1108,6 +1201,7 @@ static int test_readwrite(directory_t* tempdir)
          buffer[1].addr[i] = (uint8_t)rvalue;
       }
    }
+   TEST(0 == removefile_directory(tempdir, "readtest"));
 
    // TEST read_iochannel, write_iochannel: ipsocket_t
    ipaddr_storage_t ipaddr;
@@ -1116,7 +1210,7 @@ static int test_readwrite(directory_t* tempdir)
    TEST(0 != initany_ipaddrstorage(&ipaddr2, ipprotocol_TCP, ipport_ANY, ipversion_4));
    TEST(0 == initlisten_ipsocket(&ssock, (ipaddr_t*)&ipaddr, 1));
    TEST(0 == localaddr_ipsocket(&ssock, (ipaddr_t*)&ipaddr));
-   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
+   TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
    ipsocket_t lsock = ssock;
    TEST(0 == initaccept_ipsocket(&ssock, &lsock, 0));
    TEST(0 == free_ipsocket(&lsock));
@@ -1145,7 +1239,7 @@ static int test_readwrite(directory_t* tempdir)
    TEST(0 == free_ipsocket(&csock));
    TEST(0 == free_ipsocket(&ssock));
 
-   // unprepare
+   // reset
    TEST(0 == RELEASE_PAGECACHE(&buffer[0]));
    TEST(0 == RELEASE_PAGECACHE(&buffer[1]));
    isoldsignalmask = false;
@@ -1173,22 +1267,405 @@ ONERR:
    return EINVAL;
 }
 
+typedef struct threadarg_all_t {
+   iochannel_t ioc;
+   memblock_t  buffer;
+   thread_t*   wakeup;
+   bool        isSameLogsize;
+} threadarg_all_t;
+
+static int thread_dorwall(threadarg_all_t* arg, bool isRead)
+{
+   size_t logsize1 = 0;
+   size_t logsize2 = 1;
+   uint8_t* logbuffer;
+
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+
+   if (arg->wakeup) {
+      resume_thread(arg->wakeup); // wakeup main thread
+   }
+
+   int err = isRead
+           ? readall_iochannel(arg->ioc, arg->buffer.size, arg->buffer.addr, -1/*indefinite timeout*/)
+           : writeall_iochannel(arg->ioc, arg->buffer.size, arg->buffer.addr, -1/*indefinite timeout*/);
+
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+
+   arg->isSameLogsize = (logsize1 == logsize2);
+
+   CLEARBUFFER_ERRLOG();
+
+   return err;
+}
+
+static int thread_readall(threadarg_all_t* arg)
+{
+   return thread_dorwall(arg, true);
+}
+
+static int thread_writeall(threadarg_all_t* arg)
+{
+   return thread_dorwall(arg, false);
+}
+
+static int thread_writeslow(threadarg_all_t* arg)
+{
+   const size_t blocksize = (arg->buffer.size/64);
+   for (unsigned i = 0; i < 64; ++i) {
+      sleepms_thread(1);
+      TEST(blocksize == (size_t) write(arg->ioc, arg->buffer.addr + i*blocksize, blocksize));
+   }
+
+   return 0;
+ONERR:
+   pthread_kill(arg->wakeup->sys_thread, SIGUSR1);
+   return EINVAL;
+}
+
+static int open_channel(int type/*0..2*/, directory_t* tempdir, size_t buffersize, /*out*/iochannel_t* rio, /*out*/iochannel_t* wio)
+{
+   ipsocket_t  ssock = ipsocket_FREE;
+   ipsocket_t  csock = ipsocket_FREE;
+
+   switch (type) {
+   case 0: // open file
+      if (0 == trypath_directory(tempdir, "rdwralltest")) {
+         TEST(0 == removefile_directory(tempdir, "rdwralltest"));
+      }
+      TEST(0 == initcreate_file(wio, "rdwralltest", tempdir));
+      TEST(0 == free_file(wio));
+      TEST(0 == init_file(wio, "rdwralltest", accessmode_WRITE, tempdir));
+      TEST(0 == init_file(rio, "rdwralltest", accessmode_READ, tempdir));
+      break;
+   case 1:
+      {
+         int fd[2];
+         TEST(0 == pipe2(fd, O_NONBLOCK|O_CLOEXEC));
+         *rio = fd[0];
+         *wio = fd[1];
+      }
+      break;
+   case 2:
+      {
+         ipaddr_storage_t ipaddr;
+         ipaddr_storage_t ipaddr2;
+         ipsocket_t lsock;
+         TEST(0 != initany_ipaddrstorage(&ipaddr, ipprotocol_TCP, ipport_ANY, ipversion_4));
+         TEST(0 != initany_ipaddrstorage(&ipaddr2, ipprotocol_TCP, ipport_ANY, ipversion_4));
+         TEST(0 == initlisten_ipsocket(&lsock, (ipaddr_t*)&ipaddr, 1));
+         *wio = io_ipsocket(&lsock);
+         TEST(0 == localaddr_ipsocket(&lsock, (ipaddr_t*)&ipaddr));
+         TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2));
+         *rio = io_ipsocket(&csock);
+         TEST(0 == initaccept_ipsocket(&ssock, &lsock, 0));
+         *wio = io_ipsocket(&ssock);
+         TEST(0 == free_ipsocket(&lsock));
+         TEST(0 == setqueuesize_ipsocket(&ssock, 2*buffersize, 2*buffersize));
+         TEST(0 == setqueuesize_ipsocket(&csock, 2*buffersize, 2*buffersize));
+      }
+      break;
+   }
+
+   return 0;
+ONERR:
+   free_iochannel(rio);
+   free_iochannel(wio);
+   return EINVAL;
+}
+
+static int test_rdwrall(directory_t* tempdir)
+{
+   thread_t *  thread    = 0;
+   threadarg_all_t threadarg;
+   systimer_t  timer   = systimer_FREE;
+   iochannel_t rio     = iochannel_FREE;
+   iochannel_t wio     = iochannel_FREE;
+   memblock_t  rbuffer = memblock_FREE;
+   memblock_t  wbuffer = memblock_FREE;
+   bool        isoldsignalmask = false;
+   sigset_t    oldsignalmask;
+   sigset_t    signalmask;
+   bool        isoldhandler = false;
+   struct
+   sigaction   newact;
+   struct
+   sigaction   oldact;
+   size_t      buffersize;
+   uint64_t    expcount;
+   uint8_t   * logbuffer;
+   size_t      logsize1;
+   size_t      logsize2;
+
+   // prepare
+   buffersize = determine_buffer_size();
+   TEST(0 < buffersize && buffersize < 1024*1204);
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &rbuffer));
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &wbuffer));
+   TEST(0 == sigemptyset(&signalmask));
+   TEST(0 == sigaddset(&signalmask, SIGUSR1));
+   TEST(0 == sigprocmask(SIG_UNBLOCK, &signalmask, &oldsignalmask));
+   isoldsignalmask = true;
+   sigemptyset(&newact.sa_mask);
+   newact.sa_flags   = 0;
+   newact.sa_handler = &sigusr1_handler;
+   TEST(0 == sigaction(SIGUSR1, &newact, &oldact));
+   isoldhandler = true;
+
+   // fill buffer
+   for (uint32_t i = 0; i < wbuffer.size/sizeof(uint32_t); ++i) {
+      ((uint32_t*)wbuffer.addr)[i] = i;
+   }
+
+   // TEST readall_iochannel: EBADF
+   TEST(EBADF == readall_iochannel(sys_iochannel_FREE, 1, rbuffer.addr, 0));
+
+   // TEST writeall_iochannel: EBADF
+   TEST(EBADF == writeall_iochannel(sys_iochannel_FREE, 1, wbuffer.addr, 0));
+
+   for (int tc = 0; tc < 3; ++tc) {
+      TEST(0 == open_channel(tc, tempdir, buffersize, &rio, &wio));
+
+      // TEST readall_iochannel: single block
+      TEST(buffersize == (size_t) write(wio, wbuffer.addr, buffersize));
+      memset(rbuffer.addr, 0, buffersize);
+      TEST(0 == readall_iochannel(rio, buffersize, rbuffer.addr, 0));
+      // check rbuffer
+      for (uint32_t i = 0; i < buffersize/sizeof(uint32_t); ++i) {
+         TEST(((const uint32_t*)rbuffer.addr)[i] == i);
+      }
+      // check everything read
+      TEST((tc==0?0:-1) == read(rio, rbuffer.addr, 1));
+      TEST(EAGAIN == errno || tc == 0);
+
+      // TEST writeall_iochannel: single block
+      TEST(0 == writeall_iochannel(wio, buffersize, wbuffer.addr, 0));
+      // check written content
+      memset(rbuffer.addr, 0, buffersize);
+      TEST(buffersize == (size_t) read(rio, rbuffer.addr, buffersize));
+      for (uint32_t i = 0; i < buffersize/sizeof(uint32_t); ++i) {
+         TEST(((const uint32_t*)rbuffer.addr)[i] == i);
+      }
+      // check no more bytes written than buffersize
+      TEST((tc==0?0:-1) == read(rio, rbuffer.addr, 1));
+      TEST(EAGAIN == errno || tc == 0);
+
+      // TEST readall_iochannel: multiple blocks
+      if (tc != 0/*no file*/) {  // file I/O can not wait with poll
+         // prepare
+         threadarg = (threadarg_all_t) { wio, wbuffer, self_thread(), 1 };
+         TEST(0 == newgeneric_thread(&thread, &thread_writeslow, &threadarg));
+         // test
+         memset(rbuffer.addr, 0, rbuffer.size);
+         TEST(0 == readall_iochannel(rio, rbuffer.size, rbuffer.addr, -1));
+         // check thread
+         TEST(0 == join_thread(thread));
+         TEST(0 == returncode_thread(thread));
+         // check rbuffer
+         for (uint32_t i = 0; i < rbuffer.size/sizeof(uint32_t); ++i) {
+            TEST(((const uint32_t*)rbuffer.addr)[i] == i);
+         }
+         // check everything read
+         TEST((tc==0?0:-1) == read(rio, rbuffer.addr, 1));
+         TEST(EAGAIN == errno || tc == 0);
+         // reset
+         TEST(0 == delete_thread(&thread));
+      }
+
+      // TEST writeall_iochannel: multiple blocks
+      // prepare
+      threadarg = (threadarg_all_t) { wio, wbuffer, self_thread(), 0 };
+      TEST(0 == newgeneric_thread(&thread, &thread_writeall, &threadarg));
+      // test (simulate slow reader)
+      suspend_thread();
+      memset(rbuffer.addr, 0, rbuffer.size);
+      for (unsigned i = 0; i < 64; ++i) {
+         sleepms_thread(1);
+         const size_t blocksize = (rbuffer.size/64);
+         TEST(blocksize == (size_t) read(rio, rbuffer.addr + i*blocksize, blocksize));
+      }
+      // check thread
+      TEST(0 == join_thread(thread));
+      TEST(0 == returncode_thread(thread));
+      // check rbuffer
+      for (uint32_t i = 0; i < rbuffer.size/sizeof(uint32_t); ++i) {
+         TEST(((const uint32_t*)rbuffer.addr)[i] == i);
+      }
+      // check everything read
+      TEST((tc==0?0:-1) == read(rio, rbuffer.addr, 1));
+      TEST(EAGAIN == errno || tc == 0);
+      // reset
+      TEST(0 == delete_thread(&thread));
+
+      // TEST readall_iochannel: EAGAIN
+      if (tc != 0) {
+         TEST(EAGAIN == readall_iochannel(rio, 1, rbuffer.addr, 0));
+      }
+
+      // TEST writeall_iochannel: EAGAIN
+      if (tc != 0) {
+         while (0 < write(wio, wbuffer.addr, wbuffer.size)) { }
+         TEST(EAGAIN == writeall_iochannel(wio, 1, wbuffer.addr, 0));
+         // reset
+         while (0 < read(wio, rbuffer.addr, rbuffer.size)) { }
+      }
+
+      // TEST readall_iochannel: EBADF (not open for writing)
+      if (tc != 2) {
+         TEST(EBADF == readall_iochannel(wio, 1, rbuffer.addr, 0));
+      }
+
+      // TEST writeall_iochannel: EBADF (not open for writing)
+      if (tc != 2) {
+         TEST(EBADF == writeall_iochannel(rio, 1, wbuffer.addr, 0));
+      }
+
+      // TEST readall_iochannel: EINTR
+      if (tc != 0) {
+         // prepare
+         threadarg = (threadarg_all_t) { rio, rbuffer, self_thread(), 1 };
+         TEST(0 == newgeneric_thread(&thread, &thread_readall, &threadarg));
+         // test (generate interrupt)
+         suspend_thread();
+         for (;;) {
+            sleepms_thread(1);
+            pthread_kill(thread->sys_thread, SIGUSR1);
+            sleepms_thread(1);
+            if (0 == tryjoin_thread(thread)) break;
+         }
+         // check thread
+         TEST(EINTR == returncode_thread(thread));
+         TEST(0 == threadarg.isSameLogsize);
+         // reset
+         while (0 == trywait_signalrt(0, 0)/*SIGUSR1 processed*/) { }
+         TEST(0 == delete_thread(&thread));
+      }
+
+      // TEST writeall_iochannel: EINTR
+      if (tc != 0) {
+         // prepare
+         while (0 < write(wio, wbuffer.addr, wbuffer.size)) { }
+         threadarg = (threadarg_all_t) { wio, wbuffer, self_thread(), 1 };
+         TEST(0 == newgeneric_thread(&thread, &thread_writeall, &threadarg));
+         // test (generate interrupt)
+         suspend_thread();
+         for (;;) {
+            sleepms_thread(1);
+            pthread_kill(thread->sys_thread, SIGUSR1);
+            sleepms_thread(1);
+            if (0 == tryjoin_thread(thread)) break;
+         }
+         // check thread
+         TEST(EINTR == returncode_thread(thread));
+         TEST(0 == threadarg.isSameLogsize);
+         // reset
+         while (0 < read(rio, rbuffer.addr, rbuffer.size));
+         while (0 == trywait_signalrt(0, 0)/*SIGUSR1 processed*/) { }
+         TEST(0 == delete_thread(&thread));
+      }
+
+      // prepare
+      GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+
+      // TEST readall_iochannel: EPIPE
+      while (0 < read(rio, rbuffer.addr, rbuffer.size)) { }
+      if (tc == 0) {
+         // End Of File == EPIPE
+         TEST(EPIPE == readall_iochannel(rio, 1, rbuffer.addr, 0));
+      } else {
+         TEST(0 == free_iochannel(&wio));
+         TEST(EPIPE == readall_iochannel(rio, 1, rbuffer.addr, 0));
+         // reset
+         TEST(0 == free_iochannel(&rio));
+         TEST(0 == open_channel(tc, tempdir, buffersize, &rio, &wio));
+      }
+
+      // TEST writeall_iochannel: EPIPE
+      if (tc != 0) {
+         TEST(0 == free_iochannel(&rio));
+         while (0 < write(wio, wbuffer.addr, wbuffer.size)) { } // fill buffer
+         TEST(EPIPE == writeall_iochannel(wio, 1, wbuffer.addr, 0));
+         // reset
+         TEST(0 == free_iochannel(&wio));
+         TEST(0 == open_channel(tc, tempdir, buffersize, &rio, &wio));
+      }
+
+      // check no LOG for EPIPE
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize1 == logsize2);
+
+      // TEST readall_iochannel: ETIME
+      if (tc != 0) {
+         TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 10000 }));
+         TEST(ETIME == readall_iochannel(rio, 1, rbuffer.addr, 4));
+         TEST(0 == expirationcount_systimer(timer, &expcount));
+         TEST(350 <= expcount);
+         TEST(650 >= expcount);
+      }
+
+      // TEST writeall_iochannel: ETIME
+      if (tc != 0) {
+         while (0 < write(wio, wbuffer.addr, wbuffer.size)) { } // fill buffer
+         TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 10000 }));
+         TEST(ETIME == writeall_iochannel(wio, 1, wbuffer.addr, 4));
+         TEST(0 == expirationcount_systimer(timer, &expcount));
+         TEST(350 <= expcount);
+         TEST(650 >= expcount);
+      }
+
+      // reset
+      TEST(0 == free_iochannel(&wio));
+      TEST(0 == free_iochannel(&rio));
+   }
+
+   // reset
+   TEST(0 == free_systimer(&timer));
+   TEST(0 == removefile_directory(tempdir, "rdwralltest"));
+   TEST(0 == RELEASE_PAGECACHE(&rbuffer));
+   TEST(0 == RELEASE_PAGECACHE(&wbuffer));
+   isoldsignalmask = false;
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0));
+   isoldhandler = false;
+   TEST(0 == sigaction(SIGUSR1, &oldact, 0));
+
+   return 0;
+ONERR:
+   if (isoldsignalmask) {
+      sigprocmask(SIG_SETMASK, &oldsignalmask, 0);
+   }
+   if (isoldhandler) {
+      sigaction(SIGUSR1, &oldact, 0);
+   }
+   free_systimer(&timer);
+   free_iochannel(&wio);
+   free_iochannel(&rio);
+   delete_thread(&thread);
+   RELEASE_PAGECACHE(&rbuffer);
+   RELEASE_PAGECACHE(&wbuffer);
+   return EINVAL;
+}
+
 int unittest_io_iochannel()
 {
+   uint8_t      tmppath[256];
    directory_t* tempdir = 0;
 
    TEST(0 == newtemp_directory(&tempdir, "iochanneltest"));
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), tmppath)));
 
    if (test_nropen())            goto ONERR;
    if (test_initfree())          goto ONERR;
    if (test_query(tempdir))      goto ONERR;
    if (test_readwrite(tempdir))  goto ONERR;
+   if (test_rdwrall(tempdir))    goto ONERR;
 
+   TEST(0 == removedirectory_directory(0, (const char*)tmppath));
    TEST(0 == delete_directory(&tempdir));
 
    return 0;
 ONERR:
-   delete_directory(&tempdir);
+   (void) delete_directory(&tempdir);
    return EINVAL;
 }
 

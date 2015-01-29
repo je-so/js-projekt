@@ -267,11 +267,10 @@ int initaccept_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, str
       goto ONERR;
    }
 
-   new_socket = accept4(fd, (struct sockaddr*) &saddr, &len, SOCK_CLOEXEC);
+   new_socket = accept4(fd, (struct sockaddr*) &saddr, &len, SOCK_CLOEXEC|SOCK_NONBLOCK);
    if (-1 == new_socket) {
       err = errno;
-      if (err == EWOULDBLOCK) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("accept4", err);
       PRINTINT_ERRLOG(fd);
       goto ONERR;
@@ -575,8 +574,7 @@ int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[m
 
    if (-1 == bytes) {
       err = errno;
-      if (EWOULDBLOCK == err) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("recv", err);
       PRINTINT_ERRLOG(fd);
       PRINTSIZE_ERRLOG(maxdata_len);
@@ -601,8 +599,7 @@ int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[m
 
    if (-1 == bytes) {
       err = errno ;
-      if (EWOULDBLOCK == err) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("send", err) ;
       PRINTINT_ERRLOG(fd) ;
       PRINTSIZE_ERRLOG(maxdata_len) ;
@@ -640,8 +637,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
    bytes = recv(fd, data, maxdata_len, MSG_DONTWAIT) ;
    if (-1 == bytes) {
       err = errno ;
-      if (EWOULDBLOCK == err) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("recv", err);
       PRINTINT_ERRLOG(fd);
       PRINTSIZE_ERRLOG(maxdata_len);
@@ -689,8 +685,7 @@ int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data)
    if (1 != bytes) {
       if (-1 == bytes) {
          err = errno;
-         if (EWOULDBLOCK == err) err = EAGAIN;
-         if (err == EAGAIN) return err;
+         if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
          TRACESYSCALL_ERRLOG("send", err);
          PRINTINT_ERRLOG(fd);
          goto ONERR;
@@ -727,8 +722,7 @@ int readPaddr_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdat
    bytes = recvfrom(fd, data, maxdata_len, MSG_DONTWAIT, (struct sockaddr*)&saddr, &slen);
    if (-1 == bytes) {
       err = errno;
-      if (EWOULDBLOCK == err) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("recv", err);
       PRINTINT_ERRLOG(fd);
       PRINTSIZE_ERRLOG(maxdata_len);
@@ -773,8 +767,7 @@ int writePaddr_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t
    bytes = sendto(fd, data, maxdata_len, MSG_NOSIGNAL|MSG_DONTWAIT, remoteaddr->addr, remoteaddr->addrlen);
    if (-1 == bytes) {
       err = errno;
-      if (EWOULDBLOCK == err) err = EAGAIN;
-      if (err == EAGAIN) return err;
+      if (err == EAGAIN || err == EWOULDBLOCK) return EAGAIN;
       TRACESYSCALL_ERRLOG("sendto", err);
       PRINTINT_ERRLOG(fd);
       PRINTSIZE_ERRLOG(maxdata_len);
@@ -1157,6 +1150,8 @@ static int test_buffersize(void)
          GETBUFFER_ERRLOG(&logbuffer, &logsize);
          TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer.addr, &size)) ;
          TEST(EAGAIN == read_ipsocket(&ipsockSV, 1, buffer.addr, &size)) ;
+         TEST(-1 == read(io_ipsocket(&ipsockCL), buffer.addr, 1) && errno == EAGAIN);
+         TEST(-1 == read(io_ipsocket(&ipsockSV), buffer.addr, 1) && errno == EAGAIN);
          GETBUFFER_ERRLOG(&logbuffer, &logsize2);
          TEST(logsize == logsize2); // EAGAIN is not logged
       }

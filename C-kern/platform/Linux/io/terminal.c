@@ -1532,6 +1532,7 @@ static int test_update(void)
    TEST(0 == inittemp_file(&file, &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(filename), filename)));
    TEST(ENOTTY == switchcontrolling_terminal(filename));
    TEST(0 == free_file(&file));
+   TEST(0 == removefile_directory(0, (char*)filename));
 
    return 0;
 ONERR:

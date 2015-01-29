@@ -91,10 +91,8 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
 
 /* function: newtemp_directory
  * Creates a temporary directory read / writeable by the user and opens it for reading.
- * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory.
- * The name of the created directory is returned in parameter *dir_path*.
- * Set this parameter to 0 if you do not need the name. */
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix) ;
+ * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory. */
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix);
 
 /* function: delete_directory
  * Closes open directory stream. Frees allocated memory. Calling free twice is safe. Calling it without a preceding init results in undefined behaviour. */

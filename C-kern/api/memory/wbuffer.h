@@ -68,7 +68,7 @@ struct wbuffer_it {
     * memstr contains the unused last part of the last allocated memory block:
     * (memstr->end - memstr->next) gives the number of unused bytes.
     * If a new block is allocated instead of the last one reallocated,
-    * the functions should remember that all bytes from [memstr->next...memstr->end-1] are not used.
+    * the function should remember that all bytes from [memstr->next...memstr->end-1] are not used.
     * The size of the block returned in memstr must have at least freesize bytes. */
    int      (* alloc)   (void* impl, size_t freesize, /*inout*/struct memstream_t* memstr);
    /* variable: shrink

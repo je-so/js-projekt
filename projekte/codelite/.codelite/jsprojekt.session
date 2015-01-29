@@ -1,75 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="8" Name="m_selectedTab"/>
+  <int Value="2" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="134" Name="FirstVisibleLine"/>
-      <int Value="132" Name="CurrentLine"/>
+      <int Value="115" Name="FirstVisibleLine"/>
+      <int Value="113" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/newC/nCparser.h" Name="FileName"/>
-      <int Value="26" Name="FirstVisibleLine"/>
+      <int Value="23" Name="FirstVisibleLine"/>
       <int Value="24" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/io/iochannel.h" Name="FileName"/>
-      <int Value="37" Name="FirstVisibleLine"/>
-      <int Value="35" Name="CurrentLine"/>
+      <int Value="174" Name="FirstVisibleLine"/>
+      <int Value="191" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/test/perftest.h" Name="FileName"/>
-      <int Value="121" Name="FirstVisibleLine"/>
-      <int Value="119" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/iochannel.c" Name="FileName"/>
+      <int Value="1346" Name="FirstVisibleLine"/>
+      <int Value="1317" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="1317:3"/>
+        <wxString Value="1341:3"/>
+      </wxArrayString>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/vim74/src/memfile.c" Name="FileName"/>
-      <int Value="24" Name="FirstVisibleLine"/>
+      <int Value="36" Name="FirstVisibleLine"/>
       <int Value="34" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/vim74/src/memline.c" Name="FileName"/>
-      <int Value="1" Name="FirstVisibleLine"/>
+      <int Value="13" Name="FirstVisibleLine"/>
       <int Value="11" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/vim74/src/structs.h" Name="FileName"/>
-      <int Value="6" Name="FirstVisibleLine"/>
+      <int Value="18" Name="FirstVisibleLine"/>
       <int Value="16" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/string/editbuffer.c" Name="FileName"/>
-      <int Value="7" Name="FirstVisibleLine"/>
-      <int Value="17" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/ondisk/editbuffer.h" Name="FileName"/>
+      <int Value="29" Name="FirstVisibleLine"/>
+      <int Value="54" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/string/editbuffer.h" Name="FileName"/>
-      <int Value="6" Name="FirstVisibleLine"/>
-      <int Value="16" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/ondisk/editbuffer.c" Name="FileName"/>
+      <int Value="112" Name="FirstVisibleLine"/>
+      <int Value="113" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/pipe.c" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="453:3"/>
+      </wxArrayString>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="5" Name="Count"/>
+    <long Value="6" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
+      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/iochannel.c" Name="file"/>
+      <int Value="1367" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/terminal.c" Name="file"/>
       <int Value="1263" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -85,7 +113,7 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint1">
+    <SerializedObject Name="Breakpoint2">
       <wxString Value="/jsprojekt/JS/C-kern/task/syncrun.c" Name="file"/>
       <int Value="2315" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -101,7 +129,7 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint2">
+    <SerializedObject Name="Breakpoint3">
       <wxString Value="/jsprojekt/JS/C-kern/task/syncrun.c" Name="file"/>
       <int Value="2362" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -117,9 +145,9 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint3">
+    <SerializedObject Name="Breakpoint4">
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="135" Name="lineno"/>
+      <int Value="138" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
@@ -133,9 +161,9 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint4">
+    <SerializedObject Name="Breakpoint5">
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="153" Name="lineno"/>
+      <int Value="156" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

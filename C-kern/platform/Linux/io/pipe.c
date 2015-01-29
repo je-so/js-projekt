@@ -24,6 +24,7 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
+#include "C-kern/api/platform/task/thread.h"
 #endif
 
 
@@ -92,7 +93,7 @@ int readall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t
    size_t bytes = 0;
 
    for (;;) {
-      int part = read(pipe->read, data, size-bytes);
+      int part = read(pipe->read, (uint8_t*)data + bytes, size-bytes);
 
       if (part > 0) {
          bytes += (unsigned) part;
@@ -107,11 +108,11 @@ int readall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t
             struct pollfd pfd = { .events = POLLIN, .fd = pipe->read };
             err = poll(&pfd, 1, msec_timeout);
             if (err > 0) continue;
-            err = (err < 0) ? errno : ETIMEDOUT;
+            err = (err < 0) ? errno : ETIME;
          }
 
-      } else { // end-of-input
-         err = EPIPE;
+      } else { // end-of-input (not logged)
+         return EPIPE;
       }
 
       // error => discard read bytes
@@ -131,26 +132,21 @@ int writeall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_
    size_t bytes = 0;
 
    for (;;) {
-      int part = write(pipe->write, data, size-bytes);
+      int part = write(pipe->write, (uint8_t*)data + bytes, size-bytes);
 
-      if (part > 0) {
+      if (part >= 0) {
          bytes += (unsigned) part;
          if (bytes == size) break/*DONE*/;
          continue;
       }
 
-      if (part < 0) {
-         err = errno;
-         if (err == EAGAIN && msec_timeout) {
-            // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
-            struct pollfd pfd = { .events = POLLOUT, .fd = pipe->write };
-            err = poll(&pfd, 1, msec_timeout);
-            if (err > 0) continue;
-            err = (err < 0) ? errno : ETIMEDOUT;
-         }
-
-      } else { // end-of-input
-         err = EPIPE;
+      err = errno;
+      if (err == EAGAIN && msec_timeout) {
+         // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
+         struct pollfd pfd = { .events = POLLOUT, .fd = pipe->write };
+         err = poll(&pfd, 1, msec_timeout);
+         if (err > 0) continue;
+         err = (err < 0) ? errno : ETIME;
       }
 
       // error => undo of already written data is not possible
@@ -160,7 +156,9 @@ int writeall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_
 /*DONE*/
    return 0;
 ONERR:
-   TRACEEXIT_ERRLOG(err);
+   if (err != EPIPE) {
+      TRACEEXIT_ERRLOG(err);
+   }
    return err;
 }
 
@@ -244,27 +242,90 @@ ONERR:
    return EINVAL;
 }
 
-static int fill_internal_buffer(pipe_t* pipe, size_t max, /*out*/size_t* bufsize)
+static int determinte_buffer_size(pipe_t* pipe, /*out*/size_t* bufsize)
 {
    uint8_t buffer[1024];
    size_t  bytes = 0;
 
-   if (!max) {
-      for (int b; 0 < (b = write(pipe->write, buffer, sizeof(buffer)));) {
-         bytes += (unsigned) b;
-      }
-      TEST(-1 == write(pipe->write, buffer, 1));
-      TEST(errno == EAGAIN);
-   } else {
-      for (int b; bytes != max && 0 < (b = write(pipe->write, buffer, max-bytes > sizeof(buffer) ? sizeof(buffer):max-bytes));) {
-         bytes += (unsigned) b;
-      }
+   for (int b; 0 < (b = write(pipe->write, buffer, sizeof(buffer)));) {
+      bytes += (unsigned) b;
    }
+   TEST(-1 == write(pipe->write, buffer, 1));
+   TEST(errno == EAGAIN);
 
    // set out param
-   if (bufsize) *bufsize = bytes;
+   *bufsize = bytes;
 
    return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int fill_buffer(pipe_t* pipe, size_t size)
+{
+   uint8_t buffer[1024];
+   size_t  bytes = 0;
+
+   for (int b; bytes != size && 0 < (b = write(pipe->write, buffer, size-bytes > sizeof(buffer) ? sizeof(buffer):size-bytes));) {
+      bytes += (unsigned) b;
+   }
+
+   TEST(bytes == size);
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+#define BUFFER_SIZE 16384
+
+static int thread_waitingwrite(void * arg)
+{
+   pipe_t* pipe = arg;
+   uint8_t buffer[BUFFER_SIZE];
+
+   for (size_t i = 0; i < sizeof(buffer); ++i) {
+      buffer[i] = (uint8_t) (i/13);
+   }
+
+   for (unsigned i = 0; i < 8; ++i) {
+      TEST(sizeof(buffer)/8 == write(pipe->write, buffer + i*(sizeof(buffer)/8), sizeof(buffer)/8));
+      sleepms_thread(5);
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+typedef struct writeall_param_t {
+   pipe_t*   pipe;
+   thread_t* wakeup;
+} writeall_param_t;
+
+static int thread_writeall(void * arg)
+{
+   writeall_param_t* param = arg;
+   uint8_t buffer[BUFFER_SIZE];
+
+   for (size_t i = 0; i < sizeof(buffer); ++i) {
+      buffer[i] = (uint8_t) (i/11);
+   }
+
+   if (param->wakeup) {
+      resume_thread(param->wakeup);
+   }
+
+   size_t   logsize1 = 0;
+   size_t   logsize2 = 1;
+   uint8_t* logbuffer;
+
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+   int err = writeall_pipe(param->pipe, sizeof(buffer), buffer, -1/*indefinite timeout*/);
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+   TEST(logsize1 == logsize2);
+
+   return err;
 ONERR:
    return EINVAL;
 }
@@ -273,9 +334,14 @@ static int test_readwrite(void)
 {
    pipe_t     pipe  = pipe_FREE;
    systimer_t timer = systimer_FREE;
-   uint8_t    buffer[16384];
+   uint8_t    buffer[BUFFER_SIZE];
    uint64_t   expcount;
    size_t     bufsize;
+   thread_t * thr = 0;
+   size_t     logsize1 = 0;
+   size_t     logsize2 = 1;
+   uint8_t*   logbuffer;
+   writeall_param_t waparam;
 
    // TEST readall_pipe: EBADF (pipe==pipe_FREE)
    TEST(EBADF == readall_pipe(&pipe, 1, buffer, 0));
@@ -285,46 +351,139 @@ static int test_readwrite(void)
 
    // prepare
    TEST(0 == init_pipe(&pipe));
+   TEST(0 == determinte_buffer_size(&pipe, &bufsize));
+   TEST(0 == free_pipe(&pipe));
+   TEST(0 == init_pipe(&pipe));
    TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
 
    // TEST writeall_pipe: store data in pipe
    for (size_t i = 0; i < sizeof(buffer); ++i) {
-      buffer[i] = (uint8_t) (11*i);
+      buffer[i] = (uint8_t) (i/11);
    }
    TEST(0 == writeall_pipe(&pipe, sizeof(buffer), buffer, 0));
 
    // TEST readall_pipe: read stored data
-   // invalidate result
    memset(buffer, 0, sizeof(buffer));
-   // test
    TEST(0 == readall_pipe(&pipe, sizeof(buffer), buffer, 0));
    // check result
    for (size_t i = 0; i < sizeof(buffer); ++i) {
-      TEST(buffer[i] == (uint8_t) (11*i));
+      TEST(buffer[i] == (uint8_t) (i/11));
    }
+
+   // TEST readall_pipe: multiple reads with waiting
+   // prepare
+   TEST(0 == new_thread(&thr, &thread_waitingwrite, &pipe));
+   // test
+   memset(buffer, 0, sizeof(buffer));
+   TEST(0 == readall_pipe(&pipe, sizeof(buffer), buffer, -1/*inifinite timeout*/));
+   // check thread
+   TEST(0 == join_thread(thr));
+   TEST(0 == returncode_thread(thr));
+   // check buffer content
+   for (size_t i = 0; i < sizeof(buffer); ++i) {
+      TESTP(buffer[i] == (uint8_t) (i/13), "buffer[%d] != %d", i, (int)(uint8_t)(i/13));
+   }
+   // reset
+   TEST(0 == delete_thread(&thr));
+
+   // TEST writeall_pipe: multiple writes with waiting
+   // prepare
+   TEST(0 == fill_buffer(&pipe, bufsize));
+   waparam.pipe = &pipe;
+   waparam.wakeup = 0;
+   TEST(0 == new_thread(&thr, &thread_writeall, &waparam));
+   // simulate slow reading (==> writing thread does wait multiple times)
+   for (size_t i = bufsize; i; ) {
+      sleepms_thread(5);
+      size_t b = (i > sizeof(buffer)/8 ? sizeof(buffer)/8 : i);
+      TEST(b == (size_t)read(pipe.read, buffer, b));
+      i -= b;
+   }
+   // read written content
+   memset(buffer, 0, sizeof(buffer));
+   for (size_t i = 0; i < 8; ++i) {
+      sleepms_thread(5);
+      TEST(sizeof(buffer)/8 == read(pipe.read, buffer + i*(sizeof(buffer)/8), sizeof(buffer)/8));
+   }
+   TEST(-1 == read(pipe.read, buffer, 1));
+   TEST(EAGAIN == errno);
+   // check thread
+   TEST(0 == join_thread(thr));
+   TEST(0 == returncode_thread(thr));
+   // check buffer content
+   for (size_t i = 0; i < sizeof(buffer); ++i) {
+      TESTP(buffer[i] == (uint8_t) (i/11), "buffer[%d] != %d", i, (int)(uint8_t)(i/11));
+   }
+   // reset
+   TEST(0 == delete_thread(&thr));
 
    // TEST readall_pipe: EAGAIN (no timeout)
    TEST(EAGAIN == readall_pipe(&pipe, 1, buffer, 0/*no timeout*/));
 
-   // TEST readall_pipe: ETIMEDOUT
-   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 10000 }));
-   TEST(ETIMEDOUT == readall_pipe(&pipe, 1, buffer, 5));
-   TEST(0 == expirationcount_systimer(timer, &expcount));
-   TEST(450 <= expcount);
-   TEST(750 >= expcount);
-
    // TEST writeall_pipe: EAGAIN (no timeout)
-   TEST(0 == fill_internal_buffer(&pipe, 0, &bufsize));
+   TEST(0 == fill_buffer(&pipe, bufsize));
    TEST(EAGAIN == writeall_pipe(&pipe, 1, buffer, 0/*no timeout*/));
 
-   // TEST writeall_pipe: ETIMEDOUT
+   // clear buffer
+   TEST(0 == free_pipe(&pipe));
+   TEST(0 == init_pipe(&pipe));
+
+   // TEST readall_pipe: ETIME
    TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 10000 }));
-   TEST(ETIMEDOUT == writeall_pipe(&pipe, 1, buffer, 5));
+   TEST(ETIME == readall_pipe(&pipe, 1, buffer, 5));
    TEST(0 == expirationcount_systimer(timer, &expcount));
    TEST(450 <= expcount);
    TEST(750 >= expcount);
 
-   // clear buffer
+   // TEST writeall_pipe: ETIME
+   TEST(0 == fill_buffer(&pipe, bufsize));
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 10000 }));
+   TEST(ETIME == writeall_pipe(&pipe, 1, buffer, 5));
+   TEST(0 == expirationcount_systimer(timer, &expcount));
+   TEST(450 <= expcount);
+   TEST(750 >= expcount);
+   // reset
+   TEST(0 == free_pipe(&pipe));
+   TEST(0 == init_pipe(&pipe));
+
+   // TEST readall_pipe: EPIPE (no error log)
+   // prepare
+   TEST(0 == free_iochannel(&pipe.write))
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+   // test
+   TEST(EPIPE == readall_pipe(&pipe, 1, buffer, -1));
+   // check
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+   TEST(logsize1 == logsize2/*no error log*/);
+   // reset
+   TEST(0 == free_pipe(&pipe));
+   TEST(0 == init_pipe(&pipe));
+
+   // TEST writeall_pipe: EPIPE (no error log)
+   // prepare
+   TEST(0 == free_iochannel(&pipe.read))
+   // test
+   TEST(EPIPE == writeall_pipe(&pipe, 1, buffer, -1));
+   // check
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+   TEST(logsize1 == logsize2/*no error log*/);
+   // reset
+   TEST(0 == free_pipe(&pipe));
+   TEST(0 == init_pipe(&pipe));
+
+   // TEST writeall_pipe: EPIPE (other thread waits)
+   // prepare
+   TEST(0 == fill_buffer(&pipe, bufsize));
+   waparam.pipe = &pipe;
+   waparam.wakeup = self_thread();
+   TEST(0 == new_thread(&thr, &thread_writeall, &waparam));
+   suspend_thread();
+   TEST(0 == free_iochannel(&pipe.read))
+   // check thread
+   TEST(0 == join_thread(thr));
+   TEST(EPIPE == returncode_thread(thr));
+   // reset
+   TEST(0 == delete_thread(&thr));
    TEST(0 == free_pipe(&pipe));
    TEST(0 == init_pipe(&pipe));
 
@@ -333,7 +492,7 @@ static int test_readwrite(void)
    TEST(EAGAIN == readall_pipe(&pipe, 2, buffer, 0));
 
    // TEST writeall_pipe: partially written data
-   TEST(0 == fill_internal_buffer(&pipe, bufsize-sizeof(buffer)/2, 0));
+   TEST(0 == fill_buffer(&pipe, bufsize-sizeof(buffer)/2));
    TEST(EAGAIN == writeall_pipe(&pipe, sizeof(buffer), buffer, 0));
 
    // reset
@@ -342,6 +501,7 @@ static int test_readwrite(void)
 
    return 0;
 ONERR:
+   delete_thread(&thr);
    free_pipe(&pipe);
    free_systimer(&timer);
    return EINVAL;

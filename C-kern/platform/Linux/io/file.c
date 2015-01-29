@@ -97,7 +97,7 @@ int init_file(/*out*/file_t* fileobj, const char* filepath, accessmode_e iomode,
    static_assert( (O_WRONLY+1) == accessmode_WRITE, "simple conversion");
    static_assert( (O_RDWR+1)   == (accessmode_READ|accessmode_WRITE), "simple conversion");
 
-   fd = openat(openatfd, filepath, ((int)iomode - 1)|O_CLOEXEC );
+   fd = openat(openatfd, filepath, ((int)iomode - 1)|O_CLOEXEC|O_NONBLOCK );
    if (-1 == fd) {
       err = errno;
       TRACESYSCALL_ERRLOG("openat", err);

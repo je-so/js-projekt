@@ -1,102 +1,102 @@
-[1: 1412325076.969266s]
+[1: 1421244062.200343s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:427
 Error 22 - Invalid argument
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=18446744073709551615
-[1: 1412325076.969307s]
+[1: 1421244062.200388s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:427
 Error 27 - File too large
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=9223372036854775807
-[1: 1412325076.969329s]
+[1: 1421244062.200410s]
 new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 2 - No such file or directory
 System call 'openat' failed
 path=.....
-[1: 1412325076.969334s]
+[1: 1421244062.200416s]
 new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 20 - Not a directory
 System call 'openat' failed
 path=/tmp/test1.123456/file_000000
-[1: 1412325076.969340s]
+[1: 1421244062.200423s]
 makedirectory_directory() C-kern/platform/Linux/io/directory.c:393
 Error 13 - Permission denied
 System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
 mkdiratfd=10
 directory_path=XXXXXXXX.test
-[1: 1412325076.969346s]
+[1: 1421244062.200429s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:418
 Error 13 - Permission denied
 System call 'openat(openatfd, file_path)' failed
 openatfd=10
 file_path=XXXXXXXX.test
-[1: 1412325076.969353s]
+[1: 1421244062.200437s]
 removedirectory_directory() C-kern/platform/Linux/io/directory.c:457
 Error 39 - Directory not empty
 System call 'unlinkat(unlinkatfd, directory_path)' failed
 unlinkatfd=10
 directory_path=..
-[1: 1412325076.972735s]
+[1: 1421244062.203957s]
 new_directory() C-kern/platform/Linux/io/directory.c:218
 Error 2 - No such file or directory
 System call 'openat' failed
 path=/tmp/test1.123456
-[1: 1412325076.983288s]
+[1: 1421244062.212567s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983295s]
+Error 1 - Operation not permitted
+[1: 1421244062.212575s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983301s]
+Error 2 - No such file or directory
+[1: 1421244062.212581s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983308s]
+Error 3 - No such process
+[1: 1421244062.212587s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983319s]
+Error 4 - Interrupted system call
+[1: 1421244062.212595s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983332s]
+Error 5 - Input/output error
+[1: 1421244062.212606s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983345s]
+Error 6 - No such device or address
+[1: 1421244062.212617s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983416s]
+Error 7 - Argument list too long
+[1: 1421244062.212639s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983485s]
+Error 8 - Exec format error
+[1: 1421244062.212661s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983557s]
+Error 9 - Bad file descriptor
+[1: 1421244062.212682s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983631s]
+Error 10 - No child processes
+[1: 1421244062.212703s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983701s]
+Error 11 - Resource temporarily unavailable
+[1: 1421244062.212725s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983769s]
+Error 12 - Cannot allocate memory
+[1: 1421244062.212752s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983839s]
+Error 13 - Permission denied
+[1: 1421244062.212774s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983909s]
+Error 14 - Bad address
+[1: 1421244062.212795s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.983986s]
+Error 15 - Block device required
+[1: 1421244062.212816s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.984062s]
+Error 16 - Device or resource busy
+[1: 1421244062.212842s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.984155s]
+Error 17 - File exists
+[1: 1421244062.212864s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
-[1: 1412325076.984238s]
+Error 18 - Invalid cross-device link
+[1: 1421244062.212888s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
-Error 1000 - Unknown error
+Error 19 - No such device

@@ -173,6 +173,41 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void* buffer/*[size]*/, 
  * */
 int write_iochannel(iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*out*/size_t* bytes_written);
 
+/* function: readall_iochannel
+ * Wartet maximal msec_timeout Millisekunden, bis alle size Datenbytes gelesen werden konnten.
+ * Im Fehlerfall werden schon gelesene Daten verworfen und
+ * stattdessen ein Fehlercode zurückgegeben. Der Inhalt von data wird daher auch im Fehlerfall
+ * möglicherweise teilweise verändert.
+ *
+ * Returncodes:
+ * 0 - OK
+ * EAGAIN - ioc arbeitet im nichtblockierenden Modus, msec_timeout wurde auf 0 (nicht warten) gesetzt und
+ *          es gibt keine Daten zu lesen.
+ * EBADF - ioc nicht initialisiert oder nicht fürs Lesen geöffnet.
+ * EINTR - Ein Interrupthandler wurde aufgerufen, während diese Funktion gewartet hat.
+ * EPIPE - Schreibendes Ende wurde geschlossen. Der Fehler wird nicht geloggt. Dieser Fehler erscheint nur bei
+ *         verbundenen Kanälen wie Pipes oder TCP Sockets oder auch Dateien, bei denen über das Dateiende hinaus
+ *         zu lesen versucht wurde.
+ * ETIME - Der Timeout ist abgelaufen, bevor alle Daten gelesen werden konnten, falls msec_timeout > 0.
+ *         Im Falle von msec_timeout < 0 wird unendlich lange gewartet und dieser Fehler wird nicht erzeugt. */
+int readall_iochannel(iochannel_t ioc, size_t size, void* buffer/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
+
+/* function: writeall_iochannel
+ * Wartet maximal msec_timeout Millisekunden, bis alle size Datenbytes geschrieben werden konnten.
+ * Im Fehlerfall wird trotz teilweise geschriebener Daten der Fehlercode zurückgegeben, die Länge
+ * der schon geschr. Daten wird verworfen. Teilweise geschriebene Daten verbleiben in internen OS
+ * Datenpuffern.
+ *
+ * Returncodes:
+ * 0 - OK
+ * EAGAIN - ioc arbeitet im nichtblockierenden Modus, msec_timeout wurde auf 0 (nicht warten) gesetzt und
+ *          alle OS internen Puffer sind belegt.
+ * EBADF - ioc nicht initialisiert oder nicht fürs Schreiben geöffnet.
+ * EINTR - Ein Interrupthandler wurde aufgerufen, während diese Funktion gewartet hat.
+ * EPIPE - Lesendes Ende wurde geschlossen (Fehler wird nicht geloggt).
+ * ETIME - Der Timeout ist abgelaufen, bevor alle Daten geschrieben werden konnten, falls msec_timeout > 0.
+ *         Im Falle von msec_timeout < 0 wird unendlich lange gewartet und dieser Fehler wird nicht erzeugt. */
+int writeall_iochannel(iochannel_t ioc, size_t size, const void* buffer/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
 
 
 // section: inline implementation
