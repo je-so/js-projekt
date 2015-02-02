@@ -31,6 +31,12 @@
 // List of all configuration options.
 
 //{
+/* define: KONFIG_CPU
+ * Choose name of CPU this code is compiled afainst.
+ *
+ * Supported cpu values:
+ * x86 - File "C-kern/api/platform/hw/cpu/x86.h" is included. */
+#define KONFIG_CPU                     x86
 /* define: KONFIG_LANG
  * Choose default language for compiletime/runtime text output.
  *
@@ -151,6 +157,7 @@
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
 
 //{
+#include STR(C-kern/api/platform/hw/cpu/KONFIG_CPU.h)
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
 #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)

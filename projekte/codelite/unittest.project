@@ -84,6 +84,11 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/init.h"/>
       <File Name="../../C-kern/api/platform/syslogin.h"/>
+      <VirtualDirectory Name="hw">
+        <VirtualDirectory Name="cpu">
+          <File Name="../../C-kern/api/platform/hw/cpu/x86.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
