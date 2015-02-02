@@ -10,6 +10,10 @@ Function parameters are distinguished according to their direction of informatio
 /*in*/    - Input parameter. The value is read by the called function but not changed.
             If it accepts only a pointer to the value the parameter should be marked with
             *const* (const type_t * value). To flag it with the label /*in*/ is redundant.
+/*own*/   - The ownership of argument value is transfered from the caller of the function
+            to the receiving object if no error occurs.
+            Example (transfers ownership on io from caller to freader):
+            sys_iochannel io=get_io(); int err=attachio_filereader(&freader, /*own*/io);
 /*inout*/ - This kind of parameter is read from as well as written to.
             Preallocated return parameters like queried names fall in this category.
             Marking it with label /*inout*/ is redundant, cause every pointer to a non-const
