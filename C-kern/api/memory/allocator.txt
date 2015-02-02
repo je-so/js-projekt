@@ -1,0 +1,18 @@
+TODO: Implementiere Allokator
+
+* Binde Allokator in erstem bzw. zweitem Durchlauf
+  der Unittests ein.
+
+* Unterstütze Group Alloc / Dealloc
+
+Unterstütze verschiedene Lebenszeit-Allokatoren
+
+* Unterstützte Stack (Simplest) Allocator
+* Unterstütze Temporary Allocator
+* Unterstütze Operation/Transaction Allocator
+
+Bei Temporary-Allocator unterstütze free-session(ID)
+(+ ID start-session(): markiert den Anfang der Sitzung)
+
+
+

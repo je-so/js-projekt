@@ -1,0 +1,16 @@
+https://gcc.gnu.org/onlinedocs/gcc/Vector-Extensions.html
+
+TODO: Implement memcpy with vector extension:
+
+typedef int v4si __attribute__ ((vector_size (16)));
+
+v4si * src;
+v4si * dest;
+
+*dest++ = *src++;
+
+=====
+
+Twice as fast as *(long*)dest = *(long*)src on 32 bit.
+
+=====

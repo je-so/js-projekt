@@ -1,0 +1,32 @@
+Die Auszeichnung (Tag) _SHARED_
+wird im Kommentarblock eines Moduls bzw. eines Typs
+verwendet, um einen gemeinsamen Zugriff von mehreren
+kooperierenden Funktionen oder gleichzeitig ablaufenden
+(nebenläufigen) Threads und Prozessen zu erlauben.
+
+Generell sind Typen nicht "threadsafe".
+
+Verwendung:
+
+_SHARED_(thread, 1R, 1W) 
+/* Zeigt an, daß zwei kooperiende syncfunc_t auf das Objekt zugreifen.
+ * Eine lesend und eine schreibend. 
+ * thread sagt aus, daß das Objekt nur innerhalb eines Threads sichtbar ist. */
+
+_SHARED_(process, 1R, nW)
+/* Zeigt an, daß n+1 kooperierende Threads auf das Objekt zugreifen können.
+ * Nur einer lesend, alle anderen n nur schreibend.
+ * process sagt aus, daß das Objekt nur innerhalb eines Prozesses sichtbar ist. */
+
+_SHARED_(system, mR, nW)
+/* Zeigt an, daß m+n kooperierende Prozesse/Threads auf das Objekt 
+ * gleichzeitig zugreifen können. Zu jedem Zeitpunkt können mehrere
+ * lesend und auch schreibend zugreifen. eibend.
+ * system sagt aus, daß das Objekt systemweit allen authorisierten
+ * Prozesses sichtbar ist. */
+
+_SHARED_(network, mR, nW)
+/* Wie _SHARED_(system...), nur daß der Zugriff auch von
+ * entfernten Netzwerkknoten, natürlich authorisiert, 
+ * aus unterstützt wird. */
+

@@ -1,0 +1,8 @@
+TODO: implement task - manager
+  1. refactor id management into own thread-manager 
+  2. check that threads are alive
+     2.1 tryjoin_thread
+     2.2 send_interrupt which sets flag !! 
+         2.2.1 implement interrupt routine which sets alive flag
+               in task manager (init during process startup)
+         2.2.2 make all syscalls restartable (EINTR is catched)
