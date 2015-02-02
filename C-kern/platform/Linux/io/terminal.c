@@ -1038,19 +1038,20 @@ static int test_query(void)
    int            pfd[2] = { sys_iochannel_FREE, sys_iochannel_FREE };
    uint8_t        name[100];
    uint8_t        type[100];
-   struct timeval starttime;
-   struct timeval endtime;
    struct
    itimerspec     exptime;
    timer_t        timerid;
+   systimer_t     timer = systimer_FREE;
    bool           istimer = false;
    thread_t*      thread = 0;
    sigset_t       sigmask;
    sigset_t       oldmask;
    struct sigaction act;
    struct sigaction oldact;
+   uint64_t       elapsedms;
 
    // prepare
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
    file = dup(sys_iochannel_STDERR);
    TEST(0 < file);
    TEST(0 == pipe2(pfd, O_CLOEXEC));
@@ -1132,11 +1133,10 @@ static int test_query(void)
    memset(&exptime, 0, sizeof(exptime));
    exptime.it_value.tv_nsec = 1000000000/10;    // 10th of a second
    TEST(0 == timer_settime(timerid, 0, &exptime, 0)); // generate SIGWINCH after timeout
-   TEST(0 == gettimeofday(&starttime, 0));
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .seconds = 0, .nanosec = 1000000 }));
    TEST(0 == waitsizechange_terminal());
-   TEST(0 == gettimeofday(&endtime, 0));
-   unsigned elapsedms = (unsigned) (1000 * (endtime.tv_sec - starttime.tv_sec) + endtime.tv_usec / 1000 - starttime.tv_usec / 1000);
-   TESTP(50 < elapsedms && elapsedms < 500, "elapsedms=%d", elapsedms);
+   TEST(0 == expirationcount_systimer(timer, &elapsedms));
+   TESTP(50 < elapsedms && elapsedms < 500, "elapsedms=%"PRId64, elapsedms);
 
    // TEST waitsizechange_terminal: EINTR (SIGINT)
    TEST(0 == sigemptyset(&sigmask));
@@ -1213,6 +1213,7 @@ static int test_query(void)
    // unprepare
    istimer = false;
    TEST(0 == timer_delete(timerid));
+   TEST(0 == free_systimer(&timer));
    TEST(0 == close(file));
    TEST(0 == close(pfd[0]));
    TEST(0 == close(pfd[1]));
@@ -1223,6 +1224,7 @@ ONERR:
    if (istimer) {
       timer_delete(timerid);
    }
+   free_systimer(&timer);
    close(file);
    close(pfd[0]);
    close(pfd[1]);

@@ -19,10 +19,12 @@
 #include "C-kern/api/test/perftest.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/pipe.h"
-#include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/time/sysclock.h"
+#include "C-kern/api/time/timevalue.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
@@ -117,10 +119,10 @@ static int threadmain_perftest(void * arg)
       if (ptest->iimpl->run(tinst)) goto ONERR;
    }
 
-   struct timeval tv;
-   gettimeofday(&tv, 0);
-   tinst->usec = 1000000 * (tv.tv_sec - ptest->start_time.sec)
-               + (tv.tv_usec - ptest->start_time.usec);
+   timevalue_t tv;
+   if (0 == time_sysclock(sysclock_MONOTONIC, &tv)) {
+      tinst->usec = diffus_timevalue(&tv, &ptest->start_time);
+   }
 
    if (ptest->iimpl->unprepare) {
       isprepared = false;
@@ -346,10 +348,8 @@ int measure_perftest(perftest_t* ptest, /*out*/uint64_t* nrops, /*out*/uint64_t*
 
    // start test
 
-   struct timeval tv;
-   gettimeofday(&tv, 0);
-   ptest->start_time.sec  = tv.tv_sec;
-   ptest->start_time.usec = tv.tv_usec;
+   err = time_sysclock(sysclock_MONOTONIC, cast_timevalue(&ptest->start_time));
+   if (err) goto ONERR;
 
    err = writesignal_perftest(ptest, false, ptest->nrinstance, 0/*OK*/);
    if (err) goto ONERR;
@@ -470,8 +470,8 @@ static int test_initfree(void)
          TEST(p*t == ptest->nrinstance);
          TEST(p == ptest->nrprocess);
          TEST(t == ptest->nrthread_per_process);
-         TEST(0 == ptest->start_time.sec);  // default
-         TEST(0 == ptest->start_time.usec); // default
+         TEST(0 == ptest->start_time.seconds);  // default
+         TEST(0 == ptest->start_time.nanosec); // default
          TEST(0 == ptest->shared_addr); // default
          TEST(0 == ptest->shared_size); // default
          // prüfe Inhalt perftest_process_t

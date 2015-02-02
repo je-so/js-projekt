@@ -209,7 +209,7 @@ struct perftest_t {
    uint16_t       nrthread_per_process;
    /* variable: start_time
     * Startzeitpunkt der Messung. */
-   struct { int64_t sec; int32_t usec; }
+   struct { int64_t seconds; int32_t nanosec; }
                   start_time;
    /* variable: sshared_addr
     * Siehe <sharedaddr_perftest>. */

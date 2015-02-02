@@ -30,6 +30,8 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/time/timevalue.h"
+#include "C-kern/api/time/sysclock.h"
 #endif
 
 
@@ -1359,27 +1361,25 @@ ONERR:
 
 int test_sleep(void)
 {
-   struct timeval tv;
-   struct timeval tv2;
-   int32_t msec;
+   timevalue_t tv;
+   timevalue_t tv2;
+   int64_t msec;
 
-   // TEST 250 msec
-   TEST(0 == gettimeofday(&tv, 0));
+   // TEST sleepms_thread: 250 msec
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &tv));
    sleepms_thread(250);
-   TEST(0 == gettimeofday(&tv2, 0));
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &tv2));
+   // check
+   msec = diffms_timevalue(&tv2, &tv);
+   TESTP(200 < msec && msec < 300, "msec:%"PRId64, msec);
 
-   msec = 1000 * (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000;
-   TEST(msec > 200);
-   TEST(msec < 300);
-
-   // TEST 100 msec
-   TEST(0 == gettimeofday(&tv, 0));
+   // TEST sleepms_thread: 100 msec
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &tv));
    sleepms_thread(100);
-   TEST(0 == gettimeofday(&tv2, 0));
-
-   msec = 1000 * (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000;
-   TEST(msec > 80);
-   TEST(msec < 120);
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &tv2));
+   // check
+   msec = diffms_timevalue(&tv2, &tv);
+   TESTP(80 < msec && msec < 120, "msec:%"PRId64, msec);
 
    return 0;
 ONERR:
