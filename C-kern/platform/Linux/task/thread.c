@@ -122,14 +122,14 @@ ONERR:
 
 // group: lifetime
 
-int delete_thread(thread_t ** threadobj)
+int delete_thread(thread_t ** thread)
 {
-   int err ;
-   int err2 ;
-   thread_t * delobj = *threadobj ;
+   int err;
+   int err2;
+   thread_t * delobj = *thread;
 
    if (delobj) {
-      *threadobj = 0 ;
+      *thread = 0 ;
 
       err = join_thread(delobj) ;
 
@@ -145,14 +145,14 @@ ONERR:
    return err ;
 }
 
-int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_arg)
+int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
 {
    int err ;
    int err2 = 0 ;
-   pthread_attr_t    thread_attr ;
-   thread_t *        thread            = 0 ;
-   thread_tls_t      tls               = thread_tls_FREE ;
-   bool              isThreadAttrValid = false ;
+   pthread_attr_t    thread_attr;
+   thread_t *        newthread         = 0;
+   thread_tls_t      tls               = thread_tls_FREE;
+   bool              isThreadAttrValid = false;
 
    ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    err = init_threadtls(&tls) ;
@@ -163,14 +163,14 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    signalstack_threadtls(&tls, &signalstack) ;
    threadstack_threadtls(&tls, &stack) ;
 
-   thread = thread_threadtls(&tls) ;
-   thread->main_task  = thread_main ;
-   thread->main_arg   = main_arg ;
-   thread->tls_addr   = tls.addr ;
+   newthread = thread_threadtls(&tls) ;
+   newthread->main_task  = thread_main ;
+   newthread->main_arg   = main_arg ;
+   newthread->tls_addr   = tls.addr ;
 
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr ;
 
-   startarg->self        = thread ;
+   startarg->self        = newthread;
    startarg->pcontext    = pcontext_maincontext() ;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size } ;
 
@@ -200,7 +200,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
       goto ONERR;
    }
 
-   thread->sys_thread = sys_thread ;
+   newthread->sys_thread = sys_thread;
 
    err2 = pthread_attr_destroy(&thread_attr) ;
    isThreadAttrValid = false ;
@@ -209,7 +209,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
       goto ONERR;
    }
 
-   *threadobj = thread ;
+   *thread = newthread;
 
    return 0 ;
 ONERR:
@@ -226,15 +226,15 @@ ONERR:
 
 // group: synchronize
 
-int join_thread(thread_t * threadobj)
+int join_thread(thread_t* thread)
 {
    int err ;
 
-   if (sys_thread_FREE != threadobj->sys_thread) {
+   if (sys_thread_FREE != thread->sys_thread) {
 
-      err = pthread_join(threadobj->sys_thread, 0);
+      err = pthread_join(thread->sys_thread, 0);
       if (err != EDEADLK) {
-         threadobj->sys_thread = sys_thread_FREE;
+         thread->sys_thread = sys_thread_FREE;
       }
 
       if (err) goto ONERR;
@@ -246,16 +246,16 @@ ONERR:
    return err ;
 }
 
-int tryjoin_thread(thread_t * threadobj)
+int tryjoin_thread(thread_t* thread)
 {
    int err = 0;
 
-   if (sys_thread_FREE != threadobj->sys_thread) {
+   if (sys_thread_FREE != thread->sys_thread) {
 
-      err = pthread_tryjoin_np(threadobj->sys_thread, 0);
+      err = pthread_tryjoin_np(thread->sys_thread, 0);
 
       if (err != EBUSY && err != EDEADLK) {
-         threadobj->sys_thread = sys_thread_FREE;
+         thread->sys_thread = sys_thread_FREE;
       }
    }
 
@@ -328,11 +328,11 @@ ONERR:
 }
 
 
-void resume_thread(thread_t * threadobj)
+void resume_thread(thread_t* thread)
 {
    int err ;
 
-   err = pthread_kill(threadobj->sys_thread, SIGINT) ;
+   err = pthread_kill(thread->sys_thread, SIGINT) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_kill", err) ;
       goto ONERR;

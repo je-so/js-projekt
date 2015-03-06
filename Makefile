@@ -112,4 +112,4 @@ $(MAKEFILES_PREFIX)textres2compiler: projekte/subsys/Linux-mini projekte/subsys/
 
 $(MAKEFILES_PREFIX)perftest: projekte/subsys/Linux projekte/subsys/context
 
-AOPHICFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic
+$(MAKEFILES_PREFIX)unittest: projekte/subsys/Linux projekte/subsys/X11 projekte/subsys/OpenGL-EGL projekte/subsys/graphic
