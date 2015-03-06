@@ -16,7 +16,7 @@
 
 /* typedef: struct test_errortimer_t
  * Export <test_errortimer_t>. */
-typedef struct test_errortimer_t       test_errortimer_t ;
+typedef struct test_errortimer_t test_errortimer_t;
 
 
 // section: Functions
@@ -26,7 +26,7 @@ typedef struct test_errortimer_t       test_errortimer_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_errortimer
  * Unittest for <test_errortimer_t>. */
-int unittest_test_errortimer(void) ;
+int unittest_test_errortimer(void);
 #endif
 
 /* struct: test_errortimer_t
@@ -36,11 +36,11 @@ int unittest_test_errortimer(void) ;
 struct test_errortimer_t {
    /* variable: timercount
     * The number of times <process_testerrortimer> returns success. */
-   uint32_t    timercount ;
+   uint32_t    timercount;
    /* variable: errcode
     * The error code which is returned by <process_testerrortimer>. */
-   int         errcode ;
-} ;
+   int         errcode;
+};
 
 // group: lifetime
 
@@ -57,23 +57,28 @@ struct test_errortimer_t {
  *               A value of 0 disables the timer.
  * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
-void init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
+void init_testerrortimer(/*out*/test_errortimer_t* errtimer, uint32_t timercount, int errcode);
 
 /* function: free_testerrortimer
  * Sets errtimer to <test_errortimer_FREE>. */
-void free_testerrortimer(test_errortimer_t * errtimer) ;
+void free_testerrortimer(test_errortimer_t* errtimer);
 
 // group: query
 
 /* function: isenabled_testerrortimer
  * Returns true if timer has not fired. */
-bool isenabled_testerrortimer(const test_errortimer_t * errtimer) ;
+bool isenabled_testerrortimer(const test_errortimer_t* errtimer);
 
 /* function: errcode_testerrortimer
  * Returns the error code of the timer.
  * The returned value is the one set with <init_testerrortimer>
  * independent if the timer is enabled or not. */
-int errcode_testerrortimer(const test_errortimer_t * errtimer) ;
+int errcode_testerrortimer(const test_errortimer_t* errtimer);
+
+/* function: ERRCODE_testerrortimer
+ * This function calls <errcode_testerrortimer>(errtimer) and returns its value.
+ * Returns always 0 if KONFIG_UNITTEST is not defined. */
+int ERRCODE_testerrortimer(const test_errortimer_t * errtimer);
 
 // group: update
 
@@ -82,7 +87,7 @@ int errcode_testerrortimer(const test_errortimer_t * errtimer) ;
  * If <test_errortimer_t.timercount> is 0, nothing is done and 0 is returned.
  * Else timercount is decremented. If timercount is zero after the decrement
  * <test_errortimer_t.errcode> is returned else 0 is returned. */
-int process_testerrortimer(test_errortimer_t * errtimer) ;
+int process_testerrortimer(test_errortimer_t * errtimer);
 
 /* function: ONERROR_testerrortimer
  * No op if KONFIG_UNITTEST is not defined.
@@ -99,7 +104,7 @@ int PROCESS_testerrortimer(test_errortimer_t * errtimer);
  * No op if KONFIG_UNITTEST is not defined.
  * This function calls <process_testerrortimer>(errtimer) and sets
  * the variable err if the call returned an error else err is not changed. */
-void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
+void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err);
 
 
 // section: inline implementation
@@ -126,32 +131,37 @@ void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
 
 /* define: process_testerrortimer
  * Implements <test_errortimer_t.process_testerrortimer>. */
-#define process_testerrortimer(errtimer)              \
-         ( __extension__ ({                           \
-            test_errortimer_t * _tm  = (errtimer) ;   \
-            int                 _err ;                \
-            if (  _tm->timercount                     \
-                  && ! (-- _tm->timercount)) {        \
-               _err = _tm->errcode ;                  \
-            } else {                                  \
-               _err = 0 ;                             \
-            }                                         \
-            _err ;                                    \
+#define process_testerrortimer(errtimer)           \
+         ( __extension__ ({                        \
+            test_errortimer_t * _tm  = (errtimer); \
+            int                 _err;              \
+            if (  _tm->timercount                  \
+                  && ! (-- _tm->timercount)) {     \
+               _err = _tm->errcode;                \
+            } else {                               \
+               _err = 0;                           \
+            }                                      \
+            _err;                                  \
          }))
 
 #ifdef KONFIG_UNITTEST
 
+/* define: ERRCODE_testerrortimer
+ * Implements <test_errortimer_t.ERRCODE_testerrortimer>. */
+#define ERRCODE_testerrortimer(errtimer) \
+         (errcode_testerrortimer(errtimer))
+
 /* define: ONERROR_testerrortimer
  * Implements <test_errortimer_t.ONERROR_testerrortimer>. */
 #define ONERROR_testerrortimer(errtimer, err, ONERROR_LABEL)  \
-         do {                                            \
-            typeof(err) _eret = (err);                   \
-            int   _err2;                                 \
-            _err2 = process_testerrortimer(errtimer);    \
-            if (_err2) {                                 \
-               *_eret = _err2;                           \
-               goto ONERROR_LABEL;                       \
-            }                                            \
+         do {                                         \
+            typeof(err) _eret = (err);                \
+            int   _err2;                              \
+            _err2 = process_testerrortimer(errtimer); \
+            if (_err2) {                              \
+               *_eret = _err2;                        \
+               goto ONERROR_LABEL;                    \
+            }                                         \
          } while(0)
 
 /* define: PROCESS_testerrortimer
@@ -161,15 +171,18 @@ void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
 
 /* define: SETONERROR_testerrortimer
  * Implements <test_errortimer_t.SETONERROR_testerrortimer>. */
-#define SETONERROR_testerrortimer(errtimer, err)         \
-         do {                                            \
-            typeof(err) _eret = (err) ;                  \
-            int   _err2 ;                                \
-            _err2 = process_testerrortimer(errtimer) ;   \
-            if (_err2) *_eret = _err2 ;                  \
+#define SETONERROR_testerrortimer(errtimer, err)      \
+         do {                                         \
+            typeof(err) _eret = (err);                \
+            int   _err2;                              \
+            _err2 = process_testerrortimer(errtimer); \
+            if (_err2) *_eret = _err2;                \
          } while(0)
 
 #else
+
+#define ERRCODE_testerrortimer(errtimer) \
+         (0)
 
 #define ONERROR_testerrortimer(errtimer, err, ONERROR_LABEL) \
          /* no op */

@@ -105,6 +105,16 @@ static int test_update(void)
    TEST(0  == (int)errtimer.timercount) ;
    TEST(-2 == errtimer.errcode) ;
 
+   // TEST ERRCODE_testerrortimer
+   free_testerrortimer(&errtimer);
+   TEST(0 == errcode_testerrortimer(&errtimer)) ;
+   for (int i = 0; i < 10; ++i) {
+      init_testerrortimer(&errtimer, 0, i);
+      TEST(i == ERRCODE_testerrortimer(&errtimer)) ;
+      init_testerrortimer(&errtimer, 1, i);
+      TEST(i == ERRCODE_testerrortimer(&errtimer)) ;
+   }
+
    // TEST ONERROR_testerrortimer
    err = 0 ;
    init_testerrortimer(&errtimer, 2, 3) ;

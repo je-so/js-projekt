@@ -101,7 +101,7 @@ typedef uint8_t atomicflag_t;
 int set_atomicflag(uint8_t* flag);
 
 /* function: clear_atomicflag
- * Sets flag to value 0. Call this function only if <set_atomicflag> returned true.
+ * Sets flag to value 0. Call this function only if <set_atomicflag> was called before and returned 0.
  * This operation ensures also a release memory barrier. Other threads will see all values written
  * by this thread before this operation (at least after they have executed an acquire barrier).
  * This thread may not see the values written by other threads. */

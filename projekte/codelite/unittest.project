@@ -239,6 +239,9 @@
       <File Name="../../C-kern/api/task/syncrunner.h"/>
       <File Name="../../C-kern/api/task/synccond.h"/>
       <File Name="../../C-kern/api/task/synccmd.h"/>
+      <VirtualDirectory Name="itc">
+        <File Name="../../C-kern/api/task/itc/itccounter.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">
@@ -427,6 +430,7 @@
         <File Name="../../C-kern/platform/Linux/sync/signal.c"/>
         <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
         <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/itccounter.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/init.c"/>
       <File Name="../../C-kern/platform/Linux/syslogin.c"/>

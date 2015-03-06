@@ -254,7 +254,7 @@ int tryjoin_thread(thread_t* thread)
 
       err = pthread_tryjoin_np(thread->sys_thread, 0);
 
-      if (err != EBUSY && err != EDEADLK) {
+      if (0 == err) {
          thread->sys_thread = sys_thread_FREE;
       }
    }
@@ -332,15 +332,20 @@ void resume_thread(thread_t* thread)
 {
    int err ;
 
-   err = pthread_kill(thread->sys_thread, SIGINT) ;
-   if (err) {
-      TRACESYSCALL_ERRLOG("pthread_kill", err) ;
-      goto ONERR;
+   if (sys_thread_FREE != thread->sys_thread) {
+      err = pthread_kill(thread->sys_thread, SIGINT);
+      if (err) {
+         if (err == ESRCH) {
+            if (0 == tryjoin_thread(thread)) return; // OK
+         }
+         TRACESYSCALL_ERRLOG("pthread_kill", err);
+         goto ONERR;
+      }
    }
 
-   return ;
+   return;
 ONERR:
-   abort_maincontext(err) ;
+   abort_maincontext(err);
 }
 
 void sleepms_thread(uint32_t msec)
@@ -1279,6 +1284,12 @@ static int thread_waitsuspend(intptr_t signr)
    return err;
 }
 
+static int thread_resumemain(thread_t* mainthread)
+{
+   resume_thread(mainthread);
+   return 0;
+}
+
 static int test_suspendresume(void)
 {
    thread_t * thread1 = 0;
@@ -1301,7 +1312,7 @@ static int test_suspendresume(void)
    // TEST suspend_thread: thread suspends
    TEST(EAGAIN == trywait_signalrt(0, 0));
    TEST(EAGAIN == trywait_signalrt(1, 0));
-   TEST(0 == newgeneric_thread(&thread1, thread_suspend, 0));
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, 0));
    TEST(0 == wait_signalrt(0, 0));
    TEST(EAGAIN == trywait_signalrt(1, 0));
    // now suspended
@@ -1311,6 +1322,22 @@ static int test_suspendresume(void)
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
    TEST(0 == trywait_signalrt(1, 0));
+
+   // TEST resume_thread: already joined thread is ignored
+   resume_thread(thread1);
+   TEST(0 == delete_thread(&thread1));
+
+   // TEST resume_thread: already exited thread is ignored (join is called)
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread1, &thread_resumemain, self_thread()));
+   // wait until thread ended
+   suspend_thread();
+   sleepms_thread(10);
+   // test
+   resume_thread(thread1);
+   // check marked thread as joined
+   TEST(sys_thread_FREE == thread1->sys_thread);
+   // reset
    TEST(0 == delete_thread(&thread1));
 
    // TEST resume_thread: other threads resume suspended thread

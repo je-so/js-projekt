@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Jan.14  08:24:46
+GenerationDate  := 2015.Mär.06  08:53:24
 GeneratedBy     := je-so
 
 ## Debug
@@ -92,6 +92,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
@@ -211,6 +212,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
@@ -369,6 +371,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linu
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
@@ -720,6 +725,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Li
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c

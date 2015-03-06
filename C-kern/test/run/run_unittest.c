@@ -220,6 +220,7 @@ int run_unittest(void * argv)
       RUN(unittest_task_synccond);
       RUN(unittest_task_syncfunc);
       RUN(unittest_task_syncrunner);
+      RUN(unittest_task_itc_itccounter);
 //}
 
 //{ test unittest
