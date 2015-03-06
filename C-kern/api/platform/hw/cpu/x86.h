@@ -11,7 +11,7 @@
    file: C-kern/konfig.h
     Der Header <Konfiguration> verwendet diese Datei, falls KONFIG_CPU als x86 definiert ist.
 
-   file: C-kern/api/platform/hs/cpu/x86.h
+   file: C-kern/api/platform/hw/cpu/x86.h
     Definiert Eigenschaften einer generischen x86 CPU.
 */
 #ifndef CKERN_PLATFORM_HW_CPU_X86_HEADER

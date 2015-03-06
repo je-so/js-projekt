@@ -23,44 +23,52 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
-// TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
+// TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalhandler")WHERE(action=='set'&&header!='')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #endif
 
-/* typedef: struct signalhandler_t
- * Exports <signalhandler_t> into global namespace. */
-typedef struct signalhandler_t            signalhandler_t ;
-
 
 /* struct: signalhandler_t
  * Describes an overwritten signal handler. */
-struct signalhandler_t {
+typedef struct signalhandler_t {
    /* variable: isvalid
     * Indicates if this structure contains valid information. */
-   bool                 isvalid ;
+   bool              isvalid;
    /* variable: handler
     * Function pointer to new signal handler. */
-   signalhandler_f     handler ;
+   signalhandler_f   handler;
    /* variable: oldstate
     * Contains old signal handler configuration.
     * This value is set in <initonce_signalhandler>
     * before the signal handler is overwritten. */
-   struct sigaction     oldstate ;
-} ;
+   struct sigaction  oldstate;
+} signalhandler_t;
+
+// group: static variables
 
 /* variable: s_signalhandler
  * Stores global configuration information for signal handlers.
  * See <signalhandler_t>.
  * All values in the array are set in <initonce_signalhandler>. */
-static signalhandler_t     s_signalhandler[64] = { { .isvalid = false } } ;
+static signalhandler_t     s_signalhandler[64] = { { .isvalid = false } };
 
 /* variable: s_signalhandler_oldmask
  * Stores old signal mask.
  * This value is set in <initonce_signalhandler>
  * before the signal mask is changed. */
-static sigset_t            s_signalhandler_oldmask ;
+static sigset_t            s_signalhandler_oldmask;
+
+// group: callback
+
+/* function: interrupt_signalhandler
+ * Do nothing callback. Only used to return from blocking system call. */
+static void interrupt_signalhandler(unsigned signr, uintptr_t value)
+{
+   (void) signr;
+   (void) value;
+}
 
 // group: helper
 
@@ -69,7 +77,7 @@ static sigset_t            s_signalhandler_oldmask ;
  * It dispatches handling of the signal to the set signal handler. */
 static void dispatcher_signalhandler(int signr, siginfo_t * siginfo, void * ucontext)
 {
-   (void) ucontext ;
+   (void) ucontext;
 
    if (0 < signr && signr <= (int)lengthof(s_signalhandler)) {
       if (signr == SIGSEGV) {
@@ -82,7 +90,7 @@ static void dispatcher_signalhandler(int signr, siginfo_t * siginfo, void * ucon
          }
 
       } else {
-         s_signalhandler[signr-1].handler((unsigned)signr, siginfo->si_code == SI_QUEUE ? (uintptr_t)siginfo->si_ptr : 0) ;
+         s_signalhandler[signr-1].handler((unsigned)signr, siginfo->si_code == SI_QUEUE ? (uintptr_t)siginfo->si_ptr : 0);
       }
    }
 }
@@ -200,48 +208,10 @@ ONERR:
 
 int initonce_signalhandler()
 {
-   int err ;
-   sigset_t signalmask ;
-   int      signr ;
+   int err;
+   sigset_t signalmask;
+   int      signr;
    bool     isoldmask = false;
-
-   err = sigemptyset(&signalmask) ;
-   if (err) goto ONERR_emptyset ;
-
-#define addrange(_MINSIGNR, _MAXSIGNR)  \
-         for (signr = _MINSIGNR; signr <= _MAXSIGNR; ++signr) {   \
-            if (sigaddset(&signalmask, signr)) goto ONERR_add;    \
-         }
-
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
-   // SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt
-   addrange(SIGRTMIN,SIGRTMAX);
-// TEXTDB:END
-#undef  addall
-
-#define add(_SIGNR)  \
-         signr = (_SIGNR) ;   \
-         if (sigaddset(&signalmask, signr)) goto ONERR_add;
-
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
-   // used to suspend and resume a single thread
-   add(SIGINT);
-   // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
-   add(SIGWINCH);
-// TEXTDB:END
-
-   err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_signalhandler_oldmask) ;
-   if (err) goto ONERR_sigmask;
-   isoldmask = true ;
-
-   err = sigemptyset(&signalmask) ;
-   if (err) goto ONERR_emptyset;
-
-// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
-// TEXTDB:END
-   err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0);
-   if (err) goto ONERR_sigmask;
-#undef add
 
 #define set(_SIGNR, _HANDLER) \
    static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
@@ -249,7 +219,9 @@ int initonce_signalhandler()
    err = set_signalhandler(_SIGNR, _HANDLER);                        \
    if (err) goto ONERR;
 
-// TEXTDB:SELECT("   // "description\n"   set("signal", "handler");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
+// TEXTDB:SELECT("   // "description\n"   set("signal", &"handler");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
+   // used to interrupt a blocking system call
+   set(SIGQUIT, &interrupt_signalhandler);
 // TEXTDB:END
 #undef set
 
@@ -264,6 +236,47 @@ int initonce_signalhandler()
    ignore(SIGPIPE);
 // TEXTDB:END
 #undef ignore
+
+#define addrange(_MINSIGNR, _MAXSIGNR)  \
+         for (signr = _MINSIGNR; signr <= _MAXSIGNR; ++signr) {   \
+            if (sigaddset(&signalmask, signr)) goto ONERR_add;    \
+         }
+
+   err = sigemptyset(&signalmask);
+   if (err) goto ONERR_emptyset;
+
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
+   // SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt
+   addrange(SIGRTMIN,SIGRTMAX);
+// TEXTDB:END
+#undef  addrange
+
+#define add(_SIGNR)  \
+         signr = (_SIGNR); \
+         if (sigaddset(&signalmask, signr)) goto ONERR_add;
+
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
+   // used to suspend and resume a single thread
+   add(SIGINT);
+   // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
+   add(SIGWINCH);
+// TEXTDB:END
+
+   err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_signalhandler_oldmask);
+   if (err) goto ONERR_sigmask;
+   isoldmask = true;
+
+   err = sigemptyset(&signalmask);
+   if (err) goto ONERR_emptyset;
+
+// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
+   // used to interrupt a blocking system call
+   add(SIGQUIT);
+// TEXTDB:END
+#undef add
+
+   err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0);
+   if (err) goto ONERR_sigmask;
 
    return 0 ;
 ONERR_sigmask:
@@ -578,89 +591,94 @@ ONERR:
 int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
 {
    int err ;
-   sigset_t signalmask ;
+   sigset_t signalmask;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr));
 
-   err = sigemptyset(&signalmask) ;
+   err = sigemptyset(&signalmask);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigemptyset", err);
       goto ONERR;
    }
 
-   err = sigaddset(&signalmask, SIGRTMIN+nr) ;
+   err = sigaddset(&signalmask, SIGRTMIN+nr);
+   if (!err) err = sigaddset(&signalmask, SIGQUIT);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigaddset", err) ;
-      PRINTINT_ERRLOG(SIGRTMIN+nr) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigaddset", err);
+      PRINTINT_ERRLOG(SIGRTMIN+nr);
       goto ONERR;
    }
 
    for (;;) {
-      siginfo_t sinfo ;
-      err = sigwaitinfo(&signalmask, &sinfo) ;
-      if (-1 == err) {
-         err = errno ;
-         if (EINTR == err) continue ;
-         TRACESYSCALL_ERRLOG("sigwaitinfo", err) ;
+      siginfo_t sinfo;
+      err = sigwaitinfo(&signalmask, &sinfo);
+      if (-1 == err || sinfo.si_signo == SIGQUIT) {
+         if (-1 == err) {
+            err = errno;
+            if (err == EINTR) continue;
+         } else {
+            err = EINTR;
+         }
+         TRACESYSCALL_ERRLOG("sigwaitinfo", err);
          goto ONERR;
       }
       if (value) {
-         *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0 ;
+         *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0;
       }
-      break ;
+      break;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
 {
    int err ;
-   sigset_t          signalmask ;
-   struct timespec   ts = { 0, 0 } ;
+   sigset_t          signalmask;
+   struct timespec   ts = { 0, 0 };
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr));
 
-   err = sigemptyset(&signalmask) ;
+   err = sigemptyset(&signalmask);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigemptyset", err);
       goto ONERR;
    }
 
-   err = sigaddset(&signalmask, SIGRTMIN+nr) ;
+   err = sigaddset(&signalmask, SIGRTMIN+nr);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigaddset", err) ;
-      PRINTINT_ERRLOG(SIGRTMIN+nr) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigaddset", err);
+      PRINTINT_ERRLOG(SIGRTMIN+nr);
       goto ONERR;
    }
 
    for (;;) {
-      siginfo_t sinfo ;
-      err = sigtimedwait(&signalmask, &sinfo, &ts) ;
+      siginfo_t sinfo;
+      err = sigtimedwait(&signalmask, &sinfo, &ts);
       if (-1 == err) {
-         err = errno ;
-         if (EAGAIN == err)   return err ;
-         if (EINTR  == err)   continue ;
-         TRACESYSCALL_ERRLOG("sigtimedwait", err) ;
+         err = errno;
+         if (EAGAIN == err) return err;
+         if (EINTR  == err) continue;
+         TRACESYSCALL_ERRLOG("sigtimedwait", err);
          goto ONERR;
       }
       if (value) {
-         *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0 ;
+         *value = sinfo.si_code == SI_QUEUE ? (uintptr_t) sinfo.si_ptr : 0;
       }
-      break ;
+      break;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -670,9 +688,9 @@ ONERR:
 
 void dummy_sighandler(int signr, siginfo_t * siginfo, void * ucontext)
 {
-   (void)signr ;
-   (void)siginfo ;
-   (void)ucontext ;
+   (void) signr;
+   (void) siginfo;
+   (void) ucontext;
 }
 
 static int test_signalstate(void)
@@ -788,9 +806,9 @@ static void test_handler(unsigned signr, uintptr_t sigvalue)
 
 static int test_signalhandler_helper(void)
 {
-   int         testsignals[] = { SIGQUIT, SIGUSR1, SIGUSR2, SIGRTMIN, SIGRTMAX } ;
-   sigset_t    oldmask ;
-   bool        isoldmask     = false ;
+   sigset_t oldmask;
+   int      testsignals[] = { SIGUSR1, SIGUSR2, SIGRTMIN, SIGRTMAX };
+   bool     isoldmask = false;
 
    TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask)) ;
    isoldmask = true ;
@@ -909,29 +927,28 @@ static int test_signalhandler_initonce(void)
 ONERR:
    memcpy(&s_signalhandler_oldmask, &old_signalmask, sizeof(old_signalmask)) ;
    memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int thread_receivesignal(uintptr_t rtsignr)
 {
-   int err ;
-   uintptr_t value ;
-   assert(rtsignr) ;
-   assert(mainarg_thread(self_thread())) ;
-   err = wait_signalrt((signalrt_t)rtsignr, &value) ;
-   settask_thread(self_thread(), 0, 0) ;
-   assert(0 == send_signalrt(0, value)) ;
-   return err ;
+   int err;
+   uintptr_t value;
+   assert(rtsignr);
+   assert(0 == send_signalrt(0, 0));
+   err = wait_signalrt((signalrt_t)rtsignr, &value);
+   assert(0 == send_signalrt(0, value));
+   return err;
 }
 
-static volatile void *  s_memaddr ;
-static volatile bool    s_ismapped ;
+static volatile void *  s_memaddr;
+static volatile bool    s_ismapped;
 
 static void segfault_handler(void * memaddr, bool ismapped)
 {
-   s_memaddr  = memaddr ;
-   s_ismapped = ismapped ;
-   abort_thread() ;
+   s_memaddr  = memaddr;
+   s_ismapped = ismapped;
+   abort_thread();
 }
 
 static int thread_segfault_queue(void * dummy)
@@ -1014,26 +1031,36 @@ ONERR:
    return EINVAL ;
 }
 
+static int thread_callwait(thread_t* caller)
+{
+   int err;
+   uintptr_t value;
+   resume_thread(caller);
+   err = wait_signalrt(0, &value);
+   CLEARBUFFER_ERRLOG();
+   return err;
+}
+
 static int test_signalrt(void)
 {
-   sigset_t          signalmask ;
-   thread_t *        group[3]  = { 0, 0, 0 } ;
-   struct timespec   ts        = { 0, 0 } ;
+   sigset_t          signalmask;
+   thread_t *        group[3] = { 0, 0, 0 };
+   struct timespec   ts       = { 0, 0 };
 
    // prepare
    TEST(0 == sigemptyset(&signalmask)) ;
    for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
-      TEST(0 == sigaddset(&signalmask, i)) ;
+      TEST(0 == sigaddset(&signalmask, i));
    }
 
    // TEST maxnr_signalrt: system supports at least 8 signals
-   TEST(maxnr_signalrt() == SIGRTMAX - SIGRTMIN) ;
-   TEST(maxnr_signalrt() >= 8) ;
+   TEST(maxnr_signalrt() == SIGRTMAX - SIGRTMIN);
+   TEST(maxnr_signalrt() >= 8);
 
    // TEST trywait_signalrt
-   while (0 < sigtimedwait(&signalmask, 0, &ts)) ;
+   while (0 < sigtimedwait(&signalmask, 0, &ts));
    for (int i = 0; i <= maxnr_signalrt(); ++i) {
-      uintptr_t value = 1 ;
+      uintptr_t value = 1;
       uintptr_t V     = (unsigned)i + 100u ;
       TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
       TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
@@ -1071,7 +1098,20 @@ static int test_signalrt(void)
    }
 
    // TEST wait_signalrt: EINVAL
-   TEST(EINVAL == wait_signalrt((signalrt_t)(maxnr_signalrt()+1), 0)) ;
+   TEST(EINVAL == wait_signalrt((signalrt_t)(maxnr_signalrt()+1), 0));
+
+   // TEST wait_signalrt: EINTR
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&group[0], &thread_callwait, self_thread()));
+   // generate interrupt
+   suspend_thread();
+   sleepms_thread(1);
+   interrupt_thread(group[0]);
+   // check EINTR
+   TEST(0 == join_thread(group[0]));
+   TEST(EINTR == returncode_thread(group[0]));
+   // reset
+   TEST(0 == delete_thread(&group[0]));
 
    // TEST send_signalrt: signals are queued
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
@@ -1089,32 +1129,36 @@ static int test_signalrt(void)
 
    // TEST send_signalrt: one thread receives / order unspecified
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
       for (unsigned t = 0; t < lengthof(group); ++t) {
-         TEST(0 == newgeneric_thread(&group[t], thread_receivesignal, i)) ;
+         TEST(0 == newgeneric_thread(&group[t], &thread_receivesignal, i));
       }
+      // wait for start of threads
       for (unsigned t = 0; t < lengthof(group); ++t) {
-         TEST(i == (uintptr_t) mainarg_thread(group[t])) ;
+         TEST(0 == wait_signalrt(0, 0));
       }
       for (unsigned t = 1; t <= lengthof(group); ++t) {
          // wake up one thread
-         TEST(0 == send_signalrt((signalrt_t)i, t*i)) ;
+         TEST(0 == send_signalrt((signalrt_t)i, t*i));
          // wait until woken up
-         uintptr_t v ;
-         TEST(0 == wait_signalrt(0, &v)) ;
-         TEST(v == t*i) ;
-         for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
-            if (group[t2] && 0 == mainarg_thread(group[t2])) {
-               TEST(0 == delete_thread(&group[t2])) ;
-               break ;
+         uintptr_t v = 0;
+         TEST(0 == wait_signalrt(0, &v));
+         TEST(v == t*i);
+         for (int isdel = 0; isdel == 0; ) {
+            for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
+               if (group[t2] && 0 == tryjoin_thread(group[t2])) {
+                  TEST(0 == returncode_thread(group[t2]));
+                  TEST(0 == delete_thread(&group[t2]));
+                  isdel = 1;
+               }
             }
          }
          // only one woken up
-         unsigned count = t ;
+         unsigned count = t;
          for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
-            count += (group[t2] != 0) ;
+            count += (group[t2] != 0);
          }
-         TEST(count == lengthof(group)) ;
+         TEST(count == lengthof(group));
       }
    }
 
@@ -1155,23 +1199,23 @@ static int test_signalrt(void)
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
       TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
       for (unsigned t = 0; t < lengthof(group); ++t) {
-         TEST(0 == newgeneric_thread(&group[t], thread_receivesignal, i)) ;
+         TEST(0 == newgeneric_thread(&group[t], &thread_receivesignal, i));
       }
+      // wait for start of threads
       for (unsigned t = 0; t < lengthof(group); ++t) {
-         TEST(i == (uintptr_t) mainarg_thread(group[t])) ;
+         TEST(0 == wait_signalrt(0, 0));
       }
       for (unsigned t = 1; t <= lengthof(group); ++t) {
          // wake up one thread
          TEST(0 == send2_signalrt((signalrt_t)i, t*i, group[t-1])) ;
          // wait until woken up
-         uintptr_t v ;
-         TEST(0 == wait_signalrt(0, &v)) ;
-         TEST(v == t*i) ;
-         TEST(0 == mainarg_thread(group[t-1])) ;
-         TEST(0 == delete_thread(&group[t-1])) ;
+         uintptr_t v = 0;
+         TEST(0 == wait_signalrt(0, &v));
+         TEST(v == t*i);
+         TEST(0 == delete_thread(&group[t-1]));
          // only one woken up
          for (unsigned t2 = t; t2 < lengthof(group); ++t2) {
-            TEST(i == (uintptr_t) mainarg_thread(group[t2])) ;
+            TEST(EBUSY == tryjoin_thread(group[t2]));
          }
       }
    }

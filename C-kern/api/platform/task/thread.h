@@ -194,7 +194,7 @@ int tryjoin_thread(thread_t* thread);
  * <resume_thread> must be called from another thread.
  *
  * Linux specific:
- * Internally sigwaitinfo wirh signal SIGINT is used to sleep.
+ * Internally sigwaitinfo with signal SIGINT is used to sleep.
  *
  * Attention !:
  * It is possible that signals are received which are generated from outside this process
@@ -222,6 +222,14 @@ int trysuspend_thread(void);
  * Internally pthread_kill with signal SIGINT is used to wake up a another
  * thread from sleeping. */
 void resume_thread(thread_t* thread);
+
+/* function: interrupt_thread
+ * Sends an interrupt to a thread to intterupt a system call.
+ * Use this function to wake up a thread which is waiting in a system call.
+ * If the thread is waiting in a system call the syscall returns with error EINTR.
+ * If the thread is running in user space the interrupt handler is executed but nothing
+ * else happends. */
+void interrupt_thread(thread_t* thread);
 
 /* function: sleepms_thread
  * Makes calling thread to sleep msec milli-seconds. */

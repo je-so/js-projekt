@@ -266,36 +266,36 @@ int tryjoin_thread(thread_t* thread)
 
 void suspend_thread()
 {
-   int err ;
-   sigset_t signalmask ;
+   int err;
+   sigset_t signalmask;
 
-   err = sigemptyset(&signalmask) ;
+   err = sigemptyset(&signalmask);
    if (err) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("sigemptyset", err);
       goto ONERR;
    }
 
-   err = sigaddset(&signalmask, SIGINT) ;
+   err = sigaddset(&signalmask, SIGINT);
    if (err) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("sigaddset", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("sigaddset", err);
       goto ONERR;
    }
 
    do {
-      err = sigwaitinfo(&signalmask, 0) ;
-   } while (-1 == err && EINTR == errno) ;
+      err = sigwaitinfo(&signalmask, 0);
+   } while (-1 == err && EINTR == errno);
 
    if (-1 == err) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("sigwaitinfo", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("sigwaitinfo", err);
       goto ONERR;
    }
 
-   return ;
+   return;
 ONERR:
-   abort_maincontext(err) ;
+   abort_maincontext(err);
 }
 
 int trysuspend_thread(void)
@@ -327,13 +327,32 @@ ONERR:
    return err ;
 }
 
-
 void resume_thread(thread_t* thread)
 {
    int err ;
 
    if (sys_thread_FREE != thread->sys_thread) {
       err = pthread_kill(thread->sys_thread, SIGINT);
+      if (err) {
+         if (err == ESRCH) {
+            if (0 == tryjoin_thread(thread)) return; // OK
+         }
+         TRACESYSCALL_ERRLOG("pthread_kill", err);
+         goto ONERR;
+      }
+   }
+
+   return;
+ONERR:
+   abort_maincontext(err);
+}
+
+void interrupt_thread(thread_t* thread)
+{
+   int err ;
+
+   if (sys_thread_FREE != thread->sys_thread) {
+      err = pthread_kill(thread->sys_thread, SIGQUIT);
       if (err) {
          if (err == ESRCH) {
             if (0 == tryjoin_thread(thread)) return; // OK
@@ -1257,20 +1276,30 @@ ONERR:
 
 // == test_suspendresume ==
 
-static int thread_suspend(intptr_t signr)
+static int thread_suspend(thread_t* caller)
 {
-   int err;
-   err = send_signalrt((signalrt_t)signr, 0);
-   if (!err) {
-      suspend_thread();
-      err = send_signalrt((signalrt_t)(signr+1), 0);
-   }
-   return err;
+   resume_thread(caller);
+   suspend_thread();
+   return 0;
 }
 
-static int thread_resume(thread_t * receiver)
+static int thread_flagsuspend(int* flag)
 {
-   resume_thread(receiver);
+   // signal caller
+   write_atomicint(flag, 1);
+   // wait
+   while (read_atomicint(flag)) {
+      yield_thread();
+   }
+   yield_thread();
+   suspend_thread();
+   return 0;
+}
+
+
+static int thread_resume(thread_t* caller)
+{
+   resume_thread(caller);
    return 0;
 }
 
@@ -1282,12 +1311,6 @@ static int thread_waitsuspend(intptr_t signr)
       suspend_thread();
    }
    return err;
-}
-
-static int thread_resumemain(thread_t* mainthread)
-{
-   resume_thread(mainthread);
-   return 0;
 }
 
 static int test_suspendresume(void)
@@ -1310,26 +1333,57 @@ static int test_suspendresume(void)
    }
 
    // TEST suspend_thread: thread suspends
-   TEST(EAGAIN == trywait_signalrt(0, 0));
-   TEST(EAGAIN == trywait_signalrt(1, 0));
-   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, 0));
-   TEST(0 == wait_signalrt(0, 0));
-   TEST(EAGAIN == trywait_signalrt(1, 0));
-   // now suspended
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, self_thread()));
+   // wait for thread
+   while (EAGAIN == poll_for_signal(SIGINT)) {
+      yield_thread();
+   }
+   // check thread suspended
+   for (int i = 0; i < 5; ++i) {
+      sleepms_thread(1);
+      TEST(EBUSY == tryjoin_thread(thread1));
+   }
+
+   // TEST suspend_thread: EINTR does not wakeup thread
+   for (int i = 0; i < 5; ++i) {
+      interrupt_thread(thread1);
+      sleepms_thread(1);
+      // check thread is in suspend
+      TEST(EBUSY == tryjoin_thread(thread1));
+   }
 
    // TEST resume_thread: main thread resumes suspended thread
    resume_thread(thread1);
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
-   TEST(0 == trywait_signalrt(1, 0));
 
    // TEST resume_thread: already joined thread is ignored
    resume_thread(thread1);
    TEST(0 == delete_thread(&thread1));
 
+   // TEST suspend_thread: EINTR does not clear already queued resume
+   trysuspend_thread();
+   int flag = 0;
+   TEST(0 == newgeneric_thread(&thread1, &thread_flagsuspend, &flag));
+   // wait for start of thread
+   while (0 == read_atomicint(&flag)) {
+      yield_thread();
+   }
+   // queue resume signal
+   resume_thread(thread1);
+   // start thread
+   write_atomicint(&flag, 0);
+   // send interrupt until exit
+   while (thread1->sys_thread != sys_thread_FREE) {
+      interrupt_thread(thread1);
+   }
+   // reset
+   delete_thread(&thread1);
+
    // TEST resume_thread: already exited thread is ignored (join is called)
    trysuspend_thread();
-   TEST(0 == newgeneric_thread(&thread1, &thread_resumemain, self_thread()));
+   TEST(0 == newgeneric_thread(&thread1, &thread_resume, self_thread()));
    // wait until thread ended
    suspend_thread();
    sleepms_thread(10);
@@ -1341,17 +1395,15 @@ static int test_suspendresume(void)
    TEST(0 == delete_thread(&thread1));
 
    // TEST resume_thread: other threads resume suspended thread
-   TEST(EAGAIN == trywait_signalrt(0, 0));
-   TEST(EAGAIN == trywait_signalrt(1, 0));
-   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, 0));
-   TEST(0 == wait_signalrt(0, 0));
-   TEST(EAGAIN == trywait_signalrt(1, 0));
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, self_thread()));
+   // wait for thread
+   suspend_thread();
    TEST(0 == newgeneric_thread(&thread2, &thread_resume, thread1));
    TEST(0 == join_thread(thread2));
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
    TEST(0 == returncode_thread(thread2));
-   TEST(0 == trywait_signalrt(1, 0));
    TEST(0 == delete_thread(&thread1));
    TEST(0 == delete_thread(&thread2));
 
@@ -1386,7 +1438,87 @@ ONERR:
    return EINVAL;
 }
 
-int test_sleep(void)
+typedef struct {
+   int       fd;
+   thread_t* resume;
+} reapipe_arg_t;
+
+static int thread_readpipe(reapipe_arg_t* arg)
+{
+   int err;
+   uint8_t buffer[4];
+
+   resume_thread(arg->resume);
+
+   err = read(arg->fd, buffer, 4);
+   err = err < 0 ? errno : 0;
+
+   return err;
+}
+
+static int test_interrupt(void)
+{
+   thread_t * thread = 0;
+   int        fd[2] = { -1, -1 };
+
+   // prepare0
+   TEST(0 == pipe2(fd, O_CLOEXEC));
+
+   // TEST interrupt_thread
+   reapipe_arg_t readarg = { fd[0], self_thread() };
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread, &thread_readpipe, &readarg))
+   // wait for start of thread
+   suspend_thread();
+   sleepms_thread(1);
+   // generate interrupt
+   interrupt_thread(thread);
+   // check EINTR
+   TEST(0 == join_thread(thread));
+   TEST(EINTR == returncode_thread(thread));
+   // reset
+   TEST(0 == delete_thread(&thread));
+
+   // TEST interrupt_thread: already exited thread is ignored (join is called)
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread, &thread_readpipe, &readarg))
+   // wait for start of thread
+   suspend_thread();
+   sleepms_thread(1);
+   // generate interrupt
+   interrupt_thread(thread);
+   sleepms_thread(1);
+   // wait until thread has ended
+   while (0 == pthread_kill(thread->sys_thread, 0)) {
+      yield_thread();
+   }
+   // test
+   TEST(sys_thread_FREE != thread->sys_thread);
+   interrupt_thread(thread);
+   // check tryjoin called
+   TEST(sys_thread_FREE == thread->sys_thread);
+   TEST(EINTR == returncode_thread(thread));
+
+   // TEST interrupt_thread: already joined thread is ignored
+   interrupt_thread(thread);
+   // reset
+   TEST(0 == delete_thread(&thread));
+
+   // reset0
+   for (unsigned i = 0; i < lengthof(fd); ++i) {
+      TEST(0 == close(fd[i]));
+      fd[i] = -1;
+   }
+
+   return 0;
+ONERR:
+   close(fd[0]);
+   close(fd[1]);
+   delete_thread(&thread);
+   return EINVAL;
+}
+
+static int test_sleep(void)
 {
    timevalue_t tv;
    timevalue_t tv2;
@@ -1592,24 +1724,25 @@ static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_FREE;
 
-   if (test_exit())                    goto ONERR;
+   if (test_exit())           goto ONERR;
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree())                goto ONERR;
-   if (test_mainthread())              goto ONERR;
-   if (test_query())                   goto ONERR;
-   if (test_join())                    goto ONERR;
-   if (test_sigaltstack())             goto ONERR;
-   if (test_abort())                   goto ONERR;
-   if (test_stackoverflow())           goto ONERR;
-   if (test_manythreads())             goto ONERR;
-   if (test_signal())                  goto ONERR;
-   if (test_suspendresume())           goto ONERR;
-   if (test_sleep())                   goto ONERR;
-   if (test_yield())                   goto ONERR;
-   if (test_exit())                    goto ONERR;
-   if (test_update())                  goto ONERR;
+   if (test_initfree())       goto ONERR;
+   if (test_mainthread())     goto ONERR;
+   if (test_query())          goto ONERR;
+   if (test_join())           goto ONERR;
+   if (test_sigaltstack())    goto ONERR;
+   if (test_abort())          goto ONERR;
+   if (test_stackoverflow())  goto ONERR;
+   if (test_manythreads())    goto ONERR;
+   if (test_signal())         goto ONERR;
+   if (test_suspendresume())  goto ONERR;
+   if (test_interrupt())      goto ONERR;
+   if (test_sleep())          goto ONERR;
+   if (test_yield())          goto ONERR;
+   if (test_exit())           goto ONERR;
+   if (test_update())         goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
