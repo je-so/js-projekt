@@ -25,6 +25,7 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/ip/ipaddr.h"
 #include "C-kern/api/io/ip/ipsocket.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/wbuffer.h"
@@ -282,8 +283,6 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
          err = errno;
          // non blocking io ?
          if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN;
-         // or interrupted ?
-         if (EINTR == err) continue;
          TRACESYSCALL_ERRLOG("read", err);
          PRINTINT_ERRLOG(ioc);
          PRINTSIZE_ERRLOG(size);
@@ -318,8 +317,6 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
          // non blocking io ?
          if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN;
          if (EPIPE == err) return err;
-         // or interrupted ?
-         if (EINTR == err) continue;
          TRACESYSCALL_ERRLOG("write", err);
          PRINTINT_ERRLOG(ioc);
          PRINTSIZE_ERRLOG(size);
@@ -355,7 +352,7 @@ int readall_iochannel(iochannel_t ioc, size_t size, void* buffer/*uint8_t[size]*
 
       if (part < 0) {
          err = errno;
-         if (err == EAGAIN && msec_timeout) {
+         if ((err == EAGAIN || err == EWOULDBLOCK) && msec_timeout) {
             // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
             struct pollfd pfd = { .events = POLLIN, .fd = ioc };
             err = poll(&pfd, 1, msec_timeout);
@@ -394,7 +391,7 @@ int writeall_iochannel(iochannel_t ioc, size_t size, const void* buffer/*uint8_t
       }
 
       err = errno;
-      if (err == EAGAIN && msec_timeout) {
+      if ((err == EAGAIN || err == EWOULDBLOCK) && msec_timeout) {
          // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
          struct pollfd pfd = { .events = POLLOUT, .fd = ioc };
          err = poll(&pfd, 1, msec_timeout);
@@ -906,13 +903,13 @@ ONERR:
    return 0;
 }
 
-static volatile size_t s_thread_count     = 0;
-static volatile bool   s_thread_isrunning = 0;
+static unsigned s_thread_count = 0;
 
 typedef struct threadarg_t {
    iochannel_t ioc;
    uint8_t *   buffer;
    size_t      size;
+   thread_t*   resume;
 } threadarg_t;
 
 static int thread_reader(threadarg_t* arg)
@@ -920,20 +917,20 @@ static int thread_reader(threadarg_t* arg)
    size_t bytes_read;
    size_t value = 0;
 
-   s_thread_isrunning = true;
+   resume_thread(arg->resume);
 
-   while (s_thread_isrunning) {
+   for (int nrbuffer = 0; nrbuffer < 8; ++nrbuffer) {
       TEST(0 == read_iochannel(arg->ioc, arg->size, arg->buffer, &bytes_read));
       TEST(bytes_read == arg->size);
       for (unsigned i = 0; i < arg->size; ++i, value += 61) {
          TEST(arg->buffer[i] == (uint8_t)value);
       }
-      ++ s_thread_count;
+      add_atomicint(&s_thread_count, 1);
+      resume_thread(arg->resume);
    }
 
    return 0;
 ONERR:
-   s_thread_isrunning = false;
    return EINVAL;
 }
 
@@ -942,47 +939,47 @@ static int thread_writer(threadarg_t* arg)
    size_t   bytes_written;
    size_t   value = 0;
 
-   s_thread_isrunning = true;
-
-   while (s_thread_isrunning) {
+   for (int nrbuffer = 0; nrbuffer < 8; ++nrbuffer) {
       for (unsigned i = 0; i < arg->size; ++i, value += 61) {
          arg->buffer[i] = (uint8_t)value;
       }
       TEST(0 == write_iochannel(arg->ioc, arg->size, arg->buffer, &bytes_written));
       TEST(bytes_written == arg->size);
-      ++ s_thread_count;
+      add_atomicint(&s_thread_count, 1);
+      resume_thread(arg->resume);
    }
 
    return 0;
 ONERR:
-   s_thread_isrunning = false;
    return EINVAL;
 }
 
 static int thread_readerror(threadarg_t* arg)
 {
-   s_thread_isrunning = true;
+   resume_thread(arg->resume);
 
    int err = read_iochannel(arg->ioc, 1, arg->buffer, 0);
-   ++ s_thread_count;
+   add_atomicint(&s_thread_count, 1);
 
-   s_thread_isrunning = false;
+   CLEARBUFFER_ERRLOG();
+
    return err;
 }
 
 static int thread_writeerror(threadarg_t* arg)
 {
-   s_thread_isrunning = true;
-
    int err = write_iochannel(arg->ioc, arg->size, arg->buffer, 0);
-   ++ s_thread_count;
+   add_atomicint(&s_thread_count, 1);
+
+   resume_thread(arg->resume);
 
    if (0 == err) {
       err = write_iochannel(arg->ioc, 1, arg->buffer, 0);
-      ++ s_thread_count;
+      add_atomicint(&s_thread_count, 1);
    }
 
-   s_thread_isrunning = false;
+   CLEARBUFFER_ERRLOG();
+
    return err;
 }
 
@@ -1029,26 +1026,25 @@ static int test_readwrite(directory_t* tempdir)
    // TEST read_iochannel: blocking I/O
    TEST(0 == pipe2(pipeioc, O_CLOEXEC));
    s_thread_count = 0;
-   threadarg = (threadarg_t) { pipeioc[0], buffer[1].addr, buffersize };
+   threadarg = (threadarg_t) { pipeioc[0], buffer[1].addr, buffersize, self_thread() };
+   trysuspend_thread();
    TEST(0 == newgeneric_thread(&thread, &thread_reader, &threadarg));
-   while (!s_thread_isrunning) {
-      yield_thread();
-   }
+   // wait for thread
+   suspend_thread();
    for (size_t value = 0, nrbuffer = 0; nrbuffer < 8; ++nrbuffer) {
       for (size_t i = 0; i < buffersize; ++i, value += 61) {
          buffer[0].addr[i] = (uint8_t)value;
       }
-      yield_thread();
-      if (nrbuffer == 7) s_thread_isrunning = false;
-      TEST(s_thread_count == nrbuffer);
+      TEST(nrbuffer == read_atomicint(&s_thread_count));
       TEST(buffersize == (size_t)write(pipeioc[1], buffer[0].addr, buffersize));
-      while (s_thread_count == nrbuffer) {
-         yield_thread();
-      }
-      TEST(s_thread_count == (nrbuffer+1));
+      // wait for thread
+      suspend_thread();
+      TEST((nrbuffer+1) == read_atomicint(&s_thread_count));
    }
+   // check thread
    TEST(0 == join_thread(thread));
    TEST(0 == returncode_thread(thread));
+   // reset
    TEST(0 == delete_thread(&thread));
    TEST(0 == free_iochannel(&pipeioc[0]));
    TEST(0 == free_iochannel(&pipeioc[1]));
@@ -1056,17 +1052,16 @@ static int test_readwrite(directory_t* tempdir)
    // TEST write_iochannel: blocking I/O
    TEST(0 == pipe2(pipeioc, O_CLOEXEC));
    s_thread_count = 0;
-   threadarg = (threadarg_t) { pipeioc[1], buffer[1].addr, buffersize };
+   threadarg = (threadarg_t) { pipeioc[1], buffer[1].addr, buffersize, self_thread() };
+   trysuspend_thread();
    TEST(0 == newgeneric_thread(&thread, &thread_writer, &threadarg));
-   while (!s_thread_isrunning) {
-      yield_thread();
-   }
-   for (size_t value = 0, nrbuffer = 0; nrbuffer < 8; ++nrbuffer) {
-      while (s_thread_count == nrbuffer) {
-         yield_thread();
-      }
-      TEST(s_thread_count == (nrbuffer+1));
-      if (nrbuffer == 7) s_thread_isrunning = false;
+   for (size_t value = 0, nrbuffer = 1; nrbuffer <= 8; ++nrbuffer) {
+      // wait for thread
+      suspend_thread();
+      sleepms_thread(1);
+      // check write is blocking
+      TEST(nrbuffer == read_atomicint(&s_thread_count));
+      // check written content
       bytes_read = 0;
       TEST(0 == read_iochannel(pipeioc[0], buffersize, buffer[0].addr, &bytes_read));
       TEST(bytes_read == buffersize);
@@ -1074,8 +1069,10 @@ static int test_readwrite(directory_t* tempdir)
          TEST(buffer[0].addr[i] == (uint8_t)value);
       }
    }
+   // check thread
    TEST(0 == join_thread(thread));
    TEST(0 == returncode_thread(thread));
+   // reset
    TEST(0 == delete_thread(&thread));
    TEST(0 == free_iochannel(&pipeioc[0]));
    TEST(0 == free_iochannel(&pipeioc[1]));
@@ -1138,46 +1135,48 @@ static int test_readwrite(directory_t* tempdir)
    TEST(0 == free_iochannel(&pipeioc[0]));
    TEST(0 == free_iochannel(&pipeioc[1]));
 
-   // TEST read_iochannel: no EINTR !!
+   // TEST read_iochannel: EINTR
    TEST(0 == pipe2(pipeioc, O_CLOEXEC));
    s_thread_count = 0;
-   threadarg = (threadarg_t) { pipeioc[0], buffer[1].addr, buffersize };
-   TEST(0 == newgeneric_thread(&thread, &thread_readerror, &threadarg));
-   while (!s_thread_isrunning) {
-      yield_thread();
-   }
+   threadarg = (threadarg_t) { pipeioc[0], buffer[1].addr, buffersize, self_thread() };
+   trysuspend_thread();
    while (0 == trywait_signalrt(0, 0));
+   TEST(0 == newgeneric_thread(&thread, &thread_readerror, &threadarg));
+   // check thread waits in read
+   suspend_thread();
+   sleepms_thread(1);
+   TEST(EBUSY == tryjoin_thread(thread));
+   TEST(0 == s_thread_count);
+   // check EINTR
    pthread_kill(thread->sys_thread, SIGUSR1);
    TEST(0 == wait_signalrt(0, 0)); // wait for SIGUSR1 processed
-   TEST(0 == s_thread_count);
-   TEST(1 == s_thread_isrunning);
-   TEST(1 == write(pipeioc[1], buffer[0].addr, 1));
    TEST(0 == join_thread(thread));
    TEST(1 == s_thread_count);
-   TEST(0 == s_thread_isrunning);
-   TEST(0 == returncode_thread(thread));
+   TEST(EINTR == returncode_thread(thread));
+   // reset
    TEST(0 == delete_thread(&thread));
    TEST(0 == free_iochannel(&pipeioc[0]));
    TEST(0 == free_iochannel(&pipeioc[1]));
 
-   // TEST write_iochannel: no EINTR !
+   // TEST write_iochannel: EINTR
    TEST(0 == pipe2(pipeioc, O_CLOEXEC));
    s_thread_count = 0;
-   threadarg = (threadarg_t) { pipeioc[1], buffer[1].addr, buffersize };
-   TEST(0 == newgeneric_thread(&thread, &thread_writeerror, &threadarg));
-   while (!s_thread_isrunning || !s_thread_count) {
-      yield_thread();
-   }
+   threadarg = (threadarg_t) { pipeioc[1], buffer[1].addr, buffersize, self_thread() };
+   trysuspend_thread();
    while (0 == trywait_signalrt(0, 0));
+   TEST(0 == newgeneric_thread(&thread, &thread_writeerror, &threadarg));
+   // check thread waits in 2nd write
+   suspend_thread();
+   sleepms_thread(1);
+   TEST(EBUSY == tryjoin_thread(thread));
+   TEST(1 == s_thread_count);
+   // check EINTR
    pthread_kill(thread->sys_thread, SIGUSR1);
    TEST(0 == wait_signalrt(0, 0)); // wait for SIGUSR1 processed
-   TEST(1 == s_thread_count);
-   TEST(1 == s_thread_isrunning);
-   TEST(buffersize == (size_t)read(pipeioc[0], buffer[0].addr, buffersize));
    TEST(0 == join_thread(thread));
+   TEST(EINTR == returncode_thread(thread));
    TEST(2 == s_thread_count);
-   TEST(0 == s_thread_isrunning);
-   TEST(0 == returncode_thread(thread));
+   // reset
    TEST(0 == delete_thread(&thread));
    TEST(0 == free_iochannel(&pipeioc[0]));
    TEST(0 == free_iochannel(&pipeioc[1]));

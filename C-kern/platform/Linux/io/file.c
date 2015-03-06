@@ -939,7 +939,8 @@ static int thread_reader(thread_arg_t * startarg)
    uint8_t byte = 0;
    resume_thread(startarg->caller);
    err = read_file(startarg->fd, 1, &byte, &bytes_read);
-   return err ? err : (bytes_read != 1) || (byte != 200);
+   CLEARBUFFER_ERRLOG();
+   return err ? err : (bytes_read != 1);
 }
 
 static int thread_writer(thread_arg_t * startarg)
@@ -949,6 +950,7 @@ static int thread_writer(thread_arg_t * startarg)
    uint8_t byte = 200;
    resume_thread(startarg->caller);
    err = write_file(startarg->fd, 1, &byte, &bytes_written);
+   CLEARBUFFER_ERRLOG();
    return err ? err : (bytes_written != 1);
 }
 
@@ -987,12 +989,20 @@ static int test_readwrite(directory_t* tempdir)
    size_t            bytes_written;
    size_t            pipe_buffersize;
    sigset_t          oldset;
-   bool              isOldact  = false;
+   bool              isOldact = false;
    struct sigaction  newact;
    struct sigaction  oldact;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "readwrite1", sizeof(buffer)));
+   TEST(0 == sigemptyset(&newact.sa_mask));
+   TEST(0 == sigaddset(&newact.sa_mask, SIGUSR1));
+   TEST(0 == sigprocmask(SIG_UNBLOCK, &newact.sa_mask, &oldset));
+   sigemptyset(&newact.sa_mask);
+   newact.sa_flags   = 0;
+   newact.sa_handler = &siguser;
+   TEST(0 == sigaction(SIGUSR1, &newact, &oldact));
+   isOldact = true;
 
    // TEST write_file: blocking write
    fd = openat(io_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC);
@@ -1048,59 +1058,55 @@ static int test_readwrite(directory_t* tempdir)
    TEST(EAGAIN == errno);
    TEST(EAGAIN == read_file(pipefd[0], 1, &byte, &bytes_read));
    TEST(bytes_written == bytes_read /*has not changed*/);
+   // reset
    TEST(0 == FREE_MM(&buffer));
-
-   // TEST read_file: interrupt ignored
    TEST(0 == free_file(&pipefd[0]));
    TEST(0 == free_file(&pipefd[1]));
+
+   // TEST read_file: EINTR
    TEST(0 == pipe2(pipefd, O_CLOEXEC));
-   TEST(0 == sigemptyset(&newact.sa_mask));
-   TEST(0 == sigaddset(&newact.sa_mask, SIGUSR1));
-   TEST(0 == sigprocmask(SIG_UNBLOCK, &newact.sa_mask, &oldset));
-   sigemptyset(&newact.sa_mask);
-   newact.sa_flags   = 0;
-   newact.sa_handler = &siguser;
-   TEST(0 == sigaction(SIGUSR1, &newact, &oldact));
-   isOldact = true;
    thread_arg_t startarg = { .caller = self_thread(), .fd = pipefd[0] };
    TEST(0 == newgeneric_thread(&thread, thread_reader, &startarg));
+   // wait for start of thread
    suspend_thread();
-   sleepms_thread(100);
+   sleepms_thread(1);
+   // generate interrupt
    s_siguser_count  = 0;
    s_siguser_thread = 0;
    pthread_kill(thread->sys_thread, SIGUSR1);
-   byte = 200;
-   TEST(1 == write(pipefd[1], &byte, 1));
+   // check EINTR
    TEST(0 == join_thread(thread));
-   TEST(0 == returncode_thread(thread));
+   TEST(EINTR == returncode_thread(thread));
    TEST(s_siguser_count  == 1);
    TEST(s_siguser_thread == thread);
+   // reset
    TEST(0 == delete_thread(&thread));
 
-   // TEST write_file: interrupt ignored
+   // TEST write_file: EINTR
    for (size_t i = 0; i < pipe_buffersize; ++i) {
       byte = 0;
       TEST(0 == write_file(pipefd[1], 1, &byte, 0));
    }
    startarg.fd = pipefd[1];
    TEST(0 == newgeneric_thread(&thread, thread_writer, &startarg));
+   // wait for start of thread
    suspend_thread();
-   sleepms_thread(50);
+   sleepms_thread(1);
+   // generate interrupt
    s_siguser_count  = 0;
    s_siguser_thread = 0;
    pthread_kill(thread->sys_thread, SIGUSR1);
-   for (size_t i = 0; i < pipe_buffersize; ++i) {
-      TEST(0 == read_file(pipefd[0], 1, &byte, 0));
-   }
+   // check EINTR
    TEST(0 == join_thread(thread));
-   TEST(0 == returncode_thread(thread));
+   TEST(EINTR == returncode_thread(thread));
    TEST(s_siguser_count  == 1);
    TEST(s_siguser_thread == thread);
+   // reset
    TEST(0 == delete_thread(&thread));
-
-   // TEST write_file: EPIPE, write with receiving end closed during write
    TEST(0 == free_file(&pipefd[0]));
    TEST(0 == free_file(&pipefd[1]));
+
+   // TEST write_file: EPIPE, write with receiving end closed during write
    TEST(0 == pipe2(pipefd, O_CLOEXEC));
    for (size_t i = 0; i < pipe_buffersize-1; ++i) {
       byte = 0;

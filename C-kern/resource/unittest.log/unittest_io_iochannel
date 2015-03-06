@@ -1,95 +1,95 @@
-[1: 1421240770.364144s]
-accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:161
+[1: 1423234508.751396s]
+accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:162
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 ioc=-1
-[1: 1421240770.364160s]
-accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:161
+[1: 1423234508.751407s]
+accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:162
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 ioc=4
-[1: 1421240770.364165s]
-accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:161
+[1: 1423234508.751412s]
+accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:162
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 ioc=5
-[1: 1421240770.607824s]
-read_iochannel() C-kern/platform/Linux/io/iochannel.c:287
+[1: 1423234509.017685s]
+read_iochannel() C-kern/platform/Linux/io/iochannel.c:286
 Error 9 - Bad file descriptor
 System call 'read' failed
 ioc=5
 size=65536
-[1: 1421240770.607844s]
-write_iochannel() C-kern/platform/Linux/io/iochannel.c:323
+[1: 1423234509.017709s]
+write_iochannel() C-kern/platform/Linux/io/iochannel.c:320
 Error 9 - Bad file descriptor
 System call 'write' failed
 ioc=4
 size=65536
-[1: 1421240770.607847s]
-read_iochannel() C-kern/platform/Linux/io/iochannel.c:287
+[1: 1423234509.017716s]
+read_iochannel() C-kern/platform/Linux/io/iochannel.c:286
 Error 9 - Bad file descriptor
 System call 'read' failed
 ioc=-1
 size=65536
-[1: 1421240770.607854s]
-write_iochannel() C-kern/platform/Linux/io/iochannel.c:323
+[1: 1423234509.017725s]
+write_iochannel() C-kern/platform/Linux/io/iochannel.c:320
 Error 9 - Bad file descriptor
 System call 'write' failed
 ioc=-1
 size=65536
-[1: 1421240770.620472s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.037400s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 9 - Bad file descriptor
 ioc=-1
-[1: 1421240770.620485s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.037409s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 9 - Bad file descriptor
 ioc=-1
-[1: 1421240770.693334s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.110192s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 9 - Bad file descriptor
 ioc=5
-[1: 1421240770.693353s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.110210s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 9 - Bad file descriptor
 ioc=6
-[1: 1421240770.838278s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.255321s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 11 - Resource temporarily unavailable
 ioc=5
-[1: 1421240770.838341s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.255401s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 11 - Resource temporarily unavailable
 ioc=6
-[1: 1421240770.838345s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.255407s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 9 - Bad file descriptor
 ioc=6
-[1: 1421240770.838347s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.255413s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 9 - Bad file descriptor
 ioc=5
-[1: 1421240770.849979s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.267129s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 62 - Timer expired
 ioc=5
-[1: 1421240770.854126s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.271262s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 62 - Timer expired
 ioc=6
-[1: 1421240770.999553s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.417063s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 11 - Resource temporarily unavailable
 ioc=6
-[1: 1421240770.999692s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.417216s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 11 - Resource temporarily unavailable
 ioc=7
-[1: 1421240771.011496s]
-readall_iochannel() C-kern/platform/Linux/io/iochannel.c:377
+[1: 1423234509.429438s]
+readall_iochannel() C-kern/platform/Linux/io/iochannel.c:374
 Error 62 - Timer expired
 ioc=6
-[1: 1421240771.015734s]
-writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:413
+[1: 1423234509.433658s]
+writeall_iochannel() C-kern/platform/Linux/io/iochannel.c:410
 Error 62 - Timer expired
 ioc=7

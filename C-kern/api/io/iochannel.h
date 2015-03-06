@@ -154,7 +154,8 @@ int sizeread_iochannel(const iochannel_t ioc, /*out*/size_t * size);
  * 0      - Read data and bytes_read contains the number of read bytes.
  *          If bytes_read is 0 end of input (end of file) is reached.
  * EAGAIN - Data stream operates in non blocking mode and no bytes could be read. No error log is written.
- * EBADF  - ioc is closed, has an invalid value or is not open for reading. */
+ * EBADF  - ioc is closed, has an invalid value or is not open for reading.
+ * EINTR  - Ein Interrupthandler wurde aufgerufen, während diese Funktion gewartet hat. */
 int read_iochannel(iochannel_t ioc, size_t size, /*out*/void* buffer/*[size]*/, /*out*/size_t* bytes_read);
 
 /* function: write_iochannel
@@ -168,8 +169,9 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void* buffer/*[size]*/, 
  * Returns:
  * 0      - The first *bytes_written data bytes from buffer are written.
  * EAGAIN - Data stream operates in non blocking mode and no bytes could be written. No error log is written.
- * EPIPE  - Receiver has closed its connection or closed it during a blocking write. No error log is written.
  * EBADF  - ioc is closed, has an invalid value or is not open for writing.
+ * EINTR  - Ein Interrupthandler wurde aufgerufen, während diese Funktion gewartet hat.
+ * EPIPE  - Receiver has closed its connection or closed it during a blocking write. No error log is written.
  * */
 int write_iochannel(iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*out*/size_t* bytes_written);
 
