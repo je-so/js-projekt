@@ -271,7 +271,7 @@
 
 #else
 
-   #error "Define mergesort_IMPL_TYPE has wrong value"
+   #error "Defined mergesort_IMPL_TYPE has wrong value"
    #error "Supported values: mergesort_TYPE_POINTER, mergesort_TYPE_LONG, mergesort_TYPE_BYTES"
 
 #endif
@@ -754,9 +754,10 @@ static int merge_topofstack(
  *
  * Size Invariant:
  * The abstract function len(index) determines the length of the pushed
- * sub-array on the stack. The index -1 is the top element.
- * - len(-3) > len(-2) + len(-1)
- * - len(-2) > len(-1)
+ * sub-array on the stack. The index stacksize-1 is the top element.
+ * > (forall (int i = 0; i < stacksize-2; ++i)
+ * >     len(i) > len(i+1) + len(i+2))
+ * > && (stacksize > 1 ==> len(stacksize-2) > len(stacksize-1))
  *
  * Returns 0 on success, != 0 on error.
  */
@@ -769,8 +770,14 @@ static int establish_stack_invariant(mergesort_t * sort)
       bool   isSecondTop = false;
       size_t n = sort->stacksize;
 
-      if (n > 2 && slice[n-3].len <= slice[n-2].len + slice[n-1].len) {
+      if (  (n > 2 && slice[n-3].len <= slice[n-2].len + slice[n-1].len)
+            // used to check broken invariant in case of isSecondTop == true
+            || (n > 3 && slice[n-4].len <= slice[n-3].len + slice[n-2].len)) {
          if (slice[n-3].len <= slice[n-1].len) {
+            // Example: 120, 80, 25, 20, 30 ==> merge_topofstack(sort, true)
+            // => 120, 80, 45, 30 // n == 4
+            // ==> n > 3 && !( slice[n-4].len > slice[n-3].len + slice[n-2].len)
+            //     // breaks 120 > 80 + 45 but 80 > 45 + 30 not broken
             isSecondTop = true;
          }
 

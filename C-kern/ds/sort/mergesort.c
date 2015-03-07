@@ -235,7 +235,7 @@ static int test_stacksize(void)
    double   phi = (1+sqrt(5))/2; // golden ratio
    unsigned stacksize;
 
-   // stack contains set whose length form qa sequence of Fibonnacci numbers
+   // stack contains set whose length form a sequence of Fibonnacci numbers
    // stack[0].len == MIN_SLICE_LEN, stack[1].len == MIN_SLICE_LEN, stack[2].len >= stack[0].len + stack[1].len
    // Fibonacci F1 = 1, F2 = 1, F3 = 2, ..., Fn = F(n-1) + F(n-2)
    // The sum of the first Fn is: F1 + F2 + ... + Fn = F(n+2) -1
@@ -270,7 +270,7 @@ static int test_stacksize(void)
       TEST(stacksize <= lengthof(((mergesort_t*)0)->stack));
    }
 
-   // TEST stacksize == 85: big enough to sort array of size uint64_t
+   // TEST lengthof(stack): big enough to sort array of size uint64_t
    {
       unsigned ln_phi_SIZEMAX = (unsigned) ((64*log(2) - log(MIN_SLICE_LEN) +  log(sqrt(5))) / log(phi) + 0.5);
       uint64_t size1 = 1*MIN_SLICE_LEN; // size of previous set F1
@@ -281,7 +281,8 @@ static int test_stacksize(void)
          next = size1 + size2; // next == MIN_SLICE_LEN*F(n+2) && n-1 == stacksize
       }
 
-      TEST(stacksize == 85);
+      static_assert(85 == lengthof(((mergesort_t*)0)->stack), "value is 85 for uint64_t");
+      TEST(stacksize == lengthof(((mergesort_t*)0)->stack));
       TEST(stacksize == ln_phi_SIZEMAX-2);
    }
 
@@ -1069,9 +1070,9 @@ ONERR:
 static int test_merge(void)
 {
    mergesort_t sort;
-   void *      parray[128];
-   long        larray[128];
-   uint8_t     barray[3*128];
+   void *      parray[512];
+   long        larray[512];
+   uint8_t     barray[3*512];
    typedef int (*merge_slices_f) (mergesort_t * sort, uint8_t * left, size_t llen, uint8_t * right, size_t rlen);
    merge_slices_f merge_slices [3][2] = {
       { &merge_adjacent_slices_bytes, &rmerge_adjacent_slices_bytes },
@@ -1354,12 +1355,14 @@ static int test_merge(void)
             }
             // 3 entries
             if (stackoffset) {
-               sort.stack[stackoffset-1].base = left;
+               sort.stack[stackoffset-2].base = left;
+               sort.stack[stackoffset-2].len  = (3*size+4);
+               sort.stack[stackoffset-1].base = left + (3*size+4)*sort.elemsize;
                sort.stack[stackoffset-1].len  = (2*size+2);
             }
-            sort.stack[stackoffset+0].base = left + (2*size+2)*sort.elemsize;
+            sort.stack[stackoffset+0].base = left + (5*size+6)*sort.elemsize;
             sort.stack[stackoffset+0].len  = size+1;
-            sort.stack[stackoffset+1].base = left + (3*size+3)*sort.elemsize;
+            sort.stack[stackoffset+1].base = left + (6*size+7)*sort.elemsize;
             sort.stack[stackoffset+1].len  = size;
             sort.stacksize = stackoffset+2;
             switch (type) {
@@ -1369,12 +1372,14 @@ static int test_merge(void)
             }
             TEST(sort.stacksize == stackoffset+2);
             if (stackoffset) {
-               TEST(sort.stack[stackoffset-1].base == left);
+               TEST(sort.stack[stackoffset-2].base == left);
+               TEST(sort.stack[stackoffset-2].len  == (3*size+4));
+               TEST(sort.stack[stackoffset-1].base == left + (3*size+4)*sort.elemsize);
                TEST(sort.stack[stackoffset-1].len  == (2*size+2));
             }
-            TEST(sort.stack[stackoffset+0].base == left + (2*size+2)*sort.elemsize);
+            TEST(sort.stack[stackoffset+0].base == left + (5*size+6)*sort.elemsize);
             TEST(sort.stack[stackoffset+0].len  == size+1);
-            TEST(sort.stack[stackoffset+1].base == left + (3*size+3)*sort.elemsize);
+            TEST(sort.stack[stackoffset+1].base == left + (6*size+7)*sort.elemsize);
             TEST(sort.stack[stackoffset+1].len  == size);
          }
       }
@@ -1391,10 +1396,12 @@ static int test_merge(void)
             case 2: setsortstate(&sort, &test_compare_ptr, 0, sizeof(void*), 1); left = (uint8_t*) parray; break;
             }
             if (stackoffset) {
+               sort.stack[stackoffset-3].base = 0;
+               sort.stack[stackoffset-3].len  = SIZE_MAX;
                sort.stack[stackoffset-2].base = 0;
-               sort.stack[stackoffset-2].len  = SIZE_MAX;
+               sort.stack[stackoffset-2].len  = SIZE_MAX/2;
                sort.stack[stackoffset-1].base = 0;
-               sort.stack[stackoffset-1].len  = SIZE_MAX/2;
+               sort.stack[stackoffset-1].len  = SIZE_MAX/4;
             }
             sort.stack[stackoffset+0].base = left;
             sort.stack[stackoffset+0].len  = size;
@@ -1432,10 +1439,12 @@ static int test_merge(void)
             case 2: setsortstate(&sort, &test_compare_ptr, 0, sizeof(void*), 1); left = (uint8_t*) parray; break;
             }
             if (stackoffset) {
+               sort.stack[stackoffset-3].base = 0;
+               sort.stack[stackoffset-3].len  = SIZE_MAX;
                sort.stack[stackoffset-2].base = 0;
-               sort.stack[stackoffset-2].len  = SIZE_MAX;
+               sort.stack[stackoffset-2].len  = SIZE_MAX/2;
                sort.stack[stackoffset-1].base = 0;
-               sort.stack[stackoffset-1].len  = SIZE_MAX/2;
+               sort.stack[stackoffset-1].len  = SIZE_MAX/4;
             }
             sort.stack[stackoffset+0].base = left;
             sort.stack[stackoffset+0].len  = size;
@@ -1472,6 +1481,46 @@ static int test_merge(void)
                TEST(sort.stack[stackoffset+0].len  == size+9);
             }
          }
+      }
+   }
+
+   // TEST establish_stack_invariant: merge if top[-4].len <= top[-3].len + top[-2].len after merge
+   // uses example: 120, 80, 25, 20, 30 ==> 120, 80, 45, 30 ==> 120, 80, 75 ==> 120, 155 ==> 275
+   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += lengthof(sort.stack)/2) {
+      for (int type = 0; type < 3; ++type) {
+         uint8_t * left;
+         switch (type) {
+         case 0: setsortstate(&sort, &test_compare_bytes, 0, 3, 1); left = barray; break;
+         case 1: setsortstate(&sort, &test_compare_long, 0, sizeof(long), 1); left = (uint8_t*) larray; break;
+         case 2: setsortstate(&sort, &test_compare_ptr, 0, sizeof(void*), 1); left = (uint8_t*) parray; break;
+         }
+         if (stackoffset) {
+            sort.stack[stackoffset-3].base = 0;
+            sort.stack[stackoffset-3].len  = SIZE_MAX;
+            sort.stack[stackoffset-2].base = 0;
+            sort.stack[stackoffset-2].len  = SIZE_MAX/2;
+            sort.stack[stackoffset-1].base = 0;
+            sort.stack[stackoffset-1].len  = SIZE_MAX/4;
+         }
+         sort.stack[stackoffset+0].base = left;
+         sort.stack[stackoffset+0].len  = 120;
+         sort.stack[stackoffset+1].base = left + 120*sort.elemsize;
+         sort.stack[stackoffset+1].len  = 80;
+         sort.stack[stackoffset+2].base = left + 200*sort.elemsize;
+         sort.stack[stackoffset+2].len  = 25;
+         sort.stack[stackoffset+3].base = left + 225*sort.elemsize;
+         sort.stack[stackoffset+3].len  = 20;
+         sort.stack[stackoffset+4].base = left + 245*sort.elemsize;
+         sort.stack[stackoffset+4].len  = 30;
+         sort.stacksize = stackoffset+5;
+         switch (type) {
+         case 0: TEST(0 == establish_stack_invariant_bytes(&sort)); break;
+         case 1: TEST(0 == establish_stack_invariant_long(&sort)); break;
+         case 2: TEST(0 == establish_stack_invariant_ptr(&sort)); break;
+         }
+         TEST(sort.stacksize == stackoffset+1);
+         TEST(sort.stack[stackoffset+0].base == left);
+         TEST(sort.stack[stackoffset+0].len  == 275);
       }
    }
 
