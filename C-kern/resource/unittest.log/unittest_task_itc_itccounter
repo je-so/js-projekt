@@ -1,18 +1,23 @@
-[1: 1422864907.529505s]
+[1: 1423296244.171745s]
 init_itccounter() C-kern/platform/Linux/sync/itccounter.c:59
 Error 1 - Operation not permitted
 System call 'eventfd' failed
-[1: 1422864907.529516s]
+[1: 1423296244.171756s]
 free_itccounter() C-kern/platform/Linux/sync/itccounter.c:82
 Error 1 - Operation not permitted
 One or more resources could not be freed
-[1: 1422864907.605563s]
-reset_itccounter() C-kern/platform/Linux/sync/itccounter.c:147
+[1: 1423296244.247934s]
+reset_itccounter() C-kern/platform/Linux/sync/itccounter.c:183
 Error 9 - Bad file descriptor
 System call 'read' failed
 counter->sysio=-1
-[1: 1422864907.608867s]
+[1: 1423296244.251145s]
 increment_itccounter() C-kern/platform/Linux/sync/itccounter.c:107
+Error 9 - Bad file descriptor
+System call 'write' failed
+counter->sysio=-1
+[1: 1423296244.251354s]
+add_itccounter() C-kern/platform/Linux/sync/itccounter.c:143
 Error 9 - Bad file descriptor
 System call 'write' failed
 counter->sysio=-1

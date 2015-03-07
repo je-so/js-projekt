@@ -112,6 +112,42 @@ uint32_t increment_itccounter(itccounter_t* counter)
    return count;
 }
 
+uint32_t add_itccounter(itccounter_t* counter, uint16_t incr)
+{
+   int err;
+   uint32_t count;
+   uint32_t oldval = counter->count;
+   uint32_t newcount;
+
+   if (0 == incr) {
+      return read_atomicint(&counter->count);
+   }
+
+   do {
+      newcount = oldval + incr;
+      count = oldval;
+      if (newcount < oldval) {
+         newcount = UINT32_MAX;
+      }
+   } while (count != (oldval = cmpxchg_atomicint(&counter->count, count, newcount)));
+
+   if (PROCESS_testerrortimer(&s_itccounter_errtimer)) {
+      suspend_thread(); // test race
+   }
+
+   if (0 == count) {
+      uint64_t syscount = 1;
+      err = write(counter->sysio, &syscount, sizeof(syscount));
+      if (err < 0) {
+         err = errno;
+         TRACESYSCALL_ERRLOG("write", err);
+         PRINTINT_ERRLOG(counter->sysio);
+      }
+   }
+
+   return count;
+}
+
 // group: reader
 
 int wait_itccounter(itccounter_t* counter, const int32_t msec_timeout/*<0: infinite timeout*/)
@@ -140,7 +176,7 @@ uint32_t reset_itccounter(itccounter_t* counter/*is reset to 0 before return*/)
 
    uint64_t syscount;
    err = read(counter->sysio, &syscount, sizeof(syscount));
-   // prevents race reading count==1 but no signal from sysio
+   // prevents race reading count>0 but no signal from sysio
    if (err < 0) {
       err = errno;
       if (err == EAGAIN) return 0;
@@ -205,6 +241,40 @@ static int test_initfree(void)
       TEST(i == free_itccounter(&counter));
       TEST( isfree_iochannel(counter.sysio));
    }
+
+   return 0;
+ONERR:
+   free_itccounter(&counter);
+   return EINVAL;
+}
+
+static int test_query(void)
+{
+   itccounter_t counter = itccounter_FREE;
+
+   // TEST isfree_itccounter: itccounter_FREE
+   TEST(1 == isfree_itccounter(&counter));
+
+   // TEST isfree_itccounter: after init_itccounter
+   // prepare
+   TEST(0 == init_itccounter(&counter));
+   // test
+   TEST(0 == isfree_itccounter(&counter));
+
+   // TEST isfree_itccounter: after free_itccounter
+   // prepare
+   TEST(0 == free_itccounter(&counter));
+   // test
+   TEST(1 == isfree_itccounter(&counter));
+
+   // TEST isfree_itccounter: count is not checked
+   // prepare
+   TEST(0 == init_itccounter(&counter));
+   TEST(0 == increment_itccounter(&counter));
+   TEST(0 == free_itccounter(&counter));
+   TEST(0 < counter.count);
+   // test
+   TEST(1 == isfree_itccounter(&counter));
 
    return 0;
 ONERR:
@@ -412,6 +482,13 @@ static int thread_callincrement(itccounter_t* counter)
    return count;
 }
 
+static int thread_calladd(itccounter_t* counter)
+{
+   resume_thread(s_self);
+   int count = (int) add_itccounter(counter, 256);
+   return count;
+}
+
 static int test_writer(void)
 {
    itccounter_t  counter = itccounter_FREE;
@@ -504,6 +581,113 @@ static int test_writer(void)
    // reset
    counter.sysio = sysio;
 
+   // TEST add_itccounter: incr == 0
+   for (uint32_t i = 1; true; i <<= 1) {
+      counter.count = i;
+      TEST(i == add_itccounter(&counter, 0));
+      // check counter
+      TEST(sysio == counter.sysio);
+      TEST(i == counter.count);
+      // check sysio not changed
+      TEST(0 == poll(&pfd, 1, 0));
+      if (!i) break;
+   }
+
+   // TEST add_itccounter: count == 0
+   for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
+      TEST(0 == add_itccounter(&counter, i));
+      // check counter
+      TEST(sysio == counter.sysio);
+      TEST(i == counter.count);
+      // check sysio received increment
+      TEST(sizeof(count) == read(sysio, &count, sizeof(count)));
+      TEST(1 == count);
+      // reset
+      counter.count = 0;
+   }
+
+   // TEST add_itccounter: count > 0
+   counter.count = 1;
+   for (unsigned i = 1, s=1; i <= 256; s += i, ++i) {
+      TEST(s == add_itccounter(&counter, (uint16_t)i));
+      // check counter
+      TEST(sysio == counter.sysio);
+      TEST(i+s == counter.count);
+      // check sysio not changed
+      TEST(0 == poll(&pfd, 1, 0));
+   }
+
+   // TEST add_itccounter: incr + count == UINT32_MAX-d
+   for (unsigned d = 0; d <= 1; ++d) {
+      for (uint16_t i = 10000; i < 30000; i = (uint16_t) (i + 5000)) {
+         counter.count = UINT32_MAX-i-d;
+         TEST(UINT32_MAX-i-d == add_itccounter(&counter, i));
+         // check counter
+         TEST(sysio == counter.sysio);
+         TEST(UINT32_MAX-d == counter.count); // no overflow
+         // check sysio not changed
+         TEST(0 == poll(&pfd, 1, 0));
+      }
+   }
+
+   // TEST add_itccounter: incr + count >= UINT32_MAX
+   for (uint16_t i = 10; i >= 10; i = (uint16_t) (i << 1)) {
+      counter.count = UINT32_MAX-9;
+      TEST(UINT32_MAX-9 == add_itccounter(&counter, i));
+      // check counter
+      TEST(sysio == counter.sysio);
+      TEST(UINT32_MAX == counter.count); // no overflow
+      // check sysio not changed
+      TEST(0 == poll(&pfd, 1, 0));
+   }
+
+   // TEST add_itccounter: race condition
+   trysuspend_thread();
+   s_self = self_thread();
+   counter.count = 0;
+   init_testerrortimer(&s_itccounter_errtimer, 1, 1);
+   TEST(0 == newgeneric_thread(&thread, &thread_calladd, &counter));
+   // check add increments count first
+   suspend_thread();
+   for (int i = 0; i < 100; ++i) {
+      if (read_atomicint(&counter.count)) break;
+      sleepms_thread(1);
+   }
+   TEST(256 == read_atomicint(&counter.count));
+   // check sysio not signalled
+   sleepms_thread(1);
+   TEST(0 == poll(&pfd, 1, 0));
+   // simulate reader thread (sysio not signalled but count > 0)
+   TEST(0 == reset_itccounter(&counter)); // does nothing
+   // check add returns 0
+   resume_thread(thread);
+   TEST(0 == join_thread(thread));
+   TEST(0 == returncode_thread(thread));
+   // check counter
+   TEST(counter.sysio == sysio);
+   TEST(counter.count == 256);
+   // check sysio signalled
+   TEST(1 == poll(&pfd, 1, 0));
+   // reset
+   counter.count = 0;
+   TEST(sizeof(count) == read(sysio, &count, sizeof(count)));
+   TEST(0 == delete_thread(&thread));
+
+   // TEST add_itccounter: bad sysio (write fails)
+   counter.sysio = -1;
+   counter.count = 0;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+   TEST(0 == add_itccounter(&counter, 18));
+   // check counter
+   TEST(-1 == counter.sysio);
+   TEST(18 == counter.count);
+   // check sysio not changed instead write generated error log entry
+   TEST(0 == poll(&pfd, 1, 0));
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+   TEST(logsize2 > logsize1);
+   // reset
+   counter.sysio = sysio;
+
    // reset0
    TEST(0 == free_itccounter(&counter));
 
@@ -520,6 +704,7 @@ ONERR:
 int unittest_task_itc_itccounter()
 {
    if (test_initfree()) goto ONERR;
+   if (test_query())    goto ONERR;
    if (test_reader())   goto ONERR;
    if (test_writer())   goto ONERR;
 

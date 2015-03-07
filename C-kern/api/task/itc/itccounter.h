@@ -86,6 +86,14 @@ int init_itccounter(/*out*/itccounter_t* counter);
  * - No writer thread could access this object. */
 int free_itccounter(itccounter_t* counter);
 
+// group: query
+
+/* function: isfree_itccounter
+ * Gibt true zurück, wenn counter nicht initialisiert ist.
+ * Er also entweder auf <itccounter_FREE> gesetzt oder zuletzt mit
+ * <free_itccounter> freigegeben wurde. */
+int isfree_itccounter(const itccounter_t* counter);
+
 // group: writer
 
 /* function: increment_itccounter
@@ -93,6 +101,13 @@ int free_itccounter(itccounter_t* counter);
  * Wird UINT32_MAX zurückgegeben, dann wäre der Zähler übergelaufen
  * und deshalb wurde der Inkrement ignoriert. */
 uint32_t increment_itccounter(itccounter_t* counter);
+
+/* function: add_itccounter
+ * Inkrementiert den Counter um incr und gibt den vorherigen Wert zurück.
+ * Wird ein Wert r größer UINT32_MAX-incr zurückgegeben, dann ist counter
+ * nur bis UINT32_MAX erhöht worden und ein Teil von incr wurde ignoriert,
+ * damit der Counter nicht überläuft. */
+uint32_t add_itccounter(itccounter_t* counter, uint16_t incr);
 
 // group: reader
 
@@ -133,6 +148,11 @@ uint32_t/*value*/ reset_itccounter(itccounter_t* counter/*is reset to 0 before r
  * Implements <itccounter_t.io_itccounter>. */
 #define io_itccounter(counter) \
          ((counter)->sysio)
+
+/* define: isfree_itccounter
+ * Implements <itccounter_t.isfree_itccounter>. */
+#define isfree_itccounter(counter) \
+         (sys_iochannel_FREE == io_itccounter(counter))
 
 
 #endif
