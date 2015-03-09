@@ -340,7 +340,12 @@ static int test_initfree(void)
    TEST(2 == read(fd, buffer, sizeof(buffer)));
    TEST(0 == memcmp(buffer, "m\n", 2));
    TEST(2 == write(fd, "s\n", 2));
-   TEST(6 == read(pty.master_device, buffer, sizeof(buffer)));
+   int bytes = read(pty.master_device, buffer, sizeof(buffer));
+   for (int bytes2; 0 < bytes && bytes < 6; bytes += bytes2) {
+      bytes2 = read(pty.master_device, buffer+bytes, sizeof(buffer)-(unsigned)bytes);
+      TEST(bytes2 > 0);
+   }
+   TESTP(6 == bytes, "bytes:%d", bytes);
    TEST(0 == memcmp(buffer, "m\r\ns\r\n", 6));
    // close slave
    TEST(0 == close(fd));

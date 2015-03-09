@@ -126,13 +126,13 @@ ONERR:
    return err;
 }
 
-int writeall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
+int writeall_pipe(pipe_t* pipe, size_t size, const void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
 {
    int err;
    size_t bytes = 0;
 
    for (;;) {
-      int part = write(pipe->write, (uint8_t*)data + bytes, size-bytes);
+      int part = write(pipe->write, (const uint8_t*)data + bytes, size-bytes);
 
       if (part >= 0) {
          bytes += (unsigned) part;

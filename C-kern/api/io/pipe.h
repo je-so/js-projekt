@@ -97,7 +97,7 @@ int readall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t
  * EPIPE - Lesendes Ende wurde geschlossen (Fehler wird nicht geloggt).
  * ETIME - Der Timeout ist abgelaufen, bevor alle Daten geschrieben werden konnten, falls msec_timeout > 0.
  *         Im Falle von msec_timeout < 0 wird unendlich lange gewartet und dieser Fehler wird nicht erzeugt. */
-int writeall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
+int writeall_pipe(pipe_t* pipe, size_t size, const void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/);
 
 // group: generic-cast
 

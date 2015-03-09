@@ -17,11 +17,11 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/err.h"
-// #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/io/pipe.h"
 #endif
 
 
@@ -1207,83 +1207,78 @@ static int daemonprocess_return(void * dummy)
 static int daemonprocess_redirect(process_stdio_t * stdfd)
 {
    char buffer[20];
-   char dir[10] = { 0 } ;
+   char dir[10] = { 0 };
 
-   pid_t oldsid = getsid(0) ;
+   pid_t oldsid = getsid(0);
 
-   int err = daemonize_process(stdfd) ;
-   if (err) return err ;
+   int err = daemonize_process(stdfd);
+   if (err) return err;
 
    if (  getpid()  != getsid(0)
          || oldsid == getsid(0)) {
-      return EINVAL ;
+      return EINVAL;
    }
 
    if (  5 != read(STDIN_FILENO, buffer, 5)
          || 5 != write(STDOUT_FILENO, buffer, 5)) {
-      return EINVAL ;
+      return EINVAL;
    }
 
    if (0 == getcwd(dir, sizeof(dir))) {
-      return EINVAL ;
+      return EINVAL;
    }
 
-   snprintf(buffer, sizeof(buffer), "%s", dir) ;
+   snprintf(buffer, sizeof(buffer), "%s", dir);
 
    if ((int)strlen(buffer)+1 != write(STDERR_FILENO, buffer, strlen(buffer)+1)) {
-      return EINVAL ;
+      return EINVAL;
    }
 
-   if (3 != write(STDERR_FILENO, "OK", 3)) return EINVAL ;
-
-   return 0 ;
+   return 0;
 }
 
 static int test_daemon(void)
 {
-   process_t            process = process_FREE ;
-   process_result_t     process_result ;
-   process_stdio_t      stdfd   = process_stdio_INIT_DEVNULL ;
-   int                  fd[2]   = { -1, -1 } ;
-   char                 readbuffer[20] ;
+   process_t            process = process_FREE;
+   process_result_t     process_result;
+   process_stdio_t      stdfd = process_stdio_INIT_DEVNULL;
+   pipe_t               pipe  = pipe_FREE;
+   char                 readbuffer[20];
 
    // prepare
-   TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == init_pipe(&pipe));
 
    // TEST daemonize_process: return always 0 cause daemonize_process creates new child with fork
-   TEST(0 == init_process(&process, &daemonprocess_return, 0, 0)) ;
-   TEST(0 == wait_process(&process, &process_result)) ;
-   TEST(process_result.state      == process_state_TERMINATED) ;
-   TEST(process_result.returncode == 0) ;
-   TEST(0 == free_process(&process)) ;
+   TEST(0 == init_process(&process, &daemonprocess_return, 0, 0));
+   TEST(0 == wait_process(&process, &process_result));
+   TEST(process_result.state      == process_state_TERMINATED);
+   TEST(process_result.returncode == 0);
+   TEST(0 == free_process(&process));
 
    // TEST daemonize_process: redirect stdfd
-   stdfd = (process_stdio_t) process_stdio_INIT_DEVNULL ;
-   redirectin_processstdio(&stdfd, fd[0]) ;
-   redirectout_processstdio(&stdfd, fd[1]) ;
-   redirecterr_processstdio(&stdfd, fd[1]) ;
-   TEST(5 == write(fd[1], "12345", 5)) ;
-   TEST(0 == initgeneric_process(&process, &daemonprocess_redirect, &stdfd, 0)) ;
-   TEST(0 == wait_process(&process, &process_result)) ;
-   TEST(process_result.state      == process_state_TERMINATED) ;
-   TEST(process_result.returncode == 0) ;
-   TEST(5 == read(fd[0], readbuffer, 5)) ;
-   TEST(0 == strncmp(readbuffer, "12345", 5)) ;
-   TEST(5 == read(fd[0], readbuffer, sizeof(readbuffer))) ;
-   TEST(0 == strcmp(readbuffer, "/")) ;
-   TEST(0 == strcmp(readbuffer+2, "OK")) ;
-   TEST(0 == free_process(&process)) ;
+   stdfd = (process_stdio_t) process_stdio_INIT_DEVNULL;
+   redirectin_processstdio(&stdfd, pipe.read);
+   redirectout_processstdio(&stdfd, pipe.write);
+   redirecterr_processstdio(&stdfd, pipe.write);
+   TEST(0 == writeall_pipe(&pipe, 5, "12345", -1));
+   TEST(0 == initgeneric_process(&process, &daemonprocess_redirect, &stdfd, 0));
+   TEST(0 == wait_process(&process, &process_result));
+   TEST(process_result.state      == process_state_TERMINATED);
+   TEST(process_result.returncode == 0);
+   TEST(0 == readall_pipe(&pipe, 5, readbuffer, -1));
+   TEST(0 == strncmp(readbuffer, "12345", 5));
+   TEST(0 == readall_pipe(&pipe, 2, readbuffer, -1));
+   TEST(0 == strcmp(readbuffer, "/"));
+   TEST(0 == free_process(&process));
 
    // unprepare
-   TEST(0 == free_iochannel(&fd[0])) ;
-   TEST(0 == free_iochannel(&fd[1])) ;
+   TEST(0 == free_pipe(&pipe));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_iochannel(&fd[0]) ;
-   free_iochannel(&fd[1]) ;
-   (void) free_process(&process) ;
-   return EINVAL ;
+   free_pipe(&pipe);
+   (void) free_process(&process);
+   return EINVAL;
 }
 
 int unittest_platform_task_process()
@@ -1298,27 +1293,27 @@ int unittest_platform_task_process()
    if (test_daemon())         goto ONERR;
 
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
-   uint8_t *logbuffer = 0 ;
-   size_t   logsize   = 0 ;
-   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
-   char buffer2[2000] = { 0 } ;
-   TEST(logsize < sizeof(buffer2)) ;
-   logsize = 0 ;
+   uint8_t *logbuffer = 0;
+   size_t   logsize   = 0;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   char buffer2[2000] = { 0 };
+   TEST(logsize < sizeof(buffer2));
+   logsize = 0;
    while (strstr((char*)logbuffer, "\npid=")) {
-      memcpy(&buffer2[logsize], logbuffer, (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer)) ;
-      logsize += (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer) ;
-      strcpy(&buffer2[logsize], "\npid=?") ;
-      logsize  += strlen("\npid=?") ;
+      memcpy(&buffer2[logsize], logbuffer, (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer));
+      logsize += (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer);
+      strcpy(&buffer2[logsize], "\npid=?");
+      logsize  += strlen("\npid=?");
       logbuffer = (uint8_t*)strstr(strstr((char*)logbuffer, "\npid=")+1, "\n");
    }
-   strcpy(&buffer2[logsize], (char*)logbuffer) ;
+   strcpy(&buffer2[logsize], (char*)logbuffer);
 
-   CLEARBUFFER_ERRLOG() ;
-   PRINTF_ERRLOG("%s", buffer2) ;
+   CLEARBUFFER_ERRLOG();
+   PRINTF_ERRLOG("%s", buffer2);
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

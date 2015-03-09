@@ -522,8 +522,9 @@ static int test_query(void)
    }
 
    // TEST groups_syslogin: ENOBUFS
-   capacity --;
-   TEST(ENOBUFS == groups_syslogin(capacity, grouplist, &size));
+   if (capacity > 1) {
+      TEST(ENOBUFS == groups_syslogin(capacity-1, grouplist, &size));
+   }
 
    // TEST groups_syslogin: EOVERFLOW
    TEST(EOVERFLOW == groups_syslogin(1 + (size_t)INT_MAX, grouplist, &size));
