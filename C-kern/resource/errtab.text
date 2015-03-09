@@ -50,7 +50,7 @@
 de: "Erfolg"
 en: "Success"
 0x01
-de: "Die Operation ist nicht erlaubt"
+de: "Vorgang nicht zulässig"
 en: "Operation not permitted"
 0x02
 de: "Datei oder Verzeichnis nicht gefunden"
@@ -311,7 +311,7 @@ en: "Streams pipe error"
 de: "Zu viele Benutzer"
 en: "Too many users"
 0x58
-de: "Socket-Operation an einem nicht-Socket"
+de: "Socket-Vorgang an einem nicht-Socket"
 en: "Socket operation on non-socket"
 0x59
 de: "Es ist eine Zieladresse notwendig"
@@ -332,7 +332,7 @@ en: "Protocol not supported"
 de: "Socket-Typ wird nicht unterstützt"
 en: "Socket type not supported"
 0x5f
-de: "Die Operation wird nicht unterstützt"
+de: "Vorgang wird nicht unterstützt"
 en: "Operation not supported"
 0x60
 de: "Die Protokollfamilie wird nicht unterstützt"
@@ -389,10 +389,10 @@ en: "Host is down"
 de: "Keine Route zum Zielrechner"
 en: "No route to host"
 0x72
-de: "Die Operation wird bereits ausgeführt"
+de: "Vorgang wird bereits ausgeführt"
 en: "Operation already in progress"
 0x73
-de: "Die Operation ist jetzt in Bearbeitung"
+de: "Vorgang ist jetzt in Bearbeitung"
 en: "Operation now in progress"
 0x74
 de: "Veraltete Dateizugriffsnummer (file handle)"
@@ -422,7 +422,7 @@ en: "No medium found"
 de: "Falscher Medien-Typ"
 en: "Wrong medium type"
 0x7d
-de: "Die Operation wird abgebrochen"
+de: "Vorgang abgebrochen"
 en: "Operation canceled"
 0x7e
 de: "Der notwendige Schlüssek ist nicht verfügbar"
@@ -443,7 +443,7 @@ en: "Owner died"
 de: "Der Status ist nicht wiederherstellbar"
 en: "State not recoverable"
 0x84
-de: "Die Operation ist nicht möglich wegen RF-kill"
+de: "Vorgang ist nicht möglich wegen RF-kill"
 en: "Operation not possible due to RF-kill"
 0x85
 de: "Memory-Seite hat einen Hardware-Fehler"

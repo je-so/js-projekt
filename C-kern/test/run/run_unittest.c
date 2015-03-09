@@ -209,7 +209,6 @@ int run_unittest(void * argv)
       RUN(unittest_string_convertwchar);
       RUN(unittest_string_cstring);
       RUN(unittest_string_base64encode);
-      RUN(unittest_string_splitstring);
       RUN(unittest_string_strsearch);
       RUN(unittest_string_textpos);
       RUN(unittest_string_urlencode);
@@ -239,6 +238,9 @@ int run_unittest(void * argv)
 
 //{ io unittest
       // filesystem
+      RUN(unittest_io_subsys_iobuffer);
+      RUN(unittest_io_subsys_iolist);
+      RUN(unittest_io_subsys_iothread);
       RUN(unittest_io_directory);
       RUN(unittest_io_file);
       RUN(unittest_io_filepath);
@@ -256,7 +258,6 @@ int run_unittest(void * argv)
       RUN(unittest_io_reader_csvfilereader);
       RUN(unittest_io_reader_filereader);
       RUN(unittest_io_reader_utf8reader);
-      RUN(unittest_io_reader_utf8scanner);
       // writer
       RUN(unittest_io_writer_log_logbuffer);
       RUN(unittest_io_writer_log_logwriter);

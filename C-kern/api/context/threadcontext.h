@@ -1,4 +1,7 @@
 /* title: ThreadContext
+
+   TODO: move thrreadcontext into directory task/
+
    Defines the global (thread local) context of a running system thread.
    If more than one thread is running in a process each thread
    has its own context. It contains references to services which
@@ -69,7 +72,11 @@ struct threadcontext_t {
    /* variable: thread_id
     * Identification number which is incremented every time a thread is created.
     * The main thread has id 1. If SIZE_MAX is reached the value is wrapped around
-    * to number 2 which may be no more unique. */
+    * to number 2 which may be no more unique.
+    * TODO: implement reuse of id
+    *       refactor id management into own thread-manager which checks also that threads are alive
+    *       make thread-manager check that every thread is alive with tryjoin_thread
+    *       + send_interrupt which sets flag !! (-> make all syscalls restartable) .. */
    size_t               thread_id;
    /* variable: initcount
     * Number of correct initialized objects. */

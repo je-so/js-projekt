@@ -1,0 +1,63 @@
+[1: 1425365492.607713s]
+init_file() C-kern/platform/Linux/io/file.c:110
+Error 2 - No such file or directory
+System call 'openat' failed
+File name '/tmp/iobuffer.XXXXXX/__UNKNOWN__'
+[1: 1425365492.607859s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 2 - No such file or directory
+[1: 1425365492.607872s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 1 - Operation not permitted
+[1: 1425365492.607877s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 2 - No such file or directory
+[1: 1425365492.607884s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 3 - No such process
+[1: 1425365492.607891s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 4 - Interrupted system call
+[1: 1425365492.607903s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 5 - Input/output error
+[1: 1425365492.607916s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 6 - No such device or address
+[1: 1425365492.607936s]
+init_iobufferstream() C-kern/io/subsys/iobuffer.c:185
+Error 7 - Argument list too long
+[1: 1425365492.611070s]
+free_file() C-kern/platform/Linux/io/file.c:255
+Error 9 - Bad file descriptor
+System call 'close' failed
+close_fd=5
+One or more resources could not be freed
+[1: 1425365492.611084s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 9 - Bad file descriptor
+One or more resources could not be freed
+[1: 1425365492.617638s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 1 - Operation not permitted
+One or more resources could not be freed
+[1: 1425365492.621941s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 2 - No such file or directory
+One or more resources could not be freed
+[1: 1425365492.625441s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 3 - No such process
+One or more resources could not be freed
+[1: 1425365492.629216s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 4 - Interrupted system call
+One or more resources could not be freed
+[1: 1425365492.632469s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 5 - Input/output error
+One or more resources could not be freed
+[1: 1425365492.635301s]
+free_iobufferstream() C-kern/io/subsys/iobuffer.c:216
+Error 6 - No such device or address
+One or more resources could not be freed

@@ -1,4 +1,7 @@
 /* title: ProcessContext
+
+   TODO: move processcontext into directory task/
+
    Defines the global context of the running system process.
    The context contains references to global services shared
    between system threads.

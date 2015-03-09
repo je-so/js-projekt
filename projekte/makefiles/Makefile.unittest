@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Mär.06  08:53:24
+GenerationDate  := 2015.Mär.09  10:41:05
 GeneratedBy     := je-so
 
 ## Debug
@@ -137,12 +137,14 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
@@ -180,7 +182,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
- $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
@@ -257,12 +258,14 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
@@ -300,7 +303,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Release)/C-kern!string!textpos.c.o \
- $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
  $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!synccond.c.o \
@@ -508,6 +510,15 @@ $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Debug)
 
@@ -521,9 +532,6 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
@@ -635,9 +643,6 @@ $(ObjectDir_Debug)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
@@ -862,6 +867,15 @@ $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Release)
 
@@ -875,9 +889,6 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
@@ -989,9 +1000,6 @@ $(ObjectDir_Release)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!splitstring.c.o: C-kern/string/splitstring.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c

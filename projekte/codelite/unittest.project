@@ -30,7 +30,6 @@
       <File Name="../../C-kern/api/string/utf8.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
       <File Name="../../C-kern/api/string/textpos.h"/>
-      <File Name="../../C-kern/api/string/splitstring.h"/>
       <File Name="../../C-kern/api/string/strsearch.h"/>
       <File Name="../../C-kern/api/string/base64encode.h"/>
       <File Name="../../C-kern/api/string/urlencode.h"/>
@@ -208,7 +207,6 @@
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
         <File Name="../../C-kern/api/io/reader/csvfilereader.h"/>
         <File Name="../../C-kern/api/io/reader/filereader.h"/>
-        <File Name="../../C-kern/api/io/reader/utf8scanner.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
@@ -220,13 +218,18 @@
           <File Name="../../C-kern/api/io/writer/log/logbuffer.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/io/iopoll.h"/>
-      <File Name="../../C-kern/api/io/iochannel.h"/>
       <VirtualDirectory Name="terminal">
         <File Name="../../C-kern/api/io/terminal/terminal.h"/>
         <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
         <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="subsys">
+        <File Name="../../C-kern/api/io/subsys/iobuffer.h"/>
+        <File Name="../../C-kern/api/io/subsys/iothread.h"/>
+        <File Name="../../C-kern/api/io/subsys/iolist.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/io/iopoll.h"/>
+      <File Name="../../C-kern/api/io/iochannel.h"/>
       <File Name="../../C-kern/api/io/pipe.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
@@ -276,11 +279,10 @@
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
     <VirtualDirectory Name="reader">
-      <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
       <File Name="../../C-kern/io/reader/csvfilereader.c"/>
       <File Name="../../C-kern/io/reader/filereader.c"/>
-      <File Name="../../C-kern/io/reader/utf8scanner.c"/>
+      <File Name="../../C-kern/io/reader/utf8reader.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
@@ -295,6 +297,11 @@
     </VirtualDirectory>
     <VirtualDirectory Name="terminal">
       <File Name="../../C-kern/io/terminal/termadapt.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="subsys">
+      <File Name="../../C-kern/io/subsys/iobuffer.c"/>
+      <File Name="../../C-kern/io/subsys/iothread.c"/>
+      <File Name="../../C-kern/io/subsys/iolist.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
@@ -357,7 +364,6 @@
     <File Name="../../C-kern/string/utf8.c"/>
     <File Name="../../C-kern/string/format_string.c"/>
     <File Name="../../C-kern/string/textpos.c"/>
-    <File Name="../../C-kern/string/splitstring.c"/>
     <File Name="../../C-kern/string/strsearch.c"/>
     <File Name="../../C-kern/string/base64encode.c"/>
     <File Name="../../C-kern/string/urlencode.c"/>
@@ -378,6 +384,7 @@
       <File Name="../../coding-conventions/utf8art.txt"/>
       <File Name="../../coding-conventions/abstractions.txt"/>
       <File Name="../../coding-conventions/overloading.txt"/>
+      <File Name="../../coding-conventions/shared.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>
@@ -491,6 +498,7 @@
     <File Name="../../C-kern/memory/ptr.c"/>
     <File Name="../../C-kern/memory/atomic.c"/>
     <File Name="../../C-kern/memory/memvec.c"/>
+    <File Name="../../C-kern/memory/pagecache.txt"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

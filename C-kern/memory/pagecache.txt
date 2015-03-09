@@ -1,0 +1,15 @@
+TODO: reimplement pagecache_impl as mempage_t
+
+instead of calling alloc_pagecache call init_mempage!
+add mempage process part (bitmap index to locate free pages) to processcontext
+add mempage thread part (free list + list of used pages) to threadcontext
+
+TODO: add mempage service to special module-interface
+
+use service macros which allow to switch between normal static modules
+and dynamic modules which call all services through the indirect module-service-interface.
+(no linking of dynamic modules they use only indirect pointers)
+
+
+
+

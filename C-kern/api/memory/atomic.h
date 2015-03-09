@@ -32,6 +32,12 @@
 
 // section: Functions
 
+// group: sync
+
+/* function: syncstore_memory
+ * Alle Schreiboperation werden für andere Threads sichtbar gemacht. */
+void syncstore_memory(void);
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
@@ -110,6 +116,14 @@ void clear_atomicflag(uint8_t* flag);
 
 
 // section: inline implementation
+
+// group: Functions
+
+/* define: syncstore_memory
+ * Implements <syncstore_memory>.
+ * TODO: Replace full memory barrier with store fence on x86. */
+#define syncstore_memory() \
+         __sync_synchronize()
 
 // group: atomicint_t
 

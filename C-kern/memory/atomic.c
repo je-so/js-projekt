@@ -30,6 +30,98 @@
 
 #ifdef KONFIG_UNITTEST
 
+static volatile int s_x = 0;
+static volatile int s_y = 0;
+static volatile int s_x2= 0;
+static volatile int s_y2= 0;
+static volatile int s_xs = 0;
+static volatile int s_ys = 0;
+static volatile int s_xs2 = 0;
+static volatile int s_ys2 = 0;
+
+int thread_set_x(void* arg)
+{
+   while (0 == read_atomicint((uint8_t*)arg)) {
+      write_atomicint((uint8_t*)arg, 1);
+      suspend_thread();
+      s_x = 1;
+      s_x2 = s_y; // could be reordered with s_x = 1
+      s_xs = 1;
+      syncstore_memory();
+      s_xs2 = s_ys;
+   }
+   return 0;
+}
+
+int thread_set_y(void* arg)
+{
+   while (0 == read_atomicint((uint8_t*)arg)) {
+      write_atomicint((uint8_t*)arg, 1);
+      suspend_thread();
+      s_y = 1;
+      s_y2 = s_x; // could be reordered with s_y = 1
+      s_ys = 1;
+      syncstore_memory();
+      s_ys2 = s_xs;
+   }
+   return 0;
+}
+
+static int test_sync(void)
+{
+   thread_t* threads[2] = { 0 };
+   uint8_t   flag[2] = { 0 };
+   bool      iserr = 0;
+
+   // prepare
+   TEST(0 == new_thread(&threads[0], &thread_set_x, &flag[0]));
+   TEST(0 == new_thread(&threads[1], &thread_set_y, &flag[1]));
+   // wait for suspend
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      while (0 == read_atomicint(&flag[i])) {
+         yield_thread();
+      }
+   }
+
+   // TEST syncstore_memory: prevent reordering of store
+   for (int t = 0; t < 125000; ++t) {
+
+      memset(flag, 0, sizeof(flag));
+
+      s_x = s_y = 0;
+      resume_thread(threads[0]);
+      resume_thread(threads[1]);
+      do {
+         yield_thread();
+      } while (0 == read_atomicint(&flag[0]) || 0 == read_atomicint(&flag[1]));
+      // syncronized access no error
+      iserr = (read_atomicint(&s_xs2) == 0 && read_atomicint(&s_ys2) == 0);
+      TEST(!iserr);
+      // non syncronized access
+      iserr = (read_atomicint(&s_x2) == 0 && read_atomicint(&s_y2) == 0);
+      if (iserr) break;
+   }
+   if (!iserr) {
+      logwarning_unittest("expected reordering");
+   }
+
+   // unprepare
+   memset(flag, 1, sizeof(flag));
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      resume_thread(threads[i]);
+      TEST(0 == delete_thread(&threads[i]));
+   }
+
+   return 0;
+ONERR:
+   memset(flag, 1, sizeof(flag));
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      resume_thread(threads[i]);
+      TEST(0 == delete_thread(&threads[i]));
+   }
+   return EINVAL;
+}
+
 typedef struct intargs_t {
    uint32_t    u32;
    uint64_t    u64;
@@ -112,7 +204,7 @@ static int test_readwrite(void)
 
    return 0;
 ONERR:
-   for (unsigned i = 0; i < lengthof(threads); i += 1) {
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == delete_thread(&threads[i]));
    }
    return EINVAL;
@@ -420,6 +512,7 @@ ONERR:
 
 int unittest_memory_atomic()
 {
+   if (test_sync())        goto ONERR;
    if (test_readwrite())   goto ONERR;
    if (test_atomicops())   goto ONERR;
    if (test_atomicflag())  goto ONERR;

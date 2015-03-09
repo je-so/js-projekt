@@ -91,6 +91,7 @@ Group: Api  {
          File: BinaryStack  (api/ds/inmem/binarystack.h)
          File: BlockArray  (api/ds/inmem/blockarray.h)
          File: DoubleLinkedList  (api/ds/inmem/dlist.h)
+         File: DoubleLinkedList2  (api/ds/inmem/dlist2.h)
          File: Extendible-Hashing  (api/ds/inmem/exthash.h)
          File: Heap  (api/ds/inmem/heap.h)
          File: Patricia-Trie  (api/ds/inmem/patriciatrie.h)
@@ -137,6 +138,13 @@ Group: Api  {
 
    Group: Io  {
 
+      Group: SubSys  {
+
+         File: IOBuffer  (api/io/subsys/iobuffer.h)
+         File: IOList  (api/io/subsys/iolist.h)
+         File: IOThread  (api/io/subsys/iothread.h)
+         }  # Group: SubSys
+
       Group: Filesystem  {
 
          File: Directory  (api/io/filesystem/directory.h)
@@ -163,7 +171,6 @@ Group: Api  {
 
          File: CSV-Filereader  (api/io/reader/csvfilereader.h)
          File: FileReader  (api/io/reader/filereader.h)
-         File: UTF8-Scanner  (api/io/reader/utf8scanner.h)
          File: UTF8TextReader  (api/io/reader/utf8reader.h)
          }  # Group: Reader
 
@@ -180,6 +187,7 @@ Group: Api  {
       File: IO-Accessmode  (api/io/accessmode.h)
       File: IOChannel  (api/io/iochannel.h)
       File: IOEvent  (api/io/ioevent.h)
+      File: IOPipe  (api/io/pipe.h)
       File: IOPoll  (api/io/iopoll.h)
       File: URL  (api/io/url.h)
       }  # Group: Io
@@ -241,6 +249,15 @@ Group: Api  {
       }  # Group: NewC
 
    Group: Platform  {
+
+      Group: Hardware  {
+
+         Group: CPU  {
+
+            File: x86-CPU-Config  (api/platform/hw/cpu/x86.h)
+            }  # Group: CPU
+
+         }  # Group: Hardware
 
       Group: Linux  {
 
@@ -304,15 +321,14 @@ Group: Api  {
 
    Group: String  {
 
-      File: Base64EncodeString  (api/string/base64encode_string.h)
+      File: Base64EncodeString  (api/string/base64encode.h)
       File: Convert-wchar  (api/string/convertwchar.h)
       File: CString  (api/string/cstring.h)
       File: FormatString  (api/string/format_string.h)
       File: SearchString  (api/string/strsearch.h)
-      File: SplitString  (api/string/splitstring.h)
       File: String  (api/string/string.h)
       File: TextPosition  (api/string/textpos.h)
-      File: URLEncodeString  (api/string/urlencode_string.h)
+      File: URLEncodeString  (api/string/urlencode.h)
       File: UTF-8  (api/string/utf8.h)
       }  # Group: String
 
@@ -322,10 +338,11 @@ Group: Api  {
       File: Compiletime-Tests  (api/test/compiletime.h)
       File: MemoryErrorTestMacros  (api/test/mm/err_macros.h)
       File: Resourceusage  (api/test/resourceusage.h)
+      File: Run-Performance-Test  (api/test/run/run_perftest.h)
       File: Run-Unit-Test  (api/test/run/run_unittest.h)
-      File: Speed Test  (api/test/run/speedtest.h)
       File: Test-Errortimer  (api/test/errortimer.h)
       File: Test-MemoryManager  (api/test/mm/testmm.h)
+      File: TestPerformance  (api/test/perftest.h)
       File: Unit-Test  (api/test/unittest.h)
       File: ValidationTest  (api/test/validate.h)
       }  # Group: Test
@@ -342,7 +359,6 @@ Group: Api  {
       File: SyncCommand  (api/task/synccmd.h)
       File: SyncCondition  (api/task/synccond.h)
       File: SyncFunc  (api/task/syncfunc.h)
-      File: SyncQueue  (api/task/syncqueue.h)
       File: SyncRunner  (api/task/syncrunner.h)
       }  # Group: Task
 
@@ -379,6 +395,7 @@ Group: Implementation  {
          File: BinaryStack impl  (ds/inmem/binarystack.c)
          File: BlockArray impl  (ds/inmem/blockarray.c)
          File: DoubleLinkedList impl  (ds/inmem/dlist.c)
+         File: DoubleLinkedList2 impl  (ds/inmem/dlist2.c)
          File: Extendible-Hashing impl  (ds/inmem/exthash.c)
          File: Heap impl  (ds/inmem/heap.c)
          File: Patricia-Trie impl  (ds/inmem/patriciatrie.c)
@@ -424,6 +441,13 @@ Group: Implementation  {
 
    Group: Io  {
 
+      Group: SubSys  {
+
+         File: IOBuffer impl  (io/subsys/iobuffer.c)
+         File: IOList impl  (io/subsys/iolist.c)
+         File: IOThread impl  (io/subsys/iothread.c)
+         }  # Group: SubSys
+
       Group: Terminal  {
 
          File: TerminalAdapter impl  (io/terminal/termadapt.c)
@@ -434,7 +458,6 @@ Group: Implementation  {
          File: CSV-Filereader impl  (io/reader/csvfilereader.c)
          File: Description-Reader  (io/reader/reader.txt)
          File: FileReader impl  (io/reader/filereader.c)
-         File: UTF8-Scanner impl  (io/reader/utf8scanner.c)
          File: UTF8TextReader impl  (io/reader/utf8reader.c)
          }  # Group: Reader
 
@@ -454,7 +477,7 @@ Group: Implementation  {
 
       Group: Test  {
 
-         File: Speedtest  (main/test/speedtest_main.c)
+         File: Performance-Test  (main/test/perftest_main.c)
          File: Testchildprocess  (main/test/testchildprocess_main.c)
          File: TestModule  (main/test/testmodule_main.c)
          File: TestModuleHelper1  (main/test/helper/testmodule_helper1.h)
@@ -535,6 +558,7 @@ Group: Implementation  {
             File: Internetprotocol-Address Linux  (platform/Linux/io/ipaddr.c)
             File: Internetprotocol-Sockets Linux  (platform/Linux/io/ipsocket.c)
             File: IOChannel impl  (platform/Linux/io/iochannel.c)
+            File: IOPipe impl  (platform/Linux/io/pipe.c)
             File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             File: PseudoTerminal impl  (platform/Linux/io/pseudoterm.c)
@@ -596,15 +620,14 @@ Group: Implementation  {
 
    Group: String  {
 
-      File: Base64EncodeString impl  (string/base64encode_string.c)
+      File: Base64EncodeString impl  (string/base64encode.c)
       File: Convert-wchar impl  (string/convertwchar.c)
       File: CString impl  (string/cstring.c)
       File: FormatString impl  (string/format_string.c)
       File: SearchString impl  (string/strsearch.c)
-      File: SplitString impl  (string/splitstring.c)
       File: String impl  (string/string.c)
       File: TextPosition impl  (string/textpos.c)
-      File: URLEncodeString impl  (string/urlencode_string.c)
+      File: URLEncodeString impl  (string/urlencode.c)
       File: UTF-8 impl  (string/utf8.c)
       }  # Group: String
 
@@ -612,7 +635,6 @@ Group: Implementation  {
 
       File: SyncCondition impl  (task/synccond.c)
       File: SyncFunc impl  (task/syncfunc.c)
-      File: SyncQueue impl  (task/syncqueue.c)
       File: SyncRunner impl  (task/syncrunner.c)
       }  # Group: Task
 
@@ -631,13 +653,13 @@ Group: Implementation  {
 
       Group: Run  {
 
+         File: Run-Performance-Test impl  (test/run/run_perftest.c)
          File: Run-Unit-Test impl  (test/run/run_unittest.c)
-         File: SpeedTest-Linuxsplice  (test/run/run_linuxsplice_speedtest.c)
-         File: SpeedTest-Madvise  (test/run/run_madvise_speedtest.c)
          }  # Group: Run
 
       File: Test-Errortimer impl  (test/errortimer.c)
       File: Test-MemoryManager impl  (test/mm/testmm.c)
+      File: TestPerformance impl  (test/perftest.c)
       File: Unit-Test impl  (test/unittest.c)
       }  # Group: Test
 
