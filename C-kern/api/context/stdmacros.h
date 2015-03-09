@@ -58,10 +58,10 @@
  * > const type_t * ptr ;
  * The returned type is
  * > (type_t *) ptr ; */
-#define CONST_CAST(type_t, ptr)              \
-         ( __extension__ ({                  \
-            const type_t * _ptr1 = (ptr) ;   \
-            (type_t*) ((uintptr_t)_ptr1) ;   \
+#define CONST_CAST(type_t, ptr) \
+         ( __extension__ ({               \
+            const type_t * _ptr1 = (ptr); \
+            (type_t*) ((uintptr_t)_ptr1); \
          }))
 
 /* define: structof
@@ -83,7 +83,11 @@
  * > volatile type_t * ptr ;
  * The returned type is
  * > (type_t*) ptr ; */
-#define VOLATILE_CAST(type_t,ptr)      ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
+#define VOLATILE_CAST(type_t,ptr) \
+         ( __extension__ ({                  \
+            volatile type_t * _ptr1 = (ptr); \
+            (type_t*) ((uintptr_t)_ptr1);    \
+         }))
 
 // group: function-declaration
 
