@@ -38,7 +38,7 @@
 
 // group: environment-variables
 
-// TEXTDB:SELECT('/* variable: ENVIRON_'id\n' * Name of environment variable – 'description'. */'\n'#define ENVIRON_'id' "'envname'"')FROM("C-kern/resource/config/environvars")WHERE(id=='TERM')
+// TEXTDB:SELECT('/* variable: ENVIRON_'id\n' * Name of environment variable – 'description'. */'\n'#define ENVIRON_'id' "'envname'"')FROM(C-kern/resource/config/environvars)WHERE(id=='TERM')
 /* variable: ENVIRON_TERM
  * Name of environment variable – used to determine the terminal type. */
 #define ENVIRON_TERM "TERM"

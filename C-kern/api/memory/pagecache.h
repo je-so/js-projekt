@@ -85,7 +85,12 @@ int unittest_memory_pagecache(void);
 
 /* struct: pagecache_t
  * Defined as <iobj_t.iobj_T>(pagecache).
- * See also <pagecache_impl_t> which is the default implementation. */
+ * See also <pagecache_impl_t> which is the default implementation.
+ *
+ * TODO: remove allocstatic_pagecache & other static functionality
+ *       this functionality is replaced by static memory in threadtls
+ *
+ * */
 typedef iobj_T(pagecache) pagecache_t;
 
 // group: lifetime

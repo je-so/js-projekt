@@ -259,14 +259,14 @@ struct valuecache_t*      valuecache_maincontext(void);
  * Used by modules during execution of their initonce_ functions.
  * This memory lives as long <maincontext_t> lives.
  * Must be called in reverse order of calls to <allocstatic_maincontext>. */
-void* allocstatic_maincontext(uint8_t size);
+void* allocstatic_maincontext(uint16_t size);
 
 /* function: freestatic_maincontext
  * Frees size bytes of last allocated memory.
  * Must be called in reverse order of calls to <allocstatic_maincontext>.
  * It is possible to free x calls to <allocstatic_maincontext> with one
  * call to <freestatic_maincontext> where all sizes are summed up. */
-int freestatic_maincontext(uint8_t size);
+int freestatic_maincontext(uint16_t size);
 
 /* function: sizestatic_maincontext
  * Returns size in bytes of allocated static memory. */

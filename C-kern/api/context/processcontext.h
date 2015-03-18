@@ -74,10 +74,9 @@ struct processcontext_t {
 
 // group: constants
 
-/* define: processcontext_STATICSIZE
- * Defines the number of bytes needed from <processcontext_t>.
- * Static memory is allocated in <init_processcontext>. */
-#define processcontext_STATICSIZE (sizeof(syslogin_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
+/* define: processcontext_EXTSIZE
+ * Defines size in bytes of static memory allocated during execution of <init_processcontext>. */
+#define processcontext_EXTSIZE (sizeof(syslogin_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
 
 // group: lifetime
 

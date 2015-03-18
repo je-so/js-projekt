@@ -92,12 +92,12 @@ int free_testmm(testmm_t* mman);
 /* function: initPiobj_testmm
  * Calls <init_testmm> and wraps object into interface object <mm_t>.
  * This function is called from <switchon_testmm>. */
-int initPiobj_testmm(/*out*/iobj_mm_t* testmm);
+int initPiobj_testmm(/*out*/threadcontext_mm_t* testmm);
 
 /* function: freePiobj_testmm
  * Calls <free_testmm> with object pointer from <mm_t>.
  * This function is called from <switchoff_testmm>. */
-int freePiobj_testmm(iobj_mm_t* testmm);
+int freePiobj_testmm(threadcontext_mm_t* testmm);
 
 // group: query
 

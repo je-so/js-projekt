@@ -23,7 +23,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
-// TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalhandler")WHERE(action=='set'&&header!='')
+// TEXTDB:SELECT('#include "'header'"')FROM(C-kern/resource/config/signalhandler)WHERE(action=='set'&&header!='')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -219,7 +219,7 @@ int initonce_signalhandler()
    err = set_signalhandler(_SIGNR, _HANDLER);                        \
    if (err) goto ONERR;
 
-// TEXTDB:SELECT("   // "description\n"   set("signal", &"handler");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
+// TEXTDB:SELECT("   // "description\n"   set("signal", &"handler");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='set')
    // used to interrupt a blocking system call
    set(SIGQUIT, &interrupt_signalhandler);
 // TEXTDB:END
@@ -231,7 +231,7 @@ int initonce_signalhandler()
    err = setignore_signalhandler(_SIGNR);                            \
    if (err) goto ONERR;
 
-// TEXTDB:SELECT("   // "description\n"   ignore("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='ignore')
+// TEXTDB:SELECT("   // "description\n"   ignore("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='ignore')
    // ensures that calls to write return EPIPE
    ignore(SIGPIPE);
 // TEXTDB:END
@@ -245,7 +245,7 @@ int initonce_signalhandler()
    err = sigemptyset(&signalmask);
    if (err) goto ONERR_emptyset;
 
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block2')
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='block2')
    // SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt
    addrange(SIGRTMIN,SIGRTMAX);
 // TEXTDB:END
@@ -255,7 +255,7 @@ int initonce_signalhandler()
          signr = (_SIGNR); \
          if (sigaddset(&signalmask, signr)) goto ONERR_add;
 
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='block')
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='block')
    // used to suspend and resume a single thread
    add(SIGINT);
    // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
@@ -269,7 +269,7 @@ int initonce_signalhandler()
    err = sigemptyset(&signalmask);
    if (err) goto ONERR_emptyset;
 
-// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM("C-kern/resource/config/signalhandler")WHERE(action=='unblock'||action=='set')
+// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='unblock'||action=='set')
    // used to interrupt a blocking system call
    add(SIGQUIT);
 // TEXTDB:END

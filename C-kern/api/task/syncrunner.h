@@ -199,12 +199,12 @@ int terminate_syncrunner(syncrunner_t * srun);
 /* define: init_syncrunner
  * ! defined(KONFIG_SUBSYS_SYNCRUNNER) ==> Implementiert <syncrunner_t.init_syncrunner> als No-Op. */
 #define init_syncrunner(srun) \
-         (0)
+         ((void) srun, 0)
 
 /* define: free_syncrunner
  * ! defined(KONFIG_SUBSYS_SYNCRUNNER) ==> Implementiert <syncrunner_t.free_syncrunner> als No-Op. */
 #define free_syncrunner(srun) \
-         (0)
+         ((void) srun, 0)
 
 #endif
 

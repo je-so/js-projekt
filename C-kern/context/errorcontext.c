@@ -44,18 +44,18 @@ uint8_t g_errorcontext_strdata[];
 
 // group: lifetime
 
-int init_errorcontext(/*out*/errorcontext_t * errcontext)
+int init_errorcontext(/*out*/errorcontext_t* errcontext)
 {
-   errcontext->stroffset = g_errorcontext_stroffset ;
-   errcontext->strdata   = g_errorcontext_strdata ;
-   return 0 ;
+   errcontext->stroffset = g_errorcontext_stroffset;
+   errcontext->strdata   = g_errorcontext_strdata;
+   return 0;
 }
 
-int free_errorcontext(errorcontext_t * errcontext)
+int free_errorcontext(errorcontext_t* errcontext)
 {
-   errcontext->stroffset = 0 ;
-   errcontext->strdata   = 0 ;
-   return 0 ;
+   errcontext->stroffset = 0;
+   errcontext->strdata   = 0;
+   return 0;
 }
 
 
@@ -65,7 +65,7 @@ int free_errorcontext(errorcontext_t * errcontext)
 
 static int test_initfree(void)
 {
-   errorcontext_t errcontext = errorcontext_FREE ;
+   errorcontext_t errcontext = errorcontext_FREE;
 
    // TEST errorcontext_FREE
    TEST(0 == errcontext.stroffset) ;

@@ -8,13 +8,18 @@
 # The field inittype determines what kind of init function is called.
 # Possible values:
 # "initthread" - Calls initthread_module(parameter) / freethread_module(parameter)
-# "interface"  - Calls init_module(&parameter->object) / free_module(&parameter->object)
-#                and sets parameter->iimpl to values returned from interface_module().
-#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
-# "object"     - Calls init_module(parameter) / free_module(parameter)
-#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
+# "interface"  - Calls init_module(&threadcontext_t->parameter) and free_module
+#                and sets threadcontext_t->parameter.iimpl == interface_module().
+#                Parameter is considered of type iobj_t which allows to call functions with an interface.
+#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE.
+# "object"     - Calls init_module(&threadcontext_t->parameter) and free_module
+#                Parameter is considered a pointer of to a object type (struct) where functions directly (no interface).
+#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE.
+# "allocmemory" - Must be listed once before any other of type object or interface.
+#                 The allocation and freeing of static memory is done only once.
 "module",            "inittype",    "objtype",            "parameter",     "header-name"
-"pagecacheimpl",     "initthread",  "",                   "pagecache",     "C-kern/api/memory/pagecache_impl.h"
+"pagecacheimpl",     "initthread",  "pagecache",          "pagecache",     "C-kern/api/memory/pagecache_impl.h"
+"threadcontext",     "allocmemory", "",                   "",              ""
 "mmimpl",            "interface",   "mm_impl_t",          "mm",            "C-kern/api/memory/mm/mm_impl.h"
 "syncrunner",        "object",      "syncrunner_t",       "syncrunner",    "C-kern/api/task/syncrunner.h"
 "objectcacheimpl",   "interface",   "objectcache_impl_t", "objectcache",   "C-kern/api/cache/objectcache_impl.h"

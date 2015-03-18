@@ -18,11 +18,11 @@
 #define CKERN_MEMORY_MM_MMIMPL_HEADER
 
 // forward
-struct memblock_t ;
+struct memblock_t;
 
 /* typedef: struct mm_impl_t
  * Exports <mm_impl_t>. */
-typedef struct mm_impl_t                  mm_impl_t ;
+typedef struct mm_impl_t mm_impl_t;
 
 
 // section: Functions
@@ -32,22 +32,22 @@ typedef struct mm_impl_t                  mm_impl_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_mm_mmimpl
  * Test default memory manager <mm_impl_t>. */
-int unittest_memory_mm_mmimpl(void) ;
+int unittest_memory_mm_mmimpl(void);
 #endif
 
 
 /* struct: mm_impl_t
  * Default memory manager for allocating/freeing blocks of memory. */
 struct mm_impl_t {
-   size_t size_allocated ;
-} ;
+   size_t size_allocated;
+};
 
 // group: initthread
 
 /* function: interface_mmimpl
  * This function is called from <threadcontext_t.init_threadcontext>.
  * Used to initialize interface of <mm_t>. */
-struct mm_it * interface_mmimpl(void) ;
+struct mm_it * interface_mmimpl(void);
 
 // group: lifetime
 
@@ -57,20 +57,20 @@ struct mm_it * interface_mmimpl(void) ;
 
 /* function: init_mmimpl
  * Initializes a new memory manager. */
-int init_mmimpl(/*out*/mm_impl_t * mman) ;
+int init_mmimpl(/*out*/mm_impl_t * mman);
 
 /* function: free_mmimpl
  * Frees all memory managed by this manager.
  * Beofre freeing it make sure that every object allocated on
  * this memory heap is no more reachable or already freed. */
-int free_mmimpl(mm_impl_t * mman) ;
+int free_mmimpl(mm_impl_t * mman);
 
 // group: query
 
 /* function: sizeallocated_mmimpl
  * Returns the size in bytes of all allocated memory blocks.
  * If this value is 0 no memory is allocated on this heap. */
-size_t sizeallocated_mmimpl(mm_impl_t * mman) ;
+size_t sizeallocated_mmimpl(mm_impl_t * mman);
 
 // group: allocate
 
@@ -83,7 +83,7 @@ size_t sizeallocated_mmimpl(mm_impl_t * mman) ;
  * It is allowed to set <memblock_t.size> to the same value as provided in argument size.
  *
  * */
-int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;
+int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock);
 
 /* function: mresize_mmimpl
  * Allocates new memory or resizes already allocated memory.
@@ -100,13 +100,13 @@ int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memb
  * It is allowed to set <memblock_t.size> to the same value as provided in argument newsize.
  *
  */
-int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * memblock) ;
+int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * memblock);
 
 /* function: mfree_mmimpl
  * Frees the memory of an allocated memory block. After return
  * memblock is set to <memblock_FREE>. This ensured that calling
  * this function twice with the same argument is a no op. */
-int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock) ;
+int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock);
 
 
 #endif

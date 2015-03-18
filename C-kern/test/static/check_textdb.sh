@@ -20,7 +20,10 @@ temp_process_db=`mktemp`
 temp_thread_db=`mktemp`
 
 echo '"module",            "inittype",    "objtype",            "parameter",     "header-name"' > $temp_thread_db
-echo '"module",            "inittype",  "parameter",    "header-name"' > $temp_process_db
+echo '"module",            "inittype",    "objtype",            "parameter",    "header-name"' > $temp_process_db
+
+#predefined default modules
+echo '"threadcontext",     "allocmemory", "",                   "",              ""' >> $temp_thread_db
 
 for i in $files; do
    IFS_old=$IFS
@@ -151,9 +154,9 @@ for i in $files; do
       fi
       space2=${space:0:18-${#name1}}
       if [ "$parameter" = "" ]; then
-         echo "\"${name1}\",${space2}\"initonce\",  \"\",             \"${i}\"" >> $temp_process_db
+         echo "\"${name1}\",${space2}\"initonce\",    \"\",                   \"\",             \"${i}\"" >> $temp_process_db
       else
-         echo "\"${name1}\",${space2}\"initonce\",  \"${parameter}\",${space:0:13-${#parameter}}\"${i}\"" >> $temp_process_db
+         echo "\"${name1}\",${space2}\"initonce\",    \"\",                   \"${parameter}\",${space:0:13-${#parameter}}\"${i}\"" >> $temp_process_db
       fi
    done
    for((testnr=${#init_once_calls[*]};testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
@@ -177,9 +180,12 @@ for i in $files; do
       parameter="${parameter%)*}"
       if [ "$parameter" = "void" ]; then
          parameter=""
+         paramtype=""
       else
          # [string] means string is optional
          # initthread_NAME(type *[*] xxx)
+         paramtype="${parameter%%\**}"
+         paramtype="${paramtype%_t*}"
          parameter="${parameter#*\*}"
          parameter="${parameter#\*}"
       fi
@@ -187,11 +193,13 @@ for i in $files; do
       parameter="${parameter% }"
       name1=${name1%(*}
       if [ ${#name1} -gt 18 ]; then
-         continue
+         space2=""
+      else
+         space2=${space:0:18-${#name1}}
       fi
-      space2=${space:0:18-${#name1}}
       echo -n "\"${name1}\",${space2}" >> $temp_thread_db
-      echo -n "\"initthread\",  \"\",                   " >> $temp_thread_db
+      space2=${space:0:19-${#paramtype}}
+      echo -n "\"initthread\",  \"${paramtype}\",${space2}" >> $temp_thread_db
       space2=${space:0:14-${#parameter}}
       echo "\"${parameter}\",${space2}\"${i}\"" >> $temp_thread_db
    done

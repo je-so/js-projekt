@@ -340,13 +340,9 @@ static int test_initfree(void)
    TEST(2 == read(fd, buffer, sizeof(buffer)));
    TEST(0 == memcmp(buffer, "m\n", 2));
    TEST(2 == write(fd, "s\n", 2));
-   int bytes = read(pty.master_device, buffer, sizeof(buffer));
-   for (int bytes2; 0 < bytes && bytes < 6; bytes += bytes2) {
-      bytes2 = read(pty.master_device, buffer+bytes, sizeof(buffer)-(unsigned)bytes);
-      TEST(bytes2 > 0);
-   }
-   TESTP(6 == bytes, "bytes:%d", bytes);
+   TEST(0 == readall_iochannel(pty.master_device, 6, buffer, -1));
    TEST(0 == memcmp(buffer, "m\r\ns\r\n", 6));
+   TEST(-1 == read(pty.master_device, buffer, 1));
    // close slave
    TEST(0 == close(fd));
    struct pollfd pfd = { .fd = pty.master_device, .events = POLLIN };

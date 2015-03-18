@@ -40,7 +40,7 @@
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
 #define module_DIRECTORY "bin/mod/"
 
-// TEXTDB:SELECT('#undef  module_'name\n'#define module_'name'  "'value'"')FROM("C-kern/resource/config/modulevalues")WHERE(module=="module_t")
+// TEXTDB:SELECT('#undef  module_'name\n'#define module_'name'  "'value'"')FROM(C-kern/resource/config/modulevalues)WHERE(module=="module_t")
 #undef  module_DIRECTORY
 #define module_DIRECTORY  "bin/mod/"
 // TEXTDB:END

@@ -42,8 +42,8 @@
 /* define: maincontext_STATICSIZE
  * Defines size for <s_maincontext_staticmem>.
  * This extrasize is needed during unit tests.
- * This value is a copy of <processcontext_STATICSIZE>. */
-#define maincontext_STATICSIZE processcontext_STATICSIZE
+ * This value is a copy of <processcontext_EXTSIZE>. */
+#define maincontext_STATICSIZE processcontext_EXTSIZE
 
 #ifdef KONFIG_UNITTEST
 /* define: maincontext_STATICTESTSIZE
@@ -238,38 +238,38 @@ void assertfail_maincontext(
 
 // group: static-memory
 
-void * allocstatic_maincontext(uint8_t size)
+void* allocstatic_maincontext(uint16_t size)
 {
    int err ;
 
    if (sizeof(s_maincontext_staticmem) - g_maincontext.size_staticmem < size) {
-      err = ENOMEM ;
-      TRACEOUTOFMEM_ERRLOG(size, err) ;
+      err = ENOMEM;
+      TRACEOUTOFMEM_ERRLOG(size, err);
       goto ONERR;
    }
 
-   uint16_t offset = g_maincontext.size_staticmem ;
+   uint16_t offset = g_maincontext.size_staticmem;
 
    g_maincontext.size_staticmem = (uint16_t) (g_maincontext.size_staticmem + size) ;
 
-   return &s_maincontext_staticmem[offset] ;
+   return &s_maincontext_staticmem[offset];
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return 0 ;
+   return 0;
 }
 
-int freestatic_maincontext(uint8_t size)
+int freestatic_maincontext(uint16_t size)
 {
-   int err ;
+   int err;
 
-   VALIDATE_INPARAM_TEST(g_maincontext.size_staticmem >= size, ONERR,) ;
+   VALIDATE_INPARAM_TEST(g_maincontext.size_staticmem >= size, ONERR,);
 
-   g_maincontext.size_staticmem = (uint16_t) (g_maincontext.size_staticmem - size) ;
+   g_maincontext.size_staticmem = (uint16_t) (g_maincontext.size_staticmem - size);
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 

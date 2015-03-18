@@ -36,15 +36,12 @@
 typedef struct function_t              function_t ;
 typedef struct iffunction_t            iffunction_t ;
 typedef struct expression_t            expression_t ;
-typedef struct select_parameter_t      select_parameter_t ;
+typedef struct value_t                 value_t;
 typedef struct textdb_t                textdb_t ;
 typedef struct textdb_column_t         textdb_column_t ;
 typedef struct depfilename_written_t   depfilename_written_t ;
 
-static int process_select_parameter(select_parameter_t * select_param, const size_t row, const textdb_t * dbfile, const size_t start_linenr) ;
-static int prepare_select_parameter(select_parameter_t * select_param, const textdb_t * dbfile, const size_t start_linenr) ;
-static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd ) ;
-static int delete_select_parameter(select_parameter_t ** param) ;
+static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd ) ;
 static void print_err(const char* printf_format, ...) __attribute__ ((__format__ (__printf__, 1, 2))) ;
 
 const char * g_programname = 0 ;
@@ -825,26 +822,121 @@ bool ismatch_expression( expression_t * where_expr, size_t row, const textdb_t *
 }
 
 struct function_t {
-   int  (* free)     ( function_t ** funcobj) ;
-   int  (* prepare)  ( function_t * funcobj, const textdb_t * dbfile, const size_t) ;
-   int  (* process)  ( function_t * funcobj, const size_t row, const textdb_t * dbfile, const size_t start_linenr) ;
-} ;
+   int  (* free)     (function_t ** funcobj);
+   int  (* prepare)  (function_t * funcobj, const textdb_t * dbfile, const size_t);
+   int  (* process)  (function_t * funcobj, const size_t row, const textdb_t * dbfile, const size_t start_linenr);
+};
+
+typedef enum {
+   value_FIELD,
+   value_STRING,
+   value_FUNCTION,
+} value_e;
+
+struct value_t
+{
+   value_t    *   next;
+   const char *   value;
+   size_t         length;
+   function_t *   funcobj;
+   size_t         col_index;
+   value_e        type;
+};
+
+static int delete_value(value_t ** value)
+{
+   int err = 0 ;
+   value_t* next = *value;
+
+   while (next) {
+      value_t* delobj = next;
+      next = next->next;
+      if (delobj->funcobj) {
+         int err2 = delobj->funcobj->free(&delobj->funcobj);
+         if (err2) err = err2;
+      }
+      free(delobj);
+   }
+
+   *value = 0;
+   return err;
+}
+
+static int prepare_value(value_t* value, const textdb_t * dbfile, const size_t start_linenr)
+{
+   int err ;
+
+   // match field to header of textdb
+   for (value_t * p = value; p; p = p->next) {
+      if (value_FIELD == p->type) {
+         // search matching header
+         bool isMatch = false;
+         for (size_t i = 0; i < dbfile->column_count ; ++i) {
+            if (  p->length == dbfile->rows[i].length
+                  && 0 == strncmp( dbfile->rows[i].value, p->value, p->length)) {
+               p->col_index = i;
+               isMatch = true;
+               break;
+            }
+         }
+         if (!isMatch) {
+            err = EINVAL;
+            print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr );
+            goto ONERR;
+         }
+
+      } else if (value_FUNCTION == p->type) {
+         err = p->funcobj->prepare( p->funcobj, dbfile, start_linenr);
+         if (err) goto ONERR;
+      }
+   }
+
+   return 0;
+ONERR:
+   return err;
+}
+
+static int process_value(value_t* value, const size_t row, const textdb_t * dbfile, const size_t start_linenr)
+{
+   int err ;
+
+   textdb_column_t * data = &dbfile->rows[row * dbfile->column_count];
+
+   for (const value_t * p = value; p; p = p->next) {
+      if (value_STRING == p->type) {
+         err = write_outfile( g_outfd, p->value, p->length);
+         if (err) goto ONERR;
+
+      } else if (value_FIELD == p->type) {
+         err = write_outfile( g_outfd, data[p->col_index].value, data[p->col_index].length);
+         if (err) goto ONERR;
+
+      } else if (value_FUNCTION == p->type) {
+         p->funcobj->process( p->funcobj, row, dbfile, start_linenr);
+      }
+   }
+
+   return 0;
+ONERR:
+   return err;
+}
+
 
 struct iffunction_t {
-   function_t     funcobj ;
-   expression_t * condition ;
-   const char   * ifstring ;
-   size_t         ifstring_len ;
-   select_parameter_t * ifstring2 ;
-   const char   * elsestring ;
-   size_t         elsestring_len ;
+   function_t     funcobj;
+   expression_t * condition;
+   const char   * ifstring;
+   size_t         ifstring_len;
+   value_t *      ifstring2;
+   const char   * elsestring;
+   size_t         elsestring_len;
 } ;
 
-static int delete_iffunction(iffunction_t ** iffunc) ;
-static int process_iffunction(iffunction_t * iffunc, const size_t row, const textdb_t * dbfile, const size_t start_linenr) ;
-static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, const size_t) ;
+static int delete_iffunction(iffunction_t ** iffunc);
+static int process_iffunction(iffunction_t * iffunc, const size_t row, const textdb_t * dbfile, const size_t start_linenr);
+static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, const size_t);
 
-static int new_iffunction(/*out*/iffunction_t ** iffunc, expression_t * condition, const char * ifstring, size_t ifstring_len, select_parameter_t * ifstring2, const char * elsestring, size_t elsestring_len)
+static int new_iffunction(/*out*/iffunction_t ** iffunc, expression_t * condition, const char * ifstring, size_t ifstring_len, value_t * ifstring2, const char * elsestring, size_t elsestring_len)
 {
    iffunction_t * newiffunc = (iffunction_t*) malloc(sizeof(iffunction_t)) ;
 
@@ -873,14 +965,14 @@ int delete_iffunction(iffunction_t ** iffunc)
 
    if (*iffunc) {
 
-      err = delete_expression(&(*iffunc)->condition) ;
+      err = delete_expression(&(*iffunc)->condition);
 
-      int err2 = delete_select_parameter(&(*iffunc)->ifstring2) ;
-      if (err2) err = err2 ;
+      int err2 = delete_value(&(*iffunc)->ifstring2);
+      if (err2) err = err2;
 
-      free(*iffunc) ;
+      free(*iffunc);
 
-      *iffunc = 0 ;
+      *iffunc = 0;
 
       if (err) goto ONERR;
    }
@@ -896,7 +988,7 @@ static int process_iffunction(iffunction_t * iffunc, const size_t row, const tex
 
    if (ismatch_expression( iffunc->condition, row, dbfile, start_linenr)) {
       if (iffunc->ifstring2) {
-         err = process_select_parameter(iffunc->ifstring2, row, dbfile, start_linenr) ;
+         err = process_value(iffunc->ifstring2, row, dbfile, start_linenr) ;
       } else {
          err = write_outfile( g_outfd, iffunc->ifstring, iffunc->ifstring_len) ;
       }
@@ -915,7 +1007,7 @@ static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, co
 
    if (  !err
       && iffunc->ifstring2) {
-      err = prepare_select_parameter( iffunc->ifstring2, dbfile, start_linenr) ;
+      err = prepare_value( iffunc->ifstring2, dbfile, start_linenr) ;
    }
 
    return err ;
@@ -925,13 +1017,13 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
 {
    int err ;
    char         * next   = 0;
-   expression_t * expr   = 0 ;
-   iffunction_t * iffunc = 0 ;
-   const char   * start_ifstr   = "" ;
-   const char   * start_elsestr = "" ;
-   select_parameter_t * ifstring2 = 0 ;
-   size_t         len_ifstr     = 0 ;
-   size_t         len_elsestr   = 0 ;
+   expression_t * expr   = 0;
+   iffunction_t * iffunc = 0;
+   const char   * start_ifstr   = "";
+   const char   * start_elsestr = "";
+   value_t      * ifstring2 = 0;
+   size_t         len_ifstr     = 0;
+   size_t         len_elsestr   = 0;
 
    // parse expression
    err = parse_expression( &expr, &next, start_fct, end_macro, start_linenr) ;
@@ -1015,45 +1107,9 @@ ONERR:
    return EINVAL ;
 }
 
-enum select_parameter_type_e {
-    seltypeFIELD
-   ,seltypeSTRING
-   ,seltypeFUNCTION
-} ;
-typedef enum select_parameter_type_e select_parameter_type_e ;
-
-struct select_parameter_t
+static int extend_select_parameter(/*inout*/value_t ** next_param)
 {
-   select_parameter_t * next ;
-   const char *   value ;
-   size_t         length ;
-   function_t   * funcobj ;
-   size_t         col_index ;
-   select_parameter_type_e type ;
-} ;
-
-static int delete_select_parameter(select_parameter_t ** param)
-{
-   int err = 0 ;
-   select_parameter_t * next = *param ;
-
-   while (next) {
-      select_parameter_t * prev = next ;
-      next = next->next ;
-      if (prev->funcobj) {
-         int err2 = prev->funcobj->free( &prev->funcobj ) ;
-         if (err2) err = err2 ;
-      }
-      free(prev) ;
-   }
-
-   *param = NULL ;
-   return err ;
-}
-
-static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
-{
-   select_parameter_t * new_param = (select_parameter_t*) malloc(sizeof(select_parameter_t)) ;
+   value_t * new_param = (value_t*) malloc(sizeof(value_t));
 
    if (!new_param) {
       print_err("Out of memory") ;
@@ -1061,87 +1117,81 @@ static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
    }
 
    if (!(*next_param)) {
-      *next_param = new_param ;
+      *next_param = new_param;
    } else {
-      (*next_param)->next = new_param ;
-      *next_param = new_param ;
+      (*next_param)->next = new_param;
+      *next_param = new_param;
    }
 
-   new_param->next      = 0 ;
-   new_param->value     = "" ;
-   new_param->length    = 0 ;
-   new_param->funcobj   = 0 ;
-   new_param->col_index = 0 ;
-   new_param->type      = seltypeFIELD ;
+   new_param->next      = 0;
+   new_param->value     = "";
+   new_param->length    = 0;
+   new_param->funcobj   = 0;
+   new_param->col_index = 0;
+   new_param->type      = value_FIELD;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return 1 ;
+   return ENOMEM;
 }
 
-static int process_select_parameter(select_parameter_t * select_param, const size_t row, const textdb_t * dbfile, const size_t start_linenr)
+static int parse_string(/*out*/char ** str, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd)
 {
-   int err ;
+   assert(0 == *str);
 
-   textdb_column_t * data = &dbfile->rows[row * dbfile->column_count] ;
-
-   for (const select_parameter_t * p = select_param; p; p = p->next) {
-      if (seltypeSTRING == p->type) {
-         err = write_outfile( g_outfd, p->value, p->length ) ;
-         if (err) goto ONERR;
-      } else if (seltypeFIELD == p->type) {
-         err = write_outfile( g_outfd, data[p->col_index].value, data[p->col_index].length ) ;
-         if (err) goto ONERR;
-      } else if (seltypeFUNCTION == p->type) {
-         p->funcobj->process(p->funcobj, row, dbfile, start_linenr) ;
-      }
+   while (start_param < end_macro && ' ' == start_param[0]) {
+      ++ start_param ;
    }
 
-   return 0 ;
-ONERR:
-   return err ;
-}
-
-static int prepare_select_parameter(select_parameter_t * select_param, const textdb_t * dbfile, const size_t start_linenr)
-{
-   int err ;
-
-   // match select parameter to header of textdb
-   for (select_parameter_t * p = select_param; p; p = p->next) {
-      if (seltypeFIELD == p->type) {
-         // search matching header
-         bool isMatch = false ;
-         for (size_t i = 0; i < dbfile->column_count ; ++i) {
-            if (  p->length == dbfile->rows[i].length
-                  && 0 == strncmp(dbfile->rows[i].value, p->value, p->length) ) {
-               p->col_index = i ;
-               isMatch = true ;
-               break ;
-            }
-         }
-         if (!isMatch) {
-            err = EINVAL ;
-            print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr ) ;
-            goto ONERR;
-         }
-      } else if (seltypeFUNCTION == p->type) {
-         err = p->funcobj->prepare( p->funcobj, dbfile, start_linenr) ;
-         if (err) goto ONERR;
-      }
+   if (  start_param >= end_macro
+         || '(' != start_param[0] ) {
+      print_err( "Expected '(' after %s in line: %d", cmd, start_linenr ) ;
+      goto ONERR;
    }
 
-   return 0 ;
+   char * next = start_param;
+
+   ++ next ;
+   while (  next < end_macro
+            && ' ' == next[0]) {
+      ++ next ;
+   }
+
+   const char * start_string = next;
+   const char * end_string = start_string;
+   size_t       string_len;
+
+   while (next < end_macro && ')' != next[0]) {
+      ++ next;
+      if (next[-1] != ' ') end_string = next;
+   }
+
+   string_len = (size_t) (end_string - start_string);
+
+   if (next >= end_macro) {
+      print_err("Expected ) after %s('' in line: %d", cmd, start_linenr);
+      goto ONERR;
+   }
+
+   *str = malloc(string_len + 1);
+   if (!*str) return ENOMEM;
+
+   *end_param = next;
+   strncpy(*str, start_string, string_len);
+   (*str)[string_len] = 0;
+
+   return 0;
 ONERR:
-   return err ;
+   return EINVAL;
 }
 
-static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd )
+static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd )
 {
-   int err ;
-   select_parameter_t first_param = { .next = 0 } ;
-   select_parameter_t  * next_param = &first_param ;
+   int err;
+   value_t   first_param = { .next = 0 };
+   value_t * next_param  = &first_param;
 
-   assert(0 == *param) ;
+   assert(0 == *param);
 
    while (start_param < end_macro && ' ' == start_param[0]) {
       ++ start_param ;
@@ -1195,10 +1245,10 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
             goto ONERR;
          }
 
-         next_param->value    = start_func ;
-         next_param->length   = (size_t) (next - start_func) ;
-         next_param->funcobj  = funcobj ;
-         next_param->type     = seltypeFUNCTION ;
+         next_param->value    = start_func;
+         next_param->length   = (size_t) (next - start_func);
+         next_param->funcobj  = funcobj;
+         next_param->type     = value_FUNCTION;
 
       } else if (next < end_macro && ' ' != next[0]) {
          const char * start_string = next + 1 ;
@@ -1243,9 +1293,9 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
          err = extend_select_parameter(&next_param) ;
          if (err) goto ONERR;
 
-         next_param->value    = start_string ;
-         next_param->length   = string_len ;
-         next_param->type     = seltypeSTRING ;
+         next_param->value    = start_string;
+         next_param->length   = string_len;
+         next_param->type     = value_STRING;
       }
    }
 
@@ -1257,47 +1307,17 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
    *param = first_param.next ;
    return 0 ;
 ONERR:
-   delete_select_parameter(&first_param.next) ;
+   delete_value(&first_param.next);
    return EINVAL ;
-}
-
-static int tostring_select_parameter(const select_parameter_t * param, /*out*/char ** string )
-{
-   char * buffer = 0 ;
-   size_t length = 0 ;
-
-   for (const select_parameter_t * p = param; p; p = p->next) {
-      length += p->length ;
-   }
-
-   buffer= malloc(length+1) ;
-   if (!buffer) {
-      print_err("Out of memory") ;
-      goto ONERR;
-   }
-
-   size_t offset = 0 ;
-   for (const select_parameter_t * p = param; p; p = p->next) {
-      memcpy( &buffer[offset], p->value, p->length ) ;
-      offset += p->length ;
-   }
-   assert( offset == length ) ;
-
-   buffer[length] = 0 ;
-   *string = buffer ;
-   return 0 ;
-ONERR:
-   return 1 ;
 }
 
 static int process_selectcmd( char * start_macro, char * end_macro, size_t start_linenr )
 {
    int err ;
-   select_parameter_t   * select_param = 0 ;
-   select_parameter_t     * from_param = 0 ;
-   expression_t           * where_expr = 0 ;
-   textdb_t                    dbfile = textdb_FREE ;
-   bool                     ascending = true ;  // default ascending order
+   value_t   *    select_param = 0 ;
+   expression_t * where_expr = 0 ;
+   textdb_t       dbfile = textdb_FREE ;
+   bool           ascending = true ;  // default ascending order
    char    * filename = 0 ;
    char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1 ;
    char   * end_param = start_param ;
@@ -1312,12 +1332,12 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
 
    if (     (end_macro - start_from) < 4
          || strncmp( start_from, "FROM", 4) ) {
-      err = EINVAL ;
+      err = EINVAL;
       print_err( "Expected 'FROM' after SELECT() in line: %d", start_linenr ) ;
       goto ONERR;
    }
 
-   err = parse_select_parameter( &from_param, &end_param, start_from+4, end_macro, start_linenr, "FROM" ) ;
+   err = parse_string( &filename, &end_param, start_from+4, end_macro, start_linenr, "FROM");
    if (err) goto ONERR;
 
    ++ end_param ;
@@ -1353,11 +1373,8 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
       goto ONERR;
    }
 
-   err = tostring_select_parameter( from_param, &filename ) ;
-   if (err) goto ONERR;
-
    // open text database and parse header (CSV format)
-   err = init_textdb( &dbfile, filename ) ;
+   err = init_textdb( &dbfile, filename);
    if (err) goto ONERR;
 
    if (  g_depencyfile
@@ -1371,7 +1388,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    }
 
    // match select parameter to header of textdb
-   err = prepare_select_parameter(select_param, &dbfile, start_linenr) ;
+   err = prepare_value(select_param, &dbfile, start_linenr) ;
    if (err) goto ONERR;
 
    err = matchnames_expression( where_expr, &dbfile, start_linenr ) ;
@@ -1406,7 +1423,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
 
       if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
 
-         err = process_select_parameter(select_param, row, &dbfile, start_linenr) ;
+         err = process_value(select_param, row, &dbfile, start_linenr) ;
          if (err) goto ONERR;
 
          err = write_outfile( g_outfd, "\n", 1 ) ;
@@ -1414,19 +1431,17 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
       }
    }
 
-   free_textdb( &dbfile ) ;
-   free(filename) ;
-   delete_select_parameter(&select_param) ;
-   delete_select_parameter(&from_param) ;
-   delete_expression(&where_expr) ;
-   return 0 ;
+   free_textdb(&dbfile);
+   free(filename);
+   delete_value(&select_param);
+   delete_expression(&where_expr);
+   return 0;
 ONERR:
-   free_textdb( &dbfile ) ;
-   free(filename) ;
-   delete_select_parameter(&select_param) ;
-   delete_select_parameter(&from_param) ;
-   delete_expression(&where_expr) ;
-   return err ;
+   free_textdb(&dbfile);
+   free(filename);
+   delete_value(&select_param);
+   delete_expression(&where_expr);
+   return err;
 }
 
 static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*/size_t * line_number, char * next_input, size_t input_size)

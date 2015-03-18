@@ -33,6 +33,8 @@
 typedef struct thread_vars_t {
    threadcontext_t   threadcontext;
    thread_t          thread;
+   // TODO: implement static memory
+   uint8_t           staticmem[/* extsize_threadcontext() */];
 } thread_vars_t;
 
 // group: lifetime
@@ -105,10 +107,10 @@ int init_threadtls(/*out*/thread_tls_t * tls)
    /* -- memory block layout --
     * low :  thread local variables (1 page)
     *     :  protection page (1 page)
-    *     :  signal stack    (1? page)
+    *     :  signal stack    (X pages)
     *     :  protection page (1 page)
     *     :  thread stack    (256K)
-    *     :  protection page (X pages)
+    *     :  protection page (1 page)
     * high:
     */
 

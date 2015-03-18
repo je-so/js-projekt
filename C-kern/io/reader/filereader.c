@@ -37,7 +37,7 @@
 
 // group: static configuration
 
-// TEXTDB:SELECT('#undef  filereader_'name\n'#define filereader_'name'      ('value')')FROM("C-kern/resource/config/modulevalues")WHERE(module=="filereader_t")
+// TEXTDB:SELECT('#undef  filereader_'name\n'#define filereader_'name'      ('value')')FROM(C-kern/resource/config/modulevalues)WHERE(module=="filereader_t")
 #undef  filereader_SYS_BUFFER_SIZE
 #define filereader_SYS_BUFFER_SIZE      (4*4096)
 // TEXTDB:END
