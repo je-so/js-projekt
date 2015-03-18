@@ -79,7 +79,7 @@ int init_platform(mainthread_f main_thread, void * user)
    volatile int linenr;
    int               retcode = 0;
    volatile int      is_exit = 0;
-   thread_tls_t      tls     = thread_tls_FREE;
+   thread_tls_t*     tls     = 0;
    memblock_t        threadstack;
    memblock_t        signalstack;
    ucontext_t        context_caller;
@@ -87,7 +87,7 @@ int init_platform(mainthread_f main_thread, void * user)
 
    linenr = __LINE__;
    ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
-   err = initmain_threadtls(&tls, &threadstack, &signalstack);
+   err = newmain_threadtls(&tls, &threadstack, &signalstack);
    if (err) goto ONERR;
 
    linenr = __LINE__;
@@ -106,7 +106,7 @@ int init_platform(mainthread_f main_thread, void * user)
    }
 
    if (is_exit) {
-      volatile thread_t * thread = thread_threadtls(&tls);
+      volatile thread_t * thread = thread_threadtls(tls);
       retcode = returncode_thread(thread);
       goto ONERR;
    }
@@ -124,7 +124,7 @@ int init_platform(mainthread_f main_thread, void * user)
    context_mainthread.uc_stack = (stack_t) { .ss_sp = threadstack.addr, .ss_flags = 0, .ss_size = threadstack.size };
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
-   thread_t * thread = thread_threadtls(&tls);
+   thread_t * thread = thread_threadtls(tls);
    initmain_thread(thread, main_thread, user);
 
    linenr = __LINE__;
@@ -142,8 +142,8 @@ ONERR:
 
    if (!err) linenr = __LINE__;
    SETONERROR_testerrortimer(&s_platform_errtimer, &err);
-   err2 = freemain_threadtls(&tls);
-   if (err2 && !err) err = errno;
+   err2 = deletemain_threadtls(&tls);
+   if (err2 && !err) err = err2;
    if (err) {
       #define ERRSTR1 "init_platform() "
       #define ERRSTR2 ":%.4u\nError %.4u\n"

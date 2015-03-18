@@ -29,6 +29,7 @@
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
+#include "C-kern/api/platform/task/thread_tls.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #endif
@@ -63,20 +64,16 @@ static inline uint16_t static_memory_size(void)
 /* function: alloc_static_memory
  * Allokiert statischen Speicher für alle noch für <processcontext_t> zu initialisierten Objekte.
  * */
-static inline int alloc_static_memory(/*out*/memblock_t* mblock)
+static inline int alloc_static_memory(processcontext_t* pcontext, thread_tls_t* tls, /*out*/memblock_t* mblock)
 {
    int err;
    const uint16_t size = static_memory_size();
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   void* addr = allocstatic_maincontext(size);
-   if (!addr) {
-      err = ENOMEM;
-      goto ONERR;
-   }
+   err = allocstatic_threadtls(tls, size, mblock);
+   if (err) goto ONERR;
 
-   // set out param
-   *mblock = (memblock_t) memblock_INIT(size, addr);
+   pcontext->staticmemblock = mblock->addr;
 
    return 0;
 ONERR:
@@ -86,13 +83,21 @@ ONERR:
 /* function: free_static_memory
  * Gibt statischen Speicher für alle im <processcontext_t> initialisierten Objekt frei.
  * */
-static inline int free_static_memory(void)
+static inline int free_static_memory(processcontext_t* pcontext, thread_tls_t* tls)
 {
    int err;
    const uint16_t size = static_memory_size();
 
-   err = freestatic_maincontext(size);
-   if (err) goto ONERR;
+   if (pcontext->staticmemblock) {
+      memblock_t mblock = memblock_INIT(size, pcontext->staticmemblock);
+
+      pcontext->staticmemblock = 0;
+
+      err = freestatic_threadtls(tls, &mblock);
+      SETONERROR_testerrortimer(&s_processcontext_errtimer, &err);
+
+      if (err) goto ONERR;
+   }
 
    return 0;
 ONERR:
@@ -109,7 +114,7 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    pcontext->initcount = 0;
 
    memblock_t mblock;
-   err = alloc_static_memory(&mblock);
+   err = alloc_static_memory(pcontext, self_threadtls(), &mblock);
    if (err) goto ONERR;
    ++ pcontext->initcount;
 
@@ -222,7 +227,7 @@ int free_processcontext(processcontext_t* pcontext)
             SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 // TEXTDB:END
-   case 1:  err2 = free_static_memory();
+   case 1:  err2 = free_static_memory(pcontext, self_threadtls());
             SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
    case 0:  break;
@@ -246,9 +251,14 @@ bool isstatic_processcontext(const processcontext_t * pcontext)
             && 0 == pcontext->syslogin
             && g_errorcontext_stroffset == pcontext->error.stroffset && g_errorcontext_strdata == pcontext->error.strdata
             && 0 == pcontext->blockmap
+            && 0 == pcontext->staticmemblock
             && 0 == pcontext->initcount;
 }
 
+size_t extsize_processcontext(void)
+{
+   return static_memory_size();
+}
 
 // group: test
 
@@ -256,15 +266,63 @@ bool isstatic_processcontext(const processcontext_t * pcontext)
 
 static int test_helper(void)
 {
-   const size_t S = static_memory_size();
+   processcontext_t pcontext = processcontext_INIT_STATIC;
+   thread_tls_t *   tls      = 0;
+   const size_t     S        = static_memory_size();
+   memblock_t       mblock   = memblock_FREE;
+
+   // prepare0
+   TEST(0 == new_threadtls(&tls, 0, 0));
 
    // TEST static_memory_size
    TEST(S == static_memory_size());
    TEST(S != 0);
    TEST(S <  1024);
+   TEST(0 == S % sizeof(size_t));
+
+   // TEST alloc_static_memory
+   TEST(0 == alloc_static_memory(&pcontext, tls, &mblock))
+   // check params
+   TEST(mblock.addr == pcontext.staticmemblock);
+   TEST(mblock.size == sizestatic_threadtls(tls));
+   TEST(mblock.addr >  (uint8_t*) tls);
+   TEST(mblock.size == S);
+
+   // TEST free_static_memory
+   TEST(0 == free_static_memory(&pcontext, tls))
+   // check params
+   TEST(0 == pcontext.staticmemblock);
+   TEST(0 == sizestatic_threadtls(tls));
+
+   // TEST free_static_memory: already freed
+   TEST(0 == free_static_memory(&pcontext, tls))
+   // check params
+   TEST(0 == pcontext.staticmemblock);
+   TEST(0 == sizestatic_threadtls(tls));
+
+   // TEST alloc_static_memory: simulated ERROR
+   mblock = (memblock_t) memblock_FREE;
+   init_testerrortimer(&s_processcontext_errtimer, 1, 4);
+   TEST(4 == alloc_static_memory(&pcontext, tls, &mblock))
+   // check params
+   TEST(0 == pcontext.staticmemblock);
+   TEST(0 == sizestatic_threadtls(tls));
+   TEST( isfree_memblock(&mblock));
+
+   // TEST free_static_memory: simulated ERROR
+   TEST(0 == alloc_static_memory(&pcontext, tls, &mblock))
+   init_testerrortimer(&s_processcontext_errtimer, 1, 4);
+   TEST(4 == free_static_memory(&pcontext, tls))
+   // check params
+   TEST(0 == pcontext.staticmemblock);
+   TEST(0 == sizestatic_threadtls(tls));
+
+   // prepare0
+   TEST(0 == delete_threadtls(&tls));
 
    return 0;
 ONERR:
+   delete_threadtls(&tls);
    return EINVAL;
 }
 
@@ -272,9 +330,7 @@ static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_STATIC;
    const uint16_t    I        = 8;
-
-   // TEST processcontext_EXTSIZE
-   TEST(static_memory_size() == processcontext_EXTSIZE);
+   const size_t      S        = sizestatic_threadtls(self_threadtls());
 
    // TEST processcontext_INIT_STATIC
    TEST(1 == isstatic_processcontext(&pcontext));
@@ -286,13 +342,14 @@ static int test_initfree(void)
    TEST(0 != pcontext.error.stroffset);
    TEST(0 != pcontext.error.strdata);
    TEST(0 != pcontext.blockmap);
+   TEST(0 != pcontext.staticmemblock);
    TEST(I == pcontext.initcount);
-   TEST(sizestatic_maincontext() == 2*processcontext_EXTSIZE);
+   TEST(S == sizestatic_threadtls(self_threadtls()) - static_memory_size());
 
    // TEST free_processcontext
    TEST(0 == free_processcontext(&pcontext));
    TEST(1 == isstatic_processcontext(&pcontext));
-   TEST(sizestatic_maincontext() == processcontext_EXTSIZE);
+   TEST(S == sizestatic_threadtls(self_threadtls()));
 
    // TEST free_processcontext: initcount == 0
    processcontext_t pcontext2;
@@ -302,7 +359,7 @@ static int test_initfree(void)
    pcontext2.initcount = 0;
    TEST(0 == free_processcontext(&pcontext));
    TEST(0 == memcmp(&pcontext, &pcontext2, sizeof(pcontext)));
-   TEST(sizestatic_maincontext() == processcontext_EXTSIZE);
+   TEST(S == sizestatic_threadtls(self_threadtls()));
 
    // TEST init_processcontext: simulated ERROR
    pcontext = (processcontext_t) processcontext_INIT_STATIC;
@@ -317,7 +374,7 @@ static int test_initfree(void)
       }
       TEST(i == err);
       TEST(1 == isstatic_processcontext(&pcontext));
-      TEST(sizestatic_maincontext() == processcontext_EXTSIZE);
+      TEST(S == sizestatic_threadtls(self_threadtls()));
    }
 
    // TEST free_processcontext: simulated ERROR
@@ -326,7 +383,7 @@ static int test_initfree(void)
       init_testerrortimer(&s_processcontext_errtimer, (unsigned)i, i);
       int err = free_processcontext(&pcontext);
       TEST(1 == isstatic_processcontext(&pcontext));
-      TEST(sizestatic_maincontext() == processcontext_EXTSIZE);
+      TEST(S == sizestatic_threadtls(self_threadtls()));
       if (err == 0) {
          free_testerrortimer(&s_processcontext_errtimer);
          TEST(i > I);
@@ -339,14 +396,14 @@ static int test_initfree(void)
    pcontext = (processcontext_t) processcontext_INIT_STATIC;
    TEST(0 == init_processcontext(&pcontext));
    TEST(I == pcontext.initcount);
-   TEST(sizestatic_maincontext() == 2*processcontext_EXTSIZE);
+   TEST(S == sizestatic_threadtls(self_threadtls()) - static_memory_size());
    TEST(0 == free_valuecache(pcontext.valuecache));
    TEST(0 == free_syslogin(pcontext.syslogin));
    TEST(0 == free_pagecacheblockmap(pcontext.blockmap));
    // restore (if setuid)
    switchtorealuser_syslogin(syslogin_maincontext());
-   TEST(0 == freestatic_maincontext(processcontext_EXTSIZE));
-   TEST(sizestatic_maincontext() == processcontext_EXTSIZE);
+   TEST(0 == free_static_memory(&pcontext, self_threadtls()));
+   TEST(S == sizestatic_threadtls(self_threadtls()));
 
    return 0;
 ONERR:
@@ -375,10 +432,19 @@ static int test_query(void)
    pcontext.blockmap = (void*)1;
    TEST(0 == isstatic_processcontext(&pcontext));
    pcontext.blockmap = 0;
+   pcontext.staticmemblock = (void*)1;
+   TEST(0 == isstatic_processcontext(&pcontext));
+   pcontext.staticmemblock = 0;
    pcontext.initcount = 1;
    TEST(0 == isstatic_processcontext(&pcontext));
    pcontext.initcount = 0;
    TEST(1 == isstatic_processcontext(&pcontext));
+
+   // TEST extsize_processcontext
+   TEST(0 != extsize_processcontext());
+   for (int i = 0; i < 2; ++i) {
+      TEST(extsize_processcontext() == static_memory_size());
+   }
 
    return 0;
 ONERR:

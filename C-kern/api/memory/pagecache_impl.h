@@ -71,6 +71,7 @@ int unittest_memory_pagecacheimpl(void);
  *       This helps to place longer living pages on one big block and short living pages on another.
  *       Blocks with pages with short lifetime can be reclaimed faster.
  *       -- See also "Region-based memory management"
+ *
  */
 struct pagecache_impl_t {
    // group: private fields
@@ -90,41 +91,26 @@ struct pagecache_impl_t {
    struct {
       struct dlist_node_t* last;
    }        freeblocklist[13];
-   /* variable: staticpagelist
-    * A list of static memory blocks.
-    * Functions <allocstatic_pagecacheimpl> and <freestatic_pagecacheimpl> could change this list. */
-   struct {
-      struct dlist_node_t* last;
-   }        staticpagelist;
    /* variable: sizeallocated
     * Number of allocated bytes.
     * This number is incremented by every call to <allocpage_pagecacheimpl>
     * and decremented by every call to <releasepage_pagecacheimpl>. */
    size_t   sizeallocated;
-   /* variable: sizestatic
-    * Number of allocated bytes from static memory. Value is incremented by every
-    * call to <allocstatic_pagecacheimpl> and decremented by every call to <freestatic_pagecacheimpl>. */
-   size_t   sizestatic;
 };
 
-// group: init
+// group: initthread
 
-/* function: initthread_pagecacheimpl
- * Calls <init_pagecacheimpl> and adds interface <pagecache_it> to object.
- * This function is called from <threadcontext_t.init_threadcontext>. */
-int initthread_pagecacheimpl(/*out*/pagecache_t* pagecache);
-
-/* function: freethread_pagecacheimpl
- * Calls <free_pagecacheimpl> with for object pointer in <pagecache_t>.
- * This function is called from <threadcontext_t.free_threadcontext>. */
-int freethread_pagecacheimpl(pagecache_t* pagecache);
+/* function: interface_pagecacheimpl
+ * This function is called from <threadcontext_t.init_threadcontext>.
+ * Used to initialize interface part of <pagecache_t>. */
+struct pagecache_it* interface_pagecacheimpl(void);
 
 // group: lifetime
 
 /* define: pagecache_impl_FREE
  * Static initializer. */
 #define pagecache_impl_FREE \
-         { { 0 }, { { 0 } }, { 0 }, 0, 0 }
+         { { 0 }, { { 0 } }, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
@@ -147,10 +133,6 @@ int free_pagecacheimpl(pagecache_impl_t* pgcache);
  * Static memory is also allocated with help of <allocpage_pagecacheimpl>. */
 size_t sizeallocated_pagecacheimpl(const pagecache_impl_t* pgcache);
 
-/* function: sizestatic_pagecacheimpl
- * Returns wize of memory allocated with <allocstatic>. */
-size_t sizestatic_pagecacheimpl(const pagecache_impl_t* pgcache);
-
 /* function: isfree_pagecacheimpl
  * Returns true if pgcache equals <pagecache_impl_FREE>. */
 bool isfree_pagecacheimpl(const pagecache_impl_t* pgcache);
@@ -168,24 +150,6 @@ int allocpage_pagecacheimpl(pagecache_impl_t* pgcache, uint8_t pgsize, /*out*/st
  * After return page is set to <memblock_FREE>. Calling this function with
  * page set to <memblock_FREE> does nothing. */
 int releasepage_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* page);
-
-/* function: allocstatic_pagecacheimpl
- * Allocates static memory which should live as long as pgcache.
- * These blocks can only be freed in the reverse order they hae been allocated.
- * The size of memory is set in bytes with parameter bytesize.
- * The allocated memory block (aligned to <KONFIG_MEMALIGN>) is returned in memblock.
- * In case of no memory ENOMEM is returned. The size of the block if restricted to 128 bytes.
- * Calling this function increases <sizeallocated_pagecacheimpl> or not if bytesize bytes fits
- * on a previously allocated page. */
-int allocstatic_pagecacheimpl(pagecache_impl_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock);
-
-/* function: freestatic_pagecacheimpl
- * Frees static memory.
- * If this function is not called in the reverse order of the call sequence of <allocstatic_pagecacheimpl>
- * the value EINVAL is returned and nothing is done.
- * After return memblock is set to <memblock_FREE>.
- * Calling this function with memblock set to <memblock_FREE> does nothing. */
-int freestatic_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* memblock);
 
 // group: cache
 

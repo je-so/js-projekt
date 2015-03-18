@@ -24,6 +24,7 @@
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/platform/task/thread_tls.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/config/initthread)WHERE(header-name!="")
 #include "C-kern/api/memory/pagecache_impl.h"
@@ -57,6 +58,7 @@ static inline size_t static_memory_size(void)
 {
    size_t memorysize = 0
 // TEXTDB:SELECT("         + sizeof("objtype")")FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface"||inittype=="object")
+         + sizeof(pagecache_impl_t)
          + sizeof(mm_impl_t)
          + sizeof(syncrunner_t)
          + sizeof(objectcache_impl_t)
@@ -67,17 +69,17 @@ static inline size_t static_memory_size(void)
 }
 
 /* function: alloc_static_memory
- * Allokiert statischen Speicher für alle noch für tcontext zu initialisierten Objekte.
+ * Allokiert statischen Speicher für alle noch für threadcontext_t zu initialisierten Objekte.
  *
  * Unchecked Precondition:
  * - is_initialized(tcontext->pagecache) */
-static inline int alloc_static_memory(threadcontext_t* tcontext, /*out*/memblock_t* mblock)
+static inline int alloc_static_memory(threadcontext_t* tcontext, thread_tls_t* tls, /*out*/memblock_t* mblock)
 {
    int err;
    const size_t size = static_memory_size();
 
    ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   err = allocstatic_pagecache(tcontext->pagecache, size, mblock);
+   err = allocstatic_threadtls(tls, size, mblock);
    if (err) goto ONERR;
 
    tcontext->staticmemblock = mblock->addr;
@@ -88,11 +90,11 @@ ONERR:
 }
 
 /* function: free_static_memory
- * Gibt statischen Speicher für alle im tcontext initialisierten Objekt frei.
+ * Gibt statischen Speicher für alle im threadcontext_t initialisierten Objekt frei.
  *
  * Unchecked Precondition:
  * - is_initialized(tcontext->pagecache) */
-static inline int free_static_memory(threadcontext_t* tcontext)
+static inline int free_static_memory(threadcontext_t* tcontext, thread_tls_t* tls)
 {
    int err;
 
@@ -102,7 +104,7 @@ static inline int free_static_memory(threadcontext_t* tcontext)
 
       tcontext->staticmemblock = 0;
 
-      err = freestatic_pagecache(tcontext->pagecache, &mblock);
+      err = freestatic_threadtls(tls, &mblock);
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err);
       if (err) goto ONERR;
    }
@@ -163,8 +165,8 @@ int free_threadcontext(threadcontext_t* tcontext)
    default:
       assert(false && "initcount out of bounds");
       break;
-// TEXTDB:SELECT("   case "row-id": {"\n(if (inittype=='interface') ("      "objtype"* delobj = ("objtype"*) tcontext->"parameter".object;"\n"      assert(tcontext->"parameter".iimpl == interface_"module"());"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='object') ("      "objtype"* delobj = tcontext->"parameter";"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=="allocmemory") ("      err2 = free_static_memory(tcontext);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='initthread') ("      err2 = freethread_"module"("(if (parameter!="") ("cast_iobj(&tcontext->"parameter", "objtype")"))");"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n))"   }")FROM(C-kern/resource/config/initthread)DESCENDING
-   case 6: {
+// TEXTDB:SELECT("   case ("row-id"+1): {"\n(if (inittype=='interface') ("      "objtype"* delobj = ("objtype"*) tcontext->"parameter".object;"\n"      assert(tcontext->"parameter".iimpl == interface_"module"());"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='object') ("      "objtype"* delobj = tcontext->"parameter";"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='initthread') ("      err2 = freethread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n))"   }")FROM(C-kern/resource/config/initthread)DESCENDING
+   case (5+1): {
       logwriter_t* delobj = (logwriter_t*) tcontext->log.object;
       assert(tcontext->log.iimpl == interface_logwriter());
       tcontext->log = staticcontext.log;
@@ -172,7 +174,7 @@ int free_threadcontext(threadcontext_t* tcontext)
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
-   case 5: {
+   case (4+1): {
       objectcache_impl_t* delobj = (objectcache_impl_t*) tcontext->objectcache.object;
       assert(tcontext->objectcache.iimpl == interface_objectcacheimpl());
       tcontext->objectcache = staticcontext.objectcache;
@@ -180,14 +182,14 @@ int free_threadcontext(threadcontext_t* tcontext)
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
-   case 4: {
+   case (3+1): {
       syncrunner_t* delobj = tcontext->syncrunner;
       tcontext->syncrunner = staticcontext.syncrunner;
       err2 = free_syncrunner(delobj);
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
-   case 3: {
+   case (2+1): {
       mm_impl_t* delobj = (mm_impl_t*) tcontext->mm.object;
       assert(tcontext->mm.iimpl == interface_mmimpl());
       tcontext->mm = staticcontext.mm;
@@ -195,17 +197,19 @@ int free_threadcontext(threadcontext_t* tcontext)
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
-   case 2: {
-      err2 = free_static_memory(tcontext);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
-      if (err2) err = err2;
-   }
-   case 1: {
-      err2 = freethread_pagecacheimpl(cast_iobj(&tcontext->pagecache, pagecache));
+   case (1+1): {
+      pagecache_impl_t* delobj = (pagecache_impl_t*) tcontext->pagecache.object;
+      assert(tcontext->pagecache.iimpl == interface_pagecacheimpl());
+      tcontext->pagecache = staticcontext.pagecache;
+      err2 = free_pagecacheimpl(delobj);
       SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
 // TEXTDB:END
+   case 1:
+      err2 = free_static_memory(tcontext, self_threadtls());
+      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      if (err2) err = err2;
    case 0:
       break;
    }
@@ -245,18 +249,22 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
       } while (tcontext->thread_id <= 1);  // if wrapped around => repeat
    }
 
+   thread_tls_t* tls = self_threadtls();
    memblock_t mblock;
-
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);"\n (if (inittype=='interface') ("   assert( interface_"module"());"\n"   assert( sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   init_iobj( &tcontext->"parameter", (void*) mblock.addr, interface_"module"());"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='object') ("   assert(sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   tcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=="allocmemory") ("   err = alloc_static_memory(tcontext, &mblock);"\n"   if (err) goto ONERR;")) (if (inittype=='initthread') ("   err = initthread_"module"("(if (parameter!="") ("cast_iobj(&tcontext->"parameter", "objtype")"))");"\n"   if (err) goto ONERR;")) \n"   ++tcontext->initcount;")FROM(C-kern/resource/config/initthread)
-
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   err = initthread_pagecacheimpl(cast_iobj(&tcontext->pagecache, pagecache));
+   err = alloc_static_memory(tcontext, tls, &mblock);
    if (err) goto ONERR;
    ++tcontext->initcount;
 
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);"\n (if (inittype=='interface') ("   assert( interface_"module"());"\n"   assert( sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   init_iobj( &tcontext->"parameter", (void*) mblock.addr, interface_"module"());"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='object') ("   assert(sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   tcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='initthread') ("   err = initthread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"   if (err) goto ONERR;")) \n"   ++tcontext->initcount;")FROM(C-kern/resource/config/initthread)
+
    ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   err = alloc_static_memory(tcontext, &mblock);
+   assert( interface_pagecacheimpl());
+   assert( sizeof(pagecache_impl_t) <= mblock.size);
+   err = init_pagecacheimpl((pagecache_impl_t*) mblock.addr);
    if (err) goto ONERR;
+   init_iobj( &tcontext->pagecache, (void*) mblock.addr, interface_pagecacheimpl());
+   mblock.addr += sizeof(pagecache_impl_t);
+   mblock.size -= sizeof(pagecache_impl_t);
    ++tcontext->initcount;
 
    ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
@@ -353,11 +361,12 @@ void setmm_threadcontext(threadcontext_t* tcontext, const threadcontext_mm_t* ne
 static int test_lifehelper(void)
 {
    threadcontext_t tcontext = threadcontext_FREE;
+   thread_tls_t *  tls      = 0;
    const size_t  staticsize = static_memory_size();
    memblock_t        mblock = memblock_FREE;
 
    // prepare0
-   TEST(0 == initthread_pagecacheimpl(cast_iobj(&tcontext.pagecache, pagecache)));
+   TEST(0 == new_threadtls(&tls, 0, 0));
 
    // TEST static_memory_size
    TEST(staticsize == static_memory_size());
@@ -366,48 +375,48 @@ static int test_lifehelper(void)
    TEST(0  == staticsize % sizeof(size_t));
 
    // TEST alloc_static_memory
-   size_t S = sizestatic_pagecache(tcontext.pagecache);
-   TEST(0 == alloc_static_memory(&tcontext, &mblock))
-   // check tcontext
-   TEST(mblock.addr     == tcontext.staticmemblock);
-   TEST(S + mblock.size == sizestatic_pagecache(tcontext.pagecache));
-   // check mblock
-   TEST(mblock.addr != 0);
+   TEST(0 == alloc_static_memory(&tcontext, tls, &mblock))
+   // check params
+   TEST(mblock.addr == tcontext.staticmemblock);
+   TEST(mblock.size == sizestatic_threadtls(tls));
+   TEST(mblock.addr >  (uint8_t*) tls);
    TEST(mblock.size == staticsize);
 
    // TEST free_static_memory
-   TEST(0 == free_static_memory(&tcontext))
-   // check tcontext
+   TEST(0 == free_static_memory(&tcontext, tls))
+   // check params
    TEST(0 == tcontext.staticmemblock);
-   TEST(S == sizestatic_pagecache(tcontext.pagecache));
+   TEST(0 == sizestatic_threadtls(tls));
 
    // TEST free_static_memory: already freed
-   TEST(0 == free_static_memory(&tcontext))
-   // check tcontext
+   TEST(0 == free_static_memory(&tcontext, tls))
+   // check params
    TEST(0 == tcontext.staticmemblock);
-   TEST(S == sizestatic_pagecache(tcontext.pagecache));
+   TEST(0 == sizestatic_threadtls(tls));
 
    // TEST alloc_static_memory: simulated ERROR
+   mblock = (memblock_t) memblock_FREE;
    init_testerrortimer(&s_threadcontext_errtimer, 1, 4);
-   TEST(4 == alloc_static_memory(&tcontext, &mblock))
-   // check tcontext
+   TEST(4 == alloc_static_memory(&tcontext, tls, &mblock))
+   // check params
    TEST(0 == tcontext.staticmemblock);
-   TEST(S == sizestatic_pagecache(tcontext.pagecache));
+   TEST(0 == sizestatic_threadtls(tls));
+   TEST( isfree_memblock(&mblock));
 
    // TEST free_static_memory: simulated ERROR
-   TEST(0 == alloc_static_memory(&tcontext, &mblock))
+   TEST(0 == alloc_static_memory(&tcontext, tls, &mblock))
    init_testerrortimer(&s_threadcontext_errtimer, 1, 4);
-   TEST(4 == free_static_memory(&tcontext))
-   // check tcontext
+   TEST(4 == free_static_memory(&tcontext, tls))
+   // check params
    TEST(0 == tcontext.staticmemblock);
-   TEST(S == sizestatic_pagecache(tcontext.pagecache));
+   TEST(0 == sizestatic_threadtls(tls));
 
    // prepare0
-   TEST(0 == freethread_pagecacheimpl(cast_iobj(&tcontext.pagecache, pagecache)));
+   TEST(0 == delete_threadtls(&tls));
 
    return 0;
 ONERR:
-   freethread_pagecacheimpl(cast_iobj(&tcontext.pagecache, pagecache));
+   delete_threadtls(&tls);
    return EINVAL;
 }
 
@@ -426,9 +435,14 @@ static int test_initfree(void)
    thread_t*         thread   = 0;
    processcontext_t* P        = pcontext_maincontext();
    const size_t      nrsvc    = 6;
+   const size_t      S        = sizestatic_threadtls(self_threadtls());
 
    // prepare
    TEST(P != 0);
+   memblock_t _mb = memblock_FREE;
+   TEST(0 == allocstatic_threadtls(self_threadtls(), 0, &_mb));
+   const uint8_t* M = _mb.addr;
+   TEST(0 != M);
 
    // TEST threadcontext_FREE
    TEST(0 == tcontext.pcontext);
@@ -454,18 +468,18 @@ static int test_initfree(void)
 
       // TEST init_threadcontext
       TEST(0 == init_threadcontext(&tcontext, P, contexttype[i]));
+      // check self_threadtls
+      TEST(S == sizestatic_threadtls(self_threadtls()) - static_memory_size());
       // check tcontext
       TEST(P == tcontext.pcontext);
       TEST(0 != tcontext.thread_id);
       TEST(nrsvc == tcontext.initcount);
-      TEST(0 != tcontext.staticmemblock);
-      // check tcontext pagecache
-      TEST(0 != tcontext.pagecache.object);
-      TEST(0 != tcontext.pagecache.iimpl);
-      TEST(static_memory_size() <= sizestatic_pagecache(tcontext.pagecache));
+      TEST(M == tcontext.staticmemblock);
       // check tcontext object memory address
       uint8_t* nextaddr = tcontext.staticmemblock;
 // TEXTDB:SELECT("      TEST((void*)nextaddr == tcontext."parameter(if (inittype=='interface') ".object" else "")");"\n"      nextaddr += sizeof("objtype");")FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface"||inittype=="object")
+      TEST((void*)nextaddr == tcontext.pagecache.object);
+      nextaddr += sizeof(pagecache_impl_t);
       TEST((void*)nextaddr == tcontext.mm.object);
       nextaddr += sizeof(mm_impl_t);
       TEST((void*)nextaddr == tcontext.syncrunner);
@@ -478,6 +492,7 @@ static int test_initfree(void)
       TEST(nextaddr == (uint8_t*) tcontext.staticmemblock + static_memory_size());
       // check tcontext interface address
 // TEXTDB:SELECT("      TEST(tcontext."parameter".iimpl == interface_"module"());")FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
+      TEST(tcontext.pagecache.iimpl == interface_pagecacheimpl());
       TEST(tcontext.mm.iimpl == interface_mmimpl());
       TEST(tcontext.objectcache.iimpl == interface_objectcacheimpl());
       TEST(tcontext.log.iimpl == interface_logwriter());

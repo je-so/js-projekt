@@ -63,6 +63,9 @@ struct processcontext_t {
     * Shared <pagecache_blockmap_t> used in <pagecache_impl_t>. */
    struct
    pagecache_blockmap_t*     blockmap;
+   /* variable: staticmemblock
+    * Start address of static memory block. */
+   void*                     staticmemblock;
    /* variable: initcount
     * Counts the number of successfully initialized services/subsystems.
     * This number counts all subsystems even if they
@@ -70,17 +73,11 @@ struct processcontext_t {
    uint16_t                  initcount;
 } ;
 
-// group: constants
-
-/* define: processcontext_EXTSIZE
- * Defines size in bytes of static memory allocated during execution of <init_processcontext>. */
-#define processcontext_EXTSIZE (sizeof(syslogin_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
-
 // group: lifetime
 
 /* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_STATIC { 0, 0, errorcontext_INIT_STATIC, 0, 0 }
+#define processcontext_INIT_STATIC { 0, 0, errorcontext_INIT_STATIC, 0, 0, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context
@@ -98,5 +95,9 @@ int free_processcontext(processcontext_t * pcontext) ;
 /* function: isstatic_processcontext
  * Returns true if pcontext equals <processcontext_INIT_STATIC>. */
 bool isstatic_processcontext(const processcontext_t * pcontext) ;
+
+/* function: extsize_processcontext
+ * Gibt Speicher zurück, der zusätzlich von <init_processcontext> benötigt wird. */
+size_t extsize_processcontext(void);
 
 #endif

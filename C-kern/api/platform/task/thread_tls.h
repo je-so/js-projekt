@@ -2,8 +2,8 @@
 
    Supports storage (variables and stack space)
    for every creatd thread and the main thread.
-   The main thread is initialized with <initmain_threadtls>
-   all other with <init_threadtls>.
+   The main thread is initialized with <newmain_threadtls>
+   all other with <new_threadtls>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -45,60 +45,56 @@ int unittest_platform_task_thread_tls(void);
  * Holds thread local memory.
  * The memory comprises the variables <thread_t> and <threadcontext_t>,
  * the signal stack and thread stack and 3 protection pages in between. */
-struct thread_tls_t {
-   uint8_t * addr;
-};
+struct thread_tls_t;
 
 // group: lifetime
 
-/* define: thread_tls_FREE
- * Static initializer. */
-#define thread_tls_FREE { 0 }
-
-/* function: init_threadtls
+/* function: new_threadtls
  * Allocates a memory block big enoug to hold all thread local storage data.
  * The access rights of parts of the memory block is changed to protect
  * the stack from overflowing.
  * The allocated memory block is aligned to its own size.
  * The thread local variables (<threadcontext_t> and <thread_t>) are initialized
  * with their INIT_STATIC resp. INIT_FREEABLE values. */
-int init_threadtls(/*out*/thread_tls_t * tls);
+int new_threadtls(/*out*/thread_tls_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
 
-/* function: free_threadtls
+/* function: delete_threadtls
  * Changes protection of memory to normal and frees it. */
-int free_threadtls(thread_tls_t * tls);
+int delete_threadtls(thread_tls_t** tls);
 
-/* function: initmain_threadtls
- * Same as <init_threadtls> but calls no other functions of C-kern system.
+/* function: newmain_threadtls
+ * Same as <new_threadtls> but calls no other functions of C-kern system.
  * Called from <platform_t.init_platform>.
  * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
-int initmain_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack);
+int newmain_threadtls(/*out*/thread_tls_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
 
-/* function: freemain_threadtls
- * Same as <free_threadtls> but calls no other functions of C-kern system.
+/* function: deletemain_threadtls
+ * Same as <delete_threadtls> but calls no other functions of C-kern system.
  * Especially no logging is done and no calls to <pagesize_vm> and <free_vmpage> are made. */
-int freemain_threadtls(thread_tls_t * tls);
+int deletemain_threadtls(thread_tls_t** tls);
 
 // group: query
 
-/* function: current_threadtls
+/* function: castPthread_threadtls
+ * Calculates address of <thread_tls_t> from address of <thread_t>. */
+thread_tls_t* castPthread_threadtls(struct thread_t* thread);
+
+/* function: self_threadtls
  * Returns <thread_tls_t> of the current thread.
- * The parameter local_var must point to a local variable on the current stack.
- * The function <sys_context_thread> is identical with context_threadtls(&current_threadtls(&err)).
- * If you change this function change sys_context_thread (and self_thread) also. */
-thread_tls_t current_threadtls(void * local_var);
+ * The parameter local_var must point to a local variable on the current stack. */
+thread_tls_t* self_threadtls(void);
 
 /* function: context_threadtls
  * Returns pointer to <threadcontext_t> stored in thread local storage.
- * The function <sys_context_thread> is identical with context_threadtls(&current_threadtls()).
- * If you change this function change sys_context_thread also. */
-struct threadcontext_t * context_threadtls(const thread_tls_t * tls);
+ * The function <sys_context_threadtls> is identical with context_threadtls(self_threadtls()).
+ * If you change this function change sys_context_threadtls also. */
+struct threadcontext_t* context_threadtls(thread_tls_t* tls);
 
 /* function: thread_threadtls
  * Returns pointer to <thread_t> stored in thread local storage.
- * The function <self_thread> is identical with thread_threadtls(&current_threadtls()).
- * If you change this function change self_thread also. */
-struct thread_t * thread_threadtls(const thread_tls_t * tls);
+ * The function <sys_thread_threadtls> is identical with thread_threadtls(self_threadtls()).
+ * If you change this function change sys_thread_threadtls also. */
+struct thread_t* thread_threadtls(thread_tls_t* tls);
 
 /* function: size_threadtls
  * Returns the size of the allocated memory block. */
@@ -111,65 +107,65 @@ size_t size_threadtls(void);
  * For example if the thread stack overflows SIGSEGV signal is thrown.
  * To handle this case the system must have an extra signal stack
  * cause signal handling needs stack space. */
-void signalstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * stackmem);
+void signalstack_threadtls(thread_tls_t* tls, /*out*/struct memblock_t * stackmem);
 
 /* function: threadstack_threadtls
  * Returns in stackmem the thread stack from tls.
  * If tls is in a freed state stackmem is set to <memblock_FREE>. */
-void threadstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * stackmem);
+void threadstack_threadtls(thread_tls_t* tls, /*out*/struct memblock_t * stackmem);
 
-// group: generic
+// group: static-memory
 
-/* function: cast_threadtls
- * Casts pointer to an object into pointer to <thread_tls_t>.
- * The object must have a single member with name nameprefix##addr
- * of the same type as <thread_tls_t>. */
-thread_tls_t * cast_threadtls(void * obj, IDNAME nameprefix);
+/* function: allocstatic_threadtls
+ * Allokiert einen über die Laufzeit des Threads gültigen Speicherblock.
+ * Der allokierte Speicherblock wird in memblock zurückgegeben und ist nicht minder
+ * als bytesize Bytes groß. */
+int allocstatic_threadtls(thread_tls_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock);
 
+/* function: freestatic_pagecacheimpl
+ * Gibt den zuletzt allokierten Speicherblock wieder frei.
+ * Mehrere Speicherblöcke können auch zusammen auf einmal freigegeben werden.
+ *
+ * Diese Funktion ist eher zum Testen gedacht, da statischer Speicher über die
+ * Laufzeit des gesamten Threads gültig zu sein hat.
+ *
+ * Returns
+ * 0      - OK
+ * EINVAL - memblock ist nicht der zuletzt von <allocstatic_threadtls> allokierte Speicherblock. */
+int freestatic_threadtls(thread_tls_t* tls, struct memblock_t* memblock);
+
+/* function: sizestatic_threadtls
+ * Gibt die aufgerundete Anzahl allokierter Bytes an statischem Speicher zurück. */
+size_t sizestatic_threadtls(const thread_tls_t* tls);
 
 
 // section: inline implementation
 
+/* define: castPthread_threadtls
+ * Implements <thread_tls_t.castPthread_threadtls>. */
+#define castPthread_threadtls(thread) \
+         ( __extension__ ({                                                  \
+            thread_t* _t = (thread);                                         \
+            ((thread_tls_t*) ( ((uint8_t*)(_t)) - sizeof(threadcontext_t))); \
+         }))
+
 /* define: context_threadtls
  * Implements <thread_tls_t.context_threadtls>. */
-#define context_threadtls(tls)            \
-         ((threadcontext_t*) (            \
-               (tls)->addr                \
-         ))
+#define context_threadtls(tls) \
+         ((threadcontext_t*) (tls))
 
-/* define: current_threadtls
- * Implements <thread_tls_t.current_threadtls>. */
-#define current_threadtls(local_var)      \
-         (thread_tls_t) {                 \
-            (uint8_t*) (                  \
-               (uintptr_t)(local_var)     \
-               & ~(uintptr_t)             \
-                  (size_threadtls()-1)    \
-            )                             \
-         }
-
-/* define: cast_threadtls
- * Implements <thread_tls_t.cast_threadtls>. */
-#define cast_threadtls(obj, nameprefix) \
-         ( __extension__ ({                         \
-            typeof(obj) _o;                         \
-            _o = (obj);                             \
-            static_assert(                          \
-               &(_o->nameprefix##addr)              \
-               == &((thread_tls_t *)                \
-                    &(_o->nameprefix##addr))->addr, \
-               "compatible struct");                \
-            (thread_tls_t *)                        \
-             &(_o->nameprefix##addr);               \
-         }))
+/* define: self_threadtls
+ * Implements <thread_tls_t.self_threadtls>. */
+#define self_threadtls() \
+         (sys_self_threadtls())
 
 /* define: thread_threadtls
  * Implements <thread_tls_t.thread_threadtls>. */
 #define thread_threadtls(tls) \
-         ((thread_t*) (               \
-            (tls)->addr               \
-            + sizeof(threadcontext_t) \
-         ))
+         ( __extension__ ({                                                \
+            thread_tls_t* _tls = (tls);                                    \
+            ((thread_t*) ( ((uint8_t*)(_tls)) + sizeof(threadcontext_t))); \
+         }))
 
 /* define: size_threadtls
  * Implements <thread_tls_t.size_threadtls>. */

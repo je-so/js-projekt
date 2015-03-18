@@ -43,9 +43,9 @@ static objectcache_impl_it  s_objectcacheimpl_interface = {
 
 // group: initthread
 
-objectcache_it * interface_objectcacheimpl(void)
+objectcache_it* interface_objectcacheimpl(void)
 {
-   return cast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
+   return cast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t);
 }
 
 // group: lifetime

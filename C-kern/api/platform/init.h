@@ -14,8 +14,8 @@
    file: C-kern/platform/Linux/init.c
     Implementation file <PlatformInit Linux>.
 */
-#ifndef CKERN_PLATFORM_STARTUP_HEADER
-#define CKERN_PLATFORM_STARTUP_HEADER
+#ifndef CKERN_PLATFORM_INIT_HEADER
+#define CKERN_PLATFORM_INIT_HEADER
 
 /* typedef: mainthread_f
  * Signature of main thread is the same as function main. */

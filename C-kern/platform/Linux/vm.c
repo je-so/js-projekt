@@ -541,27 +541,27 @@ ONERR:
 
 // group: change
 
-int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode)
+int protect_vmpage(const vmpage_t* vmpage, const accessmode_e access_mode)
 {
-   int err ;
-   int prot ;
+   int err;
+   int prot;
 
    SET_PROT(prot, access_mode)
 
    if (  vmpage->size
          && mprotect(vmpage->addr, vmpage->size, prot)) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("mprotect", err) ;
-      PRINTPTR_ERRLOG(vmpage->addr) ;
-      PRINTSIZE_ERRLOG(vmpage->size) ;
-      PRINTINT_ERRLOG(access_mode) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("mprotect", err);
+      PRINTPTR_ERRLOG(vmpage->addr);
+      PRINTSIZE_ERRLOG(vmpage->size);
+      PRINTINT_ERRLOG(access_mode);
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int tryexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)

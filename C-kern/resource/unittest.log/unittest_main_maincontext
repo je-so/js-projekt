@@ -1,8 +1,0 @@
-[1: 1426257562.935889s]
-allocstatic_maincontext() C-kern/main/maincontext.c:247
-Error 12 - Cannot allocate memory
-Could not allocate 1 bytes of memory
-[1: 1426257562.935896s]
-freestatic_maincontext() C-kern/main/maincontext.c:265
-Error 22 - Invalid argument
-Function input violates condition (g_maincontext.size_staticmem >= size)

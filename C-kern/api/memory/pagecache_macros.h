@@ -37,18 +37,6 @@
 #define RELEASE_PAGECACHE(page)  \
          (releasepage_pagecache(pagecache_maincontext(), (page)))
 
-/* define: ALLOCSTATIC_PAGECACHE
- * Allocates static block of memory and returns it in memblock.
- * See <pagecache_it.allocstatic> for a description. */
-#define ALLOCSTATIC_PAGECACHE(bytesize, memblock)  \
-         (allocstatic_pagecache(pagecache_maincontext(), (bytesize), (memblock)))
-
-/* define: FREESTATIC_PAGECACHE
- * Frees static block of memory and clears memblock.
- * See <pagecache_it.freestatic> for a description. */
-#define FREESTATIC_PAGECACHE(memblock)  \
-         (freestatic_pagecache(pagecache_maincontext(), (memblock)))
-
 // group: query
 
 /* define: SIZEALLOCATED_PAGECACHE
@@ -56,12 +44,6 @@
  * See <pagecache_it.sizeallocated> for a description. */
 #define SIZEALLOCATED_PAGECACHE()  \
          (sizeallocated_pagecache(pagecache_maincontext()))
-
-/* define: SIZESTATIC_PAGECACHE
- * Returns size of static allocated memory.
- * See <pagecache_it.sizestatic> for a description. */
-#define SIZESTATIC_PAGECACHE()  \
-         (sizestatic_pagecache(pagecache_maincontext()))
 
 // group: cache
 

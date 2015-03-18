@@ -64,6 +64,9 @@ struct thread_t {
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
    uint8_t        lockflag;
+   /* variable: ismain
+    * Set to true if thread is main thread. */
+   uint8_t        ismain;
    /* variable: main_task
     * Function executed after thread has been created. */
    thread_f       main_task;
@@ -77,10 +80,6 @@ struct thread_t {
    /* variable: sys_thread
     * Contains system specific thread type. */
    sys_thread_t   sys_thread;
-   /* variable: tls_addr
-    * Contains start address of thread local storage.
-    * See <thread_tls>. */
-   uint8_t*       tls_addr;
    /* variable: continuecontext
     * Contains thread machine context before <main_task> is called.
     * This context could be used in any aborthandler.
@@ -95,7 +94,7 @@ struct thread_t {
  * Static initializer.
  * Used to initialize thread in <thread_tls_t>. */
 #define thread_FREE \
-         { 0, 0, 0, 0, 0, sys_thread_FREE, 0, { .uc_link = 0 } }
+         { 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
 /* function: initmain_thread
  * Initializes main thread. Called from <platform_t.init_platform>.
@@ -274,11 +273,11 @@ int setcontinue_thread(bool* is_abort);
 /* define: ismain_thread
  * Implements <thread_t.ismain_thread>. */
 #define ismain_thread(thread) \
-         ( __extension__ ({        \
-            volatile const         \
-            thread_t* _thr;        \
-            _thr = (thread);       \
-            (0 == _thr->tls_addr); \
+         ( __extension__ ({   \
+            volatile const    \
+            thread_t* _thr;   \
+            _thr = (thread);  \
+            _thr->ismain;     \
          }))
 
 /* define: initmain_thread
@@ -287,10 +286,10 @@ int setcontinue_thread(bool* is_abort);
          do {                                   \
             volatile thread_t* _thr;            \
             _thr = (thread);                    \
+            _thr->ismain     = 1;               \
             _thr->main_task  = _thread_main;    \
             _thr->main_arg   = _main_arg;       \
             _thr->sys_thread = pthread_self();  \
-            _thr->tls_addr   = 0;               \
          } while(0)
 
 /* define: lockflag_thread

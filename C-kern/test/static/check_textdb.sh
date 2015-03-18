@@ -180,12 +180,9 @@ for i in $files; do
       parameter="${parameter%)*}"
       if [ "$parameter" = "void" ]; then
          parameter=""
-         paramtype=""
       else
          # [string] means string is optional
          # initthread_NAME(type *[*] xxx)
-         paramtype="${parameter%%\**}"
-         paramtype="${paramtype%_t*}"
          parameter="${parameter#*\*}"
          parameter="${parameter#\*}"
       fi
@@ -198,8 +195,7 @@ for i in $files; do
          space2=${space:0:18-${#name1}}
       fi
       echo -n "\"${name1}\",${space2}" >> $temp_thread_db
-      space2=${space:0:19-${#paramtype}}
-      echo -n "\"initthread\",  \"${paramtype}\",${space2}" >> $temp_thread_db
+      echo -n "\"initthread\",  \"\",                   " >> $temp_thread_db
       space2=${space:0:14-${#parameter}}
       echo "\"${parameter}\",${space2}\"${i}\"" >> $temp_thread_db
    done

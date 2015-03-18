@@ -1,16 +1,39 @@
-[1: 1426177164.103017s]
-init_threadtls() C-kern/platform/Linux/task/thread_tls.c:150
+[1: 1426429468.554211s]
+new_threadtls() C-kern/platform/Linux/task/thread_tls.c:236
 Error 12 - Cannot allocate memory
-[1: 1426177164.103048s]
-init_threadtls() C-kern/platform/Linux/task/thread_tls.c:150
+[1: 1426429468.554222s]
+new_threadtls() C-kern/platform/Linux/task/thread_tls.c:236
 Error 12 - Cannot allocate memory
-[1: 1426177164.103073s]
-init_threadtls() C-kern/platform/Linux/task/thread_tls.c:150
+[1: 1426429468.554228s]
+new_threadtls() C-kern/platform/Linux/task/thread_tls.c:236
 Error 12 - Cannot allocate memory
-[1: 1426177164.103100s]
-init_threadtls() C-kern/platform/Linux/task/thread_tls.c:150
+[1: 1426429468.554239s]
+new_threadtls() C-kern/platform/Linux/task/thread_tls.c:236
 Error 12 - Cannot allocate memory
-[1: 1426177164.103138s]
-free_threadtls() C-kern/platform/Linux/task/thread_tls.c:171
+[1: 1426429468.554255s]
+delete_threadtls() C-kern/platform/Linux/task/thread_tls.c:262
 Error 22 - Invalid argument
+One or more resources could not be freed
+[1: 1426429468.587073s]
+allocstatic_threadtls() C-kern/platform/Linux/task/thread_tls.c:318
+Error 12 - Cannot allocate memory
+[1: 1426429468.631661s]
+freestatic_threadtls() C-kern/platform/Linux/task/thread_tls.c:332
+Error 22 - Invalid argument
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
+One or more resources could not be freed
+[1: 1426429468.631671s]
+freestatic_threadtls() C-kern/platform/Linux/task/thread_tls.c:332
+Error 22 - Invalid argument
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
+One or more resources could not be freed
+[1: 1426429468.631677s]
+freestatic_threadtls() C-kern/platform/Linux/task/thread_tls.c:332
+Error 22 - Invalid argument
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
+One or more resources could not be freed
+[1: 1426429468.631679s]
+freestatic_threadtls() C-kern/platform/Linux/task/thread_tls.c:332
+Error 22 - Invalid argument
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed

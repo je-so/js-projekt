@@ -52,27 +52,6 @@ static size_t sizeallocated1_dummy(const struct pagecache_t* pgcache)
    return 0;
 }
 
-static int allocstatic1_dummy(struct pagecache_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock)
-{
-   (void)pgcache;
-   (void)bytesize;
-   (void)memblock;
-   return 0;
-}
-
-static int freestatic1_dummy(struct pagecache_t* pgcache, struct memblock_t* memblock)
-{
-   (void)pgcache;
-   (void)memblock;
-   return 0;
-}
-
-static size_t sizestatic1_dummy(const struct pagecache_t* pgcache)
-{
-   (void)pgcache;
-   return 0;
-}
-
 static int emptycache1_dummy(struct pagecache_t* pgcache)
 {
    (void)pgcache;
@@ -90,16 +69,11 @@ static int test_initfreeit(void)
 
    // TEST pagecache_it_INIT
    pgcacheif = (pagecache_it) pagecache_it_INIT(
-                  &allocpage1_dummy, &releasepage1_dummy, &sizeallocated1_dummy,
-                  &allocstatic1_dummy, &freestatic1_dummy,
-                  &sizestatic1_dummy, &emptycache1_dummy
+                  &allocpage1_dummy, &releasepage1_dummy, &sizeallocated1_dummy, &emptycache1_dummy
                );
    TEST(pgcacheif.allocpage     == &allocpage1_dummy);
    TEST(pgcacheif.releasepage   == &releasepage1_dummy);
    TEST(pgcacheif.sizeallocated == &sizeallocated1_dummy);
-   TEST(pgcacheif.allocstatic   == &allocstatic1_dummy);
-   TEST(pgcacheif.freestatic    == &freestatic1_dummy);
-   TEST(pgcacheif.sizestatic    == &sizestatic1_dummy);
    TEST(pgcacheif.emptycache    == &emptycache1_dummy);
 
    return 0;
@@ -171,9 +145,6 @@ struct pagecachex_t {
    unsigned    is_allocpage;
    unsigned    is_releasepage;
    unsigned    is_sizeallocated;
-   unsigned    is_allocstatic;
-   unsigned    is_freestatic;
-   unsigned    is_sizestatic;
    unsigned    is_emptycache;
    pagesize_e  pgsize;
    struct
@@ -204,27 +175,6 @@ static size_t sizeallocated2_dummy(const struct pagecachex_t* pgcache)
    return 0;
 }
 
-static int allocstatic2_dummy(struct pagecachex_t* pgcache, size_t bytesize, /*out*/struct memblock_t* memblock)
-{
-   ++ pgcache->is_allocstatic;
-   pgcache->bytesize = bytesize;
-   pgcache->memblock = memblock;
-   return 0;
-}
-
-static int freestatic2_dummy(struct pagecachex_t* pgcache, struct memblock_t* memblock)
-{
-   ++ pgcache->is_freestatic;
-   pgcache->memblock = memblock;
-   return 0;
-}
-
-static size_t sizestatic2_dummy(const struct pagecachex_t* pgcache)
-{
-   ++ CONST_CAST(struct pagecachex_t,pgcache)->is_sizestatic;
-   return 0;
-}
-
 static int emptycache2_dummy(struct pagecachex_t* pgcache)
 {
    ++ pgcache->is_emptycache;
@@ -245,15 +195,11 @@ static int test_genericit(void)
 
    // TEST pagecache_it_INIT
    pgcacheif = (pagecachex_it) pagecache_it_INIT(
-                  &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &allocstatic2_dummy,
-                  &freestatic2_dummy, &sizestatic2_dummy, &emptycache2_dummy
+                  &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &emptycache2_dummy
                );
    TEST(pgcacheif.allocpage     == &allocpage2_dummy);
    TEST(pgcacheif.releasepage   == &releasepage2_dummy);
    TEST(pgcacheif.sizeallocated == &sizeallocated2_dummy);
-   TEST(pgcacheif.allocstatic   == &allocstatic2_dummy);
-   TEST(pgcacheif.freestatic    == &freestatic2_dummy);
-   TEST(pgcacheif.sizestatic    == &sizestatic2_dummy);
    TEST(pgcacheif.emptycache    == &emptycache2_dummy);
 
    // TEST cast_pagecacheit
@@ -267,10 +213,9 @@ ONERR:
 int test_call(void)
 {
    struct
-   pagecachex_t   obj   = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+   pagecachex_t   obj   = { 0, 0, 0, 0, 0, 0, 0, 0 };
    pagecachex_it  iimpl = (pagecachex_it) pagecache_it_INIT(
-                           &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &allocstatic2_dummy,
-                           &freestatic2_dummy, &sizestatic2_dummy, &emptycache2_dummy
+                           &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &emptycache2_dummy
                         );
    pagecache_t    pgcache = pagecache_INIT((struct pagecache_t*)&obj, cast_pagecacheit(&iimpl, struct pagecachex_t));
 
@@ -293,27 +238,6 @@ int test_call(void)
    for (unsigned  i = 0; i <= 10; ++i) {
       TEST(0 == sizeallocated_pagecache(pgcache));
       TEST(i+1 == obj.is_sizeallocated);
-   }
-
-   // TEST allocstatic_pagecache
-   for (unsigned  i = 0; i <= 10; ++i) {
-      TEST(0 == allocstatic_pagecache(pgcache, (size_t)(i+2), (struct memblock_t*)(i+3)));
-      TEST(i+1 == obj.is_allocstatic);
-      TEST(i+2 == obj.bytesize);
-      TEST(i+3 == (uintptr_t)obj.memblock);
-   }
-
-   // TEST freestatic_pagecache
-   for (unsigned  i = 0; i <= 10; ++i) {
-      TEST(0 == freestatic_pagecache(pgcache, (struct memblock_t*)(i+2)));
-      TEST(i+1 == obj.is_freestatic);
-      TEST(i+2 == (uintptr_t)obj.memblock);
-   }
-
-   // TEST sizestatic_pagecache
-   for (unsigned  i = 0; i <= 10; ++i) {
-      TEST(0 == sizestatic_pagecache(pgcache));
-      TEST(i+1 == obj.is_sizestatic);
    }
 
    // TEST emptycache_pagecache

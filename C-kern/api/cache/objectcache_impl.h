@@ -23,11 +23,11 @@
 #define CKERN_CACHE_OBJECTCACHE_IMPL_HEADER
 
 // forward
-struct memblock_t ;
+struct memblock_t;
 
 /* typedef: struct objectcache_impl_t
  * Export <objectcache_impl_t>. */
-typedef struct objectcache_impl_t         objectcache_impl_t ;
+typedef struct objectcache_impl_t objectcache_impl_t;
 
 
 // section: Functions

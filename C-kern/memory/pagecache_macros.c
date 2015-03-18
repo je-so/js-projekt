@@ -47,17 +47,6 @@ static int test_query(void)
       TEST(SIZEALLOCATED_PAGECACHE() == oldsize + i*4096);
    }
 
-   // TEST SIZESTATIC_PAGECACHE
-   size_t sizestatic = SIZESTATIC_PAGECACHE();
-   TEST(0 == pagecache_maincontext().iimpl->allocstatic(pagecache_maincontext().object, 128, &page[0]));
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic+128);
-   TEST(0 == pagecache_maincontext().iimpl->allocstatic(pagecache_maincontext().object, 128, &page[1]));
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic+256);
-   TEST(0 == pagecache_maincontext().iimpl->freestatic(pagecache_maincontext().object, &page[1]));
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic+128);
-   TEST(0 == pagecache_maincontext().iimpl->freestatic(pagecache_maincontext().object, &page[0]));
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic);
-
    return 0;
 ONERR:
    return EINVAL;
@@ -85,27 +74,6 @@ static int test_alloc(void)
       TEST(SIZEALLOCATED_PAGECACHE() == oldsize + i*4096);
    }
 
-   // TEST ALLOCSTATIC_PAGECACHE
-   size_t oldstatic = SIZESTATIC_PAGECACHE();
-   TEST(0 == ALLOCSTATIC_PAGECACHE(128, &page[0]));
-   TEST(SIZESTATIC_PAGECACHE() == oldstatic + 128);
-   TEST(0 == ALLOCSTATIC_PAGECACHE(128, &page[1]));
-   TEST(SIZESTATIC_PAGECACHE() == oldstatic + 256);
-   TEST(page[0].addr != 0);
-   TEST(page[0].size == 128);
-   TEST(page[1].addr == page[0].addr+128);
-   TEST(page[1].size == 128);
-
-   // TEST FREESTATIC_PAGECACHE
-   TEST(0 == FREESTATIC_PAGECACHE(&page[1]));
-   TEST(SIZESTATIC_PAGECACHE() == oldstatic + 128);
-   TEST(0 == FREESTATIC_PAGECACHE(&page[0]));
-   TEST(SIZESTATIC_PAGECACHE() == oldstatic);
-   TEST(page[0].addr == 0);
-   TEST(page[0].size == 0);
-   TEST(page[1].addr == 0);
-   TEST(page[1].size == 0);
-
    return 0;
 ONERR:
    return EINVAL;
@@ -113,12 +81,13 @@ ONERR:
 
 static int test_cache(void)
 {
+   pagecache_impl_t pgimpl   = pagecache_impl_FREE;
    pagecache_t oldpagecache  = pagecache_FREE;
-   pagecache_t testpagecache = pagecache_FREE;
+   pagecache_t testpagecache = pagecache_INIT((struct pagecache_t*)&pgimpl, interface_pagecacheimpl());
    memblock_t  page;
 
    // prepare
-   TEST(0 == initthread_pagecacheimpl(&testpagecache));
+   TEST(0 == init_pagecacheimpl(&pgimpl));
    initcopy_iobj(&oldpagecache, &pagecache_maincontext());
    initcopy_iobj(&pagecache_maincontext(), &testpagecache);
 
@@ -133,14 +102,14 @@ static int test_cache(void)
 
    // unprepare
    initcopy_iobj(&pagecache_maincontext(), &oldpagecache);
-   TEST(0 == freethread_pagecacheimpl(&testpagecache));
+   TEST(0 == free_pagecacheimpl(&pgimpl));
 
    return 0;
 ONERR:
    if (oldpagecache.object) {
       initcopy_iobj(&pagecache_maincontext(), &oldpagecache);
    }
-   freethread_pagecacheimpl(&testpagecache);
+   free_pagecacheimpl(&pgimpl);
    return EINVAL;
 }
 

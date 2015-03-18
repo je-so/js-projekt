@@ -127,9 +127,6 @@ struct maincontext_t {
    const char *      progname;
    int               argc;
    const char **     argv;
-   /* variable: size_staticmem
-    * Size in bytes of how much of the static memory is allocated. */
-   uint16_t          size_staticmem;
 };
 
 // group: lifetime
@@ -252,26 +249,6 @@ struct syncrunner_t*      syncrunner_maincontext(void);
  * Every value is cached as a single copy for the whole process. */
 struct valuecache_t*      valuecache_maincontext(void);
 
-// group: static-memory
-
-/* function: allocstatic_maincontext
- * Allocates size bytes of memory and returns the start address.
- * Used by modules during execution of their initonce_ functions.
- * This memory lives as long <maincontext_t> lives.
- * Must be called in reverse order of calls to <allocstatic_maincontext>. */
-void* allocstatic_maincontext(uint16_t size);
-
-/* function: freestatic_maincontext
- * Frees size bytes of last allocated memory.
- * Must be called in reverse order of calls to <allocstatic_maincontext>.
- * It is possible to free x calls to <allocstatic_maincontext> with one
- * call to <freestatic_maincontext> where all sizes are summed up. */
-int freestatic_maincontext(uint16_t size);
-
-/* function: sizestatic_maincontext
- * Returns size in bytes of allocated static memory. */
-uint16_t sizestatic_maincontext(void);
-
 
 
 // section: inline implementation
@@ -314,10 +291,6 @@ uint16_t sizestatic_maincontext(void);
 /* define: self_maincontext
  * Inline implementation of <maincontext_t.self_maincontext>. */
 #define self_maincontext()                ((maincontext_t*)pcontext_maincontext())
-
-/* define: sizestatic_maincontext
- * Inline implementation of <maincontext_t.sizestatic_maincontext>. */
-#define sizestatic_maincontext()          (self_maincontext()->size_staticmem)
 
 /* define: syncrunner_maincontext
  * Inline implementation of <maincontext_t.syncrunner_maincontext>. */

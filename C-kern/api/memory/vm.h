@@ -145,7 +145,7 @@ int free_vmpage(vmpage_t * vmpage);
 
 /* function: isfree_vmpage
  * Returns true if vmpage equals <vmpage_FREE>. */
-bool isfree_vmpage(vmpage_t * vmpage);
+bool isfree_vmpage(const vmpage_t* vmpage);
 
 // group: change
 
@@ -153,7 +153,7 @@ bool isfree_vmpage(vmpage_t * vmpage);
  * Sets protection of memory (e.g. if write is possible).
  * See <accessmode_e> for a list of all supported bits.
  * <accessmode_PRIVATE> and <accessmode_SHARED> can not be changed after creation. */
-int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode);
+int protect_vmpage(const vmpage_t* vmpage, const accessmode_e access_mode);
 
 /* function: tryexpand_vmpage
  * Tries to grow the upper bound of an already mapped address range.

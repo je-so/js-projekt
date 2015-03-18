@@ -1,70 +1,67 @@
-[1: 1426251978.889790s]
-free_static_memory() C-kern/context/threadcontext.c:112
+[1: 1426412300.724130s]
+free_static_memory() C-kern/task/threadcontext.c:114
 Error 4 - Interrupted system call
 One or more resources could not be freed
-[1: 1426251978.937791s]
-init_threadcontext() C-kern/context/threadcontext.c:233
+[1: 1426412300.762138s]
+init_threadcontext() C-kern/task/threadcontext.c:237
 Error 71 - Protocol error
 Operation allowed only in state (maincontext_STATIC != type_maincontext())
-[1: 1426251978.938506s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.762981s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 22 - Invalid argument
-[1: 1426251978.938514s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.762987s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 1 - Operation not permitted
-[1: 1426251978.939278s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.762991s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 2 - No such file or directory
-[1: 1426251978.939957s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.763597s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 3 - No such process
-[1: 1426251978.940713s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.764187s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 4 - Interrupted system call
-[1: 1426251978.941405s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.764771s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 5 - Input/output error
-[1: 1426251978.942076s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.765386s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 6 - No such device or address
-[1: 1426251978.942749s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.766064s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 7 - Argument list too long
-[1: 1426251978.943424s]
-init_threadcontext() C-kern/context/threadcontext.c:312
+[1: 1426412300.766788s]
+init_threadcontext() C-kern/task/threadcontext.c:320
 Error 8 - Exec format error
-[1: 1426251978.944114s]
-init_threadcontext() C-kern/context/threadcontext.c:312
-Error 9 - Bad file descriptor
-[1: 1426251978.945502s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.768005s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 1 - Operation not permitted
 One or more resources could not be freed
-[1: 1426251978.946194s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.768604s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 2 - No such file or directory
 One or more resources could not be freed
-[1: 1426251978.946894s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.769187s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 3 - No such process
 One or more resources could not be freed
-[1: 1426251978.947586s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.769794s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 4 - Interrupted system call
 One or more resources could not be freed
-[1: 1426251978.948194s]
-free_static_memory() C-kern/context/threadcontext.c:112
+[1: 1426412300.770383s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 5 - Input/output error
 One or more resources could not be freed
-[1: 1426251978.948286s]
-free_threadcontext() C-kern/context/threadcontext.c:225
-Error 5 - Input/output error
-One or more resources could not be freed
-[1: 1426251978.948965s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.770954s]
+free_static_memory() C-kern/task/threadcontext.c:114
 Error 6 - No such device or address
 One or more resources could not be freed
-[1: 1426251978.949639s]
-free_threadcontext() C-kern/context/threadcontext.c:225
+[1: 1426412300.770958s]
+free_threadcontext() C-kern/task/threadcontext.c:229
+Error 6 - No such device or address
+One or more resources could not be freed
+[1: 1426412300.771554s]
+free_threadcontext() C-kern/task/threadcontext.c:229
 Error 7 - Argument list too long
 One or more resources could not be freed

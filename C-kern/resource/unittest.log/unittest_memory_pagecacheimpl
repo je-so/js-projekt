@@ -1,141 +1,100 @@
-[1: 1420378040.640168s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.247956s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.640192s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.247991s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.641561s]
-free_pagecacheblock() C-kern/memory/pagecache_impl.c:356
+[1: 1426416262.249717s]
+free_pagecacheblock() C-kern/memory/pagecache_impl.c:297
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1420378040.658236s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.266304s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.658250s]
-init_pagecacheimpl() C-kern/memory/pagecache_impl.c:550
+[1: 1426416262.266319s]
+init_pagecacheimpl() C-kern/memory/pagecache_impl.c:438
 Error 12 - Cannot allocate memory
-[1: 1420378040.658261s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.266330s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.658263s]
-init_pagecacheimpl() C-kern/memory/pagecache_impl.c:550
+[1: 1426416262.266332s]
+init_pagecacheimpl() C-kern/memory/pagecache_impl.c:438
 Error 12 - Cannot allocate memory
-[1: 1420378040.659127s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:581
+[1: 1426416262.267078s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
 Error 39 - Directory not empty
 One or more resources could not be freed
-[1: 1420378040.659948s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:581
-Error 39 - Directory not empty
-One or more resources could not be freed
-[1: 1420378040.660548s]
-free_pagecacheblock() C-kern/memory/pagecache_impl.c:356
+[1: 1426416262.267752s]
+free_pagecacheblock() C-kern/memory/pagecache_impl.c:297
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1420378040.660554s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:581
+[1: 1426416262.267759s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1420378040.661144s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:581
+[1: 1426416262.268364s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
 Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1420378040.762427s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371288s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762442s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371312s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762444s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371314s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762446s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371316s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762448s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371318s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762450s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371320s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762451s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371321s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762453s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371323s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762455s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371325s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762457s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371326s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762458s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371328s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762460s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371330s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.762462s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
+[1: 1426416262.371331s]
+new_pagecacheblock() C-kern/memory/pagecache_impl.c:268
 Error 12 - Cannot allocate memory
-[1: 1420378040.824122s]
-allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:617
+[1: 1426416262.440100s]
+allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:498
 Error 22 - Invalid argument
 Function input violates condition (pgsize < pagesize__NROF)
-[1: 1420378040.824135s]
-allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:617
+[1: 1426416262.440114s]
+allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:498
 Error 22 - Invalid argument
 Function input violates condition (pgsize < pagesize__NROF)
-[1: 1420378040.837175s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:684
+[1: 1426416262.453527s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
 Error 114 - Operation already in progress
-[1: 1420378040.837712s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:684
+[1: 1426416262.454230s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
 Error 22 - Invalid argument
-[1: 1420378040.837719s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:684
+[1: 1426416262.454239s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
 Error 22 - Invalid argument
-[1: 1420378040.837722s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:684
+[1: 1426416262.454241s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
 Error 22 - Invalid argument
-[1: 1420378040.837821s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:684
+[1: 1426416262.454342s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
 Error 22 - Invalid argument
-[1: 1420378040.838240s]
-allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:694
-Error 22 - Invalid argument
-Function input violates condition (0 < alignedsize && alignedsize <= 256)
-[1: 1420378040.838246s]
-allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:694
-Error 22 - Invalid argument
-Function input violates condition (0 < alignedsize && alignedsize <= 256)
-[1: 1420378040.838527s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:327
-Error 12 - Cannot allocate memory
-[1: 1420378040.838529s]
-allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:640
-Error 12 - Cannot allocate memory
-[1: 1420378040.838531s]
-allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:715
-Error 12 - Cannot allocate memory
-[1: 1420378040.838532s]
-freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:730
-Error 22 - Invalid argument
-Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1420378040.838535s]
-freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:730
-Error 22 - Invalid argument
-Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1420378040.838537s]
-freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:730
-Error 22 - Invalid argument
-Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1420378040.838539s]
-freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:730
-Error 22 - Invalid argument
-Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1420378040.904636s]
-initthread_pagecacheimpl() C-kern/memory/pagecache_impl.c:420
-Error 22 - Invalid argument
-Function input violates condition (0 == pagecache->object)
