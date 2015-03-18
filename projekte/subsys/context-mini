@@ -1,8 +1,8 @@
 # minimal runtime context needed for every derived project
-Src += C-kern/context/errorcontext.c
-Src += C-kern/context/maincontext.c
-Src += C-kern/context/processcontext.c
-Src += C-kern/context/threadcontext.c
+Src += C-kern/main/maincontext.c
+Src += C-kern/stdtypes/errorcontext.c
+Src += C-kern/task/processcontext.c
+Src += C-kern/task/threadcontext.c
 # default services
 Src += C-kern/cache/objectcache_impl.c
 Src += C-kern/cache/valuecache.c

@@ -11,7 +11,7 @@
 # "object"     - Calls init_module(parameter) / free_module(parameter)
 #                The memory is allocated and freed with allocstatic_maincontext / freestatic_maincontext.
 "module",            "inittype",    "objtype",            "parameter",    "header-name"
-"errorcontext",      "initonce",    "",                   "error",        "C-kern/api/context/errorcontext.h"
+"errorcontext",      "initonce",    "",                   "error",        "C-kern/api/stdtypes/errorcontext.h"
 "locale",            "initonce",    "",                   "",             "C-kern/api/platform/locale.h"
 "signalhandler",     "initonce",    "",                   "",             "C-kern/api/platform/sync/signal.h"
 "valuecache",        "object",      "valuecache_t",       "valuecache",   "C-kern/api/cache/valuecache.h"

@@ -1,7 +1,5 @@
 /* title: ProcessContext
 
-   TODO: move processcontext into directory task/
-
    Defines the global context of the running system process.
    The context contains references to global services shared
    between system threads.
@@ -12,14 +10,14 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context/processcontext.h
+   file: C-kern/api/task/processcontext.h
     Header file <ProcessContext>.
 
-   file: C-kern/context/processcontext.c
+   file: C-kern/task/processcontext.c
     Implementation file <ProcessContext impl>.
 */
-#ifndef CKERN_CONTEXT_PROCESSCONTEXT_HEADER
-#define CKERN_CONTEXT_PROCESSCONTEXT_HEADER
+#ifndef CKERN_TASK_PROCESSCONTEXT_HEADER
+#define CKERN_TASK_PROCESSCONTEXT_HEADER
 
 // forward
 struct pagecache_blockmap_t;
@@ -36,10 +34,10 @@ typedef struct processcontext_t processcontext_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_processcontext
+/* function: unittest_task_processcontext
  * Test initialization context of whole process succeeds.
  * And global variables are set correctly. */
-int unittest_context_processcontext(void);
+int unittest_task_processcontext(void);
 #endif
 
 

@@ -9,14 +9,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/stdtypes.h
+   file: C-kern/api/stdtypes/stdtypes.h
     Header file <Standard-Types>.
 
    file: C-kern/konfig.h
     Included from header <Konfiguration>.
 */
-#ifndef CKERN_CONTEXT_STDTYPES_HEADER
-#define CKERN_CONTEXT_STDTYPES_HEADER
+#ifndef CKERN_STDTYPES_STDTYPES_HEADER
+#define CKERN_STDTYPES_STDTYPES_HEADER
 
 
 // section: Macros

@@ -9,17 +9,17 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/iobj.h
+   file: C-kern/api/stdtypes/iobj.h
     Header file <InterfaceableObject>.
 
-   file: C-kern/context/iobj.c
+   file: C-kern/stdtypes/iobj.c
     Implementation file <InterfaceableObject impl>.
 
    file: C-kern/konfig.h
     Included from header <Konfiguration>.
 */
-#ifndef CKERN_CONTEXT_IOBJ_HEADER
-#define CKERN_CONTEXT_IOBJ_HEADER
+#ifndef CKERN_STDTYPES_IOBJ_HEADER
+#define CKERN_STDTYPES_IOBJ_HEADER
 
 /* typedef: struct iobj_t
  * Export <iobj_t> into global namespace. */
@@ -36,9 +36,9 @@ typedef struct iobj_it iobj_it;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_iobj
+/* function: unittest_stdtypes_iobj
  * Test <iobj_t> functionality. */
-int unittest_context_iobj(void);
+int unittest_stdtypes_iobj(void);
 #endif
 
 

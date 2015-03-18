@@ -142,7 +142,7 @@
 // * <Standard-Macros>
 
 //{
-#include "C-kern/api/context/stdmacros.h"
+#include "C-kern/api/stdtypes/stdmacros.h"
 //}
 
 // group: 3. System Specific Definitions
@@ -173,8 +173,8 @@
 // * <MainContext>.
 
 //{
-#include "C-kern/api/context/stdtypes.h"
-#include "C-kern/api/context/iobj.h"
+#include "C-kern/api/stdtypes/stdtypes.h"
+#include "C-kern/api/stdtypes/iobj.h"
 #include "C-kern/api/maincontext.h"
 //}
 

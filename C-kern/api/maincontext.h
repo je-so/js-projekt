@@ -10,7 +10,7 @@
    file: C-kern/api/maincontext.h
     Header file of <MainContext>.
 
-   file: C-kern/context/maincontext.c
+   file: C-kern/main/maincontext.c
     Implementation file <MainContext impl>.
 
    file: C-kern/api/platform/Linux/syscontext.h
@@ -19,8 +19,8 @@
 #ifndef CKERN_API_MAINCONTEXT_HEADER
 #define CKERN_API_MAINCONTEXT_HEADER
 
-#include "C-kern/api/context/threadcontext.h"
-#include "C-kern/api/context/processcontext.h"
+#include "C-kern/api/task/threadcontext.h"
+#include "C-kern/api/task/processcontext.h"
 
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
@@ -71,9 +71,9 @@ extern struct maincontext_t   g_maincontext;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_maincontext
+/* function: unittest_main_maincontext
  * Test initialization process succeeds and global variables are set correctly. */
-int unittest_context_maincontext(void);
+int unittest_main_maincontext(void);
 #endif
 
 

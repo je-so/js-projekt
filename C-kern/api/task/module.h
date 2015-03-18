@@ -12,18 +12,18 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/module.h
+   file: C-kern/api/task/module.h
     Header file <Module>.
 
-   file: C-kern/context/module.c
+   file: C-kern/task/module.c
     Implementation file <Module impl>.
 */
-#ifndef CKERN_CONTEXT_MODULE_HEADER
-#define CKERN_CONTEXT_MODULE_HEADER
+#ifndef CKERN_TASK_MODULE_HEADER
+#define CKERN_TASK_MODULE_HEADER
 
 /* typedef: struct module_t
  * Export <module_t> into global namespace. */
-typedef struct module_t                   module_t ;
+typedef struct module_t module_t;
 
 
 // section: Functions
@@ -31,9 +31,9 @@ typedef struct module_t                   module_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_module
+/* function: unittest_task_module
  * Test <module_t> functionality. */
-int unittest_context_module(void) ;
+int unittest_task_module(void);
 #endif
 
 
@@ -41,9 +41,9 @@ int unittest_context_module(void) ;
  * Describes the meory page where the program code is stored.
  * TODO: Support interface/version export */
 struct module_t {
-   uint8_t *   code_addr ;
-   size_t      code_size ;
-} ;
+   uint8_t *   code_addr;
+   size_t      code_size;
+};
 
 // group: lifetime
 
@@ -57,21 +57,21 @@ struct module_t {
  * resource/config/modulevalues with module="module_t" and name="DIRECTORY*.
  * The binary is mapped as is. No relocation is done and no data segments are
  * supproted. */
-int init_module(/*out*/module_t * mod, const char * modulename) ;
+int init_module(/*out*/module_t * mod, const char * modulename);
 
 /* function: free_module
  * Unmaps a binary blob from memory. */
-int free_module(module_t * mod) ;
+int free_module(module_t * mod);
 
 // group: query
 
 /* function: codeaddr_module
  * Returns the start address of the mapped program code. */
-uint8_t * codeaddr_module(const module_t * mod) ;
+uint8_t * codeaddr_module(const module_t * mod);
 
 /* function: codesize_module
  * Returns the size of the mapped program code. */
-size_t codesize_module(const module_t * mod) ;
+size_t codesize_module(const module_t * mod);
 
 
 

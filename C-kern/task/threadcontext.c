@@ -8,15 +8,15 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context/threadcontext.h
+   file: C-kern/api/task/threadcontext.h
     Header file <ThreadContext>.
 
-   file: C-kern/context/threadcontext.c
+   file: C-kern/task/threadcontext.c
     Implementation file <ThreadContext impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/context/threadcontext.h"
+#include "C-kern/api/task/threadcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/atomic.h"
@@ -661,7 +661,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_context_threadcontext()
+int unittest_task_threadcontext()
 {
    size_t   oldid = s_threadcontext_nextid;
 

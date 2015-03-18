@@ -8,20 +8,20 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context/processcontext.h
+   file: C-kern/api/task/processcontext.h
     Header file <ProcessContext>.
 
-   file: C-kern/context/processcontext.c
+   file: C-kern/task/processcontext.c
     Implementation file <ProcessContext impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/context/processcontext.h"
+#include "C-kern/api/task/processcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/config/initprocess)
-#include "C-kern/api/context/errorcontext.h"
+#include "C-kern/api/stdtypes/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
@@ -385,7 +385,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_context_processcontext()
+int unittest_task_processcontext()
 {
    if (test_helper())      goto ONERR;
    if (test_initfree())    goto ONERR;

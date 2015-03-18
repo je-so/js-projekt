@@ -8,15 +8,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/errornr.h
+   file: C-kern/api/stdtypes/errornr.h
     Header file <ErrorNumbers>.
 
-   file: C-kern/context/errornr.c
+   file: C-kern/stdtypes/errornr.c
     Implementation file <ErrorNumbers impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/context/errornr.h"
+#include "C-kern/api/stdtypes/errornr.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -31,7 +31,6 @@
 
 static inline void test_errornr(void)
 {
-   static_assert(256 == errornr_FIRSTERRORCODE, "");
    static_assert(256 == errornr_STATE, "");
    static_assert(257 == errornr_STATE_INVARIANT, "");
    static_assert(258 == errornr_STATE_RESET, "");
@@ -67,7 +66,7 @@ ONERR:
    return EINVAL ;
 }
 
-int unittest_context_errornr()
+int unittest_stdtypes_errornr()
 {
    if (test_errorstr())    goto ONERR;
 

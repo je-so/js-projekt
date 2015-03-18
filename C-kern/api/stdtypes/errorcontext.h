@@ -8,14 +8,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/errorcontext.h
+   file: C-kern/api/stdtypes/errorcontext.h
     Header file <ErrorContext>.
 
-   file: C-kern/context/errorcontext.c
+   file: C-kern/stdtypes/errorcontext.c
     Implementation file <ErrorContext impl>.
 */
-#ifndef CKERN_CONTEXT_ERRORCONTEXT_HEADER
-#define CKERN_CONTEXT_ERRORCONTEXT_HEADER
+#ifndef CKERN_STDTYPES_ERRORCONTEXT_HEADER
+#define CKERN_STDTYPES_ERRORCONTEXT_HEADER
 
 /* typedef: struct errorcontext_t
  * Export <errorcontext_t> into global namespace. */
@@ -36,9 +36,9 @@ extern uint8_t    g_errorcontext_strdata[];
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_errorcontext
+/* function: unittest_stdtypes_errorcontext
  * Test <errorcontext_t> functionality. */
-int unittest_context_errorcontext(void);
+int unittest_stdtypes_errorcontext(void);
 #endif
 
 

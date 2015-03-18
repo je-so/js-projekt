@@ -114,8 +114,8 @@ int run_unittest(void * argv)
    initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
 
    // before init
-   logrun_unittest("unittest_context_maincontext");
-   logresult_unittest(0 != unittest_context_maincontext());
+   logrun_unittest("unittest_main_maincontext");
+   logresult_unittest(0 != unittest_main_maincontext());
 
    for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
 
@@ -128,14 +128,20 @@ int run_unittest(void * argv)
 
       prepare_test();
 
-//{ context unittest
-      RUN(unittest_context_errorcontext);
-      RUN(unittest_context_errornr);
-      RUN(unittest_context_iobj);
-      RUN(unittest_context_maincontext);
-      RUN(unittest_context_module);
-      RUN(unittest_context_processcontext);
-      RUN(unittest_context_threadcontext);
+//{ std types
+      RUN(unittest_stdtypes_errorcontext);
+      RUN(unittest_stdtypes_errornr);
+      RUN(unittest_stdtypes_iobj);
+//}
+
+//{ task context
+      RUN(unittest_task_module);
+      RUN(unittest_task_processcontext);
+      RUN(unittest_task_threadcontext);
+//}
+
+//{ main context
+      RUN(unittest_main_maincontext);
 //}
 
 //{ cache unittest

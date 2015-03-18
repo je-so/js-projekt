@@ -1,7 +1,5 @@
 /* title: ThreadContext
 
-   TODO: move thrreadcontext into directory task/
-
    Defines the global (thread local) context of a running system thread.
    If more than one thread is running in a process each thread
    has its own context. It contains references to services which
@@ -14,14 +12,14 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context/threadcontext.h
+   file: C-kern/api/task/threadcontext.h
     Header file <ThreadContext>.
 
-   file: C-kern/context/threadcontext.c
+   file: C-kern/task/threadcontext.c
     Implementation file <ThreadContext impl>.
 */
-#ifndef CKERN_CONTEXT_THREADCONTEXT_HEADER
-#define CKERN_CONTEXT_THREADCONTEXT_HEADER
+#ifndef CKERN_TASK_THREADCONTEXT_HEADER
+#define CKERN_TASK_THREADCONTEXT_HEADER
 
 // forward
 struct processcontext_t;
@@ -53,9 +51,9 @@ typedef iobj_T(log) threadcontext_log_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context_threadcontext
+/* function: unittest_task_threadcontext
  * Test interface of <threadcontext_t>. */
-int unittest_context_threadcontext(void);
+int unittest_task_threadcontext(void);
 #endif
 
 
@@ -95,7 +93,6 @@ struct threadcontext_t {
    size_t   initcount;
    /* variable: staticmemblock
     * Start address of static memory block. */
-    // TODO: add test for init (!= 0) + free (== 0)
    void*    staticmemblock;
 };
 

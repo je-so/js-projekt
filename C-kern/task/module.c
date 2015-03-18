@@ -8,15 +8,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/context/module.h
+   file: C-kern/api/task/module.h
     Header file <Module>.
 
-   file: C-kern/context/module.c
+   file: C-kern/task/module.c
     Implementation file <Module impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/context/module.h"
+#include "C-kern/api/task/module.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -208,7 +208,7 @@ ONERR:
    return EINVAL ;
 }
 
-int unittest_context_module()
+int unittest_task_module()
 {
    if (test_initfree())    goto ONERR;
    if (test_query())       goto ONERR;

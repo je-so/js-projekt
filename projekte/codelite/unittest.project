@@ -134,16 +134,6 @@
       <File Name="../../C-kern/api/cache/objectcache_impl.h"/>
       <File Name="../../C-kern/api/cache/objectcache.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="context">
-      <File Name="../../C-kern/api/context/processcontext.h"/>
-      <File Name="../../C-kern/api/context/threadcontext.h"/>
-      <File Name="../../C-kern/api/context/stdmacros.h"/>
-      <File Name="../../C-kern/api/context/errorcontext.h"/>
-      <File Name="../../C-kern/api/context/iobj.h"/>
-      <File Name="../../C-kern/api/context/stdtypes.h"/>
-      <File Name="../../C-kern/api/context/module.h"/>
-      <File Name="../../C-kern/api/context/errornr.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
         <File Name="../../C-kern/api/ds/inmem/slist.h"/>
@@ -238,6 +228,9 @@
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="task">
+      <File Name="../../C-kern/api/task/module.h"/>
+      <File Name="../../C-kern/api/task/processcontext.h"/>
+      <File Name="../../C-kern/api/task/threadcontext.h"/>
       <File Name="../../C-kern/api/task/syncfunc.h"/>
       <File Name="../../C-kern/api/task/syncrunner.h"/>
       <File Name="../../C-kern/api/task/synccond.h"/>
@@ -261,20 +254,17 @@
     <VirtualDirectory Name="newC">
       <File Name="../../C-kern/api/newC/nCparser.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="stdtypes">
+      <File Name="../../C-kern/api/stdtypes/errorcontext.h"/>
+      <File Name="../../C-kern/api/stdtypes/errornr.h"/>
+      <File Name="../../C-kern/api/stdtypes/iobj.h"/>
+      <File Name="../../C-kern/api/stdtypes/stdmacros.h"/>
+      <File Name="../../C-kern/api/stdtypes/stdtypes.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
     <File Name="../../C-kern/cache/objectcache_impl.c"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="context">
-    <File Name="../../C-kern/context/processcontext.c"/>
-    <File Name="../../C-kern/context/threadcontext.c"/>
-    <File Name="../../C-kern/context/COP.txt"/>
-    <File Name="../../C-kern/context/maincontext.c"/>
-    <File Name="../../C-kern/context/errorcontext.c"/>
-    <File Name="../../C-kern/context/iobj.c"/>
-    <File Name="../../C-kern/context/module.c"/>
-    <File Name="../../C-kern/context/errornr.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
@@ -305,6 +295,7 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
+    <File Name="../../C-kern/main/maincontext.c"/>
     <VirtualDirectory Name="test">
       <File Name="../../C-kern/main/test/perftest_main.c"/>
       <File Name="../../C-kern/main/test/testchildprocess_main.c"/>
@@ -385,6 +376,7 @@
       <File Name="../../coding-conventions/abstractions.txt"/>
       <File Name="../../coding-conventions/overloading.txt"/>
       <File Name="../../coding-conventions/shared.txt"/>
+      <File Name="../../coding-conventions/COP.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>
@@ -540,6 +532,10 @@
     <File Name="../../C-kern/task/syncfunc.c"/>
     <File Name="../../C-kern/task/syncrunner.c"/>
     <File Name="../../C-kern/task/synccond.c"/>
+    <File Name="../../C-kern/task/module.c"/>
+    <File Name="../../C-kern/task/processcontext.c"/>
+    <File Name="../../C-kern/task/task-manager.txt"/>
+    <File Name="../../C-kern/task/threadcontext.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>
   <VirtualDirectory Name="graphic">
@@ -640,5 +636,10 @@
   </Settings>
   <VirtualDirectory Name="newC">
     <File Name="../../C-kern/newC/nCparser.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="stdtypes">
+    <File Name="../../C-kern/stdtypes/errorcontext.c"/>
+    <File Name="../../C-kern/stdtypes/errornr.c"/>
+    <File Name="../../C-kern/stdtypes/iobj.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

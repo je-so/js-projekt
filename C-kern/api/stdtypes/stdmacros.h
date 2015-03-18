@@ -8,14 +8,14 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context/stdmacros.h
+   file: C-kern/api/stdtypes/stdmacros.h
     Header file <Standard-Macros>.
 
    file: C-kern/konfig.h
     Included from header <Konfiguration>.
 */
-#ifndef CKERN_CONTEXT_STDMACROS_HEADER
-#define CKERN_CONTEXT_STDMACROS_HEADER
+#ifndef CKERN_STDTYPES_STDMACROS_HEADER
+#define CKERN_STDTYPES_STDMACROS_HEADER
 
 
 // section: Macros

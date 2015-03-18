@@ -10,7 +10,7 @@
    file: C-kern/api/maincontext.h
     Header file of <MainContext>.
 
-   file: C-kern/context/maincontext.c
+   file: C-kern/main/maincontext.c
     Implementation file <MainContext impl>.
 */
 
@@ -663,7 +663,7 @@ ONERR:
    return EINVAL ;
 }
 
-int unittest_context_maincontext()
+int unittest_main_maincontext()
 {
 
    if (maincontext_STATIC == type_maincontext()) {
