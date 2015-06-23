@@ -1,30 +1,30 @@
-[1: 1426416926.263467s]
-exit_thread() C-kern/platform/Linux/task/thread.c:395
+[1: 1426607307.927180s]
+exit_thread() C-kern/platform/Linux/task/thread.c:403
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))
-[1: 1426416926.268109s]
-new_thread() C-kern/platform/Linux/task/thread.c:222
+[1: 1426607307.932589s]
+new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 1 - Operation not permitted
-[1: 1426416926.268142s]
-new_thread() C-kern/platform/Linux/task/thread.c:222
+[1: 1426607307.932620s]
+new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 2 - No such file or directory
-[1: 1426416926.268167s]
-new_thread() C-kern/platform/Linux/task/thread.c:222
+[1: 1426607307.932639s]
+new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 3 - No such process
-[1: 1426416926.268190s]
-new_thread() C-kern/platform/Linux/task/thread.c:222
+[1: 1426607307.932657s]
+new_thread() C-kern/platform/Linux/task/thread.c:230
 Error 4 - Interrupted system call
-[1: 1426416926.269459s]
-delete_thread() C-kern/platform/Linux/task/thread.c:151
+[1: 1426607307.933593s]
+delete_thread() C-kern/platform/Linux/task/thread.c:159
 Error 22 - Invalid argument
 One or more resources could not be freed
-[1: 1426416926.298160s]
-join_thread() C-kern/platform/Linux/task/thread.c:244
+[1: 1426607307.957690s]
+join_thread() C-kern/platform/Linux/task/thread.c:252
 Error 35 - Resource deadlock avoided
-[1: 1426416926.299186s]
-join_thread() C-kern/platform/Linux/task/thread.c:244
+[1: 1426607307.958660s]
+join_thread() C-kern/platform/Linux/task/thread.c:252
 Error 3 - No such process
-[1: 1426416927.146907s]
-exit_thread() C-kern/platform/Linux/task/thread.c:395
+[1: 1426607308.876772s]
+exit_thread() C-kern/platform/Linux/task/thread.c:403
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))

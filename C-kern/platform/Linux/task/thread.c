@@ -30,6 +30,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/time/timevalue.h"
 #include "C-kern/api/time/sysclock.h"
 #endif
@@ -63,11 +64,11 @@ static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
  * This is the same for all threads.
  * It initializes signalstack, <threadcontext_t>, and
  * calls the user supplied main function. */
-static void * main_thread(thread_startargument_t * startarg)
+static void* main_thread(thread_startargument_t * startarg)
 {
    int err;
 
-   thread_t * thread = self_thread();
+   thread_t* thread = self_thread();
 
    assert(startarg->self == thread);
 
@@ -75,8 +76,13 @@ static void * main_thread(thread_startargument_t * startarg)
 
    err = init_threadcontext(tcontext_maincontext(), startarg->pcontext, type_maincontext());
    if (err) {
+      // TODO: use reconfigured main log instead of static simple log
+      //       the error is logged to STDERR immediately which is wrong in a running system !!
+      //       ==> remove mainlog and use defines in logwriter to emable/disable locking with mutex
+      //           change name from mainlog to static logwriter and enable mutex locking in this case !!
+      //       ==> add static init to logwriter which does not allocate memory and writes to stderr !!
       TRACECALL_ERRLOG("init_threadcontext", err);
-      goto ONERR;
+      goto ONERR_NOABORT;
    }
 
    if (sys_thread_FREE == pthread_self()) {
@@ -115,8 +121,10 @@ static void * main_thread(thread_startargument_t * startarg)
 
    return (void*)0;
 ONERR:
-   TRACEEXIT_ERRLOG(err);
    abort_maincontext(err);
+ONERR_NOABORT:
+   setreturncode_thread(self_thread(), err);
+   TRACEEXIT_ERRLOG(err);
    return (void*)err;
 }
 
@@ -1733,6 +1741,50 @@ ONERR:
    return EINVAL;
 }
 
+static int child_outofmemory(void* dummy)
+{
+   (void) dummy;
+   vmpage_t    freepage;
+   thread_t*   thread = 0;
+
+   // prepare
+   TEST(0 == init_vmpage(&freepage, 1024*1024));
+   for (size_t size = ~(((size_t)-1)/2); (size /= 2) >= 1024*1024; ) {
+      vmpage_t page;
+      while (0 == init_vmpage(&page, size)) {
+         // exhaust virtual memory
+      }
+      CLEARBUFFER_ERRLOG();
+   }
+   TEST(0 == free_vmpage(&freepage));
+
+   // TEST new_thread: init_threadcontext fails with ENOMEM
+   TEST(0 == new_thread(&thread, &thread_donothing, 0));
+   TEST(0 == join_thread(thread));
+   TEST(ENOMEM == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int test_outofres(void)
+{
+   process_t        child = process_FREE;
+   process_result_t result;
+
+   TEST(0 == init_process(&child, &child_outofmemory, 0, 0));
+   TEST(0 == wait_process(&child, &result));
+   TEST( isequal_processresult(&result, 0, process_state_TERMINATED));
+   TEST(0 == free_process(&child));
+
+   return 0;
+ONERR:
+   free_process(&child);
+   return EINVAL;
+}
+
 static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_FREE;
@@ -1756,6 +1808,7 @@ static int childprocess_unittest(void)
    if (test_yield())          goto ONERR;
    if (test_exit())           goto ONERR;
    if (test_update())         goto ONERR;
+   if (test_outofres())       goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));

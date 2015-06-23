@@ -19,19 +19,19 @@
 
 /* typedef: struct process_t
  * Make <process_t> an alias of <sys_process_t>. */
-typedef sys_process_t                     process_t;
+typedef sys_process_t process_t;
 
 /* typedef: process_task_f
  * Defines function type executed by <process_t>. */
-typedef int                            (* process_task_f) (void * task_arg);
+typedef int (* process_task_f) (void * task_arg);
 
 /* typedef: struct process_result_t
  * Export <process_result_t> into global namespace. */
-typedef struct process_result_t           process_result_t;
+typedef struct process_result_t process_result_t;
 
 /* typedef: struct process_stdio_t
  * Export <process_stdio_t> into global namespace. */
-typedef struct process_stdio_t            process_stdio_t;
+typedef struct process_stdio_t process_stdio_t;
 
 
 /* enums: process_state_e
@@ -51,6 +51,7 @@ typedef enum process_state_e {
    process_state_STOPPED
 } process_state_e;
 
+#define process_state__NROF (process_state_STOPPED+1)
 
 
 // section: Functions
@@ -60,7 +61,7 @@ typedef enum process_state_e {
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_task_process
  * Unittest for pagecache module. */
-int unittest_platform_task_process(void) ;
+int unittest_platform_task_process(void);
 #endif
 
 
@@ -72,11 +73,19 @@ struct process_result_t
     * Either the exit number or signal number.
     * If hasTerminatedAbnormal is true returncode carries
     * the signal number which lead to abnormal process termination. */
-   int               returncode ;
+   int               returncode;
    /* variable: state
     * Either process_state_TERMINATED or process_state_ABORTED. */
-   process_state_e   state ;
-} ;
+   process_state_e   state;
+};
+
+// group: query
+
+/* function: isequal_processresult
+ * Vergleicht process mit retcode und state.
+ * Wenn <process_result_t.returncode> und <process_result_t.state> mit
+ * dem jeweiligen Parameter übereinstimmt,  wird true zurückgegeben. */
+static inline int isequal_processresult(const process_result_t* result, int retcode, process_state_e state);
 
 
 /* struct: process_stdio_t
@@ -92,10 +101,10 @@ struct process_result_t
  * Make sure that redirected files are automatically closed in case
  * another process is executed (i.e. have set their O_CLOEXEC flag). */
 struct process_stdio_t {
-   sys_iochannel_t   std_in ;
-   sys_iochannel_t   std_out ;
-   sys_iochannel_t   std_err ;
-} ;
+   sys_iochannel_t   std_in;
+   sys_iochannel_t   std_out;
+   sys_iochannel_t   std_err;
+};
 
 // group: lifetime
 
@@ -115,24 +124,24 @@ struct process_stdio_t {
  * Redirects standard input to given file.
  * Use value <iochannel_FREE> to redirect standard input to device null.
  * Use value <iochannel_STDIN> to let child inherit standard error. */
-void redirectin_processstdio(process_stdio_t * stdfd, sys_iochannel_t input_file) ;
+void redirectin_processstdio(process_stdio_t * stdfd, sys_iochannel_t input_file);
 
 /* function: redirectout_processstdio
  * Redirects standard output to given file.
  * Use value <iochannel_FREE> to redirect standard output to device null.
  * Use value <iochannel_STDOUT> to let child inherit standard error. */
-void redirectout_processstdio(process_stdio_t * stdfd, sys_iochannel_t output_file) ;
+void redirectout_processstdio(process_stdio_t * stdfd, sys_iochannel_t output_file);
 
 /* function: redirecterr_processstdio
  * Redirects standard error output to given file.
  * Use value <iochannel_FREE> to redirect standard error to device null.
  * Use value <iochannel_STDERR> to let child inherit standard error. */
-void redirecterr_processstdio(process_stdio_t * stdfd, sys_iochannel_t error_file) ;
+void redirecterr_processstdio(process_stdio_t * stdfd, sys_iochannel_t error_file);
 
 
 /* struct: process_t
  * Represents system specific process. */
-typedef sys_process_t                     process_t ;
+typedef sys_process_t                     process_t;
 
 // group: lifetime
 
@@ -144,12 +153,12 @@ typedef sys_process_t                     process_t ;
  * Creates child process which executes a function.
  * Setting pointer stdfd to 0 has the same effect as providing a pointer to <process_stdio_t>
  * initialized with <process_stdio_INIT_DEVNULL>. */
-int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdio_t * stdfd) ;
+int init_process(/*out*/process_t* process, process_task_f child_main, void* start_arg, process_stdio_t* stdfd);
 
 /* function: initgeneric_process
  * Same as <init_process> except that it accepts functions with generic argument type.
  * The argument must have same size as sizeof(void*). */
-int initgeneric_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdio_t * stdfd) ;
+int initgeneric_process(/*out*/process_t* process, process_task_f child_main, void* start_arg, process_stdio_t* stdfd);
 
 /* function: initexec_process
  * Executes another program with same environment.
@@ -160,14 +169,14 @@ int initgeneric_process(/*out*/process_t * process, process_task_f child_main, v
  * that represent the argument list available to the new program.
  * The first argument should point to the filename associated with the file being executed.
  * It must be terminated by a NULL pointer. */
-int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_stdio_t * stdfd /*0 => /dev/null*/) ;
+int initexec_process(/*out*/process_t* process, const char* filename, const char* const* arguments, process_stdio_t* stdfd /*0 => /dev/null*/);
 
 /* function: free_process
  * Frees resource associated with a process.
  * If a process is running it is killed.
  * So call <wait_process> before to ensure the process has finished properly.
  * ECHILD is returned if process does no longer exist. */
-int free_process(process_t * process);
+int free_process(process_t* process);
 
 // group: query
 
@@ -185,7 +194,7 @@ int free_process(process_t * process);
  *                   Points to character buffer of size namebuffer_size.
  * name_size       - Is set to the size of the name including the trailing \0 byte.
  *                   If this pointer is NULL nothing is returned. */
-int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
+int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t* name_size);
 
 /* function: state_process
  * Returns current state of process.
@@ -193,7 +202,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
  * Returns:
  * 0      - Out parameter current_state is set to current state.
  * ECHILD - Process does no longer exist. */
-int state_process(process_t * process, /*out*/process_state_e * current_state) ;
+int state_process(process_t* process, /*out*/process_state_e* current_state);
 
 // group: change
 
@@ -204,13 +213,13 @@ int state_process(process_t * process, /*out*/process_state_e * current_state) ;
  * This call works only if there are no other running threads besides the calling thread.
  * The reason is that after return only the calling thread is running and all other
  * threads have no chance to free their resources. After return the process id has been changed. */
-int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/) ;
+int daemonize_process(process_stdio_t* stdfd/*0 => /dev/null*/);
 
 /* function: wait_process
  * Waits until process has terminated.
  * If the process changes into stopped state it will be continued until it terminates.
  * Calling the function more than once always returns the same result. */
-int wait_process(process_t * process, /*out*/process_result_t * result) ;
+int wait_process(process_t* process, /*out*/process_result_t* result);
 
 
 
@@ -233,18 +242,28 @@ int wait_process(process_t * process, /*out*/process_result_t * result) ;
 #define redirecterr_processstdio(stdfd, error_file) \
          ((void)((stdfd)->std_err = error_file))
 
+// group: process_result_t
+
+/* define: isequal_processresult
+ * Implements <process_result_t.isequal_processresult>. */
+static inline int isequal_processresult(const process_result_t* result, int retcode, process_state_e state)
+{
+         return   result->returncode == retcode
+                  && result->state == state;
+}
+
 // group: process_t
 
 /* define: initgeneric_process
  * Implements <process_t.initgeneric_process>. */
-#define initgeneric_process(process, child_main, start_arg, stdfd)   \
+#define initgeneric_process(process, child_main, start_arg, stdfd) \
          ( __extension__ ({                                          \
-               int (*_child_main) (typeof(start_arg)) ;              \
-               _child_main = (child_main) ;                          \
+               int (*_child_main) (typeof(start_arg));               \
+               _child_main = (child_main);                           \
                static_assert( sizeof(start_arg) == sizeof(void*),    \
-                              "same as void*" ) ;                    \
+                              "same as void*" );                     \
                init_process(  process, (process_task_f) _child_main, \
-                              (void*)start_arg, stdfd ) ;            \
+                              (void*)start_arg, stdfd );             \
          }))
 
 #endif
