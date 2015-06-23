@@ -274,10 +274,6 @@ int run_unittest(void * argv)
       RUN(unittest_io_terminal_terminal);
 //}
 
-//{ new C
-      RUN(unittest_newc_ncparser);
-//}
-
 //{ platform unittest
       // sync unittest
       RUN(unittest_platform_sync_mutex);

@@ -251,9 +251,6 @@
       <File Name="../../C-kern/api/graphic/glapi.h"/>
       <File Name="../../C-kern/api/graphic/gles2api.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="newC">
-      <File Name="../../C-kern/api/newC/nCparser.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="stdtypes">
       <File Name="../../C-kern/api/stdtypes/errorcontext.h"/>
       <File Name="../../C-kern/api/stdtypes/errornr.h"/>
@@ -634,9 +631,6 @@
       </Completion>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="newC">
-    <File Name="../../C-kern/newC/nCparser.c"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="stdtypes">
     <File Name="../../C-kern/stdtypes/errorcontext.c"/>
     <File Name="../../C-kern/stdtypes/errornr.c"/>

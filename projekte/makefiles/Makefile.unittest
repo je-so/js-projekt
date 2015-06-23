@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Mär.18  09:24:43
+GenerationDate  := 2015.Jun.23  18:28:02
 GeneratedBy     := je-so
 
 ## Debug
@@ -168,7 +168,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!memvec.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
- $(ObjectDir_Debug)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!errornr.c.o \
@@ -289,7 +288,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!memvec.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
- $(ObjectDir_Release)/C-kern!newC!nCparser.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!errornr.c.o \
@@ -601,9 +599,6 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!stdtypes!errorcontext.c.o: C-kern/stdtypes/errorcontext.c
@@ -958,9 +953,6 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!newC!nCparser.c.o: C-kern/newC/nCparser.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!stdtypes!errorcontext.c.o: C-kern/stdtypes/errorcontext.c
