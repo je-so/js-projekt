@@ -3,7 +3,7 @@
 # Test main_module
 # ************************************************
 # * 1. Check for declaration
-# * int main_module(/*out*/threadcont ext_t * tcontext)
+# * int main_module(/*out*/functable_t* table, threadcontext_t * tcontext)
 # ************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed

@@ -355,7 +355,7 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
    if (err) goto ONERR;
 
    if (process_state_TERMINATED != result.state) {
-      logfailedf_unittest(__FILE__, __LINE__, "Test process aborted (%02d)", result.returncode);
+      logfailedf_unittest(__FILE__, __LINE__, "Test process aborted (signalnr:%02d)", result.returncode);
       result.returncode = EINTR;
    }
 
@@ -835,8 +835,8 @@ static int test_exec(void)
    TEST(7 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG\n", 7));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(94 == bytes_read)
-   TEST(0 == strncmp("C-kern/test/unittest.c:358: TEST FAILED\nC-kern/test/unittest.c:358: Test process aborted (06)\n", (const char*)buffer, bytes_read));
+   TESTP(103 == bytes_read, "bytes_read:%zd", bytes_read)
+   TEST(0 == strncmp("C-kern/test/unittest.c:358: TEST FAILED\nC-kern/test/unittest.c:358: Test process aborted (signalnr:06)\n", (const char*)buffer, bytes_read));
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare

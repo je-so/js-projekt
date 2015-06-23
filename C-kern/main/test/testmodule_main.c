@@ -17,6 +17,9 @@
 #include "C-kern/main/test/helper/testmodule_helper1.h"
 
 
+/* main_module is checked in build_module_from_sharedlib.sh
+ * to be the first function in the compiled .text section
+ * (.text section contains machine code) */
 int main_module(/*out*/testmodule_functable_t * functable, threadcontext_t * tcontext)
 {
    int err ;
