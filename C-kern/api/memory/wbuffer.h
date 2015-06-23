@@ -102,6 +102,8 @@ struct wbuffer_it {
  * wbuffer_t does not allocate memory for itself so you do not need to free an initialized object.
  * But you have to free the wrapped object.
  *
+ * TODO: support temporary allocator with wbuffer_INIT_TEMPMEM
+ *
  * */
 struct wbuffer_t {
    /* variable: next

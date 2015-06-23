@@ -53,7 +53,7 @@ typedef struct thread_startargument_t {
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_thread_errtimer
- * Simulates an error in <newgroup_thread>. */
+ * Simulates an error in <new_thread>. */
 static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
 #endif
 
@@ -411,6 +411,7 @@ int exit_thread(int retcode)
    }
 
    pthread_exit(0);
+   assert(0);
 
 ONERR:
    TRACEEXIT_ERRLOG(err);
@@ -486,7 +487,7 @@ static int test_initfree(void)
    TEST(0 == thread);
 
    // TEST newgeneric_thread: thread is run
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 14));
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)14));
    TEST(thread);
    TEST(thread->nextwait   == 0);
    TEST(thread->lockflag   == 0);
@@ -514,7 +515,7 @@ static int test_initfree(void)
    TEST(0 == thread);
 
    // TEST delete_thread: join_thread called from delete_thread
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 11));
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)11));
    TEST(thread);
    TEST(thread->nextwait   == 0);
    TEST(sthread.ismain     == 0);
@@ -531,7 +532,7 @@ static int test_initfree(void)
    // TEST new_thread: ERROR
    for (int i = 1; i; ++i) {
       init_testerrortimer(&s_thread_errtimer, (unsigned)i, i);
-      int err = newgeneric_thread(&thread, &thread_returncode, 0);
+      int err = newgeneric_thread(&thread, &thread_returncode, (intptr_t)0);
       if (!err) {
          TEST(0 != thread);
          TEST(i == 5)
@@ -632,7 +633,7 @@ static int test_join(void)
    thread_t * thread = 0;
 
    // TEST join_thread
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 12));
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)12));
    write_atomicint(&s_thread_signal, 1);
    TEST(0 == join_thread(thread));
    TEST(0 == read_atomicint(&s_thread_signal));
@@ -657,7 +658,7 @@ static int test_join(void)
 
    // TEST tryjoin_thread: EBUSY
    s_thread_signal = 0;
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 13));
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)13));
    TEST(EBUSY == tryjoin_thread(thread));
    TEST(sys_thread_FREE != thread->sys_thread);
 
@@ -748,7 +749,7 @@ static int test_join(void)
    TEST(pthread_self() == selfthread.sys_thread);
 
    // prepare
-   TEST(0 == newgeneric_thread(&thread, &thread_returncode, 0));
+   TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)0));
    thread_t copied_thread1 = *thread;
    thread_t copied_thread2 = *thread;
    write_atomicint(&s_thread_signal, 1);
@@ -849,7 +850,7 @@ static int test_sigaltstack(void)
 
    // TEST newgeneric_thread: test that own signal stack is used
    // thread 'thread_sigaltstack' runs under its own sigaltstack in sigusr1handler with signal SIGUSR1
-   TEST(0 == newgeneric_thread(&thread, &thread_sigaltstack, 0));
+   TEST(0 == newgeneric_thread(&thread, &thread_sigaltstack, (intptr_t)0));
    TEST(0 == join_thread(thread));
    TEST(0 == returncode_thread(thread));
    TEST(0 == delete_thread(&thread));
@@ -1142,7 +1143,7 @@ static int poll_for_signal(int signr)
    return err == -1 ? errno : err == signr ? 0 : EINVAL;
 }
 
-static int thread_sendsignal2thread(thread_t * receiver)
+static int thread_sendsignal2thread(thread_t* receiver)
 {
    int err;
    err = pthread_kill(receiver->sys_thread, SIGUSR1);
@@ -1150,7 +1151,7 @@ static int thread_sendsignal2thread(thread_t * receiver)
    return err;
 }
 
-static int thread_sendsignal2process(int dummy)
+static int thread_sendsignal2process(void* dummy)
 {
    int err;
    (void) dummy;
@@ -1158,7 +1159,7 @@ static int thread_sendsignal2process(int dummy)
    return err;
 }
 
-static int thread_receivesignal(int dummy)
+static int thread_receivesignal(void* dummy)
 {
    int err;
    (void) dummy;
@@ -1166,7 +1167,7 @@ static int thread_receivesignal(int dummy)
    return err;
 }
 
-static int thread_receivesignal2(int dummy)
+static int thread_receivesignal2(void* dummy)
 {
    int err;
    (void) dummy;
@@ -1175,7 +1176,7 @@ static int thread_receivesignal2(int dummy)
 }
 
 
-static int thread_receivesignalrt(int dummy)
+static int thread_receivesignalrt(void* dummy)
 {
    int err;
    (void) dummy;
@@ -1209,8 +1210,8 @@ static int test_signal(void)
 
    // TEST pthread_kill: 2nd thread receives from 1st thread
    while (0 < sigtimedwait(&signalmask, 0, &ts)); // empty signal queue
-   TEST(0 == newgeneric_thread(&thread2, thread_receivesignal, 0));
-   TEST(0 == newgeneric_thread(&thread1, thread_sendsignal2thread, thread2));
+   TEST(0 == new_thread(&thread2, &thread_receivesignal, 0));
+   TEST(0 == newgeneric_thread(&thread1, &thread_sendsignal2thread, thread2));
    TEST(0 == join_thread(thread1));
    TEST(0 == join_thread(thread2));
    TEST(0 == returncode_thread(thread1));
@@ -1220,8 +1221,8 @@ static int test_signal(void)
 
    // TEST pthread_kill: main thread can not receive from 1st thread if it sends to 2nd thread
    while (0 < sigtimedwait(&signalmask, 0, &ts)); // empty signal queue
-   TEST(0 == newgeneric_thread(&thread2, thread_receivesignal2, 0));
-   TEST(0 == newgeneric_thread(&thread1, thread_sendsignal2thread, thread2));
+   TEST(0 == new_thread(&thread2, &thread_receivesignal2, 0));
+   TEST(0 == newgeneric_thread(&thread1, &thread_sendsignal2thread, thread2));
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
    TEST(-1 == sigtimedwait(&signalmask, 0, &ts));
@@ -1234,7 +1235,7 @@ static int test_signal(void)
 
    // TEST kill(): send signal to process => main thread receives !
    while (0 < sigtimedwait(&signalmask, 0, &ts)); // empty signal queue
-   TEST(0 == newgeneric_thread(&thread1, thread_sendsignal2process, 0));
+   TEST(0 == new_thread(&thread1, &thread_sendsignal2process, 0));
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
    TEST(0 == wait_for_signal(SIGUSR1));
@@ -1242,10 +1243,10 @@ static int test_signal(void)
 
    // TEST kill(): send signal to process => second thread receives !
    while (0 < sigtimedwait(&signalmask, 0, &ts)); // empty signal queue
-   TEST(0 == newgeneric_thread(&thread1, thread_sendsignal2process, 0));
+   TEST(0 == new_thread(&thread1, &thread_sendsignal2process, 0));
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
-   TEST(0 == newgeneric_thread(&thread2, thread_receivesignal, 0));
+   TEST(0 == new_thread(&thread2, &thread_receivesignal, 0));
    TEST(0 == join_thread(thread2));
    TEST(0 == returncode_thread(thread2));
    TEST(0 == delete_thread(&thread1));
@@ -1258,7 +1259,7 @@ static int test_signal(void)
    TEST(0 == kill(getpid(), SIGUSR1));
    TEST(0 == kill(getpid(), SIGUSR1));
    TEST(0 == kill(getpid(), SIGUSR1));
-   TEST(0 == newgeneric_thread(&thread1, &thread_receivesignal, 0));
+   TEST(0 == new_thread(&thread1, &thread_receivesignal, 0));
    TEST(0 == join_thread(thread1));
    TEST(0 == returncode_thread(thread1));
    TEST(0 == delete_thread(&thread1));
@@ -1270,8 +1271,8 @@ static int test_signal(void)
    TEST(0 == kill(getpid(), SIGRTMIN));
    TEST(0 == kill(getpid(), SIGRTMIN));
    TEST(0 == kill(getpid(), SIGRTMIN));
-   TEST(0 == newgeneric_thread(&thread1, &thread_receivesignalrt, 0));
-   TEST(0 == newgeneric_thread(&thread2, &thread_receivesignalrt, 0));
+   TEST(0 == new_thread(&thread1, &thread_receivesignalrt, 0));
+   TEST(0 == new_thread(&thread2, &thread_receivesignalrt, 0));
    TEST(0 == join_thread(thread1));
    TEST(0 == join_thread(thread2));
    TEST(0 == returncode_thread(thread1));
@@ -1432,8 +1433,8 @@ static int test_suspendresume(void)
    //                     test that resume_thread is preserved !
    TEST(EAGAIN == trywait_signalrt(0, 0));
    TEST(EAGAIN == trywait_signalrt(1, 0));
-   TEST(0 == newgeneric_thread(&thread1, thread_waitsuspend, 0));
-   TEST(0 == newgeneric_thread(&thread2, thread_waitsuspend, 0));
+   TEST(0 == newgeneric_thread(&thread1, &thread_waitsuspend, (intptr_t)0));
+   TEST(0 == newgeneric_thread(&thread2, &thread_waitsuspend, (intptr_t)0));
    resume_thread(thread1);
    resume_thread(thread2);
    TEST(0 == send_signalrt(0, 0)); // start threads

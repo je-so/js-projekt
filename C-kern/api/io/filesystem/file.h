@@ -191,12 +191,17 @@ int advisedontneed_file(file_t file, off_t offset, off_t length);
 int truncate_file(file_t file, off_t file_size);
 
 /* function: allocate_file
- * Preallocates blocks on disk filled with 0 bytes.
- * The preallocation is faster than filling a file with 0 bytes and it ensures that
- * a writer does not run out of disk space.
- * This call can only grow the file size.
- * Returns ENOSPC if not enough space is available on the disk. */
-int allocate_file(file_t file, off_t file_size);
+ * Reserviert 0 Byte gefüllte Datenblöcke für eine Datei im Voraus.
+ * Der Bereich, für den Datenblöcke reserviert werden, startet mit Fileoffset offset
+ * und erstreckt sich über len Bytes.
+ * Die Reservierung ist schneller als explizit 0 Bytes zu schreiben und stellt zudem sicher,
+ * daß eine Schreiboperation nicht wegen mangelndem Plattenplatz abbricht.
+ * Dieser Aufruf erhöht die Dateilänge, falls offset+len größer als die aktuelle Dateilänge ist.
+ *
+ * Return:
+ * 0      - OK, Datenblöcke wurden für den Bereich [offset..offset+len) reserviert.
+ * ENOSPC - Auf der Platte ist nicht genügend Platz vrohanden. */
+int allocate_file(file_t file, off_t offset, off_t len);
 
 
 // section: inline implementation

@@ -649,7 +649,7 @@ static int test_seek(directory_t * tempdir)
 
    // create content
    TEST(0 == initcreate_file(&fd, "mmfile", tempdir)) ;
-   TEST(0 == allocate_file(fd, nrpages*pagesize + 1/*test access beyond filelength*/)) ;
+   TEST(0 == allocate_file(fd, 0, nrpages*pagesize + 1/*test access beyond filelength*/)) ;
    TEST(0 == initPio_mmfile(&mfile, fd, 0, nrpages*pagesize + 1, accessmode_RDWR_SHARED)) ;
    TEST(0 == free_iochannel(&fd)) ;
    for (unsigned i = 0; i < nrpages; ++i) {

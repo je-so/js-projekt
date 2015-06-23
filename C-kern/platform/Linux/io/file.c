@@ -439,11 +439,11 @@ ONERR:
    return err;
 }
 
-int allocate_file(file_t file, off_t file_size)
+int allocate_file(file_t file, off_t offset, off_t len)
 {
    int err;
 
-   err = fallocate(file, 0/*adapt file size*/, 0, file_size);
+   err = fallocate(file, 0/*adapt file size*/, offset, len);
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("fallocate", err);
@@ -1220,51 +1220,55 @@ static int test_allocate(directory_t* tempdir)
       TEST(0 == bread/*end of input*/);
       TEST(0 == free_file(&file2));
    }
-   TEST(0 == free_file(&file));
 
    // TEST allocate_file: grow
-   TEST(0 == removefile_directory(tempdir, "testallocate"));
-   TEST(0 == initcreate_file(&file, "testallocate", tempdir));
-   TEST(0 == allocate_file(file, 12/*support sizes smaller than blocksize*/));
-   TEST(0 == size_file(file, &size));
-   TEST(size == 12);
-   for (unsigned i = 1; i <= 256; ++i) {
-      TEST(0 == allocate_file(file, sizeof(buffer)*i));
+   for (int isoffset = 0; isoffset <= 1; ++isoffset) {
+      TEST(0 == removefile_directory(tempdir, "testallocate"));
+      TEST(0 == free_file(&file));
+      TEST(0 == initcreate_file(&file, "testallocate", tempdir));
+      TEST(0 == allocate_file(file, isoffset?2:0, isoffset?7:9/*support sizes smaller than blocksize*/));
       TEST(0 == size_file(file, &size));
-      TEST(size == sizeof(buffer)*i);
-      TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
-      for (unsigned i2 = 0; i2 < i; i2++) {
-         memset(buffer2, 1, sizeof(buffer2));
+      TEST(9 == size);
+      for (unsigned i = 1; i <= 256; ++i) {
+         TEST(0 == allocate_file(file, isoffset?sizeof(buffer)*(i-1):0, isoffset?sizeof(buffer):sizeof(buffer)*i));
+         TEST(0 == size_file(file, &size));
+         TEST(size == sizeof(buffer)*i);
+         TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
+         for (unsigned i2 = 0; i2 < i; i2++) {
+            memset(buffer2, 1, sizeof(buffer2));
+            TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread));
+            TEST(bread == sizeof(buffer2));
+            TEST(0 == memcmp(buffer, buffer2, sizeof(buffer)));
+         }
          TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread));
-         TEST(bread == sizeof(buffer2));
-         TEST(0 == memcmp(buffer, buffer2, sizeof(buffer)));
+         TEST(0 == bread/*end of input*/);
+         TEST(0 == free_file(&file2));
       }
-      TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread));
-      TEST(0 == bread/*end of input*/);
-      TEST(0 == free_file(&file2));
    }
 
    // TEST allocate_file: no shrink possible
    for (unsigned i = 1; i <= 256; ++i) {
-      TEST(0 == allocate_file(file, sizeof(buffer)*i));
+      TEST(0 == allocate_file(file, 0, sizeof(buffer)*i));
       TEST(0 == size_file(file, &size));
       TEST(size == sizeof(buffer)*256);
    }
    TEST(0 == free_file(&file));
 
    // TEST allocate_file: free disk blocks really allocated on file system
-   TEST(0 == removefile_directory(tempdir, "testallocate"));
-   TEST(0 == initcreate_file(&file, "testallocate", tempdir));
    struct statvfs statvfs_result1;
    struct statvfs statvfs_result2;
-   TEST(0 == fstatvfs(file, &statvfs_result1));
-   TEST(0 == allocate_file(file, statvfs_result1.f_frsize * 10000));
-   TEST(0 == fstatvfs(file, &statvfs_result2));
-   TEST(statvfs_result2.f_bfree + 10000 <= statvfs_result1.f_bfree);
-   TEST(0 == truncate_file(file, 0));
-   TEST(0 == fstatvfs(file, &statvfs_result2));
-   TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
-   TEST(0 == free_file(&file));
+   for (int isoffset = 0; isoffset <= 1; ++isoffset) {
+      TEST(0 == removefile_directory(tempdir, "testallocate"));
+      TEST(0 == initcreate_file(&file, "testallocate", tempdir));
+      TEST(0 == fstatvfs(file, &statvfs_result1));
+      TEST(0 == allocate_file(file, isoffset ? statvfs_result1.f_frsize * 5000 : 0, statvfs_result1.f_frsize * (isoffset?5000:10000)));
+      TEST(0 == fstatvfs(file, &statvfs_result2));
+      TEST(statvfs_result2.f_bfree + (isoffset ? 5000 : 10000) <= statvfs_result1.f_bfree);
+      TEST(0 == truncate_file(file, 0));
+      TEST(0 == fstatvfs(file, &statvfs_result2));
+      TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
+      TEST(0 == free_file(&file));
+   }
 
    // TEST truncate_file: free disk blocks are not allocated on file system
    TEST(0 == removefile_directory(tempdir, "testallocate"));
@@ -1285,30 +1289,31 @@ static int test_allocate(directory_t* tempdir)
    // negative size
    TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir));
    TEST(EINVAL == truncate_file(file, -4096))
-   TEST(EINVAL == allocate_file(file, -4096))
+   TEST(EINVAL == allocate_file(file, 0, -4096))
+   TEST(EINVAL == allocate_file(file, -1, 4096))
    TEST(0 == free_file(&file));
 
    // TEST ESPIPE (illegal seek)
    // resize pipe
-   TEST(ESPIPE == allocate_file(pipefd[1], 4096))
+   TEST(ESPIPE == allocate_file(pipefd[1], 0, 4096))
 
    // TEST EBADF
    // read only
    TEST(0 == init_file(&file, "testallocate", accessmode_READ, tempdir));
-   TEST(EBADF == allocate_file(file, 4096));
+   TEST(EBADF == allocate_file(file, 0, 4096));
    int oldfile = file;
    TEST(0 == free_file(&file));
    // closed file
    TEST(EBADF == truncate_file(oldfile, 4096))
-   TEST(EBADF == allocate_file(oldfile, 4096))
+   TEST(EBADF == allocate_file(oldfile, 0, 4096))
    // invalid file descriptor
    TEST(EBADF == truncate_file(file_FREE, 4096))
-   TEST(EBADF == allocate_file(file_FREE, 4096))
+   TEST(EBADF == allocate_file(file_FREE, 0, 4096))
 
    // TEST ENOSPC
    TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir));
    TEST(0 == fstatvfs(file, &statvfs_result1));
-   TEST(ENOSPC == allocate_file(file, (off_t) (statvfs_result1.f_frsize * (1+statvfs_result1.f_bavail))));
+   TEST(ENOSPC == allocate_file(file, 0, (off_t) (statvfs_result1.f_frsize * (1+statvfs_result1.f_bavail))));
    TEST(0 == free_file(&file));
 
    // unprepare
