@@ -25,10 +25,9 @@
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/exthash.h"
 #include "C-kern/api/string/string.h"
-#include <assert.h>
+#include "C-kern/api/test/assert.h"
 #include <glob.h>
 #include <pwd.h>
-
 
 const char*     g_programname = 0 ;
 unsigned        g_nrofVariables = 0;

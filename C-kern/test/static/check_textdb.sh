@@ -22,9 +22,6 @@ temp_thread_db=`mktemp`
 echo '"module",            "inittype",    "objtype",            "parameter",     "header-name"' > $temp_thread_db
 echo '"module",            "inittype",    "objtype",            "parameter",    "header-name"' > $temp_process_db
 
-#predefined default modules
-echo '"threadcontext",     "allocmemory", "",                   "",              ""' >> $temp_thread_db
-
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
@@ -122,7 +119,7 @@ for i in $files; do
    done
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result=${interface_thread[$testnt]}
-      if [[ ! "$result" =~ (^struct .*_it \* interface_.*\(void\)[ ]?;) ]]; then
+      if [[ ! "$result" =~ (^struct .*_it[ ]?\* interface_.*\(void\)[ ]?;) ]]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done

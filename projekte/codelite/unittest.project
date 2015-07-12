@@ -310,6 +310,7 @@
       <File Name="../../C-kern/main/tools/genfile.c"/>
       <File Name="../../C-kern/main/tools/generrtab.c"/>
       <File Name="../../C-kern/main/tools/textresource_compiler.c"/>
+      <File Name="../../C-kern/main/tools/genmemdb.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">

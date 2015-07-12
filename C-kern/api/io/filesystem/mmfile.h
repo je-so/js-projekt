@@ -21,11 +21,11 @@
 #define CKERN_IO_FILESYSTEM_MEMORYMAPPEDFILE_HEADER
 
 // forward declaration
-struct directory_t ;
+struct directory_t;
 
 /* typedef: struct mmfile_t
  * Exports <mmfile_t>. */
-typedef struct mmfile_t                mmfile_t ;
+typedef struct mmfile_t mmfile_t;
 
 
 // section: Functions
@@ -35,7 +35,7 @@ typedef struct mmfile_t                mmfile_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_mmfile
  * Test mapping of file into memory. */
-int unittest_io_mmfile(void) ;
+int unittest_io_mmfile(void);
 #endif
 
 
@@ -60,14 +60,14 @@ struct mmfile_t {
    /* variable: addr
     * The start address of the mapped memory.
     * It is a multiple of <pagesize_vm>. */
-   uint8_t  * addr ;
+   uint8_t  * addr;
    /* variable: size
     * Size of the mapped memory.
     * *size* will be a multiple of <pagesize_vm> except
     * if filesize - file_offset would be < size. In this case size is
     * truncated to filesize - file_offset (see <init_mmfile>). */
-   size_t   size ;
-} ;
+   size_t   size;
+};
 
 // group: lifetime
 
@@ -98,7 +98,7 @@ struct mmfile_t {
  * relative_to - If this parameter is != 0 and file_path is a relative path then file_path is considered relative to the path determined by this parameter.
  * mode        - Determines if the file is opened for reading or (reading and writing). Allowed values are <accessmode_READ>, <accessmode_RDWR_PRIVATE> and <accessmode_RDWR_SHARED>.
  * */
-int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, accessmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
+int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, accessmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/);
 
 /* function: initPio_mmfile
  * Maps a file referenced by <sys_iochannel_t> into memory.
@@ -110,46 +110,46 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
  * is undefinded. The operating system creates a bus error exception in cases where a whole memory page has no backing file object.
  * If the size is set to 0 no mapping is done at all and <mmfile_t> is initialized with a 0 (<memblock_FREE>).
  * */
-int initPio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
+int initPio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode);
 
 /* function: initsplit_mmfile
  * Split a memory mapping into two. After return destheadmfile maps the first headsize bytes. headsize must be a multiple of <pagesize_vm>.
  * desttailmfile maps the last (size_mmfile(sourcemfile)-headsize) bytes.
  * sourcemfile is set to <mmfile_FREE> if it is not equal to destheadmfile or desttailmfile. */
-int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttailmfile, size_t headsize, mmfile_t * sourcemfile) ;
+int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttailmfile, size_t headsize, mmfile_t * sourcemfile);
 
 /* function: initmove_mmfile
  * Moves content of sourcemfile to destmfile. sourcemfile is also reset to <mmfile_FREE>. */
-void initmove_mmfile(/*out*/mmfile_t * restrict destmfile, mmfile_t * restrict sourcemfile) ;
+void initmove_mmfile(/*out*/mmfile_t * restrict destmfile, mmfile_t * restrict sourcemfile);
 
 /* function: free_mmfile
  * Frees all mapped memory and closes the file. */
-int free_mmfile(mmfile_t * mfile) ;
+int free_mmfile(mmfile_t * mfile);
 
 // group: query
 
 /* function: isfree_mmfile
  * Returns true if mfile == <mmfile_FREE>. */
-bool isfree_mmfile(const mmfile_t * mfile) ;
+bool isfree_mmfile(const mmfile_t * mfile);
 
 /* function: addr_mmfile
  * Returns the lowest address of the mapped memory.
  * The memory is always mapped in chunks of <pagesize_vm>.
  * The memory which can be accessed is at least [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>]. */
-uint8_t * addr_mmfile(const mmfile_t * mfile) ;
+uint8_t * addr_mmfile(const mmfile_t * mfile);
 
 /* function: size_mmfile
  * Returns the size of the mapped memory.
  * The memory which corresponds to the underlying file is exactly
  * [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>]. */
-size_t  size_mmfile(const mmfile_t * mfile) ;
+size_t  size_mmfile(const mmfile_t * mfile);
 
 /* function: alignedsize_mmfile
  * Returns the size of the mapped memory.
  * This value is a multiple of <pagesize_vm> and it is >= <size_mmfile>.
  * The mapped memory region is [<addr_mmfile> .. <addr_mmfile>+<alignedsize_mmfile>]
  * but only [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>] corresponds to the underlying file. */
-size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
+size_t  alignedsize_mmfile(const mmfile_t * mfile);
 
 // group: change
 
@@ -163,7 +163,7 @@ size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
  * in a SIGBUS (see <initPio_mmfile>). The solution is to handle the size on a higher level
  * after a change of the file offset.
  * */
-int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessmode_e mode) ;
+int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessmode_e mode);
 
 // group: generic
 

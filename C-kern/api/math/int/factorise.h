@@ -34,7 +34,7 @@ int unittest_math_int_factorise(void);
 #endif
 
 
-/* struct: int_t */
+// struct: int_t
 
 // group: compute
 

@@ -7,6 +7,7 @@ PROJECTS= pp-generrtab \
           pp-textdb   \
           pp-textres2 \
           generrtab_  \
+          genmemdb_   \
           genmake_    \
           genfile_    \
           testchildprocess_ \
@@ -103,6 +104,8 @@ $(MAKEFILES_PREFIX)generrtab: projekte/subsys/Linux-mini projekte/subsys/context
 $(MAKEFILES_PREFIX)genfile: projekte/subsys/Linux-mini projekte/subsys/context-mini
 
 $(MAKEFILES_PREFIX)genmake: projekte/subsys/Linux-mini projekte/subsys/context-mini
+
+$(MAKEFILES_PREFIX)genmemdb: projekte/subsys/Linux-mini projekte/subsys/context-mini
 
 $(MAKEFILES_PREFIX)testchildprocess: projekte/subsys/Linux-mini projekte/subsys/context-mini
 

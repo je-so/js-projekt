@@ -122,7 +122,7 @@ void threadstack_threadtls(thread_tls_t* tls, /*out*/struct memblock_t * stackme
  * als bytesize Bytes groß. */
 int allocstatic_threadtls(thread_tls_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock);
 
-/* function: freestatic_pagecacheimpl
+/* function: freestatic_threadtls
  * Gibt den zuletzt allokierten Speicherblock wieder frei.
  * Mehrere Speicherblöcke können auch zusammen auf einmal freigegeben werden.
  *
