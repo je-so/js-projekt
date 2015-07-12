@@ -24,7 +24,7 @@
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_log10
  * Tests implementation of <log10_int>. */
-int unittest_math_int_log10(void) ;
+int unittest_math_int_log10(void);
 #endif
 
 
@@ -47,15 +47,15 @@ int unittest_math_int_log10(void) ;
  *
  * Parameter:
  * i - The argument whose logarithm to base 10 is caclulated and returned. */
-unsigned log10_int(unsigned i) ;
+unsigned log10_int(unsigned i);
 
 /* function: log10_int32
  * Implements <log10_int> for 32 bit values. */
-unsigned log10_int32(uint32_t i) ;
+unsigned log10_int32(uint32_t i);
 
 /* function: log10_int64
  * Implements <log10_int> for 64 bit values. */
-unsigned log10_int64(uint64_t i) ;
+unsigned log10_int64(uint64_t i);
 
 
 // section: inline implementation
@@ -63,12 +63,12 @@ unsigned log10_int64(uint64_t i) ;
 /* function: log10_int
  * Implements <int_t.log10_int>.
  * TODO: reimplement it with _Generic */
-#define log10_int(number)                                               \
-   ( __extension__ ({                                                   \
-      static_assert(0 < (typeof(number))-1, "only unsigned allowed") ;  \
-      (sizeof(number) <= sizeof(uint32_t))                              \
-         ? log10_int32((uint32_t)number)                                \
-         : log10_int64(number) ;                                        \
-   }))
+#define log10_int(number) \
+         ( __extension__ ({                                                   \
+            static_assert(0 < (typeof(number))-1, "only unsigned allowed");   \
+            (sizeof(number) <= sizeof(uint32_t))                              \
+               ? log10_int32((uint32_t)number)                                \
+               : log10_int64(number) ;                                        \
+         }))
 
 #endif

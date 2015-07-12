@@ -188,6 +188,7 @@ int run_unittest(void * argv)
       RUN(unittest_math_int_biginteger);
       RUN(unittest_math_int_bitorder);
       RUN(unittest_math_int_byteorder);
+      RUN(unittest_math_int_factorise);
       RUN(unittest_math_int_log10);
       RUN(unittest_math_int_log2);
       RUN(unittest_math_int_power2);
