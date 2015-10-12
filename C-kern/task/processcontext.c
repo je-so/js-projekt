@@ -21,7 +21,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/config/initprocess)
-#include "C-kern/api/stdtypes/errorcontext.h"
+#include "C-kern/api/err/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"

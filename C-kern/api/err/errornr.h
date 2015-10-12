@@ -8,14 +8,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/stdtypes/errornr.h
+   file: C-kern/api/err/errornr.h
     Header file <ErrorNumbers>.
 
-   file: C-kern/stdtypes/errornr.c
+   file: C-kern/err/errornr.c
     Implementation file <ErrorNumbers impl>.
 */
-#ifndef CKERN_STDTYPES_ERRORNR_HEADER
-#define CKERN_STDTYPES_ERRORNR_HEADER
+#ifndef CKERN_ERR_ERRORNR_HEADER
+#define CKERN_ERR_ERRORNR_HEADER
 
 /* enums: errornr_e
  * Application specific error codes.
@@ -48,9 +48,9 @@ typedef enum errornr_e {
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_stdtypes_errornr
+/* function: unittest_err_errornr
  * Test assignment of <errornr_e>. */
-int unittest_stdtypes_errornr(void);
+int unittest_err_errornr(void);
 #endif
 
 

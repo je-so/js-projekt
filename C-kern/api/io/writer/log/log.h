@@ -47,7 +47,8 @@ enum log_config_e {
 typedef enum log_config_e log_config_e;
 
 /* enums: log_flags_e
- * Used to configure system wide restrictions.
+ * Controls additional information written in addition to a log message.
+ *
  *
  * log_flags_NONE      - Indicates that the log entry does not change append or not append state.
  *                       If the last call to print contained <log_flags_START> the new entry is appended.

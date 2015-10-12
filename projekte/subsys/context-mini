@@ -1,6 +1,6 @@
 # minimal runtime context needed for every derived project
 Src += C-kern/main/maincontext.c
-Src += C-kern/stdtypes/errorcontext.c
+Src += C-kern/err/errorcontext.c
 Src += C-kern/task/processcontext.c
 Src += C-kern/task/threadcontext.c
 # default services
@@ -11,4 +11,4 @@ Src += C-kern/ds/inmem/dlist.c
 Src += C-kern/ds/inmem/queue.c
 Src += C-kern/memory/pagecache_impl.c
 Src += C-kern/memory/mm/mm_impl.c
-Src += C-kern/io/writer/errlog.c C-kern/io/writer/log/logmain.c C-kern/io/writer/log/logbuffer.c C-kern/io/writer/log/logwriter.c
+Src += C-kern/err/errlog.c C-kern/io/writer/log/logmain.c C-kern/io/writer/log/logbuffer.c C-kern/io/writer/log/logwriter.c

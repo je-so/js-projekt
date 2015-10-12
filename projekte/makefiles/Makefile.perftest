@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/perftest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Mär.18  08:55:57
+GenerationDate  := 2015.Okt.12  08:28:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -103,7 +103,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Debug)/C-kern!stdtypes!errorcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
@@ -115,7 +115,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
@@ -156,7 +156,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Release)/C-kern!stdtypes!errorcontext.c.o \
+ $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
@@ -168,7 +168,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!err!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
@@ -272,7 +272,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!stdtypes!errorcontext.c.o: C-kern/stdtypes/errorcontext.c
+$(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
@@ -308,7 +308,7 @@ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+$(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
@@ -425,7 +425,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!stdtypes!errorcontext.c.o: C-kern/stdtypes/errorcontext.c
+$(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
@@ -461,7 +461,7 @@ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+$(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c

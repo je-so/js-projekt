@@ -8,15 +8,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/stdtypes/errorcontext.h
+   file: C-kern/api/err/errorcontext.h
     Header file <ErrorContext>.
 
-   file: C-kern/stdtypes/errorcontext.c
+   file: C-kern/err/errorcontext.c
     Implementation file <ErrorContext impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/stdtypes/errorcontext.h"
+#include "C-kern/api/err/errorcontext.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -255,7 +255,7 @@ ONERR:
 }
 
 
-int unittest_stdtypes_errorcontext()
+int unittest_err_errorcontext()
 {
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;

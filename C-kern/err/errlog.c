@@ -9,10 +9,10 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/io/writer/log/errlog_macros.h
+   file: C-kern/api/err/errlog_macros.h
     Header file of <ErrlogMacros>.
 
-   file: C-kern/io/writer/errlog.c
+   file: C-kern/err/errlog.c
     Implementation file <Errorlog-Writer>.
 */
 

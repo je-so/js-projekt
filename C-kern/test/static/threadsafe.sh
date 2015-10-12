@@ -13,7 +13,7 @@ files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d'`
 ok=( C-kern/main/tools/textdb.c
      C-kern/main/tools/generrtab.c
      C-kern/main/tools/genmake.c
-     C-kern/stdtypes/errorcontext.c
+     C-kern/err/errorcontext.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
    files="${files/"${ok[$i]}"/}" # remove files which are ok from $files

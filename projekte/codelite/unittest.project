@@ -201,7 +201,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
-          <File Name="../../C-kern/api/io/writer/log/errlog_macros.h"/>
           <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
           <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
@@ -253,11 +252,14 @@
       <File Name="../../C-kern/api/graphic/gles2api.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="stdtypes">
-      <File Name="../../C-kern/api/stdtypes/errorcontext.h"/>
-      <File Name="../../C-kern/api/stdtypes/errornr.h"/>
       <File Name="../../C-kern/api/stdtypes/iobj.h"/>
       <File Name="../../C-kern/api/stdtypes/stdmacros.h"/>
       <File Name="../../C-kern/api/stdtypes/stdtypes.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="err">
+      <File Name="../../C-kern/api/err/errorcontext.h"/>
+      <File Name="../../C-kern/api/err/errornr.h"/>
+      <File Name="../../C-kern/api/err/errlog_macros.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -278,7 +280,6 @@
         <File Name="../../C-kern/io/writer/log/logwriter.c"/>
         <File Name="../../C-kern/io/writer/log/logbuffer.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/io/writer/errlog.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="filesystem">
       <File Name="../../C-kern/io/filesystem/fileutil.c"/>
@@ -635,8 +636,11 @@
     </Configuration>
   </Settings>
   <VirtualDirectory Name="stdtypes">
-    <File Name="../../C-kern/stdtypes/errorcontext.c"/>
-    <File Name="../../C-kern/stdtypes/errornr.c"/>
     <File Name="../../C-kern/stdtypes/iobj.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="err">
+    <File Name="../../C-kern/err/errorcontext.c"/>
+    <File Name="../../C-kern/err/errornr.c"/>
+    <File Name="../../C-kern/err/errlog.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

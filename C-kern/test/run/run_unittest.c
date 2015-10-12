@@ -128,9 +128,12 @@ int run_unittest(void * argv)
 
       prepare_test();
 
+//{ err
+      RUN(unittest_err_errorcontext);
+      RUN(unittest_err_errornr);
+//}
+
 //{ std types
-      RUN(unittest_stdtypes_errorcontext);
-      RUN(unittest_stdtypes_errornr);
       RUN(unittest_stdtypes_iobj);
 //}
 
