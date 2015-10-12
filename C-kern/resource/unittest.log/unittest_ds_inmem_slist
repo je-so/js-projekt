@@ -1,24 +1,30 @@
-[1: 1410602929.939945s]
+[1: 1443695036.703518s]
 free_slist() C-kern/ds/inmem/slist.c:62
+One or more resources could not be freed
+Exit function with
 Error 12 - Cannot allocate memory
-One or more resources could not be freed
-[1: 1410602929.939970s]
+[1: 1443695036.703546s]
 removeafter_slist() C-kern/ds/inmem/slist.c:126
-Error 22 - Invalid argument
 Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-[1: 1410602929.939973s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.703550s]
 removefirst_slist() C-kern/ds/inmem/slist.c:102
-Error 22 - Invalid argument
 Function input violates condition (! isempty_slist(list))
-[1: 1410602929.939975s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.703553s]
 removeafter_slist() C-kern/ds/inmem/slist.c:126
-Error 22 - Invalid argument
 Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-[1: 1410602929.939982s]
-free_slist() C-kern/ds/inmem/slist.c:62
-Error 38 - Function not implemented
-One or more resources could not be freed
-[1: 1410602929.939985s]
-free_slist() C-kern/ds/inmem/slist.c:62
+Exit function with
 Error 22 - Invalid argument
+[1: 1443695036.703560s]
+free_slist() C-kern/ds/inmem/slist.c:62
 One or more resources could not be freed
+Exit function with
+Error 38 - Function not implemented
+[1: 1443695036.703565s]
+free_slist() C-kern/ds/inmem/slist.c:62
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument

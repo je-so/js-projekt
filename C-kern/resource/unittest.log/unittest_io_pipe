@@ -1,32 +1,42 @@
-[1: 1421124460.117851s]
+[1: 1443695049.350802s]
 free_pipe() C-kern/platform/Linux/io/pipe.c:84
+One or more resources could not be freed
+Exit function with
 Error 1 - Operation not permitted
-One or more resources could not be freed
-[1: 1421124460.117867s]
+[1: 1443695049.350819s]
 free_pipe() C-kern/platform/Linux/io/pipe.c:84
-Error 2 - No such file or directory
 One or more resources could not be freed
-[1: 1421124460.117873s]
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695049.350829s]
 readall_pipe() C-kern/platform/Linux/io/pipe.c:125
+Exit function with
 Error 9 - Bad file descriptor
-[1: 1421124460.117878s]
+[1: 1443695049.350834s]
 writeall_pipe() C-kern/platform/Linux/io/pipe.c:160
+Exit function with
 Error 9 - Bad file descriptor
-[1: 1421124460.365448s]
+[1: 1443695049.598322s]
 readall_pipe() C-kern/platform/Linux/io/pipe.c:125
+Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1421124460.365596s]
+[1: 1443695049.598464s]
 writeall_pipe() C-kern/platform/Linux/io/pipe.c:160
+Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1421124460.370714s]
+[1: 1443695049.603584s]
 readall_pipe() C-kern/platform/Linux/io/pipe.c:125
+Exit function with
 Error 62 - Timer expired
-[1: 1421124460.375945s]
+[1: 1443695049.608812s]
 writeall_pipe() C-kern/platform/Linux/io/pipe.c:160
+Exit function with
 Error 62 - Timer expired
-[1: 1421124460.378119s]
+[1: 1443695049.611010s]
 readall_pipe() C-kern/platform/Linux/io/pipe.c:125
+Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1421124460.378227s]
+[1: 1443695049.611114s]
 writeall_pipe() C-kern/platform/Linux/io/pipe.c:160
+Exit function with
 Error 11 - Resource temporarily unavailable

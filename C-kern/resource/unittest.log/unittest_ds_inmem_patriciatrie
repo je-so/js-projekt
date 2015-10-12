@@ -1,35 +1,44 @@
-[1: 1410602929.516351s]
+[1: 1443695036.289153s]
 removenodes_patriciatrie() C-kern/ds/inmem/patriciatrie.c:449
-Error 2 - No such file or directory
 One or more resources could not be freed
-[1: 1410602929.516356s]
-free_patriciatrie() C-kern/ds/inmem/patriciatrie.c:45
+Exit function with
 Error 2 - No such file or directory
-[1: 1410602929.516716s]
+[1: 1443695036.289159s]
+free_patriciatrie() C-kern/ds/inmem/patriciatrie.c:45
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695036.289485s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:175
-Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-[1: 1410602929.516719s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.289489s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:175
-Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-[1: 1410602929.516722s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.289492s]
 find_patriciatrie() C-kern/ds/inmem/patriciatrie.c:175
-Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-[1: 1410602929.516724s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.289495s]
 remove_patriciatrie() C-kern/ds/inmem/patriciatrie.c:293
-Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-[1: 1410602929.516726s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.289497s]
 remove_patriciatrie() C-kern/ds/inmem/patriciatrie.c:293
-Error 22 - Invalid argument
 Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
-[1: 1410602929.516729s]
-insert_patriciatrie() C-kern/ds/inmem/patriciatrie.c:203
+Exit function with
 Error 22 - Invalid argument
-Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
-[1: 1410602929.516731s]
+[1: 1443695036.289499s]
 insert_patriciatrie() C-kern/ds/inmem/patriciatrie.c:203
-Error 22 - Invalid argument
 Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695036.289501s]
+insert_patriciatrie() C-kern/ds/inmem/patriciatrie.c:203
+Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
+Exit function with
+Error 22 - Invalid argument

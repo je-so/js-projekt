@@ -12,24 +12,11 @@ void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Assertion '%s' fehlgeschlagen.\n", wrong_condition) ;
 }
 
-void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
-   size_t threadid = va_arg(vargs, size_t) ;
-   uint64_t sec = va_arg(vargs, uint64_t) ;
-   uint32_t usec = va_arg(vargs, uint32_t) ;
-   const char * funcname = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
-   int linenr = va_arg(vargs, int) ;
+   (void) vargs ;
 
-   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
-}
-
-void LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
-{
-   int err = va_arg(vargs, int) ;
-   const char * errdescription = va_arg(vargs, const char*) ;
-
-   PRINTF("Fehler %d - %s\n", err, errdescription) ;
+   PRINTF("Fehler wird ignoriert\n") ;
 }
 
 void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
@@ -81,25 +68,34 @@ void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Kann Datei '%s%s' nicht löschen - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void FUNCTION_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
-{
-   (void) vargs ;
-
-   PRINTF("Ressourcen-Freigabe schlug fehl\n") ;
-}
-
 void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * funcname = va_arg(vargs, const char*) ;
+   int err = va_arg(vargs, int) ;
 
-   PRINTF("Funktionsaufruf '%s' fehlgeschlagen\n", funcname) ;
+   PRINTF("Funktionsaufruf '%s' fehlgeschlagen mit Fehler %d\n", funcname, err) ;
+}
+
+void FUNCTION_EXIT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+{
+   int err = va_arg(vargs, int) ;
+
+   PRINTF("Beende Funktion mit\nFehler %d - %s\n", err, (const char*)str_errorcontext(error_maincontext(), err)) ;
+}
+
+void FUNCTION_EXIT_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+{
+   int err = va_arg(vargs, int) ;
+
+   PRINTF("Ressourcen-Freigabe schlug fehl\nBeende Funktion mit\nFehler %d - %s\n", err, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
 void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * funcname = va_arg(vargs, const char*) ;
+   int err = va_arg(vargs, int) ;
 
-   PRINTF("Systemaufruf '%s' fehlgeschlagen\n", funcname) ;
+   PRINTF("Systemaufruf '%s' fehlgeschlagen mit Fehler %d\n", funcname, err) ;
 }
 
 void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
@@ -117,11 +113,24 @@ void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n") ;
 }
 
+void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+{
+   size_t threadid = va_arg(vargs, size_t) ;
+   uint64_t sec = va_arg(vargs, uint64_t) ;
+   uint32_t usec = va_arg(vargs, uint32_t) ;
+   const char * funcname = va_arg(vargs, const char*) ;
+   const char * filename = va_arg(vargs, const char*) ;
+   int linenr = va_arg(vargs, int) ;
+
+   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
+}
+
 void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    size_t size = va_arg(vargs, size_t) ;
+   int err = va_arg(vargs, int) ;
 
-   PRINTF("Keine %zu Bytes Speicher mehr frei\n", size) ;
+   PRINTF("Keine %zu Bytes Speicher mehr frei - Fehler %d\n", size, err) ;
 }
 
 void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
@@ -143,9 +152,9 @@ void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list var
 
 void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
-   (void) vargs ;
+   int err = va_arg(vargs, int) ;
 
-   PRINTF("Programmabbruch wegen fatalem Fehler\n") ;
+   PRINTF("Programmabbruch wegen fatalem Fehler\nFehler %d - %s\n", err, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
 void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)

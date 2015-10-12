@@ -40,44 +40,35 @@ typedef void (*log_text_f) (struct logbuffer_t * logbuffer, va_list vargs);
  *                      If the buffer is bigger it is not truncated.
  *
  * */
-enum log_config_e {
+typedef enum log_config_e {
    log_config_MINSIZE = 512
-};
+} log_config_e;
 
-typedef enum log_config_e log_config_e;
 
 /* enums: log_flags_e
  * Controls additional information written in addition to a log message.
  *
  *
- * log_flags_NONE      - Indicates that the log entry does not change append or not append state.
- *                       If the last call to print contained <log_flags_START> the new entry is appended.
- *                       If the last call to print contained <log_flags_END> the new entry is not appended.
- * log_flags_START     - Indicates that this is the beginning of a new log entry.
- *                       This flag implicitly ends the previous log entry if not done explicitly.
- *                       The log entry is therefore not appended to a previous one.
- *                       Every following log output is now appended to a memory buffer and truncated if necessary
- *                       until another call to print is done with flag set to <log_flags_END> or <log_flags_START>.
- * log_flags_END       - Indicates that this is the last part of a log entry.
- *                       You can set <log_flags_START> and <log_flags_END> at the same time to indicate
- *                       that the printed log entry should not be appended to a previous one and the following
- *                       entries should not be appended to this one.
- * log_flags_OPTIONALHEADER - A given <log_header_t> is only written before the log entry if the pointer to the function name
- *                            in <log_header_t> differs from the pointer given in the previous call.
- *                            The flag <log_flags_END> sets the remembered pointer to the function name to 0.
- *                            Set this flag on the last part of the log entry if another header could be written in the same function
- *                            with flag <log_flags_START>.
- *                            Both log macros <TRACEEXIT_ERRLOG> and <TRACEEXITFREE_ERRLOG> set this flag. They do not know
- *                            if another call to <TRACESYSCALL_ERRLOG> already printed a header.
+ * log_flags_NONE      - The partial log entry is appended to a memory buffer and truncated if necessary
+ *                       until another call to print is done with flag set to <log_flags_LAST>.
+ *                       If the <log_state_e> is set to <log_state_IMMEDIATE> the partial log entry
+ *                       is written out immediately without waiting for its end.
+ *                       A header is written if it is different then the last written header.
+ *
+ * log_flags_LAST      - Indicates that this is the last part of a log entry.
+ *                       A header is written if it is different then the last written header.
+ *                       The last header is reset to 0.
+ *                       After a possible header the last part of the log entry is appended
+ *                       to a memory buffer and truncated if necessary.
+ *                       The log is written out if state is not <log_state_BUFFERED> or
+ *                       the free buffersize is less than <log_config_MINSIZE>.
+ *
  * */
-enum log_flags_e {
-   log_flags_NONE      = 0,
-   log_flags_START     = 1,
-   log_flags_END       = 2,
-   log_flags_OPTIONALHEADER = 4
-};
+typedef enum log_flags_e {
+   log_flags_NONE = 0,
+   log_flags_LAST = 1
+} log_flags_e;
 
-typedef enum log_flags_e log_flags_e;
 
 /* enums: log_channel_e
  * Used to switch between log channels.
@@ -98,8 +89,8 @@ typedef enum log_flags_e log_flags_e;
  *                       The error channel is used to log system error which should not occur
  *                       and which are not critical to the running process.
  *                       This channel is written to STDERR if not configured otherwise.
- * log_channel__NROF   - Use this value to determine the number of different channels
- *                           numbered from 0 up to (log_channel__NROF-1).
+ * log_channel__NROF   - Use this value to determine the number of different channels.
+ *                       They are numbered from 0 up to (log_channel__NROF-1).
  * */
 typedef enum log_channel_e {
    log_channel_USERERR,
@@ -114,12 +105,12 @@ typedef enum log_channel_e {
 /* enums: log_state_e
  * Used to configure the state of a <log_channel_e>.
  *
- * log_state_IGNORED    - Ignore any writing to this channel.
+ * log_state_IGNORED    - Ignore any output to this channel.
  * log_state_BUFFERED   - Normal operation mode. All log entries are buffered until the buffer is full and then the buffer is written
  *                        all at once.
  * log_state_UNBUFFERED - Every log entry is constructed in a buffer and if the last part of the entry is added to it the log entry is
  *                        written out as a whole.
- * log_state_IMMEDIATE  - Every part of a log entry is written immediately without waiting for the last part end.
+ * log_state_IMMEDIATE  - Every part of a log entry is written immediately without waiting for the last part.
  *
  * log_state__NROF      - Use this value to determine the number of different states
  *                        numbered from 0 up to (log_state__NROF-1).
@@ -155,12 +146,17 @@ struct log_it {
     * Writes a new log entry to in internal buffer.
     * Parameter channel must be set to a value from <log_channel_e>.
     * If header is not 0 a header is written which contains "[thread id, timestamp]\nfuncname() file:linenr\n, Error NR - DESCRIPTION\n".
+    * If another call to <printf> or <printtext> contains the same <log_header_t.funcname> as the last header
+    * the new header is ignored. If flags is set to <log_flags_LAST> the remembered header is reset to 0
+    * so the next valid header is always printed.
     * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
-    * See <logwriter_t.printf_logwriter> for an implementation. */
+    * See <logwriter_t.printf_logwriter> for an implementation.
+    * If format == 0 only the header is written. */
    void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6)));
    /* variable: printtext
     * Writes text resource as new log entry to in internal buffer.
-    * See <printf> for a description of the parameter. The variable parameter list must match the resource. */
+    * See <printf> for a description of the parameter. The variable parameter list must match the resource.
+    * If textf == 0 only the header is written. */
    void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, log_text_f textf, ... );
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
@@ -185,10 +181,10 @@ struct log_it {
     * Returns configured <log_state_e> for a specific <log_channel_e> channel.
     * You can switch <log_state_e> by calling <setstate>. */
    uint8_t (*getstate)  (const void * log, uint8_t channel);
-   /* variable: comapre
+   /* variable: compare
     * Returns 0 if logbuffer compares equal to content in log for a specific <log_channel_e> channel.
     * The return value EINVAL indicates not equal. The comparison should ignore timestamps. */
-   int     (*compare)   (const void * log, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
+   int   (*compare)     (const void * log, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
    // -- configuration --
    /* variable: setstate
     * Sets <log_state_e> logstate for a specific <log_channel_e> channel.
@@ -224,16 +220,23 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t);
  * It describes the function name, file name and line number
  * of the log statement. */
 struct log_header_t {
+   /* variable: funcname
+    * The name of the function which writes the log. */
    const char *   funcname;
+   /* variable: filename
+    * The name of the file the function is located. */
    const char *   filename;
+   /* variable: linenr
+    * The log commans's line number in the source file. A function could have several calls
+    * to write a log entry. With linenr one can discriminate between the different calls
+    * even if they would write the same log text. */
    int            linenr;
-   int            err;
 };
 
 // group: lifetime
 
-#define log_header_INIT(funcname, filename, linenr, err) \
-         { funcname, filename, linenr, err }
+#define log_header_INIT(funcname, filename, linenr) \
+         { funcname, filename, linenr }
 
 
 

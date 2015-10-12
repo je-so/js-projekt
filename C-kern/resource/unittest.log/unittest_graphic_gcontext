@@ -1,10 +1,13 @@
-[1: 1410603467.105357s]
+[1: 1443695070.985751s]
 init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:84
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603467.105375s]
+[1: 1443695070.985793s]
 init_gcontext() C-kern/graphic/gcontext.c:58
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603467.107501s]
+[1: 1443695070.988309s]
 free_gcontext() C-kern/graphic/gcontext.c:79
-Error 7 - Argument list too long
 One or more resources could not be freed
+Exit function with
+Error 7 - Argument list too long

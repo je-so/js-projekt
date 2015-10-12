@@ -28,13 +28,13 @@
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
-#define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)  \
-         if (!(_CONDITION)) {                                        \
-            err = EINVAL ;                                           \
-            TRACE_ERRLOG(  log_flags_START, TEST_INPARAM_FALSE,      \
-                           err, #_CONDITION) ;                       \
-            _LOG_VALUE ;                                             \
-            goto _ONERROR_LABEL ;                                    \
+#define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
+         if (!(_CONDITION)) {                                  \
+            err = EINVAL;                                      \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_INPARAM_FALSE, \
+                           #_CONDITION);                       \
+            _LOG_VALUE;                                        \
+            goto _ONERROR_LABEL;                               \
          }
 
 /* define: VALIDATE_OUTPARAM_TEST
@@ -48,12 +48,12 @@
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
 #define VALIDATE_OUTPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
-         if (!(_CONDITION)) {                                        \
-            err = EINVAL ;                                           \
-            TRACE_ERRLOG(  log_flags_START, TEST_OUTPARAM_FALSE,     \
-                           err, #_CONDITION) ;                       \
-            _LOG_VALUE ;                                             \
-            goto _ONERROR_LABEL ;                                    \
+         if (!(_CONDITION)) {                                     \
+            err = EINVAL;                                         \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_OUTPARAM_FALSE,   \
+                           #_CONDITION);                          \
+            _LOG_VALUE;                                           \
+            goto _ONERROR_LABEL;                                  \
          }
 
 /* define: VALIDATE_INVARIANT_TEST
@@ -72,13 +72,13 @@
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
-#define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)   \
+#define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                     \
-            err = EINVARIANT ;                                    \
-            TRACE_ERRLOG(  log_flags_START, TEST_INVARIANT_FALSE, \
-                           err, #_CONDITION);                     \
-            _LOG_VALUE ;                                          \
-            goto _ONERROR_LABEL ;                                 \
+            err = EINVARIANT;                                     \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_INVARIANT_FALSE,  \
+                           #_CONDITION);                          \
+            _LOG_VALUE;                                           \
+            goto _ONERROR_LABEL;                                  \
          }
 
 /* define: VALIDATE_STATE_TEST
@@ -97,11 +97,11 @@
  * */
 #define VALIDATE_STATE_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                  \
-            err = EPROTO ;                                     \
-            TRACE_ERRLOG(  log_flags_START, TEST_STATE_FALSE,  \
-                           err, #_CONDITION) ;                 \
-            _LOG_VALUE ;                                       \
-            goto _ONERROR_LABEL ;                              \
+            err = EPROTO;                                      \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_STATE_FALSE,   \
+                           #_CONDITION) ;                      \
+            _LOG_VALUE;                                        \
+            goto _ONERROR_LABEL;                               \
          }
 
 #endif

@@ -1,32 +1,41 @@
-[1: 1421334291.587564s]
+[1: 1443695049.628649s]
 init_file() C-kern/platform/Linux/io/file.c:110
-Error 2 - No such file or directory
-System call 'openat' failed
+System call 'openat' failed with error 2
 File name '/tmp/filereader.XXXXXX/X'
-[1: 1421334291.587654s]
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695049.628699s]
 init_filereader() C-kern/io/reader/filereader.c:129
+Exit function with
 Error 2 - No such file or directory
-[1: 1421334291.587659s]
+[1: 1443695049.628704s]
 init_file() C-kern/platform/Linux/io/file.c:110
-Error 2 - No such file or directory
-System call 'openat' failed
+System call 'openat' failed with error 2
 File name '/tmp/filereader.XXXXXX/X'
-[1: 1421334291.587722s]
-initsingle_filereader() C-kern/io/reader/filereader.c:157
+Exit function with
 Error 2 - No such file or directory
-[1: 1421334292.205270s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
-Error 12 - Cannot allocate memory
-System call 'mmap' failed
-[1: 1421334292.205285s]
-initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
-Error 12 - Cannot allocate memory
-[1: 1421334292.205297s]
+[1: 1443695049.628736s]
 initsingle_filereader() C-kern/io/reader/filereader.c:157
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695050.247734s]
+init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
+System call 'mmap' failed with error 12
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1421334292.333071s]
+[1: 1443695050.247747s]
+initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695050.247758s]
+initsingle_filereader() C-kern/io/reader/filereader.c:157
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695050.383524s]
 readnext_filereader() C-kern/io/reader/filereader.c:277
+Exit function with
 Error 105 - No buffer space available
-[1: 1421334292.333145s]
+[1: 1443695050.383620s]
 readnext_filereader() C-kern/io/reader/filereader.c:277
+Exit function with
 Error 105 - No buffer space available

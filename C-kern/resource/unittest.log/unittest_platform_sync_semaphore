@@ -1,15 +1,18 @@
-[1: 1417882219.583906s]
+[1: 1443695053.462742s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:121
-Error 11 - Resource temporarily unavailable
-System call 'read' failed
+System call 'read' failed with error 11
 semaobj->sys_sema=5
-[1: 1417882219.583971s]
+Exit function with
+Error 11 - Resource temporarily unavailable
+[1: 1443695053.462796s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:121
-Error 11 - Resource temporarily unavailable
-System call 'read' failed
+System call 'read' failed with error 11
 semaobj->sys_sema=5
-[1: 1417882219.583987s]
+Exit function with
+Error 11 - Resource temporarily unavailable
+[1: 1443695053.462805s]
 wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:121
-Error 11 - Resource temporarily unavailable
-System call 'read' failed
+System call 'read' failed with error 11
 semaobj->sys_sema=5
+Exit function with
+Error 11 - Resource temporarily unavailable

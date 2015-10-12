@@ -239,7 +239,6 @@
         <File Name="../../C-kern/api/task/itc/itccounter.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">
       <File Name="../../C-kern/api/graphic/gconfig.h"/>
       <File Name="../../C-kern/api/graphic/windowconfig.h"/>
@@ -538,7 +537,6 @@
     <File Name="../../C-kern/task/task-manager.txt"/>
     <File Name="../../C-kern/task/threadcontext.c"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="source"/>
   <VirtualDirectory Name="graphic">
     <File Name="../../C-kern/graphic/gconfig.c"/>
     <File Name="../../C-kern/graphic/windowconfig.c"/>

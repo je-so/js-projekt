@@ -1,71 +1,91 @@
-[1: 1426428713.239348s]
+[1: 1443695032.688920s]
 free_static_memory() C-kern/task/processcontext.c:104
-Error 4 - Interrupted system call
 One or more resources could not be freed
-[1: 1426428713.242692s]
-init_processcontext() C-kern/task/processcontext.c:176
-Error 1 - Operation not permitted
-[1: 1426428713.242698s]
-init_processcontext() C-kern/task/processcontext.c:176
-Error 2 - No such file or directory
-[1: 1426428713.242701s]
-init_processcontext() C-kern/task/processcontext.c:176
-Error 3 - No such process
-[1: 1426428713.242717s]
-init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 4 - Interrupted system call
-[1: 1426428713.242739s]
+[1: 1443695032.691825s]
 init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
+Error 1 - Operation not permitted
+[1: 1443695032.691833s]
+init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695032.691836s]
+init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
+Error 3 - No such process
+[1: 1443695032.691852s]
+init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
+Error 4 - Interrupted system call
+[1: 1443695032.691870s]
+init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 5 - Input/output error
-[1: 1426428713.242759s]
+[1: 1443695032.691886s]
 init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 6 - No such device or address
-[1: 1426428713.242777s]
+[1: 1443695032.691903s]
 init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 7 - Argument list too long
-[1: 1426428713.245258s]
+[1: 1443695032.695101s]
 init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 8 - Exec format error
-[1: 1426428713.247680s]
+[1: 1443695032.697626s]
 init_processcontext() C-kern/task/processcontext.c:176
+Exit function with
 Error 9 - Bad file descriptor
-[1: 1426428713.252554s]
+[1: 1443695032.702511s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 1 - Operation not permitted
-One or more resources could not be freed
-[1: 1426428713.254980s]
+[1: 1443695032.704956s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 2 - No such file or directory
-One or more resources could not be freed
-[1: 1426428713.257432s]
+[1: 1443695032.707350s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 3 - No such process
-One or more resources could not be freed
-[1: 1426428713.259852s]
+[1: 1443695032.709783s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 4 - Interrupted system call
-One or more resources could not be freed
-[1: 1426428713.262286s]
+[1: 1443695032.712343s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 5 - Input/output error
-One or more resources could not be freed
-[1: 1426428713.264734s]
+[1: 1443695032.714885s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 6 - No such device or address
-One or more resources could not be freed
-[1: 1426428713.267190s]
+[1: 1443695032.717392s]
 free_processcontext() C-kern/task/processcontext.c:242
-Error 7 - Argument list too long
 One or more resources could not be freed
-[1: 1426428713.269611s]
+Exit function with
+Error 7 - Argument list too long
+[1: 1443695032.719914s]
 free_static_memory() C-kern/task/processcontext.c:104
-Error 8 - Exec format error
 One or more resources could not be freed
-[1: 1426428713.269617s]
-free_processcontext() C-kern/task/processcontext.c:242
+Exit function with
 Error 8 - Exec format error
-One or more resources could not be freed
-[1: 1426428713.272032s]
+[1: 1443695032.719921s]
 free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
+Error 8 - Exec format error
+[1: 1443695032.722455s]
+free_processcontext() C-kern/task/processcontext.c:242
+One or more resources could not be freed
+Exit function with
 Error 9 - Bad file descriptor
-One or more resources could not be freed

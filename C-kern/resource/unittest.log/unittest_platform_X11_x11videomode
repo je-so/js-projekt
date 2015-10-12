@@ -1,0 +1,12 @@
+[1: 1443695067.011637s]
+initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:159
+Exit function with
+Error 38 - Function not implemented
+[1: 1443695067.366732s]
+set_x11videomode() C-kern/platform/X11/x11videomode.c:214
+Exit function with
+Error 38 - Function not implemented
+[1: 1443695067.595780s]
+initcurrent_x11videomode() C-kern/platform/X11/x11videomode.c:159
+Exit function with
+Error 38 - Function not implemented

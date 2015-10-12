@@ -1,23 +1,25 @@
-[1: 1412690311.962050s]
+[1: 1443695050.434044s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:65
-Error 22 - Invalid argument
 The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour.
-[1: 1412690311.962139s]
+Error will be ignored
+[1: 1443695050.434117s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:65
-Error 22 - Invalid argument
 The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour.
-[1: 1412690311.962188s]
-prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:71
-Error 9 - Bad file descriptor
-System call 'grantpt(fd)' failed
+Error will be ignored
+[1: 1443695050.434155s]
+prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:72
+System call 'grantpt(fd)' failed with error 9
 fd=-1
-[1: 1412690311.962236s]
-init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:109
+[1: 1443695050.434196s]
+init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:110
+Exit function with
 Error 22 - Invalid argument
-[1: 1412690311.962394s]
-free_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:123
-Error 22 - Invalid argument
+[1: 1443695050.434329s]
+free_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:124
 One or more resources could not be freed
-[1: 1412690311.962397s]
-pathname_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695050.434332s]
+pathname_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:166
+Exit function with
 Error 25 - Inappropriate ioctl for device

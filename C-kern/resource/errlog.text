@@ -39,8 +39,9 @@
 #    The content of a textresource is described in a language specific way.
 #    5.1 First comes the language designator, e.g "de:" or "en:".
 #    5.2 Then the language specific text strings enclosed in "" or parameters are expected.
+#    5.3 TODO: add referencing previously defined text resources
 #        If one line is not enough you can use more than one line but always begin the line with a "string".
-#    5.3 If more than one language is needed repeat steps 5.1 & 5.2.
+#    5.4 If more than one language is needed repeat steps 5.1 & 5.2.
 #        For example:
 #        ERROR(int errnr)
 #        de: "Fehler nr: " errnr
@@ -88,13 +89,9 @@ ASSERT_FAILED(const char * wrong_condition)
 de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: "Assertion '"wrong_condition"' failed.\n"
 
-LOGENTRY_HEADER(size_t threadid, uint64_t sec, uint32_t usec, const char * funcname, const char * filename, int linenr)
-de: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
-en: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
-
-LOGENTRY_HEADER_ERROR(int err, const char * errdescription)
-de: "Fehler "err" - "errdescription"\n"
-en: "Error "err" - "errdescription"\n"
+ERROR_IGNORED()
+de: "Fehler wird ignoriert\n"
+en: "Error will be ignored\n"
 
 # // TODO: replace it with PARSEERROR_EXPECTNEWLINE
 FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
@@ -123,17 +120,24 @@ FILE_REMOVE(int err, const char * workdir, const char * filename)
 de: "Kann Datei '"workdir filename"' nicht löschen - "ERRSTR"\n"
 en: "Can not remove file '"workdir filename"' - "ERRSTR"\n"
 
-FUNCTION_FREE_RESOURCE()
+FUNCTION_CALL(const char * funcname, int err)
+de: "Funktionsaufruf '"funcname"' fehlgeschlagen mit Fehler "err"\n"
+en: "Function call '"funcname"' failed with error "err"\n"
+
+FUNCTION_EXIT(int err)
+de: "Beende Funktion mit\nFehler "err" - "ERRSTR"\n"
+en: "Exit function with\nError "err" - "ERRSTR"\n"
+
+# // TODO: reference FUNCTION_EXIT(err) instead of repeating content
+FUNCTION_EXIT_FREE_RESOURCE(int err)
 de: "Ressourcen-Freigabe schlug fehl\n"
+    "Beende Funktion mit\nFehler "err" - "ERRSTR"\n"
 en: "One or more resources could not be freed\n"
+    "Exit function with\nError "err" - "ERRSTR"\n"
 
-FUNCTION_CALL(const char * funcname)
-de: "Funktionsaufruf '"funcname"' fehlgeschlagen\n"
-en: "Function call '"funcname"' failed\n"
-
-FUNCTION_SYSCALL(const char * funcname)
-de: "Systemaufruf '"funcname"' fehlgeschlagen\n"
-en: "System call '"funcname"' failed\n"
+FUNCTION_SYSCALL(const char * funcname, int err)
+de: "Systemaufruf '"funcname"' fehlgeschlagen mit Fehler "err"\n"
+en: "System call '"funcname"' failed with error "err"\n"
 
 FUNCTION_WRONG_RETURNVALUE(const char * funcname, const char * wrong_value)
 de: "Funktion '"funcname"' liefert falschen Rückgabewert ("wrong_value")\n"
@@ -145,9 +149,13 @@ de: "Kann die Lokalisierung mit setlocale nicht setzen\n"
 en: "Cannot change the current locale with setlocale\n"
     "Remedy: Please set environment variable LC_ALL to a supported value by the system\n"
 
-MEMORY_OUT_OF(size_t size)
-de: "Keine "size" Bytes Speicher mehr frei\n"
-en: "Could not allocate "size" bytes of memory\n"
+LOGENTRY_HEADER(size_t threadid, uint64_t sec, uint32_t usec, const char * funcname, const char * filename, int linenr)
+de: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
+en: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
+
+MEMORY_OUT_OF(size_t size, int err)
+de: "Keine "size" Bytes Speicher mehr frei - Fehler "err"\n"
+en: "Could not allocate "size" bytes of memory - error "err"\n"
 
 PARSEERROR_EXPECTCHAR(size_t linenr, size_t colnr, const char * chr)
 de: "Erwarte Zeichen '"chr"' in Zeile: "linenr", Spalte: "colnr"\n"
@@ -157,9 +165,13 @@ PARSEERROR_EXPECTNEWLINE(size_t linenr, size_t colnr)
 de: "Erwarte '(Zeilenende)' in Zeile: "linenr", Spalte: "colnr"\n"
 en: "Expect '(newline)' in line: "linenr", column: "colnr"\n"
 
-PROGRAM_ABORT()
+# // TODO: add ERROR_DESCRIPTION and reference it
+#          (also use it in FUNCTION_EXIT)
+PROGRAM_ABORT(int err)
 de: "Programmabbruch wegen fatalem Fehler\n"
+    "Fehler "err" - "ERRSTR"\n"
 en: "Abort process with fatal error\n"
+    "Error "err" - "ERRSTR"\n"
 
 RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"

@@ -1,109 +1,143 @@
-[1: 1421672164.471053s]
+[1: 1443695043.833325s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 22 - Invalid argument
-[1: 1421672164.471057s]
+[1: 1443695043.833331s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 22 - Invalid argument
-[1: 1421672164.471059s]
+[1: 1443695043.833333s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 22 - Invalid argument
-[1: 1421672164.672389s]
+[1: 1443695044.051695s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 1 - Operation not permitted
-[1: 1421672164.672431s]
+[1: 1443695044.051739s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 2 - No such file or directory
-[1: 1421672164.672452s]
+[1: 1443695044.051759s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 3 - No such process
-[1: 1421672164.672473s]
+[1: 1443695044.051779s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 4 - Interrupted system call
-[1: 1421672164.672500s]
+[1: 1443695044.051807s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 5 - Input/output error
-[1: 1421672164.673329s]
+[1: 1443695044.052560s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 6 - No such device or address
-[1: 1421672164.674901s]
+[1: 1443695044.054202s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 7 - Argument list too long
-[1: 1421672164.678414s]
+[1: 1443695044.058225s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 8 - Exec format error
-[1: 1421672164.683645s]
+[1: 1443695044.062859s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 9 - Bad file descriptor
-[1: 1421672164.687334s]
+[1: 1443695044.066967s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.693530s]
+[1: 1443695044.074034s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.699579s]
+[1: 1443695044.081290s]
 new_perftest() C-kern/test/perftest.c:286
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.704798s]
+[1: 1443695044.086494s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 1 - Operation not permitted
-One or more resources could not be freed
-[1: 1421672164.709991s]
+[1: 1443695044.091545s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 2 - No such file or directory
-One or more resources could not be freed
-[1: 1421672164.715438s]
+[1: 1443695044.096931s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 3 - No such process
-One or more resources could not be freed
-[1: 1421672164.721384s]
+[1: 1443695044.102497s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 4 - Interrupted system call
-One or more resources could not be freed
-[1: 1421672164.725944s]
+[1: 1443695044.109642s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 5 - Input/output error
-One or more resources could not be freed
-[1: 1421672164.732598s]
+[1: 1443695044.116389s]
 delete_perftest() C-kern/test/perftest.c:323
+One or more resources could not be freed
+Exit function with
 Error 6 - No such device or address
-One or more resources could not be freed
-[1: 1421672164.738912s]
+[1: 1443695044.122729s]
 delete_perftest() C-kern/test/perftest.c:323
-Error 7 - Argument list too long
 One or more resources could not be freed
-[1: 1421672164.763094s]
+Exit function with
+Error 7 - Argument list too long
+[1: 1443695044.154159s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.766722s]
+[1: 1443695044.158552s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.772010s]
+[1: 1443695044.163892s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.776618s]
+[1: 1443695044.170720s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.783057s]
+[1: 1443695044.182519s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.788334s]
+[1: 1443695044.189319s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.794974s]
+[1: 1443695044.195058s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.800718s]
+[1: 1443695044.200149s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.806952s]
+[1: 1443695044.204631s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.812577s]
+[1: 1443695044.208917s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.818685s]
+[1: 1443695044.214036s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled
-[1: 1421672164.825227s]
+[1: 1443695044.219349s]
 measure_perftest() C-kern/test/perftest.c:387
+Exit function with
 Error 125 - Operation canceled

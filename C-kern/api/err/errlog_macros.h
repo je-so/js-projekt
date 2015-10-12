@@ -99,22 +99,20 @@ struct logbuffer_t ;
  * called and use
  * > TRACEEXIT_ERRLOG(return_error_code)
  * to signal this fact. */
-#define TRACEEXIT_ERRLOG(err)             TRACE_HEADER_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, err)
+#define TRACEEXIT_ERRLOG(err)             TRACE_ERRLOG(log_flags_LAST, FUNCTION_EXIT, err)
 
 /* define: TRACEEXITFREE_ERRLOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEEXITFREE_ERRLOG(err)         TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_FREE_RESOURCE, err)
+#define TRACEEXITFREE_ERRLOG(err)         TRACE_ERRLOG(log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE, err)
 
 /* define: TRACECALL_ERRLOG
  * Log name of called function and error code.
  * Use this macro to log an error of a called library
- * function which does no logging on its own.
- *
- * TODO: Support own error IDs */
-#define TRACECALL_ERRLOG(fct_name, err)   \
-         TRACE_ERRLOG(log_flags_START, FUNCTION_CALL, err, fct_name)
+ * function which does no logging on its own. */
+#define TRACECALL_ERRLOG(fct_name, err) \
+         TRACE_ERRLOG(log_flags_NONE, FUNCTION_CALL, fct_name, err)
 
 /* define: TRACEOUTOFMEM_ERRLOG
  * Logs "out of memory" reason for function abort.
@@ -122,26 +120,25 @@ struct logbuffer_t ;
  * with an error code
  * > TRACEOUTOFMEM_ERRLOG(size_of_memory_in_bytes)
  * should be called before <TRACEEXIT_ERRLOG> to document the event leading to an abort. */
-#define TRACEOUTOFMEM_ERRLOG(size, err)   \
-         TRACE_ERRLOG(log_flags_START, MEMORY_OUT_OF, err, size)
+#define TRACEOUTOFMEM_ERRLOG(size, err) \
+         TRACE_ERRLOG(log_flags_NONE, MEMORY_OUT_OF, size, err)
 
 /* define: TRACESYSCALL_ERRLOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define TRACESYSCALL_ERRLOG(sys_fctname, err)  \
-         TRACE_ERRLOG(log_flags_START, FUNCTION_SYSCALL, err, sys_fctname)
+#define TRACESYSCALL_ERRLOG(sys_fctname, err) \
+         TRACE_ERRLOG(log_flags_NONE, FUNCTION_SYSCALL, sys_fctname, err)
 
 /* define: TRACE_ERRLOG
- * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Logs an TEXTID from C-kern/resource/errlog.text and a header.
  * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
- * Any additional arguments are listed after err.
  * Use <TRACE_ERRLOG> to log any language specific text with additional parameter values. */
-#define TRACE_ERRLOG(FLAGS, TEXTID, err, ...)   \
-         TRACE2_ERRLOG(FLAGS, TEXTID, __FUNCTION__, __FILE__, __LINE__, err, __VA_ARGS__)
+#define TRACE_ERRLOG(FLAGS, TEXTID, ...)   \
+         TRACE2_ERRLOG(FLAGS, TEXTID, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 
 /* define: TRACE2_ERRLOG
- * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Logs an TEXTID from C-kern/resource/errlog.text and a header.
  *
  * Parameter:
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
@@ -149,46 +146,45 @@ struct logbuffer_t ;
  * funcname   - Name of function - used to describe error position.
  * filename   - Name of source file - used to describe error position.
  * linenr     - Number of current source line - used to describe error position.
- * err        - Error number.
  * ...        - The following parameter are used to parameterize TEXTID. */
-#define TRACE2_ERRLOG(FLAGS, TEXTID, funcname, filename, linenr, err, ...)  \
-         do {                                   \
-            log_header_t _header =              \
-               log_header_INIT(funcname,        \
-                  filename, linenr, err) ;      \
-            PRINTTEXT_LOG(log_channel_ERR,      \
-               FLAGS, &_header,                 \
-               TEXTID ## _ERRLOG,               \
-               __VA_ARGS__) ;                   \
+#define TRACE2_ERRLOG(FLAGS, TEXTID, funcname, filename, linenr, ...) \
+         do {                                \
+            log_header_t _header =           \
+               log_header_INIT(funcname,     \
+                  filename, linenr);         \
+            PRINTTEXT_LOG(log_channel_ERR,   \
+               FLAGS, &_header,              \
+               TEXTID ## _ERRLOG,            \
+               __VA_ARGS__);                 \
          }  while(0)
 
 /* define: TRACE_NOARG_ERRLOG
- * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Logs an TEXTID from C-kern/resource/errlog.text and a header.
  * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
  * There are no additional arguments.
  * Use <TRACE_NOARG_ERRLOG> to log any language specific text with no parameter values. */
-#define TRACE_NOARG_ERRLOG(FLAGS, TEXTID, err)  \
-         do {                                   \
-            log_header_t _header =              \
-               log_header_INIT(__FUNCTION__,    \
-                  __FILE__, __LINE__, err) ;    \
-            PRINTTEXT_NOARG_LOG(                \
-               log_channel_ERR, FLAGS,          \
-               &_header, TEXTID ## _ERRLOG) ;   \
+#define TRACE_NOARG_ERRLOG(FLAGS, TEXTID) \
+         do {                                \
+            log_header_t _header =           \
+               log_header_INIT(__FUNCTION__, \
+                  __FILE__, __LINE__);       \
+            PRINTTEXT_NOARG_LOG(             \
+               log_channel_ERR, FLAGS,       \
+               &_header, TEXTID ## _ERRLOG); \
          }  while(0)
 
-/* define: TRACE_HEADER_ERRLOG
- * Logs possible header and error number err.
+/* define: TRACE_PRINTF_ERRLOG
+ * Logs header and prints format string with additional arguments.
  * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
- * There are no additional arguments. */
-#define TRACE_HEADER_ERRLOG(FLAGS, err)         \
-         do {                                   \
-            log_header_t _header =              \
-               log_header_INIT(__FUNCTION__,    \
-                  __FILE__, __LINE__, err);     \
-            PRINTF_LOG(                         \
-               log_channel_ERR, FLAGS,          \
-               &_header, 0);                    \
+ * The next argumen after FLAGS is mandatory and is the printf format string. */
+#define TRACE_PRINTF_ERRLOG(FLAGS, ...) \
+         do {                                \
+            log_header_t _header =           \
+               log_header_INIT(__FUNCTION__, \
+                  __FILE__, __LINE__);       \
+            PRINTF_LOG(                      \
+               log_channel_ERR, FLAGS,       \
+               &_header, __VA_ARGS__);       \
          }  while(0)
 
 // group: log-variables

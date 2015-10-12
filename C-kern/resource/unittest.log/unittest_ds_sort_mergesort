@@ -1,4 +1,5 @@
-[1: 1410604605.335905s]
+[1: 1443695037.816724s]
 free_mergesort() C-kern/ds/sort/mergesort.c:133
-Error 22 - Invalid argument
 One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument

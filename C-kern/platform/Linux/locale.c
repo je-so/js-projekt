@@ -35,35 +35,35 @@ const char * charencoding_locale()
 const char * current_locale()
 {
    int err ;
-   const char * lname = setlocale(LC_ALL, 0) ;
+   const char * lname = setlocale(LC_ALL, 0);
 
    if (!lname) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("setlocale", err) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("setlocale", err);
       goto ONERR;
    }
 
-   return lname ;
+   return lname;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return 0 ;
+   return 0;
 }
 
 const char * currentmsg_locale()
 {
-   int err ;
-   const char * lname = setlocale(LC_MESSAGES, 0) ;
+   int err;
+   const char * lname = setlocale(LC_MESSAGES, 0);
 
    if (!lname) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("setlocale", err) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("setlocale", err);
       goto ONERR;
    }
 
-   return lname ;
+   return lname;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return 0 ;
+   return 0;
 }
 
 
@@ -86,16 +86,16 @@ int setdefault_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "")) {
-      err = EINVAL ;
-      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_ERRLOG(getenv("LC_ALL")) ;
+      err = EINVAL;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE);
+      PRINTCSTR_ERRLOG(getenv("LC_ALL"));
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 /* function: reset_locale implementation
@@ -107,33 +107,33 @@ int reset_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "C")) {
-      err = EINVAL ;
-      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_ERRLOG("LC_ALL=C") ;
+      err = EINVAL;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE);
+      PRINTCSTR_ERRLOG("LC_ALL=C");
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int resetmsg_locale()
 {
-   int err ;
+   int err;
 
    if (!setlocale(LC_MESSAGES, "C")) {
-      err = EINVAL ;
-      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_ERRLOG("LC_MESSAGES=C") ;
+      err = EINVAL;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE);
+      PRINTCSTR_ERRLOG("LC_MESSAGES=C");
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: init

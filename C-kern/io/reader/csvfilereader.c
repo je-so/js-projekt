@@ -94,13 +94,18 @@ static size_t colnr_csvfilereaderparsestate(csvfilereader_parsestate_t * state)
  * Else the character is consumed. */
 static int parsechar_csvfilereaderparsestate(csvfilereader_parsestate_t * state, uint8_t chr)
 {
+   int err;
    if (state->offset >= state->length || state->data[state->offset] != chr) {
-      const char str[2] = { (char)chr, 0 } ;
-      TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, EINVAL, state->linenr, colnr_csvfilereaderparsestate(state), str) ;
-      return EINVAL ;
+      err = EINVAL;
+      const char str[2] = { (char)chr, 0 };
+      TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvfilereaderparsestate(state), str);
+      goto ONERR;
    }
-   ++ state->offset ;
-   return 0 ;
+   ++ state->offset;
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 /* function: parsedatafield_csvfilereaderparsestate
@@ -158,18 +163,19 @@ static int parsenrcolumns_csvfilereaderparsestate(csvfilereader_parsestate_t * s
          if (state2.offset >= state2.length || state->linenr != state2.linenr) {
             state2.startofline = state->startofline ;
             state2.offset      = erroffset ;
-            err = EINVAL ;
-            TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, state->linenr, colnr_csvfilereaderparsestate(&state2), "\"") ;
+            err = EINVAL;
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvfilereaderparsestate(&state2), "\"");
             goto ONERR;
          }
       }
    }
 
-   *nrcolumns = nrc ;
+   *nrcolumns = nrc;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 
@@ -230,8 +236,8 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          if (err) goto ONERR;
       }
       if (oldlinenr == state->linenr) {
-         err = EINVAL ;
-         TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTNEWLINE, err, state->linenr, colnr_csvfilereaderparsestate(state)) ;
+         err = EINVAL;
+         TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTNEWLINE, state->linenr, colnr_csvfilereaderparsestate(state)) ;
          goto ONERR;
       }
       size_t startofline = state->startofline ;
@@ -244,32 +250,33 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          if (oldlinenr != state->linenr) {
             state->startofline = startofline ;
             state->offset      = erroffset ;
-            err = EINVAL ;
-            TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), ",") ;
+            err = EINVAL;
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvfilereaderparsestate(state), ",") ;
             goto ONERR;
          }
          err = parsechar_csvfilereaderparsestate(state, (uint8_t)',') ;
          if (err) goto ONERR;
-         erroffset = state->offset ;
-         skipempty_csvfilereaderparsestate(state) ;
+         erroffset = state->offset;
+         skipempty_csvfilereaderparsestate(state);
          if (oldlinenr != state->linenr) {
-            state->startofline = startofline ;
-            state->offset      = erroffset ;
-            err = EINVAL ;
-            TRACE_ERRLOG(log_flags_END, PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), "\"") ;
+            state->startofline = startofline;
+            state->offset      = erroffset;
+            err = EINVAL;
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvfilereaderparsestate(state), "\"") ;
             goto ONERR;
          }
-         err = parsedatafield_csvfilereaderparsestate(state, &csvfile->tablevalues[tableindex ++]) ;
+         err = parsedatafield_csvfilereaderparsestate(state, &csvfile->tablevalues[tableindex ++]);
          if (err) goto ONERR;
       }
-      skipempty_csvfilereaderparsestate(state) ;
-   } while (state->offset < state->length) ;
+      skipempty_csvfilereaderparsestate(state);
+   } while (state->offset < state->length);
 
-   csvfile->nrrows = nrrows ;
+   csvfile->nrrows = nrrows;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 // group: lifetime

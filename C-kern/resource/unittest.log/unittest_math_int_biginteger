@@ -1,124 +1,161 @@
-[1: 1410603104.724096s]
+[1: 1443695038.971396s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.724099s]
+[1: 1443695038.971399s]
 new_bigint() C-kern/math/int/bigint.c:1146
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.727549s]
+[1: 1443695038.974848s]
 setPdouble_bigint() C-kern/math/int/bigint.c:1385
-Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
-[1: 1410603104.727553s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695038.974852s]
 setPdouble_bigint() C-kern/math/int/bigint.c:1385
-Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
-[1: 1410603104.727559s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695038.974857s]
 setbigfirst_bigint() C-kern/math/int/bigint.c:1450
-Error 22 - Invalid argument
 Function input violates condition (sign != 0)
-[1: 1410603104.727561s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695038.974859s]
 setbigfirst_bigint() C-kern/math/int/bigint.c:1495
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.727565s]
+[1: 1443695038.974863s]
 setlittlefirst_bigint() C-kern/math/int/bigint.c:1503
-Error 22 - Invalid argument
 Function input violates condition (sign != 0)
-[1: 1410603104.727567s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695038.974866s]
 setlittlefirst_bigint() C-kern/math/int/bigint.c:1545
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820452s]
+[1: 1443695039.067519s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820458s]
+[1: 1443695039.067524s]
 multui32_bigint() C-kern/math/int/bigint.c:1803
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820461s]
+[1: 1443695039.067527s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820463s]
+[1: 1443695039.067528s]
 mult_bigint() C-kern/math/int/bigint.c:1856
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820464s]
+[1: 1443695039.067530s]
 mult_bigint() C-kern/math/int/bigint.c:1856
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.820466s]
+[1: 1443695039.067532s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.820468s]
+[1: 1443695039.067534s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:688
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.820470s]
+[1: 1443695039.067536s]
 mult_bigint() C-kern/math/int/bigint.c:1856
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.820500s]
+[1: 1443695039.067559s]
 delete_bigint() C-kern/math/int/bigint.c:1187
-Error 71 - Protocol error
 One or more resources could not be freed
-[1: 1410603104.820502s]
-multsplit_biginthelper() C-kern/math/int/bigint.c:688
+Exit function with
 Error 71 - Protocol error
-[1: 1410603104.820504s]
+[1: 1443695039.067562s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:688
+Exit function with
 Error 71 - Protocol error
-[1: 1410603104.820506s]
+[1: 1443695039.067564s]
 multsplit_biginthelper() C-kern/math/int/bigint.c:688
+Exit function with
 Error 71 - Protocol error
-[1: 1410603104.820508s]
+[1: 1443695039.067566s]
+multsplit_biginthelper() C-kern/math/int/bigint.c:688
+Exit function with
+Error 71 - Protocol error
+[1: 1443695039.067568s]
 mult_bigint() C-kern/math/int/bigint.c:1856
+Exit function with
 Error 71 - Protocol error
-[1: 1410603104.820531s]
+[1: 1443695039.067587s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1869
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820534s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067590s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1869
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820536s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067592s]
 divmod_bigint() C-kern/math/int/bigint.c:1920
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820538s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067602s]
 divmod_bigint() C-kern/math/int/bigint.c:1920
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820540s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067604s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1869
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820544s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067606s]
 divmodui32_bigint() C-kern/math/int/bigint.c:1869
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820546s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067608s]
 divmod_bigint() C-kern/math/int/bigint.c:1920
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.820548s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.067610s]
 divmod_bigint() C-kern/math/int/bigint.c:1920
-Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
-[1: 1410603104.822285s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695039.069312s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1642
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.822288s]
+[1: 1443695039.069314s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1642
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603104.822290s]
+[1: 1443695039.069316s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.822292s]
+[1: 1443695039.069318s]
 shiftleft_bigint() C-kern/math/int/bigint.c:1642
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.822756s]
+[1: 1443695039.069766s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.822758s]
+[1: 1443695039.069768s]
 shiftright_bigint() C-kern/math/int/bigint.c:1715
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603104.822765s]
+[1: 1443695039.069773s]
 allocate_bigint() C-kern/math/int/bigint.c:127
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603104.822767s]
+[1: 1443695039.069775s]
 multui32_bigint() C-kern/math/int/bigint.c:1803
+Exit function with
 Error 22 - Invalid argument

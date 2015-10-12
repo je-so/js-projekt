@@ -1,17 +1,22 @@
-[1: 1410603388.765562s]
+[1: 1443695068.580285s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:71
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.765596s]
+[1: 1443695068.580290s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:71
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.765599s]
+[1: 1443695068.580292s]
 init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:57
-Error 22 - Invalid argument
 Function input violates condition (syswin != 0)
-[1: 1410603388.766484s]
-init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:71
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.767298s]
+[1: 1443695068.581194s]
+init_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:71
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695068.581838s]
 free_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:94
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
+Exit function with
+Error 12 - Cannot allocate memory

@@ -192,7 +192,7 @@ int free_x11display(x11display_t * x11disp)
    return 0 ;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
@@ -204,8 +204,8 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
    if (!display_server_name) {
       display_server_name = getenv("DISPLAY") ;
       if (!display_server_name) {
-         err = EINVAL ;
-         TRACE_NOARG_ERRLOG(log_flags_NONE, X11_DISPLAY_NOT_SET, err) ;
+         err = EINVAL;
+         TRACE_NOARG_ERRLOG(log_flags_NONE, X11_DISPLAY_NOT_SET);
          goto ONERR;
       }
    }
@@ -219,30 +219,31 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
    memset(newdisp.idmap->entries, 0, sizeof(newdisp.idmap->entries));
    newdisp.sys_display = XOpenDisplay(display_server_name);
    if (!newdisp.sys_display) {
-      err = ECONNREFUSED ;
-      TRACE_ERRLOG(log_flags_NONE, X11_NO_CONNECTION, err, display_server_name) ;
+      err = ECONNREFUSED;
+      TRACE_ERRLOG(log_flags_NONE, X11_NO_CONNECTION, display_server_name);
       goto ONERR;
    }
 
-#define SETATOM(NAME)   newdisp.atoms.NAME = XInternAtom(newdisp.sys_display, #NAME, False) ; \
+#define SETATOM(NAME)   newdisp.atoms.NAME = XInternAtom(newdisp.sys_display, #NAME, False); \
                         static_assert(sizeof(newdisp.atoms.NAME) == sizeof(uint32_t), "same type")
-   SETATOM(WM_PROTOCOLS) ;
-   SETATOM(WM_DELETE_WINDOW) ;
-   SETATOM(_NET_FRAME_EXTENTS) ;
-   SETATOM(_NET_WM_WINDOW_OPACITY) ;
+   SETATOM(WM_PROTOCOLS);
+   SETATOM(WM_DELETE_WINDOW);
+   SETATOM(_NET_FRAME_EXTENTS);
+   SETATOM(_NET_WM_WINDOW_OPACITY);
 #undef  SETATOM
 
    if (isInitExtension) {
-      err = queryextensions_x11display(&newdisp) ;
+      err = queryextensions_x11display(&newdisp);
       if (err) goto ONERR;
    }
 
-   *x11disp = newdisp ;
+   *x11disp = newdisp;
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_x11display(&newdisp) ;
-   return err ;
+   free_x11display(&newdisp);
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_name)
@@ -265,10 +266,10 @@ int init2_x11display(/*out*/x11display_t * x11disp, const char * display_server_
    err = initprivate_x11display(x11disp, display_server_name, isInitExtension);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query

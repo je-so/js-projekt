@@ -136,17 +136,17 @@ int same_resourceusage(const resourceusage_t * usage)
    err = ELEAK;
 
    if (usage2.file_usage != usage->file_usage) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 
    if ((usage2.mmtrans_usage - usage->mmtrans_correction) != usage->mmtrans_usage) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 
    if ( (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage) > usage->malloc_acceptleak) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       size_t leaked_malloc_bytes = (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage)
                               - usage->malloc_acceptleak;
       PRINTSIZE_ERRLOG(leaked_malloc_bytes);
@@ -154,22 +154,22 @@ int same_resourceusage(const resourceusage_t * usage)
    }
 
    if ((usage2.pagecache_usage - usage->pagecache_correction) != usage->pagecache_usage) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 
    if (usage2.threadlocalstore_staticusage != usage->threadlocalstore_staticusage) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 
    if (compare_signalstate(usage2.signalstate, usage->signalstate)) {
-      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
+      TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT);
       goto ONERR;
    }
 

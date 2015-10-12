@@ -134,36 +134,36 @@ int compare_vmregion(const vm_region_t * left, const vm_region_t * right)
 static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffer_maxsize], size_t buffer_offset, /*out*/size_t * buffer_size, /*out*/size_t * line_end)
 {
    int err = 0 ;
-   size_t index_newline = buffer_offset ;
+   size_t index_newline = buffer_offset;
    for (;;) {
-      const ssize_t read_size = read(fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
+      const ssize_t read_size = read(fd, buffer + buffer_offset, buffer_maxsize - buffer_offset);
       if (!read_size) {
          if (buffer_offset) {
-            err = EINVAL ;
-            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_MISSING_ENDOFLINE, err, PROC_SELF_MAPS) ;
+            err = EINVAL;
+            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_MISSING_ENDOFLINE, PROC_SELF_MAPS);
             goto ONERR;
          }
          break ; // reached end of file
       }
       if (read_size < 0) {
-         err = errno ;
-         if (err == EINTR) continue ;
-         TRACESYSCALL_ERRLOG("read", err) ;
+         err = errno;
+         if (err == EINTR) continue;
+         TRACESYSCALL_ERRLOG("read", err);
          goto ONERR;
       }
-      buffer_offset += (size_t)read_size ;
+      buffer_offset += (size_t)read_size;
       do {
-         if (buffer[index_newline] == '\n') break ;
-         ++ index_newline ;
-      } while (index_newline < buffer_offset) ;
-      if (index_newline < buffer_offset) break ; // ! found '\n' !
+         if (buffer[index_newline] == '\n') break;
+         ++ index_newline;
+      } while (index_newline < buffer_offset);
+      if (index_newline < buffer_offset) break; // ! found '\n' !
    }
 
-   *buffer_size = buffer_offset ;
-   *line_end    = index_newline ;
-   return 0 ;
+   *buffer_size = buffer_offset;
+   *line_end    = index_newline;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 // group: lifetime
@@ -235,8 +235,8 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode) ;
          if (scanned_items != 10) {
-            err = EINVAL ;
-            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_WRONG, err, PROC_SELF_MAPS) ;
+            err = EINVAL;
+            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_WRONG, PROC_SELF_MAPS);
             goto ONERR;
          }
 
@@ -450,9 +450,9 @@ int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes, accessmode_e ac
    const size_t   pgsize       = pagesize_vm() ;
    size_t         aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
 
-   VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)), ONERR,) ;
-   VALIDATE_INPARAM_TEST(size_in_bytes > 0, ONERR,) ;
-   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,) ;
+   VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)), ONERR,);
+   VALIDATE_INPARAM_TEST(size_in_bytes > 0, ONERR,);
+   VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,);
 
    SET_PROT(prot, access_mode)
 
@@ -604,21 +604,21 @@ int movexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes)
    VALIDATE_INPARAM_TEST(aligned_size >= size_in_bytes, ONERR,) ;
 
    if (aligned_size > vmpage->size) {
-      void * new_addr = mremap(vmpage->addr, vmpage->size, aligned_size, MREMAP_MAYMOVE) ;
+      void * new_addr = mremap(vmpage->addr, vmpage->size, aligned_size, MREMAP_MAYMOVE);
       if (MAP_FAILED == new_addr) {
-         err = errno ;
-         TRACEOUTOFMEM_ERRLOG(aligned_size, err) ;
+         err = errno;
+         TRACEOUTOFMEM_ERRLOG(aligned_size, err);
          goto ONERR;
       }
 
-      vmpage->addr = new_addr ;
-      vmpage->size = aligned_size ;
+      vmpage->addr = new_addr;
+      vmpage->size = aligned_size;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int shrink_vmpage(vmpage_t * vmpage, size_t size_in_bytes)

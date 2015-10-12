@@ -1,21 +1,27 @@
-[1: 1410603453.487875s]
+[1: 1443695053.776524s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603453.487880s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695053.776529s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603453.487883s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695053.776531s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603453.487886s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695053.776535s]
 lock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:143
+Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1410603453.507268s]
+[1: 1443695053.798070s]
 unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:174
+Exit function with
 Error 1 - Operation not permitted
-[1: 1410603453.508222s]
+[1: 1443695053.799090s]
 unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:174
+Exit function with
 Error 1 - Operation not permitted

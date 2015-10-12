@@ -1,109 +1,139 @@
-[1: 1421334245.379680s]
+[1: 1443695046.131305s]
 newtemp_directory() C-kern/platform/Linux/io/directory.c:291
+Exit function with
 Error 1 - Operation not permitted
-[1: 1421334245.379788s]
+[1: 1443695046.131364s]
 newtemp_directory() C-kern/platform/Linux/io/directory.c:291
+Exit function with
 Error 2 - No such file or directory
-[1: 1421334245.379885s]
+[1: 1443695046.131426s]
 newtemp_directory() C-kern/platform/Linux/io/directory.c:291
+Exit function with
 Error 3 - No such process
-[1: 1421334245.379995s]
+[1: 1443695046.131485s]
 newtemp_directory() C-kern/platform/Linux/io/directory.c:291
+Exit function with
 Error 4 - Interrupted system call
-[1: 1421334245.385810s]
+[1: 1443695046.137825s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:430
-Error 22 - Invalid argument
-System call 'ftruncate(file_path, file_length)' failed
+System call 'ftruncate(file_path, file_length)' failed with error 22
 file_path=123
 file_length=18446744073709551615
-[1: 1421334245.385858s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695046.137868s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:430
-Error 27 - File too large
-System call 'ftruncate(file_path, file_length)' failed
+System call 'ftruncate(file_path, file_length)' failed with error 27
 file_path=123
 file_length=9223372036854775807
-[1: 1421334245.385880s]
+Exit function with
+Error 27 - File too large
+[1: 1443695046.137900s]
 new_directory() C-kern/platform/Linux/io/directory.c:218
-Error 2 - No such file or directory
-System call 'openat' failed
+System call 'openat' failed with error 2
 path=.....
-[1: 1421334245.385885s]
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695046.137906s]
 new_directory() C-kern/platform/Linux/io/directory.c:218
-Error 20 - Not a directory
-System call 'openat' failed
+System call 'openat' failed with error 20
 path=/tmp/test1.123456/file_000000
-[1: 1421334245.385893s]
+Exit function with
+Error 20 - Not a directory
+[1: 1443695046.137914s]
 makedirectory_directory() C-kern/platform/Linux/io/directory.c:396
-Error 13 - Permission denied
-System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
+System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed with error 13
 mkdiratfd=10
 directory_path=XXXXXXXX.test
-[1: 1421334245.385899s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:421
+Exit function with
 Error 13 - Permission denied
-System call 'openat(openatfd, file_path)' failed
+[1: 1443695046.137920s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:421
+System call 'openat(openatfd, file_path)' failed with error 13
 openatfd=10
 file_path=XXXXXXXX.test
-[1: 1421334245.385907s]
+Exit function with
+Error 13 - Permission denied
+[1: 1443695046.137928s]
 removedirectory_directory() C-kern/platform/Linux/io/directory.c:460
-Error 39 - Directory not empty
-System call 'unlinkat(unlinkatfd, directory_path)' failed
+System call 'unlinkat(unlinkatfd, directory_path)' failed with error 39
 unlinkatfd=10
 directory_path=..
-[1: 1421334245.398130s]
+Exit function with
+Error 39 - Directory not empty
+[1: 1443695046.149900s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 1 - Operation not permitted
-[1: 1421334245.398138s]
+[1: 1443695046.149908s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 2 - No such file or directory
-[1: 1421334245.398144s]
+[1: 1443695046.149914s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 3 - No such process
-[1: 1421334245.398150s]
+[1: 1443695046.149919s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 4 - Interrupted system call
-[1: 1421334245.398158s]
+[1: 1443695046.149929s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 5 - Input/output error
-[1: 1421334245.398169s]
+[1: 1443695046.149943s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 6 - No such device or address
-[1: 1421334245.398180s]
+[1: 1443695046.149958s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 7 - Argument list too long
-[1: 1421334245.398214s]
+[1: 1443695046.149977s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 8 - Exec format error
-[1: 1421334245.398250s]
+[1: 1443695046.149993s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 9 - Bad file descriptor
-[1: 1421334245.398285s]
+[1: 1443695046.150012s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 10 - No child processes
-[1: 1421334245.398334s]
+[1: 1443695046.150035s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1421334245.398382s]
+[1: 1443695046.150071s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1421334245.398432s]
+[1: 1443695046.150117s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 13 - Permission denied
-[1: 1421334245.398481s]
+[1: 1443695046.150162s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 14 - Bad address
-[1: 1421334245.398531s]
+[1: 1443695046.150204s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 15 - Block device required
-[1: 1421334245.398580s]
+[1: 1443695046.150240s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 16 - Device or resource busy
-[1: 1421334245.398629s]
+[1: 1443695046.150283s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 17 - File exists
-[1: 1421334245.398680s]
+[1: 1443695046.150322s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 18 - Invalid cross-device link
-[1: 1421334245.398729s]
+[1: 1443695046.150362s]
 path_directory() C-kern/platform/Linux/io/directory.c:195
+Exit function with
 Error 19 - No such device

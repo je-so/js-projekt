@@ -1,82 +1,91 @@
-[1: 1426429657.916547s]
+[1: 1443695051.506475s]
 free_mutex() C-kern/platform/Linux/sync/mutex.c:78
+Exit function with
 Error 16 - Device or resource busy
-[1: 1426429657.920512s]
+[1: 1443695051.510441s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:91
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429657.920520s]
+[1: 1443695051.510448s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429658.408729s]
+[1: 1443695052.111801s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:91
+Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1426429658.409578s]
+[1: 1443695052.112486s]
 free_mutex() C-kern/platform/Linux/sync/mutex.c:78
+Exit function with
 Error 16 - Device or resource busy
-[1: 1426429658.410607s]
+[1: 1443695052.113353s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 1 - Operation not permitted
-[1: 1426429658.410814s]
+[1: 1443695052.113556s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 1 - Operation not permitted
-[1: 1426429658.410823s]
+[1: 1443695052.113563s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:91
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429658.410828s]
+[1: 1443695052.113568s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429658.452896s]
+[1: 1443695052.155469s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:91
+Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1426429658.452903s]
+[1: 1443695052.155477s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:446
-Error 22 - Invalid argument
 Assertion '!lock_mutex(&mutex)' failed.
-[1: 1426429658.452909s]
+[1: 1443695052.155481s]
 abort_maincontext() C-kern/main/maincontext.c:202
-Error 22 - Invalid argument
 Abort process with fatal error
-[1: 1426429658.453806s]
+Error 22 - Invalid argument
+[1: 1443695052.156368s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 1 - Operation not permitted
-[1: 1426429658.453811s]
+[1: 1443695052.156374s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:462
-Error 22 - Invalid argument
 Assertion '!unlock_mutex(&mutex)' failed.
-[1: 1426429658.453816s]
+[1: 1443695052.156378s]
 abort_maincontext() C-kern/main/maincontext.c:202
-Error 22 - Invalid argument
 Abort process with fatal error
-[1: 1426429658.454037s]
+Error 22 - Invalid argument
+[1: 1443695052.156578s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 1 - Operation not permitted
-[1: 1426429658.454044s]
+[1: 1443695052.156584s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:481
-Error 22 - Invalid argument
 Assertion '!unlock_mutex(&mutex)' failed.
-[1: 1426429658.454048s]
+[1: 1443695052.156588s]
 abort_maincontext() C-kern/main/maincontext.c:202
-Error 22 - Invalid argument
 Abort process with fatal error
-[1: 1426429658.454070s]
+Error 22 - Invalid argument
+[1: 1443695052.156606s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:91
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429658.454074s]
+[1: 1443695052.156610s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:492
-Error 22 - Invalid argument
 Assertion '!lock_mutex(&mutex)' failed.
-[1: 1426429658.454077s]
+[1: 1443695052.156613s]
 abort_maincontext() C-kern/main/maincontext.c:202
-Error 22 - Invalid argument
 Abort process with fatal error
-[1: 1426429658.454092s]
+Error 22 - Invalid argument
+[1: 1443695052.156628s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:104
+Exit function with
 Error 22 - Invalid argument
-[1: 1426429658.454095s]
+[1: 1443695052.156631s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:500
-Error 22 - Invalid argument
 Assertion '!unlock_mutex(&mutex)' failed.
-[1: 1426429658.454099s]
+[1: 1443695052.156635s]
 abort_maincontext() C-kern/main/maincontext.c:202
-Error 22 - Invalid argument
 Abort process with fatal error
+Error 22 - Invalid argument

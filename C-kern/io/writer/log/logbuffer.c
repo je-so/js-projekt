@@ -145,16 +145,16 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
    int bytes = (buffer_size > 1) ? vsnprintf((char*)buffer, buffer_size, format, args) : 1 ;
 
    if (bytes > 0) {
-      unsigned append_size = (unsigned)bytes ;
+      unsigned append_size = (unsigned)bytes;
 
       if (append_size >= buffer_size) {
          // data has been truncated => mark it with " ..."
-         append_size = buffer_size-1 ;
-         static_assert(log_config_MINSIZE > 4, "") ;
-         memcpy(buffer + append_size-4, " ...", 4) ;
+         append_size = buffer_size-1;
+         static_assert(log_config_MINSIZE > 4, "");
+         memcpy(buffer + append_size-4, " ...", 4);
       }
 
-      logbuf->logsize += append_size ;
+      logbuf->logsize += append_size;
    }
 }
 
@@ -166,8 +166,8 @@ void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
    va_end(args) ;
 }
 
-// convert parameter list from LOGENTRY_HEADER_ERRLOG to vLOGENTRY_HEADER_ERRLOG
-static inline void _LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuf, ...)
+// convert parameter into va_list
+static inline void _LOGENTRY_HEADER(logbuffer_t * logbuf, ...)
 {
    va_list args;
    va_start(args, logbuf);
@@ -175,34 +175,24 @@ static inline void _LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuf, ...)
    va_end(args);
 }
 
-// convert parameter list from LOGENTRY_HEADER_ERROR_ERRLOG to vLOGENTRY_HEADER_ERROR_ERRLOG
-static inline void _LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuf, ...)
-{
-   va_list args;
-   va_start(args, logbuf);
-   LOGENTRY_HEADER_ERROR_ERRLOG(logbuf, args);
-   va_end(args);
-}
-
 void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header)
 {
-   struct timeval tv ;
+   struct timeval tv;
    if (-1 == gettimeofday(&tv, 0)) {
-      tv.tv_sec  = 0 ;
-      tv.tv_usec = 0 ;
+      tv.tv_sec  = 0;
+      tv.tv_usec = 0;
    }
    static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
    static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
 
-#define CALL(NAME, ...) \
-   if (0) {                                           \
-      /* check correct parameter type */              \
-      _check_paramtype_ ## NAME(logbuf, __VA_ARGS__); \
-   } else {                                           \
-      _ ## NAME(logbuf, __VA_ARGS__);                 \
+#define CALL(TEXTID, ...) \
+   if (0) {                                                       \
+      /* check correct parameter type */                          \
+      _check_paramtype_ ## TEXTID ## _ERRLOG (logbuf, __VA_ARGS__); \
+   } else {                                                       \
+      _ ## TEXTID (logbuf, __VA_ARGS__);                 \
    }
-   CALL(LOGENTRY_HEADER_ERRLOG, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
-   CALL(LOGENTRY_HEADER_ERROR_ERRLOG, header->err, (const char*)str_errorcontext(error_maincontext(), header->err));
+   CALL(LOGENTRY_HEADER, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
 #undef CALL
 }
 
@@ -213,8 +203,8 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
 
 static int test_initfree(void)
 {
-   logbuffer_t logbuf = logbuffer_FREE ;
-   uint8_t     buffer[10] ;
+   logbuffer_t logbuf = logbuffer_FREE;
+   uint8_t     buffer[10];
 
    // TEST logbuffer_FREE
    TEST(0 == logbuf.addr) ;
@@ -354,40 +344,40 @@ ONERR:
    return EINVAL ;
 }
 
-static int compare_header(size_t buffer_size, uint8_t buffer_addr[buffer_size], const char * funcname, const char * filename, int linenr, int err)
+static int compare_header(size_t buffer_size, uint8_t buffer_addr[buffer_size], const char * funcname, const char * filename, int linenr)
 {
-   char     buffer[200] ;
-   int      nr1 ;
-   uint64_t nr2 ;
-   uint32_t nr3 ;
-   TEST(3 == sscanf((char*)buffer_addr, "[%d: %"SCNu64".%"SCNu32, &nr1, &nr2, &nr3)) ;
-   TEST((unsigned)nr1 == threadid_maincontext()) ;
-   struct timeval tv ;
-   TEST(0 == gettimeofday(&tv, 0)) ;
-   TEST((uint64_t)tv.tv_sec >= nr2) ;
-   TEST((uint64_t)tv.tv_sec <= nr2 + 1) ;
-   TEST(nr3 < 1000000) ;
+   char     buffer[200];
+   int      nr1;
+   uint64_t nr2;
+   uint32_t nr3;
+   TEST(3 == sscanf((char*)buffer_addr, "[%d: %"SCNu64".%"SCNu32, &nr1, &nr2, &nr3));
+   TEST((unsigned)nr1 == threadid_maincontext());
+   struct timeval tv;
+   TEST(0 == gettimeofday(&tv, 0));
+   TEST((uint64_t)tv.tv_sec >= nr2);
+   TEST((uint64_t)tv.tv_sec <= nr2 + 1);
+   TEST(nr3 < 1000000);
 
-   snprintf(buffer, sizeof(buffer), "[%d: %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\nError %d - %s\n", nr1, nr2, nr3, funcname, filename, linenr, err, (const char*)str_errorcontext(error_maincontext(), err)) ;
-   TEST(strlen(buffer) == buffer_size) ;
-   TEST(0 == memcmp(buffer, buffer_addr, strlen(buffer))) ;
+   snprintf(buffer, sizeof(buffer), "[%d: %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\n", nr1, nr2, nr3, funcname, filename, linenr);
+   TEST(strlen(buffer) == buffer_size);
+   TEST(0 == memcmp(buffer, buffer_addr, strlen(buffer)));
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int thread_printheader(logbuffer_t * logbuf)
 {
    logbuf->logsize = 0 ;
-   log_header_t header = log_header_INIT("thread_printheader", __FILE__, 100, ENOMEM) ;
+   log_header_t header = log_header_INIT("thread_printheader", __FILE__, 100);
    printheader_logbuffer(logbuf, &header) ;
-   TEST(0 == compare_header(logbuf->logsize, logbuf->addr, "thread_printheader", __FILE__, 100, ENOMEM)) ;
+   TEST(0 == compare_header(logbuf->logsize, logbuf->addr, "thread_printheader", __FILE__, 100));
 
-   return 0 ;
+   return 0;
 ONERR:
-   CLEARBUFFER_ERRLOG() ;
-   return EINVAL ;
+   CLEARBUFFER_ERRLOG();
+   return EINVAL;
 }
 
 static int test_update(void)
@@ -448,18 +438,18 @@ static int test_update(void)
 
    // TEST printheader_logbuffer
    logbuf.logsize = 0 ;
-   log_header_t header = log_header_INIT("test_update", "file", 123456, EINVAL) ;
-   printheader_logbuffer(&logbuf, &header) ;
-   TEST(0 == compare_header(logbuf.logsize, logbuf.addr, "test_update", "file", 123456, EINVAL)) ;
+   log_header_t header = log_header_INIT("test_update", "file", 123456);
+   printheader_logbuffer(&logbuf, &header);
+   TEST(0 == compare_header(logbuf.logsize, logbuf.addr, "test_update", "file", 123456));
    for (uint32_t len = logbuf.logsize, i = 1; i < 10; ++i) {
-      printheader_logbuffer(&logbuf, &header) ;
-      TEST((i+1)*len == logbuf.logsize) ;
-      TEST(0 == compare_header(len, logbuf.addr + i*len, "test_update", "file", 123456, EINVAL)) ;
+      printheader_logbuffer(&logbuf, &header);
+      TEST((i+1)*len == logbuf.logsize);
+      TEST(0 == compare_header(len, logbuf.addr + i*len, "test_update", "file", 123456));
    }
-   TEST(0 == newgeneric_thread(&thread, &thread_printheader, &logbuf)) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(0 == returncode_thread(thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
+   TEST(0 == newgeneric_thread(&thread, &thread_printheader, &logbuf));
+   TEST(0 == join_thread(thread));
+   TEST(0 == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
 
    // TEST printheader_logbuffer: adds " ..." at end in case of truncated message
    logbuf.logsize = logbuf.size - 10 ;

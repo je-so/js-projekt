@@ -1,85 +1,107 @@
-[1: 1417879700.275447s]
+[1: 1443695033.954997s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:120
-Error 22 - Invalid argument
 Function input violates condition (pagesize < pagesize__NROF)
-[1: 1417879700.275460s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695033.955008s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:120
-Error 22 - Invalid argument
 Function input violates condition (pagesize < pagesize__NROF)
-[1: 1417879700.275462s]
-init_blockarray() C-kern/ds/inmem/blockarray.c:121
+Exit function with
 Error 22 - Invalid argument
-Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-[1: 1417879700.275465s]
+[1: 1443695033.955011s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:121
-Error 22 - Invalid argument
 Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-[1: 1417879700.526531s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695033.955013s]
+init_blockarray() C-kern/ds/inmem/blockarray.c:121
+Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695034.192420s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526560s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192444s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526573s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192463s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526591s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192481s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526608s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192499s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526625s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192516s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526641s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192534s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526658s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192551s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526675s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192569s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526692s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192587s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526709s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192604s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526726s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192622s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526743s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192639s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526759s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192657s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879700.526776s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.192674s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:200
-Error 14 - Bad address
 One or more resources could not be freed
-[1: 1417879701.215722s]
+Exit function with
+Error 14 - Bad address
+[1: 1443695034.878333s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:332
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1417879701.215740s]
+[1: 1443695034.878344s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:332
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1417879701.215743s]
+[1: 1443695034.878347s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:332
+Exit function with
 Error 12 - Cannot allocate memory

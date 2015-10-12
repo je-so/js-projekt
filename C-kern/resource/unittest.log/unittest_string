@@ -1,36 +1,45 @@
-[1: 1411405247.962340s]
+[1: 1443695043.534993s]
 initsubstr_string() C-kern/string/string.c:50
-Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1411405247.962345s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535000s]
 initsubstr_string() C-kern/string/string.c:50
-Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[1: 1411405247.962349s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535003s]
 initse_string() C-kern/string/string.c:34
-Error 22 - Invalid argument
 Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
-[1: 1411405247.963095s]
-substr_string() C-kern/string/string.c:91
+Exit function with
 Error 22 - Invalid argument
-Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1411405247.963097s]
+[1: 1443695043.535784s]
 substr_string() C-kern/string/string.c:91
-Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1411405247.963099s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535787s]
 substr_string() C-kern/string/string.c:91
-Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1411405247.963101s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535789s]
 substr_string() C-kern/string/string.c:91
-Error 22 - Invalid argument
 Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[1: 1411405247.963103s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535791s]
+substr_string() C-kern/string/string.c:91
+Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695043.535793s]
 shrinkleft_string() C-kern/string/string.c:106
-Error 22 - Invalid argument
 Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
-[1: 1411405247.963105s]
-shrinkright_string() C-kern/string/string.c:121
+Exit function with
 Error 22 - Invalid argument
+[1: 1443695043.535795s]
+shrinkright_string() C-kern/string/string.c:121
 Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))
+Exit function with
+Error 22 - Invalid argument

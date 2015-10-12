@@ -1,38 +1,49 @@
-[1: 1410603452.164501s]
+[1: 1443695052.518519s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603452.164506s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695052.518530s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603452.164509s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695052.518535s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603452.164511s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695052.518539s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603452.164513s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695052.518543s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:59
-Error 16 - Device or resource busy
 One or more resources could not be freed
-[1: 1410603452.164517s]
+Exit function with
+Error 16 - Device or resource busy
+[1: 1443695052.518549s]
 lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:190
+Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1410603452.164519s]
+[1: 1443695052.518555s]
 lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:190
+Exit function with
 Error 75 - Value too large for defined data type
-[1: 1410603452.179236s]
+[1: 1443695052.537732s]
 lockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:217
+Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1410603452.197236s]
+[1: 1443695052.550954s]
 unlockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:249
+Exit function with
 Error 1 - Operation not permitted
-[1: 1410603452.208749s]
+[1: 1443695052.559742s]
 unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:278
+Exit function with
 Error 1 - Operation not permitted
-[1: 1410603452.208779s]
+[1: 1443695052.559768s]
 unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:278
+Exit function with
 Error 1 - Operation not permitted

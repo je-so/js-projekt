@@ -1,42 +1,54 @@
-[1: 1410603465.672260s]
+[1: 1443695069.544666s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.673905s]
+[1: 1443695069.546361s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.685058s]
+[1: 1443695069.557984s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1410603465.689269s]
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695069.562950s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1410603465.702527s]
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695069.571552s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.703391s]
+[1: 1443695069.572653s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.715031s]
+[1: 1443695069.585386s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1410603465.720043s]
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695069.593622s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1410603465.726902s]
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695069.600767s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.727586s]
+[1: 1443695069.601524s]
 initdefault_display() C-kern/graphic/display.c:116
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1410603465.738298s]
+[1: 1443695069.613411s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
-[1: 1410603465.743392s]
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1443695069.617113s]
 free_display() C-kern/graphic/display.c:136
-Error 12 - Cannot allocate memory
 One or more resources could not be freed
+Exit function with
+Error 12 - Cannot allocate memory

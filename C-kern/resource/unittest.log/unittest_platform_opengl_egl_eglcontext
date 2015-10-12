@@ -1,26 +1,34 @@
-[1: 1410603388.584640s]
+[1: 1443695068.397700s]
 init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:55
-Error 22 - Invalid argument
 Function input violates condition (api < gcontext_api__NROF)
-[1: 1410603388.586692s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695068.399738s]
 free_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:107
-Error 9 - Bad file descriptor
 One or more resources could not be freed
-[1: 1410603388.610537s]
+Exit function with
+Error 9 - Bad file descriptor
+[1: 1443695068.423369s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.610546s]
+[1: 1443695068.423379s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.612469s]
+[1: 1443695068.425278s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.612475s]
+[1: 1443695068.425285s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.616267s]
+[1: 1443695068.429002s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument
-[1: 1410603388.616283s]
+[1: 1443695068.429021s]
 setcurrent_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:219
+Exit function with
 Error 22 - Invalid argument

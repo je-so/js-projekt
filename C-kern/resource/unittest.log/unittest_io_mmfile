@@ -1,171 +1,213 @@
-[1: 1423234508.132404s]
+[1: 1443695047.800374s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=2
-[1: 1423234508.132412s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800381s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132416s]
+[1: 1443695047.800386s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=13
-[1: 1423234508.132420s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800390s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132424s]
+[1: 1443695047.800393s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=43
-[1: 1423234508.132428s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800397s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132430s]
+[1: 1443695047.800399s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=27
-[1: 1423234508.132432s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800402s]
 initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132436s]
+[1: 1443695047.800405s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:43
-Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=1
-[1: 1423234508.132439s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800408s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132441s]
+[1: 1443695047.800410s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:43
-Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=1
-[1: 1423234508.132443s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800413s]
 initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132445s]
+[1: 1443695047.800415s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1423234508.132448s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800417s]
 initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132450s]
+[1: 1443695047.800419s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1423234508.132452s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800422s]
 initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132456s]
+[1: 1443695047.800426s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=2
-[1: 1423234508.132459s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800428s]
 initPio_mmfile() C-kern/platform/Linux/io/mmfile.c:99
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.132465s]
+[1: 1443695047.800436s]
 initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171
-Error 22 - Invalid argument
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=0
 ((sourcemfile)->size)=8196
-[1: 1423234508.132468s]
-initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171
+Exit function with
 Error 22 - Invalid argument
+[1: 1443695047.800440s]
+initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=4095
 ((sourcemfile)->size)=8196
-[1: 1423234508.132471s]
-initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171
+Exit function with
 Error 22 - Invalid argument
+[1: 1443695047.800443s]
+initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=12288
 ((sourcemfile)->size)=8196
-[1: 1423234508.132478s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.800451s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 61 - No data available
-[1: 1423234508.132501s]
+[1: 1443695047.800471s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1423234508.132508s]
+[1: 1443695047.800476s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
+System call 'mmap' failed with error 12
+Exit function with
 Error 12 - Cannot allocate memory
-System call 'mmap' failed
-[1: 1423234508.132511s]
+[1: 1443695047.800480s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1423234508.132515s]
+[1: 1443695047.800484s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
+System call 'mmap' failed with error 12
+Exit function with
 Error 12 - Cannot allocate memory
-System call 'mmap' failed
-[1: 1423234508.132518s]
+[1: 1443695047.800487s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:162
+Exit function with
 Error 12 - Cannot allocate memory
-[1: 1423234508.134024s]
+[1: 1443695047.801725s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1423234508.134028s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801728s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134030s]
+[1: 1443695047.801730s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1423234508.134032s]
-seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134034s]
+[1: 1443695047.801733s]
+seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801735s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=15
-[1: 1423234508.134037s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801738s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134039s]
+[1: 1443695047.801739s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:50
-Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=27
-[1: 1423234508.134042s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801742s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134043s]
+[1: 1443695047.801744s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:43
-Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=4095
-[1: 1423234508.134046s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801747s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134048s]
+[1: 1443695047.801749s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:162
-Error 9 - Bad file descriptor
-System call 'fcntl' failed
+System call 'fcntl' failed with error 9
 ioc=-1
-[1: 1423234508.134051s]
+Exit function with
+Error 9 - Bad file descriptor
+[1: 1443695047.801752s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=0
-[1: 1423234508.134054s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801755s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument
-[1: 1423234508.134059s]
+[1: 1443695047.801761s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:57
-Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=2
-[1: 1423234508.134062s]
+Exit function with
+Error 22 - Invalid argument
+[1: 1443695047.801767s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:224
+Exit function with
 Error 22 - Invalid argument

@@ -199,7 +199,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    //       add unit test for checking that resources are freed
-   TRACE_NOARG_ERRLOG(log_flags_END, PROGRAM_ABORT, err);
+   TRACE_ERRLOG(log_flags_NONE, PROGRAM_ABORT, err);
    FLUSHBUFFER_ERRLOG();
    abort();
 }
@@ -210,7 +210,7 @@ void assertfail_maincontext(
    int          line,
    const char * funcname)
 {
-   TRACE2_ERRLOG(log_flags_END, ASSERT_FAILED, funcname, file, line, EINVAL, condition);
+   TRACE2_ERRLOG(log_flags_LAST, ASSERT_FAILED, funcname, file, line, condition);
    abort_maincontext(EINVAL);
 }
 

@@ -62,7 +62,8 @@ static int prepare_pseudoterm(int fd)
    if (  (issiginfo && (sighandler_t)oldact.sa_sigaction != SIG_DFL)
          || (!issiginfo && oldact.sa_handler != SIG_DFL)) {
       // do not abort, call grantpt nevertheless
-      TRACE_ERRLOG(log_flags_START|log_flags_END, STATE_WRONG_SIGHANDLER_DEFINED, EINVAL, "SIGCHLD");
+      TRACE_ERRLOG(log_flags_NONE, STATE_WRONG_SIGHANDLER_DEFINED, "SIGCHLD");
+      TRACE_NOARG_ERRLOG(log_flags_LAST, ERROR_IGNORED);
    }
 
    err = grantpt(fd);

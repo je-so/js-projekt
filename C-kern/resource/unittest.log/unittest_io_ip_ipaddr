@@ -1,76 +1,96 @@
-[1: 1410603207.571149s]
+[1: 1443695047.810740s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.583546s]
+[1: 1443695047.823065s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.584944s]
+[1: 1443695047.824497s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 2 - No such file or directory
-[1: 1410603207.827299s]
+[1: 1443695048.028574s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 93 - Protocol not supported
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 93
 name_or_numeric=127.0.0.1
-[1: 1410603207.827311s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.827318s]
-new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 99 - Cannot assign requested address
-System call 'getaddrinfo' failed
-name_or_numeric=127.0.0.1
-[1: 1410603207.827325s]
+[1: 1443695048.028594s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
-Error 99 - Cannot assign requested address
-[1: 1410603207.827344s]
+Exit function with
+Error 93 - Protocol not supported
+[1: 1443695048.028603s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 99
+name_or_numeric=127.0.0.1
+Exit function with
 Error 99 - Cannot assign requested address
-System call 'getaddrinfo' failed
+[1: 1443695048.028617s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 99 - Cannot assign requested address
+[1: 1443695048.028623s]
+new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 99
 name_or_numeric=::1
-[1: 1410603207.827349s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 99 - Cannot assign requested address
-[1: 1410603207.827360s]
-new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 97 - Address family not supported by protocol
-System call 'getaddrinfo' failed
-name_or_numeric=127.0.0.1
-[1: 1410603207.827365s]
+[1: 1443695048.028629s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
-Error 97 - Address family not supported by protocol
-[1: 1410603207.827376s]
+Exit function with
+Error 99 - Cannot assign requested address
+[1: 1443695048.028634s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 97 - Address family not supported by protocol
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 97
 name_or_numeric=127.0.0.1
-[1: 1410603207.827380s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1410603207.827401s]
+[1: 1443695048.028639s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.028643s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 2 - No such file or directory
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 97
+name_or_numeric=127.0.0.1
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.028648s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.028669s]
+new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 2
 name_or_numeric=192.68.2.1.2
-[1: 1410603207.827407s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 2 - No such file or directory
-[1: 1410603207.827503s]
+[1: 1443695048.028674s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695048.028766s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 2 - No such file or directory
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 2
 name_or_numeric=www.ein-label-das-zu-lange-ist-und-einen-fehler-ausloesen-sollte-123456789.de
-[1: 1410603207.827510s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 2 - No such file or directory
-[1: 1410603207.835892s]
+[1: 1443695048.028773s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695048.039112s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.848218s]
+[1: 1443695048.054079s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.849630s]
+[1: 1443695048.055463s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:718
+Exit function with
 Error 2 - No such file or directory
 IP: udp://200.100.6.8:65535
 IP: tcp://8.8.3.200:36
@@ -79,68 +99,85 @@ IP: tcp://127.0.0.1:9036
 IP: udp://::1:112
 IP: tcp://:::2964
 IP: tcp://1234:5678:abcd:ef00:ef00:abcd:cccc:aa55:964
-[1: 1410603207.860460s]
+[1: 1443695048.140866s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:202
+Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1410603207.860468s]
+[1: 1443695048.140877s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:202
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.860473s]
+[1: 1443695048.140883s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:202
+Exit function with
 Error 99 - Cannot assign requested address
-[1: 1410603207.931428s]
+[1: 1443695048.211820s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 93 - Protocol not supported
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 93
 name_or_numeric=127.0.0.1
-[1: 1410603207.931439s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 93 - Protocol not supported
-[1: 1410603207.931446s]
-new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 99 - Cannot assign requested address
-System call 'getaddrinfo' failed
-name_or_numeric=127.0.0.1
-[1: 1410603207.931452s]
+[1: 1443695048.211832s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
-Error 99 - Cannot assign requested address
-[1: 1410603207.931457s]
+Exit function with
+Error 93 - Protocol not supported
+[1: 1443695048.211840s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 99
+name_or_numeric=127.0.0.1
+Exit function with
 Error 99 - Cannot assign requested address
-System call 'getaddrinfo' failed
+[1: 1443695048.211847s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 99 - Cannot assign requested address
+[1: 1443695048.211853s]
+new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 99
 name_or_numeric=::1
-[1: 1410603207.931462s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 99 - Cannot assign requested address
-[1: 1410603207.931472s]
-new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 97 - Address family not supported by protocol
-System call 'getaddrinfo' failed
-name_or_numeric=127.0.0.1
-[1: 1410603207.931477s]
+[1: 1443695048.211859s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
-Error 97 - Address family not supported by protocol
-[1: 1410603207.931481s]
+Exit function with
+Error 99 - Cannot assign requested address
+[1: 1443695048.211877s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 97 - Address family not supported by protocol
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 97
 name_or_numeric=127.0.0.1
-[1: 1410603207.931486s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1410603207.931518s]
+[1: 1443695048.211882s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.211886s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 2 - No such file or directory
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 97
+name_or_numeric=127.0.0.1
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.211891s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 97 - Address family not supported by protocol
+[1: 1443695048.211919s]
+new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
+System call 'getaddrinfo' failed with error 2
 name_or_numeric=192.68.2.1.2
-[1: 1410603207.931523s]
-newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 2 - No such file or directory
-[1: 1410603207.931602s]
+[1: 1443695048.211924s]
+newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695048.212042s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:133
-Error 2 - No such file or directory
-System call 'getaddrinfo' failed
+System call 'getaddrinfo' failed with error 2
 name_or_numeric=www.ein-label-das-zu-lange-ist-und-einen-fehler-ausloesen-sollte-123456789.de
-[1: 1410603207.931608s]
+Exit function with
+Error 2 - No such file or directory
+[1: 1443695048.212049s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:624
+Exit function with
 Error 2 - No such file or directory

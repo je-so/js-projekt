@@ -87,7 +87,7 @@ static void* main_thread(thread_startargument_t * startarg)
 
    if (sys_thread_FREE == pthread_self()) {
       err = EINVAL;
-      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_FREE));
+      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, "pthread_self", STR(sys_thread_FREE));
       goto ONERR;
    }
 

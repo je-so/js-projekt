@@ -235,13 +235,13 @@ static int test_update(void)
 
    // TEST printf_logmain: header
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      log_header_t header = log_header_INIT("func", "file", 10, EPERM) ;
-      printf_logmain(0, i, log_flags_NONE, &header, "%s", "xxx") ;
+      log_header_t header = log_header_INIT("func", "file", 10);
+      printf_logmain(0, i, log_flags_NONE, &header, "%s", "xxx");
       memset(readbuffer, 0, sizeof(readbuffer)) ;
-      TEST(76 <= read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(42 <= read(pipefd[0], readbuffer, sizeof(readbuffer)));
       TEST(0 == strncmp("[1: ", readbuffer, 4)) ;
       TEST(0 != strchr((char*)readbuffer, ']')) ;
-      TEST(0 == strcmp("]\nfunc() file:10\nError 1 - Operation not permitted\nxxx", strchr((char*)readbuffer, ']'))) ;
+      TEST(0 == strcmp("]\nfunc() file:10\nxxx", strchr((char*)readbuffer, ']'))) ;
    }
 
    // TEST printf_logmain: format == 0
@@ -267,15 +267,15 @@ static int test_update(void)
 
    // TEST printtext_logmain: header
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      log_header_t header = log_header_INIT("func", "file", 1, 2) ;
+      log_header_t header = log_header_INIT("func", "file", 1);
       printtext_logmain(0, i, log_flags_NONE, &header, text_resource_test, '4', maxstring, 6) ;
-      TEST(log_config_MINSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(log_config_MINSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer)));
       TEST(0 == strncmp("[1: ", readbuffer, 4)) ;
       const char * off = strchr((char*)readbuffer, ']') ;
       TEST(0 != off) ;
-      const char * result = "]\nfunc() file:1\nError 2 - No such file or directory\n24$" ;
-      TEST(0 == strncmp(result, off, strlen(result))) ;
-      off += strlen(result) ;
+      const char * result = "]\nfunc() file:1\n24$";
+      TEST(0 == strncmp(result, off, strlen(result)));
+      off += strlen(result);
       TEST(0 == memcmp(off, maxstring, log_config_MINSIZE-4-(size_t)(off-readbuffer))) ;
       TEST(0 == memcmp(readbuffer+log_config_MINSIZE-4, " ...", 4)) ;
    }
