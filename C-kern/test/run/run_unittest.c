@@ -289,7 +289,7 @@ int run_unittest(void * argv)
       // task unittest
       RUN(unittest_platform_task_process);
       RUN(unittest_platform_task_thread);
-      RUN(unittest_platform_task_thread_tls);
+      RUN(unittest_platform_task_thread_localstore);
       // other
       RUN(unittest_platform_locale);
       RUN(unittest_platform_malloc);

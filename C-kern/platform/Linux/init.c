@@ -21,7 +21,7 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/platform/task/thread_tls.h"
+#include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
@@ -79,7 +79,7 @@ int init_platform(mainthread_f main_thread, void * user)
    volatile int linenr;
    int               retcode = 0;
    volatile int      is_exit = 0;
-   thread_tls_t*     tls     = 0;
+   thread_localstore_t* tls  = 0;
    memblock_t        threadstack;
    memblock_t        signalstack;
    ucontext_t        context_caller;
@@ -87,7 +87,7 @@ int init_platform(mainthread_f main_thread, void * user)
 
    linenr = __LINE__;
    ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
-   err = newmain_threadtls(&tls, &threadstack, &signalstack);
+   err = newmain_threadlocalstore(&tls, &threadstack, &signalstack);
    if (err) goto ONERR;
 
    linenr = __LINE__;
@@ -106,7 +106,7 @@ int init_platform(mainthread_f main_thread, void * user)
    }
 
    if (is_exit) {
-      volatile thread_t * thread = thread_threadtls(tls);
+      volatile thread_t * thread = thread_threadlocalstore(tls);
       retcode = returncode_thread(thread);
       goto ONERR;
    }
@@ -124,7 +124,7 @@ int init_platform(mainthread_f main_thread, void * user)
    context_mainthread.uc_stack = (stack_t) { .ss_sp = threadstack.addr, .ss_flags = 0, .ss_size = threadstack.size };
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
-   thread_t * thread = thread_threadtls(tls);
+   thread_t * thread = thread_threadlocalstore(tls);
    initmain_thread(thread, main_thread, user);
 
    linenr = __LINE__;
@@ -142,7 +142,7 @@ ONERR:
 
    if (!err) linenr = __LINE__;
    SETONERROR_testerrortimer(&s_platform_errtimer, &err);
-   err2 = deletemain_threadtls(&tls);
+   err2 = deletemain_threadlocalstore(&tls);
    if (err2 && !err) err = err2;
    if (err) {
       #define ERRSTR1 "init_platform() "

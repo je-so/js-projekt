@@ -9,7 +9,7 @@
 # Possible values:
 # "initonce"   - Calls initonce_module(parameter) / freeonce_module(parameter)
 # "object"     - Calls init_module(parameter) / free_module(parameter)
-#                The memory is allocated and freed with allocstatic_threadtls / freestatic_threadtls with tls of main thread.
+#                The memory is allocated and freed with allocstatic_threadlocalstore / freestatic_threadlocalstore with tls of main thread.
 "module",            "inittype",    "objtype",            "parameter",    "header-name"
 "errorcontext",      "initonce",    "",                   "error",        "C-kern/api/err/errorcontext.h"
 "locale",            "initonce",    "",                   "",             "C-kern/api/platform/locale.h"

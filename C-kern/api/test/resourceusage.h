@@ -61,9 +61,9 @@ struct resourceusage_t {
    /* variable: pagecache_correction
     * Size of pages <resourceusage_t> uses itself. */
    size_t                        pagecache_correction;
-   /* variable: threadtls_staticusage
-    * Size of static memory allocated in <thread_tls_t>. */
-   size_t                        threadtls_staticusage;
+   /* variable: threadlocalstore_staticusage
+    * Size of static memory allocated in <thread_localstore_t>. */
+   size_t                        threadlocalstore_staticusage;
    /* variable: signalstate
     * Stores configuration state of signal subsystem. */
    struct signalstate_t *        signalstate;

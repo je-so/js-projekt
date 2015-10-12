@@ -92,7 +92,7 @@ struct thread_t {
 
 /* define: thread_FREE
  * Static initializer.
- * Used to initialize thread in <thread_tls_t>. */
+ * Used to initialize thread in <thread_localstore_t>. */
 #define thread_FREE \
          { 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
@@ -347,7 +347,7 @@ int setcontinue_thread(bool* is_abort);
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
 #define self_thread() \
-         (sys_thread_threadtls())
+         (sys_thread_threadlocalstore())
 
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */

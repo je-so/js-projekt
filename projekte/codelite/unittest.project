@@ -52,7 +52,7 @@
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/api/platform/task/thread.h"/>
         <File Name="../../C-kern/api/platform/task/process.h"/>
-        <File Name="../../C-kern/api/platform/task/thread_tls.h"/>
+        <File Name="../../C-kern/api/platform/task/thread_localstore.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="sync">
         <File Name="../../C-kern/api/platform/sync/semaphore.h"/>
@@ -416,7 +416,7 @@
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>
         <File Name="../../C-kern/platform/Linux/task/thread.c"/>
-        <File Name="../../C-kern/platform/Linux/task/thread_tls.c"/>
+        <File Name="../../C-kern/platform/Linux/task/thread_localstore.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="time">
         <File Name="../../C-kern/platform/Linux/time/sysclock.c"/>

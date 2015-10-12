@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/perftest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Okt.12  08:28:00
+GenerationDate  := 2015.Okt.12  13:37:02
 GeneratedBy     := je-so
 
 ## Debug
@@ -99,7 +99,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
@@ -152,7 +152,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
@@ -260,7 +260,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linu
 $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
@@ -413,7 +413,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Li
 $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c

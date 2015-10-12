@@ -25,7 +25,7 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/platform/task/thread_tls.h"
+#include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
@@ -113,7 +113,7 @@ static void* main_thread(thread_startargument_t * startarg)
       thread->returncode = thread->main_task(thread->main_arg);
    }
 
-   err = free_threadcontext(sys_context_threadtls());
+   err = free_threadcontext(sys_context_threadlocalstore());
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err);
       goto ONERR;
@@ -146,9 +146,9 @@ int delete_thread(thread_t ** thread)
 
       err = join_thread(delobj);
 
-      thread_tls_t* tls = castPthread_threadtls(delobj);
+      thread_localstore_t* tls = castPthread_threadlocalstore(delobj);
 
-      err2 = delete_threadtls(&tls);
+      err2 = delete_threadlocalstore(&tls);
       if (err2) err = err2;
 
       if (err) goto ONERR;
@@ -164,17 +164,17 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
 {
    int err;
    pthread_attr_t    thread_attr;
-   thread_t *        newthread         = 0;
-   thread_tls_t *    tls               = 0;
+   thread_t *        newthread = 0;
+   thread_localstore_t * tls   = 0;
    bool              isThreadAttrValid = false;
    memblock_t        stack;
    memblock_t        signalstack;
 
    ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
-   err = new_threadtls(&tls, &stack, &signalstack);
+   err = new_threadlocalstore(&tls, &stack, &signalstack);
    if (err) goto ONERR;
 
-   newthread = thread_threadtls(tls);
+   newthread = thread_threadlocalstore(tls);
    newthread->main_task  = thread_main;
    newthread->main_arg   = main_arg;
 
@@ -226,7 +226,7 @@ ONERR:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr);
    }
-   (void) delete_threadtls(&tls);
+   (void) delete_threadlocalstore(&tls);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -404,7 +404,7 @@ int exit_thread(int retcode)
 
    setreturncode_thread(thread, retcode);
 
-   err = free_threadcontext(sys_context_threadtls());
+   err = free_threadcontext(sys_context_threadlocalstore());
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err);
       abort_maincontext(err);
@@ -594,8 +594,8 @@ static int test_query(void)
    thread_t    thread;
 
    // TEST self_thread
-   TEST(self_thread() == thread_threadtls(self_threadtls()));
-   TEST(self_thread() == sys_thread_threadtls());
+   TEST(self_thread() == thread_threadlocalstore(self_threadlocalstore()));
+   TEST(self_thread() == sys_thread_threadlocalstore());
 
    // TEST returncode_thread
    for (int R = -10; R <= 10; ++R) {
@@ -796,7 +796,7 @@ static void handler_sigusr1(int sig)
 static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy;
-   signalstack_threadtls(castPthread_threadtls(self_thread()), &s_sigaltstack_signalstack);
+   signalstack_threadlocalstore(castPthread_threadlocalstore(self_thread()), &s_sigaltstack_signalstack);
    s_sigaltstack_threadid    = pthread_self();
    s_sigaltstack_returncode  = EINVAL;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1));
@@ -1074,8 +1074,8 @@ static int test_manythreads(void)
    // TEST newgeneric_thread: every thread has its own stackframe + self_thread
    for (unsigned i = 0; i < lengthof(startarg.isValid); ++i) {
       TEST(0 == newgeneric_thread(&startarg.thread[i], thread_isvalidstack, &startarg));
-      signalstack_threadtls(castPthread_threadtls(startarg.thread[i]), &startarg.signalstack[i]);
-      threadstack_threadtls(castPthread_threadtls(startarg.thread[i]), &startarg.threadstack[i]);
+      signalstack_threadlocalstore(castPthread_threadlocalstore(startarg.thread[i]), &startarg.signalstack[i]);
+      threadstack_threadlocalstore(castPthread_threadlocalstore(startarg.thread[i]), &startarg.threadstack[i]);
    }
    // startarg initialized
    startarg.isvalid = true;

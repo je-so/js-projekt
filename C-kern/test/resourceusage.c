@@ -26,7 +26,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/platform/task/thread_tls.h"
+#include "C-kern/api/platform/task/thread_localstore.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #endif
@@ -37,7 +37,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    size_t               fds;
    size_t               pagecache_usage;
    size_t               pagecache_endinit;
-   size_t               threadtls_staticusage;
+   size_t               threadlocalstore_staticusage;
    size_t               mmtrans_usage;
    size_t               mmtrans_endinit;
    size_t               allocated;
@@ -51,8 +51,8 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = nropen_iochannel(&fds);
    if (err) goto ONERR;
 
-   pagecache_usage       = sizeallocated_pagecache(pagecache_maincontext());
-   threadtls_staticusage = sizestatic_threadtls(self_threadtls());
+   pagecache_usage = sizeallocated_pagecache(pagecache_maincontext());
+   threadlocalstore_staticusage = sizestatic_threadlocalstore(self_threadlocalstore());
 
    mmtrans_usage = sizeallocated_mm(mm_maincontext());
 
@@ -83,7 +83,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    usage->malloc_correction    = allocated_endinit - allocated;
    usage->pagecache_usage      = pagecache_usage;
    usage->pagecache_correction = pagecache_endinit - pagecache_usage;
-   usage->threadtls_staticusage= threadtls_staticusage;
+   usage->threadlocalstore_staticusage= threadlocalstore_staticusage;
    usage->signalstate          = signalstate;
    usage->virtualmemory_usage  = mappedregions;
 
@@ -158,7 +158,7 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ONERR;
    }
 
-   if (usage2.threadtls_staticusage != usage->threadtls_staticusage) {
+   if (usage2.threadlocalstore_staticusage != usage->threadlocalstore_staticusage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err);
       goto ONERR;
    }
@@ -200,7 +200,7 @@ static int test_initfree(void)
    TEST(0 == usage.malloc_correction);
    TEST(0 == usage.pagecache_usage);
    TEST(0 == usage.pagecache_correction);
-   TEST(0 == usage.threadtls_staticusage);
+   TEST(0 == usage.threadlocalstore_staticusage);
    TEST(0 == usage.signalstate);
    TEST(0 == usage.virtualmemory_usage);
    TEST(0 == usage.malloc_acceptleak);
@@ -214,7 +214,7 @@ static int test_initfree(void)
    TEST(0 == usage.malloc_correction);
    TEST(0 != usage.pagecache_usage);
    TEST(0 == usage.pagecache_correction); // change to != 0 if testmm uses pagecache !!
-   TEST(0 != usage.threadtls_staticusage);
+   TEST(0 != usage.threadlocalstore_staticusage);
    TEST(0 != usage.signalstate);
    TEST(0 != usage.virtualmemory_usage);
    TEST(20000 > usage.malloc_correction);
@@ -227,7 +227,7 @@ static int test_initfree(void)
    TEST(0 == usage.malloc_correction);
    TEST(0 == usage.pagecache_usage);
    TEST(0 == usage.pagecache_correction);
-   TEST(0 == usage.threadtls_staticusage);
+   TEST(0 == usage.threadlocalstore_staticusage);
    TEST(0 == usage.signalstate);
    TEST(0 == usage.virtualmemory_usage);
    TEST(0 == usage.malloc_acceptleak);
@@ -239,7 +239,7 @@ static int test_initfree(void)
    TEST(0 == usage.malloc_correction);
    TEST(0 == usage.pagecache_usage);
    TEST(0 == usage.pagecache_correction);
-   TEST(0 == usage.threadtls_staticusage);
+   TEST(0 == usage.threadlocalstore_staticusage);
    TEST(0 == usage.signalstate);
    TEST(0 == usage.virtualmemory_usage);
    TEST(0 == usage.malloc_acceptleak);
@@ -308,9 +308,9 @@ static int test_query(void)
 
    // TEST same_resourceusage: ELEAK cause of static memory
    TEST(0 == init_resourceusage(&usage));
-   TEST(0 == allocstatic_threadtls(self_threadtls(), 128, &page));
+   TEST(0 == allocstatic_threadlocalstore(self_threadlocalstore(), 128, &page));
    TEST(ELEAK == same_resourceusage(&usage));
-   TEST(0 == freestatic_threadtls(self_threadtls(), &page));
+   TEST(0 == freestatic_threadlocalstore(self_threadlocalstore(), &page));
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 

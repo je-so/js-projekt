@@ -23,7 +23,7 @@
 #include "C-kern/api/platform/init.h"
 #include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/platform/sync/mutex.h"
-#include "C-kern/api/platform/task/thread_tls.h"
+#include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -112,7 +112,7 @@ int free_maincontext(void)
       err2 = free_processcontext(&g_maincontext.pcontext);
       if (err2) err = err2;
 
-      if (0 != sizestatic_threadtls(self_threadtls())) {
+      if (0 != sizestatic_threadlocalstore(self_threadlocalstore())) {
          err = ENOTEMPTY;
       }
 
@@ -250,13 +250,13 @@ static int test_querymacros(void)
    // TEST syncrunner_maincontext
    TEST(&syncrunner_maincontext()  == &tcontext_maincontext()->syncrunner);
 
-   thread_tls_t* tls = self_threadtls();
+   thread_localstore_t* tls = self_threadlocalstore();
 
    // TEST tcontext_maincontext
-   TEST(tcontext_maincontext()     == context_threadtls(tls));
+   TEST(tcontext_maincontext()     == context_threadlocalstore(tls));
 
    // TEST threadid_maincontext
-   TEST(&threadid_maincontext()    == &context_threadtls(tls)->thread_id);
+   TEST(&threadid_maincontext()    == &context_threadlocalstore(tls)->thread_id);
 
    // TEST type_maincontext
    TEST(&type_maincontext()        == &g_maincontext.type);
@@ -302,7 +302,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argc);
    TEST(0 == g_maincontext.argv);
    TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
-   TEST(0 == sizestatic_threadtls(self_threadtls()));
+   TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
 
    maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE };
    for (unsigned i = 0; i < lengthof(mainmode); ++i) {
@@ -314,7 +314,7 @@ static int test_initmain(void)
       TEST(g_maincontext.argc == 2);
       TEST(g_maincontext.argv == argv);
       TEST(g_maincontext.progname == argv[0]);
-      TEST(sizestatic_threadtls(self_threadtls()) == extsize_processcontext() + extsize_threadcontext());
+      TEST(sizestatic_threadlocalstore(self_threadlocalstore()) == extsize_processcontext() + extsize_threadcontext());
       TEST(0 != g_maincontext.pcontext.valuecache);
       TEST(0 != g_maincontext.pcontext.syslogin);
       TEST(0 != tcontext_maincontext()->initcount);
@@ -341,7 +341,7 @@ static int test_initmain(void)
       // TEST free_maincontext
       TEST(0 == free_maincontext());
       TEST(pcontext_maincontext() == &g_maincontext.pcontext);
-      TEST(0 == sizestatic_threadtls(self_threadtls()));
+      TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
       TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
       TEST(0 == g_maincontext.type);
       TEST(0 == g_maincontext.progname);
@@ -350,7 +350,7 @@ static int test_initmain(void)
       TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
       TEST(0 == strcmp("C", current_locale()));
       TEST(0 == free_maincontext());
-      TEST(0 == sizestatic_threadtls(self_threadtls()));
+      TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
       TEST(pcontext_maincontext() == &g_maincontext.pcontext);
       TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
       TEST(0 == g_maincontext.type);
@@ -364,7 +364,7 @@ static int test_initmain(void)
    // TEST free_maincontext: ENOTEMPTY
    g_maincontext.type = maincontext_DEFAULT;
    memblock_t mblock;
-   TEST(0 == allocstatic_threadtls(self_threadtls(), 1, &mblock));
+   TEST(0 == allocstatic_threadlocalstore(self_threadlocalstore(), 1, &mblock));
    TEST(ENOTEMPTY == free_maincontext());
    TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
    TEST(0 == g_maincontext.type);
@@ -372,7 +372,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argc);
    TEST(0 == g_maincontext.argv);
    TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
-   TEST(0 == freestatic_threadtls(self_threadtls(), &mblock));
+   TEST(0 == freestatic_threadlocalstore(self_threadlocalstore(), &mblock));
 
    // unprepare
    FLUSHBUFFER_ERRLOG();
