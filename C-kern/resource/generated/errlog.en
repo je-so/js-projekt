@@ -5,14 +5,14 @@
  *
  */
 
-void vASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * wrong_condition = va_arg(vargs, const char*) ;
 
    PRINTF("Assertion '%s' failed.\n", wrong_condition) ;
 }
 
-void vLOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    size_t threadid = va_arg(vargs, size_t) ;
    uint64_t sec = va_arg(vargs, uint64_t) ;
@@ -24,7 +24,7 @@ void vLOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
 }
 
-void vLOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    int err = va_arg(vargs, int) ;
    const char * errdescription = va_arg(vargs, const char*) ;
@@ -32,21 +32,21 @@ void vLOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs
    PRINTF("Error %d - %s\n", err, errdescription) ;
 }
 
-void vFILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * filename = va_arg(vargs, const char*) ;
 
    PRINTF("'%s' contains no newline\n", filename) ;
 }
 
-void vFILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * filename = va_arg(vargs, const char*) ;
 
    PRINTF("File '%s' has unknown format\n", filename) ;
 }
 
-void vFILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * workdir = va_arg(vargs, const char*) ;
    const char * filename = va_arg(vargs, const char*) ;
@@ -54,7 +54,7 @@ void vFILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("File name '%s%s'\n", workdir, filename) ;
 }
 
-void vFILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    int err = va_arg(vargs, int) ;
    const char * workdir = va_arg(vargs, const char*) ;
@@ -63,7 +63,7 @@ void vFILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Can not create file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void vFILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    int err = va_arg(vargs, int) ;
    const char * workdir = va_arg(vargs, const char*) ;
@@ -72,7 +72,7 @@ void vFILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Can not open file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void vFILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    int err = va_arg(vargs, int) ;
    const char * workdir = va_arg(vargs, const char*) ;
@@ -81,28 +81,28 @@ void vFILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Can not remove file '%s%s' - %s\n", workdir, filename, (const char*)str_errorcontext(error_maincontext(), err)) ;
 }
 
-void vFUNCTION_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
    PRINTF("One or more resources could not be freed\n") ;
 }
 
-void vFUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * funcname = va_arg(vargs, const char*) ;
 
    PRINTF("Function call '%s' failed\n", funcname) ;
 }
 
-void vFUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * funcname = va_arg(vargs, const char*) ;
 
    PRINTF("System call '%s' failed\n", funcname) ;
 }
 
-void vFUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * funcname = va_arg(vargs, const char*) ;
    const char * wrong_value = va_arg(vargs, const char*) ;
@@ -110,21 +110,21 @@ void vFUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, va_list 
    PRINTF("Function '%s' returned wrong value (%s)\n", funcname, wrong_value) ;
 }
 
-void vLOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
    PRINTF("Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n") ;
 }
 
-void vMEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    size_t size = va_arg(vargs, size_t) ;
 
    PRINTF("Could not allocate %zu bytes of memory\n", size) ;
 }
 
-void vPARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    size_t linenr = va_arg(vargs, size_t) ;
    size_t colnr = va_arg(vargs, size_t) ;
@@ -133,7 +133,7 @@ void vPARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs
    PRINTF("Expect character '%s' in line: %zu, column: %zu\n", chr, linenr, colnr) ;
 }
 
-void vPARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    size_t linenr = va_arg(vargs, size_t) ;
    size_t colnr = va_arg(vargs, size_t) ;
@@ -141,63 +141,63 @@ void vPARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list va
    PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", linenr, colnr) ;
 }
 
-void vPROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
    PRINTF("Abort process with fatal error\n") ;
 }
 
-void vRESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
    PRINTF("The number of used resources is different\n") ;
 }
 
-void vSTATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * signame = va_arg(vargs, const char*) ;
 
    PRINTF("The signal handler installed for signal «%s» possibly produces undefined behaviour.\n", signame) ;
 }
 
-void vTEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * violated_condition = va_arg(vargs, const char*) ;
 
    PRINTF("Function input violates condition (%s)\n", violated_condition) ;
 }
 
-void vTEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * violated_condition = va_arg(vargs, const char*) ;
 
    PRINTF("Internal state variables violate condition (%s)\n", violated_condition) ;
 }
 
-void vTEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * violated_condition = va_arg(vargs, const char*) ;
 
    PRINTF("Function output violates condition (%s)\n", violated_condition) ;
 }
 
-void vTEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * violated_condition = va_arg(vargs, const char*) ;
 
    PRINTF("Operation allowed only in state (%s)\n", violated_condition) ;
 }
 
-void vX11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
 
    PRINTF("Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY«\n") ;
 }
 
-void vX11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    const char * display_server_name = va_arg(vargs, const char*) ;
 

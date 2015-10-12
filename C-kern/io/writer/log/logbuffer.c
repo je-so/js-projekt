@@ -171,7 +171,7 @@ static inline void _LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuf, ...)
 {
    va_list args;
    va_start(args, logbuf);
-   vLOGENTRY_HEADER_ERRLOG(logbuf, args);
+   LOGENTRY_HEADER_ERRLOG(logbuf, args);
    va_end(args);
 }
 
@@ -180,7 +180,7 @@ static inline void _LOGENTRY_HEADER_ERROR_ERRLOG(struct logbuffer_t * logbuf, ..
 {
    va_list args;
    va_start(args, logbuf);
-   vLOGENTRY_HEADER_ERROR_ERRLOG(logbuf, args);
+   LOGENTRY_HEADER_ERROR_ERRLOG(logbuf, args);
    va_end(args);
 }
 
@@ -195,11 +195,11 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
    static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
 
 #define CALL(NAME, ...) \
-   if (0) {                               \
-      /* check correct parameter type */  \
-      NAME(logbuf, __VA_ARGS__);          \
-   } else {                               \
-      _ ## NAME(logbuf, __VA_ARGS__);     \
+   if (0) {                                           \
+      /* check correct parameter type */              \
+      _check_paramtype_ ## NAME(logbuf, __VA_ARGS__); \
+   } else {                                           \
+      _ ## NAME(logbuf, __VA_ARGS__);                 \
    }
    CALL(LOGENTRY_HEADER_ERRLOG, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
    CALL(LOGENTRY_HEADER_ERROR_ERRLOG, header->err, (const char*)str_errorcontext(error_maincontext(), header->err));

@@ -108,18 +108,18 @@
  *
  * Example:
  * > int err ; PRINTTEXT_LOG(log_channel_ERR, log_flags_NONE, 0, &vRESOURCE_NAME_ERRLOG, err) */
-#define PRINTTEXT_LOG(LOGCHANNEL, FLAGS, HEADER, TEXTID, ... )  \
+#define PRINTTEXT_LOG(LOGCHANNEL, FLAGS, HEADER, TEXTID, ...) \
          do {                                   \
             if (0) {                            \
                /* test for correct parameter */ \
-               TEXTID(                          \
+               _check_paramtype_ ## TEXTID(     \
                   (struct logbuffer_t*)0,       \
-                  ## __VA_ARGS__);              \
+                   __VA_ARGS__);                \
             }                                   \
             log_maincontext().iimpl->printtext( \
                log_maincontext().object,        \
                LOGCHANNEL, FLAGS, HEADER,       \
-               & v ## TEXTID, __VA_ARGS__);     \
+               & TEXTID, __VA_ARGS__);          \
          } while(0)
 
 /* define: PRINTTEXT_NOARG_LOG
@@ -137,13 +137,13 @@
          do {                                   \
             if (0) {                            \
             /* test for correct parameter */    \
-            TEXTID(                             \
-               (struct logbuffer_t*)0) ;        \
+            _check_paramtype_ ## TEXTID(        \
+               (struct logbuffer_t*)0);         \
             }                                   \
             log_maincontext().iimpl->printtext( \
                log_maincontext().object,        \
                LOGCHANNEL, FLAGS, HEADER,       \
-               & v ## TEXTID) ;                 \
+               & TEXTID);                       \
          } while(0)
 
 // group: log-variables
