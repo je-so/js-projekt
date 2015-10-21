@@ -28,9 +28,12 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/io/pipe.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/memory/mm/mm_impl.h"
 #include "C-kern/api/test/mm/testmm.h"
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
@@ -271,16 +274,8 @@ ONERR:
 
 static int test_initmain(void)
 {
-   int fd_stderr = -1;
-   int fdpipe[2] = { -1, -1 };
-
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL;
-   fd_stderr = dup(STDERR_FILENO);
-   TEST(0 < fd_stderr);
-   TEST(0 == pipe2(fdpipe,O_CLOEXEC));
-   TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO));
-   FLUSHBUFFER_ERRLOG();
 
    // TEST static type
    TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
@@ -376,35 +371,16 @@ static int test_initmain(void)
 
    // unprepare
    FLUSHBUFFER_ERRLOG();
-   char buffer[4096] = { 0 };
-   TEST(0 < read(fdpipe[0], buffer, sizeof(buffer)));
-
-   TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO));
-   TEST(0 == free_iochannel(&fd_stderr));
-   TEST(0 == free_iochannel(&fdpipe[0]));
-   TEST(0 == free_iochannel(&fdpipe[1]));
 
    return 0;
 ONERR:
-   if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO);
-   free_iochannel(&fd_stderr);
-   free_iochannel(&fdpipe[0]);
-   free_iochannel(&fdpipe[1]);
    return EINVAL;
 }
 
 static int test_initerror(void)
 {
-   int fd_stderr = -1;
-   int fdpipe[2] = { -1, -1 };
-
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL;
-   fd_stderr = dup(STDERR_FILENO);
-   TEST(0 < fd_stderr);
-   TEST(0 == pipe2(fdpipe,O_CLOEXEC));
-   TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO));
-   FLUSHBUFFER_ERRLOG();
 
    // TEST init_maincontext: error in in different places
    for (int i = 1; i <= 3; ++i) {
@@ -419,33 +395,19 @@ static int test_initerror(void)
       TEST(0 == tcontext_maincontext()->objectcache.iimpl);
    }
 
-   FLUSHBUFFER_ERRLOG();
-   char buffer[4096] = { 0 };
-   TEST(0 < read(fdpipe[0], buffer, sizeof(buffer)));
-
    TEST(0 == init_maincontext(maincontext_DEFAULT, 0, 0));
    TEST(0 != pcontext_maincontext()->initcount);
 
-   TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO));
-   TEST(0 == free_iochannel(&fd_stderr));
-   TEST(0 == free_iochannel(&fdpipe[0]));
-   TEST(0 == free_iochannel(&fdpipe[1]));
-
-   PRINTF_ERRLOG("%s", buffer);
-
    // TEST EALREADY
    TEST(EALREADY == init_maincontext(maincontext_DEFAULT, 0, 0));
-   CLEARBUFFER_ERRLOG();
+   FLUSHBUFFER_ERRLOG();
+
    TEST(0 == free_maincontext());
 
    return 0;
 ONERR:
    CLEARBUFFER_ERRLOG();
    free_maincontext();
-   if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO);
-   free_iochannel(&fd_stderr);
-   free_iochannel(&fdpipe[0]);
-   free_iochannel(&fdpipe[1]);
    return EINVAL;
 }
 
@@ -502,18 +464,11 @@ ONERR:
 
 static int test_progname(void)
 {
-   int fd_stderr = -1;
-   int fdpipe[2] = { -1, -1 };
 
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL;
-   fd_stderr = dup(STDERR_FILENO);
-   TEST(0 < fd_stderr);
-   TEST(0 == pipe2(fdpipe,O_CLOEXEC|O_NONBLOCK));
-   TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO));
-   FLUSHBUFFER_ERRLOG();
 
-    // TEST progname_maincontext
+   // TEST progname_maincontext
    const char * argv[4] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3", "123456789a1234567" };
 
    for (unsigned i = 0; i < lengthof(argv); ++i) {
@@ -531,41 +486,127 @@ static int test_progname(void)
    }
 
    // unprepare
-   FLUSHBUFFER_ERRLOG();
-   char buffer[4096] = { 0 };
-   ssize_t bytes = read(fdpipe[0], buffer, sizeof(buffer));
-   TEST(0 < bytes || (errno == EAGAIN && -1 == bytes));
-
-   TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO));
-   TEST(0 == free_iochannel(&fd_stderr));
-   TEST(0 == free_iochannel(&fdpipe[0]));
-   TEST(0 == free_iochannel(&fdpipe[1]));
 
    return 0;
 ONERR:
-   if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO);
-   free_iochannel(&fd_stderr);
-   free_iochannel(&fdpipe[0]);
-   free_iochannel(&fdpipe[1]);
+   return EINVAL;
+}
+
+static uint8_t s_static_buffer[20000];
+static size_t  s_static_offset = 0;
+
+static int static_malloc(struct mm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+{
+   (void) mman;
+   size_t aligned_size = (size + 63) & ~(size_t)63;
+
+   if (size > aligned_size || aligned_size > sizeof(s_static_buffer) - s_static_offset) {
+      // printf("static_malloc ENOMEM\n");
+      return ENOMEM;
+   }
+
+   *memblock = (memblock_t) memblock_INIT(aligned_size, s_static_buffer + s_static_offset);
+   s_static_offset += aligned_size;
+
+   return 0;
+}
+
+static int static_mresize(struct mm_t * mman, size_t newsize, struct memblock_t * memblock)
+{
+   if (memblock->addr != 0 || memblock->size != 0) return EINVAL;
+   return static_malloc(mman, newsize, memblock);
+}
+
+static int static_mfree(struct mm_t * mman, struct memblock_t * memblock)
+{
+   (void) mman;
+   *memblock = (memblock_t) memblock_FREE;
+   return 0;
+}
+
+static int childprocess_unittest(void)
+{
+   resourceusage_t usage = resourceusage_FREE;
+   maincontext_e   type = g_maincontext.type;
+   int             argc = g_maincontext.argc;
+   const char **   argv = g_maincontext.argv;
+   threadcontext_mm_t oldmm = iobj_FREE;
+   mm_it           staticmm = mm_it_FREE;
+   bool            isStatic = true;
+   pipe_t          errpipe  = pipe_FREE;
+   int             oldstderr = -1;
+
+   // prepare
+   TEST(0 == init_pipe(&errpipe));
+   oldstderr = dup(STDERR_FILENO);
+   TEST(oldstderr > 0);
+   TEST(STDERR_FILENO == dup2(errpipe.write, STDERR_FILENO));
+
+   s_static_offset = 0;
+   TEST(0 == switchoff_testmm());
+   oldmm = mm_maincontext();
+   staticmm = (mm_it) mm_it_INIT(&static_malloc, &static_mresize, &static_mfree, oldmm.iimpl->sizeallocated);
+   mm_maincontext().iimpl = &staticmm;
+   TEST(0 == init_resourceusage(&usage));
+   mm_maincontext() = oldmm;
+   isStatic = false;
+
+   if (test_querymacros())    goto ONERR;
+
+   TEST(0 == same_resourceusage(&usage));
+
+   TEST(0 == free_maincontext());
+   TEST(maincontext_STATIC == type_maincontext());
+
+   if (test_querymacros())    goto ONERR;
+   if (test_initmain())       goto ONERR;
+   if (test_initerror())      goto ONERR;
+   if (test_initstart())      goto ONERR;
+   if (test_progname())       goto ONERR;
+
+   TEST(0 == init_maincontext(type, argc, argv));
+   TEST(0 == same_resourceusage(&usage));
+
+   // unprepare
+   isStatic = true;
+   mm_maincontext().iimpl = &staticmm;
+   TEST(0 == free_resourceusage(&usage));
+   mm_maincontext() = oldmm;
+   isStatic = false;
+
+   int rsize = read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1);
+   TEST(rsize > 0);
+   s_static_buffer[rsize] = 0;
+   PRINTF_ERRLOG("%s", s_static_buffer);
+   TEST(-1 == read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1));
+   TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO));
+   TEST(0 == free_pipe(&errpipe));
+
+   return 0;
+ONERR:
+   if (maincontext_STATIC == type_maincontext()) {
+      (void) init_maincontext(type, argc, argv);
+   }
+   if (!isStatic) {
+      mm_maincontext().iimpl = &staticmm;
+   }
+   (void) free_resourceusage(&usage);
+   mm_maincontext() = oldmm;
+   free_pipe(&errpipe);
+   if (0 < oldstderr) {
+      dup2(oldstderr, STDERR_FILENO);
+      close(oldstderr);
+   }
    return EINVAL;
 }
 
 int unittest_main_maincontext()
 {
+   int err;
 
-   if (maincontext_STATIC == type_maincontext()) {
-      if (test_querymacros())    goto ONERR;
-      if (test_initmain())       goto ONERR;
-      if (test_initerror())      goto ONERR;
-      if (test_initstart())      goto ONERR;
-      if (test_progname())       goto ONERR;
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
-   } else {
-      if (test_querymacros())    goto ONERR;
-
-   }
-
-   return 0;
+   return err;
 ONERR:
    return EINVAL;
 }

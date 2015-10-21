@@ -104,26 +104,10 @@ static void run_singletest(const char * testname, int (*test_f) (void))
          extern int FCT (void);  \
          run_singletest(#FCT, &FCT)
 
-int run_unittest(void * argv)
+static void run_all_test(unsigned run_idx/*0..*/, bool isLastRun)
 {
-   const maincontext_e test_context_type[2] = {
-      maincontext_DEFAULT,
-      maincontext_CONSOLE
-   };
-
-   initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
-
-   // before init
-   logrun_unittest("unittest_main_maincontext");
-   logresult_unittest(0 != unittest_main_maincontext());
-
-   for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
-
-      // init
-      if (init_maincontext(test_context_type[type_nr], 0, argv)) {
-         logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
-         logf_unittest("init_maincontext FAILED\n");
-         goto ONERR;
+      if (run_idx == 0) {
+         initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
       }
 
       prepare_test();
@@ -328,21 +312,43 @@ int run_unittest(void * argv)
 //}
 #endif
 
-      CLEARBUFFER_ERRLOG();
+   CLEARBUFFER_ERRLOG();
+
+   if (isLastRun) {
+
+      logsummary_unittest();
+
+      freesingleton_unittest();
+
+   }
+
+}
+
+int run_unittest(void * argv)
+{
+   const maincontext_e test_context_type[2] = {
+      maincontext_DEFAULT,
+      maincontext_CONSOLE
+   };
+
+   for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
+
+      if (init_maincontext(test_context_type[type_nr], 0, argv)) {
+         logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
+         logf_unittest("init_maincontext FAILED\n");
+         goto ONERR;
+      }
+
+      run_all_test(type_nr, type_nr == lengthof(test_context_type)-1);
 
       if (free_maincontext()) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
          logf_unittest("free_maincontext FAILED\n");
          goto ONERR;
       }
-
    }
 
 ONERR:
-
-   logsummary_unittest();
-
-   freesingleton_unittest();
 
    return 0;
 }

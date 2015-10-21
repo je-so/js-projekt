@@ -1,7 +1,7 @@
 /* title: Unit-Test
 
-   Defines a functions to execute a single unit test.
-   Defines a macro for implementing a unit test and to report any errors.
+   Defines functions to execute a single unit test.
+   Defines macros for reporting any errors.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -44,11 +44,11 @@ struct unittest_t;
  *
  * All test results (logs) are written to STDOUT.
  */
-int initsingleton_unittest(const char * log_files_directory);
+void initsingleton_unittest(const char * log_files_directory);
 
 /* function: freesingleton_unittest
  * Frees any resources allocated with the single object of type <unittest_t>. */
-int freesingleton_unittest(void);
+void freesingleton_unittest(void);
 
 // group: log
 // Called from thread which executes the unit test.
@@ -85,8 +85,8 @@ void logrun_unittest(const char * testname);
 /* function: logresult_unittest
  * Logs "OK\n" or "FAILED\n".
  * This is a thread-safe function!
- * Is called from <execsingle_unittest>. */
-void logresult_unittest(bool isFailed);
+ * It is called from <execsingle_unittest> or any variant of <logfailed_unittest>. */
+void logresult_unittest(int testerr/*OK: testerr == 0 */);
 
 /* function: logsummary_unittest
  * Logs how many tests passed and how many failed.

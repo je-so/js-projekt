@@ -1,0 +1,49 @@
+[0: 1443891019.598123s]
+init_maincontext() C-kern/main/maincontext.c:163
+Function input violates condition (maincontext_STATIC < context_type && maincontext_CONSOLE >= context_type)
+[0: 1443891019.598160s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 22 - Invalid argument
+[0: 1443891019.598168s]
+init_maincontext() C-kern/main/maincontext.c:163
+Function input violates condition (maincontext_STATIC < context_type && maincontext_CONSOLE >= context_type)
+[0: 1443891019.598173s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 22 - Invalid argument
+[0: 1443891019.598184s]
+init_maincontext() C-kern/main/maincontext.c:165
+Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
+[0: 1443891019.598188s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 22 - Invalid argument
+[0: 1443891019.598193s]
+init_maincontext() C-kern/main/maincontext.c:165
+Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
+[0: 1443891019.598200s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 22 - Invalid argument
+[0: 1443891019.608523s]
+free_maincontext() C-kern/main/maincontext.c:132
+One or more resources could not be freed
+Exit function with
+Error 39 - Directory not empty
+[0: 1443891019.608546s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 23 - Too many open files in system
+[0: 1443891019.611071s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 24 - Too many open files
+[0: 1443891019.614531s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 25 - Inappropriate ioctl for device
+[1: 1443891019.617697s]
+init_maincontext() C-kern/main/maincontext.c:197
+Exit function with
+Error 114 - Operation already in progress
