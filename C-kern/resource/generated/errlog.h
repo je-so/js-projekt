@@ -7,6 +7,8 @@
 
 void _check_paramtype_ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, const char * wrong_condition);
 void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs);
+void _check_paramtype_ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, int err);
+void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs);
 void _check_paramtype_ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer);
 void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs);
 void _check_paramtype_FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, const char * filename);

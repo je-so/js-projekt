@@ -277,8 +277,9 @@ static typeadapt_member_t  g_parameter_nodeadapter = typeadapt_member_INIT((type
 
 
 /* struct: textresource_textatom_t
- * An atomic text element string content referenced by <textresource_condition_t>.
- * It describes either a parameter reference and its formatting or a simple text string. */
+ * An atomic text element referenced by <textresource_condition_t>.
+ * It describes either a parameter reference and its formatting, a simple text string,
+ * or a preconfigured C function call. */
 struct textresource_textatom_t {
    slist_node_EMBED           (next) ;
    textresource_textatom_e    type ;
@@ -1048,8 +1049,14 @@ static int match_ifcondition(textresource_reader_t * reader, string_t * ifcondit
 {
    int err ;
 
-   err = match_string(reader, "(") ;
+   err = skip_spaceandcomment(reader) ;
    if (err) goto ONERR;
+
+   err = match_string(reader, "(") ;
+   if (err) {
+      report_parseerror(reader, "try to read condition enclosed '(' ... ')'");
+      goto ONERR;
+   }
 
    const uint8_t * startstr = unread_utf8reader(&reader->txtpos) - 1 ;
    const uint8_t * endstr   = startstr ;
@@ -1202,14 +1209,13 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
          textresource_parameter_t * textparamcopy ;
 
          err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_nodeadapter) ;
-         if (!err) insertlast_paramlist(&text->paramlist, textparamcopy) ;
          if (err) {
             if (EEXIST == err) {
                report_parseerror(reader, "parameter name '%.*s' is not unique", (int)textparam.name.size, (const char*)textparam.name.addr) ;
             }
             goto ONERR;
          }
-
+         insertlast_paramlist(&text->paramlist, textparamcopy);
 
          err = skip_spaceandcomment(reader) ;
          if (err) goto ONERR;
@@ -1229,7 +1235,7 @@ ONERR:
    return err ;
 }
 
-static int parse_textatomline(textresource_reader_t * reader, textresource_text_t * text, textresource_condition_t * condition)
+static int parse_unconditional_textatoms(textresource_reader_t * reader, textresource_text_t * text, textresource_langref_t * lang, textresource_condition_t * condition)
 {
    int err ;
    bool isLineEnding = false ;
@@ -1291,15 +1297,69 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          err = match_identifier(reader, &paramname) ;
          if (err) goto ONERR;
 
-         outconfig_fctparam_t * fctparam = 0 ;
+         outconfig_fctparam_t * fctparam;
+         textresource_text_t  * textref;
 
          if (  outconfig_C == reader->txtres.outconfig.type
                && (fctparam = at_arrayfctparam(reader->txtres.outconfig.C.fctparam, paramname.size, paramname.addr))) {
+            // handle parameter which calls a C function
             textresource_textatom_t  textatom = textresource_textatom_INIT_FCTPARAM(fctparam) ;
             err = addtextatom_textresourcecondition(condition, &textatom) ;
             if (err) goto ONERR;
 
+         } else if (0 != (textref = at_arraytname(reader->txtres.textnames, paramname.size, paramname.addr))) {
+            // handle referenced text
+
+            // check reference allowed
+            if (! isfree_string(&condition->condition)) {
+               report_parseerror(reader, "Text reference '%.*s' not allowed within conditional", (int)paramname.size, paramname.addr) ;
+               err = EINVAL;
+               goto ONERR;
+            }
+
+            // check parameter does match (name && type)
+            foreach (_paramlist, param, &textref->paramlist) {
+               textresource_parameter_t * param2 = at_arrayparam(text->params, param->name.size, param->name.addr);
+               if (0 == param2) {
+                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match name", param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
+                  err = EINVAL;
+                  goto ONERR;
+               }
+               if (param2->typemod != param->typemod
+                  || param2->type != param->type) {
+                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match type", param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
+                  err = EINVAL;
+                  goto ONERR;
+               }
+            }
+
+            slist_t condlist = slist_INIT;
+
+            foreach(_langreflist, langref2, &textref->langlist) {
+               if (lang->lang == langref2->lang) {
+                  condlist = langref2->condlist;
+                  break;
+               }
+            }
+
+            // copy unconditional text atoms
+            textresource_condition_t * fromcond = first_conditionlist(&condlist);
+            if (fromcond) {
+               if (! isfree_string(&fromcond->condition)) {
+                  report_parseerror(reader, "Referenced text '%.*s' contains unsupported conditionals", (int)paramname.size, paramname.addr);
+                  err = EINVAL;
+                  goto ONERR;
+               }
+
+               foreach(_textatomlist, textatom, &fromcond->atomlist) {
+                  err = addtextatom_textresourcecondition(condition, textatom);
+                  if (err) goto ONERR;
+               }
+
+            }
+
          } else {
+            // handle text parameter
             textresource_parameter_t * param = at_arrayparam(text->params, paramname.size, paramname.addr) ;
 
             if (!param) {
@@ -1333,45 +1393,46 @@ ONERR:
 
 static int parse_conditional_textatoms(textresource_reader_t * reader, textresource_text_t * text, textresource_langref_t * lang)
 {
-   int err ;
+   int err;
+   uint8_t ch;
 
    err = match_string(reader, "(") ;
    if (err) goto ONERR;
 
-   bool isElseAllowed = false ;
+   for (;;) {
+      // match repeatedly (x == y && ...) "<string>"
+      string_t boolstring ;
 
-   for (uint8_t ch;;) {
-
-      err = skip_spaceandcomment(reader) ;
+      err = match_ifcondition(reader, &boolstring) ;
       if (err) goto ONERR;
 
-      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-         || '<' == ch) {
-         break ;
+      textresource_condition_t   ifcond   = textresource_condition_INIT(boolstring);
+      textresource_condition_t   * ifcopy = 0 ;
+
+      err = addcondition_textresourcelangref(lang, &ifcond, &ifcopy);
+      if (err) goto ONERR;
+
+      err = parse_unconditional_textatoms(reader, text, 0/*not used*/, ifcopy);
+      if (err) goto ONERR;
+
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)
+         || ch != '(') {
+         break;
       }
 
+   }
+
+   if (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
+
       if (')' == ch) {
-         if (!isElseAllowed) {
-            report_parseerror(reader, "Need at least one (CONDITION) before ')'") ;
-            err = EINVAL ;
-            goto ONERR;
-         }
          textresource_condition_t elsecond = textresource_condition_INIT(string_INIT_CSTR("else")) ;
          err = addcondition_textresourcelangref(lang, &elsecond, 0) ;
          if (err) goto ONERR;
-         break ;
-      }
 
-      if ('e' == ch) {
+      } else if ('e' == ch) {
          // match else: "<string>"
          err = match_string(reader, "else") ;
          if (err) goto ONERR;
-
-         if (!isElseAllowed) {
-            report_parseerror(reader, "Need at least one (CONDITION) before 'else:'") ;
-            err = EINVAL ;
-            goto ONERR;
-         }
 
          textresource_condition_t   elsecond   = textresource_condition_INIT(string_INIT_CSTR("else")) ;
          textresource_condition_t   * elsecopy = 0 ;
@@ -1379,83 +1440,58 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
          err = addcondition_textresourcelangref(lang, &elsecond, &elsecopy) ;
          if (err) goto ONERR;
 
-         err = parse_textatomline(reader, text, elsecopy) ;
+         err = parse_unconditional_textatoms(reader, text, 0/*not used*/, elsecopy);
          if (err) goto ONERR;
-         break ;
-      }
-
-      if ('(' == ch) {
-         // match (x == y && ...) "<string>"
-         string_t boolstring ;
-         err = match_ifcondition(reader, &boolstring) ;
-         if (err) goto ONERR;
-
-         textresource_condition_t   ifcond   = textresource_condition_INIT(boolstring) ;
-         textresource_condition_t   * ifcopy = 0 ;
-
-         err = addcondition_textresourcelangref(lang, &ifcond, &ifcopy) ;
-         if (err) goto ONERR;
-
-         err = parse_textatomline(reader, text, ifcopy) ;
-         if (err) goto ONERR;
-
-         isElseAllowed = true ;
-
-      } else {
-         skipchar_utf8reader(&reader->txtpos) ;
-         report_parseerror(reader, "expected 'else' or '(' or ')'") ;
-         err = EINVAL ;
-         goto ONERR;
       }
    }
 
-   err = match_string(reader, ")") ;
+   err = match_string(reader, ")");
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
-static int parse_unconditional_textatoms(textresource_reader_t * reader, textresource_text_t * text, textresource_langref_t * lang)
+static int parse_textatoms(textresource_reader_t * reader, textresource_text_t * text, textresource_langref_t * lang)
 {
    int err ;
 
    for (uint8_t ch;;) {
-      err = skip_spaceandcomment(reader) ;
+      err = skip_spaceandcomment(reader);
       if (err) goto ONERR;
 
-      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-         || (  '"' != ch
-            && '(' != ch)) {
-         break ;
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) {
+         break;
       }
 
       if ('"' == ch) {
-         textresource_condition_t * condition ;
+         textresource_condition_t * condition;
 
          {
-            textresource_condition_t  emptycond = textresource_condition_INIT(string_FREE) ;
-            err = addcondition_textresourcelangref(lang, &emptycond, &condition) ;
+            textresource_condition_t  emptycond = textresource_condition_INIT(string_FREE);
+            err = addcondition_textresourcelangref(lang, &emptycond, &condition);
             if (err) goto ONERR;
          }
 
-         err = parse_textatomline(reader, text, condition) ;
+         err = parse_unconditional_textatoms(reader, text, lang, condition);
          if (err) goto ONERR;
 
+      } else if ('(' == ch) {
+         err = parse_conditional_textatoms(reader, text, lang);
+         if (err) goto ONERR;
+
+         err = skip_spaceandcomment(reader);
+         if (err) goto ONERR;
       } else {
-         err = parse_conditional_textatoms(reader, text, lang) ;
-         if (err) goto ONERR;
-
-         err = skip_spaceandcomment(reader) ;
-         if (err) goto ONERR;
+         break;
       }
 
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 static int parse_textdefinitions_textresourcereader(textresource_reader_t * reader)
@@ -1533,7 +1569,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
 
             insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
 
-            err = parse_unconditional_textatoms(reader, textcopy, langrefcopy) ;
+            err = parse_textatoms(reader, textcopy, langrefcopy) ;
             if (err) return err ;
          }
       }
@@ -1687,7 +1723,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
 static int parse_version_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
-   const char *         expectversion = "4" ;
+   const char *         expectversion = "5" ;
    xmltag_openclose_e   opclose       = xmltag_OPEN ;
    xmlattribute_t       version       = xmlattribute_INIT("version") ;
 
@@ -1932,9 +1968,9 @@ ONERR:
    return err ;
 }
 
-/* function: parse_contentversion3_textresourcereader
- * Parses content of "<textresource version='3'> </textresource>". */
-static int parse_contentversion3_textresourcereader(textresource_reader_t * reader)
+/* function: parse_contentversion_textresourcereader
+ * Parses content of "<textresource version='5'> </textresource>". */
+static int parse_contentversion_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
 
@@ -1999,29 +2035,29 @@ ONERR:
  * so do not delete filename as long as reader is alive. */
 static int init_textresourcereader(/*out*/textresource_reader_t * reader, const char * filename)
 {
-   int err ;
-   textresource_reader_t new_reader = textresource_reader_FREE ;
+   int err;
+   textresource_reader_t new_reader = textresource_reader_FREE;
 
-   err = init_textresource(&new_reader.txtres, filename) ;
+   err = init_textresource(&new_reader.txtres, filename);
    if (err) goto ONERR;
 
-   err = init_utf8reader(&new_reader.txtpos, filename, 0) ;
+   err = init_utf8reader(&new_reader.txtpos, filename, 0);
    if (err) {
-      print_error("Can not open file »%s«", filename) ;
+      print_error("Can not open file »%s«", filename);
       goto ONERR;
    }
 
-   err = parse_header_textresourcereader(&new_reader) ;
+   err = parse_header_textresourcereader(&new_reader);
    if (err) goto ONERR;
 
-   err = parse_contentversion3_textresourcereader(&new_reader) ;
+   err = parse_contentversion_textresourcereader(&new_reader);
    if (err) goto ONERR;
 
-   *reader = new_reader ;
-   return 0 ;
+   *reader = new_reader;
+   return 0;
 ONERR:
-   free_textresourcereader(&new_reader) ;
-   return err ;
+   free_textresourcereader(&new_reader);
+   return err;
 }
 
 
@@ -2296,7 +2332,7 @@ static int writeCvfunction_textresourcewriter(textresource_writer_t * writer, te
 {
    int err ;
 
-   // extract parameter from vargs
+   // extract parameter from va_list vargs
    bool isparam = false ;
    foreach (_paramlist, param, &text->paramlist) {
       dprintf(writer->outfile, "   %s%.*s %s%.*s",  (param->typemod & typemodifier_CONST) ? "const " : "",

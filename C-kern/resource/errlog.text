@@ -38,10 +38,14 @@
 # 5. Textresource Content
 #    The content of a textresource is described in a language specific way.
 #    5.1 First comes the language designator, e.g "de:" or "en:".
-#    5.2 Then the language specific text strings enclosed in "" or parameters are expected.
-#    5.3 TODO: add referencing previously defined text resources
-#        If one line is not enough you can use more than one line but always begin the line with a "string".
-#    5.4 If more than one language is needed repeat steps 5.1 & 5.2.
+#    5.2 Then the language specific text strings enclosed in "" or conditional content
+#        enclosed in () is expected. Parameters are allowed after them or within conditionals.
+#        If one line is not enough you can use more than one line but always begin the line with a "string"
+#        or conditional.
+#    5.3 A textresource could reference a previously defined ony by name.
+#        The parameter names and types must match else an error is reported.
+#        The referenced text is not allowed to contain conditional content.
+#    5.4 If more than one language is needed repeat previous steps
 #        For example:
 #        ERROR(int errnr)
 #        de: "Fehler nr: " errnr
@@ -54,9 +58,9 @@
 #    The following example demonstrates the selection of either string "file\n" or "files\n"
 #    depending on the value of parameter »nr_of_deleted_files«.
 #    6.1 Example
-#    FILES_DELETED(unsigned nr_of_deleted_files)
-#    en: "I have deleted " ((nr_of_deleted_files==0) "no" (nr_of_deleted_files==1) "one" else nr_of_deleted_files)
-#        ((nr_of_deleted_files==1) " file\n" else " files\n")
+#    FILES_DELETED(unsigned nr)
+#    en: "I have deleted " ((nr==0) "no" (nr==1) "one" else nr)
+#        ((nr==1) " file\n" else " files\n")
 # 7. Function parameters
 #    The <outconfig type=C> output supports special function parameters.
 #    They can be defined with
@@ -74,7 +78,7 @@
 #    In the written output they are replaced by their value attribute. The format attribute
 #    describes their type as a printf format string.
 
-<textresource version='4'>
+<textresource version='5'>
 
 <outconfig type=C>
    <namesuffix value=_ERRLOG/>
@@ -85,9 +89,14 @@
    <languages>de, en</languages>
 </outconfig>
 
+
 ASSERT_FAILED(const char * wrong_condition)
 de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: "Assertion '"wrong_condition"' failed.\n"
+
+ERROR_DESCRIPTION(int err)
+de: "Fehler "err" - "ERRSTR"\n"
+en: "Error "err" - "ERRSTR"\n"
 
 ERROR_IGNORED()
 de: "Fehler wird ignoriert\n"
@@ -125,15 +134,12 @@ de: "Funktionsaufruf '"funcname"' fehlgeschlagen mit Fehler "err"\n"
 en: "Function call '"funcname"' failed with error "err"\n"
 
 FUNCTION_EXIT(int err)
-de: "Beende Funktion mit\nFehler "err" - "ERRSTR"\n"
-en: "Exit function with\nError "err" - "ERRSTR"\n"
+de: "Beende Funktion mit\n" ERROR_DESCRIPTION
+en: "Exit function with\n" ERROR_DESCRIPTION
 
-# // TODO: reference FUNCTION_EXIT(err) instead of repeating content
 FUNCTION_EXIT_FREE_RESOURCE(int err)
-de: "Ressourcen-Freigabe schlug fehl\n"
-    "Beende Funktion mit\nFehler "err" - "ERRSTR"\n"
-en: "One or more resources could not be freed\n"
-    "Exit function with\nError "err" - "ERRSTR"\n"
+de: "Ressourcen-Freigabe schlug fehl\n" FUNCTION_EXIT
+en: "One or more resources could not be freed\n" FUNCTION_EXIT
 
 FUNCTION_SYSCALL(const char * funcname, int err)
 de: "Systemaufruf '"funcname"' fehlgeschlagen mit Fehler "err"\n"
@@ -165,13 +171,9 @@ PARSEERROR_EXPECTNEWLINE(size_t linenr, size_t colnr)
 de: "Erwarte '(Zeilenende)' in Zeile: "linenr", Spalte: "colnr"\n"
 en: "Expect '(newline)' in line: "linenr", column: "colnr"\n"
 
-# // TODO: add ERROR_DESCRIPTION and reference it
-#          (also use it in FUNCTION_EXIT)
 PROGRAM_ABORT(int err)
-de: "Programmabbruch wegen fatalem Fehler\n"
-    "Fehler "err" - "ERRSTR"\n"
-en: "Abort process with fatal error\n"
-    "Error "err" - "ERRSTR"\n"
+de: "Programmabbruch wegen fatalem Fehler\n" ERROR_DESCRIPTION
+en: "Abort process with fatal error\n" ERROR_DESCRIPTION
 
 RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"

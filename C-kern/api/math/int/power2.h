@@ -25,7 +25,7 @@
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_power2
  * Tests <ispowerof2_int> and <makepowerof2_int>. */
-int unittest_math_int_power2(void) ;
+int unittest_math_int_power2(void);
 #endif
 
 
@@ -43,7 +43,7 @@ int unittest_math_int_power2(void) ;
  *
  * Every integer of the form (binary) 0..00100..0 is of power of 2 (only one bit is set).
  * If a second bit is set i (==01000100) => (i-1) == 01000011 => (i&(i-1)==01000000) != 0 */
-int ispowerof2_int(unsigned i) ;
+int ispowerof2_int(unsigned i);
 
 // group: compute
 
@@ -61,7 +61,7 @@ int ispowerof2_int(unsigned i) ;
  *
  * Algorithm:
  * Set all bits right of highest to one (00011111111) and then add +1 (00100000000). */
-unsigned makepowerof2_int(unsigned i) ;
+unsigned makepowerof2_int(unsigned i);
 
 
 // section: inline implementation
@@ -73,29 +73,29 @@ unsigned makepowerof2_int(unsigned i) ;
 
 /* define: makepowerof2_int
  * Implements <int_t.makepowerof2_int> as a generic function. */
-#define makepowerof2_int(i)                                             \
+#define makepowerof2_int(i) \
          (  __extension__ ({                                            \
-            typedef typeof(i) _int ;                                    \
+            typedef typeof(i) _int;                                     \
             /* unsigned ! */                                            \
-            static_assert( ((typeof(i))-1) > 0, ) ;                     \
+            static_assert( ((typeof(i))-1) > 0, );                      \
             /* long long maximum support */                             \
-            static_assert( sizeof(i) <= sizeof(long long), ) ;          \
-            _int _i = (i) ;                                             \
+            static_assert( sizeof(i) <= sizeof(long long), );           \
+            _int _i = (i);                                              \
             if (  !ispowerof2_int(_i)                                   \
                   && _i < (_int) (_i << 1) ) {                          \
-               _i = (_int) (_i << 1) ;                                  \
+               _i = (_int) (_i << 1);                                   \
                if (sizeof(unsigned) >= sizeof(i)) {                     \
                   _i = (_int)((1u << (bitsof(unsigned)-1))              \
-                               >> __builtin_clz((unsigned)_i)) ;        \
+                               >> __builtin_clz((unsigned)_i));         \
                } else if (sizeof(long) >= sizeof(i)) {                  \
                   _i = (_int)((1ul << (bitsof(unsigned long)-1))        \
-                               >> __builtin_clzl((unsigned long)_i)) ;  \
+                               >> __builtin_clzl((unsigned long)_i));   \
                } else {                                                 \
                   _i = (_int)((1ull << (bitsof(unsigned long long)-1))  \
-                               >> __builtin_clzll(_i)) ;                \
+                               >> __builtin_clzll(_i));                 \
                }                                                        \
             }                                                           \
-            _i ;                                                        \
+            _i;                                                         \
          }))
 
 #endif

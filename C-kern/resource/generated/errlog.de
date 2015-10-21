@@ -12,6 +12,13 @@ void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
    PRINTF("Assertion '%s' fehlgeschlagen.\n", wrong_condition) ;
 }
 
+void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+{
+   int err = va_arg(vargs, int) ;
+
+   PRINTF("Fehler %d - %s\n", err, (const char*)str_errorcontext(error_maincontext(), err)) ;
+}
+
 void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
 {
    (void) vargs ;
