@@ -19,11 +19,7 @@ int main(int argc, const char* argv[])
 {
    int err;
 
-   maincontext_startparam_t startparam = maincontext_startparam_INIT(
-      maincontext_CONSOLE, argc, argv, &run_perftest, 0
-   );
-
-   err = initrun_maincontext(&startparam);
+   err = initrun_maincontext(maincontext_CONSOLE, &run_perftest, 0, argc, argv);
 
    return err;
 }

@@ -56,9 +56,8 @@ int main(int argc, const char * argv[])
       goto PRINT_USAGE;
    }
 
-   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread, 0);
 
-   err = initrun_maincontext(&startparam);
+   err = initrun_maincontext( maincontext_CONSOLE, &main_thread, 0, argc, argv);
 
    return err;
 

@@ -26,10 +26,6 @@
  * Export <maincontext_t>. */
 typedef struct maincontext_t  maincontext_t;
 
-/* typedef: struct maincontext_startparam_t
- * Export <maincontext_startparam_t>. */
-typedef struct maincontext_startparam_t  maincontext_startparam_t;
-
 /* typedef: mainthread_f
  * Signature of of new main function. It is stored in <maincontext_t>. */
 typedef int (* mainthread_f) (maincontext_t * maincontext);
@@ -83,39 +79,6 @@ int unittest_main_maincontext(void);
 #endif
 
 
-/* struct: maincontext_startparam_t
- * Start parameters used in <initrun_maincontext>. */
-struct maincontext_startparam_t {
-   // group: struct fields
-   /* variable: context_type
-    * Set to a value of <maincontext_e>. It determines the type
-    * of <maincontext_t> the process wants ro initialize. */
-   maincontext_e  context_type;
-   /* variable: argc
-    * The number of process arguments. Same value as received by
-    * > int main(int argc, const char * argv[]). */
-   int            argc;
-   /* variable: argv
-    * An array of program arguments. The last argument argv[ærgc]
-    * should be set to 0. Same value as received by
-    * > int main(int argc, const char * argv[]). */
-   const char **  argv;
-   /* variable: main_thread
-    * The main threads main function. It is started if the environment
-    * could be initialized successfully. */
-   mainthread_f   main_thread;
-   /* variable: main_thread
-    * The main threads main function. It is started if the environment
-    * could be initialized successfully. */
-   void *         main_arg;
-};
-
-/* define: maincontext_startparam_INIT
- * Static initializer. */
-#define maincontext_startparam_INIT(context_type, argc, argv, main_thread, main_arg) \
-         { context_type, argc, argv, main_thread, main_arg }
-
-
 /* struct: maincontext_t
  * Defines the main top level context of the whole process.
  *
@@ -132,16 +95,36 @@ struct maincontext_startparam_t {
  * */
 struct maincontext_t {
    // group: public fields
+   /* variable: pcontext
+    * Shared <processcontext_t> which contains shared services. */
    processcontext_t  pcontext;
+   /* variable: sysinfo
+    * Contains queried once information about the platform/OS. */
    syscontext_t      sysinfo;
    // gives type like CONSOLE app ...
    // TODO: init log uses this value to determine if standard error log is available !
    maincontext_e     type;
+
    // arguments
+
+   /* variable: main_thread
+    * The main thread's main function. It is started if the platform / environment
+    * could be initialized successfully. */
    mainthread_f      main_thread;
+   /* variable: main_arg
+    * User supplied argument can be queried with maincontext->main_arg or <self_maincontext>->main_arg. */
    void *            main_arg;
+   /* variable: progname
+    * The filename of the program without path - it is calculated from argv[0] (Unix convention). */
    const char *      progname;
+   /* variable: argc
+    * The number of process arguments. Same value as 1st arg received by
+    * > int main(int argc, const char * argv[]). */
    int               argc;
+   /* variable: argv
+    * An array of program arguments. The last argument argv[ærgc]
+    * should be set to 0. Same value as received as 2nd argument by
+    * > int main(int argc, const char * argv[]). */
    const char **     argv;
 };
 
@@ -175,7 +158,7 @@ struct maincontext_t {
  * else the return code of main_thread.
  *
  * */
-int initrun_maincontext(const maincontext_startparam_t * startparam);
+int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * main_arg, int argc, const char** argv);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.

@@ -1647,10 +1647,9 @@ ONERR:
 
 int main(int argc, const char * argv[])
 {
-   int err ;
+   int err;
 
-   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_DEFAULT, argc, argv, &main_thread, 0);
-   err = initrun_maincontext(&startparam);
+   err = initrun_maincontext(maincontext_DEFAULT, &main_thread, 0, argc, argv);
 
-   return err ;
+   return err;
 }

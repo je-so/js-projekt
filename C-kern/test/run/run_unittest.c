@@ -321,20 +321,16 @@ static int run_all_test(maincontext_t * maincontext)
 int run_unittest(int argc, const char* argv[])
 {
    int err;
-   const maincontext_e test_context_type[2] = {
+   const maincontext_e type[2] = {
       maincontext_DEFAULT,
       maincontext_CONSOLE
    };
 
-   for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
+   for (unsigned type_nr = 0; type_nr < lengthof(type); ++type_nr) {
 
-      maincontext_startparam_t param = maincontext_startparam_INIT(
-         test_context_type[type_nr],
-         argc, argv,
-         &run_all_test, (void*) (intptr_t) ((type_nr == 0 ? test_run_FIRST : 0) + (type_nr == lengthof(test_context_type)-1 ? test_run_LAST : 0))
-      );
+      intptr_t isfirstlast = (type_nr == 0 ? test_run_FIRST : 0) + (type_nr == lengthof(type)-1 ? test_run_LAST : 0);
 
-      err = initrun_maincontext(&param);
+      err = initrun_maincontext( type[type_nr], &run_all_test, (void*) isfirstlast, argc, argv);
 
       if (err) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);

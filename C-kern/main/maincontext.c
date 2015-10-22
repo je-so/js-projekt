@@ -168,15 +168,15 @@ ONERR:
    return err;
 }
 
-static int mainthread_maincontext(void * user)
+static int mainthread_maincontext(void * _ctxt_type)
 {
    int err;
-   const maincontext_startparam_t * startparam = user;
+   const maincontext_e context_type = (maincontext_e) _ctxt_type;
 
-   err = init_maincontext(startparam->context_type);
+   err = init_maincontext(context_type);
    if (err) goto ONERR;
 
-   err = startparam->main_thread(&g_maincontext);
+   err = g_maincontext.main_thread(&g_maincontext);
    if (err) goto ONERR;
 
    err = free_maincontext();
@@ -188,7 +188,7 @@ ONERR:
    return err;
 }
 
-int initrun_maincontext(const maincontext_startparam_t * startparam)
+int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * main_arg, int argc, const char** argv)
 {
    int err;
 
@@ -198,22 +198,22 @@ int initrun_maincontext(const maincontext_startparam_t * startparam)
       goto ONERR;
    }
 
-   if (  startparam->context_type <= maincontext_STATIC
-      || startparam->context_type >= maincontext__NROF) {
+   if (  type <= maincontext_STATIC
+      || type >= maincontext__NROF) {
       err = EINVAL;
       goto ONERR;
    }
 
-   if ( startparam->argc < 0 || (startparam->argc != 0 && startparam->argv == 0)) {
+   if ( argc < 0 || (argc != 0 && argv == 0)) {
       err = EINVAL;
       goto ONERR;
    }
 
    // g_maincontext.type will be set after syscontext_t was set up
 
-   set_args_maincontext(&g_maincontext, startparam->main_thread, startparam->main_arg, startparam->argc, startparam->argv);
+   set_args_maincontext(&g_maincontext, main_thread, main_arg, argc, argv);
 
-   err = initrun_syscontext(&g_maincontext.sysinfo, &mainthread_maincontext, CONST_CAST(maincontext_startparam_t,startparam));
+   err = initrun_syscontext(&g_maincontext.sysinfo, &mainthread_maincontext, (void*) type);
 
    clear_args_maincontext(&g_maincontext);
 
@@ -519,7 +519,6 @@ static int test_init_returncode(maincontext_t * maincontext)
 
 static int test_initrun(void)
 {
-   maincontext_startparam_t startparam;
    syscontext_t oldinfo;
 
    // prepare
@@ -533,8 +532,7 @@ static int test_initrun(void)
       s_argv[i] = "./.";
       s_is_called = 0;
       // test
-      startparam = (maincontext_startparam_t) { s_mainmode[i], (int) (1+i), &s_argv[i], &test_init_param, (void*)(i+2) };
-      TEST(0 == initrun_maincontext(&startparam));
+      TEST(0 == initrun_maincontext(s_mainmode[i], &test_init_param, (void*)(i+2), (int) (1+i), &s_argv[i]));
       TEST(1 == s_is_called);
 
       // check free_maincontext called
@@ -548,8 +546,7 @@ static int test_initrun(void)
    for (int i = 0; i < 10; ++i) {
       s_is_called = 0;
       // test
-      startparam = (maincontext_startparam_t) { s_mainmode[(unsigned)i%lengthof(s_mainmode)], 0, 0, &test_init_returncode, (void*)i };
-      TEST(i == initrun_maincontext(&startparam));
+      TEST(i == initrun_maincontext(s_mainmode[(unsigned)i%lengthof(s_mainmode)], &test_init_returncode, (void*)i, 0, 0));
       TEST(1 == s_is_called);
 
       // check free_maincontext called
@@ -560,17 +557,13 @@ static int test_initrun(void)
    }
 
    // TEST initrun_maincontext: EINVAL
-   startparam = (maincontext_startparam_t) { maincontext_STATIC, 0, 0, &test_init_returncode, 0 };
-   TEST(EINVAL == initrun_maincontext(&startparam));
+   TEST(EINVAL == initrun_maincontext(maincontext_STATIC, &test_init_returncode, 0, 0, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   startparam = (maincontext_startparam_t) { maincontext__NROF, 0, 0, &test_init_returncode, 0 };
-   TEST(EINVAL == initrun_maincontext(&startparam));
+   TEST(EINVAL == initrun_maincontext(maincontext__NROF, &test_init_returncode, 0, 0, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   startparam = (maincontext_startparam_t) { maincontext_DEFAULT, -1, 0, &test_init_returncode, 0 };
-   TEST(EINVAL == initrun_maincontext(&startparam));
+   TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, -1, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   startparam = (maincontext_startparam_t) { maincontext_DEFAULT, 1, 0, &test_init_returncode, 0 };
-   TEST(EINVAL == initrun_maincontext(&startparam));
+   TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, 1, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
 
    // TEST initrun_maincontext: simulated error
@@ -578,8 +571,7 @@ static int test_initrun(void)
       s_is_called = 0;
       // test
       init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, i);
-      startparam = (maincontext_startparam_t) { s_mainmode[0], 0, 0, &test_init_returncode, 0 };
-      int err = initrun_maincontext(&startparam);
+      int err = initrun_maincontext(s_mainmode[0], &test_init_returncode, 0, 0, 0);
       TESTP((i >= 4) == s_is_called, "i=%d", i);
 
       // check free_maincontext + clear_args_maincontext called
