@@ -333,7 +333,7 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext)
 {
    thread_localstore_t * tls = castPcontext_threadlocalstore(CONST_CAST(threadcontext_t, tcontext));
    logwriter_t *         log = logwriter_threadlocalstore(tls);
-   return   &g_maincontext.pcontext == tcontext->pcontext
+   return   &g_maincontext == tcontext->maincontext
             && 0 == tcontext->pagecache.object   && 0 == tcontext->pagecache.iimpl
             && 0 == tcontext->mm.object          && 0 == tcontext->mm.iimpl
             && 0 == tcontext->syncrunner
@@ -458,7 +458,7 @@ static int test_initfree(void)
    thread_localstore_t* tls  = 0;
    threadcontext_t*     tc   = 0;
    thread_t*         thread  = 0;
-   processcontext_t* P       = pcontext_maincontext();
+   maincontext_t *   M       = self_maincontext();
    uint8_t *         A; // addr of allocated static memory block (staticmemblock) in threadcontext
    const size_t      nrsvc   = 6;
    maincontext_e     oldtype = maincontext_STATIC;
@@ -472,13 +472,13 @@ static int test_initfree(void)
    }
    tc = context_threadlocalstore(tls);
    TEST(tc != 0);
-   TEST(P != 0);
+   TEST(M != 0);
    TEST(A != 0);
 
    // TEST threadcontext_FREE
    {
       threadcontext_t tcontext = threadcontext_FREE;
-      TEST(0 == tcontext.pcontext);
+      TEST(0 == tcontext.maincontext);
       TEST(0 == tcontext.pagecache.object);
       TEST(0 == tcontext.pagecache.iimpl);
       TEST(0 == tcontext.mm.object);
@@ -508,7 +508,7 @@ static int test_initfree(void)
       // check s_threadcontext_nextid
       TEST(ID+1 == s_threadcontext_nextid);
       // check tcontext
-      TEST(P == tc->pcontext);
+      TEST(M == tc->maincontext);
       TEST(ID == tc->thread_id);
       TEST(nrsvc == tc->initcount);
       TEST(A == tc->staticmemblock);
@@ -638,9 +638,9 @@ static int test_query(void)
 
    // TEST isstatic_threadcontext
    TEST(1 == isstatic_threadcontext(&tcontext));
-   tcontext.pcontext = 0;
+   tcontext.maincontext = 0;
    TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.pcontext = &g_maincontext.pcontext;
+   tcontext.maincontext = &g_maincontext;
    tcontext.pagecache.object = (void*)1;
    TEST(0 == isstatic_threadcontext(&tcontext));
    tcontext.pagecache.object = 0;

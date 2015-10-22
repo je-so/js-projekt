@@ -251,7 +251,7 @@ struct pagecache_blockmap_t * blockmap_maincontext(void);
 /* function: syncrunner_maincontext
  * Returns <syncrunner_t> of current <maincontext_t>. It is used to store and run
  * all <syncfunc_t> of the current thread. */
-struct syncrunner_t*      syncrunner_maincontext(void);
+struct syncrunner_t* syncrunner_maincontext(void);
 
 /* function: sysinfo_maincontext
  * Returns reference to <syscontext_t> holding precomputed values.
@@ -295,7 +295,7 @@ struct syncrunner_t*      syncrunner_maincontext(void);
 
 /* define: pcontext_maincontext
  * Inline implementation of <maincontext_t.pcontext_maincontext>. */
-#define pcontext_maincontext()            (tcontext_maincontext()->pcontext)
+#define pcontext_maincontext()            (&(self_maincontext()->pcontext))
 
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
@@ -303,7 +303,7 @@ struct syncrunner_t*      syncrunner_maincontext(void);
 
 /* define: self_maincontext
  * Inline implementation of <maincontext_t.self_maincontext>. */
-#define self_maincontext()                ((maincontext_t*)pcontext_maincontext())
+#define self_maincontext()                (tcontext_maincontext()->maincontext)
 
 /* define: syncrunner_maincontext
  * Inline implementation of <maincontext_t.syncrunner_maincontext>. */

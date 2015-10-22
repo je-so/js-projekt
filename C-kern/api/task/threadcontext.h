@@ -62,9 +62,9 @@ int unittest_task_threadcontext(void);
  * Stores services useable exclusively from one thread.
  * */
 struct threadcontext_t {
-   /* variable: pcontext
-    * Points to shared <processcontext_t>. */
-   struct processcontext_t*   pcontext;
+   /* variable: maincontext
+    * Points to shared <maincontext_t>. */
+   struct maincontext_t *     maincontext;
    /* variable: pagecache
     * Thread local virtual memory page manager. */
    threadcontext_pagecache_t  pagecache;
@@ -112,7 +112,7 @@ struct threadcontext_t {
  * Parameter:
  * tls - Pointer to thread_localstore_t the threadcontext is located. */
 #define threadcontext_INIT_STATIC(tls) \
-         { &g_maincontext.pcontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*)logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
+         { &g_maincontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*)logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.
