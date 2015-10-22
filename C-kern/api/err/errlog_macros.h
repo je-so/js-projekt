@@ -22,7 +22,7 @@
 #define CKERN_ERR_ERRLOG_MACROS_HEADER
 
 // forward
-struct logbuffer_t ;
+struct logbuffer_t;
 
 #include "C-kern/api/io/writer/log/log_macros.h"
 #include "C-kern/resource/generated/errlog.h"

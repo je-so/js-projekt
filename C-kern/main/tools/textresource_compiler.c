@@ -2143,7 +2143,7 @@ static int writeCfctparamtypes_textresourcewriter(textresource_writer_t * writer
 {
    typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
 
-   dprintf(writer->outfile, "void _check_paramtype_%.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
+   dprintf(writer->outfile, "void _param_types_%.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
                                                  (int)text->name.size, text->name.addr,
                                                  (int)progC->namesuffix.size, progC->namesuffix.addr
                                                 );
@@ -2176,6 +2176,35 @@ static int writeCfctparamtypes_textresourcewriter(textresource_writer_t * writer
    return 0;
 }
 
+static int writeCformatstring_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
+{
+   int bytes;
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
+
+   bytes = dprintf(writer->outfile, "#define _format_string_%.*s%.*s%.*s \"", (int)progC->nameprefix.size, progC->nameprefix.addr,
+                                                 (int)text->name.size, text->name.addr,
+                                                 (int)progC->namesuffix.size, progC->namesuffix.addr
+                                                );
+   if (bytes < 0) goto ONERR;
+
+   foreach (_paramlist, param, &text->paramlist) {
+      if (!(param->typemod & typemodifier_POINTER)) {
+         bytes = dprintf(writer->outfile, "%%%s", param->type->format);
+      } else {
+         bytes = dprintf(writer->outfile, "%%%s", param->type->ptrformat);
+      }
+      if (bytes < 0) goto ONERR;
+   }
+
+   bytes = dprintf(writer->outfile, "\"");
+   if (bytes < 0) goto ONERR;
+
+   return 0;
+ONERR:
+   return EIO;
+}
+
+
 static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
@@ -2192,6 +2221,9 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 #endif
 
    foreach (_textlist, text, &writer->txtres->textlist) {
+      err = writeCformatstring_textresourcewriter(writer, text);
+      if (err) goto ONERR;
+      dprintf(writer->outfile, "\n");
       err = writeCfctparamtypes_textresourcewriter(writer, text);
       if (err) goto ONERR;
       dprintf(writer->outfile, ";\n");
@@ -2200,9 +2232,9 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
       dprintf(writer->outfile, ";\n");
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist_t * atomlist)
@@ -2237,7 +2269,7 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
                bytes = dprintf(writer->outfile, "%%%s", param->type->format) ;
             if (bytes < 0) goto ONERR;
          } else {
-            bytes = dprintf(writer->outfile, "%%%s%s", (textatom->param.maxlen ? ".*" : ""), param->type->ptrformat) ;
+            bytes = dprintf(writer->outfile, "%%%s%s", (textatom->param.maxlen ? ".*" : ""), param->type->ptrformat);
             if (bytes < 0) goto ONERR;
          }
 
@@ -2261,13 +2293,13 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
       if (textresource_textatom_PARAMETER == textatom->type) {
          textresource_parameter_t * param = textatom->param.ref ;
          if (!(param->typemod & typemodifier_POINTER)) {
-            bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr) ;
+            bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr);
             if (bytes < 0) goto ONERR;
          } else {
             if (textatom->param.maxlen)
-               bytes = dprintf(writer->outfile, ", %d, %.*s", textatom->param.maxlen, (int)param->name.size, param->name.addr) ;
+               bytes = dprintf(writer->outfile, ", %d, %.*s", textatom->param.maxlen, (int)param->name.size, param->name.addr);
             else
-               bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr) ;
+               bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr);
             if (bytes < 0) goto ONERR;
          }
 

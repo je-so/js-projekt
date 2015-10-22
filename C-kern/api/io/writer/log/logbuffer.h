@@ -47,18 +47,18 @@ int unittest_io_writer_log_logbuffer(void) ;
 struct logbuffer_t {
    /* variable: addr
     * Holds start address of memory buffer. */
-   uint8_t *         addr ;
+   uint8_t *         addr;
    /* variable: size
     * Holds size in bytes of memory buffer. */
-   uint32_t          size ;
+   uint32_t          size;
    /* variable: logsize
     * Stores the size in bytes of the buffered log entries.
     * If the buffer is empty logsize is 0. */
-   uint32_t          logsize ;
+   uint32_t          logsize;
    /* variable: io
     * Holds iochannel the log is written to. */
-   sys_iochannel_t   io ;
-} ;
+   sys_iochannel_t   io;
+};
 
 // group: lifetime
 
@@ -141,26 +141,26 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args) 
 
 /* define: truncate_logbuffer
  * Implements <logbuffer_t.truncate_logbuffer>. */
-#define truncate_logbuffer(logbuf, size)  \
-         do {                             \
-            logbuffer_t * _lb;            \
-            size_t _sz;                   \
-            _lb = (logbuf);               \
-            _sz = (size);                 \
-            if (_sz < _lb->logsize) {     \
-               _lb->addr[_sz] = 0;        \
-               _lb->logsize   = _sz;      \
-            }                             \
+#define truncate_logbuffer(logbuf, size) \
+         do {                          \
+            logbuffer_t * _lb;         \
+            size_t _sz;                \
+            _lb = (logbuf);            \
+            _sz = (size);              \
+            if (_sz < _lb->logsize) {  \
+               _lb->addr[_sz] = 0;     \
+               _lb->logsize   = _sz;   \
+            }                          \
          } while(0)
 
 /* define: getbuffer_logbuffer
  * Implements <logbuffer_t.getbuffer_logbuffer>. */
-#define getbuffer_logbuffer(logbuf, _addr, _logsize)  \
-         ( __extension__ ({                           \
-            const logbuffer_t * _lb;                  \
-            _lb = (logbuf);                           \
-            *(_addr)    = _lb->addr;                  \
-            *(_logsize) = _lb->logsize;               \
+#define getbuffer_logbuffer(logbuf, _addr, _logsize) \
+         ( __extension__ ({               \
+            const logbuffer_t * _lb;      \
+            _lb = (logbuf);               \
+            *(_addr)    = _lb->addr;      \
+            *(_logsize) = _lb->logsize;   \
          }))
 
 
@@ -171,11 +171,11 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args) 
 
 /* define: sizefree_logbuffer
  * Implements <logbuffer_t.sizefree_logbuffer>. */
-#define sizefree_logbuffer(logbuf)     \
+#define sizefree_logbuffer(logbuf) \
          ( __extension__ ({            \
-            const logbuffer_t * _lb ;  \
-            _lb = (logbuf) ;           \
-            _lb->size - _lb->logsize ; \
+            const logbuffer_t * _lb;   \
+            _lb = (logbuf);            \
+            _lb->size - _lb->logsize;  \
          }))
 
 #endif

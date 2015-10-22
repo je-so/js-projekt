@@ -132,7 +132,7 @@ static void initchan_logwriter(/*out*/logwriter_t * lgwrt, const size_t logsize)
 
    for (uint8_t channel = 0; channel < log_channel__NROF; ++channel) {
       size_t      bufsize  = (channel == log_channel_ERR     ? errlogsize        : logsize);
-      log_state_e logstate = (channel == log_channel_USERERR ? log_state_IGNORED : log_state_BUFFERED);
+      log_state_e logstate = (channel == log_channel_USERERR || bufsize == 0 ? log_state_IGNORED : log_state_BUFFERED);
       lgwrt->chan[channel] = (logwriter_chan_t) logwriter_chan_INIT(bufsize, lgwrt->addr + offset, iochannel_STDERR, logstate);
       offset += logsize;
    }
@@ -155,11 +155,11 @@ ONERR:
 
 int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= minbufsize_logwriter()*/, uint8_t logbuf[bufsize])
 {
-   if (bufsize < minbufsize_logwriter()) goto ONERR;
+   if (bufsize < log_config_MINSIZE) goto ONERR;
 
    *cast_memblock(lgwrt,) = (memblock_t) memblock_INIT(bufsize, logbuf);
 
-   initchan_logwriter(lgwrt, log_config_MINSIZE);
+   initchan_logwriter(lgwrt, bufsize >= minbufsize_logwriter() ? log_config_MINSIZE : 0);
 
    return 0;
 ONERR:
@@ -203,6 +203,23 @@ int freestatic_logwriter(logwriter_t * lgwrt)
 
 // group: query
 
+bool isfree_logwriter(const logwriter_t * lgwrt)
+{
+   if (0 != lgwrt->addr || 0 != lgwrt->size) return false;
+
+   for (unsigned channel = 0; channel < lengthof(lgwrt->chan); ++channel) {
+      if (lgwrt->chan[channel].logbuf.addr != 0
+         || lgwrt->chan[channel].logbuf.size != 0
+         || lgwrt->chan[channel].logbuf.io != iochannel_FREE
+         || lgwrt->chan[channel].logbuf.logsize != 0
+         || lgwrt->chan[channel].funcname != 0
+         || lgwrt->chan[channel].logstate != 0)
+         return false;
+   }
+
+   return true;
+}
+
 void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size)
 {
    int err;
@@ -242,7 +259,7 @@ ONERR:
 
 void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate)
 {
-   if (channel < log_channel__NROF) {
+   if (channel < log_channel__NROF && logstate < log_state__NROF) {
       logwriter_chan_t * chan = &lgwrt->chan[channel];
       chan->funcname = 0;
       chan->logstate = logstate;
@@ -362,6 +379,7 @@ void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, co
 
    return;
 ONERR:
+   // TODO: !! use init log !! in whole class !!!!
    TRACEEXIT_ERRLOG(err);
    return;
 }
@@ -369,23 +387,6 @@ ONERR:
 // group: test
 
 #ifdef KONFIG_UNITTEST
-
-static bool isfree_logwriter(logwriter_t * lgwrt)
-{
-   if (0 != lgwrt->addr || 0 != lgwrt->size) return false;
-
-   for (unsigned channel = 0; channel < lengthof(lgwrt->chan); ++channel) {
-      if (lgwrt->chan[channel].logbuf.addr != 0
-         || lgwrt->chan[channel].logbuf.size != 0
-         || lgwrt->chan[channel].logbuf.io != iochannel_FREE
-         || lgwrt->chan[channel].logbuf.logsize != 0
-         || lgwrt->chan[channel].funcname != 0
-         || lgwrt->chan[channel].logstate != 0)
-         return false;
-   }
-
-   return true;
-}
 
 static int test_initfree(void)
 {
@@ -409,12 +410,12 @@ static int test_initfree(void)
    }
 
    // TEST free_logwriter
-   TEST(0 == free_logwriter(&lgwrt));
-   TEST(1 == isfree_logwriter(&lgwrt));
-   TEST(0 == free_logwriter(&lgwrt));
-   TEST(1 == isfree_logwriter(&lgwrt));
-   TEST(1 == isvalid_iochannel(iochannel_STDOUT));
-   TEST(1 == isvalid_iochannel(iochannel_STDERR));
+   for (int tc = 0; tc < 2; ++tc) {
+      TEST(0 == free_logwriter(&lgwrt));
+      TEST(1 == isfree_logwriter(&lgwrt));
+      TEST(1 == isvalid_iochannel(iochannel_STDOUT));
+      TEST(1 == isvalid_iochannel(iochannel_STDERR));
+   }
 
    // TEST free_logwriter: EINVAL
    TEST(0 == init_logwriter(&lgwrt));
@@ -440,14 +441,32 @@ static int test_initfree(void)
       offset += lgwrt.chan[i].logbuf.size;
    }
 
-   // TEST freestatic_logwriter
-   TEST(0 == freestatic_logwriter(&lgwrt));
-   TEST(1 == isfree_logwriter(&lgwrt));
+   // TEST freestatic_logwriter: double free
+   for (int tc = 0; tc < 2; ++tc) {
+      TEST(0 == freestatic_logwriter(&lgwrt));
+      TEST(1 == isfree_logwriter(&lgwrt));
+   }
+
+   // TEST initstatic_logwriter: initlog buffer size
+   for (size_t bs = log_config_MINSIZE; bs < sizeof(logbuf); bs += log_config_MINSIZE) {
+      TEST(0 == initstatic_logwriter(&lgwrt, bs, logbuf));
+      TEST(lgwrt.addr == logbuf);
+      TEST(lgwrt.size == bs);
+      for (unsigned i = 0, offset = 0; i < log_channel__NROF; ++i) {
+         int isErr = (i == log_channel_ERR);
+         TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
+         TEST(lgwrt.chan[i].logbuf.size == (isErr ? bs : 0));
+         TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR);
+         TEST(lgwrt.chan[i].logbuf.logsize == 0);
+         TEST(lgwrt.chan[i].logstate    == (isErr ? log_state_BUFFERED : log_state_IGNORED));
+         offset += lgwrt.chan[i].logbuf.size;
+      }
+   }
    TEST(0 == freestatic_logwriter(&lgwrt));
    TEST(1 == isfree_logwriter(&lgwrt));
 
    // TEST initstatic_logwriter: EINVAL
-   TEST(EINVAL == initstatic_logwriter(&lgwrt, minbufsize_logwriter()-1, logbuf));
+   TEST(EINVAL == initstatic_logwriter(&lgwrt, log_config_MINSIZE-1, logbuf));
    TEST(1 == isfree_logwriter(&lgwrt));
 
    return 0;
@@ -546,6 +565,15 @@ static int test_config(void)
    // check that call was ignored
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
       TEST(log_state__NROF-1 == lgwrt.chan[i].logstate);
+   }
+
+   // TEST setstate_logwriter: parameter logstate out of range
+   for (unsigned s = log_state__NROF; s <= 255 ; s += 255 - log_state__NROF) {
+      for (uint8_t i = 0; i < log_channel__NROF; ++i) {
+         setstate_logwriter(&lgwrt, i, (uint8_t) s);
+         // check that call was ignored
+         TEST(log_state__NROF-1 == lgwrt.chan[i].logstate);
+      }
    }
 
    // unprepare
@@ -1200,6 +1228,67 @@ ONERR:
    return EINVAL;
 }
 
+static int test_freeisignored(void)
+{
+   logwriter_t lgwrt = logwriter_FREE;
+   uint8_t     logbuf[1];
+   uint8_t *   buffer;
+   size_t      size ;
+   log_header_t header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+
+   for (uint8_t chan = 0; chan < log_channel__NROF; ++chan) {
+
+      // TEST getstate_logwriter: log_state_IGNORED is default
+      TEST(log_state_IGNORED == getstate_logwriter(&lgwrt, chan));
+
+   }
+
+   for (uint8_t chan = 0; chan < log_channel__NROF; ++chan) {
+      for (uint8_t state = log_state_IGNORED; state < log_state__NROF; ++state) {
+         for (int tc = 0; tc < 2; ++tc) {
+
+            // TEST setstate_logwriter
+            setstate_logwriter(&lgwrt, chan, state);
+
+            // TEST getstate_logwriter
+            TEST(state == getstate_logwriter(&lgwrt, chan));
+
+            // TEST getbuffer_logwriter
+            buffer = (void*) 1;
+            size = 1;
+            getbuffer_logwriter(&lgwrt, chan, &buffer, &size);
+            TEST(0 == buffer);
+            TEST(0 == size);
+
+            // TEST compare_logwriter
+            TEST(EINVAL == compare_logwriter(&lgwrt, chan, 1, logbuf));
+            TEST(0 == compare_logwriter(&lgwrt, chan, 0, logbuf));
+
+            // TEST truncatebuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, size_t size)
+            truncatebuffer_logwriter(&lgwrt, chan, 0);
+            truncatebuffer_logwriter(&lgwrt, chan, 1);
+
+            // TEST flushbuffer_logwriter
+            flushbuffer_logwriter(&lgwrt, chan);
+
+            // TEST vprintf_logwriter
+            vprintf_logwriter(&lgwrt, chan, log_flags_LAST, &header, "123", 0);
+
+            // TEST printf_logwriter
+            printf_logwriter(&lgwrt, chan, log_flags_LAST, &header, "123");
+
+            // TEST printtext_logwriter
+            printtext_logwriter(&lgwrt, chan, log_flags_LAST, &header, MEMORY_OUT_OF_ERRLOG, (size_t)100, (int)1);
+
+         }
+      }
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
 int unittest_io_writer_log_logwriter()
 {
    if (test_initfree())       goto ONERR;
@@ -1209,6 +1298,7 @@ int unittest_io_writer_log_logwriter()
    if (test_initthread())     goto ONERR;
    if (test_logmacros())      goto ONERR;
    if (test_errlogmacros())   goto ONERR;
+   if (test_freeisignored())  goto ONERR;
 
    return 0;
 ONERR:

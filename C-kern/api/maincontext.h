@@ -22,6 +22,9 @@
 #include "C-kern/api/task/threadcontext.h"
 #include "C-kern/api/task/processcontext.h"
 
+// forward
+struct logwriter_t;
+
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
 typedef struct maincontext_t  maincontext_t;
@@ -101,8 +104,9 @@ struct maincontext_t {
    /* variable: sysinfo
     * Contains queried once information about the platform/OS. */
    syscontext_t      sysinfo;
-   // gives type like CONSOLE app ...
-   // TODO: init log uses this value to determine if standard error log is available !
+   /* variable: type
+    * The value of type <maincontext_e> given as first parameter to <initrun_maincontext>.
+    * The initlog macros (see <LogMacros>) use this value to determine if standard error log is available ! */
    maincontext_e     type;
 
    // arguments
@@ -126,6 +130,12 @@ struct maincontext_t {
     * should be set to 0. Same value as received as 2nd argument by
     * > int main(int argc, const char * argv[]). */
    const char **     argv;
+
+   // helper (during init)
+
+   /* variable: initlog
+    * Log used until <syscontext_t.initrun_syscontext> has completed its setup procedure. */
+   struct logwriter_t * initlog;
 };
 
 // group: lifetime
@@ -133,7 +143,7 @@ struct maincontext_t {
 /* define: maincontext_INIT_STATIC
  * Static initializer for <maincontext_t>. */
 #define maincontext_INIT_STATIC \
-         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0 }
+         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, &s_maincontext_initlog }
 
 /* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
@@ -176,7 +186,6 @@ void assertfail_maincontext(const char * condition, const char * file, int line,
 
 // group: query
 
-// TODO: store pointer to maincontext in threadcontext_t => change self_ + pcontext_
 /* function: self_maincontext
  * Returns <maincontext_t> of the current process. */
 maincontext_t *            self_maincontext(void);

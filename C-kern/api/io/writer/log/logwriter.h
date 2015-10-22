@@ -140,6 +140,10 @@ int freestatic_logwriter(/*out*/logwriter_t * lgwrt);
 
 // group: query
 
+/* function: isfree_logwriter
+ * Returns true if lgwrt equals <logwriter_FREE>. */
+bool isfree_logwriter(const logwriter_t * lgwrt);
+
 /* function: minbufsize_logwriter
  * Returns log_channel__NROF * (sizeof(logwriter_chan_t) + log_config_MINSIZE). */
 size_t minbufsize_logwriter(void);

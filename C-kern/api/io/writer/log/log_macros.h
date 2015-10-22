@@ -111,10 +111,14 @@
 #define PRINTTEXT_LOG(LOGCHANNEL, FLAGS, HEADER, TEXTID, ...) \
          do {                                   \
             if (0) {                            \
-               /* test for correct parameter */ \
-               _check_paramtype_ ## TEXTID(     \
+               /* check signed/unsigned */      \
+               _param_types_ ## TEXTID(         \
                   (struct logbuffer_t*)0,       \
                    __VA_ARGS__);                \
+               /* check param size */           \
+               printf(                          \
+                  _format_string_ ## TEXTID,    \
+                  __VA_ARGS__);                 \
             }                                   \
             log_maincontext().iimpl->printtext( \
                log_maincontext().object,        \
@@ -136,8 +140,8 @@
 #define PRINTTEXT_NOARG_LOG(LOGCHANNEL, FLAGS, HEADER, TEXTID)  \
          do {                                   \
             if (0) {                            \
-            /* test for correct parameter */    \
-            _check_paramtype_ ## TEXTID(        \
+            /* test for no parameter */         \
+            _param_types_ ## TEXTID(            \
                (struct logbuffer_t*)0);         \
             }                                   \
             log_maincontext().iimpl->printtext( \
