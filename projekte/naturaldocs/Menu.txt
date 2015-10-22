@@ -59,18 +59,6 @@ Group: Api  {
       File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
-   Group: Context  {
-
-      File: ErrorContext  (api/context/errorcontext.h)
-      File: ErrorNumbers  (api/context/errornr.h)
-      File: InterfaceableObject  (api/context/iobj.h)
-      File: Module  (api/context/module.h)
-      File: ProcessContext  (api/context/processcontext.h)
-      File: Standard-Macros  (api/context/stdmacros.h)
-      File: Standard-Types  (api/context/stdtypes.h)
-      File: ThreadContext  (api/context/threadcontext.h)
-      }  # Group: Context
-
    Group: Ds  {
 
       Group: InMemory  {
@@ -122,6 +110,13 @@ Group: Api  {
       File: Foreach-Iterator  (api/ds/foreach.h)
       File: Typeadapt  (api/ds/typeadapt.h)
       }  # Group: Ds
+
+   Group: Err  {
+
+      File: ErrlogMacros  (api/err/errlog_macros.h)
+      File: ErrorContext  (api/err/errorcontext.h)
+      File: ErrorNumbers  (api/err/errornr.h)
+      }  # Group: Err
 
    Group: Graphic  {
 
@@ -176,11 +171,9 @@ Group: Api  {
 
       Group: Writer  {
 
-         File: ErrlogMacros  (api/io/writer/log/errlog_macros.h)
          File: Log-Object  (api/io/writer/log/log.h)
          File: LogBuffer  (api/io/writer/log/logbuffer.h)
          File: LogMacros  (api/io/writer/log/log_macros.h)
-         File: LogMain  (api/io/writer/log/logmain.h)
          File: LogWriter  (api/io/writer/log/logwriter.h)
          }  # Group: Writer
 
@@ -212,6 +205,7 @@ Group: Api  {
          File: Intop-Abs  (api/math/int/abs.h)
          File: Intop-Bitorder  (api/math/int/bitorder.h)
          File: Intop-Byteorder  (api/math/int/byteorder.h)
+         File: Intop-Factorisation  (api/math/int/factorise.h)
          File: Intop-Log10  (api/math/int/log10.h)
          File: Intop-Log2  (api/math/int/log2.h)
          File: Intop-Power2  (api/math/int/power2.h)
@@ -242,11 +236,6 @@ Group: Api  {
       File: VirtualMemory  (api/memory/vm.h)
       File: WriteBuffer  (api/memory/wbuffer.h)
       }  # Group: Memory
-
-   Group: NewC  {
-
-      File: NewC-Parser  (api/newC/nCparser.h)
-      }  # Group: NewC
 
    Group: Platform  {
 
@@ -319,6 +308,13 @@ Group: Api  {
       File: SystemLogin  (api/platform/syslogin.h)
       }  # Group: Platform
 
+   Group: Stdtypes  {
+
+      File: InterfaceableObject  (api/stdtypes/iobj.h)
+      File: Standard-Macros  (api/stdtypes/stdmacros.h)
+      File: Standard-Types  (api/stdtypes/stdtypes.h)
+      }  # Group: Stdtypes
+
    Group: String  {
 
       File: Base64EncodeString  (api/string/base64encode.h)
@@ -356,10 +352,14 @@ Group: Api  {
 
    Group: Task  {
 
+      File: ITCCounter  (api/task/itc/itccounter.h)
+      File: Module  (api/task/module.h)
+      File: ProcessContext  (api/task/processcontext.h)
       File: SyncCommand  (api/task/synccmd.h)
       File: SyncCondition  (api/task/synccond.h)
       File: SyncFunc  (api/task/syncfunc.h)
       File: SyncRunner  (api/task/syncrunner.h)
+      File: ThreadContext  (api/task/threadcontext.h)
       }  # Group: Task
 
    File: ErrorHandling  (api/err.h)
@@ -373,18 +373,6 @@ Group: Implementation  {
       File: Objectcache impl  (cache/objectcache_impl.c)
       File: Valuecache impl  (cache/valuecache.c)
       }  # Group: Cache
-
-   Group: Context  {
-
-      File: Context-Oriented-Programming  (context/COP.txt)
-      File: ErrorContext impl  (context/errorcontext.c)
-      File: ErrorNumbers impl  (context/errornr.c)
-      File: InterfaceableObject impl  (context/iobj.c)
-      File: MainContext impl  (context/maincontext.c)
-      File: Module impl  (context/module.c)
-      File: ProcessContext impl  (context/processcontext.c)
-      File: ThreadContext impl  (context/threadcontext.c)
-      }  # Group: Context
 
    Group: DataStructures  {
 
@@ -428,6 +416,13 @@ Group: Implementation  {
       File: Typeadapt impl  (ds/typeadapt.c)
       }  # Group: DataStructures
 
+   Group: Err  {
+
+      File: ErrorContext impl  (err/errorcontext.c)
+      File: Errorlog-Writer  (err/errlog.c)
+      File: ErrorNumbers impl  (err/errornr.c)
+      }  # Group: Err
+
    Group: Graphic  {
 
       File: Graphic-Context impl  (graphic/gcontext.c)
@@ -464,11 +459,9 @@ Group: Implementation  {
       Group: Writer  {
 
          File: LogBuffer impl  (io/writer/log/logbuffer.c)
-         File: LogMain impl  (io/writer/log/logmain.c)
          File: LogWriter impl  (io/writer/log/logwriter.c)
          }  # Group: Writer
 
-      File: Errorlog-Writer  (io/writer/errlog.c)
       File: File-Util impl  (io/filesystem/fileutil.c)
       File: URL impl  (io/url.c)
       }  # Group: Io
@@ -490,10 +483,12 @@ Group: Implementation  {
          File: GenerateErrorStringTable-Tool  (main/tools/generrtab.c)
          File: genfile  (main/tools/genfile.c)
          File: genmake  (main/tools/genmake.c)
+         File: genmemdb  (main/tools/genmemdb.c)
          File: TextDB  (main/tools/textdb.c)
          File: TextResource-Compiler  (main/tools/textresource_compiler.c)
          }  # Group: Tools
 
+      File: MainContext impl  (main/maincontext.c)
       }  # Group: Main
 
    Group: Math  {
@@ -521,6 +516,7 @@ Group: Implementation  {
          File: Intop-SquareRoot impl  (math/int/sqroot.c)
          File: Intop-Bitorder impl  (math/int/bitorder.c)
          File: Intop-Byteorder impl  (math/int/byteorder.c)
+         File: Intop-Factorisation impl  (math/int/factorise.c)
          }  # Group: Int
 
       }  # Group: Math
@@ -540,11 +536,6 @@ Group: Implementation  {
       File: PageCacheMacros impl  (memory/pagecache_macros.c)
       File: WriteBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
-
-   Group: NewC  {
-
-      File: NewC-Parser impl  (newC/nCparser.c)
-      }  # Group: NewC
 
    Group: Platform  {
 
@@ -581,6 +572,7 @@ Group: Implementation  {
          Group: Sync  {
 
             File: InterThreadMutex impl  (platform/Linux/sync/thrmutex.c)
+            File: ITCCounter impl  (platform/Linux/sync/itccounter.c)
             File: Mutex Linuximpl  (platform/Linux/sync/mutex.c)
             File: PosixSignals Linuximpl  (platform/Linux/sync/signal.c)
             File: ReadWriteLock Linuximpl  (platform/Linux/sync/rwlock.c)
@@ -618,6 +610,11 @@ Group: Implementation  {
 
       }  # Group: Platform
 
+   Group: Stdtypes  {
+
+      File: InterfaceableObject impl  (stdtypes/iobj.c)
+      }  # Group: Stdtypes
+
    Group: String  {
 
       File: Base64EncodeString impl  (string/base64encode.c)
@@ -633,9 +630,12 @@ Group: Implementation  {
 
    Group: Task  {
 
+      File: Module impl  (task/module.c)
+      File: ProcessContext impl  (task/processcontext.c)
       File: SyncCondition impl  (task/synccond.c)
       File: SyncFunc impl  (task/syncfunc.c)
       File: SyncRunner impl  (task/syncrunner.c)
+      File: ThreadContext impl  (task/threadcontext.c)
       }  # Group: Task
 
    Group: Test  {
@@ -669,6 +669,7 @@ Group: Coding-Conventions  {
 
    File: Abstraction Done Right  (resource/coding-conventions/abstractions.txt)
    File: C-Types  (resource/coding-conventions/c_types.txt)
+   File: Context-Oriented-Programming  (resource/coding-conventions/COP.txt)
    File: Error-Handling  (resource/coding-conventions/error-handling.txt)
    File: free objects  (resource/coding-conventions/free_objects.txt)
    File: init objects  (resource/coding-conventions/init_objects.txt)

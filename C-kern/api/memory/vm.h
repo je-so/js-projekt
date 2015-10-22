@@ -61,7 +61,7 @@ ramsize_t sizeavailableram_vm(void);
  * Returns the virtual memory page size supported by the underlying system.
  * This functions always calls the underlying system function.
  * The returned value is a power of two. */
-uint32_t sys_pagesize_vm(void);
+size_t sys_pagesize_vm(void);
 
 /* function: ismapped_vm
  * Returns true in case vmpage is mapped with accessmode equaling protection. */

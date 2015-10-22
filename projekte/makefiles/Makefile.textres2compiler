@@ -91,7 +91,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
@@ -127,7 +126,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!err!errlog.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
@@ -200,9 +198,6 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
@@ -302,9 +297,6 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c

@@ -1,39 +1,39 @@
-[1: 1443695057.230449s]
-exit_thread() C-kern/platform/Linux/task/thread.c:403
+[1: 1444582881.186592s]
+exit_thread() C-kern/platform/Linux/task/thread.c:395
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error
-[1: 1443695057.234196s]
-new_thread() C-kern/platform/Linux/task/thread.c:230
+[1: 1444582881.193045s]
+new_thread() C-kern/platform/Linux/task/thread.c:222
 Exit function with
 Error 1 - Operation not permitted
-[1: 1443695057.234218s]
-new_thread() C-kern/platform/Linux/task/thread.c:230
+[1: 1444582881.193098s]
+new_thread() C-kern/platform/Linux/task/thread.c:222
 Exit function with
 Error 2 - No such file or directory
-[1: 1443695057.234244s]
-new_thread() C-kern/platform/Linux/task/thread.c:230
+[1: 1444582881.193122s]
+new_thread() C-kern/platform/Linux/task/thread.c:222
 Exit function with
 Error 3 - No such process
-[1: 1443695057.234264s]
-new_thread() C-kern/platform/Linux/task/thread.c:230
+[1: 1444582881.193149s]
+new_thread() C-kern/platform/Linux/task/thread.c:222
 Exit function with
 Error 4 - Interrupted system call
-[1: 1443695057.235113s]
-delete_thread() C-kern/platform/Linux/task/thread.c:159
+[1: 1444582881.194684s]
+delete_thread() C-kern/platform/Linux/task/thread.c:152
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695057.258011s]
-join_thread() C-kern/platform/Linux/task/thread.c:252
+[1: 1444582881.225367s]
+join_thread() C-kern/platform/Linux/task/thread.c:244
 Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1443695057.258985s]
-join_thread() C-kern/platform/Linux/task/thread.c:252
+[1: 1444582881.226235s]
+join_thread() C-kern/platform/Linux/task/thread.c:244
 Exit function with
 Error 3 - No such process
-[1: 1443695058.699573s]
-exit_thread() C-kern/platform/Linux/task/thread.c:403
+[1: 1444582882.104198s]
+exit_thread() C-kern/platform/Linux/task/thread.c:395
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error

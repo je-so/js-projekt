@@ -18,6 +18,7 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"
+#include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -30,9 +31,21 @@
 
 int init_valuecache(/*out*/valuecache_t * valuecache)
 {
-   valuecache->pagesize_vm     = sys_pagesize_vm() ;
-   valuecache->log2pagesize_vm = log2_int(valuecache->pagesize_vm) ;
-   return 0 ;
+   int err;
+
+   valuecache->pagesize_vm     = (uint32_t) sys_pagesize_vm();
+   valuecache->log2pagesize_vm = log2_int(valuecache->pagesize_vm);
+
+   if (  ! ispowerof2_int(valuecache->pagesize_vm)
+      || sys_pagesize_vm() != valuecache->pagesize_vm) {
+      err = EINVAL;
+      goto ONERR;
+   }
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 int free_valuecache(valuecache_t * valuecache)

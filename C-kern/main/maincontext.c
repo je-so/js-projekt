@@ -19,7 +19,6 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/memory/pagecache_impl.h"
-#include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/init.h"
 #include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/platform/sync/mutex.h"
@@ -181,10 +180,9 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
    err = init_processcontext(&g_maincontext.pcontext);
    if (err) goto ONERR;
 
-
    ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
 
-   err = init_threadcontext(tcontext_maincontext(), &g_maincontext.pcontext, context_type);
+   err = init_threadcontext(tcontext_maincontext(), context_type);
    if (err) goto ONERR;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
@@ -275,7 +273,7 @@ ONERR:
 static int test_initmain(void)
 {
    // prepare
-   if (maincontext_STATIC != g_maincontext.type) return EINVAL;
+   TEST(maincontext_STATIC == g_maincontext.type);
 
    // TEST static type
    TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
@@ -317,9 +315,9 @@ static int test_initmain(void)
       TEST(0 != tcontext_maincontext()->log.iimpl);
       TEST(0 != tcontext_maincontext()->objectcache.object);
       TEST(0 != tcontext_maincontext()->objectcache.iimpl);
+      TEST(0 != tcontext_maincontext()->log.object)
+      TEST((struct log_t*)logwriter_threadlocalstore(self_threadlocalstore()) != tcontext_maincontext()->log.object);
       TEST(0 != strcmp("C", current_locale()));
-      TEST(tcontext_maincontext()->log.object != 0);
-      TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface);
       switch (mainmode[i]) {
       case maincontext_STATIC:
          break;
@@ -333,33 +331,25 @@ static int test_initmain(void)
          break;
       }
 
-      // TEST free_maincontext
-      TEST(0 == free_maincontext());
-      TEST(pcontext_maincontext() == &g_maincontext.pcontext);
-      TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
-      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
-      TEST(0 == g_maincontext.type);
-      TEST(0 == g_maincontext.progname);
-      TEST(0 == g_maincontext.argc);
-      TEST(0 == g_maincontext.argv);
-      TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
-      TEST(0 == strcmp("C", current_locale()));
-      TEST(0 == free_maincontext());
-      TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
-      TEST(pcontext_maincontext() == &g_maincontext.pcontext);
-      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
-      TEST(0 == g_maincontext.type);
-      TEST(0 == g_maincontext.progname);
-      TEST(0 == g_maincontext.argc);
-      TEST(0 == g_maincontext.argv);
-      TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
-      TEST(0 == strcmp("C", current_locale()));
+      // TEST free_maincontext: free / double free
+      for (int tc = 0; tc < 2; ++tc) {
+         TEST(0 == free_maincontext());
+         TEST(pcontext_maincontext() == &g_maincontext.pcontext);
+         TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
+         TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
+         TEST(0 == g_maincontext.type);
+         TEST(0 == g_maincontext.progname);
+         TEST(0 == g_maincontext.argc);
+         TEST(0 == g_maincontext.argv);
+         TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
+         TEST(0 == strcmp("C", current_locale()));
+      }
    }
 
    // TEST free_maincontext: ENOTEMPTY
    g_maincontext.type = maincontext_DEFAULT;
    memblock_t mblock;
-   TEST(0 == allocstatic_threadlocalstore(self_threadlocalstore(), 1, &mblock));
+   TEST(0 == memalloc_threadlocalstore(self_threadlocalstore(), 1, &mblock));
    TEST(ENOTEMPTY == free_maincontext());
    TEST(1 == isstatic_processcontext(&g_maincontext.pcontext));
    TEST(0 == g_maincontext.type);
@@ -367,7 +357,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argc);
    TEST(0 == g_maincontext.argv);
    TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
-   TEST(0 == freestatic_threadlocalstore(self_threadlocalstore(), &mblock));
+   TEST(0 == memfree_threadlocalstore(self_threadlocalstore(), &mblock));
 
    // unprepare
    FLUSHBUFFER_ERRLOG();
@@ -380,19 +370,16 @@ ONERR:
 static int test_initerror(void)
 {
    // prepare
-   if (maincontext_STATIC != g_maincontext.type) return EINVAL;
+   TEST(maincontext_STATIC == g_maincontext.type);
 
    // TEST init_maincontext: error in in different places
    for (int i = 1; i <= 3; ++i) {
       init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, EINVAL+i);
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0));
       TEST(0 == pcontext_maincontext()->initcount);
-      TEST(maincontext_STATIC == type_maincontext());
       TEST(0 == tcontext_maincontext()->initcount);
-      TEST(tcontext_maincontext()->log.object == 0);
-      TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface);
-      TEST(0 == tcontext_maincontext()->objectcache.object);
-      TEST(0 == tcontext_maincontext()->objectcache.iimpl);
+      TEST(maincontext_STATIC == type_maincontext());
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
    }
 
    TEST(0 == init_maincontext(maincontext_DEFAULT, 0, 0));
@@ -433,7 +420,7 @@ static int test_initstart(void)
    const char* argv[2] = { "1", "2" };
 
    // prepare
-   if (maincontext_STATIC != g_maincontext.type) return EINVAL;
+   TEST(maincontext_STATIC == g_maincontext.type);
 
    // TEST initstart_maincontext
    maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE };
@@ -464,9 +451,8 @@ ONERR:
 
 static int test_progname(void)
 {
-
    // prepare
-   if (maincontext_STATIC != g_maincontext.type) return EINVAL;
+   TEST(maincontext_STATIC == g_maincontext.type);
 
    // TEST progname_maincontext
    const char * argv[4] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3", "123456789a1234567" };

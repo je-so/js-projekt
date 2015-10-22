@@ -50,14 +50,17 @@ typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
  *                       All content logged to channel <log_channel_USERERR> is immediately written (<log_state_UNBUFFERED>).
  *                       All content logged to channel <log_channel_ERR> is ignored.
  *
+ * maincontext__NROF   - Number of different context types.
+ *
  * */
-enum maincontext_e {
+typedef enum maincontext_e {
    maincontext_STATIC  = 0,
    maincontext_DEFAULT = 1,
    maincontext_CONSOLE = 2,
-};
+} maincontext_e;
 
-typedef enum maincontext_e    maincontext_e;
+#define maincontext__NROF (maincontext_CONSOLE + 1)
+
 
 /* variable: g_maincontext
  * Global variable which describes the main context for the current process.

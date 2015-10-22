@@ -22,6 +22,7 @@
 #define CKERN_TASK_THREADCONTEXT_HEADER
 
 // forward
+struct logwriter_t;
 struct processcontext_t;
 struct syncrunner_t;
 
@@ -105,18 +106,23 @@ struct threadcontext_t {
 
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
- * These initializer ensures that in function main the global log service is available
- * even without calling <maincontext_t.init_maincontext> first.
- */
-#define threadcontext_INIT_STATIC   \
-         { &g_maincontext.pcontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { 0, &g_logmain_interface }, 0, 0, 0 }
+ * This pre-initializer ensures that during initialization the static log service is available
+ * even before calling <init_threadcontext> or during call to <free_threadcontext>.
+ *
+ * Parameter:
+ * tls - Pointer to thread_localstore_t the threadcontext is located. */
+#define threadcontext_INIT_STATIC(tls) \
+         { &g_maincontext.pcontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*)logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.
- * Services do *not* need to be multi thread safe cause a new one is created for every new thread.
+ * Services do *not* need to be multi thread safe cause a new tcontext is created for every new thread.
  * If a service shares information between threads then it must be programmed in a thread safe manner.
- * This function is called from <maincontext_t.init_maincontext>. The parameter context_type is of type <maincontext_e>. */
-int init_threadcontext(/*out*/threadcontext_t* tcontext, struct processcontext_t* pcontext, uint8_t context_type);
+ * This function is called from <maincontext_t.init_maincontext>. The parameter context_type is of type <maincontext_e>.
+ *
+ * Parameter tcontext must be initialized with a static context before this functino is called.
+ * This allows to call the log service any time even if tcontext is the currently active context. */
+int init_threadcontext(/*out*/threadcontext_t* tcontext, uint8_t context_type);
 
 /* function: free_threadcontext
  * Frees all resources bound to this object.

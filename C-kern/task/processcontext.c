@@ -70,7 +70,7 @@ static inline int alloc_static_memory(processcontext_t* pcontext, thread_localst
    const uint16_t size = static_memory_size();
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = allocstatic_threadlocalstore(tls, size, mblock);
+   err = memalloc_threadlocalstore(tls, size, mblock);
    if (err) goto ONERR;
 
    pcontext->staticmemblock = mblock->addr;
@@ -93,7 +93,7 @@ static inline int free_static_memory(processcontext_t* pcontext, thread_localsto
 
       pcontext->staticmemblock = 0;
 
-      err = freestatic_threadlocalstore(tls, &mblock);
+      err = memfree_threadlocalstore(tls, &mblock);
       SETONERROR_testerrortimer(&s_processcontext_errtimer, &err);
 
       if (err) goto ONERR;

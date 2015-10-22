@@ -1313,7 +1313,7 @@ static int test_allocate(directory_t* tempdir)
    // TEST ENOSPC
    TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir));
    TEST(0 == fstatvfs(file, &statvfs_result1));
-   TEST(ENOSPC == allocate_file(file, 0, (off_t) (statvfs_result1.f_frsize * (1+statvfs_result1.f_bavail))));
+   TEST(ENOSPC == allocate_file(file, 0, (off_t) (statvfs_result1.f_frsize * (1000+statvfs_result1.f_bavail))));
    TEST(0 == free_file(&file));
 
    // unprepare

@@ -202,7 +202,6 @@
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
           <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
-          <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
           <File Name="../../C-kern/api/io/writer/log/log.h"/>
           <File Name="../../C-kern/api/io/writer/log/logbuffer.h"/>
@@ -275,7 +274,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
-        <File Name="../../C-kern/io/writer/log/logmain.c"/>
         <File Name="../../C-kern/io/writer/log/logwriter.c"/>
         <File Name="../../C-kern/io/writer/log/logbuffer.c"/>
       </VirtualDirectory>

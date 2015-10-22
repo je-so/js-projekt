@@ -197,13 +197,18 @@ static int test_query(void)
       if (i == SIZE_MAX) break ;
    }
 
-   // unprepare
-   TEST(0 == free_errorcontext(&errcontext)) ;
+   // TEST str_static_errorcontext
+   for (size_t i = 0; i <= lengthof(g_errorcontext_stroffset); ++i) {
+      TEST(str_static_errorcontext(i) == str_errorcontext(errcontext, i));
+   }
 
-   return 0 ;
+   // unprepare
+   TEST(0 == free_errorcontext(&errcontext));
+
+   return 0;
 ONERR:
-   free_errorcontext(&errcontext) ;
-   return EINVAL ;
+   free_errorcontext(&errcontext);
+   return EINVAL;
 }
 
 static int test_generic(void)

@@ -17,7 +17,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
@@ -42,7 +41,6 @@
  * is stored in <thread_t.main>. */
 typedef struct thread_startargument_t {
    thread_t *           self;
-   processcontext_t *   pcontext;
    stack_t              signalstack;
 } thread_startargument_t;
 
@@ -74,13 +72,8 @@ static void* main_thread(thread_startargument_t * startarg)
 
    thread->sys_thread = pthread_self();
 
-   err = init_threadcontext(tcontext_maincontext(), startarg->pcontext, type_maincontext());
+   err = init_threadcontext(tcontext_maincontext(), type_maincontext());
    if (err) {
-      // TODO: use reconfigured main log instead of static simple log
-      //       the error is logged to STDERR immediately which is wrong in a running system !!
-      //       ==> remove mainlog and use defines in logwriter to emable/disable locking with mutex
-      //           change name from mainlog to static logwriter and enable mutex locking in this case !!
-      //       ==> add static init to logwriter which does not allocate memory and writes to stderr !!
       TRACECALL_ERRLOG("init_threadcontext", err);
       goto ONERR_NOABORT;
    }
@@ -181,7 +174,6 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr;
 
    startarg->self        = newthread;
-   startarg->pcontext    = pcontext_maincontext();
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
 
    ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
@@ -209,7 +201,7 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
       TRACESYSCALL_ERRLOG("pthread_create",err);
       goto ONERR;
    }
-
+   // variable is set after creation ==> set it in main_thread too
    newthread->sys_thread = sys_thread;
 
    err = pthread_attr_destroy(&thread_attr);

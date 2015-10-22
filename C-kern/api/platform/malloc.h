@@ -33,7 +33,7 @@
  *    which is never freed.
  * 2. Free all allocated but unused memory.
  *    Same as <trimmemory_malloc>. */
-int prepare_malloc(void) ;
+int prepare_malloc(void);
 
 // group: manage
 
@@ -48,7 +48,7 @@ int prepare_malloc(void) ;
  * will be mapped into the heap address space.
  * The call to <trimmemory_malloc> unmaps them and
  * makes therefore the layouts comparable. */
-int trimmemory_malloc(void) ;
+int trimmemory_malloc(void);
 
 // group: query
 
@@ -63,21 +63,21 @@ int trimmemory_malloc(void) ;
  * At the end of your test call it a second time
  * and compare the result with the value received from the first call
  * to make sure no system memory is wasted. */
-int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes) ;
+int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes);
 
 /* function: sizeusable_malloc
  * Returns number of usable bytes in the allocated memory block addr.
  * The parameter addr must the value returned by a call to malloc.
  * The returned value is equal or greater than parameter size in used in call to malloc.
  * The value 0 is returned in case addr is 0. */
-size_t sizeusable_malloc(void * addr) ;
+size_t sizeusable_malloc(void * addr);
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_malloc
  * Unittest for query usage of malloc resources. */
-int unittest_platform_malloc(void) ;
+int unittest_platform_malloc(void);
 #endif
 
 
@@ -86,7 +86,8 @@ int unittest_platform_malloc(void) ;
 
 /* define: sizeusable_malloc
  * Implements <sizeusable_malloc>. */
-#define sizeusable_malloc(addr)           (malloc_usable_size(addr))
+#define sizeusable_malloc(addr) \
+         (malloc_usable_size(addr))
 
 
 #endif

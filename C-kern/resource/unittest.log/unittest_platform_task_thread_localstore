@@ -1,48 +1,60 @@
-[1: 1443695032.578879s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:236
+[1: 1444582811.316463s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
 Exit function with
-Error 12 - Cannot allocate memory
-[1: 1443695032.578889s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:236
+Error 1 - Operation not permitted
+[1: 1444582811.316472s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
 Exit function with
-Error 12 - Cannot allocate memory
-[1: 1443695032.578895s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:236
+Error 2 - No such file or directory
+[1: 1444582811.316478s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
 Exit function with
-Error 12 - Cannot allocate memory
-[1: 1443695032.578901s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:236
+Error 3 - No such process
+[1: 1444582811.316484s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
 Exit function with
-Error 12 - Cannot allocate memory
-[1: 1443695032.578914s]
-delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:262
+Error 4 - Interrupted system call
+[1: 1444582811.316491s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+Exit function with
+Error 5 - Input/output error
+[1: 1444582811.316499s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+Exit function with
+Error 6 - No such device or address
+[1: 1444582811.316515s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+Exit function with
+Error 7 - Argument list too long
+[1: 1444582811.316532s]
+delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:316
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695032.611352s]
-allocstatic_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:318
+[1: 1444582811.331699s]
+memalloc_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:379
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695032.657663s]
-freestatic_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:332
+[1: 1444582811.347832s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695032.657666s]
-freestatic_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:332
+[1: 1444582811.347835s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695032.657671s]
-freestatic_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:332
+[1: 1444582811.347838s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695032.657673s]
-freestatic_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:332
+[1: 1444582811.347840s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with

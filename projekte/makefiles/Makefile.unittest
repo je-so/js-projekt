@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2015.Okt.12  13:37:07
+GenerationDate  := 2015.Okt.22  06:29:16
 GeneratedBy     := je-so
 
 ## Debug
@@ -143,7 +143,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
@@ -264,7 +263,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
@@ -526,9 +524,6 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logw
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
@@ -883,9 +878,6 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/lo
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c

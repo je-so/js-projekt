@@ -18,7 +18,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/io/writer/log/log.h"
+#include "C-kern/api/io/writer/log/logbuffer.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/thread.h"
@@ -26,6 +28,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #endif
+
 
 
 /* struct: thread_localstore_t
@@ -38,12 +41,18 @@ struct thread_localstore_t {
    /* variable: thread
     * Thread object itself. */
    thread_t          thread;
+   /* variable: logwriter
+    * A statically allocated <logwriter_t> used during init and free operations of <threadcontext_t>. */
+   logwriter_t       logwriter;
    /* variable: memsize
     * Size of static memory (>= extsize_threadcontext()). */
    size_t            memsize;
    /* variable: memused
     * Nr of already allocated bytes of static memory. */
    size_t            memused;
+   /* variable: logmem
+    * Static memory used for call to <initstatic_logwriter>. */
+   uint8_t           logmem[minbufsize_logwriter()];
    /* variable: mem
     * Static memory used in <init_threadcontext> to allocate additional memory. */
    uint8_t           mem[/*memsize*/];
@@ -53,25 +62,36 @@ struct thread_localstore_t {
 
 /* define: thread_localstore_INIT_STATIC
  * Static initializer. Used to initialize all variables of thread locval storage. */
-#define thread_localstore_INIT_STATIC(sizevars) \
-         {  threadcontext_INIT_STATIC, thread_FREE, (sizevars) - offsetof(thread_localstore_t, mem), 0 }
+#define thread_localstore_INIT_STATIC(tls, sizevars) \
+         {  threadcontext_INIT_STATIC(tls), thread_FREE, logwriter_FREE, sizemem_threadlocalstore(sizevars), 0, { 0 } }
 
 // group: static variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadlocalstore_errtimer
- * Simulates an error in <new_threadlocalstore> and <delete_threadlocalstore>. */
+ * Simulates an erwror in <new_threadlocalstore> and <delete_threadlocalstore>. */
 static test_errortimer_t   s_threadlocalstore_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper
+
+static inline size_t sizemem_threadlocalstore(size_t sizevars)
+{
+   return sizevars - offsetof(thread_localstore_t, mem);
+}
+
+static inline size_t pagealign(const size_t value, const size_t pagesize)
+{
+   return (value + pagesize - 1) & (~(pagesize-1));
+}
 
 /* function: sizesignalstack_threadlocalstore
  * Returns the minimum size of the signal stack.
  * The returned value is a multiple of pagesize. */
 static inline size_t sizesignalstack_threadlocalstore(const size_t pagesize)
 {
-   return (MINSIGSTKSZ + pagesize - 1) & (~(pagesize-1));
+   static_assert(MINSIGSTKSZ < size_threadlocalstore(), "size_threadlocalstore is big enough");
+   return pagealign(MINSIGSTKSZ, pagesize);
 }
 
 /* function: sizestack_threadlocalstore
@@ -79,8 +99,8 @@ static inline size_t sizesignalstack_threadlocalstore(const size_t pagesize)
  * The returned value is a multiple of pagesize. */
 static inline size_t sizestack_threadlocalstore(const size_t pagesize)
 {
-   static_assert(256*1024 < size_threadlocalstore(), "sys_size_threadlocalstore/size_threadlocalstore is big enough");
-   return (256*1024 + pagesize - 1) & (~(pagesize-1));
+   static_assert(256*1024 < size_threadlocalstore(), "size_threadlocalstore is big enough");
+   return pagealign(256*1024, pagesize);
 }
 
 /* function: sizevars_threadlocalstore
@@ -89,10 +109,37 @@ static inline size_t sizestack_threadlocalstore(const size_t pagesize)
 static inline size_t sizevars_threadlocalstore(const size_t pagesize)
 {
    // OPTIMIZE: use extsize_processcontext only if thread_threadlocalstore(tls) is main thread
-   return (sizeof(thread_localstore_t) + extsize_processcontext() + extsize_threadcontext() + pagesize - 1) & (~(pagesize-1));
+   return pagealign( sizeof(thread_localstore_t)
+                     + extsize_processcontext() + extsize_threadcontext(), pagesize);
 }
 
 // group: lifetime
+
+static int init_threadlocalstore(thread_localstore_t * tls, size_t sizevars)
+{
+   int err;
+
+   tls->threadcontext = (threadcontext_t) threadcontext_INIT_STATIC(tls);
+   tls->thread = (thread_t) thread_FREE;
+
+   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
+   err = initstatic_logwriter(&tls->logwriter, sizeof(tls->logmem), tls->logmem);
+   if (err) goto ONERR;
+
+   tls->memsize = sizemem_threadlocalstore(sizevars);
+   tls->memused = 0;
+   memset(tls->logmem, 0, sizeof(tls->logmem));
+
+   return 0;
+ONERR:
+   // TODO: add init log
+   return err;
+}
+
+static void free_threadlocalstore(thread_localstore_t * tls)
+{
+   (void) freestatic_logwriter(&tls->logwriter);
+}
 
 static int sysnew_threadlocalstore(/*out*/thread_localstore_t** tls, size_t pagesize, /*out*/memblock_t* threadstack, /*out*/memblock_t* signalstack)
 {
@@ -119,7 +166,7 @@ static int sysnew_threadlocalstore(/*out*/thread_localstore_t** tls, size_t page
     * high:  == low + size_threadlocalstore()
     */
 
-   size_t size = 2*size_threadlocalstore() - pagesize;
+   size_t size = 2*size_threadlocalstore();
    void * addr;
    if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer)) {
       addr = MAP_FAILED;
@@ -179,6 +226,15 @@ static int sysnew_threadlocalstore(/*out*/thread_localstore_t** tls, size_t page
       goto ONERR;
    }
 
+   static_assert(
+      (uintptr_t)context_threadlocalstore(0)   == offsetof(thread_localstore_t, threadcontext)
+      && (uintptr_t)thread_threadlocalstore(0) == offsetof(thread_localstore_t, thread),
+      "query functions use offset corresponding to struct thread_localstore_t"
+   );
+
+   err = init_threadlocalstore((thread_localstore_t*)addr, sizevars);
+   if (err) goto ONERR;
+
    // set out param
    if (threadstack) {
       *threadstack = (memblock_t) memblock_INIT(sizestack, (uint8_t*)addr + offset - sizestack);
@@ -188,12 +244,6 @@ static int sysnew_threadlocalstore(/*out*/thread_localstore_t** tls, size_t page
       *signalstack = (memblock_t) memblock_INIT(sizesigst, (uint8_t*)addr + sizevars + pagesize);
    }
 
-   static_assert(
-      (uintptr_t)context_threadlocalstore(0)   == offsetof(thread_localstore_t, threadcontext)
-      && (uintptr_t)thread_threadlocalstore(0) == offsetof(thread_localstore_t, thread),
-      "query functions use offset corresponding to struct thread_localstore_t"
-   );
-   * (thread_localstore_t*) addr = (thread_localstore_t) thread_localstore_INIT_STATIC(sizevars);
    *tls = (thread_localstore_t*) addr;
 
    return 0;
@@ -209,6 +259,9 @@ static int sysdelete_threadlocalstore(thread_localstore_t** tls)
    int err;
 
    if (*tls) {
+
+      free_threadlocalstore(*tls);
+
       err = munmap((void*)*tls, size_threadlocalstore());
       if (err) err = errno;
       SETONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err);
@@ -247,6 +300,7 @@ int newmain_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct mem
 
    return 0;
 ONERR:
+   // TODO: add init log ++ test
    return err;
 }
 
@@ -272,10 +326,16 @@ int deletemain_threadlocalstore(thread_localstore_t** tls)
 
    return 0;
 ONERR:
+   // TODO: add init log ++ test
    return err;
 }
 
 // group: query
+
+struct logwriter_t * logwriter_threadlocalstore(thread_localstore_t* tls)
+{
+   return &tls->logwriter;
+}
 
 void signalstack_threadlocalstore(thread_localstore_t* tls,/*out*/struct memblock_t * stackmem)
 {
@@ -297,7 +357,7 @@ void threadstack_threadlocalstore(thread_localstore_t* tls,/*out*/struct membloc
 
 // group: static-memory
 
-int allocstatic_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock)
+int memalloc_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock)
 {
    int err;
    size_t alignedsize = (bytesize + KONFIG_MEMALIGN-1u) & (~(KONFIG_MEMALIGN-1u));
@@ -315,11 +375,12 @@ int allocstatic_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*ou
 
    return 0;
 ONERR:
+   // TODO: replace with INIT LOG !!
    TRACEEXIT_ERRLOG(err);
    return err;
 }
 
-int freestatic_threadlocalstore(thread_localstore_t* tls, struct memblock_t* memblock)
+int memfree_threadlocalstore(thread_localstore_t* tls, struct memblock_t* memblock)
 {
    int err;
 
@@ -338,6 +399,7 @@ int freestatic_threadlocalstore(thread_localstore_t* tls, struct memblock_t* mem
 
    return 0;
 ONERR:
+   // TODO: replace with init log !!
    TRACEEXITFREE_ERRLOG(err);
    return err;
 }
@@ -356,179 +418,120 @@ static int test_initfree(void)
 {
    thread_localstore_t*  tls = 0;
    thread_localstore_t   tls2;
-   thread_t       thrfree = thread_FREE;
+   const size_t   sizevars = sizevars_threadlocalstore(pagesize_vm());
+   thread_t       thrfree  = thread_FREE;
    memblock_t     threadstack = memblock_FREE;
    memblock_t     signalstack = memblock_FREE;
    vmpage_t       vmpage;
+   int            tc;
+   int            (*new_f[2]) (thread_localstore_t**, struct memblock_t*, struct memblock_t*) = {
+         &new_threadlocalstore,
+         &newmain_threadlocalstore
+   };
+   int            (*del_f[2]) (thread_localstore_t**) = {
+     delete_threadlocalstore,
+     deletemain_threadlocalstore
+   };
 
    // TEST thread_localstore_INIT_STATIC
    for (size_t i = 0; i < 4096; i *= 2, i += (i==0)) {
-      tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(sizeof(thread_localstore_t) + i);
+      tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(&tls2, sizeof(thread_localstore_t) + i);
       TEST( isstatic_threadcontext(&tls2.threadcontext));
       TEST(0 == memcmp(&thrfree, &tls2.thread, sizeof(thread_t)));
       TEST(i == tls2.memsize);
       TEST(0 == tls2.memused);
    }
 
-   // TEST new_threadlocalstore
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
-   // check tls aligned
-   TEST(0 != tls);
-   TEST(0 == (uintptr_t)tls % size_threadlocalstore());
-   // check *tls
-   tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(sizevars_threadlocalstore(pagesize_vm()));
-   TEST(0 == memcmp(tls, &tls2, sizeof(thread_localstore_t)));
+   for (tc = 0; tc < 2; ++tc) {
 
-   // TEST delete_threadlocalstore
-   TEST(0 == delete_threadlocalstore(&tls));
-   TEST(0 == tls);
-   TEST(0 == delete_threadlocalstore(&tls));
-   TEST(0 == tls);
+      // TEST new_threadlocalstore / newmain_threadlocalstore
+      TEST(0 == new_f[tc](&tls, 0, 0));
+      // check tls aligned
+      TEST(0 != tls);
+      TEST(0 == (uintptr_t)tls % size_threadlocalstore());
+      // check *tls
+      TEST( isstatic_threadcontext(&tls->threadcontext));
+      TEST( tls->logwriter.addr == tls->logmem);
+      TEST( tls->logwriter.size == minbufsize_logwriter());
+      TEST( tls->memsize == sizemem_threadlocalstore(sizevars));
+      TEST( tls->memused == 0);
+      tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(tls, sizevars);
+      tls2.logwriter = tls->logwriter;
+      TEST(0 == memcmp(tls, &tls2, sizeof(thread_localstore_t)));
 
-   // TEST new_threadlocalstore: correct protection
-   TEST(0 == new_threadlocalstore(&tls, &threadstack, &signalstack));
-   // variables
-   vmpage = (vmpage_t) vmpage_INIT(sizevars_threadlocalstore(pagesize_vm()), (uint8_t*)tls);
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   // protection page
-   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()));
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-   // signal stack page
-   vmpage = (vmpage_t) vmpage_INIT(sizesignalstack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   // check parameter signalstack
-   TEST(vmpage.addr == signalstack.addr);
-   TEST(vmpage.size == signalstack.size);
-   // protection page
-   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-   // thread stack page
-   vmpage = (vmpage_t) vmpage_INIT(sizestack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   // check parameter threadstack
-   TEST(vmpage.addr == threadstack.addr);
-   TEST(vmpage.size == threadstack.size);
-   // protection page
-   size_t offset = sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm();
-   vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore() - offset, (uint8_t*)tls + offset);
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-
-   // TEST delete_threadlocalstore: unmap pages
-   vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore(), (uint8_t*)tls);
-   TEST(0 == delete_threadlocalstore(&tls));
-   TEST(1 == isunmapped_vm(&vmpage));
-
-   // TEST new_threadlocalstore: ERROR
-   threadstack = (memblock_t) memblock_FREE;
-   signalstack = (memblock_t) memblock_FREE;
-   for (unsigned i = 1; i <= 4; ++i) {
-      init_testerrortimer(&s_threadlocalstore_errtimer, i, ENOMEM);
-      TEST(ENOMEM == new_threadlocalstore(&tls, &threadstack, &signalstack));
-      // check parameter
+      // TEST delete_threadlocalstore / deletemain_threadlocalstore
+      TEST(0 == del_f[tc](&tls));
       TEST(0 == tls);
-      TEST( isfree_memblock(&threadstack));
-      TEST( isfree_memblock(&signalstack));
-   }
+      TEST(0 == del_f[tc](&tls));
+      TEST(0 == tls);
 
-   // TEST delete_threadlocalstore: ERROR
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
-   init_testerrortimer(&s_threadlocalstore_errtimer, 1, EINVAL);
-   TEST(EINVAL == delete_threadlocalstore(&tls));
-   // check param tls
-   TEST(0 == tls);
+      // TEST new_threadlocalstore: correct protection
+      TEST(0 == new_f[tc](&tls, &threadstack, &signalstack));
+      // variables
+      vmpage = (vmpage_t) vmpage_INIT(sizevars_threadlocalstore(pagesize_vm()), (uint8_t*)tls);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      // protection page
+      vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+      // signal stack page
+      vmpage = (vmpage_t) vmpage_INIT(sizesignalstack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars + 1 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      // check parameter signalstack
+      TEST(vmpage.addr == signalstack.addr);
+      TEST(vmpage.size == signalstack.size);
+      // protection page
+      vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+      // thread stack page
+      vmpage = (vmpage_t) vmpage_INIT(sizestack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      // check parameter threadstack
+      TEST(vmpage.addr == threadstack.addr);
+      TEST(vmpage.size == threadstack.size);
+      // protection page
+      size_t offset = sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm();
+      vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore() - offset, (uint8_t*)tls + offset);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+
+      // TEST delete_threadlocalstore: unmap pages
+      vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore(), (uint8_t*)tls);
+      TEST(0 == del_f[tc](&tls));
+      TEST(1 == isunmapped_vm(&vmpage));
+
+      // TEST new_threadlocalstore: ERROR
+      threadstack = (memblock_t) memblock_FREE;
+      signalstack = (memblock_t) memblock_FREE;
+      for (unsigned i = 1; i <= 7; ++i) {
+         init_testerrortimer(&s_threadlocalstore_errtimer, i, (int)i);
+         TEST((int)i == new_f[tc](&tls, &threadstack, &signalstack));
+         // check parameter
+         TEST(0 == tls);
+         TEST( isfree_memblock(&threadstack));
+         TEST( isfree_memblock(&signalstack));
+      }
+
+      // TEST delete_threadlocalstore: ERROR
+      TEST(0 == new_f[tc](&tls, 0, 0));
+      init_testerrortimer(&s_threadlocalstore_errtimer, 1, EINVAL);
+      TEST(EINVAL == del_f[tc](&tls));
+      // check param tls
+      TEST(0 == tls);
+   }
 
    return 0;
 ONERR:
-   delete_threadlocalstore(&tls);
-   return EINVAL;
-}
-
-static int test_initmain(void)
-{
-   thread_localstore_t * tls = 0;
-   thread_localstore_t   tls2;
-   memblock_t threadstack = memblock_FREE;
-   memblock_t signalstack = memblock_FREE;
-   vmpage_t   vmpage;
-
-   // TEST newmain_threadlocalstore
-   TEST(0 == newmain_threadlocalstore(&tls, &threadstack, &signalstack));
-   // check tls aligned
-   TEST(0 != tls);
-   TEST(0 == (uintptr_t)tls % size_threadlocalstore());
-   // check *tls
-   tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(sizevars_threadlocalstore(pagesize_vm()));
-   TEST(0 == memcmp(tls, &tls2, sizeof(thread_localstore_t)));
-   // check other parameter
-   TEST(threadstack.addr == (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm());
-   TEST(threadstack.size == sizestack_threadlocalstore(pagesize_vm()));
-   TEST(signalstack.addr == (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + pagesize_vm());
-   TEST(signalstack.size == sizesignalstack_threadlocalstore(pagesize_vm()));
-
-   // TEST deletemain_threadlocalstore
-   TEST(0 == deletemain_threadlocalstore(&tls));
-   TEST(0 == tls);
-   TEST(0 == deletemain_threadlocalstore(&tls));
-   TEST(0 == tls);
-
-   // TEST newmain_threadlocalstore: correct protection
-   TEST(0 == newmain_threadlocalstore(&tls, &threadstack, &signalstack));
-   // variables
-   vmpage = (vmpage_t) vmpage_INIT(sizevars_threadlocalstore(pagesize_vm()), (uint8_t*)tls);
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   // protection page
-   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()));
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-   // signal stack page
-   vmpage = (vmpage_t) vmpage_INIT(sizesignalstack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   TEST(vmpage.addr == signalstack.addr);
-   TEST(vmpage.size == signalstack.size);
-   // protection page
-   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-   // thread stack page
-   vmpage = (vmpage_t) vmpage_INIT(sizestack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm());
-   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
-   TEST(vmpage.addr == threadstack.addr);
-   TEST(vmpage.size == threadstack.size);
-   // protection page
-   size_t offset = sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm();
-   vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore() - offset, (uint8_t*)tls + offset);
-   TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
-
-   // TEST deletemain_threadlocalstore: unmap pages
-   vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore(), (uint8_t*)tls);
-   TEST(0 == deletemain_threadlocalstore(&tls));
-   TEST(1 == isunmapped_vm(&vmpage));
-
-   // TEST newmain_threadlocalstore: ERROR
-   threadstack = (memblock_t) memblock_FREE;
-   signalstack = (memblock_t) memblock_FREE;
-   for (unsigned i = 1; i <= 6; ++i) {
-      init_testerrortimer(&s_threadlocalstore_errtimer, i, ENOMEM);
-      TEST(ENOMEM == newmain_threadlocalstore(&tls, &threadstack, &signalstack));
-      TEST(0 == tls);
-      TEST(1 == isfree_memblock(&threadstack));
-      TEST(1 == isfree_memblock(&signalstack));
-   }
-
-   // TEST deletemain_threadlocalstore: ERROR
-   TEST(0 == newmain_threadlocalstore(&tls, 0, 0));
-   init_testerrortimer(&s_threadlocalstore_errtimer, 1, EINVAL);
-   TEST(EINVAL == deletemain_threadlocalstore(&tls));
-   TEST(0 == tls);
-
-   return 0;
-ONERR:
-   delete_threadlocalstore(&tls);
+   if (tls) del_f[tc](&tls);
    return EINVAL;
 }
 
 static int test_query(void)
 {
-   thread_localstore_t * tls = 0;
+   thread_localstore_t* tls = 0;
+   thread_localstore_t  tls2;
    memblock_t stackmem;
+
+   // prepare
+   TEST(0 == new_threadlocalstore(&tls, 0, 0));
 
    // TEST sizesignalstack_threadlocalstore
    TEST(MINSIGSTKSZ <= sizesignalstack_threadlocalstore(pagesize_vm()));
@@ -539,8 +542,10 @@ static int test_query(void)
    TEST(0 == sizestack_threadlocalstore(pagesize_vm()) % pagesize_vm());
 
    // TEST sizevars_threadlocalstore
-   TEST(sizevars_threadlocalstore(pagesize_vm()) >= sizeof(thread_localstore_t) + extsize_threadcontext() + extsize_processcontext());
-   TEST(0 == sizevars_threadlocalstore(pagesize_vm()) % pagesize_vm());
+   size_t sizevars = sizevars_threadlocalstore(pagesize_vm());
+   TEST(sizevars == sizevars_threadlocalstore(pagesize_vm()));
+   TEST(sizevars >= sizeof(thread_localstore_t) + extsize_threadcontext() + extsize_processcontext());
+   TEST(0 == sizevars % pagesize_vm());
 
    // TEST size_threadlocalstore
    TEST(0 == size_threadlocalstore() % pagesize_vm());
@@ -549,25 +554,21 @@ static int test_query(void)
    TEST(size_threadlocalstore()  >= minsize);
 
    // TEST signalstack_threadlocalstore
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
    signalstack_threadlocalstore(tls, &stackmem);
    TEST(stackmem.addr == (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + pagesize_vm());
    TEST(stackmem.size == sizesignalstack_threadlocalstore(pagesize_vm()));
-   TEST(0 == delete_threadlocalstore(&tls));
 
    // TEST signalstack_threadlocalstore: tls == 0
-   signalstack_threadlocalstore(tls, &stackmem);
+   signalstack_threadlocalstore(0, &stackmem);
    TEST(1 == isfree_memblock(&stackmem));
 
    // TEST threadstack_threadlocalstore
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
    threadstack_threadlocalstore(tls, &stackmem);
    TEST(stackmem.addr == (uint8_t*)tls + sizevars_threadlocalstore(pagesize_vm()) + sizesignalstack_threadlocalstore(pagesize_vm()) + 2*pagesize_vm());
    TEST(stackmem.size == sizestack_threadlocalstore(pagesize_vm()));
-   TEST(0 == delete_threadlocalstore(&tls));
 
    // TEST threadstack_threadlocalstore: tls == 0
-   threadstack_threadlocalstore(tls, &stackmem);
+   threadstack_threadlocalstore(0, &stackmem);
    TEST(1 == isfree_memblock(&stackmem));
 
    // TEST self_threadlocalstore
@@ -583,31 +584,37 @@ static int test_query(void)
       TEST((thread_localstore_t*)i == sys_self2_threadlocalstore(i+size_threadlocalstore()-1));
    }
 
+   // TEST castPcontext_threadlocalstore
+   TEST(tls == castPcontext_threadlocalstore(&tls->threadcontext));
+   TEST(&tls2 == castPcontext_threadlocalstore(&tls2.threadcontext));
+
+   // TEST castPthread_threadlocalstore
+   TEST(tls == castPthread_threadlocalstore(&tls->thread));
+   TEST(&tls2 == castPthread_threadlocalstore(&tls2.thread));
+
+   // TEST logwriter_threadlocalstore
+   TEST(&tls->logwriter == logwriter_threadlocalstore(tls));
+   TEST(&tls2.logwriter == logwriter_threadlocalstore(&tls2));
+   TEST(logwriter_threadlocalstore((thread_localstore_t*)0) == (logwriter_t*)offsetof(thread_localstore_t, logwriter));
+
    // TEST thread_threadlocalstore
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
    TEST(thread_threadlocalstore(tls) == (thread_t*) ((uint8_t*)tls + sizeof(threadcontext_t)));
-   TEST(0 == delete_threadlocalstore(&tls));
-   TEST(thread_threadlocalstore(tls) == (thread_t*) sizeof(threadcontext_t));
-   for (size_t i = 0; i < 100; ++i) {
-      thread_localstore_t* tls2 = (void*) i;
-      TEST((thread_t*)(i+sizeof(threadcontext_t)) == thread_threadlocalstore(tls2));
-   }
+   TEST(thread_threadlocalstore(&tls2) == &tls2.thread);
+   TEST(thread_threadlocalstore((thread_localstore_t*)0) == (thread_t*) sizeof(threadcontext_t));
 
    // TEST context_threadlocalstore
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
    TEST(context_threadlocalstore(tls) == (threadcontext_t*) (uint8_t*)tls);
-   TEST(0 == delete_threadlocalstore(&tls));
-   TEST(0 == context_threadlocalstore(tls));
-   for (size_t i = 0; i < 100; ++i) {
-      thread_localstore_t* tls2 = (void*) i;
-      TEST((threadcontext_t*)i == context_threadlocalstore(tls2));
-   }
+   TEST(context_threadlocalstore(&tls2) == &tls2.threadcontext);
+   TEST(0 == context_threadlocalstore((thread_localstore_t*)0));
 
    // TEST sys_context_threadlocalstore
    TEST(sys_context_threadlocalstore() == context_threadlocalstore(self_threadlocalstore()));
 
    // TEST sys_thread_threadlocalstore
    TEST(sys_thread_threadlocalstore() == thread_threadlocalstore(self_threadlocalstore()));
+
+   // unprepare
+   TEST(0 == delete_threadlocalstore(&tls));
 
    return 0;
 ONERR:
@@ -628,13 +635,13 @@ static int test_memory(void)
    TEST(0 == new_threadlocalstore(&tls, 0, 0));
    const size_t memsize = tls->memsize;
 
-   // TEST allocstatic_threadlocalstore
+   // TEST memalloc_threadlocalstore
    for (size_t u = 0; u <= memsize; ++u) {
       for (size_t s = memsize-u; s <= memsize-u; --s, s -= (s > 1000 ? 1000 : 0)) {
          size_t a = s % KONFIG_MEMALIGN ? s - s % KONFIG_MEMALIGN + KONFIG_MEMALIGN : s;
          if (a > memsize - u) continue;
          tls->memused = u;
-         TEST(0 == allocstatic_threadlocalstore(tls, s, &mblock));
+         TEST(0 == memalloc_threadlocalstore(tls, s, &mblock));
          // check parameter
          TEST(mblock.addr == tls->mem + u);
          TEST(mblock.size == a);
@@ -644,12 +651,12 @@ static int test_memory(void)
       }
    }
 
-   // TEST allocstatic_threadlocalstore: ENOMEM (bytesize > available)
+   // TEST memalloc_threadlocalstore: ENOMEM (bytesize > available)
    GETBUFFER_ERRLOG(&logbuf1, &logsize1);
    mblock = (memblock_t) memblock_FREE;
    for (size_t i = 0; i <= memsize; ++i) {
       tls->memused = i;
-      TEST(ENOMEM == allocstatic_threadlocalstore(tls, memsize-i+1, &mblock));
+      TEST(ENOMEM == memalloc_threadlocalstore(tls, memsize-i+1, &mblock));
       // check parameter
       TEST( isfree_memblock(&mblock));
       // check tls
@@ -662,16 +669,16 @@ static int test_memory(void)
       TRUNCATEBUFFER_ERRLOG(logsize1);
    }
 
-   // TEST allocstatic_threadlocalstore: ENOMEM (alignedsize < bytesize)
+   // TEST memalloc_threadlocalstore: ENOMEM (alignedsize < bytesize)
    tls->memused = 0;
-   TEST(ENOMEM == allocstatic_threadlocalstore(tls, (size_t)-1, &mblock));
+   TEST(ENOMEM == memalloc_threadlocalstore(tls, (size_t)-1, &mblock));
    // check parameter
    TEST( isfree_memblock(&mblock));
    // check tls
    TEST(memsize == tls->memsize);
    TEST(0 == tls->memused);
 
-   // TEST freestatic_threadlocalstore: mblock valid && isfree_memblock(&mblock)
+   // TEST memfree_threadlocalstore: mblock valid && isfree_memblock(&mblock)
    for (size_t u = 0; u <= memsize; ++u) {
       for (size_t s = u; s <= u; --s, s -= (s > 1000 ? 1000 : 0)) {
          size_t a = s % KONFIG_MEMALIGN ? s - s % KONFIG_MEMALIGN + KONFIG_MEMALIGN : s;
@@ -679,7 +686,7 @@ static int test_memory(void)
          tls->memused = u;
          mblock = (memblock_t) memblock_INIT(s, tls->mem + u - a);
          for (int r = 0; r < 2; ++r) {
-            TEST(0 == freestatic_threadlocalstore(tls, &mblock));
+            TEST(0 == memfree_threadlocalstore(tls, &mblock));
             // check parameter
             TEST( isfree_memblock(&mblock));
             // check tls
@@ -689,26 +696,26 @@ static int test_memory(void)
       }
    }
 
-   // TEST freestatic_threadlocalstore: EINVAL (alignedsize < mblock.size)
+   // TEST memfree_threadlocalstore: EINVAL (alignedsize < mblock.size)
    tls->memused = memsize;
    mblock.addr = tls->mem + memsize + 1;
    mblock.size = (size_t) -1;
-   TEST(EINVAL == freestatic_threadlocalstore(tls, &mblock));
+   TEST(EINVAL == memfree_threadlocalstore(tls, &mblock));
    TEST(! isfree_memblock(&mblock));
 
-   // TEST freestatic_threadlocalstore: EINVAL (alignedsize > memused)
+   // TEST memfree_threadlocalstore: EINVAL (alignedsize > memused)
    tls->memused = 31;
    mblock.addr = tls->mem;
    mblock.size = 32;
-   TEST(EINVAL == freestatic_threadlocalstore(tls, &mblock));
+   TEST(EINVAL == memfree_threadlocalstore(tls, &mblock));
    TEST(! isfree_memblock(&mblock));
 
-   // TEST freestatic_threadlocalstore: EINVAL (addr wrong)
+   // TEST memfree_threadlocalstore: EINVAL (addr wrong)
    for (int i = -1; i <= 1; i +=2) {
       tls->memused = 128;
       mblock.addr = tls->mem + 128 - 32 + i;
       mblock.size = 32;
-      TEST(EINVAL == freestatic_threadlocalstore(tls, &mblock));
+      TEST(EINVAL == memfree_threadlocalstore(tls, &mblock));
       TEST(! isfree_memblock(&mblock));
    }
 
@@ -730,7 +737,6 @@ ONERR:
 int unittest_platform_task_thread_localstore()
 {
    if (test_initfree())    goto ONERR;
-   if (test_initmain())    goto ONERR;
    if (test_query())       goto ONERR;
    if (test_memory())      goto ONERR;
 

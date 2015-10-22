@@ -1,4 +1,5 @@
 /* title: LogWriter
+
    Write error messages to STDERR for diagnostic purposes.
    This module is *not* thread safe.
 
@@ -17,11 +18,10 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-// forward
-struct log_it;
-struct log_header_t;
-struct logbuffer_t;
-typedef void (*log_text_f) (struct logbuffer_t * logbuffer, va_list vargs);
+// Do not forget to include before this module
+// #include "C-kern/api/io/writer/log/log.h"
+// #include "C-kern/api/io/writer/log/logbuffer.h"
+
 
 /* typedef: struct logwriter_t
  * Exports <logwriter_t>. */
@@ -44,28 +44,53 @@ int unittest_io_writer_log_logwriter(void);
 #endif
 
 
+/* struct: logwriter_chan_t
+ * Extends <logbuffer_t> with isappend mode and <log_state_e>.
+ * If isappend is true the next write to the buffer will be appended
+ * even if the buffer is full. */
+struct logwriter_chan_t {
+   logbuffer_t logbuf;
+   const char* funcname;
+   log_state_e logstate;
+};
+
+// group: lifetime
+
+/* define: logwriter_chan_FREE
+ * Static initializer. */
+#define logwriter_chan_FREE \
+         { logbuffer_FREE, 0, 0 }
+
+/* define: logwriter_chan_INIT
+ * Static initializer.
+ *
+ * Parameter:
+ * size - Size of a temporary or static buffer.
+ * addr - Start address of the buffer.
+ * io   - <iochannel_t> the buffer is written to. */
+#define logwriter_chan_INIT(size, addr, io, logstate)  \
+         { logbuffer_INIT(size, addr, io), 0, logstate }
+
+
 /* struct: logwriter_t
  * A logwriter writes the console channel messages to STDOUT any other channels to STDERR.
  * Before anything is written out the messages are stored in an internal buffer.
  * If less then log_config_MINSIZE plus "terminating \0 byte" bytes are free the buffer
  * is written out (flushed) before any new mesage is appended. If messages should be appended
- * the buffer is not written out until the last message was appended. In this case messages
+ * the buffer is not written out until the last part was appended. In this case messages
  * are truncated if they are bigger than log_config_MINSIZE.
- *
- * Threads:
- * In case of KONFIG_SUBSYS_THREAD is not defined static <logmain_t> is used instead of <logwriter_t>.
  * */
 struct logwriter_t {
    /* variable: addr
     * Address of allocated buffer. */
-   uint8_t          *addr;
+   uint8_t *         addr;
    /* variable: size
     * Size in bytes of allocated buffer. */
    size_t            size;
    /* variable: chan
     * Array of <logwriter_chan_t>.
     * A <log_channel_e> is mapped to a <logwriter_chan_t> with help of this array. */
-   logwriter_chan_t *chan;
+   logwriter_chan_t  chan[log_channel__NROF];
 };
 
 // group: initthread
@@ -79,7 +104,7 @@ struct log_it * interface_logwriter(void);
 
 /* define: logwriter_FREE
  * Static initializer. */
-#define logwriter_FREE { 0, 0, 0 }
+#define logwriter_FREE { 0, 0, { logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE } }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
@@ -87,12 +112,37 @@ struct log_it * interface_logwriter(void);
  * This log service is *not* thread safe. So use it only within a single thread. */
 int init_logwriter(/*out*/logwriter_t * lgwrt);
 
+/* function: initstatic_logwriter
+ * de: Initialisiert einen <logwriter_t> Logservice, der von außen zugewiesenen,
+ * zumeist statisch allokierten Speicher benutzt. Der Speicher muss solange gültig bleiben,
+ * wie lgwrt in Benutzung ist. Die Freigabe des Objektes erfolgt mittels <freestatic_logwriter>.
+ *
+ * en: Is used during construction and deconstruction of main process context
+ * and construction and deconstruction of every thread context. Every thread has
+ * its own except for the first main thread who uses a global log service
+ * allocated in static memory.
+ *
+ * Return:
+ * This function works always except for bufsize < minbufsize_logwriter() in which case
+ * EINVAL is returned.
+ *
+ * No error log is written cause function is called during system initialization. */
+int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= minbufsize_logwriter()*/, uint8_t logbuf[bufsize]);
+
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
  * In case the function is called more than it does nothing. */
 int free_logwriter(logwriter_t * lgwrt);
 
+/* function: freestatic_logwriter
+ * Does nothing at the moment except for setting lgwrt to a freed state. */
+int freestatic_logwriter(/*out*/logwriter_t * lgwrt);
+
 // group: query
+
+/* function: minbufsize_logwriter
+ * Returns log_channel__NROF * (sizeof(logwriter_chan_t) + log_config_MINSIZE). */
+size_t minbufsize_logwriter(void);
 
 /* function: getbuffer_logwriter
  * Returns content of internal buffer corrseponding to channel as C-string.
@@ -150,5 +200,11 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
 
 // section: inline implementation
 
+// group: logwriter_t
+
+/* define: minbufsize_logwriter
+ * Inline implementation of <logwriter_t.minbufsize_logwriter>. */
+#define minbufsize_logwriter() \
+         (log_channel__NROF * log_config_MINSIZE)
 
 #endif

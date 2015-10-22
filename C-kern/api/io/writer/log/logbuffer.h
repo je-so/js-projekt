@@ -20,11 +20,11 @@
 #define CKERN_IO_WRITER_LOG_LOGBUFFER_HEADER
 
 // forward
-struct log_header_t ;
+struct log_header_t;
 
 /* typedef: struct logbuffer_t
  * Export <logbuffer_t> into global namespace. */
-typedef struct logbuffer_t                logbuffer_t ;
+typedef struct logbuffer_t logbuffer_t;
 
 
 // section: Functions

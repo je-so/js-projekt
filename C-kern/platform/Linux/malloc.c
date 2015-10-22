@@ -30,7 +30,7 @@
 
 /* variable: s_isprepared_malloc
  * Remembers if <prepare_malloc> was called already. */
-static bool s_isprepared_malloc = false ;
+static bool s_isprepared_malloc = false;
 
 // group: init
 
@@ -40,21 +40,21 @@ static bool s_isprepared_malloc = false ;
  * See <allocatedsize_malloc> for why. */
 int prepare_malloc()
 {
-   int err ;
+   int err;
 
-   s_isprepared_malloc = true ;
+   s_isprepared_malloc = true;
 
    // force some overhead
-   void * dummy = malloc(10*1024*1024) ;
-   free(dummy) ;
+   void * dummy = malloc(10*1024*1024);
+   free(dummy);
 
-   err = trimmemory_malloc() ;
+   err = trimmemory_malloc();
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: manage
@@ -65,8 +65,8 @@ ONERR:
  * Currently it is only working on Linux platforms. */
 int trimmemory_malloc()
 {
-   malloc_trim(0) ;
-   return 0 ;
+   malloc_trim(0);
+   return 0;
 }
 
 // group: query
@@ -99,103 +99,101 @@ int trimmemory_malloc()
  * the number at the end of the line as result. */
 int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
 {
-   int err ;
-   int fd     = -1 ;
-   int pfd[2] = { -1, -1 } ;
+   int err;
+   int fd     = -1;
+   int pfd[2] = { -1, -1 };
 
    if (!s_isprepared_malloc) {
-      err = prepare_malloc() ;
+      err = prepare_malloc();
       if (err) goto ONERR;
    }
 
    if (pipe2(pfd, O_CLOEXEC|O_NONBLOCK)) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("pipe2", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("pipe2", err);
       goto ONERR;
    }
 
-   fd = dup(STDERR_FILENO) ;
+   fd = dup(STDERR_FILENO);
    if (fd == -1) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("dup", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("dup", err);
       goto ONERR;
    }
 
    if (-1 == dup2(pfd[1], STDERR_FILENO)) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("dup2", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("dup2", err);
       goto ONERR;
    }
 
-   malloc_stats() ;
+   malloc_stats();
 
-   uint8_t  buffer[256/*must be even*/] ;
+   char   buffer[256/*must be even*/];
+   size_t len = 0;
 
-   ssize_t slen = read(pfd[0], buffer, sizeof(buffer)) ;
-   if (slen < 0) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("read", err) ;
-      goto ONERR;
-   }
-
-   size_t len = (size_t)slen ;
-
-   while (sizeof(buffer) == len) {
-      len = sizeof(buffer)/2 ;
-      memcpy(buffer, &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
-      slen = read(pfd[0], &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
+   for (;;) {
+      if (sizeof(buffer) == len) {
+         len = sizeof(buffer)/2;
+         memcpy(buffer, &buffer[sizeof(buffer)/2], sizeof(buffer)/2);
+      }
+      ssize_t slen = read(pfd[0], buffer + len, sizeof(buffer) - len);
       if (slen < 0) {
-         err = errno ;
+         err = errno;
          if (err == EWOULDBLOCK || err == EAGAIN) {
-            break ;
+            break;
          }
-         TRACESYSCALL_ERRLOG("read", err) ;
+         dup2(fd, STDERR_FILENO);
+         TRACESYSCALL_ERRLOG("read", err);
          goto ONERR;
       }
-      len += (size_t) slen ;
+      len += (size_t) slen;
    }
 
-   // remove last two lines
-   for (unsigned i = 3; len > 0; --len) {
-      i -= (buffer[len] == '\n') ;
-      if (!i) break ;
+   // find last "in use bytes"
+   char * in_use_bytes = buffer + len;
+   for (;;) {
+      in_use_bytes = memrchr(buffer, 'i', (size_t) (in_use_bytes - buffer));
+      if (!in_use_bytes) break;
+      if ((buffer + len - in_use_bytes) > 12 && 0 == strncmp(in_use_bytes, "in use bytes", 12)) {
+         for (in_use_bytes += 12; in_use_bytes < buffer+len; ++in_use_bytes) {
+             if ('0' <= *in_use_bytes && *in_use_bytes <= '9') break;
+         }
+         break;
+      }
    }
 
-   while (len > 0
-          && buffer[len-1] >= '0'
-          && buffer[len-1] <= '9') {
-      -- len ;
-   }
-
-   size_t used_bytes = 0 ;
-   if (  len > 0
-         && buffer[len] >= '0'
-         && buffer[len] <= '9'  ) {
-      sscanf((char*)&buffer[len], "%" SCNuSIZE, &used_bytes) ;
-   }
-
-   if (-1 == dup2(fd, STDERR_FILENO)) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("dup2",err) ;
+   if (  ! in_use_bytes || in_use_bytes >= buffer + len || buffer[len-1] != '\n') {
+      err = EINVAL;
       goto ONERR;
    }
 
-   close(fd) ;
-   close(pfd[0]) ;
-   close(pfd[1]) ;
+   size_t used_bytes = 0;
+   buffer[len-1] = 0;
+   sscanf(in_use_bytes, "%" SCNuSIZE, &used_bytes);
 
-   *number_of_allocated_bytes = used_bytes ;
+   if (-1 == dup2(fd, STDERR_FILENO)) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("dup2",err);
+      goto ONERR;
+   }
+
+   close(fd);
+   close(pfd[0]);
+   close(pfd[1]);
+
+   *number_of_allocated_bytes = used_bytes;
 
    return 0;
 ONERR:
-   if (pfd[0] != -1) close(pfd[0]) ;
-   if (pfd[1] != -1) close(pfd[1]) ;
+   if (pfd[0] != -1) close(pfd[0]);
+   if (pfd[1] != -1) close(pfd[1]);
    if (fd != -1) {
-      dup2(fd, STDERR_FILENO) ;
-      close(fd) ;
+      dup2(fd, STDERR_FILENO);
+      close(fd);
    }
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -205,125 +203,125 @@ ONERR:
 
 static int test_allocatedsize(void)
 {
-   size_t   allocated ;
-   void *   memblocks[256] = { 0 } ;
-   int      fd[4096] ;
-   unsigned fdcount = 0 ;
+   size_t   allocated;
+   void *   memblocks[256] = { 0 };
+   int      fd[4096];
+   unsigned fdcount = 0;
 
    // TEST allocatedsize_malloc: allocated > 0
-   allocated = 0 ;
-   TEST(0 == allocatedsize_malloc(&allocated)) ;
-   TEST(1 <= allocated) ;
+   allocated = 0;
+   TEST(0 == allocatedsize_malloc(&allocated));
+   TEST(1 <= allocated);
 
    // TEST allocatedsize_malloc: increment
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
-      memblocks[i] = malloc(16) ;
-      TEST(0 != memblocks[i]) ;
-      size_t   allocated2 ;
-      TEST(0 == allocatedsize_malloc(&allocated2)) ;
-      TEST(allocated + 16 <= allocated2) ;
-      TEST(allocated + 32 >= allocated2) ;
-      allocated = allocated2 ;
+      memblocks[i] = malloc(16);
+      TEST(0 != memblocks[i]);
+      size_t   allocated2;
+      TEST(0 == allocatedsize_malloc(&allocated2));
+      TEST(allocated + 16 <= allocated2);
+      TEST(allocated + 32 >= allocated2);
+      allocated = allocated2;
    }
 
    // TEST allocatedsize_malloc: decrement
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
-      free(memblocks[i]) ;
-      memblocks[i] = 0 ;
-      size_t   allocated2 ;
-      TEST(0 == allocatedsize_malloc(&allocated2)) ;
-      TEST(allocated2 + 16 <= allocated) ;
-      TEST(allocated2 + 32 >= allocated) ;
-      allocated = allocated2 ;
+      free(memblocks[i]);
+      memblocks[i] = 0;
+      size_t   allocated2;
+      TEST(0 == allocatedsize_malloc(&allocated2));
+      TEST(allocated2 + 16 <= allocated);
+      TEST(allocated2 + 32 >= allocated);
+      allocated = allocated2;
    }
 
    // TEST allocatedsize_malloc: EMFILE
    for (; fdcount < lengthof(fd); ++fdcount) {
-      fd[fdcount] = dup(STDOUT_FILENO) ;
-      if (fd[fdcount] == -1) break ;
+      fd[fdcount] = dup(STDOUT_FILENO);
+      if (fd[fdcount] == -1) break;
    }
-   allocated = 1 ;
-   TEST(EMFILE == allocatedsize_malloc(&allocated)) ;
-   TEST(1 == allocated) ;
+   allocated = 1;
+   TEST(EMFILE == allocatedsize_malloc(&allocated));
+   TEST(1 == allocated);
    while (fdcount > 0) {
-      -- fdcount ;
-      TEST(0 == close(fd[fdcount])) ;
+      -- fdcount;
+      TEST(0 == close(fd[fdcount]));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    while (fdcount > 0) {
-      -- fdcount ;
-      close(fd[fdcount]) ;
+      -- fdcount;
+      close(fd[fdcount]);
    }
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       if (memblocks[i]) {
-         free(memblocks[i]) ;
+         free(memblocks[i]);
       }
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_usablesize(void)
 {
-   void *   addr[1024] = { 0 } ;
+   void *   addr[1024] = { 0 };
 
    // TEST sizeusable_malloc: return 0 in case addr == 0
-   TEST(0 == sizeusable_malloc(0)) ;
+   TEST(0 == sizeusable_malloc(0));
 
-   // TEST sizeusable_malloc: small blocks ; return >= size
+   // TEST sizeusable_malloc: small blocks; return >= size
    for (unsigned i = 0; i < lengthof(addr); ++i) {
-      addr[i] = malloc(1+i) ;
-      TEST(0 != addr[i]) ;
+      addr[i] = malloc(1+i);
+      TEST(0 != addr[i]);
    }
    for (unsigned i = 0; i < lengthof(addr); ++i) {
-      TEST(1+i <= sizeusable_malloc(addr[i])) ;
+      TEST(1+i <= sizeusable_malloc(addr[i]));
    }
    for (unsigned i = 0; i < lengthof(addr); ++i) {
-      free(addr[i]) ;
-      addr[i] = 0 ;
-   }
-
-   // TEST sizeusable_malloc: big blocks ; return >= size
-   for (unsigned i = 0; i < lengthof(addr); ++i) {
-      addr[0] = malloc(65536*(1+i)) ;
-      TEST(0 != addr[0]) ;
-      TEST(16384*(1+i) <= sizeusable_malloc(addr[0])) ;
-      free(addr[0]) ;
-      addr[0] = 0 ;
+      free(addr[i]);
+      addr[i] = 0;
    }
 
-   return 0 ;
+   // TEST sizeusable_malloc: big blocks; return >= size
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      addr[0] = malloc(65536*(1+i));
+      TEST(0 != addr[0]);
+      TEST(16384*(1+i) <= sizeusable_malloc(addr[0]));
+      free(addr[0]);
+      addr[0] = 0;
+   }
+
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(addr); ++i) {
-      if (addr[i]) free(addr[i]) ;
-      addr[i] = 0 ;
+      if (addr[i]) free(addr[i]);
+      addr[i] = 0;
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t usage = resourceusage_FREE ;
+   resourceusage_t usage = resourceusage_FREE;
 
    for (int i = 0; i < 3; ++i) {
       if (test_allocatedsize())  goto ONERR;
       if (test_usablesize())     goto ONERR;
    }
-   CLEARBUFFER_ERRLOG() ;
+   CLEARBUFFER_ERRLOG();
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 == init_resourceusage(&usage));
 
    if (test_allocatedsize())  goto ONERR;
    if (test_usablesize())     goto ONERR;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) free_resourceusage(&usage) ;
-   return EINVAL ;
+   (void) free_resourceusage(&usage);
+   return EINVAL;
 }
 
 int unittest_platform_malloc()

@@ -1,70 +1,70 @@
-[1: 1443695059.649486s]
-init2_vmpage() C-kern/platform/Linux/vm.c:454
-Function input violates condition (size_in_bytes > 0)
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695059.649495s]
-init2_vmpage() C-kern/platform/Linux/vm.c:455
-Function input violates condition (aligned_size >= size_in_bytes)
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695059.649498s]
-init2_vmpage() C-kern/platform/Linux/vm.c:454
-Function input violates condition (size_in_bytes > 0)
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695059.649501s]
-init2_vmpage() C-kern/platform/Linux/vm.c:455
-Function input violates condition (aligned_size >= size_in_bytes)
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695059.649503s]
+[1: 1444218673.093302s]
 init2_vmpage() C-kern/platform/Linux/vm.c:453
+Function input violates condition (size_in_bytes > 0)
+Exit function with
+Error 22 - Invalid argument
+[1: 1444218673.093316s]
+init2_vmpage() C-kern/platform/Linux/vm.c:454
+Function input violates condition (aligned_size >= size_in_bytes)
+Exit function with
+Error 22 - Invalid argument
+[1: 1444218673.093318s]
+init2_vmpage() C-kern/platform/Linux/vm.c:453
+Function input violates condition (size_in_bytes > 0)
+Exit function with
+Error 22 - Invalid argument
+[1: 1444218673.093321s]
+init2_vmpage() C-kern/platform/Linux/vm.c:454
+Function input violates condition (aligned_size >= size_in_bytes)
+Exit function with
+Error 22 - Invalid argument
+[1: 1444218673.093323s]
+init2_vmpage() C-kern/platform/Linux/vm.c:452
 Function input violates condition (0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.669858s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:484
+[1: 1444218673.113302s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:483
 Function input violates condition (powerof2_size_in_bytes >= pagesize_vm())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.669868s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:485
+[1: 1444218673.113310s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:484
 Function input violates condition (ispowerof2_int(powerof2_size_in_bytes))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.669870s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:486
+[1: 1444218673.113313s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:485
 Function input violates condition (2*powerof2_size_in_bytes > powerof2_size_in_bytes)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.775580s]
-shrink_vmpage() C-kern/platform/Linux/vm.c:628
+[1: 1444218673.215938s]
+shrink_vmpage() C-kern/platform/Linux/vm.c:627
 Function input violates condition (size_in_bytes <= vmpage->size)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.791074s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:571
+[1: 1444218673.231070s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:570
 Function input violates condition (size_in_bytes >= vmpage->size)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695059.791077s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:576
+[1: 1444218673.231073s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:575
 Function input violates condition (aligned_size >= size_in_bytes)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695060.286777s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:599
+[1: 1444218673.711717s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:598
 Function input violates condition (size_in_bytes >= vmpage->size)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695060.286781s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:604
+[1: 1444218673.711721s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:603
 Function input violates condition (aligned_size >= size_in_bytes)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695060.286784s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:610
+[1: 1444218673.711724s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:609
 Could not allocate 4294963200 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory

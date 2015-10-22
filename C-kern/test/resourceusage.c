@@ -109,7 +109,6 @@ int free_resourceusage(resourceusage_t * usage)
       if (err2) err = err2;
 
       memblock_t mem = memblock_INIT(sizeof(vm_mappedregions_t), (uint8_t*)usage->virtualmemory_usage);
-      usage->virtualmemory_usage = 0;
 
       err2 = FREE_MM(&mem);
       if (err2) err = err2;
@@ -308,9 +307,9 @@ static int test_query(void)
 
    // TEST same_resourceusage: ELEAK cause of static memory
    TEST(0 == init_resourceusage(&usage));
-   TEST(0 == allocstatic_threadlocalstore(self_threadlocalstore(), 128, &page));
+   TEST(0 == memalloc_threadlocalstore(self_threadlocalstore(), 128, &page));
    TEST(ELEAK == same_resourceusage(&usage));
-   TEST(0 == freestatic_threadlocalstore(self_threadlocalstore(), &page));
+   TEST(0 == memfree_threadlocalstore(self_threadlocalstore(), &page));
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 

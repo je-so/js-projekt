@@ -1,13 +1,14 @@
 title: Context-Oriented-Programming
-The idea behind COP is that a function is aware of its execution context.
 
+Idea:
+The idea behind COP is that a function is aware of its execution context.
+The execution context of a function (system, process, thread, call stack, object, ...) is handled implicit by a compiler and the operating system.
+
+To make these things more amenable a programming environment should make them explicit. The current transaction context is an example for a service that is made available in the context-object (maincontext_t).
+
+Compare with OOP:
 OOP has the concept of a method which is a function being aware
 of its object context. COP goes a step further in that functions are
-also aware of the thread, process and general service context like
+also aware of the thread, process and general services like
 the current transaction.
 
-The execution context of a function (system, process, thread, call stack, object, ...)
-is handled implicit by a compiler and the operating system.
-To make these things more amenable a programming should make them explicit.
-The current transaction context as an example for a service is made
-available in the context-object (maincontext_t).

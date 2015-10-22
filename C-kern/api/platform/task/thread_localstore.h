@@ -24,6 +24,7 @@
 struct memblock_t;
 struct thread_t;
 struct threadcontext_t;
+struct logwriter_t;
 
 /* typedef: struct thread_localstore_t
  * Export <thread_localstore_t> into global namespace. */
@@ -75,8 +76,12 @@ int deletemain_threadlocalstore(thread_localstore_t** tls);
 
 // group: query
 
+/* function: castPcontext_threadlocalstore
+ * Calculates address of <thread_localstore_t> from address of contained <threadcontext_t>. */
+thread_localstore_t* castPcontext_threadlocalstore(struct threadcontext_t * tcontext);
+
 /* function: castPthread_threadlocalstore
- * Calculates address of <thread_localstore_t> from address of <thread_t>. */
+ * Calculates address of <thread_localstore_t> from address of contained <thread_t>. */
 thread_localstore_t* castPthread_threadlocalstore(struct thread_t* thread);
 
 /* function: self_threadlocalstore
@@ -95,6 +100,12 @@ struct threadcontext_t* context_threadlocalstore(thread_localstore_t* tls);
  * The function <sys_thread_threadlocalstore> is identical with thread_threadlocalstore(self_threadlocalstore()).
  * If you change this function change sys_thread_threadlocalstore also. */
 struct thread_t* thread_threadlocalstore(thread_localstore_t* tls);
+
+/* function: logwriter_threadlocalstore
+ * Returns <logwriter_t> used during init and free operations of current <threadcontext_t>.
+ * This logwriter is the one allocated statically. For every thread a separate one. */
+struct logwriter_t * logwriter_threadlocalstore(thread_localstore_t* tls);
+
 
 /* function: size_threadlocalstore
  * Returns the size of the allocated memory block. */
@@ -116,13 +127,13 @@ void threadstack_threadlocalstore(thread_localstore_t* tls, /*out*/struct memblo
 
 // group: static-memory
 
-/* function: allocstatic_threadlocalstore
+/* function: memalloc_threadlocalstore
  * Allokiert einen über die Laufzeit des Threads gültigen Speicherblock.
  * Der allokierte Speicherblock wird in memblock zurückgegeben und ist nicht minder
  * als bytesize Bytes groß. */
-int allocstatic_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock);
+int memalloc_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*out*/struct memblock_t* memblock);
 
-/* function: freestatic_threadlocalstore
+/* function: memfree_threadlocalstore
  * Gibt den zuletzt allokierten Speicherblock wieder frei.
  * Mehrere Speicherblöcke können auch zusammen auf einmal freigegeben werden.
  *
@@ -131,12 +142,13 @@ int allocstatic_threadlocalstore(thread_localstore_t* tls, size_t bytesize, /*ou
  *
  * Returns
  * 0      - OK
- * EINVAL - memblock ist nicht der zuletzt von <allocstatic_threadlocalstore> allokierte Speicherblock. */
-int freestatic_threadlocalstore(thread_localstore_t* tls, struct memblock_t* memblock);
+ * EINVAL - memblock ist nicht der zuletzt von <memalloc_threadlocalstore> allokierte Speicherblock. */
+int memfree_threadlocalstore(thread_localstore_t* tls, struct memblock_t* memblock);
 
 /* function: sizestatic_threadlocalstore
  * Gibt die aufgerundete Anzahl allokierter Bytes an statischem Speicher zurück. */
 size_t sizestatic_threadlocalstore(const thread_localstore_t* tls);
+
 
 
 // section: inline implementation
@@ -147,6 +159,14 @@ size_t sizestatic_threadlocalstore(const thread_localstore_t* tls);
          ( __extension__ ({           \
             thread_t* _t = (thread);  \
             ((thread_localstore_t*) ( ((uint8_t*)(_t)) - sizeof(threadcontext_t))); \
+         }))
+
+/* define: castPcontext_threadlocalstore
+ * Implements <thread_localstore_t.castPcontext_threadlocalstore>. */
+#define castPcontext_threadlocalstore(tcontext) \
+         ( __extension__ ({                     \
+            threadcontext_t* _t = (tcontext);   \
+            ((thread_localstore_t*) (_t));      \
          }))
 
 /* define: context_threadlocalstore

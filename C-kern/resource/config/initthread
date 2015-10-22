@@ -11,10 +11,10 @@
 # "interface"  - Calls init_module(&threadcontext_t->parameter) and free_module
 #                and sets threadcontext_t->parameter.iimpl == interface_module().
 #                Parameter is considered of type iobj_t which allows to call functions with an interface.
-#                The memory is allocated and freed with allocstatic_threadlocalstore / freestatic_threadlocalstore.
+#                The memory is allocated and freed with memalloc_threadlocalstore / memfree_threadlocalstore.
 # "object"     - Calls init_module(&threadcontext_t->parameter) and free_module
 #                Parameter is considered a pointer of to a object type (struct) where functions directly (no interface).
-#                The memory is allocated and freed with allocstatic_threadlocalstore / freestatic_threadlocalstore.
+#                The memory is allocated and freed with memalloc_threadlocalstore / memfree_threadlocalstore.
 "module",            "inittype",    "objtype",            "parameter",     "header-name"
 "pagecacheimpl",     "interface",   "pagecache_impl_t",   "pagecache",     "C-kern/api/memory/pagecache_impl.h"
 "mmimpl",            "interface",   "mm_impl_t",          "mm",            "C-kern/api/memory/mm/mm_impl.h"

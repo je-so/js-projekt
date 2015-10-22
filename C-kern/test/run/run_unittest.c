@@ -53,15 +53,6 @@ static void prepare_test(void)
       g_maincontext.type = maincontext_DEFAULT;
    }
 
-   // preallocate some memory
-   // TODO: remove line if own memory subsystem instead of malloc
-   resourceusage_t   usage[200]  = { resourceusage_FREE };
-   for (unsigned i = 0; i < lengthof(usage); ++i) {
-      (void) init_resourceusage(&usage[i]);
-   }
-   for (unsigned i = 0; i < lengthof(usage); ++i) {
-      (void) free_resourceusage(&usage[i]);
-   }
 }
 
 // group: execute
@@ -255,7 +246,6 @@ static void run_all_test(unsigned run_idx/*0..*/, bool isLastRun)
       // writer
       RUN(unittest_io_writer_log_logbuffer);
       RUN(unittest_io_writer_log_logwriter);
-      RUN(unittest_io_writer_log_logmain);
       // Terminal
       RUN(unittest_io_terminal_pseudoterm);
       RUN(unittest_io_terminal_termadapt);

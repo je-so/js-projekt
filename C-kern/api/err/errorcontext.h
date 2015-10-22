@@ -104,6 +104,13 @@ uint16_t maxsyserrnum_errorcontext(void);
  * is returned. */
 const uint8_t * str_errorcontext(const errorcontext_t errcontext, int errnum);
 
+/* function: str_static_errorcontext
+ * Same as <str_errorcontext> except that the global error is accessed directly.
+ * See <g_errorcontext_stroffset> and <g_errorcontext_strdata>.
+ * Use this function in case of uninitialized <maincontext_t>. */
+const uint8_t * str_static_errorcontext(int errnum);
+
+
 // group: generic
 
 /* function: cast_errorcontext
@@ -146,11 +153,21 @@ errorcontext_t * cast_errorcontext(void * object);
 
 /* define: str_errorcontext
  * Implements <errorcontext_t.str_errorcontext>. */
-#define str_errorcontext(errcontext, errnum)                   \
+#define str_errorcontext(errcontext, errnum) \
          ( __extension__ ({                                    \
             unsigned _errnum = (unsigned) (errnum);            \
             (errcontext).strdata                               \
                + (errcontext).stroffset[                       \
+                     (_errnum > 511 ? 511 : _errnum)];         \
+         }))
+
+/* define: str_static_errorcontext
+ * Implements <errorcontext_t.str_static_errorcontext>. */
+#define str_static_errorcontext(errnum) \
+         ( __extension__ ({                                    \
+            unsigned _errnum = (unsigned) (errnum);            \
+            g_errorcontext_strdata                             \
+               + g_errorcontext_stroffset[                     \
                      (_errnum > 511 ? 511 : _errnum)];         \
          }))
 

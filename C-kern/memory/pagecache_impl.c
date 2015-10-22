@@ -245,10 +245,10 @@ static int new_pagecacheblock(
    err = assign_pagecacheblockmap(blockmap, arrayindex_pagecacheblock(pageblock.addr), &newblock);
    if (err) goto ONERR;
 
-   // Member newblock->threadcontext is set in assign_pagecacheblockmap
+   // Member newblock->threadcontext was set in assign_pagecacheblockmap
    newblock->blockaddr    = pageblock.addr;
-   // Member newblock->next_block set in calling function
-   // Member newblock->next_freeblock set in calling function
+   // Member newblock->next_block will be set in calling function
+   // Member newblock->next_freeblock will be set in calling function
    newblock->freepagelist  = (dlist_t) dlist_INIT;
    newblock->usedpagecount = 0;
    newblock->pgsize        = pgsize;

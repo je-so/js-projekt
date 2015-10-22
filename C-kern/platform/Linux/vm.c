@@ -60,12 +60,11 @@ static inline void compiletime_assert(void)
 
 /* function: sys_pagesize_vm
  * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
-uint32_t sys_pagesize_vm()
+size_t sys_pagesize_vm()
 {
-   long ps = sysconf(_SC_PAGESIZE) ;
-   assert(256 <= ps && (unsigned long)ps <= 0x80000000) ;
-   assert(ispowerof2_int((uint32_t)ps)) ;
-   return (uint32_t)ps ;
+   static_assert(sizeof(long) <= sizeof(size_t), "cast to size_t works");
+   long ps = sysconf(_SC_PAGESIZE);
+   return (size_t)ps;
 }
 
 ramsize_t sizephysram_vm()
