@@ -56,7 +56,6 @@ Group: Api  {
       File: Objectcache  (api/cache/objectcache_impl.h)
       File: Objectcache-Macros  (api/cache/objectcache_macros.h)
       File: Objectcache-Object  (api/cache/objectcache.h)
-      File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
    Group: Ds  {
@@ -371,7 +370,6 @@ Group: Implementation  {
    Group: Cache  {
 
       File: Objectcache impl  (cache/objectcache_impl.c)
-      File: Valuecache impl  (cache/valuecache.c)
       }  # Group: Cache
 
    Group: DataStructures  {

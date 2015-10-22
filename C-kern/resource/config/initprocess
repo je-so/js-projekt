@@ -14,7 +14,6 @@
 "errorcontext",      "initonce",    "",                   "error",        "C-kern/api/err/errorcontext.h"
 "locale",            "initonce",    "",                   "",             "C-kern/api/platform/locale.h"
 "signalhandler",     "initonce",    "",                   "",             "C-kern/api/platform/sync/signal.h"
-"valuecache",        "object",      "valuecache_t",       "valuecache",   "C-kern/api/cache/valuecache.h"
 "syslogin",          "object",      "syslogin_t",         "syslogin",     "C-kern/api/platform/syslogin.h"
 # module pagecacheblockmap needs valuecache cause of their use of virtual memory !
 "pagecacheblockmap", "object",      "pagecache_blockmap_t", "blockmap",     "C-kern/api/memory/pagecache_impl.h"

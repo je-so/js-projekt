@@ -1,6 +1,6 @@
 /* title: PlatformInit
 
-   Offers platform specific initialization function <platform_t.init_platform>.
+   Offers platform specific initialization function <syscontext_t.initrun_syscontext>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -17,9 +17,9 @@
 #ifndef CKERN_PLATFORM_INIT_HEADER
 #define CKERN_PLATFORM_INIT_HEADER
 
-/* typedef: mainthread_f
- * Signature of main thread is the same as function main. */
-typedef int (* mainthread_f) (void * user);
+/* typedef: thread_f
+ * Signature of main thread. */
+typedef int (* thread_f) (void * thread_arg);
 
 
 // section: Functions
@@ -28,28 +28,37 @@ typedef int (* mainthread_f) (void * user);
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_init
- * Test <init_platform> functionality. */
+ * Test <syscontext_t.initrun_syscontext> functionality. */
 int unittest_platform_init(void);
 #endif
 
 
-/* struct: platform_t
- * Dummy type which represents the operating system platform. */
-struct platform_t;
+/* struct: syscontext_t
+ * Defined in module <LinuxSystemContext> for Linux platforms. */
+struct syscontext_t;
 
 // group: lifetime
 
-/* function: init_platform
- * Initialize system context and calls main_thread.
- * If the system context could be initialized and the main_thread was called
- * the return value is the value returned from main_thread. If an error occurs during
- * initialization only an error code (value > 0) is returned, main_thread is not called.
+/* function: initrun_syscontext
+ * Initialize platform and os specific parts of <maincontext_t> and then calls main_thread.
+ * If scontext (see <syscontext_t>) could be initialized then main_thread is called
+ * and its return value is returned as return value. If an error occurs during
+ * initialization only an error code (> 0) is returned, main_thread is not called.
+ * If an error occurs during freeing of resources after main_thread has been run, an error
+ * code (> 0) is returned.
  *
- * You have to call this function before calling <maincontext_t.init_maincontext>.
+ * The local store of the main thread (<thread_localstore_t>) is initialized and the
+ * contained thread context (see <threadcontext_t>) is initialized to <threadcontext_t.threadcontext_INIT_STATIC>.
  *
- * This function is implemented in a system specific way.
+ * This function is called during execution of <maincontext_t.initrun_maincontext>
+ * to set up the main thread environment which supports the default logging functions.
+ *
+ * Before calling this function scontext should be set to <syscontext_FREE> else EALREADY is returned.
+ * Before this function returns scontext is reset to <syscontext_FREE> to indicate the end of an
+ * initialized system context. During execuion of main_thread scontext is initialized to a valid value.
+ *
  * */
-int init_platform(mainthread_f main_thread, void * user);
+int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_thread, void * main_arg);
 
 
 #endif

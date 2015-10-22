@@ -115,7 +115,7 @@ static inline size_t sizevars_threadlocalstore(const size_t pagesize)
 
 // group: lifetime
 
-static int init_threadlocalstore(thread_localstore_t * tls, size_t sizevars)
+static int init_threadlocalstore(/*out*/thread_localstore_t * tls, size_t sizevars)
 {
    int err;
 

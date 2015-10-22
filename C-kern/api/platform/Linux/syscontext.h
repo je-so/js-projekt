@@ -22,9 +22,44 @@
 struct thread_t;
 struct threadcontext_t;
 
+/* typedef: struct syscontext_t
+ * Export <syscontext_t>. */
+typedef struct syscontext_t syscontext_t;
+
+
+
+/* struct: syscontext_t
+ * Defines system specific information stored in <maincontext_t>.
+ * Initialization is done in module <PlatformInit>. */
+struct syscontext_t {
+   // group: public
+   /* variable: pagesize_vm
+    * The size of a virtual memory page in bytes.
+    * Same value as returned by <sys_pagesize_vm>.
+    * This value can be queried with function pagesize_vm. */
+   uint32_t       pagesize_vm;
+   /* variable: log2pagesize_vm
+    * The <log2_int> value of <pagesize_vm>. */
+   uint8_t        log2pagesize_vm;
+};
+
+// group: lifetime
+
+#define syscontext_FREE \
+         { 0, 0 }
+
+// group: query
+
+/* function: isfree_syscontext
+ * Returns true in case syscontext_t is set to <syscontext_FREE>. */
+static inline int isfree_syscontext(const syscontext_t * scontext);
+
+
 
 // struct: thread_localstore_t
 struct thread_localstore_t;
+
+// group: query
 
 /* function: sys_context_threadlocalstore
  * Returns <threadcontext_t> of the current thread.
@@ -56,6 +91,18 @@ struct thread_localstore_t* sys_self2_threadlocalstore(void * local_var);
 
 
 // section: inline implementation
+
+// group: syscontext_t
+
+/* define: isfree_syscontext
+ * Implements <syscontext_t.isfree_syscontext>. */
+static inline int isfree_syscontext(const syscontext_t * scontext)
+{
+   return 0 == scontext->pagesize_vm
+         && 0 == scontext->log2pagesize_vm;
+}
+
+// group: thread_localstore_t
 
 /* define: sys_context_threadlocalstore
  * Implements <thread_localstore_t.sys_context_threadlocalstore>. */

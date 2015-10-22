@@ -65,7 +65,7 @@ int delete_threadlocalstore(thread_localstore_t** tls);
 
 /* function: newmain_threadlocalstore
  * Same as <new_threadlocalstore> but calls no other functions of C-kern system.
- * Called from <platform_t.init_platform>.
+ * Called from <syscontext_t.initrun_syscontext>.
  * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
 int newmain_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
 

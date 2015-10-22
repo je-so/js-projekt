@@ -1,41 +1,59 @@
-[0: 1444576515.917423s]
-init_maincontext() C-kern/main/maincontext.c:162
-Function input violates condition (maincontext_STATIC < context_type && maincontext_CONSOLE >= context_type)
-Exit function with
-Error 22 - Invalid argument
-[0: 1444576515.917450s]
-init_maincontext() C-kern/main/maincontext.c:162
-Function input violates condition (maincontext_STATIC < context_type && maincontext_CONSOLE >= context_type)
-Exit function with
-Error 22 - Invalid argument
-[0: 1444576515.917458s]
-init_maincontext() C-kern/main/maincontext.c:164
-Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-Exit function with
-Error 22 - Invalid argument
-[0: 1444576515.917464s]
-init_maincontext() C-kern/main/maincontext.c:164
-Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-Exit function with
-Error 22 - Invalid argument
-[0: 1444576515.925951s]
-free_maincontext() C-kern/main/maincontext.c:131
+[0: 1445063135.536064s]
+free_maincontext() C-kern/main/maincontext.c:133
 One or more resources could not be freed
 Exit function with
 Error 39 - Directory not empty
-[0: 1444576515.925972s]
-init_maincontext() C-kern/main/maincontext.c:195
+[0: 1445063135.536117s]
+init_maincontext() C-kern/main/maincontext.c:167
 Exit function with
-Error 23 - Too many open files in system
-[0: 1444576515.928524s]
-init_maincontext() C-kern/main/maincontext.c:195
+Error 4 - Interrupted system call
+[0: 1445063135.538679s]
+init_maincontext() C-kern/main/maincontext.c:167
 Exit function with
-Error 24 - Too many open files
-[0: 1444576515.933082s]
-init_maincontext() C-kern/main/maincontext.c:195
+Error 5 - Input/output error
+[0: 1445063135.542120s]
+init_maincontext() C-kern/main/maincontext.c:167
 Exit function with
-Error 25 - Inappropriate ioctl for device
-[1: 1444576515.937106s]
-init_maincontext() C-kern/main/maincontext.c:195
+Error 6 - No such device or address
+[0: 1445063135.549333s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
 Exit function with
-Error 114 - Operation already in progress
+Error 2 - No such file or directory
+[0: 1445063135.553958s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
+Exit function with
+Error 3 - No such process
+[0: 1445063135.557530s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1445063135.585767s]
+init_maincontext() C-kern/main/maincontext.c:167
+Exit function with
+Error 1 - Operation not permitted
+[0: 1445063135.586885s]
+init_maincontext() C-kern/main/maincontext.c:167
+Exit function with
+Error 2 - No such file or directory
+[0: 1445063135.588793s]
+init_maincontext() C-kern/main/maincontext.c:167
+Exit function with
+Error 3 - No such process
+[0: 1445063135.590802s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1445063135.592874s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
+Exit function with
+Error 5 - Input/output error
+[0: 1445063135.594885s]
+free_maincontext() C-kern/main/maincontext.c:133
+One or more resources could not be freed
+Exit function with
+Error 6 - No such device or address

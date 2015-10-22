@@ -16,7 +16,6 @@
 #ifndef CKERN_MEMORY_VM_HEADER
 #define CKERN_MEMORY_VM_HEADER
 
-#include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/io/accessmode.h"
 
 /* typedef: struct vmpage_t
@@ -332,12 +331,12 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator);
          (0 == (vmpage)->addr && 0 == (vmpage)->size)
 
 /* define: log2pagesize_vm
- * Uses cached value from <valuecache_maincontext>. */
-#define log2pagesize_vm()                       (valuecache_maincontext()->log2pagesize_vm)
+ * Uses cached value from <maincontext_t.sysinfo_maincontext>. */
+#define log2pagesize_vm()                       (sysinfo_maincontext().log2pagesize_vm)
 
 /* define: pagesize_vm
- * Uses cached value from <valuecache_maincontext>. */
-#define pagesize_vm()                           (valuecache_maincontext()->pagesize_vm)
+ * Uses cached value from <maincontext_t.sysinfo_maincontext>. */
+#define pagesize_vm()                           (sysinfo_maincontext().pagesize_vm)
 
 /* define: size_vmmappedregions
  * Returns <vm_mappedregions_t->total_count>.

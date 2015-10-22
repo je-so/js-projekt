@@ -14,12 +14,10 @@
 
 #include "C-kern/konfig.h"
 
-typedef struct demo_t demo_t;
-
-struct demo_t {
-   const char *         name;
-   maincontext_thread_f run;
-};
+typedef struct demo_t {
+   const char * name;
+   mainthread_f run;
+} demo_t;
 
 /////////////////
 // demo functions
@@ -100,8 +98,8 @@ int main(int argc, const char* argv[])
 
    maincontext_startparam_t startparam = maincontext_startparam_INIT(
                                              maincontext_CONSOLE, argc, argv,
-                                             s_demos[demo_index].run);
-   err = initstart_maincontext(&startparam);
+                                             s_demos[demo_index].run, 0);
+   err = initrun_maincontext(&startparam);
    if (err) goto ONABORT;
 
    return 0;

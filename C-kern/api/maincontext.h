@@ -30,9 +30,9 @@ typedef struct maincontext_t  maincontext_t;
  * Export <maincontext_startparam_t>. */
 typedef struct maincontext_startparam_t  maincontext_startparam_t;
 
-/* typedef: maincontext_thread_f
- * Define <maincontext_thread_f> as signature of start function for main thread. */
-typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
+/* typedef: mainthread_f
+ * Signature of of new main function. It is stored in <maincontext_t>. */
+typedef int (* mainthread_f) (maincontext_t * maincontext);
 
 
 /* enums: maincontext_e
@@ -41,9 +41,12 @@ typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
  * Services in <processcontext_t> are shared between threads.
  *
  * maincontext_STATIC -  An implementation which is configured by a static initializer.
- *                       Only the log service is supported.
- *                       This configuration is default after <platform_t.init_platform> has been called and can not be
- *                       set with a call to <maincontext_t.init_maincontext>.
+ *                       This configuration is working after <syscontext_t.initrun_syscontext> has been called
+ *                       and only the log service is supported.
+ *                       As long as g_maincontext.type is set to this value do not try
+ *                       to call the log service. If g_maincontext.type is != maincontext_STATIC
+ *                       <syscontext_t.initrun_syscontext> has been run successfully and at least
+ *                       the static log service is working.
  * maincontext_DEFAULT - Default single or multi threading implementation.
  *                       All content logged to channel <log_channel_USERERR> is ignored.
  * maincontext_CONSOLE - Default single or multi threading implementation for commandline tools.
@@ -81,7 +84,7 @@ int unittest_main_maincontext(void);
 
 
 /* struct: maincontext_startparam_t
- * Start parameters used in <initstart_maincontext>. */
+ * Start parameters used in <initrun_maincontext>. */
 struct maincontext_startparam_t {
    // group: struct fields
    /* variable: context_type
@@ -100,13 +103,17 @@ struct maincontext_startparam_t {
    /* variable: main_thread
     * The main threads main function. It is started if the environment
     * could be initialized successfully. */
-   maincontext_thread_f main_thread;
+   mainthread_f   main_thread;
+   /* variable: main_thread
+    * The main threads main function. It is started if the environment
+    * could be initialized successfully. */
+   void *         main_arg;
 };
 
 /* define: maincontext_startparam_INIT
  * Static initializer. */
-#define maincontext_startparam_INIT(context_type, argc, argv, main_thread) \
-         { context_type, argc, argv, main_thread }
+#define maincontext_startparam_INIT(context_type, argc, argv, main_thread, main_arg) \
+         { context_type, argc, argv, main_thread, main_arg }
 
 
 /* struct: maincontext_t
@@ -124,9 +131,15 @@ struct maincontext_startparam_t {
  *
  * */
 struct maincontext_t {
-   // group: struct fields
+   // group: public fields
    processcontext_t  pcontext;
+   syscontext_t      sysinfo;
+   // gives type like CONSOLE app ...
+   // TODO: init log uses this value to determine if standard error log is available !
    maincontext_e     type;
+   // arguments
+   mainthread_f      main_thread;
+   void *            main_arg;
    const char *      progname;
    int               argc;
    const char **     argv;
@@ -134,39 +147,35 @@ struct maincontext_t {
 
 // group: lifetime
 
-/* function: initstart_maincontext
- * Calls <platform_t.init_platform>, <maincontext_t.init_maincontext> and runs main_thread.
- * This is a convenience function so you do not have to remember the
- * process initialization sequence pattern. */
-int initstart_maincontext(const maincontext_startparam_t * startparam);
+/* define: maincontext_INIT_STATIC
+ * Static initializer for <maincontext_t>. */
+#define maincontext_INIT_STATIC \
+         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0 }
 
-/* function: init_maincontext
+/* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
- * The main thread must be initialized with <platform_t.init_platform> before calling this function.
+ *
  * EALREADY is returned if it is called more than once.
- * The only service which works without calling this function is logging.
  *
  * Background:
- * This function calls init_processcontext and init_threadcontext which call every
+ * This function calls the platform specific function <syscontext_t.initrun_syscontext>
+ * to set up the thread environment and thread local storage.
+ *
+ * Then it calls init_processcontext and init_threadcontext which call every
  * initonce_NAME and initthread_NAME functions in the same order as defined in
  * "C-kern/resource/config/initprocess" and "C-kern/resource/config/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
- * So that no entry is forgotten. */
-int init_maincontext(const maincontext_e context_type, int argc, const char ** argv);
-
-/* function: free_maincontext
- * Frees global context. Must be called as last function from the main
- * thread of the whole system.
  *
- * Ensures that after return the basic logging functionality is working.
+ * After initialization main_thread is called.
  *
- * Background:
- * This function calls free_threadcontext and then free_processcontext which call every
- * freethread_NAME and freeonce_NAME functions in the reverse order as defined in
- * "C-kern/resource/config/initthread" and "C-kern/resource/config/initprocess".
- * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
- * So that no entry is forgotten. */
-int free_maincontext(void);
+ * Before the function returns the initialized main context is freed.
+ *
+ * Returns:
+ * If initialization or freeing of main context produces an error this error is returned (> 0)
+ * else the return code of main_thread.
+ *
+ * */
+int initrun_maincontext(const maincontext_startparam_t * startparam);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.
@@ -184,6 +193,7 @@ void assertfail_maincontext(const char * condition, const char * file, int line,
 
 // group: query
 
+// TODO: store pointer to maincontext in threadcontext_t => change self_ + pcontext_
 /* function: self_maincontext
  * Returns <maincontext_t> of the current process. */
 maincontext_t *            self_maincontext(void);
@@ -243,14 +253,14 @@ struct pagecache_blockmap_t * blockmap_maincontext(void);
  * all <syncfunc_t> of the current thread. */
 struct syncrunner_t*      syncrunner_maincontext(void);
 
+/* function: sysinfo_maincontext
+ * Returns reference to <syscontext_t> holding precomputed values.
+ * Every value is cached as a single copy for the whole process. */
+/*ref*/syscontext_t sysinfo_maincontext(void);
+
 /* function: syslogin_maincontext
  * Returns <syslogin_t> of current <maincontext_t>. It is used in module <SystemLogin>. */
 /*ref*/struct syslogin_t* syslogin_maincontext(void);
-
-/* function: valuecache_maincontext
- * Returns <valuecache_t> holding precomputed values.
- * Every value is cached as a single copy for the whole process. */
-struct valuecache_t*      valuecache_maincontext(void);
 
 
 
@@ -304,6 +314,11 @@ struct valuecache_t*      valuecache_maincontext(void);
 #define syslogin_maincontext() \
          (pcontext_maincontext()->syslogin)
 
+/* define: sysinfo_maincontext
+ * Inline implementation of <maincontext_t.sysinfo_maincontext>. */
+#define sysinfo_maincontext() \
+         (self_maincontext()->sysinfo)
+
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */
 #define tcontext_maincontext()            (sys_context_threadlocalstore())
@@ -315,10 +330,5 @@ struct valuecache_t*      valuecache_maincontext(void);
 /* define: type_maincontext
  * Inline implementation of <maincontext_t.type_maincontext>. */
 #define type_maincontext()                (self_maincontext()->type)
-
-/* define: valuecache_maincontext
- * Inline implementation of <maincontext_t.valuecache_maincontext>.
- * Uses a global thread-local storage variable to implement the functionality. */
-#define valuecache_maincontext()          (pcontext_maincontext()->valuecache)
 
 #endif

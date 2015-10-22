@@ -20,24 +20,29 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/math/int/power2.h"
+#include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/pipe.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
 
 
-// section: platform_t
+// struct: syscontext_t
+struct syscontext_t;
 
 // group: static variables
 
 #ifdef KONFIG_UNITTEST
-/* variable: s_platform_errtimer
- * Used to simulate an error in <platform_t.init_platform>. */
-static test_errortimer_t   s_platform_errtimer = test_errortimer_FREE;
+/* variable: s_syscontext_errtimer
+ * Used to simulate an error in <initrun_syscontext>. */
+static test_errortimer_t   s_syscontext_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper
@@ -50,12 +55,10 @@ static void callmain_platform(void)
 {
    thread_t * thread = self_thread();
 
-   assert(1 == ismain_thread(thread));
-
    bool is_abort;
    if (  setcontinue_thread(&is_abort)
          || is_abort) {
-      #define ERRSTR1 "init_platform() "
+      #define ERRSTR1 "initrun_syscontext() "
       #define ERRSTR2 ":" STR(__LINE__) "\naborted\n"
       ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
                       + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
@@ -66,32 +69,63 @@ static void callmain_platform(void)
       abort();
    }
 
-   void*        arg     = mainarg_thread(thread);
-   mainthread_f mainthr = maintask_thread(thread);
-   int          retcode = mainthr(arg);
+   void*    arg     = mainarg_thread(thread);
+   thread_f mainthr = maintask_thread(thread);
+   int      retcode = mainthr(arg);
 
    setreturncode_thread(thread, retcode);
 }
 
-int init_platform(mainthread_f main_thread, void * user)
+static inline int set_scontext(/*out*/struct syscontext_t * scontext)
 {
-   volatile int err;
-   volatile int linenr;
-   int               retcode = 0;
-   volatile int      is_exit = 0;
-   thread_localstore_t* tls  = 0;
-   memblock_t        threadstack;
-   memblock_t        signalstack;
-   ucontext_t        context_caller;
-   ucontext_t        context_mainthread;
+   int err;
+
+   uint32_t pagesize = (uint32_t) sys_pagesize_vm();
+
+   if (! pagesize
+      || ! ispowerof2_int(pagesize)
+      || sys_pagesize_vm() != pagesize) {
+      err = EINVAL;
+      goto ONERR;
+   }
+
+   // set out param
+   scontext->pagesize_vm = pagesize;
+   scontext->log2pagesize_vm = log2_int(pagesize);
+
+   return 0;
+ONERR:
+   // TODO: call init log
+   return err;
+}
+
+int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_thread, void * main_arg)
+{
+   int err;
+   volatile int linenr; // TODO: remove
+   memblock_t threadstack;
+   memblock_t signalstack;
+   ucontext_t context_caller;
+   ucontext_t context_mainthread;
+   thread_localstore_t* tls = 0;
+
+   if (scontext->pagesize_vm) {
+      // TODO: init log
+      return EALREADY;
+   }
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
+   err = set_scontext(scontext);
+   if (err) goto ONERR;
+
+   linenr = __LINE__;    // TODO: add init log to new_threadlocalstore / remove newmain_threadlocalstore
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
    err = newmain_threadlocalstore(&tls, &threadstack, &signalstack);
    if (err) goto ONERR;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
    stack_t altstack = { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
    if (sigaltstack(&altstack, 0)) {
       err = errno;
@@ -99,22 +133,7 @@ int init_platform(mainthread_f main_thread, void * user)
    }
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
-   if (getcontext(&context_caller)) {
-      err = errno;
-      goto ONERR;
-   }
-
-   if (is_exit) {
-      volatile thread_t * thread = thread_threadlocalstore(tls);
-      retcode = returncode_thread(thread);
-      goto ONERR;
-   }
-
-   is_exit = 1;
-
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
    if (getcontext(&context_mainthread)) {
       err = errno;
       goto ONERR;
@@ -125,40 +144,58 @@ int init_platform(mainthread_f main_thread, void * user)
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
    thread_t * thread = thread_threadlocalstore(tls);
-   initmain_thread(thread, main_thread, user);
+   initmain_thread(thread, main_thread, main_arg);
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONERR);
-   // start callmain_platform and returns to first getcontext then if (is_exit) {} is executed
-   setcontext(&context_mainthread);
-   err = errno;
-
-ONERR:
-   if (!err) linenr = __LINE__;
-   SETONERROR_testerrortimer(&s_platform_errtimer, &err);
-   altstack = (stack_t) { .ss_flags = SS_DISABLE };
-   int err2 = sigaltstack(&altstack, 0);
-   if (err2 && !err) err = errno;
-
-   if (!err) linenr = __LINE__;
-   SETONERROR_testerrortimer(&s_platform_errtimer, &err);
-   err2 = deletemain_threadlocalstore(&tls);
-   if (err2 && !err) err = err2;
-   if (err) {
-      #define ERRSTR1 "init_platform() "
-      #define ERRSTR2 ":%.4u\nError %.4u\n"
-      char errstr2[sizeof(ERRSTR2)];
-      snprintf(errstr2, sizeof(errstr2), ERRSTR2, (linenr&0x1FFF), (err&0x1FFF));
-      ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
-                      + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
-                      + write(STDERR_FILENO, errstr2, strlen(errstr2));
-      #undef ERRSTR1
-      #undef ERRSTR2
-      (void) written;
-      return err;
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
+   // start callmain_platform and returns to first context_caller after exit
+   if (swapcontext(&context_caller, &context_mainthread)) {
+      err = errno;
+      goto ONERR;
    }
+
+   int retcode = returncode_thread(thread);
+
+   linenr = __LINE__;
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
+   altstack = (stack_t) { .ss_flags = SS_DISABLE };
+   err = sigaltstack(&altstack, 0);
+   if (err) {
+      err = errno;
+      goto ONERR;
+   }
+
+   linenr = __LINE__;
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
+   err = deletemain_threadlocalstore(&tls);
+   if (err) goto ONERR;
+
+   // mark system context as freed
+   *scontext = (syscontext_t) syscontext_FREE;
+
    return retcode;
+ONERR:
+   altstack = (stack_t) { .ss_flags = SS_DISABLE };
+   (void) sigaltstack(&altstack, 0);
+   (void) deletemain_threadlocalstore(&tls);
+
+   #define ERRSTR1 "initrun_syscontext() "
+   #define ERRSTR2 ":%.4u\nError %.4u\n"
+   char errstr2[sizeof(ERRSTR2)];
+   snprintf(errstr2, sizeof(errstr2), ERRSTR2, (linenr&0x1FFF), (err&0x1FFF));
+   ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
+                   + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
+                   + write(STDERR_FILENO, errstr2, strlen(errstr2));
+   #undef ERRSTR1
+   #undef ERRSTR2
+   (void) written;
+
+   // mark system context as freed
+   *scontext = (syscontext_t) syscontext_FREE;
+
+   return err;
 }
+
 
 
 // section: Functions
@@ -189,82 +226,150 @@ static int mainabort_testthread(void * user)
 static int child_initabort(void * dummy)
 {
    (void) dummy;
-   init_platform(&mainabort_testthread, 0);
+   syscontext_t sc = syscontext_FREE;
+   initrun_syscontext(&sc, &mainabort_testthread, &sc);
    return 0;
+}
+
+static int check_sc(const syscontext_t * sc)
+{
+   // check sc
+   TEST(sc->pagesize_vm > 0);
+   TEST(sc->log2pagesize_vm >= 8);
+   TEST(sc->pagesize_vm == 1u << sc->log2pagesize_vm);
+   TEST(sc->pagesize_vm == sys_pagesize_vm());
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int maincheck_testthread(void * user)
+{
+   s_userarg = user;
+   s_thread  = self_thread()->sys_thread;
+   return check_sc(user);
 }
 
 static int test_init(void)
 {
-   file_t      fd      = file_FREE;
-   file_t      pfd[2]  = { file_FREE, file_FREE };
+   file_t      fd  = file_FREE;
+   pipe_t      pfd = pipe_FREE;
    process_t   process = process_FREE;
+   syscontext_t sc = syscontext_FREE;
 
-   TEST( 0 == pipe2(pfd, O_CLOEXEC)
+   // prepare
+   s_userarg = 0;
+   TEST( 0 == init_pipe(&pfd)
          && -1 != (fd = dup(STDERR_FILENO))
-         && -1 != dup2(pfd[1], STDERR_FILENO));
+         && -1 != dup2(pfd.write, STDERR_FILENO));
 
-   // TEST init_platform
+   // TEST syscontext_FREE
+   TEST(1 == isfree_syscontext(&sc));
+
+   // TEST set_scontext
+   TEST(0 == set_scontext(&sc));
+   TEST(0 == check_sc(&sc));
+
+   // TEST initrun_syscontext: EALREADY
+   TEST(0 == check_sc(&sc));
+   TEST(EALREADY == initrun_syscontext(&sc, &main_testthread, (void*)1));
+   TEST(0 == s_userarg);
+   sc = (syscontext_t) syscontext_FREE;
+
+   // TEST initrun_syscontext: argument
    s_retcode = 0;
    for (int i = 10; i >= 0; --i) {
-      TEST(0 == init_platform(&main_testthread, (void*)i));
+      TEST(0 == initrun_syscontext(&sc, &main_testthread, (void*)i));
+      TEST(1 == isfree_syscontext(&sc));
       TEST(i == (int) s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
 
-   // TEST init_platform: return code
+   // TEST initrun_syscontext: return code
    for (int i = 10; i >= 0; --i) {
       s_retcode = i;
       s_userarg = (void*) 1;
-      TEST(i == init_platform(&main_testthread, 0));
+      TEST(i == initrun_syscontext(&sc, &main_testthread, 0));
+      TEST(1 == isfree_syscontext(&sc));
       TEST(0 == s_userarg);
+      TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
 
-   // TEST init_platform: init error
-   for (unsigned i = 1; i <= 7; ++i) {
-      init_testerrortimer(&s_platform_errtimer, i, 333);
+   // TEST initrun_syscontext: sets syscontext_t
+   TEST(0 == initrun_syscontext(&sc, &maincheck_testthread, &sc));
+   TEST(1 == isfree_syscontext(&sc));
+   TEST(&sc == s_userarg);
+   TEST(0 != pthread_equal(s_thread, pthread_self()));
+
+   // TEST initrun_syscontext: init error
+   for (unsigned i = 1; i; ++i) {
+      uint8_t buffer[80];
+      init_testerrortimer(&s_syscontext_errtimer, i, 333);
       s_userarg = 0;
-      TEST(333 == init_platform(&main_testthread, (void*)1));
+      int err = initrun_syscontext(&sc, &main_testthread, (void*)1);
+      TEST(1 == isfree_syscontext(&sc));
       TEST((i > 5) == (int) s_userarg);
+      if (!err) {
+         TEST(8 == i);
+         TEST(-1 == read(pfd.read, buffer, sizeof(buffer)));
+         free_testerrortimer(&s_syscontext_errtimer);
+         break;
+      }
+      TEST(333 == err);
+      ssize_t len = read(pfd.read, buffer, sizeof(buffer));
+      TESTP(66 == len, "len=%zd", len);
+      buffer[len] = 0;
+      PRINTF_ERRLOG("%s", buffer);
+   }
+
+   TEST(STDERR_FILENO == dup2(fd, STDERR_FILENO));
+   TEST(0 == free_file(&fd));
+
+   // TEST initrun_syscontext: abort
+   {
+      process_result_t  result;
+      process_stdio_t   stdfd = process_stdio_INIT_DEVNULL;
+      redirecterr_processstdio(&stdfd, pfd.write);
+      TEST(0 == init_process(&process, &child_initabort, 0, &stdfd));
+      TEST(0 == wait_process(&process, &result));
+      TEST(0 == free_process(&process));
+      TEST(process_state_ABORTED == result.state);
       uint8_t  buffer[80];
       ssize_t  len = 0;
-      len = read(pfd[0], buffer, sizeof(buffer));
+      len = read(pfd.read, buffer, sizeof(buffer));
       TEST(61 == len);
       buffer[len] = 0;
       PRINTF_ERRLOG("%s", buffer);
    }
 
-   TEST(-1 != dup2(fd, STDERR_FILENO));
-   TEST(0 == free_file(&fd));
-
-   // TEST init_platform: abort
-   {
-      process_result_t  result;
-      process_stdio_t   stdfd = process_stdio_INIT_DEVNULL;
-      redirecterr_processstdio(&stdfd, pfd[1]);
-      TEST(0 == init_process(&process, &child_initabort, 0, &stdfd));
-      TEST(0 == wait_process(&process, &result));
-      TEST(process_state_ABORTED == result.state);
-      TEST(0 == free_process(&process));
-      uint8_t  buffer[80];
-      ssize_t  len = 0;
-      len = read(pfd[0], buffer, sizeof(buffer));
-      TEST(56 == len);
-      buffer[len] = 0;
-      PRINTF_ERRLOG("%s", buffer);
-   }
-
-   TEST(0 == free_file(&pfd[0]));
-   TEST(0 == free_file(&pfd[1]));
+   // unprepare
+   TEST(0 == free_pipe(&pfd));
 
    return 0;
 ONERR:
    free_process(&process);
    if (fd != file_FREE) {
       dup2(fd, STDERR_FILENO);
+      free_file(&fd);
    }
-   free_file(&fd);
-   free_file(&pfd[0]);
-   free_file(&pfd[1]);
+   free_pipe(&pfd);
+   return EINVAL;
+}
+
+static int test_query(void)
+{
+   syscontext_t sc = syscontext_FREE;
+
+   // TEST isfree_syscontext: true
+   TEST(1 == isfree_syscontext(&sc));
+
+   // TEST isfree_syscontext: false
+   TEST(0 == set_scontext(&sc));
+   TEST(0 == isfree_syscontext(&sc));
+
+   return 0;
+ONERR:
    return EINVAL;
 }
 
@@ -277,6 +382,7 @@ int unittest_platform_init()
    isold = true;
 
    if (test_init())     goto ONERR;
+   if (test_query())    goto ONERR;
 
    TEST(0 == sigaltstack(&oldstack, 0));
 

@@ -1649,8 +1649,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_DEFAULT, argc, argv, &main_thread);
-   err = initstart_maincontext(&startparam);
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_DEFAULT, argc, argv, &main_thread, 0);
+   err = initrun_maincontext(&startparam);
 
    return err ;
 }

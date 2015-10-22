@@ -29,7 +29,7 @@ typedef struct thread_t thread_t;
 
 /* typedef: thread_f
  * Defines function type executed by <thread_t>. */
-typedef int (* thread_f) (void * main_arg);
+typedef int (* thread_f) (void * thread_arg);
 
 
 // section: Functions
@@ -97,8 +97,8 @@ struct thread_t {
          { 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
 /* function: initmain_thread
- * Initializes main thread. Called from <platform_t.init_platform>.
- * Returns EINVAL if thread is not the main thread. */
+ * Initializes main thread. Called from <syscontext_t.initrun_syscontext>.
+ * */
 void initmain_thread(/*out*/thread_t* thread, thread_f thread_main, void* main_arg);
 
 /* function: new_thread

@@ -22,8 +22,7 @@ for i in $files; do
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do
       call="${function_calls[$fi]}"
-      if [[ "${call:0:56}" = "int init_platform(mainthread_f main_thread, void * user)" ]]; then continue; fi
-      if [[ ! "$call" =~ (^(static )?(int|void)[ ]+(init|new)[a-z0-9A-Z_]*\(($|(void)?\)|/\*out\*/|const )) ]]; then
+      if [[ ! "$call" =~ (^(static )?(int|void)[ ]+(init|new)[a-z0-9A-Z_]*\(($|(void)?\)|/\*out\*/|/\*out;err\*/|const )) ]]; then
          info2="$info2       ${function_calls[$fi]}\n";
       fi
    done

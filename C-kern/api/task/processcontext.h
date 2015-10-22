@@ -47,9 +47,6 @@ int unittest_task_processcontext(void);
  * It contains e.g. services which offfer read only values or services which
  * can be implemented with use of global locks. */
 struct processcontext_t {
-   /* variable: valuecache
-    * Points to global read only variables. */
-   struct valuecache_t*      valuecache;
    /* variable: syslogin
     * Context for <syslogin_t> module. */
    struct syslogin_t*        syslogin;
@@ -77,7 +74,7 @@ struct processcontext_t {
 
 /* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_STATIC { 0, 0, errorcontext_INIT_STATIC, 0, 0, 0 }
+#define processcontext_INIT_STATIC { 0, errorcontext_INIT_STATIC, 0, 0, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

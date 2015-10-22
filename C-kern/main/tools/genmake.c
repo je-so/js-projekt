@@ -1937,9 +1937,9 @@ PRINT_USAGE:
 int main(int argc, const char * argv[])
 {
    int err;
-   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread);
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread, 0);
 
-   err = initstart_maincontext(&startparam);
+   err = initrun_maincontext(&startparam);
 
    return err;
 }

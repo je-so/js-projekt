@@ -130,7 +130,6 @@
       <File Name="../../C-kern/api/memory/memvec.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
-      <File Name="../../C-kern/api/cache/valuecache.h"/>
       <File Name="../../C-kern/api/cache/objectcache_macros.h"/>
       <File Name="../../C-kern/api/cache/objectcache_impl.h"/>
       <File Name="../../C-kern/api/cache/objectcache.h"/>
@@ -261,7 +260,6 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
-    <File Name="../../C-kern/cache/valuecache.c"/>
     <File Name="../../C-kern/cache/objectcache_impl.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">

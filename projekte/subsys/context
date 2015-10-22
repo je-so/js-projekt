@@ -5,7 +5,6 @@ Src += C-kern/task/processcontext.c
 Src += C-kern/task/threadcontext.c
 # default services
 Src += C-kern/cache/objectcache_impl.c
-Src += C-kern/cache/valuecache.c
 Src += C-kern/ds/inmem/blockarray.c
 Src += C-kern/ds/inmem/dlist.c
 Src += C-kern/ds/inmem/queue.c

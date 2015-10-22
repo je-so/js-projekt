@@ -24,7 +24,6 @@
 #include "C-kern/api/err/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/platform/X11/x11.h"
@@ -32,6 +31,7 @@
 #include "C-kern/api/platform/task/thread_localstore.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/test/resourceusage.h"
 #endif
 
 
@@ -53,7 +53,6 @@ static inline uint16_t static_memory_size(void)
 {
    uint16_t memorysize = 0
 // TEXTDB:SELECT("         + sizeof("objtype")")FROM(C-kern/resource/config/initprocess)WHERE(inittype=="object")
-         + sizeof(valuecache_t)
          + sizeof(syslogin_t)
          + sizeof(pagecache_blockmap_t)
 // TEXTDB:END
@@ -136,15 +135,6 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    ++ pcontext->initcount;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   assert( sizeof(valuecache_t) <= mblock.size);
-   err = init_valuecache((valuecache_t*) mblock.addr);
-   if (err) goto ONERR;
-   pcontext->valuecache = (valuecache_t*) mblock.addr;
-   mblock.addr += sizeof(valuecache_t);
-   mblock.size -= sizeof(valuecache_t);
-   ++ pcontext->initcount;
-
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
    assert( sizeof(syslogin_t) <= mblock.size);
    err = init_syslogin((syslogin_t*) mblock.addr);
    if (err) goto ONERR;
@@ -189,28 +179,22 @@ int free_processcontext(processcontext_t* pcontext)
             break;
 // TEXTDB:SELECT(\n"   case ("row-id"+1):"\n(if (inittype=='initonce') ("            err2 = freeonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;")) (if (inittype=='object') ("            err2 = free_"module"( pcontext->"parameter");"\n"            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;"\n"            pcontext->"parameter" = 0;")) )FROM(C-kern/resource/config/initprocess)DESCENDING
 
-   case (7+1):
+   case (6+1):
             err2 = freeonce_X11();
             SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 
-   case (6+1):
+   case (5+1):
             err2 = free_pagecacheblockmap( pcontext->blockmap);
             SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
             pcontext->blockmap = 0;
 
-   case (5+1):
+   case (4+1):
             err2 = free_syslogin( pcontext->syslogin);
             SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
             pcontext->syslogin = 0;
-
-   case (4+1):
-            err2 = free_valuecache( pcontext->valuecache);
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
-            if (err2) err = err2;
-            pcontext->valuecache = 0;
 
    case (3+1):
             err2 = freeonce_signalhandler();
@@ -247,8 +231,7 @@ ONERR:
 
 bool isstatic_processcontext(const processcontext_t * pcontext)
 {
-   return   0 == pcontext->valuecache
-            && 0 == pcontext->syslogin
+   return   0 == pcontext->syslogin
             && g_errorcontext_stroffset == pcontext->error.stroffset && g_errorcontext_strdata == pcontext->error.strdata
             && 0 == pcontext->blockmap
             && 0 == pcontext->staticmemblock
@@ -329,7 +312,7 @@ ONERR:
 static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_STATIC;
-   const uint16_t    I        = 8;
+   const uint16_t    I        = 7;
    const size_t      S        = sizestatic_threadlocalstore(self_threadlocalstore());
 
    // TEST processcontext_INIT_STATIC
@@ -337,7 +320,6 @@ static int test_initfree(void)
 
    // TEST init_processcontext
    TEST(0 == init_processcontext(&pcontext));
-   TEST(0 != pcontext.valuecache);
    TEST(0 != pcontext.syslogin);
    TEST(0 != pcontext.error.stroffset);
    TEST(0 != pcontext.error.strdata);
@@ -397,7 +379,6 @@ static int test_initfree(void)
    TEST(0 == init_processcontext(&pcontext));
    TEST(I == pcontext.initcount);
    TEST(S == sizestatic_threadlocalstore(self_threadlocalstore()) - static_memory_size());
-   TEST(0 == free_valuecache(pcontext.valuecache));
    TEST(0 == free_syslogin(pcontext.syslogin));
    TEST(0 == free_pagecacheblockmap(pcontext.blockmap));
    // restore (if setuid)
@@ -417,9 +398,6 @@ static int test_query(void)
 
    // TEST isstatic_processcontext
    TEST(1 == isstatic_processcontext(&pcontext));
-   pcontext.valuecache = (void*)1;
-   TEST(0 == isstatic_processcontext(&pcontext));
-   pcontext.valuecache = 0;
    pcontext.syslogin = (void*)1;
    TEST(0 == isstatic_processcontext(&pcontext));
    pcontext.syslogin = 0;
@@ -451,15 +429,36 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_task_processcontext()
+int childprocess_unittest(void)
 {
+   resourceusage_t usage = resourceusage_FREE;
+
+   TEST(0 == init_resourceusage(&usage));
+
    if (test_helper())      goto ONERR;
-   if (test_initfree())    goto ONERR;
    if (test_query())       goto ONERR;
+   if (test_initfree())    goto ONERR;
+
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
 
    return 0;
 ONERR:
+   (void) free_resourceusage(&usage);
    return EINVAL;
 }
+
+int unittest_task_processcontext()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONERR:
+   return EINVAL;
+}
+
+
 
 #endif

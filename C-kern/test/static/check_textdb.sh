@@ -22,12 +22,22 @@ temp_thread_db=`mktemp`
 echo '"module",            "inittype",    "objtype",            "parameter",     "header-name"' > $temp_thread_db
 echo '"module",            "inittype",    "objtype",            "parameter",    "header-name"' > $temp_process_db
 
+# sed filter for
+#   #define type_INIT_STATIC() \
+#            { a, b, interface_logwriter(), ... }
+# { block of commands; };
+# :label => define label
+# N => appends next line to pattern space
+# b label => goto label
+
+DEFINE_FILTER=':start /^.*\\$/{ N; b start; }; /^#define/d'
+
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
    init_once_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_thread_calls=( `grep "initthread_[a-zA-Z0-9_]*[ \t]*(" $i` )
-   interface_thread=( `grep "interface_[a-zA-Z0-9_]*[ \t]*(" $i` )
+   interface_thread=( `sed -e ${DEFINE_FILTER} ${i} | grep 'interface_[a-zA-Z0-9_]*[ \t]*(' -` )
    free_process_calls=( `grep "freeonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_thread_calls=( `grep "freethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
@@ -48,33 +58,6 @@ for i in $files; do
          let "testnr=testnr-1"
       fi
    done
-   # filter input initthread_
-   for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
-      result="${init_thread_calls[$testnr]}"
-      if [ "${result/define initthread_*(*)/}" != "$result" ]; then
-         init_thread_calls[$testnr]="${init_thread_calls[${#init_thread_calls[*]}-1]}"
-         unset init_thread_calls[${#init_thread_calls[*]}-1]
-         let "testnr=testnr-1"
-      fi
-   done
-   for((testnr=0;testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
-      result="${free_thread_calls[$testnr]}"
-      if [ "${result/define freethread_*(*)/}" != "$result" ]; then
-         free_thread_calls[$testnr]="${free_thread_calls[${#free_thread_calls[*]}-1]}"
-         unset free_thread_calls[${#free_thread_calls[*]}-1]
-         let "testnr=testnr-1"
-      fi
-   done
-   # filter input interface_
-   for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
-      result="${interface_thread[$testnr]}"
-      if [ "${result/define interface_*(*)/}" != "$result" ]; then
-         interface_thread[$testnr]="${interface_thread[${#interface_thread[*]}-1]}"
-         unset interface_thread[${#interface_thread[*]}-1]
-         let "testnr=testnr-1"
-      fi
-   done
-
 
    # test for correct interface
    for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
@@ -102,25 +85,25 @@ for i in $files; do
          continue ;
       fi
       if [ "${result#int initthread_*(/\*out\*/}" = "$result" ]; then
-         info="$info  file: <${i}> wrong definition '$result'\n"
+         info="$info  file: <${i}> wrong initthread_definition '$result'\n"
          continue ;
       fi
       if    [ "${result/,/}" != "$result" ] \
          || [ "${result#int initthread_*(*/\*out\*/*);}" != "" ]; then
-         info="$info  file: <${i}> wrong definition '$result'\n"
+         info="$info  file: <${i}> wrong initthread_definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
       result=${free_thread_calls[$testnr]}
       result=${result#extern }
       if [ "${result#int freethread_*(*);}" != "" ]; then
-         info="$info  file: <${i}> wrong definition '$result'\n"
+         info="$info  file: <${i}> wrong freethread_definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result=${interface_thread[$testnt]}
       if [[ ! "$result" =~ (^struct .*_it[ ]?\* interface_.*\(void\)[ ]?;) ]]; then
-         info="$info  file: <${i}> wrong definition '$result'\n"
+         info="$info  file: <${i}> wrong interface_definition '$result'\n"
       fi
    done
 

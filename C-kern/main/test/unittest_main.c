@@ -22,8 +22,7 @@
 
 int main(int argc, const char* argv[])
 {
-   (void) argc;
    int err;
-   err = init_platform(run_unittest, argv);
+   err = run_unittest(argc, argv);
    return err;
 }
