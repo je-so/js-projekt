@@ -15,6 +15,9 @@
 
    file: C-kern/api/platform/Linux/syscontext.h
     Linux specific configuration file <LinuxSystemContext>.
+
+  file: C-kern/api/platform/init.h
+    Platform specific initialization used by this module.
 */
 #ifndef CKERN_API_MAINCONTEXT_HEADER
 #define CKERN_API_MAINCONTEXT_HEADER

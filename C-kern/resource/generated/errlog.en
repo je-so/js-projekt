@@ -5,217 +5,205 @@
  *
  */
 
-void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * wrong_condition = va_arg(vargs, const char*) ;
+   struct p_ASSERT_FAILED_ERRLOG * p = _p;
 
-   PRINTF("Assertion '%s' failed.\n", wrong_condition) ;
+   PRINTF("Assertion '%s' failed.\n", p->wrong_condition);
 }
 
-void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
+   struct p_ERROR_DESCRIPTION_ERRLOG * p = _p;
 
-   PRINTF("Error %d - %s\n", err, str_static_errorcontext(err)) ;
+   PRINTF("Error %d - %s\n", p->err, str_static_errorcontext(p->err));
 }
 
-void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   (void) vargs ;
+   (void) _p;
 
-   PRINTF("Error will be ignored\n") ;
+   PRINTF("Error will be ignored\n");
 }
 
-void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG * p = _p;
 
-   PRINTF("'%s' contains no newline\n", filename) ;
+   PRINTF("'%s' contains no newline\n", p->filename);
 }
 
-void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_FORMAT_WRONG_ERRLOG * p = _p;
 
-   PRINTF("File '%s' has unknown format\n", filename) ;
+   PRINTF("File '%s' has unknown format\n", p->filename);
 }
 
-void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * workdir = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_NAME_ERRLOG * p = _p;
 
-   PRINTF("File name '%s%s'\n", workdir, filename) ;
+   PRINTF("File name '%s%s'\n", p->workdir, p->filename);
 }
 
-void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
-   const char * workdir = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_CREATE_ERRLOG * p = _p;
 
-   PRINTF("Can not create file '%s%s' - %s\n", workdir, filename, str_static_errorcontext(err)) ;
+   PRINTF("Can not create file '%s%s' - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
 }
 
-void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
-   const char * workdir = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_OPEN_ERRLOG * p = _p;
 
-   PRINTF("Can not open file '%s%s' - %s\n", workdir, filename, str_static_errorcontext(err)) ;
+   PRINTF("Can not open file '%s%s' - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
 }
 
-void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
-   const char * workdir = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
+   struct p_FILE_REMOVE_ERRLOG * p = _p;
 
-   PRINTF("Can not remove file '%s%s' - %s\n", workdir, filename, str_static_errorcontext(err)) ;
+   PRINTF("Can not remove file '%s%s' - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
 }
 
-void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * funcname = va_arg(vargs, const char*) ;
-   int err = va_arg(vargs, int) ;
+   struct p_FUNCTION_CALL_ERRLOG * p = _p;
 
-   PRINTF("Function call '%s' failed with error %d\n", funcname, err) ;
+   PRINTF("Function call '%s' failed with error %d\n", p->funcname, p->err);
 }
 
-void FUNCTION_EXIT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_EXIT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
+   struct p_FUNCTION_EXIT_ERRLOG * p = _p;
 
-   PRINTF("Exit function with\nError %d - %s\n", err, str_static_errorcontext(err)) ;
+   PRINTF("Exit function with\nError %d - %s\n", p->err, str_static_errorcontext(p->err));
 }
 
-void FUNCTION_EXIT_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_EXIT_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
+   struct p_FUNCTION_EXIT_FREE_RESOURCE_ERRLOG * p = _p;
 
-   PRINTF("One or more resources could not be freed\nExit function with\nError %d - %s\n", err, str_static_errorcontext(err)) ;
+   PRINTF("One or more resources could not be freed\nExit function with\nError %d - %s\n", p->err, str_static_errorcontext(p->err));
 }
 
-void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * funcname = va_arg(vargs, const char*) ;
-   int err = va_arg(vargs, int) ;
+   struct p_FUNCTION_SYSCALL_ERRLOG * p = _p;
 
-   PRINTF("System call '%s' failed with error %d\n", funcname, err) ;
+   PRINTF("System call '%s' failed with error %d\n", p->funcname, p->err);
 }
 
-void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * funcname = va_arg(vargs, const char*) ;
-   const char * wrong_value = va_arg(vargs, const char*) ;
+   struct p_FUNCTION_WRONG_RETURNVALUE_ERRLOG * p = _p;
 
-   PRINTF("Function '%s' returned wrong value (%s)\n", funcname, wrong_value) ;
+   PRINTF("Function '%s' returned wrong value (%s)\n", p->funcname, p->wrong_value);
 }
 
-void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   (void) vargs ;
+   (void) _p;
 
-   PRINTF("Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n") ;
+   PRINTF("Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n");
 }
 
-void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   size_t threadid = va_arg(vargs, size_t) ;
-   uint64_t sec = va_arg(vargs, uint64_t) ;
-   uint32_t usec = va_arg(vargs, uint32_t) ;
-   const char * funcname = va_arg(vargs, const char*) ;
-   const char * filename = va_arg(vargs, const char*) ;
-   int linenr = va_arg(vargs, int) ;
+   struct p_LOGENTRY_HEADER_ERRLOG * p = _p;
 
-   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", threadid, sec, usec, funcname, filename, linenr) ;
+   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", p->threadid, p->sec, p->usec, p->funcname, p->filename, p->linenr);
 }
 
-void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   size_t size = va_arg(vargs, size_t) ;
-   int err = va_arg(vargs, int) ;
+   struct p_MEMORY_OUT_OF_ERRLOG * p = _p;
 
-   PRINTF("Could not allocate %zu bytes of memory - error %d\n", size, err) ;
+   PRINTF("Could not allocate %zu bytes of memory - error %d\n", p->size, p->err);
 }
 
-void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   size_t linenr = va_arg(vargs, size_t) ;
-   size_t colnr = va_arg(vargs, size_t) ;
-   const char * chr = va_arg(vargs, const char*) ;
+   struct p_PARSEERROR_EXPECTCHAR_ERRLOG * p = _p;
 
-   PRINTF("Expect character '%s' in line: %zu, column: %zu\n", chr, linenr, colnr) ;
+   PRINTF("Expect character '%s' in line: %zu, column: %zu\n", p->chr, p->linenr, p->colnr);
 }
 
-void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   size_t linenr = va_arg(vargs, size_t) ;
-   size_t colnr = va_arg(vargs, size_t) ;
+   struct p_PARSEERROR_EXPECTNEWLINE_ERRLOG * p = _p;
 
-   PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", linenr, colnr) ;
+   PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", p->linenr, p->colnr);
 }
 
-void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   int err = va_arg(vargs, int) ;
+   struct p_PROGRAM_ABORT_ERRLOG * p = _p;
 
-   PRINTF("Abort process with fatal error\nError %d - %s\n", err, str_static_errorcontext(err)) ;
+   PRINTF("Abort process with fatal error\nError %d - %s\n", p->err, str_static_errorcontext(p->err));
 }
 
-void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   (void) vargs ;
+   (void) _p;
 
-   PRINTF("The number of used resources is different\n") ;
+   PRINTF("The number of used resources is different\n");
 }
 
-void STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * signame = va_arg(vargs, const char*) ;
+   struct p_STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG * p = _p;
 
-   PRINTF("The signal handler installed for signal «%s» possibly produces undefined behaviour.\n", signame) ;
+   PRINTF("The signal handler installed for signal «%s» possibly produces undefined behaviour.\n", p->signame);
 }
 
-void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * violated_condition = va_arg(vargs, const char*) ;
+   struct p_TEST_INPARAM_FALSE_ERRLOG * p = _p;
 
-   PRINTF("Function input violates condition (%s)\n", violated_condition) ;
+   PRINTF("Function input violates condition (%s)\n", p->violated_condition);
 }
 
-void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * violated_condition = va_arg(vargs, const char*) ;
+   struct p_TEST_INVARIANT_FALSE_ERRLOG * p = _p;
 
-   PRINTF("Internal state variables violate condition (%s)\n", violated_condition) ;
+   PRINTF("Internal state variables violate condition (%s)\n", p->violated_condition);
 }
 
-void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * violated_condition = va_arg(vargs, const char*) ;
+   struct p_TEST_OUTPARAM_FALSE_ERRLOG * p = _p;
 
-   PRINTF("Function output violates condition (%s)\n", violated_condition) ;
+   PRINTF("Function output violates condition (%s)\n", p->violated_condition);
 }
 
-void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * violated_condition = va_arg(vargs, const char*) ;
+   struct p_TEST_STATE_FALSE_ERRLOG * p = _p;
 
-   PRINTF("Operation allowed only in state (%s)\n", violated_condition) ;
+   PRINTF("Operation allowed only in state (%s)\n", p->violated_condition);
 }
 
-void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void THREAD_MAIN_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   (void) vargs ;
+   struct p_THREAD_MAIN_ABORT_ERRLOG * p = _p;
 
-   PRINTF("Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY«\n") ;
+   PRINTF("Abort main thread '%zu' with fatal error\n", p->threadid);
 }
 
-void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, va_list vargs)
+void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   const char * display_server_name = va_arg(vargs, const char*) ;
+   (void) _p;
 
-   PRINTF("Can not connect to X11 display server '%s'\n", display_server_name) ;
+   PRINTF("Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY«\n");
+}
+
+void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_X11_NO_CONNECTION_ERRLOG * p = _p;
+
+   PRINTF("Can not connect to X11 display server '%s'\n", p->display_server_name);
 }

@@ -1,61 +1,79 @@
-C-kern/main/maincontext.c:107: initstatic_logwriter FAILED
-C-kern/main/maincontext.c:107: initstatic_logwriter FAILED
-[0: 1445190104.787696s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.641588s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 39 - Directory not empty
-[0: 1445190104.787725s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.641619s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 4 - Interrupted system call
-[0: 1445190104.790253s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.644090s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 5 - Input/output error
-[0: 1445190104.793804s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.647904s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 6 - No such device or address
-[0: 1445190104.801644s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.655812s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[0: 1445190104.805835s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.659203s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[0: 1445190104.809367s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.662609s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 4 - Interrupted system call
-[0: 1445190104.865855s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.694537s]
+initrun_maincontext() C-kern/main/maincontext.c:237
+Exit function with
+Error 22 - Invalid argument
+[0: 1445601086.694558s]
+initrun_maincontext() C-kern/main/maincontext.c:237
+Exit function with
+Error 22 - Invalid argument
+[0: 1445601086.694561s]
+initrun_maincontext() C-kern/main/maincontext.c:237
+Exit function with
+Error 22 - Invalid argument
+[0: 1445601086.694564s]
+initrun_maincontext() C-kern/main/maincontext.c:237
+Exit function with
+Error 22 - Invalid argument
+[1: 1445601086.696530s]
+initrun_maincontext() C-kern/main/maincontext.c:207
+Exit function with
+Error 114 - Operation already in progress
+[0: 1445601086.696751s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 1 - Operation not permitted
-[0: 1445190104.868426s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.697871s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 2 - No such file or directory
-[0: 1445190104.871951s]
-init_maincontext() C-kern/main/maincontext.c:187
+[0: 1445601086.700136s]
+init_maincontext() C-kern/main/maincontext.c:177
 Exit function with
 Error 3 - No such process
-[0: 1445190104.875504s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.702647s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 4 - Interrupted system call
-[0: 1445190104.879024s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.704808s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 5 - Input/output error
-[0: 1445190104.882570s]
-free_maincontext() C-kern/main/maincontext.c:153
+[0: 1445601086.706705s]
+free_maincontext() C-kern/main/maincontext.c:143
 One or more resources could not be freed
 Exit function with
 Error 6 - No such device or address

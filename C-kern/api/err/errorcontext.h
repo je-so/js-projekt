@@ -105,7 +105,7 @@ uint16_t maxsyserrnum_errorcontext(void);
 const uint8_t * str_errorcontext(const errorcontext_t errcontext, int errnum);
 
 /* function: str_static_errorcontext
- * Same as <str_errorcontext> except that the global error is accessed directly.
+ * Same as <str_errorcontext> except that the global error context is accessed directly.
  * See <g_errorcontext_stroffset> and <g_errorcontext_strdata>.
  * Use this function in case of uninitialized <maincontext_t>. */
 const uint8_t * str_static_errorcontext(int errnum);

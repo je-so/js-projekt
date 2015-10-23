@@ -493,7 +493,7 @@ void logurl_ipaddr(const ipaddr_t * addr, const char * varname, uint8_t logchann
       ipname[1] = 0 ;
    }
 
-   PRINTF_LOG( logchannel, log_flags_NONE, 0, "%s%s%s://%s:%d\n",
+   PRINTF_LOG(, logchannel, log_flags_NONE, 0, "%s%s%s://%s:%d\n",
                varname ? varname : "",
                varname ? ": " : "",
                protocolname, ipname, port_ipaddr(addr)) ;

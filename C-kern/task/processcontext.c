@@ -19,6 +19,7 @@
 #include "C-kern/api/task/processcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/config/initprocess)
 #include "C-kern/api/err/errorcontext.h"
@@ -255,7 +256,7 @@ static int test_helper(void)
    memblock_t       mblock   = memblock_FREE;
 
    // prepare0
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
+   TEST(0 == new_threadlocalstore(&tls, 0, 0, pagesize_vm()));
 
    // TEST static_memory_size
    TEST(S == static_memory_size());

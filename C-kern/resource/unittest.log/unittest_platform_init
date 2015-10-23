@@ -1,16 +1,47 @@
-initrun_syscontext() C-kern/platform/Linux/init.c:0117
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0122
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0127
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0135
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0149
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0159
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:0168
-Error 0333
-initrun_syscontext() C-kern/platform/Linux/init.c:65
-aborted
+[1: 1445603301.125106s]
+init_syscontext() C-kern/platform/Linux/init.c:97
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125122s]
+initrun_syscontext() C-kern/platform/Linux/init.c:191
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125154s]
+initrun_syscontext() C-kern/platform/Linux/init.c:116
+Function call 'new_threadlocalstore' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125200s]
+initrun_syscontext() C-kern/platform/Linux/init.c:127
+System call 'sigaltstack' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125241s]
+initrun_syscontext() C-kern/platform/Linux/init.c:137
+System call 'getcontext' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125289s]
+initrun_syscontext() C-kern/platform/Linux/init.c:155
+System call 'swapcontext' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125341s]
+initrun_syscontext() C-kern/platform/Linux/init.c:168
+System call 'sigaltstack' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[1: 1445603301.125401s]
+initrun_syscontext() C-kern/platform/Linux/init.c:175
+Function call 'delete_threadlocalstore' failed with error 333
+Exit function with
+Error 333 - Unknown error
+[0: 1445603301.126148s]
+callmain_platform() C-kern/platform/Linux/init.c:64
+Abort main thread '0' with fatal error
+Exit function with
+Error 131 - State not recoverable
+[0: 1445603301.126180s]
+abort_maincontext() C-kern/main/maincontext.c:245
+Abort process with fatal error
+Error 131 - State not recoverable

@@ -56,23 +56,15 @@ struct thread_localstore_t;
  * the stack from overflowing.
  * The allocated memory block is aligned to its own size.
  * The thread local variables (<threadcontext_t> and <thread_t>) are initialized
- * with their INIT_STATIC resp. INIT_FREEABLE values. */
-int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
+ * with their INIT_STATIC resp. INIT_FREEABLE values.
+ * pagesize should be set to <pagesize_vm> (or <sys_pagesize_vm> during initialization).
+ * Called from <syscontext_t.initrun_syscontext> therefore initlog is used if needed. */
+int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack, size_t pagesize);
 
 /* function: delete_threadlocalstore
- * Changes protection of memory to normal and frees it. */
+ * Changes protection of memory to normal and frees it.
+ * Called from <syscontext_t.initrun_syscontext> therefore initlog is used if needed. */
 int delete_threadlocalstore(thread_localstore_t** tls);
-
-/* function: newmain_threadlocalstore
- * Same as <new_threadlocalstore> but calls no other functions of C-kern system.
- * Called from <syscontext_t.initrun_syscontext>.
- * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
-int newmain_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
-
-/* function: deletemain_threadlocalstore
- * Same as <delete_threadlocalstore> but calls no other functions of C-kern system.
- * Especially no logging is done and no calls to <pagesize_vm> and <free_vmpage> are made. */
-int deletemain_threadlocalstore(thread_localstore_t** tls);
 
 // group: query
 

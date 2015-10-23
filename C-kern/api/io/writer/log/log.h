@@ -30,7 +30,7 @@ typedef struct log_header_t log_header_t;
 
 /* typedef: log_text_f
  * Declare function pointer which writes a text resource into <logbuffer_t>. */
-typedef void (*log_text_f) (struct logbuffer_t * logbuffer, va_list vargs);
+typedef void (*log_text_f) (struct logbuffer_t * logbuffer, void * params);
 
 
 /* enums: log_config_e
@@ -157,7 +157,7 @@ struct log_it {
     * Writes text resource as new log entry to in internal buffer.
     * See <printf> for a description of the parameter. The variable parameter list must match the resource.
     * If textf == 0 only the header is written. */
-   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, log_text_f textf, ... );
+   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, log_text_f textf, void * params);
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
@@ -259,7 +259,7 @@ struct log_header_t {
                && &_l->printtext                       \
                   == (void(**)(log_t*,uint8_t,uint8_t, \
                                const log_header_t*,    \
-                               log_text_f,...))        \
+                               log_text_f,void*))      \
                      &((log_it*) _l)->printtext        \
                && &_l->flushbuffer                     \
                   == (void(**)(log_t*,uint8_t))        \
@@ -297,7 +297,7 @@ struct log_header_t {
                                   const log_header_t * header, const char * format, ... ) \
                                   __attribute__ ((__format__ (__printf__, 5, 6)));        \
             void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,            \
-                                  const log_header_t * header, log_text_f textf, ... );   \
+                                  const log_header_t * header, log_text_f textf, void*p); \
             void  (*flushbuffer) (log_t * log, uint8_t channel);                          \
             void  (*truncatebuffer) (log_t * log, uint8_t channel, size_t size);          \
             void  (*getbuffer)   (const log_t * log, uint8_t channel,                     \

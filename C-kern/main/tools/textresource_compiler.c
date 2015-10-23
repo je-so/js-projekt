@@ -2123,7 +2123,7 @@ ONERR:
 
 static int writeCvfctdeclaration_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
 {
-   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C ;
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
 
    dprintf(writer->outfile, "void %.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
                                                  (int)text->name.size, text->name.addr,
@@ -2134,70 +2134,43 @@ static int writeCvfctdeclaration_textresourcewriter(textresource_writer_t * writ
       dprintf(writer->outfile, "%.*s, ", (int)progC->firstparam.size, progC->firstparam.addr) ;
    }
 
-   dprintf(writer->outfile, "va_list vargs)") ;
+   dprintf(writer->outfile, "void * _p)") ;
 
    return 0 ;
 }
 
-static int writeCfctparamtypes_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
-{
-   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
-
-   dprintf(writer->outfile, "void _param_types_%.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
-                                                 (int)text->name.size, text->name.addr,
-                                                 (int)progC->namesuffix.size, progC->namesuffix.addr
-                                                );
-
-   bool first_param = true;
-
-   if (progC->firstparam.size) {
-      first_param = false;
-      dprintf(writer->outfile, "%.*s", (int)progC->firstparam.size, progC->firstparam.addr) ;
-   }
-
-   foreach (_paramlist, param, &text->paramlist) {
-      if (first_param) {
-         first_param = false;
-      } else {
-         dprintf(writer->outfile, ", ");
-      }
-      dprintf(writer->outfile, "%s%.*s %s%.*s",  (param->typemod & typemodifier_CONST) ? "const " : "",
-                                             (int)param->type->name.size, param->type->name.addr,
-                                             (param->typemod & typemodifier_POINTER) ? "* " : "",
-                                             (int)param->name.size, param->name.addr);
-   }
-
-   if (first_param) {
-      dprintf(writer->outfile, "void)");
-   } else {
-      dprintf(writer->outfile, ")");
-   }
-
-   return 0;
-}
-
-static int writeCformatstring_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
+static int writeCparamstruct_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
 {
    int bytes;
    typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
 
-   bytes = dprintf(writer->outfile, "#define _format_string_%.*s%.*s%.*s \"", (int)progC->nameprefix.size, progC->nameprefix.addr,
-                                                 (int)text->name.size, text->name.addr,
-                                                 (int)progC->namesuffix.size, progC->namesuffix.addr
-                                                );
+   int isnoarg = isempty_slist(&text->paramlist);
+
+   bytes = dprintf(writer->outfile, "%s%.*s%.*s%.*s",
+                     isnoarg ? "typedef void p_noarg_" : "struct p_",
+                     (int)progC->nameprefix.size, progC->nameprefix.addr,
+                     (int)text->name.size, text->name.addr,
+                     (int)progC->namesuffix.size, progC->namesuffix.addr);
    if (bytes < 0) goto ONERR;
 
-   foreach (_paramlist, param, &text->paramlist) {
-      if (!(param->typemod & typemodifier_POINTER)) {
-         bytes = dprintf(writer->outfile, "%%%s", param->type->format);
-      } else {
-         bytes = dprintf(writer->outfile, "%%%s", param->type->ptrformat);
-      }
+   if (!isnoarg) {
+      bytes = dprintf(writer->outfile, " {");
       if (bytes < 0) goto ONERR;
    }
 
-   bytes = dprintf(writer->outfile, "\"");
-   if (bytes < 0) goto ONERR;
+   foreach (_paramlist, param, &text->paramlist) {
+      bytes = dprintf(writer->outfile, " %s%.*s %s%.*s;",
+                        (param->typemod & typemodifier_CONST) ? "const " : "",
+                        (int)param->type->name.size, param->type->name.addr,
+                        (param->typemod & typemodifier_POINTER) ? "* " : "",
+                        (int)param->name.size, param->name.addr);
+      if (bytes < 0) goto ONERR;
+   }
+
+   if (!isnoarg) {
+      bytes = dprintf(writer->outfile, " }");
+      if (bytes < 0) goto ONERR;
+   }
 
    return 0;
 ONERR:
@@ -2221,10 +2194,7 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 #endif
 
    foreach (_textlist, text, &writer->txtres->textlist) {
-      err = writeCformatstring_textresourcewriter(writer, text);
-      if (err) goto ONERR;
-      dprintf(writer->outfile, "\n");
-      err = writeCfctparamtypes_textresourcewriter(writer, text);
+      err = writeCparamstruct_textresourcewriter(writer, text);
       if (err) goto ONERR;
       dprintf(writer->outfile, ";\n");
       err = writeCvfctdeclaration_textresourcewriter(writer, text);
@@ -2293,13 +2263,13 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
       if (textresource_textatom_PARAMETER == textatom->type) {
          textresource_parameter_t * param = textatom->param.ref ;
          if (!(param->typemod & typemodifier_POINTER)) {
-            bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr);
+            bytes = dprintf(writer->outfile, ", p->%.*s", (int)param->name.size, param->name.addr);
             if (bytes < 0) goto ONERR;
          } else {
             if (textatom->param.maxlen)
-               bytes = dprintf(writer->outfile, ", %d, %.*s", textatom->param.maxlen, (int)param->name.size, param->name.addr);
+               bytes = dprintf(writer->outfile, ", %d, p->%.*s", textatom->param.maxlen, (int)param->name.size, param->name.addr);
             else
-               bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr);
+               bytes = dprintf(writer->outfile, ", p->%.*s", (int)param->name.size, param->name.addr);
             if (bytes < 0) goto ONERR;
          }
 
@@ -2311,7 +2281,7 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
 
    }
 
-   bytes = dprintf(writer->outfile, "%s", ") ;\n") ;
+   bytes = dprintf(writer->outfile, "%s", ");\n") ;
    if (bytes < 0) goto ONERR;
 
    return 0 ;
@@ -2353,7 +2323,7 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
          if (!isempty_textatomlist(&condition->atomlist))
             writeCprintf_textresourcewriter(writer, &condition->atomlist) ;
          else if (isIfElse)
-            dprintf(writer->outfile, "/* EMPTY */ ;\n") ;
+            dprintf(writer->outfile, "/* EMPTY */;\n") ;
       }
    }
 
@@ -2362,33 +2332,30 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
 
 static int writeCvfunction_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text, textresource_language_t * lang)
 {
-   int err ;
+   int err;
+   int bytes;
+   int isnoarg = isempty_slist(&text->paramlist);
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C;
 
-   // extract parameter from va_list vargs
-   bool isparam = false ;
-   foreach (_paramlist, param, &text->paramlist) {
-      dprintf(writer->outfile, "   %s%.*s %s%.*s",  (param->typemod & typemodifier_CONST) ? "const " : "",
-                                             (int)param->type->name.size, param->type->name.addr,
-                                             (param->typemod & typemodifier_POINTER) ? "* " : "",
-                                             (int)param->name.size, param->name.addr) ;
-      dprintf(writer->outfile, " = va_arg(vargs, %s%.*s%s) ;\n",  (param->typemod & typemodifier_CONST) ? "const " : "",
-                                             (int)param->type->name.size, param->type->name.addr,
-                                             (param->typemod & typemodifier_POINTER) ? "*" : "") ;
-      isparam = true ;
+   if (isnoarg) {
+      bytes = dprintf(writer->outfile, "   (void) _p;\n") ;
+   } else {
+      bytes = dprintf(writer->outfile, "   struct p_%.*s%.*s%.*s * p = _p;\n",
+                        (int)progC->nameprefix.size, progC->nameprefix.addr,
+                        (int)text->name.size, text->name.addr,
+                        (int)progC->namesuffix.size, progC->namesuffix.addr);
    }
+   if (bytes < 0) goto ONERR;
 
-   if (! isparam) {
-      dprintf(writer->outfile, "   (void) vargs ;\n") ;
-   }
+   bytes = dprintf(writer->outfile, "\n");
+   if (bytes < 0) goto ONERR;
 
-   dprintf(writer->outfile, "\n") ;
-
-   err = writeCfunction_textresourcewriter(writer, text, lang) ;
+   err = writeCfunction_textresourcewriter(writer, text, lang);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return EIO;
 }
 
 static int writeCsource_textresourcewriter(textresource_writer_t * writer, textresource_language_t * lang)

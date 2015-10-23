@@ -19,7 +19,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
-#include "C-kern/resource/generated/errlog.h"
 
 #define PRINTF(...)   printf_logbuffer(logbuffer, __VA_ARGS__)
 

@@ -62,10 +62,6 @@ static test_errortimer_t   s_maincontext_errtimer = test_errortimer_FREE;
  * Assigned to <maincontext_t.initlog>. */
 static logwriter_t   s_maincontext_initlog = logwriter_FREE;
 
-/* variable: s_maincontext_logbuffer
- * Used for <maincontext_t.initlog>. */
-static uint8_t       s_maincontext_logbuffer[log_config_MINSIZE];
-
 
 // group: helper
 
@@ -100,15 +96,9 @@ static inline void clear_args_maincontext(/*out*/maincontext_t * maincontext)
    maincontext->argv = 0;
 }
 
-static inline int initlog_maincontext(/*out*/logwriter_t* initlog, size_t bufsize, uint8_t logbuf[bufsize])
+static inline void initlog_maincontext(/*out*/logwriter_t* initlog)
 {
-   int err = initstatic_logwriter(initlog, bufsize, logbuf);
-   if (err) {
-      dprintf(STDERR_FILENO, "%s:%d: initstatic_logwriter FAILED\n", __FILE__, __LINE__);
-      return err;
-   }
-
-   return 0;
+   initshared_logwriter(initlog);
 }
 
 // group: lifetime
@@ -212,17 +202,15 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * mai
 {
    int err;
 
-   // setup initlog which is used for error logging during initialization
-   if (isfree_logwriter(&s_maincontext_initlog)) {
-      ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
-      err = initlog_maincontext(&s_maincontext_initlog, sizeof(s_maincontext_logbuffer), s_maincontext_logbuffer);
-      if (err) goto ONERR;
-   }
-
    int is_already_initialized = (maincontext_STATIC != g_maincontext.type);
    if (is_already_initialized) {
-      err = EALREADY;
-      goto ONERR;
+      TRACEEXIT_ERRLOG(EALREADY);
+      return EALREADY;
+   }
+
+   // setup initlog which is used for error logging during initialization
+   if (isfree_logwriter(&s_maincontext_initlog)) {
+      initlog_maincontext(&s_maincontext_initlog);
    }
 
    if (  type <= maincontext_STATIC
@@ -245,9 +233,8 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * mai
    clear_args_maincontext(&g_maincontext);
 
    return err;
-
 ONERR:
-   // TODO: add init log
+   TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
@@ -403,23 +390,17 @@ static int test_helper(void)
    TEST(0 == check_isfree_args(&maincontext));
 
    // TEST initlog_maincontext
-   for (size_t bs = sizeof(s_maincontext_logbuffer); bs <= 2*sizeof(s_maincontext_logbuffer); bs += sizeof(s_maincontext_logbuffer)) {
-      logwriter_t initlog = logwriter_FREE;
-      uint8_t     logbuf[2*sizeof(s_maincontext_logbuffer)];
-      TEST(1 == isfree_logwriter(&initlog));
-      TEST(0 == initlog_maincontext(&initlog, bs, logbuf));
-      TEST(initlog.addr == logbuf);
-      TEST(initlog.size == bs);
-      TEST(0 == isfree_logwriter(&initlog));
-   }
-
-   // TEST initlog_maincontext: EINVAL
    {
-      logwriter_t initlog = logwriter_FREE;
-      uint8_t     logbuf[sizeof(s_maincontext_logbuffer) - 1];
-      TEST(1 == isfree_logwriter(&initlog));
-      TEST(EINVAL == initlog_maincontext(&initlog, sizeof(logbuf), logbuf));
-      TEST(1 == isfree_logwriter(&initlog));
+      logwriter_t initlog1 = logwriter_FREE;
+      logwriter_t initlog2 = logwriter_FREE;
+      initlog_maincontext(&initlog1);
+      TEST(initlog1.addr != 0);
+      TEST(initlog1.size == log_config_MINSIZE);
+      initshared_logwriter(&initlog2);
+      TEST(initlog2.addr == initlog1.addr);
+      TEST(initlog2.size == initlog1.size);
+      freeshared_logwriter(&initlog2);
+      freeshared_logwriter(&initlog1);
    }
 
    return 0;
@@ -465,12 +446,12 @@ static int test_init(void)
       case maincontext_STATIC:
          break;
       case maincontext_DEFAULT:
-         TEST(log_state_IGNORED  == GETSTATE_LOG(log_channel_USERERR));
-         TEST(log_state_BUFFERED == GETSTATE_LOG(log_channel_ERR));
+         TEST(log_state_IGNORED  == GETSTATE_LOG(,log_channel_USERERR));
+         TEST(log_state_BUFFERED == GETSTATE_LOG(,log_channel_ERR));
          break;
       case maincontext_CONSOLE:
-         TEST(log_state_UNBUFFERED == GETSTATE_LOG(log_channel_USERERR));
-         TEST(log_state_IGNORED    == GETSTATE_LOG(log_channel_ERR));
+         TEST(log_state_UNBUFFERED == GETSTATE_LOG(,log_channel_USERERR));
+         TEST(log_state_IGNORED    == GETSTATE_LOG(,log_channel_ERR));
          break;
       }
 
@@ -614,7 +595,7 @@ static int test_initrun(void)
    for (uintptr_t i = 0; i < lengthof(s_mainmode); ++i) {
       TEST(0 == isfree_logwriter(&s_maincontext_initlog));
       flushbuffer_logwriter(&s_maincontext_initlog, log_channel_ERR);
-      s_maincontext_initlog = (logwriter_t) logwriter_FREE;
+      freeshared_logwriter(&s_maincontext_initlog);
       TEST(1 == isfree_logwriter(&s_maincontext_initlog));
       s_i = i;
       s_argv[i] = "./.";
@@ -624,9 +605,13 @@ static int test_initrun(void)
       TEST(1 == s_is_called);
 
       // check initlog
-      TEST(0 == isfree_logwriter(&s_maincontext_initlog));
-      TEST(s_maincontext_initlog.addr == s_maincontext_logbuffer);
-      TEST(s_maincontext_initlog.size == sizeof(s_maincontext_logbuffer));
+      {
+         logwriter_t initlog;
+         initshared_logwriter(&initlog);
+         TEST(s_maincontext_initlog.addr == initlog.addr);
+         TEST(s_maincontext_initlog.size == initlog.size);
+         freeshared_logwriter(&initlog);
+      }
 
       // check free_maincontext called
       TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
@@ -635,32 +620,17 @@ static int test_initrun(void)
       TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
    }
 
-   // TEST initrun_maincontext: initlog set up error
-   s_is_called = 0;
-   for (uintptr_t i = 0; i < lengthof(s_mainmode); ++i) {
-      s_maincontext_initlog = (logwriter_t) logwriter_FREE;
-      // test
-      init_testerrortimer(&s_maincontext_errtimer, 1, EINVAL);
-      TEST(EINVAL == initrun_maincontext(s_mainmode[i], &test_init_param, (void*)(2), (int) (1), &s_argv[0]));
-      TEST(0 == s_is_called);
-
-      // check initlog
-      TEST(1 == isfree_logwriter(&s_maincontext_initlog));
-
-      // check free_maincontext called
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-
-      // check syscontext is free
-      TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
-   }
-
-   // TEST initrun_maincontext: EINVAL
+   // TEST initrun_maincontext: EINVAL (but initlog setup ==> error log is written)
+   freeshared_logwriter(&s_maincontext_initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_STATIC, &test_init_returncode, 0, 0, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   freeshared_logwriter(&s_maincontext_initlog);
    TEST(EINVAL == initrun_maincontext(maincontext__NROF, &test_init_returncode, 0, 0, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   freeshared_logwriter(&s_maincontext_initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, -1, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   freeshared_logwriter(&s_maincontext_initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, 1, 0));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
 

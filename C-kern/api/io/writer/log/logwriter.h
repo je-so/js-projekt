@@ -113,21 +113,34 @@ struct log_it * interface_logwriter(void);
 int init_logwriter(/*out*/logwriter_t * lgwrt);
 
 /* function: initstatic_logwriter
- * de: Initialisiert einen <logwriter_t> Logservice, der von außen zugewiesenen,
+ * (de:) Initialisiert einen <logwriter_t> Logservice, der von außen zugewiesenen,
  * zumeist statisch allokierten Speicher benutzt. Der Speicher muss solange gültig bleiben,
  * wie lgwrt in Benutzung ist. Die Freigabe des Objektes erfolgt mittels <freestatic_logwriter>.
  *
- * en: Is used during construction and deconstruction of main process context
+ * (en:) Is used during construction and deconstruction of main process context
  * and construction and deconstruction of every thread context. Every thread has
  * its own except for the first main thread who uses a global log service
  * allocated in static memory.
  *
+ * If bufsize is set to a value < <minbufsize_logwriter> only log_channel_ERR is assigned
+ * a buffer size > 0.
+ *
  * Return:
- * This function works always except for bufsize < minbufsize_logwriter() in which case
+ * This function works always except for bufsize < log_config_MINSIZE in which case
  * EINVAL is returned.
  *
+ *
  * No error log is written cause function is called during system initialization. */
-int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= minbufsize_logwriter()*/, uint8_t logbuf[bufsize]);
+int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= log_config_MINSIZE*/, uint8_t logbuf[bufsize]);
+
+/* function: initstatic_logwriter
+ * Initializes a <logwriter_t> singleton with static memory.
+ * Every initialized instance shares the same memory. Therefore using
+ * more than one instance produces wrong log results
+ * (memory is overwritten by other instance).
+ *
+ * Is used by <maincontext_t.initrun_maincontext> to initialize field initlog. */
+void initshared_logwriter(/*out*/logwriter_t * lgwrt);
 
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
@@ -136,7 +149,11 @@ int free_logwriter(logwriter_t * lgwrt);
 
 /* function: freestatic_logwriter
  * Does nothing at the moment except for setting lgwrt to a freed state. */
-int freestatic_logwriter(/*out*/logwriter_t * lgwrt);
+void freestatic_logwriter(/*out*/logwriter_t * lgwrt);
+
+/* function: freestatic_logwriter
+ * Does nothing at the moment except for setting lgwrt to a freed state. */
+void freeshared_logwriter(/*out*/logwriter_t * lgwrt);
 
 // group: query
 
@@ -193,7 +210,7 @@ void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const
 /* function: printtext_logwriter
  * Writes a text resource to internal buffer.
  * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
-void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, ...);
+void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
 
 /* function: vprintf_logwriter
  * Same as <printf_logwriter> except that variadic arguments are replaced by args.
@@ -210,5 +227,10 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
  * Inline implementation of <logwriter_t.minbufsize_logwriter>. */
 #define minbufsize_logwriter() \
          (log_channel__NROF * log_config_MINSIZE)
+
+/* define: freeshared_logwriter
+ * Inline implementation of <logwriter_t.freeshared_logwriter>. */
+#define freeshared_logwriter(lgwrt) \
+         freestatic_logwriter(lgwrt)
 
 #endif

@@ -53,14 +53,14 @@
 # 6. Conditional Content
 #    You can select between different depending on the values of the input parameter.
 #    Use "(" to mark the begin of a selection and ")" to mark its end.
-#    Use "(param1 == 1 && param2 > 5)" to define the condition under which the following string or parameter
+#    Use "(p->param1 == 1 && p->param2 > 5)" to define the condition under which the following string or parameter
 #    should be used. Use "else" to select a string for all other cases.
 #    The following example demonstrates the selection of either string "file\n" or "files\n"
 #    depending on the value of parameter »nr_of_deleted_files«.
 #    6.1 Example
 #    FILES_DELETED(unsigned nr)
-#    en: "I have deleted " ((nr==0) "no" (nr==1) "one" else nr)
-#        ((nr==1) " file\n" else " files\n")
+#    en: "I have deleted " ((p->nr==0) "no" (p->nr==1) "one" else nr)
+#        ((p->nr==1) " file\n" else " files\n")
 # 7. Function parameters
 #    The <outconfig type=C> output supports special function parameters.
 #    They can be defined with
@@ -85,7 +85,7 @@
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
    <firstparam value="struct logbuffer_t * logbuffer"/>
-   <fctparam name="ERRSTR" value="str_static_errorcontext(err)" format="%s"/>
+   <fctparam name="ERRSTR" value="str_static_errorcontext(p->err)" format="%s"/>
    <languages>de, en</languages>
 </outconfig>
 
@@ -199,6 +199,10 @@ en: "Function output violates condition ("violated_condition")\n"
 TEST_STATE_FALSE(const char * violated_condition)
 de: "Operation nur erlaubt im Zustand ("violated_condition")\n"
 en: "Operation allowed only in state ("violated_condition")\n"
+
+THREAD_MAIN_ABORT(size_t threadid)
+de: "Hauptthread '"threadid"' abgebrochen wegen fatalem Fehler\n"
+en: "Abort main thread '"threadid"' with fatal error\n"
 
 X11_DISPLAY_NOT_SET()
 de: "Name des X11 Display-Servers nicht bekannt\n"

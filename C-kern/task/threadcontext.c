@@ -23,6 +23,7 @@
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/task/thread_localstore.h"
@@ -374,7 +375,7 @@ static int test_lifehelper(void)
    memblock_t         mblock = memblock_FREE;
 
    // prepare0
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
+   TEST(0 == new_threadlocalstore(&tls, 0, 0, pagesize_vm()));
 
    // TEST static_memory_size
    TEST(staticsize == static_memory_size());
@@ -464,7 +465,7 @@ static int test_initfree(void)
    maincontext_e     oldtype = maincontext_STATIC;
 
    // prepare
-   TEST(0 == new_threadlocalstore(&tls, 0, 0));
+   TEST(0 == new_threadlocalstore(&tls, 0, 0, pagesize_vm()));
    {
       memblock_t _mb = memblock_FREE;
       TEST(0 == memalloc_threadlocalstore(tls, 0, &_mb));

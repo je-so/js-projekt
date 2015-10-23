@@ -1,60 +1,113 @@
-[1: 1444582811.316463s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004403s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
-Error 1 - Operation not permitted
-[1: 1444582811.316472s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+Error 28 - No space left on device
+[1: 1445402070.004427s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:185
+System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1444582811.316478s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004433s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
 Error 3 - No such process
-[1: 1444582811.316484s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004439s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
 Error 4 - Interrupted system call
-[1: 1444582811.316491s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004444s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
 Error 5 - Input/output error
-[1: 1444582811.316499s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004451s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
 Error 6 - No such device or address
-[1: 1444582811.316515s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:289
+[1: 1445402070.004460s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
 Exit function with
 Error 7 - Argument list too long
-[1: 1444582811.316532s]
-delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:316
+[1: 1445402070.004475s]
+init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:136
+Exit function with
+Error 8 - Exec format error
+[1: 1445402070.004482s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 8 - Exec format error
+[1: 1445402070.004498s]
+delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:284
+System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1444582811.331699s]
-memalloc_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:379
+[1: 1445402070.009227s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 28 - No space left on device
+[1: 1445402070.009239s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:185
+System call 'mmap' failed with error 2
+Exit function with
+Error 2 - No such file or directory
+[1: 1445402070.009246s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 3 - No such process
+[1: 1445402070.009251s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 4 - Interrupted system call
+[1: 1445402070.009257s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 5 - Input/output error
+[1: 1445402070.009265s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 6 - No such device or address
+[1: 1445402070.009275s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 7 - Argument list too long
+[1: 1445402070.009289s]
+init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:136
+Exit function with
+Error 8 - Exec format error
+[1: 1445402070.009296s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+Exit function with
+Error 8 - Exec format error
+[1: 1445402070.009313s]
+delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:284
+System call 'munmap' failed with error 22
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1445402070.031512s]
+memalloc_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:343
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1444582811.347832s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
+[1: 1445402070.068624s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1444582811.347835s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
+[1: 1445402070.068627s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1444582811.347838s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
+[1: 1445402070.068630s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1444582811.347840s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:393
+[1: 1445402070.068633s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with

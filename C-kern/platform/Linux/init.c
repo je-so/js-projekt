@@ -20,6 +20,8 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/writer/log/logbuffer.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/memblock.h"
@@ -49,24 +51,19 @@ static test_errortimer_t   s_syscontext_errtimer = test_errortimer_FREE;
 
 /* function: callmain_platform
  * Calls the main threads main function.
- * An error is written to STDERR if the main thread
- * aborts. */
+ * The whole process is aborted if the main thread aborts. */
 static void callmain_platform(void)
 {
    thread_t * thread = self_thread();
 
-   bool is_abort;
+   volatile bool is_abort;
    if (  setcontinue_thread(&is_abort)
          || is_abort) {
-      #define ERRSTR1 "initrun_syscontext() "
-      #define ERRSTR2 ":" STR(__LINE__) "\naborted\n"
-      ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
-                      + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
-                      + write(STDERR_FILENO, ERRSTR2, sizeof(ERRSTR2)-1);
-      #undef ERRSTR1
-      #undef ERRSTR2
-      (void) written;
-      abort();
+      // threadcontext_t is already set up (use default log)
+      int err = returncode_thread(thread);
+      TRACE_ERRLOG(log_flags_NONE, THREAD_MAIN_ABORT, context_threadlocalstore(castPthread_threadlocalstore(thread))->thread_id);
+      TRACEEXIT_ERRLOG(err);
+      abort_maincontext(err);
    }
 
    void*    arg     = mainarg_thread(thread);
@@ -76,11 +73,13 @@ static void callmain_platform(void)
    setreturncode_thread(thread, retcode);
 }
 
-static inline int set_scontext(/*out*/struct syscontext_t * scontext)
+static inline int init_syscontext(/*out*/struct syscontext_t * scontext)
 {
    int err;
 
    uint32_t pagesize = (uint32_t) sys_pagesize_vm();
+
+   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
 
    if (! pagesize
       || ! ispowerof2_int(pagesize)
@@ -95,80 +94,87 @@ static inline int set_scontext(/*out*/struct syscontext_t * scontext)
 
    return 0;
 ONERR:
-   // TODO: call init log
+   TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
 int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_thread, void * main_arg)
 {
    int err;
-   volatile int linenr; // TODO: remove
    memblock_t threadstack;
    memblock_t signalstack;
-   ucontext_t context_caller;
+   ucontext_t context_old;
    ucontext_t context_mainthread;
    thread_localstore_t* tls = 0;
 
-   if (scontext->pagesize_vm) {
-      // TODO: init log
-      return EALREADY;
+   err = init_syscontext(scontext);
+   if (err) goto ONERR;
+
+   err = new_threadlocalstore(&tls, &threadstack, &signalstack, scontext->pagesize_vm);
+   SETONERROR_testerrortimer(&s_syscontext_errtimer, &err);
+   if (err) {
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadlocalstore", err);
+      goto ONERR;
    }
 
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
-   err = set_scontext(scontext);
-   if (err) goto ONERR;
-
-   linenr = __LINE__;    // TODO: add init log to new_threadlocalstore / remove newmain_threadlocalstore
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
-   err = newmain_threadlocalstore(&tls, &threadstack, &signalstack);
-   if (err) goto ONERR;
-
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
    stack_t altstack = { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
-   if (sigaltstack(&altstack, 0)) {
+   err = sigaltstack(&altstack, 0);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
+      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   }
+   if (err) {
       err = errno;
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
       goto ONERR;
    }
 
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
-   if (getcontext(&context_mainthread)) {
+   err = getcontext(&context_mainthread);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
+      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   }
+   if (err) {
       err = errno;
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "getcontext", err);
       goto ONERR;
    }
 
-   context_mainthread.uc_link  = &context_caller;
+   context_mainthread.uc_link  = &context_old;
    context_mainthread.uc_stack = (stack_t) { .ss_sp = threadstack.addr, .ss_flags = 0, .ss_size = threadstack.size };
    makecontext(&context_mainthread, &callmain_platform, 0, 0);
 
    thread_t * thread = thread_threadlocalstore(tls);
    initmain_thread(thread, main_thread, main_arg);
 
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
-   // start callmain_platform and returns to first context_caller after exit
-   if (swapcontext(&context_caller, &context_mainthread)) {
+   // start callmain_platform and returns to context_old after exit
+   err = swapcontext(&context_old, &context_mainthread);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
+      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   }
+   if (err) {
       err = errno;
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "swapcontext", err);
       goto ONERR;
    }
 
    int retcode = returncode_thread(thread);
 
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
    err = sigaltstack(&altstack, 0);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
+      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   }
    if (err) {
       err = errno;
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
       goto ONERR;
    }
 
-   linenr = __LINE__;
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
-   err = deletemain_threadlocalstore(&tls);
-   if (err) goto ONERR;
+   err = delete_threadlocalstore(&tls);
+   SETONERROR_testerrortimer(&s_syscontext_errtimer, &err);
+   if (err) {
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadlocalstore", err);
+      goto ONERR;
+   }
 
    // mark system context as freed
    *scontext = (syscontext_t) syscontext_FREE;
@@ -177,22 +183,12 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
 ONERR:
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
    (void) sigaltstack(&altstack, 0);
-   (void) deletemain_threadlocalstore(&tls);
-
-   #define ERRSTR1 "initrun_syscontext() "
-   #define ERRSTR2 ":%.4u\nError %.4u\n"
-   char errstr2[sizeof(ERRSTR2)];
-   snprintf(errstr2, sizeof(errstr2), ERRSTR2, (linenr&0x1FFF), (err&0x1FFF));
-   ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
-                   + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
-                   + write(STDERR_FILENO, errstr2, strlen(errstr2));
-   #undef ERRSTR1
-   #undef ERRSTR2
-   (void) written;
+   (void) delete_threadlocalstore(&tls);
 
    // mark system context as freed
    *scontext = (syscontext_t) syscontext_FREE;
 
+   TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
@@ -226,6 +222,10 @@ static int mainabort_testthread(void * user)
 static int child_initabort(void * dummy)
 {
    (void) dummy;
+   // make sure: static log of new thread context is used
+   // (setup in inittun_syscontext) !!
+   memset(tcontext_maincontext(), 0, sizeof(threadcontext_t));
+   // test abort
    syscontext_t sc = syscontext_FREE;
    initrun_syscontext(&sc, &mainabort_testthread, &sc);
    return 0;
@@ -257,6 +257,7 @@ static int test_init(void)
    pipe_t      pfd = pipe_FREE;
    process_t   process = process_FREE;
    syscontext_t sc = syscontext_FREE;
+   uint8_t     buffer[512];
 
    // prepare
    s_userarg = 0;
@@ -267,15 +268,9 @@ static int test_init(void)
    // TEST syscontext_FREE
    TEST(1 == isfree_syscontext(&sc));
 
-   // TEST set_scontext
-   TEST(0 == set_scontext(&sc));
+   // TEST init_syscontext
+   TEST(0 == init_syscontext(&sc));
    TEST(0 == check_sc(&sc));
-
-   // TEST initrun_syscontext: EALREADY
-   TEST(0 == check_sc(&sc));
-   TEST(EALREADY == initrun_syscontext(&sc, &main_testthread, (void*)1));
-   TEST(0 == s_userarg);
-   sc = (syscontext_t) syscontext_FREE;
 
    // TEST initrun_syscontext: argument
    s_retcode = 0;
@@ -302,14 +297,13 @@ static int test_init(void)
    TEST(&sc == s_userarg);
    TEST(0 != pthread_equal(s_thread, pthread_self()));
 
-   // TEST initrun_syscontext: init error
+   // TEST initrun_syscontext: simulated ERROR
    for (unsigned i = 1; i; ++i) {
-      uint8_t buffer[80];
       init_testerrortimer(&s_syscontext_errtimer, i, 333);
       s_userarg = 0;
       int err = initrun_syscontext(&sc, &main_testthread, (void*)1);
       TEST(1 == isfree_syscontext(&sc));
-      TEST((i > 5) == (int) s_userarg);
+      TEST((i > 4) == (int) s_userarg);
       if (!err) {
          TEST(8 == i);
          TEST(-1 == read(pfd.read, buffer, sizeof(buffer)));
@@ -318,7 +312,7 @@ static int test_init(void)
       }
       TEST(333 == err);
       ssize_t len = read(pfd.read, buffer, sizeof(buffer));
-      TESTP(66 == len, "len=%zd", len);
+      TESTP(165 < len, "len=%zd", len);
       buffer[len] = 0;
       PRINTF_ERRLOG("%s", buffer);
    }
@@ -335,10 +329,8 @@ static int test_init(void)
       TEST(0 == wait_process(&process, &result));
       TEST(0 == free_process(&process));
       TEST(process_state_ABORTED == result.state);
-      uint8_t  buffer[80];
-      ssize_t  len = 0;
-      len = read(pfd.read, buffer, sizeof(buffer));
-      TEST(61 == len);
+      ssize_t len = read(pfd.read, buffer, sizeof(buffer));
+      TEST(300 < len);
       buffer[len] = 0;
       PRINTF_ERRLOG("%s", buffer);
    }
@@ -365,7 +357,7 @@ static int test_query(void)
    TEST(1 == isfree_syscontext(&sc));
 
    // TEST isfree_syscontext: false
-   TEST(0 == set_scontext(&sc));
+   TEST(0 == init_syscontext(&sc));
    TEST(0 == isfree_syscontext(&sc));
 
    return 0;

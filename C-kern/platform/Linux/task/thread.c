@@ -164,7 +164,7 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    memblock_t        signalstack;
 
    ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
-   err = new_threadlocalstore(&tls, &stack, &signalstack);
+   err = new_threadlocalstore(&tls, &stack, &signalstack, pagesize_vm());
    if (err) goto ONERR;
 
    newthread = thread_threadlocalstore(tls);

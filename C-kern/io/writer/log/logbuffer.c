@@ -167,15 +167,6 @@ void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
    va_end(args);
 }
 
-// convert parameter into va_list
-static inline void _LOGENTRY_HEADER(logbuffer_t * logbuf, ...)
-{
-   va_list args;
-   va_start(args, logbuf);
-   LOGENTRY_HEADER_ERRLOG(logbuf, args);
-   va_end(args);
-}
-
 void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header)
 {
    struct timeval tv;
@@ -187,12 +178,10 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
    static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works");
 
 #define CALL(TEXTID, ...) \
-   if (0) {                                                       \
-      /* check correct parameter type */                          \
-      _param_types_ ## TEXTID ## _ERRLOG (logbuf, __VA_ARGS__);   \
-      printf(_format_string_ ## TEXTID ## _ERRLOG, __VA_ARGS__);  \
-   } else {                                                       \
-      _ ## TEXTID (logbuf, __VA_ARGS__);                          \
+   {                                         \
+      struct p_ ## TEXTID ## _ERRLOG         \
+         params = { __VA_ARGS__ };           \
+      TEXTID ## _ERRLOG (logbuf, &params);   \
    }
    CALL(LOGENTRY_HEADER, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
 #undef CALL
