@@ -59,14 +59,19 @@ dlist_IMPLEMENT(_freepagelist, freepage_t, )
  * Stores information about a block of memory pages.
  * This type allocates and frees such a block of contiguous memory pages.
  * It stores a reference to the first page and the size of all pages together.
- * It also manages allocation and releasing of pages cut out from the big memory block. */
+ * It also manages allocation and releasing of pages cut out from the big memory block.
+ *
+ * TODO: unterstütze freeblock list für x-page Blöcke,
+ *       so daß mehr als eine Page auf einmal freigegeben werden kann.
+ *       Implementiere free_page(x contiguous pages).
+ * */
 struct pagecache_block_t {
    /* variable:   threadcontext
     * Thread which allocated the memory block. */
    threadcontext_t* threadcontext;
    /* variable: blockaddr
     * Address of allocated system memory page of size <pagecache_block_BLOCKSIZE>.
-    * One allocated block contains one or more pages of size <pagecache_t.pagesizeinbytes_pagecache>(<pagesize__>). */
+    * One allocated block contains one or more pages of size <pagecache_t.pagesizeinbytes_pagecache>(<pgsize>). */
    uint8_t*       blockaddr;
    /* variable: next_block
     * Used to store all allocated <pagecache_block_t> in a list. */

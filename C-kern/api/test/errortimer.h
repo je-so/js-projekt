@@ -14,9 +14,8 @@
 #ifndef CKERN_TEST_ERRORTIMER_HEADER
 #define CKERN_TEST_ERRORTIMER_HEADER
 
-/* typedef: struct test_errortimer_t
- * Export <test_errortimer_t>. */
-typedef struct test_errortimer_t test_errortimer_t;
+// === exported types
+struct test_errortimer_t;
 
 
 // section: Functions
@@ -33,14 +32,14 @@ int unittest_test_errortimer(void);
  * Holds a timer value and an error code.
  * The function <process_testerrortimer> returns
  * a stored error code if timercount has reached zero. */
-struct test_errortimer_t {
+typedef struct test_errortimer_t {
    /* variable: timercount
     * The number of times <process_testerrortimer> returns success. */
    uint32_t    timercount;
    /* variable: errcode
     * The error code which is returned by <process_testerrortimer>. */
    int         errcode;
-};
+} test_errortimer_t;
 
 // group: lifetime
 

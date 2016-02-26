@@ -815,7 +815,7 @@ struct testadapt_t {
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&testadp->errcounter, &err)) {
       ++ testadp->freenode_count;
@@ -1039,7 +1039,7 @@ static int test_insertconditions(void)
    TEST(nodes[2].node.left   == 0) ;
    TEST(nodes[2].node.right  == 0) ;
    TEST(nodes[2].node.parent == &nodes[1].node/*color is RED*/) ;
-   TEST(0 == removenodes_redblacktree(&tree)) ;
+   TEST(0 == removenodes_redblacktree(&tree));
 
    // TEST: parent (RED) uncle(RED)
    for (int i = 2; i <= 4; ++i) {

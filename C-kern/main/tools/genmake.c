@@ -155,7 +155,7 @@ int ccopy_stringarray( size_t size, char ** strings, stringarray_t** result)
    return 0 ;
 }
 
-int new_stringarray( const char * values, const char * separators, stringarray_t** result)
+int new_stringarray(/*out*/stringarray_t** result, const char * values, const char * separators)
 {
    if (!values || !separators) return 1 ;
 
@@ -349,7 +349,7 @@ void free_konfigvalues(konfigvalues_t** konfig)
    }
 }
 
-int new_konfigvalues(stringarray_t * modes, konfigvalues_t** result)
+int new_konfigvalues(/*out*/konfigvalues_t** result, stringarray_t * modes)
 {
    konfigvalues_t * konfig ;
    const uint16_t modecount = modes->size ;
@@ -499,7 +499,7 @@ void free_genmakeproject(genmakeproject_t** genmake)
    *genmake = 0 ;
 }
 
-int new_genmakeproject(genmakeproject_t** result, const char * filename)
+int new_genmakeproject(/*out*/genmakeproject_t** result, const char * filename)
 {
    assert( result && filename ) ;
    size_t         namelen = 0 ;
@@ -772,7 +772,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
          print_err( "line %d expected mode mapping after '%s %s' in file '%s'\n", lineNr, g_cmdLink, &linebuffer[paramStart], filename ) ;
          return 1 ;
       }
-      if (new_stringarray( modemapStart, " \t", &modemap)) {
+      if (new_stringarray(&modemap, modemapStart, " \t")) {
          return 1 ;
       }
       /* default mapping  'link <file> default=>'
@@ -983,8 +983,8 @@ int build_konfiguration(genmakeproject_t * genmake)
       const char * modesvalue = get_varvalue(&genmake->index, g_varModes, 0, genmake->filename) ;
       if (!modesvalue) goto ONERR;
       if (modesvalue[0] == 0) modesvalue = "default" ;
-      if (new_stringarray( modesvalue, " \t", &modes)) goto ONERR;
-      if (new_konfigvalues( modes, &konfig)) goto ONERR;
+      if (new_stringarray(&modes, modesvalue, " \t")) goto ONERR;
+      if (new_konfigvalues( &konfig, modes)) goto ONERR;
 
       for (size_t i = 0; i < modes->size; ++i) {
          assert(konfig->modes[i]) ;
@@ -1031,7 +1031,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       {  const char * value = get_varvalue(&genmake->index, g_varDefines, konfig->modes[m], genmake->filename) ;
          stringarray_t * strarray = 0 ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
+         if (new_stringarray(&strarray, value2, " \t")) goto ONERR;
          free(value2) ;
          konfig->defines[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_definesprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->defines[m]) { print_err("Out of memory!\n") ; goto ONERR; }
@@ -1052,7 +1052,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       {  const char * value = get_varvalue(&genmake->index, g_varIncludes, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
+         if (new_stringarray(&strarray, value2, " \t")) goto ONERR;
          free(value2) ;
          konfig->includes[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_includesprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->includes[m]) { print_err("Out of memory!\n") ; goto ONERR; }
@@ -1073,7 +1073,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       {  const char * value = get_varvalue(&genmake->index, g_varLibs, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
+         if (new_stringarray(&strarray, value2, " \t")) goto ONERR;
          free(value2) ;
          konfig->libs[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libsprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->libs[m]) { print_err("Out of memory!\n") ; goto ONERR; }
@@ -1094,7 +1094,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       {  const char * value = get_varvalue(&genmake->index, g_varLibpath, konfig->modes[m], genmake->filename) ;
          char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         if (new_stringarray( value2, " \t", &strarray)) goto ONERR;
+         if (new_stringarray(&strarray, value2, " \t")) goto ONERR;
          free(value2) ;
          konfig->libpath[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libpathprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->libpath[m]) { print_err("Out of memory!\n") ; goto ONERR; }
@@ -1138,7 +1138,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       // scan directories and build array of files
       {  stringarray_t * searchpatterns = 0 ;
          int errflag = 0 ;
-         if (new_stringarray( konfig->src[m], " \t", &searchpatterns)) goto ONERR;
+         if (new_stringarray(&searchpatterns, konfig->src[m], " \t")) goto ONERR;
          glob_t foundfiles = { .gl_pathc = 0, .gl_pathv= 0 } ;
          for (size_t pi=0; !errflag && pi < searchpatterns->size; ++pi) {
             char * pattern = searchpatterns->strings[pi] ;

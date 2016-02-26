@@ -679,7 +679,7 @@ struct testadapt_t {
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&testadp->errcounter, &err)) {
       ++ testadp->freenode_count;
@@ -925,7 +925,7 @@ static int test_insertremove(void)
    node = 0 ;
    TEST(0 == find_patriciatrie(&tree, 0, 0, &node)) ;
    TEST(&nodes[0].node == node) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   TEST(0 == removenodes_patriciatrie(&tree));
    TEST(1 == nodes[0].is_freed) ;
    nodes[0].key_len = sizeof(nodes[0].key) ;
    nodes[0].is_freed = 0 ;

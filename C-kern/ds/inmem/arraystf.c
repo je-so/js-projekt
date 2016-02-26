@@ -941,7 +941,7 @@ static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copi
 
 static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
       ++ (*node)->freecount ;
@@ -1228,7 +1228,7 @@ static int test_initfree(void)
       TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, 0))
       TEST(nrnodes-pos == length_arraystf(array)) ;
    }
-   TEST(0 == delete_arraystf(&array, &nodeadp)) ;
+   TEST(0 == delete_arraystf(&array, &nodeadp));
    TEST(0 == array) ;
    for (size_t pos = nrnodes; (pos --); ) {
       TEST(1 == nodes[pos].freecount) ;

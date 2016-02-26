@@ -231,9 +231,9 @@ void unlink0_linkd(const link_t* link);
 void unlink_linkd(const link_t* link);
 
 /* function: splice_linkd
- * Fügt Liste der Knoten, auf die prev zeigt, vor Knoten link ein.
- * Nach Return zeigt link->prev auf alten Wert von prev->prev und prev->prev zeigt
- * alten Wert von link->prev.
+ * Fügt Liste der Knoten, auf die list2 zeigt, nach Liste list1 ein.
+ * Nach Return zeigt list2->prev auf alten Wert von list1->prev und list1->prev zeigt
+ * alten Wert von list2->prev.
  *
  * Darstellung alte Listen:
  *
@@ -252,16 +252,16 @@ void unlink_linkd(const link_t* link);
  *  > |╭───────╮ ╭────────╮     ╭────────╮   |
  *  > ╰┤ list1 ├─┤ list1  ├─...─┤ list1  ├─╮ |
  *  >  | (head)| | ->next |     | ->prev | | |
- *  >  ╰───────╯ ╰────────╯     ╰────────╯ | |
+ *  >  ╰───────╯ ╰────────╯     ╰─(old)──╯ | |
  *  > ╭────────────────────────────────────╯ |
  *  > |╭───────╮ ╭────────╮     ╭────────╮   |
  *  > ╰┤ list2 ├─┤ list2  ├─...─┤ list2  ├───╯
  *  >  | (head)| | ->next |     | ->prev |
- *  >  ╰───────╯ ╰────────╯     ╰────────╯
+ *  >  ╰───────╯ ╰────────╯     ╰─(old)──╯
  *
  * Unchecked Precondition:
- * o isvalid_linkd(link)
- * o isvalid_linkd(prev)
+ * o isvalid_linkd(list1)
+ * o isvalid_linkd(list2)
  * */
 static inline void splice_linkd(linkd_t* list1, linkd_t* list2);
 

@@ -21,12 +21,14 @@ _SHARED_(process, 1R, nW)
 _SHARED_(system, mR, nW)
 /* Zeigt an, daß m+n kooperierende Prozesse/Threads auf das Objekt 
  * gleichzeitig zugreifen können. Zu jedem Zeitpunkt können mehrere
- * lesend und auch schreibend zugreifen. eibend.
+ * lesend und auch schreibend zugreifen.
  * system sagt aus, daß das Objekt systemweit allen authorisierten
- * Prozesses sichtbar ist. */
+ * Prozessen sichtbar ist. */
 
 _SHARED_(network, mR, nW)
 /* Wie _SHARED_(system...), nur daß der Zugriff auch von
- * entfernten Netzwerkknoten, natürlich authorisiert, 
- * aus unterstützt wird. */
+ * entfernten und authorisierten Netzwerkknoten
+ * aus unterstützt wird. Netzwerkknoten greifen in der Regel
+ * durch einen Stellvertreter-Thread (-Prozess) zu, der
+ * empfangene Netzwerkpakete auswertet. */
 

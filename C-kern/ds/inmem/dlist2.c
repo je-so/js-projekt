@@ -300,7 +300,7 @@ typedef struct testadapt_t {
 
 static int freenode_testdapt(testadapt_t * typeadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&typeadp->errcounter, &err)) {
       ++ typeadp->freenode_count;

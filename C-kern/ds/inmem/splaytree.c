@@ -657,7 +657,7 @@ struct testadapt_t {
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&testadp->errcounter, &err)) {
       ++ testadp->freenode_count;
@@ -751,7 +751,7 @@ static int test_initfree(void)
    tree.root      = build_perfect_tree(7, *nodes1) ;
    TEST(tree.root == &(*nodes1)[4].index) ;
    TEST(0 == invariant_splaytree(&tree, offsetof(testnode_t, index), typeadp)) ;
-   TEST(0 == free_splaytree(&tree, offsetof(testnode_t, index), typeadp)) ;
+   TEST(0 == free_splaytree(&tree, offsetof(testnode_t, index), typeadp));
    TEST(7 == typeadapt.freenode_count) ;
    TEST(0 == tree.root) ;
    for (int i = 1; i <= 7; ++i) {

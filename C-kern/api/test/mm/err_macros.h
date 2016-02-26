@@ -57,13 +57,11 @@
  * Frees memory block with error. See also <mfree_mmimpl>.
  * errtimer is of type <test_errortimer_t>. */
 #define FREE_ERR_MM(errtimer, mblock) \
-         ( __extension__ ({                                       \
-            int _err2;                                            \
-            _err2 = FREE_MM(mblock);                              \
-            if (! _err2) {                                        \
-               (void) PROCESS_testerrortimer(errtimer, &_err2);   \
-            }                                                     \
-            _err2;                                                \
+         ( __extension__ ({                                    \
+            int _err2;                                         \
+            _err2 = FREE_MM(mblock);                           \
+            (void) PROCESS_testerrortimer(errtimer, &_err2);   \
+            _err2;                                             \
          }))
 
 // group: test

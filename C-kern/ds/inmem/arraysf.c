@@ -624,7 +624,7 @@ static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copi
 
 static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   int err;
+   int err = 0;
 
    if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
       ++ (*node)->freecount;

@@ -133,7 +133,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt);
  * No error log is written cause function is called during system initialization. */
 int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= log_config_MINSIZE*/, uint8_t logbuf[bufsize]);
 
-/* function: initstatic_logwriter
+/* function: initshared_logwriter
  * Initializes a <logwriter_t> singleton with static memory.
  * Every initialized instance shares the same memory. Therefore using
  * more than one instance produces wrong log results
@@ -151,7 +151,7 @@ int free_logwriter(logwriter_t * lgwrt);
  * Does nothing at the moment except for setting lgwrt to a freed state. */
 void freestatic_logwriter(/*out*/logwriter_t * lgwrt);
 
-/* function: freestatic_logwriter
+/* function: freeshared_logwriter
  * Does nothing at the moment except for setting lgwrt to a freed state. */
 void freeshared_logwriter(/*out*/logwriter_t * lgwrt);
 
