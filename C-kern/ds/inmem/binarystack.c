@@ -118,12 +118,11 @@ static test_errortimer_t   s_binarystack_errtimer = test_errortimer_FREE ;
  * The stack variables are adapted. */
 static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
 {
-   int err ;
-   blockheader_t  * header ;
+   int err;
+   memblock_t     mem;
+   blockheader_t* header;
 
-   memblock_t  mem ;
-
-   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONERR);
+   if (PROCESS_testerrortimer(&s_binarystack_errtimer, &err)) goto ONERR;
 
    if (size <= 65536-headersize_blockheader()) {
       err = ALLOC_PAGECACHE(pagesize_65536, &mem) ;
@@ -132,7 +131,7 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
       err = ALLOC_PAGECACHE(pagesize_1MB, &mem) ;
       if (err) goto ONERR;
    } else {
-      return E2BIG ;
+      return E2BIG;
    }
 
    blockheader_t * oldheader ;
@@ -150,42 +149,41 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
    stack->blocksize     = blocksize_blockheader(header) ;
    stack->blockstart    = blockstart_blockheader(header) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 static inline int freeblock_binarystack(binarystack_t * stack, blockheader_t * block)
 {
-   (void) stack ;
-   int err ;
-   memblock_t mem = (memblock_t) memblock_INIT(block->size, (uint8_t*)block) ;
+   (void) stack;
+   int err;
+   memblock_t mem = (memblock_t) memblock_INIT(block->size, (uint8_t*)block);
 
-   err = RELEASE_PAGECACHE(&mem) ;
+   err = RELEASE_PAGECACHE(&mem);
+   (void) PROCESS_testerrortimer(&s_binarystack_errtimer, &err);
    if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONERR);
-
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 // group: lifetime
 
 int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size)
 {
-   int err ;
+   int err;
 
-   *stack = (binarystack_t) binarystack_FREE ;
+   *stack = (binarystack_t) binarystack_FREE;
 
-   err = allocateblock_binarystack(stack, preallocate_size) ;
+   err = allocateblock_binarystack(stack, preallocate_size);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int free_binarystack(binarystack_t * stack)
@@ -203,11 +201,11 @@ int free_binarystack(binarystack_t * stack)
       err = 0 ;
 
       do {
-         blockheader_t * next = header->next ;
-         err2 = freeblock_binarystack(stack, header) ;
-         if (err2) err = err2 ;
-         header = next ;
-      } while (header) ;
+         blockheader_t * next = header->next;
+         err2 = freeblock_binarystack(stack, header);
+         if (err2) err = err2;
+         header = next;
+      } while (header);
 
       if (err) goto ONERR;
    }

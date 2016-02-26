@@ -123,8 +123,9 @@ static int init_threadlocalstore(/*out*/thread_localstore_t * tls, size_t sizeva
    tls->threadcontext = (threadcontext_t) threadcontext_INIT_STATIC(tls);
    tls->thread = (thread_t) thread_FREE;
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
-   err = initstatic_logwriter(&tls->logwriter, sizeof(tls->logmem), tls->logmem);
+   if (! PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
+      err = initstatic_logwriter(&tls->logwriter, sizeof(tls->logmem), tls->logmem);
+   }
    if (err) goto ONERR;
 
    tls->memsize = sizemem_threadlocalstore(sizevars);
@@ -152,7 +153,7 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
    size_t minsize   = 3 * pagesize /* 3 protection pages around two stacks */
                       + sizevars + sizesigst + sizestack;
 
-   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer)) {
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
       minsize = size_threadlocalstore() + 1;
    }
 
@@ -175,9 +176,9 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
 
    size_t size = 2*size_threadlocalstore();
    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer)) {
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
       munmap(addr, size);
-      errno = ERRCODE_testerrortimer(&s_threadlocalstore_errtimer);
+      errno = err;
       addr = MAP_FAILED;
    }
    if (addr == MAP_FAILED) {
@@ -186,7 +187,7 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) goto ONERR;
    {
       uint8_t* aligned_addr = (uint8_t*) (
                                  ((uintptr_t)addr + size_threadlocalstore()-1)
@@ -204,7 +205,7 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
       }
    }
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) goto ONERR;
    if (size > size_threadlocalstore()) {
       if (munmap((uint8_t*)addr + size_threadlocalstore(), size - size_threadlocalstore())) {
          err = errno;
@@ -214,25 +215,37 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
       size = size_threadlocalstore();
    }
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
    size_t offset = sizevars/*thread local vars*/;
-   if (mprotect((uint8_t*)addr + offset, pagesize, PROT_NONE)) {
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
+      errno = err;
+   } else {
+      err = mprotect((uint8_t*)addr + offset, pagesize, PROT_NONE);
+   }
+   if (err) {
       err = errno;
       TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
    offset += pagesize/*protection*/ + sizesigst/*signal stack*/;
-   if (mprotect((uint8_t*)addr + offset, pagesize, PROT_NONE)) {
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
+      errno = err;
+   } else {
+      err = mprotect((uint8_t*)addr + offset, pagesize, PROT_NONE);
+   }
+   if (err) {
       err = errno;
       TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_threadlocalstore_errtimer, &err, ONERR);
    offset += pagesize/*protection*/ + sizestack/*thread stack*/;
-   if (mprotect((uint8_t*)addr + offset, size_threadlocalstore() - offset, PROT_NONE)) {
+   if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
+      errno = err;
+   } else {
+      err = mprotect((uint8_t*)addr + offset, size_threadlocalstore() - offset, PROT_NONE);
+   }
+   if (err) {
       err = errno;
       TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
@@ -276,8 +289,8 @@ int delete_threadlocalstore(thread_localstore_t** tls)
       free_threadlocalstore(*tls);
 
       err = munmap((void*)*tls, size_threadlocalstore());
-      if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer)) {
-         err = errno = ERRCODE_testerrortimer(&s_threadlocalstore_errtimer);
+      if (PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
+         errno = err;
       }
       if (err) {
          err = errno;

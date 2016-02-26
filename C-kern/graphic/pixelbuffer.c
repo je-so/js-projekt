@@ -80,9 +80,9 @@ int free_pixelbuffer(pixelbuffer_t * pbuf, struct display_t * disp)
 #else
       #error "Not implemented"
 #endif
+      (void) PROCESS_testerrortimer(&s_pixelbuffer_errtimer, &err);
 
       if (err) goto ONERR;
-      ONERROR_testerrortimer(&s_pixelbuffer_errtimer, &err, ONERR);
    }
 
    return 0;

@@ -99,7 +99,7 @@ int free_eglcontext(eglcontext_t * eglcont, egldisplay_t egldisp)
          goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglcontext_errtimer, &err, ONERR);
+      if (PROCESS_testerrortimer(&s_eglcontext_errtimer, &err)) goto ONERR;
    }
 
    return 0;

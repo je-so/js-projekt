@@ -18,10 +18,10 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/mm/err_macros.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/test/errortimer.h"
 #endif
 
 
@@ -84,51 +84,49 @@ ONERR:
    return EINVAL ;
 }
 
-#undef CKERN_TEST_MM_ERR_MACROS_HEADER
-#undef KONFIG_UNITTEST
-#undef ALLOC_ERR_MM
-#undef RESIZE_ERR_MM
-#undef FREE_ERR_MM
-
-#include "C-kern/api/test/mm/err_macros.h"
+// copied from C-kern/api/test/errortimer.h
+// redefines PROCESS_testerrortimer as no-op
+#undef  PROCESS_testerrortimer
+#define PROCESS_testerrortimer(errtimer, err) \
+         NOOP_testerrortimer(errtimer, err)
 
 static int test_releasemode(void)
 {
-   memblock_t        mblock = memblock_FREE ;
-   test_errortimer_t errtimer ;
-   size_t            size = SIZEALLOCATED_MM() ;
+   test_errortimer_t errtimer;
+   memblock_t mblock = memblock_FREE;
+   size_t     size   = SIZEALLOCATED_MM();
 
    // prepare
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM);
 
    // TEST ALLOC_ERR_MM
-   TEST(0 == ALLOC_ERR_MM(&errtimer, 64, &mblock)) ;
-   TEST(0 != mblock.addr) ;
-   TEST(64 <= mblock.size) ;
-   size += mblock.size ;
-   TEST(size == SIZEALLOCATED_MM()) ;
-   TEST(1 == errtimer.timercount) ;
+   TEST(0 == ALLOC_ERR_MM(&errtimer, 64, &mblock));
+   TEST(0 != mblock.addr);
+   TEST(64 <= mblock.size);
+   size += mblock.size;
+   TEST(size == SIZEALLOCATED_MM());
+   TEST(1 == errtimer.timercount);
 
    // TEST RESIZE_ERR_MM
-   size -= mblock.size ;
-   TEST(0 == RESIZE_ERR_MM(&errtimer, 1024, &mblock)) ;
-   TEST(0 != mblock.addr) ;
-   TEST(1024 <= mblock.size) ;
-   size += mblock.size ;
-   TEST(size == SIZEALLOCATED_MM()) ;
-   TEST(1 == errtimer.timercount) ;
+   size -= mblock.size;
+   TEST(0 == RESIZE_ERR_MM(&errtimer, 1024, &mblock));
+   TEST(0 != mblock.addr);
+   TEST(1024 <= mblock.size);
+   size += mblock.size;
+   TEST(size == SIZEALLOCATED_MM());
+   TEST(1 == errtimer.timercount);
 
    // TEST FREE_ERR_MM
    size -= mblock.size ;
-   TEST(0 == FREE_ERR_MM(&errtimer, &mblock)) ;
-   TEST(0 == mblock.addr) ;
-   TEST(0 == mblock.size) ;
-   TEST(size == SIZEALLOCATED_MM()) ;
-   TEST(1 == errtimer.timercount) ;
+   TEST(0 == FREE_ERR_MM(&errtimer, &mblock));
+   TEST(0 == mblock.addr);
+   TEST(0 == mblock.size);
+   TEST(size == SIZEALLOCATED_MM());
+   TEST(1 == errtimer.timercount);
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 

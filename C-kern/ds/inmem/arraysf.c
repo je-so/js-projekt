@@ -624,14 +624,14 @@ static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copi
 
 static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   int err = process_testerrortimer(&typeadp->errcounter) ;
+   int err;
 
-   if (!err && *node) {
-      ++ (*node)->freecount ;
+   if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
+      ++ (*node)->freecount;
    }
 
-   *node = 0 ;
-   return err ;
+   *node = 0;
+   return err;
 }
 
 static int test_arraysfnode(void)

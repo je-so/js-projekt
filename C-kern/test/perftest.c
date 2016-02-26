@@ -153,8 +153,9 @@ static int processmain_perftest(void * arg)
    // start instances
 
    for (; ti < proc->nrthread; ++ti) {
-      ONERROR_testerrortimer(&s_perftest_errtimer2, &err, ONERR);
-      err = new_thread(&tinst[ti].thread, &threadmain_perftest, &tinst[ti]);
+      if (! PROCESS_testerrortimer(&s_perftest_errtimer2, &err)) {
+         err = new_thread(&tinst[ti].thread, &threadmain_perftest, &tinst[ti]);
+      }
       if (err) goto ONERR;
    }
 
@@ -193,8 +194,9 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_perftest_errtimer, &err, ONERR);
-   err = init2_vmpage(&vmpage, size, accessmode_RDWR_SHARED);
+   if (! PROCESS_testerrortimer(&s_perftest_errtimer, &err)) {
+      err = init2_vmpage(&vmpage, size, accessmode_RDWR_SHARED);
+   }
    if (err) goto ONERR;
    ++ initstate; // 1
 
@@ -230,8 +232,9 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
    // init pipes
 
    for (unsigned i = 0; i < lengthof(newptest->pipe); i += 2) {
-      ONERROR_testerrortimer(&s_perftest_errtimer, &err, ONERR);
-      err = init_pipe(cast_pipe(&newptest->pipe[i], &newptest->pipe[i+1]));
+      if (! PROCESS_testerrortimer(&s_perftest_errtimer, &err)) {
+         err = init_pipe(cast_pipe(&newptest->pipe[i], &newptest->pipe[i+1]));
+      }
       if (err) goto ONERR;
       ++ initstate; // 2,3,4
    }
@@ -240,9 +243,10 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
 
    proc = newptest->proc;
    for (; pid_started < nrprocess; ++pid_started, ++proc) {
-      ONERROR_testerrortimer(&s_perftest_errtimer, &err, ONERR);
-      process_stdio_t stdfd = process_stdio_INIT_INHERIT;
-      err = init_process(&proc->process, &processmain_perftest, proc, &stdfd);
+      if (! PROCESS_testerrortimer(&s_perftest_errtimer, &err)) {
+         process_stdio_t stdfd = process_stdio_INIT_INHERIT;
+         err = init_process(&proc->process, &processmain_perftest, proc, &stdfd);
+      }
       if (err) goto ONERR;
    }
    err = writesignal_perftest(newptest, false, nrprocess, 0/*OK*/);
@@ -253,7 +257,7 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
 
    for (uint16_t tid = 0; tid < nrinstance; ++tid) {
       err = readready_perftest(newptest);
-      SETONERROR_testerrortimer(&s_perftest_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err);
       if (err) goto ONERR;
    }
 
@@ -300,19 +304,19 @@ int delete_perftest(perftest_t** ptest)
 
       for (unsigned i = 0; i < delobj->nrprocess; ++i) {
          err2 = free_process(&delobj->proc[i].process);
-         SETONERROR_testerrortimer(&s_perftest_errtimer, &err2);
+         (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err2);
          if (err2) err = err2;
       }
 
       for (unsigned i = 0; i < lengthof(delobj->pipe); i += 2) {
          err2 = free_pipe(cast_pipe(&delobj->pipe[i], &delobj->pipe[i+1]));
-         SETONERROR_testerrortimer(&s_perftest_errtimer, &err2);
+         (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err2);
          if (err2) err = err2;
       }
 
       vmpage_t vmpage = vmpage_INIT(delobj->pagesize, (uint8_t*)delobj);
       err2 = free_vmpage(&vmpage);
-      SETONERROR_testerrortimer(&s_perftest_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err2);
       if (err2) err = err2;
 
       if (err) goto ONERR;

@@ -163,8 +163,9 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    memblock_t        stack;
    memblock_t        signalstack;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
-   err = new_threadlocalstore(&tls, &stack, &signalstack, pagesize_vm());
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = new_threadlocalstore(&tls, &stack, &signalstack, pagesize_vm());
+   }
    if (err) goto ONERR;
 
    newthread = thread_threadlocalstore(tls);
@@ -176,16 +177,17 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    startarg->self        = newthread;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
-   err = pthread_attr_init(&thread_attr);
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = pthread_attr_init(&thread_attr);
+   }
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_init",err);
       goto ONERR;
    }
    isThreadAttrValid = true;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    err = pthread_attr_setstack(&thread_attr, stack.addr, stack.size);
+   (void) PROCESS_testerrortimer(&s_thread_errtimer, &err);
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_setstack",err);
       PRINTPTR_ERRLOG(stack.addr);
@@ -194,9 +196,10 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    }
 
    sys_thread_t sys_thread;
-   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONERR);
    static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&main_thread))0, "main_thread has argument of type startarg");
-   err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg);
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg);
+   }
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_create",err);
       goto ONERR;
@@ -536,6 +539,19 @@ static int test_initfree(void)
    free_testerrortimer(&s_thread_errtimer);
    write_atomicint(&s_thread_signal, 1);
    TEST(0 == delete_thread(&thread));
+
+   // adapt LOG (stack-addr could be different in new_thread in case of ERROR)
+   uint8_t *logbuffer;
+   size_t   logsize;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   if (logsize) {
+      char * found = (char*)logbuffer;
+      while ( (found = strstr(found, "stack.addr=0x")) ) {
+         for (found += 13; *found && *found != '\n'; ++found) {
+            *found = 'X';
+         }
+      }
+   }
 
    return 0;
 ONERR:

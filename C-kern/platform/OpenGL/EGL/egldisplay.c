@@ -45,21 +45,29 @@ static test_errortimer_t   s_egldisplay_errtimer = test_errortimer_FREE;
  * Inits egldisp with display.
  * If the argument display is not either EINVAL or EALLOC
  * is returned. */
-static inline int initshared_egldisplay(egldisplay_t * egldisp, EGLDisplay display)
+static inline int initshared_egldisplay(/*out*/egldisplay_t * egldisp, EGLDisplay display)
 {
-   if (  PROCESS_testerrortimer(&s_egldisplay_errtimer)
+   int err;
+
+   if (  PROCESS_testerrortimer(&s_egldisplay_errtimer, &err)
          || display == EGL_NO_DISPLAY) {
-      return EINVAL;
+      err = EINVAL;
+      goto ONERR;
    }
 
-   if (  PROCESS_testerrortimer(&s_egldisplay_errtimer)
+   if (  PROCESS_testerrortimer(&s_egldisplay_errtimer, &err)
          || EGL_FALSE == eglInitialize(display, 0, 0)) {
       // there is no eglFreeDisplay
-      return EALLOC;
+      err = EALLOC;
+      goto ONERR;
    }
 
+   // set out param
    *egldisp = display;
+
    return 0;
+ONERR:
+   return err;
 }
 
 int initdefault_egldisplay(/*out*/egldisplay_t * egldisp)
@@ -107,7 +115,7 @@ int free_egldisplay(egldisplay_t * egldisp)
          goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_egldisplay_errtimer, &err, ONERR);
+      if (PROCESS_testerrortimer(&s_egldisplay_errtimer, &err)) goto ONERR;
    }
 
    return 0;

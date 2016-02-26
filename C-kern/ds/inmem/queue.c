@@ -54,9 +54,9 @@ static int new_queuepage(/*out*/queue_page_t** qpage, queue_t* queue)
    int err;
    memblock_t page;
 
-   ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONERR);
-
-   err = ALLOC_PAGECACHE(queue->pagesize, &page);
+   if (! PROCESS_testerrortimer(&s_queuepage_errtimer, &err)) {
+      err = ALLOC_PAGECACHE(queue->pagesize, &page);
+   }
    if (err) goto ONERR;
 
    queue_page_t* new_qpage = (queue_page_t*) page.addr;
@@ -88,9 +88,9 @@ static int delete_queuepage(queue_page_t** qpage, uint32_t pagesize)
       memblock_t page = memblock_INIT(pagesize, (uint8_t*)del_qpage);
 
       err = RELEASE_PAGECACHE(&page);
+      (void) PROCESS_testerrortimer(&s_queuepage_errtimer, &err);
 
       if (err) goto ONERR;
-      ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONERR);
    }
 
    return 0;

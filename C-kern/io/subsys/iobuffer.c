@@ -138,16 +138,19 @@ int init_iobufferstream(/*out*/iobuffer_stream_t* iostream, const char* path, st
    itccounter_t ready;
    off_t    filesize;
 
-   ONERROR_testerrortimer(&s_iobufferstream_errtimer, &err, ONERR_NOFREE);
-   err = init_itccounter(&ready);
+   if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
+      err = init_itccounter(&ready);
+   }
    if (err) goto ONERR_NOFREE;
 
-   ONERROR_testerrortimer(&s_iobufferstream_errtimer, &err, ONERR);
-   err = init_file(&file, path, accessmode_READ, relative_to);
+   if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
+      err = init_file(&file, path, accessmode_READ, relative_to);
+   }
    if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_iobufferstream_errtimer, &err, ONERR);
-   err = size_file(file, &filesize);
+   if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
+      err = size_file(file, &filesize);
+   }
    if (err) goto ONERR;
    if (filesize == 0) {
       err = ENODATA;
@@ -155,15 +158,17 @@ int init_iobufferstream(/*out*/iobuffer_stream_t* iostream, const char* path, st
    }
 
    for (; ib < lengthof(iostream->buffer); ++ib) {
-      ONERROR_testerrortimer(&s_iobufferstream_errtimer, &err, ONERR);
-      err = init_iobuffer(&buffer[ib]);
+      if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
+         err = init_iobuffer(&buffer[ib]);
+      }
       if (err) goto ONERR;
    }
 
    // set out
 
-   ONERROR_testerrortimer(&s_iobufferstream_errtimer, &err, ONERR);
-   err = init_iothread(&iostream->iothread);
+   if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
+      err = init_iothread(&iostream->iothread);
+   }
    if (err) goto ONERR;
    iostream->ready = ready;
    static_assert(sizeof(buffer) == sizeof(iostream->buffer), "copy all bytes");
@@ -193,20 +198,20 @@ int free_iobufferstream(iobuffer_stream_t* iostream)
    int err2;
 
    err = free_iothread(&iostream->iothread);
-   SETONERROR_testerrortimer(&s_iobufferstream_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err);
 
    err2 = free_itccounter(&iostream->ready);
-   SETONERROR_testerrortimer(&s_iobufferstream_errtimer, &err2);
+   (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err2);
    if (err2) err = err2;
 
    for (unsigned i = 0; i < lengthof(iostream->buffer); ++i) {
       err2 = free_iobuffer(&iostream->buffer[i]);
-      SETONERROR_testerrortimer(&s_iobufferstream_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err2);
       if (err2) err = err2;
    }
 
    err2 = free_file(&iostream->ioc);
-   SETONERROR_testerrortimer(&s_iobufferstream_errtimer, &err2);
+   (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err2);
    if (err2) err = err2;
 
    if (err) goto ONERR;

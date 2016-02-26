@@ -70,7 +70,7 @@ static int alloctemp_mergesort(mergesort_t * sort, size_t tempsize)
    if (sort->temp != sort->tempmem) {
       mblock = (vmpage_t) vmpage_INIT(sort->tempsize, sort->temp);
       err = free_vmpage(&mblock);
-      SETONERROR_testerrortimer(&s_mergesort_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_mergesort_errtimer, &err);
 
       sort->temp     = sort->tempmem;
       sort->tempsize = sizeof(sort->tempmem);
@@ -81,8 +81,9 @@ static int alloctemp_mergesort(mergesort_t * sort, size_t tempsize)
    // TODO: replace call to init_vmpage with call to temporary stack memory manager
    //       == implement temporary stack memory manager ==
    if (tempsize) {
-      ONERROR_testerrortimer(&s_mergesort_errtimer, &err, ONERR);
-      err = init_vmpage(&mblock, tempsize);
+      if (! PROCESS_testerrortimer(&s_mergesort_errtimer, &err)) {
+         err = init_vmpage(&mblock, tempsize);
+      }
       if (err) goto ONERR;
       sort->temp     = mblock.addr;
       sort->tempsize = mblock.size;

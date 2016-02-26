@@ -146,7 +146,7 @@ static inline int configstore(/*out*/terminal_t* term, sys_iochannel_t fd)
    struct termios tconf;
 
    err = readconfig(&tconf, fd);
-   SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_terminal_errtimer, &err);
    if (err) goto ONERR;
 
    term->ctrl_lnext     = tconf.c_cc[VLNEXT];
@@ -184,8 +184,11 @@ int init_terminal(/*out*/terminal_t* term)
    bool doclose = false;
 
    if (  ! iscontrolling_terminal(sysio)) {
-      ONERROR_testerrortimer(&s_terminal_errtimer, &err, ONERR);
-      err = init_file(&sysio, "/dev/tty", accessmode_RDWR, 0);
+      if (PROCESS_testerrortimer(&s_terminal_errtimer, &err)) {
+         ;
+      } else {
+         err = init_file(&sysio, "/dev/tty", accessmode_RDWR, 0);
+      }
       if (err) goto ONERR;
       doclose = true;
    }
@@ -251,7 +254,7 @@ int free_terminal(terminal_t* term)
       term->doclose = false;
 
       err = free_file(&term->sysio);
-      SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_terminal_errtimer, &err);
 
       if (err) goto ONERR;
 
@@ -308,7 +311,7 @@ bool isutf8_terminal(terminal_t* term)
    struct termios tconf;
 
    err = readconfig(&tconf, term->sysio);
-   SETONERROR_testerrortimer(&s_terminal_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_terminal_errtimer, &err);
    if (err) goto ONERR;
 
    return (tconf.c_iflag & IUTF8);

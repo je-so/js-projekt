@@ -122,16 +122,16 @@ static int free_maincontext(void)
 
    if (is_initialized) {
       err = free_threadcontext(tcontext_maincontext());
-      SETONERROR_testerrortimer(&s_maincontext_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err);
 
       err2 = free_processcontext(&g_maincontext.pcontext);
-      SETONERROR_testerrortimer(&s_maincontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err2);
       if (err2) err = err2;
 
       if (0 != sizestatic_threadlocalstore(self_threadlocalstore())) {
          err = ENOTEMPTY;
       }
-      SETONERROR_testerrortimer(&s_maincontext_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err);
 
       g_maincontext.type = maincontext_STATIC;
 
@@ -159,17 +159,16 @@ static int init_maincontext(const maincontext_e context_type)
 
    g_maincontext.type = context_type;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
-
-   err = init_processcontext(&g_maincontext.pcontext);
+   if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
+      err = init_processcontext(&g_maincontext.pcontext);
+   }
    if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
-
-   err = init_threadcontext(tcontext_maincontext(), context_type);
+   if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
+      err = init_threadcontext(tcontext_maincontext(), context_type);
+      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err);
+   }
    if (err) goto ONERR;
-
-   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONERR);
 
    return 0;
 ONERR:

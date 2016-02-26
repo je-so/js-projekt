@@ -65,7 +65,7 @@ int free_pipe(pipe_t* pipe)
       if (close(pipe->read)) {
          err = errno;
       }
-      SETONERROR_testerrortimer(&s_pipe_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_pipe_errtimer, &err);
       pipe->read = sys_iochannel_FREE;
    }
 
@@ -73,7 +73,7 @@ int free_pipe(pipe_t* pipe)
       if (close(pipe->write)) {
          err = errno;
       }
-      SETONERROR_testerrortimer(&s_pipe_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_pipe_errtimer, &err);
       pipe->write = sys_iochannel_FREE;
    }
 

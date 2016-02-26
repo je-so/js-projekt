@@ -51,8 +51,9 @@ static inline size_t SIZE(size_t size, size_t off) \
 {
          size_t size2 = size - off;
          #ifdef KONFIG_UNITTEST
-         if (process_testerrortimer(&s_iothread_errtimer)) {
-            init_testerrortimer(&s_iothread_errtimer, 1, errcode_testerrortimer(&s_iothread_errtimer)+1);
+         int err;
+         if (process_testerrortimer(&s_iothread_errtimer, &err)) {
+            init_testerrortimer(&s_iothread_errtimer, 1, err+1);
             if (size2 > size/32) size2 = size/32;
          }
          #endif
@@ -78,7 +79,7 @@ static int ioop_worker_thread(iothread_t* iothr)
 
       // process iot
 
-      if (PROCESS_testerrortimer(&s_iothread_errtimer)) {
+      if (PROCESS_testerrortimer(&s_iothread_errtimer, &err)) {
          iothr->request_stop = 1; // test cancel of current iot
       }
 
@@ -178,8 +179,9 @@ int init_iothread(/*out*/iothread_t* iothr)
    // - remove old_thread and iothr->thread = 0 assignment ! after thread pool creation
    // - use iothread pool
    iothr->thread = 0;
-   ONERROR_testerrortimer(&s_iothread_errtimer, &err, ONERR);
-   err = newgeneric_thread(&thread, &ioop_worker_thread, iothr);
+   if (! PROCESS_testerrortimer(&s_iothread_errtimer, &err)) {
+      err = newgeneric_thread(&thread, &ioop_worker_thread, iothr);
+   }
    if (err) goto ONERR;
 
    // set out
@@ -209,7 +211,7 @@ int free_iothread(iothread_t* iothr)
       cancelall_iolist(&iothr->iolist);
 
       err = delete_thread(&iothr->thread);
-      SETONERROR_testerrortimer(&s_iothread_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_iothread_errtimer, &err);
       if (err) goto ONERR;
    }
 

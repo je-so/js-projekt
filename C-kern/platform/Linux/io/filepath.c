@@ -48,7 +48,7 @@ void init_filepathstatic(/*out*/filepath_static_t* fpath, const struct directory
                || filename[0] != '/')) {
       wbuffer_t path = wbuffer_INIT_STATIC(sizeof(fpath->workdir)-2, (uint8_t*)fpath->workdir);
       err = path_directory(workdir, &path);
-      SETONERROR_testerrortimer(&s_filepathstatic_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_filepathstatic_errtimer, &err);
       if (err) {
          memcpy(fpath->workdir, "???ERR/", sizeof("???ERR/")/*include trailing \0*/);
       } else {

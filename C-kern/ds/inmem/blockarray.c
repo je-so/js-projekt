@@ -167,16 +167,14 @@ int free_blockarray(blockarray_t * barray)
          // end scan or reached datablock => delete block => step up
          if (  depth == barray->depth /*memory block is datablock*/
                || treepath[depth].index >= ptr_per_block) {
-            int err2 ;
-#ifdef KONFIG_UNITTEST
-            err2 = process_testerrortimer(&s_blockarray_errtimer) ;
-            if (err2) err = err2 ;
-#endif
-            err2 = delete_memoryblock(treepath[depth].block, pagesize_in_bytes) ;
-            if (err2) err = err2 ;
+            int err2;
 
-            if (!depth) break ;  // deleted root => done
-            -- depth ;
+            err2 = delete_memoryblock(treepath[depth].block, pagesize_in_bytes);
+            (void) PROCESS_testerrortimer(&s_blockarray_errtimer, &err2);
+            if (err2) err = err2;
+
+            if (!depth) break;  // deleted root => done
+            -- depth;
 
          } else {
             void * child = treepath[depth].block->childs[treepath[depth].index] ;
@@ -277,9 +275,10 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
 
       if (depth > barray->depth) {
          // allocate new root at correct depth level
-         if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
-         err = adaptdepth_blockarray(barray, depth) ;
+         if (!is_allocate) goto ONNODATA;
+         if (! PROCESS_testerrortimer(&s_blockarray_errtimer, &err)) {
+            err = adaptdepth_blockarray(barray, depth) ;
+         }
          if (err) goto ONERR;
       }
    }
@@ -298,8 +297,9 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
          if (! child) {
             // allocate new ptrblock_t
             if (!is_allocate) goto ONNODATA ;
-            ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
-            err = new_ptrblock(&child, barray->pagesize) ;
+            if (! PROCESS_testerrortimer(&s_blockarray_errtimer, &err)) {
+               err = new_ptrblock(&child, barray->pagesize) ;
+            }
             if (err) goto ONERR;
             ptrblock->childs[childindex] = child ;
          }
@@ -311,8 +311,9 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
       if (! ptrblock->childs[childindex]) {
          // allocate new datablock_t
          if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONERR);
-         err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize) ;
+         if (! PROCESS_testerrortimer(&s_blockarray_errtimer, &err)) {
+            err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize) ;
+         }
          if (err) goto ONERR;
       }
 

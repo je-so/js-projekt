@@ -86,7 +86,7 @@ int free_eglwindow(eglwindow_t * eglwin, egldisplay_t egldisp)
          goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglwindow_errtimer, &err, ONERR);
+      if (PROCESS_testerrortimer(&s_eglwindow_errtimer, &err)) goto ONERR;
    }
 
    return 0;

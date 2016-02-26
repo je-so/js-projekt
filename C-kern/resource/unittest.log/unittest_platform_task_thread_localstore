@@ -1,113 +1,119 @@
-[1: 1445402070.004403s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756131s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 28 - No space left on device
-[1: 1445402070.004427s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:185
+[1: 1450414069.756142s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:186
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1445402070.004433s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756147s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 3 - No such process
-[1: 1445402070.004439s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756156s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 4 - Interrupted system call
-[1: 1445402070.004444s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756162s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:226
+System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1445402070.004451s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756171s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:238
+System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1445402070.004460s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756183s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:250
+System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1445402070.004475s]
-init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:136
+[1: 1450414069.756196s]
+init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:137
 Exit function with
 Error 8 - Exec format error
-[1: 1445402070.004482s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.756202s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 8 - Exec format error
-[1: 1445402070.004498s]
-delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:284
+[1: 1450414069.756221s]
+delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:297
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445402070.009227s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761133s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 28 - No space left on device
-[1: 1445402070.009239s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:185
+[1: 1450414069.761142s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:186
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1445402070.009246s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761148s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 3 - No such process
-[1: 1445402070.009251s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761154s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 4 - Interrupted system call
-[1: 1445402070.009257s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761163s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:226
+System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1445402070.009265s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761171s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:238
+System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1445402070.009275s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761184s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:250
+System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1445402070.009289s]
-init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:136
+[1: 1450414069.761200s]
+init_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:137
 Exit function with
 Error 8 - Exec format error
-[1: 1445402070.009296s]
-new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:266
+[1: 1450414069.761207s]
+new_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:279
 Exit function with
 Error 8 - Exec format error
-[1: 1445402070.009313s]
-delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:284
+[1: 1450414069.761222s]
+delete_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:297
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445402070.031512s]
-memalloc_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:343
+[1: 1450414069.772471s]
+memalloc_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:356
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1445402070.068624s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
+[1: 1450414069.789771s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:370
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445402070.068627s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
+[1: 1450414069.789775s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:370
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445402070.068630s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
+[1: 1450414069.789777s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:370
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445402070.068633s]
-memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:357
+[1: 1450414069.789780s]
+memfree_threadlocalstore() C-kern/platform/Linux/task/thread_localstore.c:370
 Function input violates condition (alignedsize >= memblock->size && alignedsize <= tls->memused && memblock->addr == memend - alignedsize)
 One or more resources could not be freed
 Exit function with

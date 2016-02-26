@@ -1,186 +1,188 @@
-[1: 1443695046.156792s]
-accessmode_file() C-kern/platform/Linux/io/file.c:278
+[1: 1450414095.704766s]
+accessmode_file() C-kern/platform/Linux/io/file.c:282
 System call 'fcntl' failed with error 9
 file=-1
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.156903s]
-path_file() C-kern/platform/Linux/io/file.c:356
+[1: 1450414095.704821s]
+path_file() C-kern/platform/Linux/io/file.c:360
 Exit function with
 Error 36 - File name too long
-[1: 1443695046.156921s]
-path_file() C-kern/platform/Linux/io/file.c:344
+[1: 1450414095.704830s]
+path_file() C-kern/platform/Linux/io/file.c:348
 System call 'readlink' failed with error 1
 link_path=/proc/self/fd/4
 Exit function with
 Error 1 - Operation not permitted
-[1: 1443695046.156957s]
-path_file() C-kern/platform/Linux/io/file.c:344
+[1: 1450414095.704846s]
+path_file() C-kern/platform/Linux/io/file.c:348
 System call 'readlink' failed with error 1
 link_path=/proc/self/fd/4
 Exit function with
 Error 1 - Operation not permitted
-[1: 1443695046.156975s]
-path_file() C-kern/platform/Linux/io/file.c:344
+[1: 1450414095.704857s]
+path_file() C-kern/platform/Linux/io/file.c:348
 System call 'readlink' failed with error 2
 link_path=/proc/self/fd/4294967295
 Exit function with
 Error 2 - No such file or directory
-[1: 1443695046.160805s]
-size_file() C-kern/platform/Linux/io/file.c:368
+[1: 1450414095.706610s]
+size_file() C-kern/platform/Linux/io/file.c:372
 System call 'fstat' failed with error 9
 file=-1
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.161149s]
+[1: 1450414095.706934s]
 initcreate_file() C-kern/platform/Linux/io/file.c:168
 System call 'openat' failed with error 17
 File name '/tmp/iofiletest.123456/init1'
 Exit function with
 Error 17 - File exists
-[1: 1443695046.161227s]
+[1: 1450414095.707012s]
 init_file() C-kern/platform/Linux/io/file.c:97
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.161231s]
+[1: 1450414095.707016s]
 init_file() C-kern/platform/Linux/io/file.c:97
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.161233s]
+[1: 1450414095.707018s]
 init_file() C-kern/platform/Linux/io/file.c:97
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.161285s]
+[1: 1450414095.707066s]
 initcreate_file() C-kern/platform/Linux/io/file.c:168
 System call 'openat' failed with error 17
 File name '/tmp/iofiletest.123456/testcreate'
 Exit function with
 Error 17 - File exists
-[1: 1443695046.161425s]
-inittemp_file() C-kern/platform/Linux/io/file.c:240
+[1: 1450414095.707192s]
+inittemp_file() C-kern/platform/Linux/io/file.c:244
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695046.161428s]
-inittemp_file() C-kern/platform/Linux/io/file.c:240
+[1: 1450414095.707196s]
+inittemp_file() C-kern/platform/Linux/io/file.c:231
+System call 'mkostemp' failed with error 24
+File name '/tmp/temp.XXXXXX'
 Exit function with
 Error 24 - Too many open files
-[1: 1443695046.761772s]
-truncate_file() C-kern/platform/Linux/io/file.c:431
+[1: 1450414096.330002s]
+truncate_file() C-kern/platform/Linux/io/file.c:435
 System call 'ftruncate' failed with error 22
 file=5
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.761787s]
-truncate_file() C-kern/platform/Linux/io/file.c:431
+[1: 1450414096.330019s]
+truncate_file() C-kern/platform/Linux/io/file.c:435
 System call 'ftruncate' failed with error 22
 file=6
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.761794s]
-truncate_file() C-kern/platform/Linux/io/file.c:431
+[1: 1450414096.330025s]
+truncate_file() C-kern/platform/Linux/io/file.c:435
 System call 'ftruncate' failed with error 22
 file=6
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.761797s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330029s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 22
 file=6
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.761800s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330032s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 22
 file=6
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695046.761803s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330036s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 29
 file=5
 Exit function with
 Error 29 - Illegal seek
-[1: 1443695046.761808s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330040s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 9
 file=6
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.761812s]
-truncate_file() C-kern/platform/Linux/io/file.c:431
+[1: 1450414096.330043s]
+truncate_file() C-kern/platform/Linux/io/file.c:435
 System call 'ftruncate' failed with error 9
 file=6
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.761814s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330046s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 9
 file=6
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.761817s]
-truncate_file() C-kern/platform/Linux/io/file.c:431
+[1: 1450414096.330048s]
+truncate_file() C-kern/platform/Linux/io/file.c:435
 System call 'ftruncate' failed with error 9
 file=-1
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695046.761819s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414096.330051s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 9
 file=-1
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695047.709421s]
-allocate_file() C-kern/platform/Linux/io/file.c:449
+[1: 1450414097.090791s]
+allocate_file() C-kern/platform/Linux/io/file.c:453
 System call 'fallocate' failed with error 28
 file=6
 Exit function with
 Error 28 - No space left on device
-[1: 1443695047.759912s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:389
+[1: 1450414097.144747s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:393
 System call 'posix_fadvise' failed with error 22
 file=4
 offset=0
 length=-1
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695047.759926s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:389
+[1: 1450414097.144761s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:393
 System call 'posix_fadvise' failed with error 9
 file=4
 offset=0
 length=0
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695047.759930s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:389
+[1: 1450414097.144765s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:393
 System call 'posix_fadvise' failed with error 9
 file=-1
 offset=0
 length=0
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695047.759942s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:408
+[1: 1450414097.144777s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:412
 System call 'posix_fadvise' failed with error 22
 file=4
 offset=0
 length=-1
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695047.763225s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:408
+[1: 1450414097.148017s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:412
 System call 'posix_fadvise' failed with error 9
 file=4
 offset=0
 length=0
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695047.763237s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:408
+[1: 1450414097.148029s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:412
 System call 'posix_fadvise' failed with error 9
 file=-1
 offset=0

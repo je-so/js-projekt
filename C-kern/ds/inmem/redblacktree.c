@@ -815,16 +815,16 @@ struct testadapt_t {
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
-   int err = process_testerrortimer(&testadp->errcounter) ;
+   int err;
 
-   if (!err) {
-      ++ testadp->freenode_count ;
-      ++ (*node)->is_freed ;
+   if (! process_testerrortimer(&testadp->errcounter, &err)) {
+      ++ testadp->freenode_count;
+      ++ (*node)->is_freed;
    }
 
-   *node = 0 ;
+   *node = 0;
 
-   return err ;
+   return err;
 }
 
 static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const uintptr_t lkey, const testnode_t * rnode)

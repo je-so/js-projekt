@@ -111,7 +111,7 @@ int free_syncrunner(syncrunner_t* srun)
 
    for (unsigned i = 0; i < lengthof(srun->rwqueue); ++i) {
       err2 = free_queue(&srun->rwqueue[i]);
-      SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_syncrunner_errtimer, &err2);
       if (err2) err = err2;
       srun->rwqsize[i] = 0;
       srun->freecache[i] = 0;
@@ -266,9 +266,9 @@ int addfunc_syncrunner(syncrunner_t* srun, syncfunc_f mainfct, void* state)
    int err;
    syncfunc_t* sf;
 
-   ONERROR_testerrortimer(&s_syncrunner_errtimer, &err, ONERR);
-
-   err = allocfunc_syncrunner(srun, RUNQ_ID, &sf);
+   if (! PROCESS_testerrortimer(&s_syncrunner_errtimer, &err)) {
+      err = allocfunc_syncrunner(srun, RUNQ_ID, &sf);
+   }
    if (err) goto ONERR;
 
    init_syncfunc(sf, mainfct, state, RUNQ_OPTFLAGS);
@@ -428,13 +428,14 @@ static inline int process_waitq_syncrunner(syncrunner_t * srun)
          syncfunc_t* sfunc2;
          alloccachedfunc_syncrunner(srun, RUNQ_ID, &sfunc2);
          initcopy_syncfunc(sfunc2, param.sfunc, RUNQ_OPTFLAGS);
-         ONERROR_testerrortimer(&s_syncrunner_errtimer, &err, ONERR);
-         err = fillcache_syncrunner(srun, RUNQ_ID);
+         if (! PROCESS_testerrortimer(&s_syncrunner_errtimer, &err)) {
+            err = fillcache_syncrunner(srun, RUNQ_ID);
+         }
          if (err) goto ONERR;
       }
 
       err = removefunc_syncrunner(srun, WAITQ_ID, param.sfunc);
-      SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_syncrunner_errtimer, &err);
       if (err) goto ONERR;
    }
 
@@ -486,8 +487,9 @@ int process_runq_syncrunner(syncrunner_t* srun)
             initcopy_syncfunc(sfunc2, param.sfunc, WAITQ_OPTFLAGS);
             // waitresult & waitlist are undefined ==> set it !
             link_waitfields(srun, sfunc2, &param);
-            ONERROR_testerrortimer(&s_syncrunner_errtimer, &err, ONERR);
-            err = fillcache_syncrunner(srun, WAITQ_ID);
+            if (! PROCESS_testerrortimer(&s_syncrunner_errtimer, &err)) {
+               err = fillcache_syncrunner(srun, WAITQ_ID);
+            }
             if (err) goto ONERR;
 
          } else if (synccmd_EXIT != cmd) {
@@ -496,7 +498,7 @@ int process_runq_syncrunner(syncrunner_t* srun)
          }
 
          err = removefunc_syncrunner(srun, RUNQ_ID, param.sfunc);
-         SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
+         (void) PROCESS_testerrortimer(&s_syncrunner_errtimer, &err);
          if (err) goto ONERR;
       }
 
@@ -564,9 +566,9 @@ int terminate_syncrunner(syncrunner_t* srun)
       err = clearqueue_syncrunner(srun, qidx);
 
       int err2 = free_queueiterator(&iter);
+      (void) PROCESS_testerrortimer(&s_syncrunner_errtimer, &err2);
       if (err2) err = err2;
 
-      SETONERROR_testerrortimer(&s_syncrunner_errtimer, &err);
       if (err) goto ONERR;
    }
 

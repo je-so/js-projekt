@@ -47,8 +47,8 @@ int init_itccounter(/*out*/itccounter_t* counter)
    int err;
    int fd;
 
-   if (PROCESS_testerrortimer(&s_itccounter_errtimer)) {
-      errno = ERRCODE_testerrortimer(&s_itccounter_errtimer);
+   if (PROCESS_testerrortimer(&s_itccounter_errtimer, &err)) {
+      errno = err;
       fd = -1;
    } else {
       fd = eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
@@ -74,7 +74,7 @@ int free_itccounter(itccounter_t* counter)
    int err;
 
    err = free_iochannel(&counter->sysio);
-   SETONERROR_testerrortimer(&s_itccounter_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_itccounter_errtimer, &err);
    if (err) goto ONERR;
 
    return 0;
@@ -95,7 +95,7 @@ uint32_t increment_itccounter(itccounter_t* counter)
       count = oldval;
    }
 
-   if (PROCESS_testerrortimer(&s_itccounter_errtimer)) {
+   if (PROCESS_testerrortimer(&s_itccounter_errtimer, &err)) {
       suspend_thread(); // test race
    }
 
@@ -124,14 +124,14 @@ uint32_t add_itccounter(itccounter_t* counter, uint16_t incr)
    }
 
    do {
-      newcount = oldval + incr;
       count = oldval;
-      if (newcount < oldval) {
+      newcount = count + incr;
+      if (newcount < count) {
          newcount = UINT32_MAX;
       }
    } while (count != (oldval = cmpxchg_atomicint(&counter->count, count, newcount)));
 
-   if (PROCESS_testerrortimer(&s_itccounter_errtimer)) {
+   if (PROCESS_testerrortimer(&s_itccounter_errtimer, &err)) {
       suspend_thread(); // test race
    }
 
@@ -184,7 +184,7 @@ uint32_t reset_itccounter(itccounter_t* counter/*is reset to 0 before return*/)
       PRINTINT_ERRLOG(counter->sysio);
    }
 
-   if (PROCESS_testerrortimer(&s_itccounter_errtimer)) {
+   if (PROCESS_testerrortimer(&s_itccounter_errtimer, &err)) {
       suspend_thread(); // test race
    }
 

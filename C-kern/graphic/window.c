@@ -97,18 +97,18 @@ int init_window(
 
    static_assert(win == (void*)&win->oswindow, "window_t is subtype of oswindow type");
 
-   ONERROR_testerrortimer(&s_window_errtimer, &err, ONERR);
-
-   err = visualid_gconfig(gconf, disp, &visualid);
+   if (! PROCESS_testerrortimer(&s_window_errtimer, &err)) {
+      err = visualid_gconfig(gconf, disp, &visualid);
+   }
    if (err) goto ONERR;
 
    err = INIT_OSWINDOW(os_window(win), disp, screennr, eventhandler, visualid, winattr);
    if (err) goto ONERR;
    ++ isinit;
 
-   ONERROR_testerrortimer(&s_window_errtimer, &err, ONERR);
-
-   err = INIT_GLWINDOW(&gl_window(win), disp, gconf, os_window(win));
+   if (! PROCESS_testerrortimer(&s_window_errtimer, &err)) {
+      err = INIT_GLWINDOW(&gl_window(win), disp, gconf, os_window(win));
+   }
    if (err) goto ONERR;
 
    return 0;
@@ -126,10 +126,10 @@ int free_window(window_t * win)
 
    if (0 != display_window(win)) {
       err  = FREE_GLWINDOW(&gl_window(win), display_window(win));
-      SETONERROR_testerrortimer(&s_window_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_window_errtimer, &err);
 
       err2 = FREE_OSWINDOW(os_window(win));
-      SETONERROR_testerrortimer(&s_window_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_window_errtimer, &err2);
       if (err2) err = err2;
 
       if (err) goto ONERR;

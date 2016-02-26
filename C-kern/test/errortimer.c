@@ -28,138 +28,113 @@
 
 static int test_initfree(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_FREE ;
+   test_errortimer_t  errtimer = test_errortimer_FREE;
 
    // TEST test_errortimer_FREE
-   TEST(0 == errtimer.timercount) ;
-   TEST(0 == errtimer.errcode) ;
+   TEST(0 == errtimer.timercount);
+   TEST(0 == errtimer.errcode);
 
    // TEST init_testerrortimer
-   init_testerrortimer(&errtimer, 123, 200) ;
-   TEST(123 == errtimer.timercount) ;
-   TEST(200 == errtimer.errcode) ;
-   init_testerrortimer(&errtimer, 999, -20) ;
-   TEST(999 == errtimer.timercount) ;
-   TEST(-20 == errtimer.errcode) ;
+   init_testerrortimer(&errtimer, 123, 200);
+   TEST(123 == errtimer.timercount);
+   TEST(200 == errtimer.errcode);
+   init_testerrortimer(&errtimer, 999, -20);
+   TEST(999 == errtimer.timercount);
+   TEST(-20 == errtimer.errcode);
 
    // TEST free_testerrortimer
-   free_testerrortimer(&errtimer) ;
-   TEST(0 == errtimer.timercount) ;
-   TEST(0 == errtimer.errcode) ;
+   free_testerrortimer(&errtimer);
+   TEST(0 == errtimer.timercount);
+   TEST(0 == errtimer.errcode);
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_query(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_FREE ;
+   test_errortimer_t  errtimer = test_errortimer_FREE;
 
    // TEST isenabled_testerrortimer
-   TEST(0 == isenabled_testerrortimer(&errtimer)) ;
+   TEST(0 == isenabled_testerrortimer(&errtimer));
    for (int err = 0; err < 2; ++err) {
-      init_testerrortimer(&errtimer, 0, err) ;
-      TEST(0 == isenabled_testerrortimer(&errtimer)) ;
-      init_testerrortimer(&errtimer, 1, err) ;
-      TEST(1 == isenabled_testerrortimer(&errtimer)) ;
-      init_testerrortimer(&errtimer, UINT32_MAX, err) ;
-      TEST(1 == isenabled_testerrortimer(&errtimer)) ;
+      init_testerrortimer(&errtimer, 0, err);
+      TEST(0 == isenabled_testerrortimer(&errtimer));
+      init_testerrortimer(&errtimer, 1, err);
+      TEST(1 == isenabled_testerrortimer(&errtimer));
+      init_testerrortimer(&errtimer, UINT32_MAX, err);
+      TEST(1 == isenabled_testerrortimer(&errtimer));
    }
 
    // TEST errcode_testerrortimer
    free_testerrortimer(&errtimer);
-   TEST(0 == errcode_testerrortimer(&errtimer)) ;
+   TEST(0 == errcode_testerrortimer(&errtimer));
    for (int i = 0; i < 10; ++i) {
       init_testerrortimer(&errtimer, 0, i);
-      TEST(i == errcode_testerrortimer(&errtimer)) ;
+      TEST(i == errcode_testerrortimer(&errtimer));
       init_testerrortimer(&errtimer, 1, i);
-      TEST(i == errcode_testerrortimer(&errtimer)) ;
+      TEST(i == errcode_testerrortimer(&errtimer));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 
 static int test_update(void)
 {
-   test_errortimer_t  errtimer = test_errortimer_FREE ;
    int err;
+   test_errortimer_t errtimer = test_errortimer_FREE;
 
    // TEST process_testerrortimer
-   init_testerrortimer(&errtimer, 11, -2) ;
-   for (int i = 1; i < 11; ++i) {
+   err = 1;
+   init_testerrortimer(&errtimer, 11, -2);
+   for (unsigned i = 1; i < 11; ++i) {
       // 1 .. 10th call does not fire
-      TEST(0 == process_testerrortimer(&errtimer)) ;
-      TEST(11-i == (int)errtimer.timercount) ;
+      TEST(0 == process_testerrortimer(&errtimer, &err));
+      // check err not changed
+      TEST(1 == err);
+      // check errtimer
+      TEST(11-i == errtimer.timercount);
+      TEST(-2   == errtimer.errcode);
    }
    // 11th call fires
-   TEST(-2 == process_testerrortimer(&errtimer)) ;
-   TEST(0  == (int)errtimer.timercount) ;
-   TEST(-2 == errtimer.errcode) ;
+   TEST(-2 == process_testerrortimer(&errtimer, &err));
+   TEST(-2 == err);
+   TEST(0  == errtimer.timercount);
+   TEST(-2 == errtimer.errcode);
 
-   // TEST process_testerrortimer
-   TEST(0 == process_testerrortimer(&errtimer)) ;
-   TEST(0  == (int)errtimer.timercount) ;
-   TEST(-2 == errtimer.errcode) ;
-
-   // TEST ERRCODE_testerrortimer
-   free_testerrortimer(&errtimer);
-   TEST(0 == errcode_testerrortimer(&errtimer)) ;
-   for (int i = 0; i < 10; ++i) {
-      init_testerrortimer(&errtimer, 0, i);
-      TEST(i == ERRCODE_testerrortimer(&errtimer)) ;
-      init_testerrortimer(&errtimer, 1, i);
-      TEST(i == ERRCODE_testerrortimer(&errtimer)) ;
-   }
-
-   // TEST ONERROR_testerrortimer
-   err = 0 ;
-   init_testerrortimer(&errtimer, 2, 3) ;
-   ONERROR_testerrortimer(&errtimer, &err, ONERR);
-   TEST(0 == err) ;
-   TEST(1 == errtimer.timercount) ;
-   TEST(3 == errtimer.errcode) ;
-   ONERROR_testerrortimer(&errtimer, &err, XXX) ;  // sets err and jumps to XXX
-   err = 10 ;
-XXX:
-   TEST(3 == err) ;
-   TEST(0 == errtimer.timercount) ;
-   TEST(3 == errtimer.errcode) ;
-   ONERROR_testerrortimer(&errtimer, &err, XXX2) ;  // does nothing
-   err = 10 ;
-XXX2:
-   TEST(10== err) ;
-   TEST(0 == errtimer.timercount) ;
-   TEST(3 == errtimer.errcode) ;
-
-   // TEST PROCESS_testerrortimer
-   init_testerrortimer(&errtimer, 2, 5) ;
-   TEST(0 == PROCESS_testerrortimer(&errtimer));
-   TEST(1 == errtimer.timercount);
-   TEST(5 == PROCESS_testerrortimer(&errtimer));
+   // TEST process_testerrortimer: already expired timer
+   err = 1;
+   TEST(0 == process_testerrortimer(&errtimer, &err));
+   TEST(1 == err);
    TEST(0 == errtimer.timercount);
-   TEST(0 == PROCESS_testerrortimer(&errtimer));
+   TEST(-2 == errtimer.errcode);
+
+   // TEST PROCESS_testerrortimer: timer not expired
+   err = 0;
+   init_testerrortimer(&errtimer, 2, 5);
+   TEST(0 == PROCESS_testerrortimer(&errtimer, &err));
+   TEST(0 == err);
+   TEST(1 == errtimer.timercount);
+
+   // TEST PROCESS_testerrortimer: timer expires
+   TEST(5 == PROCESS_testerrortimer(&errtimer, &err));
+   TEST(5 == err);
+   TEST(0 == errtimer.timercount);
+
+   // TEST PROCESS_testerrortimer: already expired
+   err = 0;
+   TEST(0 == PROCESS_testerrortimer(&errtimer, &err));
+   TEST(0 == err);
    TEST(0 == errtimer.timercount);
    TEST(5 == errtimer.errcode);
 
-   // TEST SETONERROR_testerrortimer
-   err = 0 ;
-   init_testerrortimer(&errtimer, 2, 4) ;
-   SETONERROR_testerrortimer(&errtimer, &err) ;
-   TEST(0 == err) ;
-   TEST(1 == errtimer.timercount) ;
-   TEST(4 == errtimer.errcode) ;
-   SETONERROR_testerrortimer(&errtimer, &err) ;
-   TEST(4 == err) ;
-   TEST(0 == errtimer.timercount) ;
-   TEST(4 == errtimer.errcode) ;
-
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_test_errortimer()
@@ -168,9 +143,9 @@ int unittest_test_errortimer()
    if (test_query())       goto ONERR;
    if (test_update())      goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

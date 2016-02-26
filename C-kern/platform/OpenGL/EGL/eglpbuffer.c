@@ -80,7 +80,7 @@ int free_eglpbuffer(eglpbuffer_t * eglpbuf, struct opengl_display_t * egldisp)
          goto ONERR;
       }
 
-      ONERROR_testerrortimer(&s_eglpbuffer_errtimer, &err, ONERR);
+      if (PROCESS_testerrortimer(&s_eglpbuffer_errtimer, &err)) goto ONERR;
    }
 
    return 0;

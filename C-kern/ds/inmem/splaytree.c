@@ -657,31 +657,31 @@ struct testadapt_t {
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
-   int err = process_testerrortimer(&testadp->errcounter) ;
+   int err;
 
-   if (!err) {
-      ++ testadp->freenode_count ;
-      ++ (*node)->is_freed ;
+   if (! process_testerrortimer(&testadp->errcounter, &err)) {
+      ++ testadp->freenode_count;
+      ++ (*node)->is_freed;
    }
 
-   *node = 0 ;
+   *node = 0;
 
-   return err ;
+   return err;
 }
 
 static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const intptr_t lkey, const testnode_t * rnode)
 {
-   (void) testadp ;
-   int rkey = rnode->key ;
-   return sign_int((int)lkey - rkey) ;
+   (void) testadp;
+   int rkey = rnode->key;
+   return sign_int((int)lkey - rkey);
 }
 
 static int impl_cmpobj_testadapt(testadapt_t * testadp, const testnode_t * lnode, const testnode_t * rnode)
 {
-   (void) testadp ;
-   int lkey = lnode->key ;
-   int rkey = rnode->key ;
-   return sign_int(lkey - rkey) ;
+   (void) testadp;
+   int lkey = lnode->key;
+   int rkey = rnode->key;
+   return sign_int(lkey - rkey);
 }
 
 static splaytree_node_t * build_perfect_tree(int count, testnode_t * nodes)

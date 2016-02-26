@@ -100,9 +100,10 @@ static int allocatebuffer_logwriter(/*out*/memblock_t * buffer)
    int err;
    static_assert(16384 < INT_MAX, "size_t of buffer will be used in vnsprintf and returned as int");
    static_assert(16384 > minbufsize_logwriter(), "buffer can hold at least 2 entries");
-   ONERROR_testerrortimer(&s_logwriter_errtimer, &err, ONERR);
 
-   err = ALLOC_PAGECACHE(pagesize_16384, buffer);
+   if (! PROCESS_testerrortimer(&s_logwriter_errtimer, &err)) {
+      err = ALLOC_PAGECACHE(pagesize_16384, buffer);
+   }
    if (err) goto ONERR;
 
    return 0;
@@ -117,7 +118,7 @@ static int freebuffer_logwriter(memblock_t * buffer)
    int err;
 
    err = RELEASE_PAGECACHE(buffer);
-   SETONERROR_testerrortimer(&s_logwriter_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_logwriter_errtimer, &err);
    if (err) goto ONERR;
 
    return 0;

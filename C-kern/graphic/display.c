@@ -85,15 +85,15 @@ static int init_display(/*out*/display_t * disp, void * display_name)
    int err;
    int isinit = 0;
 
-   ONERROR_testerrortimer(&s_display_errtimer, &err, ONERR);
-
-   err = INIT_OSDISPLAY(disp, display_name);
+   if (! PROCESS_testerrortimer(&s_display_errtimer, &err)) {
+      err = INIT_OSDISPLAY(disp, display_name);
+   }
    if (err) goto ONERR;
    ++ isinit;
 
-   ONERROR_testerrortimer(&s_display_errtimer, &err, ONERR);
-
-   err = INIT_OPENGL(disp);
+   if (! PROCESS_testerrortimer(&s_display_errtimer, &err)) {
+      err = INIT_OPENGL(disp);
+   }
    if (err) goto ONERR;
 
    return 0;
@@ -124,9 +124,9 @@ int free_display(display_t * disp)
 
    if (!ISFREE_OSDISPLAY(&disp->osdisplay)) {
       err  = FREE_OPENGL(disp);
-      SETONERROR_testerrortimer(&s_display_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_display_errtimer, &err);
       err2 = FREE_OSDISPLAY(disp);
-      SETONERROR_testerrortimer(&s_display_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_display_errtimer, &err2);
       if (err2) err = err2;
       if (err) goto ONERR;
    }

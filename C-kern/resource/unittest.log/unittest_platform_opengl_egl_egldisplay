@@ -1,26 +1,26 @@
-[1: 1443695068.477591s]
-free_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:115
+[1: 1450414071.874193s]
+free_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:123
 One or more resources could not be freed
 Exit function with
 Error 61 - No data available
-[1: 1443695068.477614s]
-initdefault_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:75
+[1: 1450414071.874219s]
+initdefault_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:83
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695068.477617s]
-initdefault_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:75
+[1: 1450414071.874222s]
+initdefault_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:83
 Exit function with
 Error 259 - Failed to allocate one or more resources
-[1: 1443695068.477620s]
-init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:83
+[1: 1450414071.874225s]
+init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:91
 Function input violates condition (sysdisp != 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695068.483477s]
-init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:92
+[1: 1450414071.879135s]
+init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:100
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695068.483490s]
-init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:92
+[1: 1450414071.879148s]
+init_egldisplay() C-kern/platform/OpenGL/EGL/egldisplay.c:100
 Exit function with
 Error 259 - Failed to allocate one or more resources

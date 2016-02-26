@@ -220,8 +220,12 @@ int inittemp_file(/*out*/file_t* file, /*ret*/struct wbuffer_t* path)
    if (err) goto ONERR;
    memcpy(pathbuffer, TEMPFILENAME, pathsize);
 
-   ONERROR_testerrortimer(&s_file_errtimer, &err, ONERR);
-   fd = mkostemp((char*)pathbuffer, O_CLOEXEC);
+   if (PROCESS_testerrortimer(&s_file_errtimer, &err)) {
+      errno = err;
+      fd = -1;
+   } else {
+      fd = mkostemp((char*)pathbuffer, O_CLOEXEC);
+   }
    if (-1 == fd) {
       err = errno;
       TRACESYSCALL_ERRLOG("mkostemp", err);
@@ -331,14 +335,14 @@ int path_file(const file_t file, /*ret*/struct wbuffer_t* path)
       shrink_wbuffer(path, oldsize);
 
       alloc_size *= 2;
-      SETONERROR_testerrortimer(&s_file_errtimer_nametoolong, &alloc_size/*in test: use -1 for err value*/);
+      (void) PROCESS_testerrortimer(&s_file_errtimer_nametoolong, &alloc_size/*in test: use 1024*1024+1 for err value*/);
       if (alloc_size > 1024*1024) {
          err = ENAMETOOLONG;
          goto ONERR;
       }
    }
 
-   SETONERROR_testerrortimer(&s_file_errtimer, &real_size/*in test: use -1 for err value*/);
+   (void) PROCESS_testerrortimer(&s_file_errtimer, &real_size/*in test: use -1 for err value*/);
    if (real_size < 0) {
       err = errno;
       TRACESYSCALL_ERRLOG("readlink", err);

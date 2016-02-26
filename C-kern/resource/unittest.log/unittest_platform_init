@@ -1,47 +1,75 @@
-[1: 1445603301.125106s]
-init_syscontext() C-kern/platform/Linux/init.c:97
+[1: 1450415323.455802s]
+init_syscontext() C-kern/platform/Linux/init.c:103
 Exit function with
-Error 333 - Unknown error
-[1: 1445603301.125122s]
-initrun_syscontext() C-kern/platform/Linux/init.c:191
+Error 22 - Invalid argument
+[1: 1450415323.455809s]
+init_syscontext() C-kern/platform/Linux/init.c:103
 Exit function with
-Error 333 - Unknown error
-[1: 1445603301.125154s]
-initrun_syscontext() C-kern/platform/Linux/init.c:116
+Error 22 - Invalid argument
+[1: 1450415323.455812s]
+init_syscontext() C-kern/platform/Linux/init.c:103
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456247s]
+init_syscontext() C-kern/platform/Linux/init.c:103
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456252s]
+initrun_syscontext() C-kern/platform/Linux/init.c:197
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456257s]
+init_syscontext() C-kern/platform/Linux/init.c:103
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456261s]
+initrun_syscontext() C-kern/platform/Linux/init.c:197
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456265s]
+init_syscontext() C-kern/platform/Linux/init.c:103
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456268s]
+initrun_syscontext() C-kern/platform/Linux/init.c:197
+Exit function with
+Error 22 - Invalid argument
+[1: 1450415323.456282s]
+initrun_syscontext() C-kern/platform/Linux/init.c:122
 Function call 'new_threadlocalstore' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[1: 1445603301.125200s]
-initrun_syscontext() C-kern/platform/Linux/init.c:127
+[1: 1450415323.456304s]
+initrun_syscontext() C-kern/platform/Linux/init.c:133
 System call 'sigaltstack' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[1: 1445603301.125241s]
-initrun_syscontext() C-kern/platform/Linux/init.c:137
+[1: 1450415323.456325s]
+initrun_syscontext() C-kern/platform/Linux/init.c:143
 System call 'getcontext' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[1: 1445603301.125289s]
-initrun_syscontext() C-kern/platform/Linux/init.c:155
+[1: 1450415323.456349s]
+initrun_syscontext() C-kern/platform/Linux/init.c:161
 System call 'swapcontext' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[1: 1445603301.125341s]
-initrun_syscontext() C-kern/platform/Linux/init.c:168
+[1: 1450415323.456374s]
+initrun_syscontext() C-kern/platform/Linux/init.c:174
 System call 'sigaltstack' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[1: 1445603301.125401s]
-initrun_syscontext() C-kern/platform/Linux/init.c:175
+[1: 1450415323.456403s]
+initrun_syscontext() C-kern/platform/Linux/init.c:181
 Function call 'delete_threadlocalstore' failed with error 333
 Exit function with
 Error 333 - Unknown error
-[0: 1445603301.126148s]
+[0: 1450415323.457325s]
 callmain_platform() C-kern/platform/Linux/init.c:64
 Abort main thread '0' with fatal error
 Exit function with
 Error 131 - State not recoverable
-[0: 1445603301.126180s]
-abort_maincontext() C-kern/main/maincontext.c:245
+[0: 1450415323.457354s]
+abort_maincontext() C-kern/main/maincontext.c:244
 Abort process with fatal error
 Error 131 - State not recoverable

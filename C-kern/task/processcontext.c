@@ -69,8 +69,9 @@ static inline int alloc_static_memory(processcontext_t* pcontext, thread_localst
    int err;
    const uint16_t size = static_memory_size();
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = memalloc_threadlocalstore(tls, size, mblock);
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      err = memalloc_threadlocalstore(tls, size, mblock);
+   }
    if (err) goto ONERR;
 
    pcontext->staticmemblock = mblock->addr;
@@ -94,7 +95,7 @@ static inline int free_static_memory(processcontext_t* pcontext, thread_localsto
       pcontext->staticmemblock = 0;
 
       err = memfree_threadlocalstore(tls, &mblock);
-      SETONERROR_testerrortimer(&s_processcontext_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err);
 
       if (err) goto ONERR;
    }
@@ -118,48 +119,54 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    if (err) goto ONERR;
    ++ pcontext->initcount;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);"\n(if (inittype=='initonce') ("   err = initonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"   if (err) goto ONERR;")) (if (inittype=='object') ("   assert( sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   pcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) \n"   ++ pcontext->initcount;")FROM(C-kern/resource/config/initprocess)
+// TEXTDB:SELECT(\n"   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {"\n(if (inittype=='initonce') ("      err = initonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"   }"\n"   if (err) goto ONERR;")) (if (inittype=='object') ("      assert( sizeof("objtype") <= mblock.size);"\n"      err = init_"module"(("objtype"*) mblock.addr);"\n"   }"\n"   if (err) goto ONERR;"\n"   pcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) \n"   ++ pcontext->initcount;")FROM(C-kern/resource/config/initprocess)
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = initonce_errorcontext(&pcontext->error);
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      err = initonce_errorcontext(&pcontext->error);
+   }
    if (err) goto ONERR;
    ++ pcontext->initcount;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = initonce_locale();
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      err = initonce_locale();
+   }
    if (err) goto ONERR;
    ++ pcontext->initcount;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = initonce_signalhandler();
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      err = initonce_signalhandler();
+   }
    if (err) goto ONERR;
    ++ pcontext->initcount;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   assert( sizeof(syslogin_t) <= mblock.size);
-   err = init_syslogin((syslogin_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      assert( sizeof(syslogin_t) <= mblock.size);
+      err = init_syslogin((syslogin_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    pcontext->syslogin = (syslogin_t*) mblock.addr;
    mblock.addr += sizeof(syslogin_t);
    mblock.size -= sizeof(syslogin_t);
    ++ pcontext->initcount;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   assert( sizeof(pagecache_blockmap_t) <= mblock.size);
-   err = init_pagecacheblockmap((pagecache_blockmap_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      assert( sizeof(pagecache_blockmap_t) <= mblock.size);
+      err = init_pagecacheblockmap((pagecache_blockmap_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    pcontext->blockmap = (pagecache_blockmap_t*) mblock.addr;
    mblock.addr += sizeof(pagecache_blockmap_t);
    mblock.size -= sizeof(pagecache_blockmap_t);
    ++ pcontext->initcount;
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
-   err = initonce_X11();
+   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
+      err = initonce_X11();
+   }
    if (err) goto ONERR;
    ++ pcontext->initcount;
 // TEXTDB:END
 
-   ONERROR_testerrortimer(&s_processcontext_errtimer, &err, ONERR);
+   if (PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) goto ONERR;
 
    return 0;
 ONERR:
@@ -178,42 +185,42 @@ int free_processcontext(processcontext_t* pcontext)
    switch (pcontext->initcount) {
    default: assert(false && "initcount out of bounds");
             break;
-// TEXTDB:SELECT(\n"   case ("row-id"+1):"\n(if (inittype=='initonce') ("            err2 = freeonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;")) (if (inittype=='object') ("            err2 = free_"module"( pcontext->"parameter");"\n"            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;"\n"            pcontext->"parameter" = 0;")) )FROM(C-kern/resource/config/initprocess)DESCENDING
+// TEXTDB:SELECT(\n"   case ("row-id"+1):"\n(if (inittype=='initonce') ("            err2 = freeonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;")) (if (inittype=='object') ("            err2 = free_"module"( pcontext->"parameter");"\n"            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;"\n"            pcontext->"parameter" = 0;")) )FROM(C-kern/resource/config/initprocess)DESCENDING
 
    case (6+1):
             err2 = freeonce_X11();
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 
    case (5+1):
             err2 = free_pagecacheblockmap( pcontext->blockmap);
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
             pcontext->blockmap = 0;
 
    case (4+1):
             err2 = free_syslogin( pcontext->syslogin);
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
             pcontext->syslogin = 0;
 
    case (3+1):
             err2 = freeonce_signalhandler();
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 
    case (2+1):
             err2 = freeonce_locale();
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 
    case (1+1):
             err2 = freeonce_errorcontext(&pcontext->error);
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
 // TEXTDB:END
    case 1:  err2 = free_static_memory(pcontext, self_threadlocalstore());
-            SETONERROR_testerrortimer(&s_processcontext_errtimer, &err2);
+            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
    case 0:  break;
    }

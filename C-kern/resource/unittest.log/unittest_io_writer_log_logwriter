@@ -1,87 +1,87 @@
-[1: 1445601086.616491s]
-free_logwriter() C-kern/io/writer/log/logwriter.c:198
+[1: 1450414062.347280s]
+free_logwriter() C-kern/io/writer/log/logwriter.c:199
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.616495s]
-init_logwriter() C-kern/io/writer/log/logwriter.c:163
+[1: 1450414062.347284s]
+init_logwriter() C-kern/io/writer/log/logwriter.c:164
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1445601086.616498s]
-initstatic_logwriter() C-kern/io/writer/log/logwriter.c:177
+[1: 1450414062.347288s]
+initstatic_logwriter() C-kern/io/writer/log/logwriter.c:178
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.616501s]
-initstatic_logwriter() C-kern/io/writer/log/logwriter.c:177
+[1: 1450414062.347291s]
+initstatic_logwriter() C-kern/io/writer/log/logwriter.c:178
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618361s]
-getbuffer_logwriter() C-kern/io/writer/log/logwriter.c:241
+[1: 1450414062.349017s]
+getbuffer_logwriter() C-kern/io/writer/log/logwriter.c:242
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618365s]
-compare_logwriter() C-kern/io/writer/log/logwriter.c:264
+[1: 1450414062.349022s]
+compare_logwriter() C-kern/io/writer/log/logwriter.c:265
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618369s]
-truncatebuffer_logwriter() C-kern/io/writer/log/logwriter.c:289
+[1: 1450414062.349026s]
+truncatebuffer_logwriter() C-kern/io/writer/log/logwriter.c:290
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618372s]
-flushbuffer_logwriter() C-kern/io/writer/log/logwriter.c:305
+[1: 1450414062.349029s]
+flushbuffer_logwriter() C-kern/io/writer/log/logwriter.c:306
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618374s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:355
+[1: 1450414062.349032s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:356
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618377s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:355
+[1: 1450414062.349035s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:356
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618379s]
-printtext_logwriter() C-kern/io/writer/log/logwriter.c:381
+[1: 1450414062.349037s]
+printtext_logwriter() C-kern/io/writer/log/logwriter.c:382
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618382s]
-getbuffer_logwriter() C-kern/io/writer/log/logwriter.c:241
+[1: 1450414062.349040s]
+getbuffer_logwriter() C-kern/io/writer/log/logwriter.c:242
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618387s]
-compare_logwriter() C-kern/io/writer/log/logwriter.c:264
+[1: 1450414062.349046s]
+compare_logwriter() C-kern/io/writer/log/logwriter.c:265
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618392s]
-truncatebuffer_logwriter() C-kern/io/writer/log/logwriter.c:289
+[1: 1450414062.349051s]
+truncatebuffer_logwriter() C-kern/io/writer/log/logwriter.c:290
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618396s]
-flushbuffer_logwriter() C-kern/io/writer/log/logwriter.c:305
+[1: 1450414062.349055s]
+flushbuffer_logwriter() C-kern/io/writer/log/logwriter.c:306
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618400s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:355
+[1: 1450414062.349059s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:356
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618404s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:355
+[1: 1450414062.349063s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:356
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1445601086.618408s]
-printtext_logwriter() C-kern/io/writer/log/logwriter.c:381
+[1: 1450414062.349067s]
+printtext_logwriter() C-kern/io/writer/log/logwriter.c:382
 Function input violates condition (channel < log_channel__NROF)
 Exit function with
 Error 22 - Invalid argument

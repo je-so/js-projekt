@@ -1,64 +1,64 @@
-[1: 1443695033.931123s]
-init_binarystack() C-kern/ds/inmem/binarystack.c:187
+[1: 1450414032.152256s]
+init_binarystack() C-kern/ds/inmem/binarystack.c:185
 Exit function with
 Error 7 - Argument list too long
-[1: 1443695033.931129s]
-init_binarystack() C-kern/ds/inmem/binarystack.c:187
+[1: 1450414032.152262s]
+init_binarystack() C-kern/ds/inmem/binarystack.c:185
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931137s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152267s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931141s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152272s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931145s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152276s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931149s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152279s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931153s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152283s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931156s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152287s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931164s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152290s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.931168s]
-free_binarystack() C-kern/ds/inmem/binarystack.c:217
+[1: 1450414032.152294s]
+free_binarystack() C-kern/ds/inmem/binarystack.c:215
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.939234s]
-push2_binarystack() C-kern/ds/inmem/binarystack.c:258
+[1: 1450414032.160371s]
+push2_binarystack() C-kern/ds/inmem/binarystack.c:256
 Exit function with
 Error 7 - Argument list too long
-[1: 1443695033.939241s]
-push2_binarystack() C-kern/ds/inmem/binarystack.c:258
+[1: 1450414032.160377s]
+push2_binarystack() C-kern/ds/inmem/binarystack.c:256
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695033.939288s]
-pop2_binarystack() C-kern/ds/inmem/binarystack.c:308
+[1: 1450414032.160417s]
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:306
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695033.939294s]
-pop2_binarystack() C-kern/ds/inmem/binarystack.c:308
+[1: 1450414032.160423s]
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:306
 Exit function with
 Error 12 - Cannot allocate memory

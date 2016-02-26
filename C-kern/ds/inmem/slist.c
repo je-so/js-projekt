@@ -168,15 +168,15 @@ struct testnode_adapt_t {
 
 static int impl_delete_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   int err = process_testerrortimer(&typeadp->errcounter) ;
+   int err;
 
-   if (!err && *node) {
-      ++ (*node)->is_freed ;
+   if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
+      ++ (*node)->is_freed;
    }
 
-   *node = 0 ;
+   *node = 0;
 
-   return err ;
+   return err;
 }
 
 static int test_initfree(void)
@@ -584,16 +584,16 @@ struct gnodeadapter_t {
 
 static int impl_deleteobject_gnodeadapter(gnodeadapter_t * typeadp, gnode_t ** node)
 {
-   int err = process_testerrortimer(&typeadp->errcounter) ;
+   int err;
 
-   if (!err && *node) {
-      ++ typeadp->freenode_count ;
-      ++ (*node)->is_freed ;
+   if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
+      ++ typeadp->freenode_count;
+      ++ (*node)->is_freed;
    }
 
-   *node = 0 ;
+   *node = 0;
 
-   return err ;
+   return err;
 }
 
 static int test_generic(void)

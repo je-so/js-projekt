@@ -24,10 +24,10 @@
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/string/string.h"
+#include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/test/mm/err_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
-#include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #endif
 
@@ -39,7 +39,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_arraystf_errtimer
  * Simulates an error in different functions. */
-static test_errortimer_t   s_arraystf_errtimer = test_errortimer_FREE ;
+static test_errortimer_t   s_arraystf_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper
@@ -941,9 +941,9 @@ static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copi
 
 static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   int err = process_testerrortimer(&typeadp->errcounter) ;
+   int err;
 
-   if (!err && *node) {
+   if (! process_testerrortimer(&typeadp->errcounter, &err) && *node) {
       ++ (*node)->freecount ;
    }
 

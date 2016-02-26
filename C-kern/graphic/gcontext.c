@@ -37,7 +37,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_gcontext_errtimer
  * Allows to introduce artificial errors during test. */
-static test_errortimer_t   s_gcontext_errtimer = test_errortimer_FREE ;
+static test_errortimer_t   s_gcontext_errtimer = test_errortimer_FREE;
 #endif
 
 // group: lifetime
@@ -69,9 +69,9 @@ int free_gcontext(gcontext_t * cont, struct display_t * disp)
 #else
    #error "No implementation defined"
 #endif
+      (void) PROCESS_testerrortimer(&s_gcontext_errtimer, &err);
 
-      if  (err) goto ONERR;
-      ONERROR_testerrortimer(&s_gcontext_errtimer, &err, ONERR);
+      if (err) goto ONERR;
    }
 
    return 0;

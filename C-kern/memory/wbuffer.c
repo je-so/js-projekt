@@ -56,8 +56,9 @@ static int alloc_cstring_wbuffer(void* impl, size_t freesize, /*inout*/memstream
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_wbuffer_errtimer, &err, ONERR);
-   err = allocate_cstring(cstr, capacity);
+   if (! PROCESS_testerrortimer(&s_wbuffer_errtimer, &err)) {
+      err = allocate_cstring(cstr, capacity);
+   }
    if (err) goto ONERR;
 
    *memstr = (memstream_t) memstream_INIT(addr_cstring(cstr) + used, addr_cstring(cstr) + capacity_cstring(cstr));

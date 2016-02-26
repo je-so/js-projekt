@@ -237,12 +237,14 @@ static int new_pagecacheblock(
                   && pagesize_1MB + 1u == pagesize__NROF,
                   "pagecache_block_BLOCKSIZE supports the largest value of pagesize_e");
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
-   err = initaligned_vmpage(&pageblock, pagecache_block_BLOCKSIZE);
+   if (! PROCESS_testerrortimer(&s_pagecacheblock_errtimer, &err)) {
+      err = initaligned_vmpage(&pageblock, pagecache_block_BLOCKSIZE);
+   }
    if (err) goto ONERR;
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONERR);
-   err = assign_pagecacheblockmap(blockmap, arrayindex_pagecacheblock(pageblock.addr), &newblock);
+   if (! PROCESS_testerrortimer(&s_pagecacheblock_errtimer, &err)) {
+      err = assign_pagecacheblockmap(blockmap, arrayindex_pagecacheblock(pageblock.addr), &newblock);
+   }
    if (err) goto ONERR;
 
    // Member newblock->threadcontext was set in assign_pagecacheblockmap
@@ -283,11 +285,7 @@ static int free_pagecacheblock(pagecache_block_t* block, pagecache_blockmap_t* b
       block->blockaddr = 0;
 
       err = free_vmpage(&pageblock);
-
-#ifdef KONFIG_UNITTEST
-      int err2 = process_testerrortimer(&s_pagecacheblock_errtimer);
-      if (err2) err = err2;
-#endif
+      (void) PROCESS_testerrortimer(&s_pagecacheblock_errtimer, &err);
 
       if (err) goto ONERR;
    }
@@ -454,10 +452,7 @@ int free_pagecacheimpl(pagecache_impl_t* pgcache)
    if (0 != sizeallocated_pagecacheimpl(pgcache)) {
       err = ENOTEMPTY;
    }
-#ifdef KONFIG_UNITTEST
-   err2 = process_testerrortimer(&s_pagecacheblock_errtimer);
-   if (err2) err = err2;
-#endif
+   (void) PROCESS_testerrortimer(&s_pagecacheblock_errtimer, &err);
 
    *pgcache = (pagecache_impl_t) pagecache_impl_FREE;
 

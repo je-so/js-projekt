@@ -81,8 +81,9 @@ static inline int alloc_static_memory(threadcontext_t* tcontext, thread_localsto
    int err;
    const size_t size = static_memory_size();
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   err = memalloc_threadlocalstore(tls, size, mblock);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      err = memalloc_threadlocalstore(tls, size, mblock);
+   }
    if (err) goto ONERR;
 
    tcontext->staticmemblock = mblock->addr;
@@ -108,7 +109,7 @@ static inline int free_static_memory(threadcontext_t* tcontext, thread_localstor
       tcontext->staticmemblock = 0;
 
       err = memfree_threadlocalstore(tls, &mblock);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err);
       if (err) goto ONERR;
    }
 
@@ -168,13 +169,13 @@ int free_threadcontext(threadcontext_t* tcontext)
    default:
       assert(false && "initcount out of bounds");
       break;
-// TEXTDB:SELECT("   case ("row-id"+1): {"\n(if (inittype=='interface') ("      "objtype"* delobj = ("objtype"*) tcontext->"parameter".object;"\n"      assert(tcontext->"parameter".iimpl == interface_"module"());"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='object') ("      "objtype"* delobj = tcontext->"parameter";"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='initthread') ("      err2 = freethread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n))"   }")FROM(C-kern/resource/config/initthread)DESCENDING
+// TEXTDB:SELECT("   case ("row-id"+1): {"\n(if (inittype=='interface') ("      "objtype"* delobj = ("objtype"*) tcontext->"parameter".object;"\n"      assert(tcontext->"parameter".iimpl == interface_"module"());"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='object') ("      "objtype"* delobj = tcontext->"parameter";"\n"      tcontext->"parameter" = staticcontext."parameter";"\n"      err2 = free_"module"(delobj);"\n"      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n)) (if (inittype=='initthread') ("      err2 = freethread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);"\n"      if (err2) err = err2;"\n))"   }")FROM(C-kern/resource/config/initthread)DESCENDING
    case (5+1): {
       logwriter_t* delobj = (logwriter_t*) tcontext->log.object;
       assert(tcontext->log.iimpl == interface_logwriter());
       tcontext->log = staticcontext.log;
       err2 = free_logwriter(delobj);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
    case (4+1): {
@@ -182,14 +183,14 @@ int free_threadcontext(threadcontext_t* tcontext)
       assert(tcontext->objectcache.iimpl == interface_objectcacheimpl());
       tcontext->objectcache = staticcontext.objectcache;
       err2 = free_objectcacheimpl(delobj);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
    case (3+1): {
       syncrunner_t* delobj = tcontext->syncrunner;
       tcontext->syncrunner = staticcontext.syncrunner;
       err2 = free_syncrunner(delobj);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
    case (2+1): {
@@ -197,7 +198,7 @@ int free_threadcontext(threadcontext_t* tcontext)
       assert(tcontext->mm.iimpl == interface_mmimpl());
       tcontext->mm = staticcontext.mm;
       err2 = free_mmimpl(delobj);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
    case (1+1): {
@@ -205,13 +206,13 @@ int free_threadcontext(threadcontext_t* tcontext)
       assert(tcontext->pagecache.iimpl == interface_pagecacheimpl());
       tcontext->pagecache = staticcontext.pagecache;
       err2 = free_pagecacheimpl(delobj);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    }
 // TEXTDB:END
    case 1:
       err2 = free_static_memory(tcontext, tls);
-      SETONERROR_testerrortimer(&s_threadcontext_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err2);
       if (err2) err = err2;
    case 0:
       break;
@@ -261,51 +262,56 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, uint8_t context_type)
    if (err) goto ONERR;
    ++tcontext->initcount;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);"\n (if (inittype=='interface') ("   assert( interface_"module"());"\n"   assert( sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   init_iobj( &tcontext->"parameter", (void*) mblock.addr, interface_"module"());"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='object') ("   assert(sizeof("objtype") <= mblock.size);"\n"   err = init_"module"(("objtype"*) mblock.addr);"\n"   if (err) goto ONERR;"\n"   tcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='initthread') ("   err = initthread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"   if (err) goto ONERR;")) \n"   ++tcontext->initcount;")FROM(C-kern/resource/config/initthread)
+// TEXTDB:SELECT(\n"   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {"\n (if (inittype=='interface') ("      assert( interface_"module"());"\n"      assert( sizeof("objtype") <= mblock.size);"\n"      err = init_"module"(("objtype"*) mblock.addr);"\n"   }"\n"   if (err) goto ONERR;"\n"   init_iobj( &tcontext->"parameter", (void*) mblock.addr, interface_"module"());"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='object') ("      assert(sizeof("objtype") <= mblock.size);"\n"      err = init_"module"(("objtype"*) mblock.addr);"\n"   }"\n"   if (err) goto ONERR;"\n"   tcontext->"parameter" = ("objtype"*) mblock.addr;"\n"   mblock.addr += sizeof("objtype");"\n"   mblock.size -= sizeof("objtype");")) (if (inittype=='initthread') ("      err = initthread_"module"("(if (parameter!="") ("&tcontext->"parameter))");"\n"   }"\n"   if (err) goto ONERR;")) \n"   ++tcontext->initcount;")FROM(C-kern/resource/config/initthread)
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   assert( interface_pagecacheimpl());
-   assert( sizeof(pagecache_impl_t) <= mblock.size);
-   err = init_pagecacheimpl((pagecache_impl_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      assert( interface_pagecacheimpl());
+      assert( sizeof(pagecache_impl_t) <= mblock.size);
+      err = init_pagecacheimpl((pagecache_impl_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    init_iobj( &tcontext->pagecache, (void*) mblock.addr, interface_pagecacheimpl());
    mblock.addr += sizeof(pagecache_impl_t);
    mblock.size -= sizeof(pagecache_impl_t);
    ++tcontext->initcount;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   assert( interface_mmimpl());
-   assert( sizeof(mm_impl_t) <= mblock.size);
-   err = init_mmimpl((mm_impl_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      assert( interface_mmimpl());
+      assert( sizeof(mm_impl_t) <= mblock.size);
+      err = init_mmimpl((mm_impl_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    init_iobj( &tcontext->mm, (void*) mblock.addr, interface_mmimpl());
    mblock.addr += sizeof(mm_impl_t);
    mblock.size -= sizeof(mm_impl_t);
    ++tcontext->initcount;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   assert(sizeof(syncrunner_t) <= mblock.size);
-   err = init_syncrunner((syncrunner_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      assert(sizeof(syncrunner_t) <= mblock.size);
+      err = init_syncrunner((syncrunner_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    tcontext->syncrunner = (syncrunner_t*) mblock.addr;
    mblock.addr += sizeof(syncrunner_t);
    mblock.size -= sizeof(syncrunner_t);
    ++tcontext->initcount;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   assert( interface_objectcacheimpl());
-   assert( sizeof(objectcache_impl_t) <= mblock.size);
-   err = init_objectcacheimpl((objectcache_impl_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      assert( interface_objectcacheimpl());
+      assert( sizeof(objectcache_impl_t) <= mblock.size);
+      err = init_objectcacheimpl((objectcache_impl_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    init_iobj( &tcontext->objectcache, (void*) mblock.addr, interface_objectcacheimpl());
    mblock.addr += sizeof(objectcache_impl_t);
    mblock.size -= sizeof(objectcache_impl_t);
    ++tcontext->initcount;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   assert( interface_logwriter());
-   assert( sizeof(logwriter_t) <= mblock.size);
-   err = init_logwriter((logwriter_t*) mblock.addr);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      assert( interface_logwriter());
+      assert( sizeof(logwriter_t) <= mblock.size);
+      err = init_logwriter((logwriter_t*) mblock.addr);
+   }
    if (err) goto ONERR;
    init_iobj( &tcontext->log, (void*) mblock.addr, interface_logwriter());
    mblock.addr += sizeof(logwriter_t);
@@ -313,11 +319,11 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, uint8_t context_type)
    ++tcontext->initcount;
 // TEXTDB:END
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
-   err = config_threadcontext(tcontext, context_type);
+   if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
+      err = config_threadcontext(tcontext, context_type);
+      (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err);
+   }
    if (err) goto ONERR;
-
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONERR);
 
    return 0;
 ONERR:

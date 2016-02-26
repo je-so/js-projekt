@@ -79,7 +79,13 @@ static inline int init_syscontext(/*out*/struct syscontext_t * scontext)
 
    uint32_t pagesize = (uint32_t) sys_pagesize_vm();
 
-   ONERROR_testerrortimer(&s_syscontext_errtimer, &err, ONERR);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      pagesize = 0;
+   } else if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      pagesize = 1023;
+   } else if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      pagesize >>= 1;
+   }
 
    if (! pagesize
       || ! ispowerof2_int(pagesize)
@@ -111,7 +117,7 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
    if (err) goto ONERR;
 
    err = new_threadlocalstore(&tls, &threadstack, &signalstack, scontext->pagesize_vm);
-   SETONERROR_testerrortimer(&s_syscontext_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
       TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadlocalstore", err);
       goto ONERR;
@@ -119,8 +125,8 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
 
    stack_t altstack = { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
    err = sigaltstack(&altstack, 0);
-   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
-      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      errno = err;
    }
    if (err) {
       err = errno;
@@ -129,8 +135,8 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
    }
 
    err = getcontext(&context_mainthread);
-   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
-      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      errno = err;
    }
    if (err) {
       err = errno;
@@ -147,8 +153,8 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
 
    // start callmain_platform and returns to context_old after exit
    err = swapcontext(&context_old, &context_mainthread);
-   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
-      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      errno = err;
    }
    if (err) {
       err = errno;
@@ -160,8 +166,8 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
 
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
    err = sigaltstack(&altstack, 0);
-   if (PROCESS_testerrortimer(&s_syscontext_errtimer)) {
-      err = errno = ERRCODE_testerrortimer(&s_syscontext_errtimer);
+   if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
+      errno = err;
    }
    if (err) {
       err = errno;
@@ -170,7 +176,7 @@ int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_
    }
 
    err = delete_threadlocalstore(&tls);
-   SETONERROR_testerrortimer(&s_syscontext_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
       TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadlocalstore", err);
       goto ONERR;
@@ -272,6 +278,20 @@ static int test_init(void)
    TEST(0 == init_syscontext(&sc));
    TEST(0 == check_sc(&sc));
 
+   // TEST init_syscontext: EINVAL (pagesize == 0, pagesize not power of 2, pagesize truncated)
+   sc = (syscontext_t) syscontext_FREE;
+   for (unsigned i = 1; i; ++i) {
+      init_testerrortimer(&s_syscontext_errtimer, i, ENOSYS);
+      int err = init_syscontext(&sc);
+      if (!err) {
+         TESTP(i == 4, "i=%d", i);
+         break;
+      }
+      TEST(EINVAL == err);
+      TEST(1 == isfree_syscontext(&sc));
+   }
+   free_testerrortimer(&s_syscontext_errtimer);
+
    // TEST initrun_syscontext: argument
    s_retcode = 0;
    for (int i = 10; i >= 0; --i) {
@@ -303,14 +323,14 @@ static int test_init(void)
       s_userarg = 0;
       int err = initrun_syscontext(&sc, &main_testthread, (void*)1);
       TEST(1 == isfree_syscontext(&sc));
-      TEST((i > 4) == (int) s_userarg);
+      TEST((i > 6) == (int) s_userarg);
       if (!err) {
-         TEST(8 == i);
+         TEST(10 == i);
          TEST(-1 == read(pfd.read, buffer, sizeof(buffer)));
          free_testerrortimer(&s_syscontext_errtimer);
          break;
       }
-      TEST(333 == err);
+      TEST((i < 4 ? EINVAL : 333) == err);
       ssize_t len = read(pfd.read, buffer, sizeof(buffer));
       TESTP(165 < len, "len=%zd", len);
       buffer[len] = 0;

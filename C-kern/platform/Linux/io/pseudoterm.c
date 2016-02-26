@@ -52,10 +52,13 @@ static int prepare_pseudoterm(int fd)
    // installed to catch SIGCHLD signals.
 
    err = sigaction(SIGCHLD, 0, &oldact);
+   if (PROCESS_testerrortimer(&s_pseudoterm_errtimer, &err)) {
+      errno = err;
+   }
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("sigaction(SIGCHLD,...)", err);
-      return err;
+      goto ONERR;
    }
 
    const bool issiginfo = 0 != (oldact.sa_flags & SA_SIGINFO);
@@ -67,22 +70,31 @@ static int prepare_pseudoterm(int fd)
    }
 
    err = grantpt(fd);
+   if (PROCESS_testerrortimer(&s_pseudoterm_errtimer, &err)) {
+      errno = err;
+   }
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("grantpt(fd)", err);
       PRINTINT_ERRLOG(fd);
-      return err;
+      goto ONERR;
    }
 
    err = unlockpt(fd);
+   if (PROCESS_testerrortimer(&s_pseudoterm_errtimer, &err)) {
+      errno = err;
+   }
    if (err) {
       err = errno;
       TRACESYSCALL_ERRLOG("unlockpt(fd)", err);
       PRINTINT_ERRLOG(fd);
-      return err;
+      goto ONERR;
    }
 
    return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 // group: lifetime
@@ -90,14 +102,20 @@ static int prepare_pseudoterm(int fd)
 int init_pseudoterm(/*out*/pseudoterm_t* pty)
 {
    int err;
-   int fd = open("/dev/ptmx", O_RDWR|O_NOCTTY|O_CLOEXEC|O_NONBLOCK);
+   int fd;
+
+   if (PROCESS_testerrortimer(&s_pseudoterm_errtimer, &err)) {
+      errno = err;
+      fd = -1;
+   } else {
+      fd = open("/dev/ptmx", O_RDWR|O_NOCTTY|O_CLOEXEC|O_NONBLOCK);
+   }
 
    if (-1 == fd) {
       err = errno;
       goto ONERR;
    }
 
-   ONERROR_testerrortimer(&s_pseudoterm_errtimer, &err, ONERR);
    err = prepare_pseudoterm(fd);
    if (err) goto ONERR;
 
@@ -116,8 +134,8 @@ int free_pseudoterm(pseudoterm_t* pty)
    int err;
 
    err = free_iochannel(&pty->master_device);
+   (void) PROCESS_testerrortimer(&s_pseudoterm_errtimer, &err);
    if (err) goto ONERR;
-   ONERROR_testerrortimer(&s_pseudoterm_errtimer, &err, ONERR);
 
    return 0;
 ONERR:
@@ -310,11 +328,6 @@ static int test_initfree(void)
    // TEST pseudoterm_FREE
    TEST(sys_iochannel_FREE == pty.master_device);
 
-   // TEST init_pseudoterm: EINVAL
-   init_testerrortimer(&s_pseudoterm_errtimer, 1, EINVAL);
-   TEST(EINVAL == init_pseudoterm(&pty));
-   TEST(sys_iochannel_FREE == pty.master_device);
-
    // TEST init_pseudoterm
    TEST(0 == init_pseudoterm(&pty));
    TEST(0 <  pty.master_device);
@@ -362,6 +375,21 @@ static int test_initfree(void)
       errno = 0;
       TEST(-1 == open(name, O_RDWR|O_CLOEXEC));
       TEST(ENOENT == errno); // device removed
+   }
+
+   // TEST init_pseudoterm: simulated ERROR
+   for (int i = 1;; ++i) {
+      init_testerrortimer(&s_pseudoterm_errtimer, (unsigned)i, i);
+      int err = init_pseudoterm(&pty);
+      if (! err) {
+         TEST(5 == i);
+         // reset
+         free_testerrortimer(&s_pseudoterm_errtimer);
+         TEST(0 == free_pseudoterm(&pty));
+         break;
+      }
+      TEST(i == err);
+      TEST(isfree_iochannel(pty.master_device));
    }
 
    // TEST free_pseudoterm: EINVAL
