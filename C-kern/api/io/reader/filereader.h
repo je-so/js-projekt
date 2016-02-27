@@ -19,19 +19,13 @@
 #ifndef CKERN_IO_READER_FILEREADER_HEADER
 #define CKERN_IO_READER_FILEREADER_HEADER
 
-#include "C-kern/api/io/accessmode.h"
-
-// forward
+// === forward
 struct directory_t;
 struct memstream_ro_t;
 
-/* typedef: struct filereader_t
- * Export <filereader_t> into global namespace. */
-typedef struct filereader_t filereader_t;
+// === exported types
+struct filereader_t;
 
-/* typedef: struct filereader_mmfile_t
- * Export <filereader_mmfile_t> into global namespace. */
-typedef struct filereader_mmfile_t  filereader_mmfile_t;
 
 
 // section: Functions
@@ -41,22 +35,22 @@ typedef struct filereader_mmfile_t  filereader_mmfile_t;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_reader_filereader
  * Test <filereader_t> functionality. */
-int unittest_io_reader_filereader(void) ;
+int unittest_io_reader_filereader(void);
 #endif
 
 
-/* struct: filereader_mmfile_t
+/* struct: filereader_page_t
  * Private type used in implementation of <filereader_t>. */
-struct filereader_mmfile_t {
+typedef struct filereader_page_t {
    uint8_t* addr ;
    size_t   size ;
-};
+} filereader_page_t;
 
 // group: lifetime
 
-/* define: filereader_mmfile_FREE
+/* define: filereader_page_FREE
  * Static initializer. */
-#define filereader_mmfile_FREE \
+#define filereader_page_FREE \
          {0, 0}
 
 
@@ -66,41 +60,41 @@ struct filereader_mmfile_t {
  * The function <readnext_filereader> returns a buffer containing the next read data.
  * Use <release_filereader> if you do not longer need it. For every called <readnext_filereader>
  * you need to call <release_filereader>. Always the oldest read buffer is released. */
-struct filereader_t {
+typedef struct filereader_t {
    /* variable: ioerror
     * Safes status of last read access to <file>.
     * In case <ioerror> != 0 no more call is made to the underlying file. */
-   int         ioerror ;
+   int         ioerror;
    /* variable: unreadsize
     * The size of buffered data for which <readnext_filereader> is not called. */
-   size_t      unreadsize ;
+   size_t      unreadsize;
    /* variable: nextindex
-    * Index into <mmfile>.
+    * Index into <page>.
     * It is the index of the buffer which must be returned
     * during the next call to <readnext_filereader>. */
-   uint8_t     nextindex ;
+   uint8_t     nextindex;
    /* variable: nrfreebuffer
     * Number of released or unread buffers.
     * This value can range from 0 to 2. */
-   uint8_t     nrfreebuffer ;
+   uint8_t     nrfreebuffer;
    /* variable: fileoffset
     * Offset into <file> where the next read operation begins. */
-   off_t       fileoffset ;
+   off_t       fileoffset;
    /* variable: filesize
     * The size of the io-stream <file> refers to. */
-   off_t       filesize ;
+   off_t       filesize;
    /* variable: file
     * The file from which is read. */
-   sys_iochannel_t  file ;
-   /* variable: mmfile
+   sys_iochannel_t  file;
+   /* variable: page
     * The buffered input of the file. */
-   filereader_mmfile_t mmfile[2] ;
-} ;
+   filereader_page_t page[2];
+} filereader_t;
 
 // group: static configuration
 
 /* define: filereader_SYS_BUFFER_SIZE
- * The sum of the size the two allocated buffers.
+ * The sum of the size of two allocated buffers.
  * Every buffer is allocated half the size in bytes of this value.
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
 #define filereader_SYS_BUFFER_SIZE (4*4096)
@@ -110,12 +104,7 @@ struct filereader_t {
 /* define: filereader_FREE
  * Static initializer. */
 #define filereader_FREE \
-         { 0, 0, 0, 0, 0, 0, sys_iochannel_FREE, { filereader_mmfile_FREE, filereader_mmfile_FREE } }
-
-/* function: initsingle_filereader
- * Opens file for reading into a single buffer.
- * Works only on files < 2GB on 32 bit systems. */
-int initsingle_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+         { 0, 0, 0, 0, 0, 0, sys_iochannel_FREE, { filereader_page_FREE, filereader_page_FREE } }
 
 /* function: init_filereader
  * Opens file for reading into a double buffer.
@@ -149,24 +138,19 @@ bool iseof_filereader(const filereader_t * frd) ;
  * Returns true in case frd == <filereader_FREE>. */
 bool isfree_filereader(const filereader_t * frd) ;
 
-/* function: isnext_filereader
- * Returns true if there is a free buffer available.
- * Therefore <readnext_filereader> will not return ENOBUFS or ENODATA. */
-bool isnext_filereader(const filereader_t * frd) ;
-
 // group: setter
 
 /* function: setioerror_filereader
- * Sets ioerror of frd. After an error occurred (or is simulated by another component)
- * the function <readnext_filereader> returns this error.
- * Call free and init on frd again to clear the error or call this function with ioerr set to 0. */
-void setioerror_filereader(filereader_t * frd, int ioerr) ;
+ * Sets ioerror of frd. After an I/O error occurred this function is called.
+ * YOu can call it to simulate an I/O error. Every call to <readnext_filereader>
+ * returns this error. To clear it call this function with ioerr set to 0. */
+void setioerror_filereader(filereader_t * frd, int ioerr);
 
 // group: read
 
 /* function: readnext_filereader
  * Returns buffer containing the next block of input data.
- * If you do not longer need it use <release_filereader> to release
+ * If you do no longer need it use <release_filereader> to release
  * the oldest buffer. The current implementation supports only
  * two unreleased buffers.
  *
@@ -201,20 +185,10 @@ void unread_filereader(filereader_t * frd) ;
  * Implements <filereader_t.iseof_filereader>. */
 #define iseof_filereader(frd)          \
          ( __extension__ ({            \
-            const filereader_t * _f ;  \
-            _f = (frd) ;               \
-            (_f->unreadsize == 0       \
-            && _f->fileoffset          \
-               == _f->filesize) ;      \
-         }))
-
-/* define: isnext_filereader
- * Implements <filereader_t.isnext_filereader>. */
-#define isnext_filereader(frd)         \
-         ( __extension__ ({            \
-            const filereader_t * _f ;  \
-            _f = (frd) ;               \
-            (_f->unreadsize != 0) ;    \
+            const filereader_t * _f;   \
+            _f = (frd);                \
+            (  _f->fileoffset          \
+               == _f->filesize);       \
          }))
 
 /* define: setioerror_filereader
