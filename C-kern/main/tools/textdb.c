@@ -31,27 +31,31 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/fileutil.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/string/string.h"
 
-typedef struct function_t              function_t ;
-typedef struct iffunction_t            iffunction_t ;
-typedef struct expression_t            expression_t ;
+typedef struct function_t              function_t;
+typedef struct iffunction_t            iffunction_t;
+typedef struct expression_t            expression_t;
 typedef struct value_t                 value_t;
-typedef struct textdb_t                textdb_t ;
-typedef struct textdb_column_t         textdb_column_t ;
-typedef struct depfilename_written_t   depfilename_written_t ;
+typedef struct textdb_t                textdb_t;
+typedef struct textdb_column_t         textdb_column_t;
+typedef struct depfilename_written_t   depfilename_written_t;
 
-static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd ) ;
+static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** end_param, const char * start_param, const char * end_macro, size_t start_linenr, const char * cmd ) ;
 static void print_err(const char* printf_format, ...) __attribute__ ((__format__ (__printf__, 1, 2))) ;
 
-const char * g_programname = 0 ;
-const char *  g_infilename = 0 ;
-const char * g_outfilename = 0 ;
-char *       g_depfilename = 0 ;
-int          g_depencyfile = 0 ;
-int          g_foverwrite  = 0 ;
-int          g_outfd       = -1 ;
-int          g_depfd       = -1 ;
+const char * g_programname = 0;
+const char * g_infilename  = 0;
+const char * g_outfilename = 0;
+char *       g_depfilename = 0;
+int          g_depencyfile = 0;
+int          g_foverwrite  = 0;
+int          g_outfd       = -1;
+int          g_depfd       = -1;
 
 static void print_err(const char* printf_format, ...)
 {
@@ -121,14 +125,14 @@ static int write_outfile(int outfd, const char * write_start, size_t write_size)
    return 0 ;
 }
 
-static void skip_space( char ** current_pos, char * end_pos)
+static void skip_space( const char ** current_pos, const char * end_pos)
 {
-   char * next = *current_pos ;
+   const char * next = *current_pos;
    while (  next < end_pos
             && ' ' == next[0]) {
       ++ next ;
    }
-   *current_pos = next ;
+   *current_pos = next;
 }
 
 struct depfilename_written_t
@@ -212,24 +216,25 @@ ONERR:
 
 static int free_textdbcolumn(textdb_column_t * column)
 {
-   free(column->value) ;
-   column->value                 = 0 ;
-   column->length                = 0 ;
-   column->allocated_memory_size = 0 ;
-   return 0 ;
+   free(column->value);
+   column->value                 = 0;
+   column->length                = 0;
+   column->allocated_memory_size = 0;
+   return 0;
 }
 
 struct textdb_t
 {
-   mmfile_t        input_file ;
-   size_t          row_count ;
-   size_t          column_count ;
-   textdb_column_t * rows  /*[row_count][column_count]*/ ;
-   char            * filename ;
-   size_t          line_number ;
+   memblock_t      input_data;
+   size_t          input_size;
+   size_t          row_count;
+   size_t          column_count;
+   textdb_column_t *rows;  /*rows[row_count][column_count]*/
+   char            *filename;
+   size_t          line_number;
 } ;
 
-#define textdb_FREE { mmfile_FREE, 0, 0, 0, 0, 0 }
+#define textdb_FREE { memblock_FREE, 0, 0, 0, 0, 0, 0 }
 
 static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_len, /*out*/size_t * number_of_cols)
 {
@@ -306,11 +311,11 @@ ONERR:
 static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /*out*/size_t * number_of_cols)
 {
    int err ;
-   char * next_char = (char*) addr_mmfile( &txtdb->input_file) ;
-   size_t input_len = size_mmfile( &txtdb->input_file) ;
+   char * next_char = (char*) addr_memblock(&txtdb->input_data);
+   size_t input_len = txtdb->input_size;
 
-   size_t nr_rows = 0 ;
-   size_t nr_cols = 0 ;
+   size_t nr_rows = 0;
+   size_t nr_cols = 0;
 
    txtdb->line_number = 1 ;
 
@@ -354,11 +359,11 @@ ONERR:
 static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
 {
    int err ;
-   char * next_char = (char*) addr_mmfile( &txtdb->input_file) ;
-   size_t input_len = size_mmfile( &txtdb->input_file) ;
-   size_t row_index = 0 ;
+   char * next_char = (char*) addr_memblock(&txtdb->input_data);
+   size_t input_len = txtdb->input_size;
+   size_t row_index = 0;
 
-   txtdb->line_number = 1 ;
+   txtdb->line_number = 1;
 
    while (input_len) {
       // find line containing data
@@ -464,33 +469,35 @@ ONERR:
 
 static int free_textdb(textdb_t * txtdb)
 {
-   int err = 0 ;
-   int err2 ;
-   size_t table_size = txtdb->row_count * txtdb->column_count ;
+   int err = 0;
+   int err2;
+   size_t table_size = txtdb->row_count * txtdb->column_count;
 
    for (size_t i = 0; i < table_size; ++i) {
-      err2 = free_textdbcolumn(&txtdb->rows[i]) ;
-      if (err2) err = err2 ;
+      err2 = free_textdbcolumn(&txtdb->rows[i]);
+      if (err2) err = err2;
    }
 
-   free(txtdb->rows) ;
-   txtdb->rows         = 0 ;
-   txtdb->row_count    = 0 ;
-   txtdb->column_count = 0 ;
+   free(txtdb->rows);
+   txtdb->rows         = 0;
+   txtdb->row_count    = 0;
+   txtdb->column_count = 0;
 
-   err2 = free_mmfile(&txtdb->input_file) ;
-   if (err2) err = err2 ;
+   err2 = FREE_MM(&txtdb->input_data);
+   if (err2) err = err2;
 
    if (err) goto ONERR;
-   return 0 ;
+
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 static int init_textdb(/*out*/textdb_t * result, const char * filename)
 {
-   int err ;
-   textdb_t txtdb = textdb_FREE ;
+   int err;
+   textdb_t  txtdb = textdb_FREE;
+   wbuffer_t input_wbuffer = wbuffer_INIT_MEMBLOCK(&txtdb.input_data);
 
    txtdb.filename = strdup(filename) ;
    if (!txtdb.filename) {
@@ -499,13 +506,15 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ONERR;
    }
 
-   err = init_mmfile( &txtdb.input_file, filename, 0, 0, accessmode_READ, 0) ;
+
+   err = load_file(filename, &input_wbuffer, 0);
    if (err) {
-      print_err( "Can not open textdb file '%s' for reading: %s", filename, strerror(err)) ;
+      print_err( "Can not open textdb file '%s' for reading: %s", filename, strerror(err));
       goto ONERR;
    }
+   txtdb.input_size = size_wbuffer(&input_wbuffer);
 
-   err = tablesize_textdb( &txtdb, &txtdb.row_count, &txtdb.column_count) ;
+   err = tablesize_textdb( &txtdb, &txtdb.row_count, &txtdb.column_count);
    if (err) goto ONERR;
 
    if (! txtdb.row_count) {
@@ -602,15 +611,15 @@ ONERR:
 
 
 // parse name=='value' or name!='value'
-static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_param, char * start_expr, char * end_macro, size_t start_linenr)
+static int parse_exprcompare(/*out*/expression_t ** result, /*out*/const char ** end_param, const char * start_expr, const char * end_macro, size_t start_linenr)
 {
    int err ;
-   expression_t    * name_node = 0 ;
-   expression_t    * value_node = 0 ;
-   expression_t    * compare_node = 0 ;
+   expression_t * name_node = 0;
+   expression_t * value_node = 0;
+   expression_t * compare_node = 0;
 
-   skip_space( &start_expr, end_macro) ;
-   char * start_name = start_expr ;
+   skip_space( &start_expr, end_macro);
+   const char * start_name = start_expr;
    while (  start_expr < end_macro
             && start_expr[0] != ' '
             && start_expr[0] != '\''
@@ -644,8 +653,8 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
    if (err) goto ONERR;
 
    start_expr += 2 ;
-   skip_space(&start_expr, end_macro) ;
-   char * start_value = start_expr ;
+   skip_space(&start_expr, end_macro);
+   const char * start_value = start_expr;
    if (     start_value >= end_macro
          || (     start_value[0] != '\''
                && start_value[0] != '"')) {
@@ -685,13 +694,13 @@ ONERR:
 }
 
 // parse '(' ... ')'
-static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_param, char * start_expr, char * end_macro, size_t start_linenr)
+static int parse_expression(/*out*/expression_t ** result, /*out*/const char ** end_param, const char * start_expr, const char * end_macro, size_t start_linenr)
 {
    int err ;
    expression_t  * andor_node = 0 ;
    expression_t   * expr_node = 0 ;
 
-   skip_space( &start_expr, end_macro) ;
+   skip_space( &start_expr, end_macro);
 
    if (  start_expr >= end_macro
          || '(' != start_expr[0]) {
@@ -1013,10 +1022,10 @@ static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, co
    return err ;
 }
 
-static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct, char * start_fct, char * end_macro, size_t start_linenr)
+static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** end_fct, const char * start_fct, const char * end_macro, size_t start_linenr)
 {
    int err ;
-   char         * next   = 0;
+   const char   * next   = 0;
    expression_t * expr   = 0;
    iffunction_t * iffunc = 0;
    const char   * start_ifstr   = "";
@@ -1135,7 +1144,7 @@ ONERR:
    return ENOMEM;
 }
 
-static int parse_string(/*out*/char ** str, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd)
+static int parse_string(/*out*/char ** str, /*out*/const char ** end_param, const char * start_param, const char * end_macro, size_t start_linenr, const char * cmd)
 {
    assert(0 == *str);
 
@@ -1149,7 +1158,7 @@ static int parse_string(/*out*/char ** str, /*out*/char ** end_param, char * sta
       goto ONERR;
    }
 
-   char * next = start_param;
+   const char * next = start_param;
 
    ++ next ;
    while (  next < end_macro
@@ -1185,7 +1194,7 @@ ONERR:
    return EINVAL;
 }
 
-static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_param, char * start_param, char * end_macro, size_t start_linenr, const char * cmd )
+static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** end_param, const char * start_param, const char * end_macro, size_t start_linenr, const char * cmd)
 {
    int err;
    value_t   first_param = { .next = 0 };
@@ -1203,7 +1212,7 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_pa
       goto ONERR;
    }
 
-   char * next = start_param ;
+   const char * next = start_param;
 
    while (next < end_macro) {
       ++ next ;
@@ -1229,8 +1238,8 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/char ** end_pa
          next_param->length   = field_len ;
       }
       if (next < end_macro && '(' == next[0]) {
-         char       * start_func = next + 1 ;
-         function_t * funcobj    = 0 ;
+         const char * start_func = next + 1;
+         function_t * funcobj    = 0;
 
          if (0 == strncmp( next, "(if ", strlen("(if "))) {
             err = parse_iffunction( &funcobj, &next, next+strlen("(if "), end_macro, start_linenr) ;
@@ -1311,21 +1320,21 @@ ONERR:
    return EINVAL ;
 }
 
-static int process_selectcmd( char * start_macro, char * end_macro, size_t start_linenr )
+static int process_selectcmd( const char * start_macro, const char * end_macro, size_t start_linenr)
 {
    int err ;
-   value_t   *    select_param = 0 ;
-   expression_t * where_expr = 0 ;
-   textdb_t       dbfile = textdb_FREE ;
-   bool           ascending = true ;  // default ascending order
-   char    * filename = 0 ;
-   char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1 ;
-   char   * end_param = start_param ;
+   value_t    * select_param = 0;
+   expression_t * where_expr = 0;
+   textdb_t     dbfile = textdb_FREE;
+   bool         ascending = true;  // default ascending order
+   char       * filename = 0;
+   const char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1;
+   const char * end_param = start_param;
 
-   err = parse_select_parameter( &select_param, &end_param, start_param, end_macro, start_linenr, "SELECT" ) ;
+   err = parse_select_parameter( &select_param, &end_param, start_param, end_macro, start_linenr, "SELECT" );
    if (err) goto ONERR;
 
-   char * start_from = end_param + 1 ;
+   const char * start_from = end_param + 1;
    while (start_from < end_macro && ' ' == start_from[0]) {
       ++ start_from ;
    }
@@ -1340,10 +1349,10 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    err = parse_string( &filename, &end_param, start_from+4, end_macro, start_linenr, "FROM");
    if (err) goto ONERR;
 
-   ++ end_param ;
-   skip_space( &end_param, end_macro ) ;
+   ++ end_param;
+   skip_space( &end_param, end_macro );
 
-   char * start_where = end_param ;
+   const char * start_where = end_param;
 
    if (     (end_macro - start_where) > 5
          && 0 == strncmp( start_where, "WHERE", 5) ) {
@@ -1353,7 +1362,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
       skip_space( &end_param, end_macro ) ;
    }
 
-   char * sort_order = end_param ;
+   const char * sort_order = end_param;
 
    if (     (end_macro - sort_order) >= 9
          && 0 == strncmp( sort_order, "ASCENDING", 9) ) {
@@ -1444,7 +1453,7 @@ ONERR:
    return err;
 }
 
-static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*/size_t * line_number, char * next_input, size_t input_size)
+static int find_macro(/*out*/const char ** start_pos, /*out*/const char ** end_pos, /*inout*/size_t * line_number, const char * next_input, size_t input_size)
 {
    for (; input_size; --input_size, ++next_input) {
       if ('\n' == *next_input) {
@@ -1468,18 +1477,18 @@ static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*
    return 1 ;
 }
 
-static int process_macro(const mmfile_t * input_file)
+static int process_macro(const string_t str)
 {
-   int err ;
-   char    * next_input = (char*) addr_mmfile(input_file) ;
-   size_t    input_size = size_mmfile(input_file) ;
-   size_t   line_number = 1 ;
+   int err;
+   const char * next_input = (const char*) str.addr;
+   size_t       input_size = str.size;
+   size_t       line_number = 1;
 
    while (input_size) {
       // find start "// TEXTDB:..."
-      size_t  start_linenr ;
-      char   * start_macro ;
-      char     * end_macro ;
+      size_t  start_linenr;
+      const char * start_macro;
+      const char * end_macro;
       err = find_macro(&start_macro, &end_macro, &line_number, next_input, input_size) ;
       if (err) break ;
       size_t write_size = (size_t) (end_macro - next_input) ;
@@ -1498,8 +1507,8 @@ static int process_macro(const mmfile_t * input_file)
       }
 
       // find end "// TEXTDB:END"
-      char   * start_macro2 ;
-      char     * end_macro2 ;
+      const char * start_macro2;
+      const char * end_macro2;
       err = find_macro(&start_macro2, &end_macro2, &line_number, next_input, input_size) ;
       if (     err
             || strncmp( start_macro2, "// TEXTDB:END", (size_t) (end_macro2 - start_macro2)) ) {
@@ -1512,7 +1521,7 @@ static int process_macro(const mmfile_t * input_file)
       // process TEXTDB:command
       size_t macro_size = (size_t) (end_macro - start_macro) ;
       if (  macro_size > sizeof("// TEXTDB:SELECT")
-            && (0 == strncmp( start_macro, "// TEXTDB:SELECT", sizeof("// TEXTDB:SELECT")-1)) ) {
+            && (0 == strncmp( CONST_CAST(char, start_macro), "// TEXTDB:SELECT", sizeof("// TEXTDB:SELECT")-1)) ) {
          err = process_selectcmd( start_macro, end_macro, start_linenr) ;
          if (err) goto ONERR;
       } else  {
@@ -1536,14 +1545,15 @@ ONERR:
 
 static int main_thread(maincontext_t * maincontext)
 {
-   int err ;
-   mmfile_t input_file = mmfile_FREE ;
-   int      exclflag   = O_EXCL ;
+   int err;
+   memblock_t input_data = memblock_FREE;
+   wbuffer_t  input_wbuffer = wbuffer_INIT_MEMBLOCK(&input_data);
+   int        exclflag = O_EXCL;
 
-   err = process_arguments(maincontext->argc, maincontext->argv) ;
-   if (err) goto PRINT_USAGE ;
+   err = process_arguments(maincontext->argc, maincontext->argv);
+   if (err) goto PRINT_USAGE;
 
-   if (g_foverwrite) exclflag = O_TRUNC ;
+   if (g_foverwrite) exclflag = O_TRUNC;
 
    // create out file if -o <filename> is specified
    if (g_outfilename) {
@@ -1587,14 +1597,14 @@ static int main_thread(maincontext_t * maincontext)
    }
 
    // open input file for reading
-   err = init_mmfile(&input_file, g_infilename, 0, 0, accessmode_READ, 0) ;
+   err = load_file(g_infilename, &input_wbuffer, 0);
    if (err) {
-      print_err( "Can not open file '%s' for reading: %s", g_infilename, strerror(err)) ;
+      print_err( "Can not open file '%s' for reading: %s", g_infilename, strerror(err));
       goto ONERR;
    }
 
    // parse input => expand macros => write output
-   err = process_macro( &input_file ) ;
+   err = process_macro( (string_t) string_INIT(size_wbuffer(&input_wbuffer), addr_memblock(&input_data)) );
    if (err) goto ONERR;
 
    // flush output to disk
@@ -1619,9 +1629,9 @@ static int main_thread(maincontext_t * maincontext)
    free(g_depfilename) ;
    g_depfilename = 0 ;
 
-   free_mmfile(&input_file) ;
-   free_depfilenamewritten() ;
-   return 0 ;
+   FREE_MM(&input_data);
+   free_depfilenamewritten();
+   return 0;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "TextDB version 0.1 - Copyright (c) 2011 Joerg Seebohn\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* TextDB is a textdb macro preprocessor.\n" ) ;
@@ -1640,9 +1650,9 @@ ONERR:
       unlink(g_depfilename) ;
       free(g_depfilename) ;
    }
-   free_mmfile(&input_file) ;
-   free_depfilenamewritten() ;
-   return 1 ;
+   FREE_MM(&input_data);
+   free_depfilenamewritten();
+   return 1;
 }
 
 int main(int argc, const char * argv[])

@@ -9,5 +9,7 @@ Src += C-kern/ds/inmem/blockarray.c
 Src += C-kern/ds/inmem/dlist.c
 Src += C-kern/ds/inmem/queue.c
 Src += C-kern/memory/pagecache_impl.c
+Src += C-kern/memory/wbuffer.c
 Src += C-kern/memory/mm/mm_impl.c
+Src += C-kern/string/cstring.c
 Src += C-kern/err/errlog.c C-kern/io/writer/log/logbuffer.c C-kern/io/writer/log/logwriter.c

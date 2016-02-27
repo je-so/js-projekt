@@ -2,6 +2,8 @@
 Src  += C-kern/platform/Linux/locale.c
 Src  += C-kern/platform/Linux/init.c
 Src  += C-kern/platform/Linux/vm.c
-# Src  += C-kern/platform/Linux/io/file.c
+Src  += C-kern/platform/Linux/io/directory.c
+Src  += C-kern/platform/Linux/io/file.c
+Src  += C-kern/platform/Linux/io/filepath.c
 Src  += C-kern/platform/Linux/io/iochannel.c
 Src  += C-kern/platform/Linux/task/thread_localstore.c
