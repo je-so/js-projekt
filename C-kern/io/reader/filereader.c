@@ -420,7 +420,6 @@ static int test_read(directory_t * tempdir)
    const size_t   B   = sizebuffer_filereader();
    memblock_t     mem = memblock_FREE;
    memstream_ro_t buffer = memstream_FREE;
-   memstream_ro_t buffer2;
 
    // prepare
    TEST(0 == RESIZE_MM(2*B+1, &mem));
@@ -579,9 +578,10 @@ static int test_read(directory_t * tempdir)
    // TEST readnext_filereader: ioerror is returned
    TEST(0 == init_filereader(&frd, "double", tempdir));
    TEST( 0 == readnext_filereader(&frd, &buffer));
-   for (int i = 1; i < 15; ++i) {
-      setioerror_filereader(&frd, i);
-      TEST( i == readnext_filereader(&frd, &buffer));
+   for (unsigned i = 1; i < 15; ++i) {
+      setioerror_filereader(&frd, (int) i);
+      const unsigned err = (unsigned) readnext_filereader(&frd, &buffer);
+      TEST( err == i);
    }
    TEST(0 == free_filereader(&frd));
 

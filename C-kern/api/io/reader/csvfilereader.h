@@ -17,15 +17,11 @@
 #ifndef CKERN_IO_READER_CSVFILEREADER_HEADER
 #define CKERN_IO_READER_CSVFILEREADER_HEADER
 
-#include "C-kern/api/io/accessmode.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
-
 // forward
-struct string_t ;
+struct string_t;
 
-/* typedef: struct csvfilereader_t
- * Export <csvfilereader_t> into global namespace. */
-typedef struct csvfilereader_t         csvfilereader_t ;
+// === exported types
+struct csvfilereader_t;
 
 
 // section: Functions
@@ -35,74 +31,78 @@ typedef struct csvfilereader_t         csvfilereader_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_reader_csvfilereader
  * Test <csvfilereader_t> functionality. */
-int unittest_io_reader_csvfilereader(void) ;
+int unittest_io_reader_csvfilereader(void);
 #endif
 
 
 /* struct: csvfilereader_t
  * Reads a CSV file and allows to access the values.
- * The file is accessed with help of <mmfile_t>.
  *
  * CSV File Format:
  * See <CSV-File-Format>.
  * */
-struct csvfilereader_t {
-   /* variable: file
-    * The read file content mapped to memory. */
-   mmfile_t       file ;
+typedef struct csvfilereader_t {
+   // group: private
+   /* variable: file_addr
+    * The start addr of the read file content. */
+   uint8_t*       file_addr;
+   /* variable: file_size
+    * The number of allocated bytes (may be larger than file size). */
+   size_t         file_size;
    /* variable: nrcolumns
     * The number of columns (Data fields) per row. */
-   size_t         nrcolumns ;
+   size_t         nrcolumns;
    /* variable: nrrows
     * The number of rows of data. */
-   size_t         nrrows ;
-   /* variable: allocated_rows
-    * The number of allocated rows of <tablevalues>. */
-   size_t         allocated_rows ;
+   size_t         nrrows;
+   /* variable: tablesize
+    * The number of allocated bytes of <tablevalues>. */
+   size_t         tablesize;
    /* variable: tablevalues
     * Table of strings indexing memory mapped <file>.
     * The allocated table size is determined by <allocated_rows> and <nrcolumns>.
     * The valid values are determined by <nrrows> and <nrcolumns>. */
-   struct string_t * tablevalues/*[nrrows][nrcolumns]*/ ;
-} ;
+   struct string_t * tablevalues/*[nrrows][nrcolumns]*/;
+} csvfilereader_t;
 
 // group: lifetime
 
 /* define: csvfilereader_FREE
  * Static initializer. */
-#define csvfilereader_FREE { mmfile_FREE, 0, 0, 0, 0 }
+#define csvfilereader_FREE \
+         { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_csvfilereader
  * Opens file and reads all contained values.
  * All rows must have the same number of columns.
  *
  * TODO: Return error information in extra struct ! Genral Parsing Error Framework ? */
-int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath) ;
+int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath);
 
 /* function: free_csvfilereader
  * Closes file and frees memory for parsed values. */
-int free_csvfilereader(csvfilereader_t * csvfile) ;
+int free_csvfilereader(csvfilereader_t * csvfile);
 
 // group: query
 
 /* function: nrcolumns_csvfilereader
  * The number of columns (data fields) per row contained in the input data. */
-size_t nrcolumns_csvfilereader(const csvfilereader_t * csvfile) ;
+size_t nrcolumns_csvfilereader(const csvfilereader_t * csvfile);
 
 /* function: nrrows_csvfilereader
  * The number of rows (data records) contained in the input data. */
-size_t nrrows_csvfilereader(const csvfilereader_t * csvfile) ;
+size_t nrrows_csvfilereader(const csvfilereader_t * csvfile);
 
 /* function: colname_csvfilereader
  * The name of a column. This name is defined in the first row of data and is the same for all following rows. */
-int colname_csvfilereader(const csvfilereader_t * csvfile, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colname) ;
+int colname_csvfilereader(const csvfilereader_t * csvfile, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colname);
 
 /* function: colvalue_csvfilereader
  * Returns the value of a single column in a certain row.
  * The index of the columns a value between 0 and <nrcolumns_csvfilereader>-1.
  * The index of the row is a value between 1 and <nrrows_csvfilereader>-1.
  * A row index of 0 is the same as calling <colname_csvfilereader>. */
-int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colvalue) ;
+int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colvalue);
 
 // group: description
 
