@@ -41,7 +41,8 @@ int unittest_task_module(void);
  * Describes the meory page where the program code is stored.
  * TODO: Support interface/version export */
 struct module_t {
-   uint8_t *   code_addr;
+   uint8_t *   page_addr;
+   size_t      page_size;
    size_t      code_size;
 };
 
@@ -49,7 +50,7 @@ struct module_t {
 
 /* define: module_FREE
  * Static initializer. */
-#define module_FREE { 0, 0 }
+#define module_FREE { 0, 0, 0 }
 
 /* function: init_module
  * Maps a file as binary executable into memory whose filename is modulename.
@@ -79,10 +80,12 @@ size_t codesize_module(const module_t * mod);
 
 /* define: codeaddr_module
  * Implements <module_t.codeaddr_module>. */
-#define codeaddr_module(mod)              ((mod)->code_addr)
+#define codeaddr_module(mod) \
+         ((mod)->page_addr)
 
 /* define: codesize_module
  * Implements <module_t.codesize_module>. */
-#define codesize_module(mod)              ((mod)->code_size)
+#define codesize_module(mod) \
+         ((mod)->code_size)
 
 #endif

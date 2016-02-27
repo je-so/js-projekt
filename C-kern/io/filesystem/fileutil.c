@@ -48,7 +48,7 @@ int load_file(const char* filepath, /*ret*/struct wbuffer_t* result, struct dire
    err = size_file(file, &loadsize);
    if (err) goto ONERR;
 
-   if (loadsize < 0 || (sizeof(size_t) < sizeof(off_t) && loadsize >= (off_t)SIZE_MAX)) {
+   if (loadsize < 0 || (OFF_MAX > SIZE_MAX && loadsize >= SIZE_MAX)) {
       err = ENOMEM;
       goto ONERR;
    }
