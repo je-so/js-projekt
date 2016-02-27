@@ -28,7 +28,8 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/accessmode.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/fileutil.h"
+#include "C-kern/api/memory/wbuffer.h"
 #endif
 
 /* typedef: struct suffixtree_iterator_t
@@ -1436,25 +1437,28 @@ ONERR:
 
 static int test_matchfile(void)
 {
-   suffixtree_t   tree          = suffixtree_FREE ;
-   mmfile_t       sourcefile    = mmfile_FREE ;
-   const uint8_t  * iterposstr  = (const uint8_t*) "suffixtree_iterator_t" ;
+   suffixtree_t   tree       = suffixtree_FREE;
+   memblock_t     file_data  = memblock_FREE;
+   size_t         file_size  = 0;
+   const uint8_t* iterposstr = (const uint8_t*) "suffixtree_iterator_t";
    // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-   size_t         compare_pos[] = {892,931,1025,1052,1919,2214,2327,2768,2850,2962,3035,3164,3235,3349,3632,3719,3833,3950,4035,4148,4313,4392,4468,4546,4622,43672,43947,44760,44931,59500,59624};
-   const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
-   size_t         matched_count ;
-   const uint8_t  * teststring ;
+   size_t         compare_pos[] = {933,972,1066,1093,1960,2255,2368,2809,2891,3003,3076,3205,3276,3390,3673,3760,3874,3991,4076,4189,4354,4433,4509,4587,4663,43713,43988,44801,44972,59566,59689};
+   const uint8_t* matched_pos[1+lengthof(compare_pos)];
+   size_t         matched_count;
+   const uint8_t* teststring;
 
    // prepare
    // open and read this source file
-   TEST(0 == init_mmfile(&sourcefile, __FILE__, 0, 0, accessmode_READ, 0)) ;
-   uint8_t   * buffer = addr_mmfile(&sourcefile) ;
-   size_t buffer_size = size_mmfile(&sourcefile) ;
+   {
+      wbuffer_t wbuf = wbuffer_INIT_MEMBLOCK(&file_data);
+      TEST(0 == load_file(__FILE__, &wbuf, 0));
+      file_size = size_wbuffer(&wbuf);
+   }
 
    // TEST matchall_suffixtree with source file
    TEST(0 == init_suffixtree(&tree)) ;
-   TEST(0 == build_suffixtree(&tree, buffer_size, buffer)) ;
+   TEST(0 == build_suffixtree(&tree, file_size, file_data.addr));
    teststring = (const uint8_t*) "static inline int new_suffixtreeleaf(/*out*/suffixtree_leaf_t ** leaf)\n" ;
    TEST(1 == isstring_suffixtree(&tree, strlen((const char*)teststring), teststring)) ;
    teststring = (const uint8_t*) "xxx_special_xxx" ;
@@ -1465,18 +1469,18 @@ static int test_matchfile(void)
    TEST(lengthof(compare_pos) == matched_count) ;
    qsort(matched_pos, matched_count, sizeof(size_t), &compare_size_f) ;
    for (unsigned i = 0; i < matched_count; ++i) {
-      TEST(&buffer[compare_pos[i]] == matched_pos[i]) ;
+      TEST(&file_data.addr[compare_pos[i]] == matched_pos[i]) ;
    }
 
    // unprepare
-   TEST(0 == free_mmfile(&sourcefile)) ;
-   TEST(0 == free_suffixtree(&tree)) ;
+   TEST(0 == FREE_MM(&file_data));
+   TEST(0 == free_suffixtree(&tree));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_mmfile(&sourcefile) ;
-   free_suffixtree(&tree) ;
-   return EINVAL ;
+   FREE_MM(&file_data);
+   free_suffixtree(&tree);
+   return EINVAL;
 }
 
 static int test_dump(void)

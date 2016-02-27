@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="3" Name="m_selectedTab"/>
+  <int Value="8" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
@@ -22,17 +22,6 @@
       <int Value="172" Name="FirstVisibleLine"/>
       <int Value="170" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/main/tools/textdb.c" Name="FileName"/>
-      <int Value="496" Name="FirstVisibleLine"/>
-      <int Value="503" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks">
-        <wxString Value="315:3"/>
-        <wxString Value="363:3"/>
-        <wxString Value="485:3"/>
-      </wxArrayString>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
@@ -67,6 +56,13 @@
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/file.c" Name="FileName"/>
       <int Value="55" Name="FirstVisibleLine"/>
       <int Value="75" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/suffixtree.c" Name="FileName"/>
+      <int Value="1424" Name="FirstVisibleLine"/>
+      <int Value="1442" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
