@@ -20,8 +20,10 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
-#include "C-kern/api/io/accessmode.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/fileutil.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #endif
 
 
@@ -522,7 +524,8 @@ ONERR:
 
 static int test_find(void)
 {
-   mmfile_t sourcefile = mmfile_FREE;
+   memblock_t file_data = memblock_FREE;
+   size_t   file_size;
    uint8_t  data[1024+255];
    uint8_t  findstr[255];
    uint8_t  shift[255];
@@ -584,35 +587,39 @@ static int test_find(void)
    {
       // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
       /* > grep -ob find_strsearch C-kern/string/strsearch.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-      size_t  compare_pos[] = {6145,16889,17089,17291,17406,17581,18196,18407,18951,19217,19244,19291,19436};
-      TEST(0 == init_mmfile(&sourcefile, __FILE__, 0, 0, accessmode_READ, 0));
+      size_t  compare_pos[] = {6232,17002,17202,17404,17519,17694,18309,18520,19064,19330,19357,19404,19549};
+      {
+         wbuffer_t wbuf = wbuffer_INIT_MEMBLOCK(&file_data);
+         TEST(0 == load_file(__FILE__, &wbuf, 0));
+         file_size = size_wbuffer(&wbuf);
+      }
       uint8_t findsize = sizeof(STR(FIND_STRSEARCH))-1;
       memcpy(findstr, STR(FIND_STRSEARCH), (size_t)findsize);
       init_strsearch(&strsrch, (uint8_t)findsize, findstr, shift);
       for (unsigned pi = 0, off = 0; pi < lengthof(compare_pos); ++pi) {
-         uint8_t* d = addr_mmfile(&sourcefile) + compare_pos[pi];
-         TEST(d == FIND_STRSEARCH(&strsrch, size_mmfile(&sourcefile)-off, addr_mmfile(&sourcefile) + off));
-         TEST(d == strsearch(size_mmfile(&sourcefile)-off, addr_mmfile(&sourcefile) + off, findsize, findstr));
+         uint8_t* d = file_data.addr + compare_pos[pi];
+         TEST(d == FIND_STRSEARCH(&strsrch, file_size-off, file_data.addr + off));
+         TEST(d == strsearch(file_size-off, file_data.addr + off, findsize, findstr));
          off = compare_pos[pi]+1;
          if (pi == lengthof(compare_pos)-1) {
-            TEST(0 == FIND_STRSEARCH(&strsrch, size_mmfile(&sourcefile)-off, addr_mmfile(&sourcefile) + off));
-            TEST(0 == strsearch(size_mmfile(&sourcefile)-off, addr_mmfile(&sourcefile) + off, findsize, findstr));
+            TEST(0 == FIND_STRSEARCH(&strsrch, file_size-off, file_data.addr + off));
+            TEST(0 == strsearch(file_size-off, file_data.addr + off, findsize, findstr));
          }
       }
-      for (unsigned pi = lengthof(compare_pos)-1, s = size_mmfile(&sourcefile); pi < lengthof(compare_pos); --pi) {
-         uint8_t* d = addr_mmfile(&sourcefile) + compare_pos[pi];
-         TEST(d == rsearch_kmp(s, addr_mmfile(&sourcefile), findsize, findstr));
+      for (unsigned pi = lengthof(compare_pos)-1, s = file_size; pi < lengthof(compare_pos); --pi) {
+         uint8_t* d = file_data.addr + compare_pos[pi];
+         TEST(d == rsearch_kmp(s, file_data.addr, findsize, findstr));
          s = compare_pos[pi]+findsize-1u;
          if (pi == 0) {
-            TEST(0 == rsearch_kmp(s, addr_mmfile(&sourcefile), findsize, findstr));
+            TEST(0 == rsearch_kmp(s, file_data.addr, findsize, findstr));
          }
       }
-      TEST(0 == free_mmfile(&sourcefile));
+      TEST(0 == FREE_MM(&file_data));
    }
 
    return 0;
 ONERR:
-   free_mmfile(&sourcefile);
+   FREE_MM(&file_data);
    return EINVAL;
 }
 
