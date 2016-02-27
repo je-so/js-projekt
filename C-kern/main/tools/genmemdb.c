@@ -15,8 +15,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/accessmode.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/fileutil.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 
 #define PROGNAME "genmemdb"
 
@@ -24,19 +26,26 @@
 static int main_thread(maincontext_t * maincontext)
 {
    int err;
-   mmfile_t file = mmfile_FREE;
+   memblock_t file_data = memblock_FREE;
+   size_t     file_size = 0;
 
-   err = init_mmfile(&file, maincontext->argv[1], 0, 0, accessmode_READ, 0);
-   if (err) {
-      dprintf(STDERR_FILENO, "%s: error: can not open file '%s'\n", PROGNAME, maincontext->argv[1]);
-      goto ONERR;
+   {
+      wbuffer_t wbuf = wbuffer_INIT_MEMBLOCK(&file_data);
+      err = load_file(maincontext->argv[1], &wbuf, 0);
+      if (err) {
+         dprintf(STDERR_FILENO, "%s: error: can not open file '%s'\n", PROGNAME, maincontext->argv[1]);
+         goto ONERR;
+      }
+      file_size = size_wbuffer(&wbuf);
    }
+
+   printf("%s: size = %zu\n", maincontext->argv[1], file_size);
 
    err = ENOSYS;
    dprintf(STDERR_FILENO, "%s: error: processing of file '%s' not implemented\n", PROGNAME, maincontext->argv[1]);
 
 ONERR:
-   (void) free_mmfile(&file);
+   (void) FREE_MM(&file_data);
    return err;
 }
 
@@ -55,7 +64,6 @@ int main(int argc, const char * argv[])
    if (0 == strcmp(argv[1], "-h")) {
       goto PRINT_USAGE;
    }
-
 
    err = initrun_maincontext( maincontext_CONSOLE, &main_thread, 0, argc, argv);
 

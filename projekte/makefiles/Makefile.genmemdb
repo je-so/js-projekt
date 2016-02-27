@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmemdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Feb.27  08:25:14
+GenerationDate  := 2016.Feb.27  12:01:43
 GeneratedBy     := je-so
 
 ## Debug
@@ -98,7 +98,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!genmemdb.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o
+ $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
@@ -125,7 +125,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!genmemdb.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o
+ $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -205,7 +205,7 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logw
 $(ObjectDir_Debug)/C-kern!main!tools!genmemdb.c.o: C-kern/main/tools/genmemdb.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+$(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
@@ -280,7 +280,7 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/lo
 $(ObjectDir_Release)/C-kern!main!tools!genmemdb.c.o: C-kern/main/tools/genmemdb.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+$(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)
