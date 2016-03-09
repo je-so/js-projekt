@@ -18,55 +18,74 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/math/int/log2.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/memstream.h"
+#include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/filesystem/fileutil.h"
-#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
 
 // section: utf8reader_t
 
+// group: static variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_utf8reader_errtimer
+ * Used to simulate errors in different functions. */
+static test_errortimer_t s_utf8reader_errtimer = test_errortimer_FREE;
+#endif
+
 // group: lifetime
 
 int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/)
 {
    int err ;
+   memblock_t file_data = memblock_FREE;
+   wbuffer_t  wbuf      = wbuffer_INIT_MEMBLOCK(&file_data);
 
-   err = init_mmfile(&utfread->mmfile, filepath, 0, 0, accessmode_READ, relative_to) ;
+   err = load_file(filepath, &wbuf, relative_to);
+   (void) PROCESS_testerrortimer(&s_utf8reader_errtimer, &err);
    if (err) goto ONERR;
 
-   utfread->pos  = (textpos_t) textpos_INIT ;
-   utfread->next = addr_mmfile(&utfread->mmfile) ;
-   utfread->end  = utfread->next + size_mmfile(&utfread->mmfile) ;
+   // set out
+   utfread->pos  = (textpos_t) textpos_INIT;
+   utfread->next = file_data.addr;
+   utfread->end  = utfread->next + size_wbuffer(&wbuf);
+   *cast_memblock(utfread, mem_) = file_data;
 
-   return 0 ;
+   return 0;
 ONERR:
+   FREE_MM(&file_data);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 /* define: free_utf8reader
  * Implements <utf8reader_t.free_utf8reader>. */
 int free_utf8reader(utf8reader_t * utfread)
 {
-   int err ;
-   utfread->next = 0 ;
-   utfread->end  = 0 ;
-   free_textpos(&utfread->pos) ;
+   int err;
+   utfread->next = 0;
+   utfread->end  = 0;
+   free_textpos(&utfread->pos);
 
-   err = free_mmfile(&utfread->mmfile) ;
+   err = FREE_MM(cast_memblock(utfread, mem_));
+   (void) PROCESS_testerrortimer(&s_utf8reader_errtimer, &err);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -117,62 +136,91 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
 
 static int test_initfree(directory_t * tempdir)
 {
-   utf8reader_t   utfread = utf8reader_FREE ;
+   utf8reader_t utfread = utf8reader_FREE;
+   textpos_t    txtpos  = textpos_FREE;
+   textpos_t    txtpos2 = textpos_INIT;
 
    // TEST utf8reader_FREE
-   TEST(0 == column_utf8reader(&utfread)) ;
-   TEST(0 == line_utf8reader(&utfread)) ;
-   TEST(0 == isnext_utf8reader(&utfread)) ;
-   TEST(0 == unread_utf8reader(&utfread)) ;
-   TEST(0 == unreadsize_utf8reader(&utfread)) ;
-   TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
-
-   // TEST init_utf8reader, free_utf8reader
-   for (size_t i = 0; i <= 110; i+=11) {
-      TEST(0 == makefile_directory(tempdir, "grow", 10+3*i)) ;
-
-      TEST(0 == init_utf8reader(&utfread, "grow", tempdir)) ;
-      TEST(0 != unread_utf8reader(&utfread)) ;
-      TEST((10+3*i) == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == column_utf8reader(&utfread)) ;
-      TEST(1 == line_utf8reader(&utfread)) ;
-      TEST(1 == isnext_utf8reader(&utfread)) ;
-
-      free_utf8reader(&utfread) ;
-      TEST(0 == unread_utf8reader(&utfread)) ;
-      TEST(0 == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == column_utf8reader(&utfread)) ;
-      TEST(0 == line_utf8reader(&utfread)) ;
-      TEST(0 == isnext_utf8reader(&utfread)) ;
-      TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
-
-      free_utf8reader(&utfread) ;
-      TEST(0 == unread_utf8reader(&utfread)) ;
-      TEST(0 == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == column_utf8reader(&utfread)) ;
-      TEST(0 == line_utf8reader(&utfread)) ;
-      TEST(0 == isnext_utf8reader(&utfread)) ;
-      TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
-
-      TEST(0 == removefile_directory(tempdir, "grow")) ;
-   }
+   TEST( 0 == utfread.next);
+   TEST( 0 == utfread.end);
+   TEST( 0 == memcmp(&utfread.pos, &txtpos, sizeof(txtpos)));
+   TEST( 0 == utfread.mem_addr);
+   TEST( 0 == utfread.mem_size);
 
    // TEST init_utf8reader: empty file
    TEST(0 == makefile_directory(tempdir, "grow", 0)) ;
-   TEST(0 == init_utf8reader(&utfread, "grow", tempdir)) ;
-   TEST(0 == unread_utf8reader(&utfread)) ;
-   TEST(0 == unreadsize_utf8reader(&utfread)) ;
-   TEST(0 == column_utf8reader(&utfread)) ;
-   TEST(1 == line_utf8reader(&utfread)) ;
-   TEST(0 == isnext_utf8reader(&utfread)) ;
-   TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
-   TEST(0 == free_utf8reader(&utfread)) ;
+   TEST( 0 == init_utf8reader(&utfread, "grow", tempdir)) ;
+   TEST( 0 == utfread.next);
+   TEST( 0 == utfread.end);
+   TEST( 0 == memcmp(&utfread.pos, &txtpos2, sizeof(txtpos2)));
+   TEST( 0 == utfread.mem_addr);
+   TEST( 0 == utfread.mem_size);
+   // reset
+   TEST(0 == free_utf8reader(&utfread));
+   TEST(0 == removefile_directory(tempdir, "grow"));
+
+   for (size_t i = 0; i <= 110; i+=11) {
+      TEST(0 == makefile_directory(tempdir, "grow", 10+3*i)) ;
+
+      // TEST init_utf8reader: non empty file
+      TEST( 0 == init_utf8reader(&utfread, "grow", tempdir)) ;
+      const uint8_t * const N = utfread.next;
+      size_t const S = (10+3*i);
+      size_t const S2 = (S+15) & ~(size_t)15;
+      const uint8_t * const E = N + S;
+      TEST( 0 != utfread.next);
+      TEST( E == utfread.end);
+      TEST( 0 == memcmp(&utfread.pos, &txtpos2, sizeof(txtpos2)));
+      TEST( N == utfread.mem_addr);
+      TEST( S <= utfread.mem_size);
+      TEST( S2 >= utfread.mem_size);
+
+      // TEST free_utf8reader
+      for (int tc = 0; tc <= 1; ++tc) {
+         TEST( 0 == free_utf8reader(&utfread));
+         TEST( 0 == utfread.next);
+         TEST( 0 == utfread.end);
+         TEST( 0 == memcmp(&utfread.pos, &txtpos, sizeof(txtpos)));
+         TEST( 0 == utfread.mem_addr);
+         TEST( 0 == utfread.mem_size);
+      }
+
+      // reset
+      TEST(0 == removefile_directory(tempdir, "grow")) ;
+   }
+
+   // prepare
+   TEST(0 == makefile_directory(tempdir, "grow", 10));
+
+   // TEST init_utf8reader: simulated ERROR
+   init_testerrortimer(&s_utf8reader_errtimer, 1, ENOMEM);
+   TEST( ENOMEM == init_utf8reader(&utfread, "grow", tempdir));
+   // check utf8read
+   TEST( 0 == utfread.next);
+   TEST( 0 == utfread.end);
+   TEST( 0 == memcmp(&utfread.pos, &txtpos, sizeof(txtpos)));
+   TEST( 0 == utfread.mem_addr);
+   TEST( 0 == utfread.mem_size);
+
+   // TEST free_utf8reader: simulated ERROR
+   TEST(0 == init_utf8reader(&utfread, "grow", tempdir));
+   init_testerrortimer(&s_utf8reader_errtimer, 1, EINVAL);
+   TEST( EINVAL == free_utf8reader(&utfread));
+   // check utf8read
+   TEST( 0 == utfread.next);
+   TEST( 0 == utfread.end);
+   TEST( 0 == memcmp(&utfread.pos, &txtpos, sizeof(txtpos)));
+   TEST( 0 == utfread.mem_addr);
+   TEST( 0 == utfread.mem_size);
+
+   // reset
    TEST(0 == removefile_directory(tempdir, "grow")) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   removefile_directory(tempdir, "grow") ;
-   return EINVAL ;
+   removefile_directory(tempdir, "grow");
+   free_utf8reader(&utfread);
+   return EINVAL;
 }
 
 static int test_query(void)

@@ -1,0 +1,9 @@
+[1: 1456383123.628627s]
+init_utf8reader() C-kern/io/reader/utf8reader.c:68
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1456383123.628641s]
+free_utf8reader() C-kern/io/reader/utf8reader.c:87
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument

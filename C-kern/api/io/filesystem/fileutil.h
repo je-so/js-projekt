@@ -31,7 +31,7 @@ struct wbuffer_t;
  * 0      - File content loaded and appended to result.
  * ENOENT - File does not exist. Nothing was done.
  * EIO    - Loading error occurred - result was cleared. */
-int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct directory_t * relative_to);
+int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, const struct directory_t * relative_to);
 
 /* function: save_file
  * Creates file and writes file_content into it.

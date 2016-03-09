@@ -27,14 +27,14 @@
 #ifndef CKERN_IO_READER_UTF8READER_HEADER
 #define CKERN_IO_READER_UTF8READER_HEADER
 
-#include "C-kern/api/io/accessmode.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/string/textpos.h"
 #include "C-kern/api/string/utf8.h"
 
-/* typedef: struct utf8reader_t
- * Exports <utf8reader_t>. */
-typedef struct utf8reader_t utf8reader_t;
+// === forward
+struct directory_t;
+
+// === exported types
+struct utf8reader_t;
 
 
 // section: Functions
@@ -53,18 +53,19 @@ int unittest_io_reader_utf8reader(void);
  * Only text files encoded in UTF-8 are supported.
  * The current read position is also handled by this object.
  * Reading a character advances the text position. */
-struct utf8reader_t {
+typedef struct utf8reader_t {
    const uint8_t *   next;
    const uint8_t *   end;
    textpos_t         pos;
-   mmfile_t          mmfile;
-};
+   uint8_t       *   mem_addr;
+   size_t            mem_size;
+} utf8reader_t;
 
 // group: lifetime
 
 /* define: utf8reader_FREE
  * Static initializer.  */
-#define utf8reader_FREE { 0, 0, textpos_FREE, mmfile_FREE }
+#define utf8reader_FREE { 0, 0, textpos_FREE, 0, 0 }
 
 /* function: init_utf8reader
  * Opens file at *filepath* for reading as UTF-8 encoded text.

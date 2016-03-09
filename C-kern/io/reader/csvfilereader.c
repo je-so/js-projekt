@@ -115,7 +115,7 @@ static int free_csvparser(csvparser_t * state)
       state->tablevalues = 0;
 
       err = FREE_MM(&mblock);
-      PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
       if (err) goto ONERR;
    }
 
@@ -343,13 +343,13 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
    if (PROCESS_testerrortimer(&s_csvparser_errtimer, &err)) goto ONERR_FREEDSTATE;
 
    err = load_file(filepath, &wbuf, 0);
-   PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
    if (err) goto ONERR_FREEDSTATE;
 
    state = (csvparser_t) csvparser_INIT(size_wbuffer(&wbuf), file_data.addr);
 
    err = parsenrcolumns_csvparser(&state);
-   PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
    if (err) goto ONERR;
 
    if (PROCESS_testerrortimer(&s_csvparser_errtimer, &err)) {
@@ -365,7 +365,7 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
       }
 
       err = parsedata_csvparser(&state);
-      PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
+      (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
       if (err) goto ONERR;
    }
 
@@ -390,14 +390,14 @@ int free_csvfilereader(csvfilereader_t * csvfile)
    int err;
 
    err = FREE_MM(cast_memblock(csvfile, file_));
-   PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
+   (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
 
    if (csvfile->tablevalues) {
       memblock_t mblock = memblock_INIT(csvfile->tablesize, (uint8_t*)csvfile->tablevalues);
       csvfile->tablevalues = 0;
 
       int err2 = FREE_MM(&mblock);
-      PROCESS_testerrortimer(&s_csvparser_errtimer, &err2);
+      (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err2);
       if (err2) err = err2;
    }
 

@@ -34,7 +34,7 @@
 
 // group: util
 
-int load_file(const char* filepath, /*ret*/struct wbuffer_t* result, struct directory_t* relative_to)
+int load_file(const char* filepath, /*ret*/struct wbuffer_t* result, const struct directory_t* relative_to)
 {
    int err;
    off_t  loadsize;
