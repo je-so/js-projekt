@@ -398,10 +398,10 @@ static int test_slock(void)
    mutex_t           mutex     = mutex_INIT_DEFAULT ;
    thread_t          * thread1 = 0 ;
    thread_t          * thread2 = 0 ;
-   bool              isoldprocmask = false ;
-   volatile bool     isAbort ;
+   volatile bool     isoldprocmask = false;
+   volatile bool     isoldact  = false;
+   volatile bool     isAbort;
    sigset_t          oldprocmask ;
-   bool              isoldact  = false ;
    struct sigaction  newact ;
    struct sigaction  oldact ;
    int               pipefd[2] = { -1, -1 } ;

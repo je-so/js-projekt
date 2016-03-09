@@ -245,14 +245,14 @@ static long double generate_all_exceptions(long double dmin, long double dmax, d
 
 static int test_fpuexcept_enabledisable(void)
 {
-   bool              isoldsignalmask = false ;
-   sigset_t          oldsignalmask ;
-   sigset_t          signalmask ;
-   bool              isoldact1       = false ;
-   struct sigaction  oldact1 ;
-   struct sigaction  sigact1 ;
-   fpu_except_e      oldenabled ;
-   unsigned          i ;
+   volatile bool     isoldsignalmask = false;
+   volatile bool     isoldact1       = false;
+   sigset_t          oldsignalmask;
+   sigset_t          signalmask;
+   struct sigaction  oldact1;
+   struct sigaction  sigact1;
+   fpu_except_e      oldenabled;
+   volatile unsigned i;
    fpu_except_e      exceptflags[6] = {
                          fpu_except_INVALID
                         ,fpu_except_DIVBYZERO

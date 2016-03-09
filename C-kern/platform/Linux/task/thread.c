@@ -966,8 +966,8 @@ static int test_stackoverflow(void)
    struct sigaction  newact, oldact;
    thread_t *        thread     = 0;
    thread_t *        mainthread = self_thread();
-   bool              isProcmask = false;
-   bool              isAction   = false;
+   volatile bool     isProcmask = false;
+   volatile bool     isAction   = false;
 
    // prepare
    sigemptyset(&newact.sa_mask);

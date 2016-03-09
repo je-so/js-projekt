@@ -1578,11 +1578,14 @@ ONERR:
 
 static int test_freeisignored(void)
 {
+   // calling functions with lgwrt set to logwriter_FREE does no harm
    logwriter_t lgwrt = logwriter_FREE;
    uint8_t     logbuf[1];
    uint8_t *   buffer;
-   size_t      size ;
+   size_t      size;
+   va_list     args;
    log_header_t header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   memset(&args, 0, sizeof(args));
 
    for (uint8_t chan = 0; chan < log_channel__NROF; ++chan) {
 
@@ -1620,7 +1623,7 @@ static int test_freeisignored(void)
             flushbuffer_logwriter(&lgwrt, chan);
 
             // TEST vprintf_logwriter
-            vprintf_logwriter(&lgwrt, chan, log_flags_LAST, &header, "123", 0);
+            vprintf_logwriter(&lgwrt, chan, log_flags_LAST, &header, "123", args);
 
             // TEST printf_logwriter
             printf_logwriter(&lgwrt, chan, log_flags_LAST, &header, "123");
@@ -1701,6 +1704,8 @@ static int test_invalidchannel(void)
    uint8_t        buffer[128];
    uint8_t *      logbuffer;
    size_t         logsize;
+   va_list        args;
+   memset(&args, 0, sizeof(args));
 
    // prepare0
    TEST(0 == init_pipe(&pipe));
@@ -1773,7 +1778,7 @@ static int test_invalidchannel(void)
 
       // TEST vprintf_logwriter: EINVAL
       GETBUFFER_ERRLOG(&logbuffer, &logsize);
-      vprintf_logwriter(&lgwrt, log_channel__NROF, log_flags_NONE, &header, "ERR", 0);
+      vprintf_logwriter(&lgwrt, log_channel__NROF, log_flags_NONE, &header, "ERR", args);
       // check error log written
       TEST(0 == check_error_log(tc, &pipe, logbuffer, logsize));
       // check that call was ignored

@@ -186,7 +186,7 @@ static const uint8_t* rsearch_kmp(size_t size, const uint8_t data[size], uint8_t
 
 void init_strsearch(/*out*/strsearch_t* strsrch, uint8_t findsize, const uint8_t findstr[findsize], uint8_t shift[findsize])
 {
-   if (findsize > 1) {
+   if (1 - findsize < 0/*used instead of findsize > 1 to remove warning*/) {
       buildtable_strsearch(findsize, findstr, shift);
    }
 
@@ -352,28 +352,28 @@ static int test_helper(void)
    }
 
    memset(_sidx, 129, sizeof(_sidx));
-   for (int findsize = 30, replen = 1; findsize <= (int)sizeof(findstr); findsize += 45, ++replen) {
-      uint8_t sidx2[255];
-      int     pos[3];
+   for (unsigned findsize = 30, replen = 1; findsize <= sizeof(findstr); findsize += 45, ++replen) {
+      uint8_t  sidx2[255];
+      unsigned pos[3];
 
       // TEST buildtable_rsearchkmp: repeat pattern
-      for (pos[0] = findsize-10; pos[0] >= 0; --pos[0]) {
+      for (pos[0] = findsize-9; pos[0]-- > 0; ) {
          if (pos[0] == findsize-18) pos[0] = 9;
-         for (pos[1] = pos[0]; pos[1] >= 0; --pos[1]) {
+         for (pos[1] = pos[0]+1; pos[1]-- > 0; ) {
             if (pos[1] == findsize-18) pos[1] = 9;
-            for (pos[2] = pos[1]; pos[2] >= 0; --pos[2]) {
+            for (pos[2] = pos[1]+1; pos[2]-- > 0; ) {
                if (pos[2] == findsize-18) pos[2] = 9;
                // init findstr with all chars different
-               for (int chr = 0; chr < findsize; ++chr) {
+               for (unsigned chr = 0; chr < findsize; ++chr) {
                   findstr[chr] = (uint8_t) (findsize + chr);
                }
                // prepare findstr + result
-               memset(sidx2, findsize-1, (size_t)findsize);
+               memset(sidx2, (int)findsize-1, (size_t)findsize);
                sidx2[findsize-1] = (uint8_t)findsize;
-               for (int pi = 0; pi < 3; ++pi) {
-                  int len = pos[pi]+1 < replen ? pos[pi]+1 : replen;
+               for (unsigned pi = 0; pi < 3; ++pi) {
+                  unsigned len = pos[pi]+1 < replen ? pos[pi]+1 : replen;
                   memmove(findstr+pos[pi]+1-len, findstr+findsize-len, (size_t)len);
-                  for (int i = 1; i <= len && i <= pos[pi]; ++i) {
+                  for (unsigned i = 1; i <= len && i <= pos[pi]; ++i) {
                      sidx2[pos[pi]-i] = (uint8_t) (findsize-1-i);
                   }
                }
@@ -384,9 +384,9 @@ static int test_helper(void)
 
                // TEST optimizetable_rsearchkmp: repeat pattern
                optimizetable_rsearchkmp((uint8_t)findsize, findstr, sidx);
-               for (int pi = 0; pi < 3; ++pi) {
-                  int len = pos[pi]+1 < replen ? pos[pi]+1 : replen;
-                  for (int i = 0; i < len && i <= pos[pi]; ++i) {
+               for (unsigned pi = 0; pi < 3; ++pi) {
+                  unsigned len = pos[pi]+1 < replen ? pos[pi]+1 : replen;
+                  for (unsigned i = 0; i < len && i <= pos[pi]; ++i) {
                      if (  findstr[pos[pi]-i] == findstr[findsize-1-i]
                            && sidx2[pos[pi]-i] == findsize-1-i) {
                         sidx2[pos[pi]-i] = (uint8_t) (findsize-(i != 0/*test last char with other*/));
@@ -587,7 +587,7 @@ static int test_find(void)
    {
       // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
       /* > grep -ob find_strsearch C-kern/string/strsearch.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-      size_t  compare_pos[] = {6232,17002,17202,17404,17519,17694,18309,18520,19064,19330,19357,19404,19549};
+      size_t  compare_pos[] = {6286,17080,17280,17482,17597,17772,18387,18598,19142,19408,19435,19482,19627};
       {
          wbuffer_t wbuf = wbuffer_INIT_MEMBLOCK(&file_data);
          TEST(0 == load_file(__FILE__, &wbuf, 0));

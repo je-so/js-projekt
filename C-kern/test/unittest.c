@@ -118,7 +118,9 @@ static void vlogfailedf_unittest(const char * filename, unsigned line_number, co
 
 void logfailed_unittest(const char * filename, unsigned line_number)
 {
-   vlogfailedf_unittest(filename, line_number, 0, 0);
+   va_list args;
+   memset(&args, 0, sizeof(args));
+   vlogfailedf_unittest(filename, line_number, 0, args);
 }
 
 void logfailedf_unittest(const char * filename, unsigned line_number, const char * format, ...)
@@ -774,7 +776,7 @@ static int test_exec(void)
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(145 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:253: TEST FAILED\nC-kern/test/unittest.c:253: Errlog differs from file './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:255: TEST FAILED\nC-kern/test/unittest.c:255: Errlog differs from file './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
@@ -810,7 +812,7 @@ static int test_exec(void)
    }
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(129 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_leak: FAILED\nC-kern/test/unittest.c:291: TEST FAILED\nC-kern/test/unittest.c:291: FAILED to free all resources\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("RUN dummy_unittest_leak: FAILED\nC-kern/test/unittest.c:293: TEST FAILED\nC-kern/test/unittest.c:293: FAILED to free all resources\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(6 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
@@ -897,7 +899,7 @@ static int test_exec(void)
    // stdout contains info about process failure
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TESTP(110 == bytes_read, "bytes_read:%zd", bytes_read)
-   TEST(0 == strncmp("FAILED\nC-kern/test/unittest.c:350: TEST FAILED\nC-kern/test/unittest.c:350: Test process aborted (signalnr:06)\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("FAILED\nC-kern/test/unittest.c:352: TEST FAILED\nC-kern/test/unittest.c:352: Test process aborted (signalnr:06)\n", (const char*)buffer, bytes_read));
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare
@@ -984,7 +986,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(49 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:936: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:938: TEST FAILED\nZ", bytes_read));
 
    // TEST TEST: s_unittest_singleton.isResult != 0
    call_test_macro();
@@ -993,7 +995,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(42 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:936: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:938: TEST FAILED\nZ", bytes_read));
 
    // TEST TESTP: s_unittest_singleton.isResult == 0
    s_unittest_singleton.okcount = 0;
@@ -1005,7 +1007,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(81 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:952: TEST FAILED\nC-kern/test/unittest.c:952: 1,2\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:954: TEST FAILED\nC-kern/test/unittest.c:954: 1,2\nZ", bytes_read));
 
    // TEST TESTP: s_unittest_singleton.isResult != 0
    call_testp_macro();
@@ -1014,7 +1016,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(74 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:952: TEST FAILED\nC-kern/test/unittest.c:952: 1,2\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:954: TEST FAILED\nC-kern/test/unittest.c:954: 1,2\nZ", bytes_read));
 
    // unprepare
    memcpy(&s_unittest_singleton, &old, sizeof(old));
