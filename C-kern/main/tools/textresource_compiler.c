@@ -22,7 +22,6 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/memstream.h"

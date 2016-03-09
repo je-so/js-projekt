@@ -181,7 +181,6 @@
     <VirtualDirectory Name="io">
       <VirtualDirectory Name="filesystem">
         <File Name="../../C-kern/api/io/filesystem/directory.h"/>
-        <File Name="../../C-kern/api/io/filesystem/mmfile.h"/>
         <File Name="../../C-kern/api/io/filesystem/file.h"/>
         <File Name="../../C-kern/api/io/filesystem/fileutil.h"/>
         <File Name="../../C-kern/api/io/filesystem/filepath.h"/>
@@ -398,7 +397,6 @@
       <VirtualDirectory Name="io">
         <File Name="../../C-kern/platform/Linux/io/directory.c"/>
         <File Name="../../C-kern/platform/Linux/io/file.c"/>
-        <File Name="../../C-kern/platform/Linux/io/mmfile.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>

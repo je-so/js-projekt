@@ -236,7 +236,6 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_io_file);
       RUN(unittest_io_filepath);
       RUN(unittest_io_fileutil);
-      RUN(unittest_io_mmfile);
       // IP
       RUN(unittest_io_ip_ipaddr);
       RUN(unittest_io_ip_ipsocket);

@@ -7,7 +7,6 @@ Src           += C-kern/ds/inmem/arraystf.c C-kern/ds/inmem/binarystack.c C-kern
 Src           += C-kern/io/filesystem/fileutil.c
 Src           += C-kern/io/reader/utf8reader.c
 Src           += C-kern/main/tools/textresource_compiler.c
-Src           += C-kern/platform/Linux/io/mmfile.c
 Src           += C-kern/string/string.c C-kern/string/utf8.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=NONE

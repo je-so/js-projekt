@@ -113,7 +113,7 @@
  * It's a marker in a function declaration.
  * It is used in function declarations which are implemented as macro.
  * Set it to either an empty value ,, or to ,const,.
- * See <cast_mmfile> for an example. */
+ * See <memblock_t.cast_memblock> for an example. */
 #define TYPEQUALIFIER                  void*
 
 // group: size-calculations

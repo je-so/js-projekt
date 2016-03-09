@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Mär.09  07:47:49
+GenerationDate  := 2016.Mär.09  07:54:52
 GeneratedBy     := je-so
 
 ## Debug
@@ -104,7 +104,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textresource_compiler.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o
 
@@ -139,7 +138,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textresource_compiler.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o
 
@@ -239,9 +237,6 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.
 $(ObjectDir_Debug)/C-kern!main!tools!textresource_compiler.c.o: C-kern/main/tools/textresource_compiler.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Debug)
 
@@ -336,9 +331,6 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!textresource_compiler.c.o: C-kern/main/tools/textresource_compiler.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c

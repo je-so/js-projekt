@@ -6,8 +6,7 @@
    Some functions are unsafe (marked with »Unsafe Function:«)
    in that they do not check for correct utf8 encoding.
 
-   This reader uses <mmfile_t> and works only for files
-   which can be mapped into memory all at once.
+   This reader loads files into memory all at once.
 
    For small parsers this allows to reference strings and
    identifiers in the read buffer without copying them.
@@ -49,7 +48,6 @@ int unittest_io_reader_utf8reader(void);
 
 
 /* struct: utf8reader_t
- * Extends <mmfile_t> with text reading capabilities.
  * Only text files encoded in UTF-8 are supported.
  * The current read position is also handled by this object.
  * Reading a character advances the text position. */
@@ -57,8 +55,8 @@ typedef struct utf8reader_t {
    const uint8_t *   next;
    const uint8_t *   end;
    textpos_t         pos;
-   uint8_t       *   mem_addr;
-   size_t            mem_size;
+   uint8_t       *   mem_addr; // start addr loaded file content
+   size_t            mem_size; // (aligned) length of file content
 } utf8reader_t;
 
 // group: lifetime

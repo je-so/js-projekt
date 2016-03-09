@@ -29,7 +29,6 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/pipe.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"
 #endif

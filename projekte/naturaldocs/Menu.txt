@@ -145,7 +145,6 @@ Group: Api  {
          File: File  (api/io/filesystem/file.h)
          File: File-Util  (api/io/filesystem/fileutil.h)
          File: Filesystem-Path  (api/io/filesystem/filepath.h)
-         File: Memory-Mapped-File  (api/io/filesystem/mmfile.h)
          }  # Group: Filesystem
 
       Group: Ip  {
@@ -549,7 +548,6 @@ Group: Implementation  {
             File: IOChannel impl  (platform/Linux/io/iochannel.c)
             File: IOPipe impl  (platform/Linux/io/pipe.c)
             File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
-            File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             File: PseudoTerminal impl  (platform/Linux/io/pseudoterm.c)
             File: Terminal impl  (platform/Linux/io/terminal.c)
             }  # Group: Io
