@@ -78,28 +78,28 @@ static int test_query(void)
       TEST(0 == isaligned_ptr(ptr, nrbits));
    }
 
-   // TEST lsbits_ptr: all bits 0
+   // TEST lobits_ptr: all bits 0
    ptr = 0;
    for (unsigned nrbits = 0; nrbits < bitsof(void*); ++nrbits) {
-      TEST(0 == lsbits_ptr(ptr, nrbits));
+      TEST(0 == lobits_ptr(ptr, nrbits));
    }
 
-   // TEST lsbits_ptr: all bits 1
+   // TEST lobits_ptr: all bits 1
    ptr = (ptr_t) (uintptr_t)-1;
    for (uintptr_t nrbits = 0, mask = 0; nrbits < bitsof(void*); ++nrbits, mask <<= 1, ++mask) {
-      TEST(mask == lsbits_ptr(ptr, nrbits));
+      TEST(mask == lobits_ptr(ptr, nrbits));
    }
 
-   // TEST lsbits_ptr
+   // TEST lobits_ptr
    for (unsigned off = 0; off < bitsof(void*); off += 8) {
       for (uintptr_t value = 0; value <= 255; ++value) {
          for (unsigned nrbits = off+1; nrbits <= off+8 && nrbits < bitsof(void*); ++nrbits) {
             uintptr_t mask = ~ ((uintptr_t)-1 << nrbits);
             uintptr_t sval = value << off;
             ptr = (ptr_t) sval;
-            TEST((sval&mask) == lsbits_ptr(ptr, nrbits));
+            TEST((sval&mask) == lobits_ptr(ptr, nrbits));
             ptr = (ptr_t) ~sval;
-            TEST((~sval&mask) == lsbits_ptr(ptr, nrbits));
+            TEST((~sval&mask) == lobits_ptr(ptr, nrbits));
          }
       }
    }
@@ -113,48 +113,46 @@ static int test_update(void)
 {
    ptr_t ptr = ptr_FREE;
 
-   // TEST clearlsbits_ptr: nrbits = 0
+   // TEST clearlobits_ptr: nrbits = 0
    ptr = (ptr_t) (uintptr_t)-1;
-   ptr = clearlsbits_ptr(ptr, 0);
+   ptr = clearlobits_ptr(ptr, 0);
    TEST(0 == ~(uintptr_t)ptr);
 
-   // TEST clearlsbits_ptr
+   // TEST clearlobits_ptr
    for (unsigned nrbits = 1; nrbits < bitsof(void*); ++nrbits) {
       ptr = (ptr_t) (uintptr_t)-1;
-      ptr = clearlsbits_ptr(ptr, nrbits);
-      TEST(0 == lsbits_ptr(ptr, nrbits));
+      ptr = clearlobits_ptr(ptr, nrbits);
+      TEST(0 == lobits_ptr(ptr, nrbits));
       uintptr_t P = ((uintptr_t)-1 << nrbits) & (uintptr_t)-1 >> 1;
-      TEST(P == lsbits_ptr(ptr, bitsof(void*)-1));
+      TEST(P == lobits_ptr(ptr, bitsof(void*)-1));
    }
 
-   // TEST orlsbits_ptr: nrbits = 0
+   // TEST orlobits_ptr: (nrbits < bitsof(void*)) /* precondition unchecked */
    ptr = 0;
-   ptr = orlsbits_ptr(ptr, 0, (uintptr_t)-1);
+   ptr = orlobits_ptr(ptr, bitsof(void*) + 10, 0);
    TEST(0 == ptr);
 
-   // TEST orlsbits_ptr
+   // TEST orlobits_ptr: (value >= (1 << nrbits)) /* precondition unchecked */
+   for (uintptr_t V = (uintptr_t)-1; V; V >>= 1) {
+      ptr = 0;
+      ptr = orlobits_ptr(ptr, 0, V);
+      TEST(V == (uintptr_t)ptr);
+   }
+
    for (unsigned nrbits = 1; nrbits < bitsof(void*); ++nrbits) {
-      // upper bits not set
-      const uintptr_t M = ~ ((uintptr_t)-1 << nrbits);
-      ptr = 0;
-      ptr = orlsbits_ptr(ptr, nrbits, (uintptr_t)-1);
-      TEST(M == (uintptr_t)ptr);
-      // upper bits not cleared
-      ptr = (ptr_t)~M;
-      ptr = orlsbits_ptr(ptr, nrbits, (uintptr_t)-1);
-      TEST(0 == ~(uintptr_t)ptr);
-      // 0 ored
-      ptr = 0;
-      ptr = orlsbits_ptr(ptr, nrbits, 0);
-      TEST(0 == (uintptr_t)ptr);
-      // 1 ored
-      ptr = 0;
-      ptr = orlsbits_ptr(ptr, nrbits, 1);
-      TEST(1 == (uintptr_t)ptr);
-      // single bit ored
-      ptr = 0;
-      ptr = orlsbits_ptr(ptr, bitsof(void*)-1, (uintptr_t)1 << (nrbits-1));
-      TEST(((uintptr_t)1 << (nrbits-1)) == (uintptr_t)ptr);
+      const uintptr_t P = ((uintptr_t)-1 << nrbits);
+
+      for (uintptr_t V = 0; V <= ~P; V = ! V ? (uintptr_t)1 << (nrbits-1) : V < ~P ? ~P : (uintptr_t)-1) {
+         // TEST orlobits_ptr: upper bits cleared
+         ptr = 0;
+         ptr = orlobits_ptr(ptr, nrbits, V);
+         TEST(V == (uintptr_t)ptr);
+
+         // TEST orlobits_ptr: upper bits set
+         ptr = (ptr_t)P;
+         ptr = orlobits_ptr(ptr, nrbits, V);
+         TEST((P|V) == (uintptr_t)ptr);
+      }
    }
 
    return 0;
@@ -175,17 +173,17 @@ static int test_generic(void)
    struct x1_t x1;
    struct x2_t x2;
 
-   // TEST clearlsbits_ptr: returns same pointer type
-   TEST(&x1 == clearlsbits_ptr(&x1, 1));
-   TEST(&x2 == clearlsbits_ptr(&x2, 1));
+   // TEST clearlobits_ptr: returns same pointer type
+   TEST(&x1 == clearlobits_ptr(&x1, 1));
+   TEST(&x2 == clearlobits_ptr(&x2, 1));
    // gives warning:
-   // TEST(&x1 == clearlsbits_ptr(&x2, 1));
+   // TEST(&x1 == clearlobits_ptr(&x2, 1));
 
-   // TEST orlsbits_ptr: returns same pointer type
-   TEST(&x1 == orlsbits_ptr(&x1, 1, 0));
-   TEST(&x2 == orlsbits_ptr(&x2, 1, 0));
+   // TEST orlobits_ptr: returns same pointer type
+   TEST(&x1 == orlobits_ptr(&x1, 1, 0));
+   TEST(&x2 == orlobits_ptr(&x2, 1, 0));
    // gives warning:
-   // TEST(&x2 == orlsbits_ptr(&x1, 1, 0));
+   // TEST(&x2 == orlobits_ptr(&x1, 1, 0));
 
    return 0;
 ONERR:

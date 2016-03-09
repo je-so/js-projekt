@@ -52,59 +52,62 @@ typedef void * ptr_t;
 // group: query
 
 /* function: isaligned_ptr
- * Returns true if all nrbits least significant bits of ptr are zero.
+ * Returns true if all nrbits low order (least significant) bits of ptr are zero.
  *
  * Unchecked Precondition:
  * nrbits < bitsof(void*) */
 int isaligned_ptr(const ptr_t ptr, unsigned nrbits);
 
-/* function: lsbits_ptr
- * Returns the value of all nrbits least significant bits of ptr.
+/* function: lobits_ptr
+ * Returns the value of all nrbits low order (least significant) bits of ptr.
  *
  * Unchecked Precondition:
  * nrbits < bitsof(void*) */
-uintptr_t lsbits_ptr(const ptr_t ptr, unsigned nrbits);
+uintptr_t lobits_ptr(const ptr_t ptr, unsigned nrbits);
 
 // group: update
 
-/* function: clearlsbits_ptr
+/* function: clearlobits_ptr
  * Sets all nrbits least significant bits of ptr to zero.
  *
  * Unchecked Precondition:
  * nrbits < bitsof(void*) */
-ptr_t clearlsbits_ptr(const ptr_t ptr, unsigned nrbits);
+ptr_t clearlobits_ptr(const ptr_t ptr, unsigned nrbits);
 
-/* function: orlsbits_ptr
+/* function: orlobits_ptr
  * The value of all nrbits least significant bits of value are ored into ptr.
  * This function assumes that <isaligned_ptr>(ptr, nrbits) returns true.
  *
  * Unchecked Precondition:
- * nrbits < bitsof(void*) */
-ptr_t orlsbits_ptr(const ptr_t ptr, unsigned nrbits, uintptr_t value);
+ *
+ * > nrbits < bitsof(void*) && value < (1 << nrbits)
+ *
+ * */
+ptr_t orlobits_ptr(const ptr_t ptr, unsigned nrbits, uintptr_t value);
 
 
 
 // section: inline implementation
 
-/* define: clearlsbits_ptr
- * Implements <ptr_t.clearlsbits_ptr>. */
-#define clearlsbits_ptr(ptr, nrbits) \
+/* define: clearlobits_ptr
+ * Implements <ptr_t.clearlobits_ptr>. */
+#define clearlobits_ptr(ptr, nrbits) \
          ((typeof(ptr))((uintptr_t)(ptr) & ((uintptr_t)-1 << (nrbits))))
 
 /* define: isaligned_ptr
  * Implements <ptr_t.isaligned_ptr>. */
 #define isaligned_ptr(ptr, nrbits) \
-         (0 == lsbits_ptr(ptr, nrbits))
+         (0 == lobits_ptr(ptr, nrbits))
 
-/* define: lsbits_ptr
- * Implements <ptr_t.lsbits_ptr>. */
-#define lsbits_ptr(ptr, nrbits) \
+/* define: lobits_ptr
+ * Implements <ptr_t.lobits_ptr>. */
+#define lobits_ptr(ptr, nrbits) \
          ((uintptr_t)(ptr) & (((uintptr_t)1 << (nrbits))-1))
 
-/* define: orlsbits_ptr
- * Implements <ptr_t.orlsbits_ptr>. */
-#define orlsbits_ptr(ptr, nrbits, value) \
-         ((typeof(ptr))((uintptr_t)(ptr) | ((uintptr_t)(value) & (((uintptr_t)1 << (nrbits))-1))))
+/* define: orlobits_ptr
+ * Implements <ptr_t.orlobits_ptr>. */
+#define orlobits_ptr(ptr, nrbits, value) \
+         ((typeof(ptr))((uintptr_t)(ptr) | (uintptr_t)(value) ))
 
 
 #endif
