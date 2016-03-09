@@ -71,7 +71,7 @@ int init_module(/*out*/module_t * mod, const char * modulename)
       code_size = (size_t) file_size;
    }
 
-   err = init2_vmpage(&module_page, code_size, accessmode_RDWR_SHARED);
+   err = init2_vmpage(&module_page, code_size, accessmode_RDWR);
    if (err) goto ONERR;
 
    {
@@ -80,7 +80,7 @@ int init_module(/*out*/module_t * mod, const char * modulename)
       if (err) goto ONERR;
    }
 
-   err = protect_vmpage(&module_page, accessmode_RDEX_SHARED);
+   err = protect_vmpage(&module_page, accessmode_RDEX);
    if (err) goto ONERR;
 
    err = delete_directory(&dir);
@@ -141,7 +141,7 @@ static int test_initfree(void)
       TEST(mod.page_addr != 0);
       TEST(mod.page_size == aligned_size);
       TEST(mod.code_size == code_size);
-      TEST(1 == ismapped_vm(cast_vmpage(&mod, page_), accessmode_RDEX_SHARED));
+      TEST(1 == ismapped_vm(cast_vmpage(&mod, page_), accessmode_RDEX));
 
       // TEST free_module
       vmpage_t vmpage = *cast_vmpage(&mod, page_);

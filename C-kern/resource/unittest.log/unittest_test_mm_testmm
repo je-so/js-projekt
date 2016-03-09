@@ -1,4 +1,4 @@
-[1: 1443695044.677496s]
-new_testmmpage() C-kern/test/mm/testmm.c:218
+[1: 1456471977.812475s]
+new_testmmpage() C-kern/test/mm/testmm.c:213
 Exit function with
 Error 12 - Cannot allocate memory

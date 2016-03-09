@@ -455,29 +455,29 @@ static int test_initfree(void)
       TEST(0 == new_threadlocalstore(&tls, &threadstack, &signalstack, pagesize_vm()));
       // variables
       vmpage = (vmpage_t) vmpage_INIT(sizevars_threadlocalstore(pagesize_vm()), (uint8_t*)tls);
-      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
       // protection page
       vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars);
-      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
       // signal stack page
       vmpage = (vmpage_t) vmpage_INIT(sizesignalstack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars + 1 * pagesize_vm());
-      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
       // check parameter signalstack
       TEST(vmpage.addr == signalstack.addr);
       TEST(vmpage.size == signalstack.size);
       // protection page
       vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)tls + sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + 1 * pagesize_vm());
-      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
       // thread stack page
       vmpage = (vmpage_t) vmpage_INIT(sizestack_threadlocalstore(pagesize_vm()), (uint8_t*)tls + sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm());
-      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
       // check parameter threadstack
       TEST(vmpage.addr == threadstack.addr);
       TEST(vmpage.size == threadstack.size);
       // protection page
       size_t offset = sizevars + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + 2 * pagesize_vm();
       vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore() - offset, (uint8_t*)tls + offset);
-      TEST(1 == ismapped_vm(&vmpage, accessmode_PRIVATE));
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
 
       // TEST delete_threadlocalstore: unmap pages
       vmpage = (vmpage_t) vmpage_INIT(size_threadlocalstore(), (uint8_t*)tls);

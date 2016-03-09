@@ -610,7 +610,7 @@ static int test_blockmap(void)
    TEST(blockmap.indexmask  >= blockmap.array_len-1);
    TEST(blockmap.indexmask/2 < blockmap.array_len);
    TEST(1 == ispowerof2_int(1+blockmap.indexmask));
-   TEST(1 == ismapped_vm(cast_vmpage(&blockmap,array_), accessmode_RDWR_PRIVATE));
+   TEST(1 == ismapped_vm(cast_vmpage(&blockmap,array_), accessmode_RDWR));
 
    // TEST free_pagecacheblockmap(&blockmap);
    TEST(0 == free_pagecacheblockmap(&blockmap));
@@ -687,7 +687,7 @@ static int test_block(void)
    for (uint8_t i = 0; i < lengthof(block); ++i) {
       TEST(0 == new_pagecacheblock(&block[i], i, &blockmap));
       vmpage_t pageblock = vmpage_INIT(pagecache_block_BLOCKSIZE, block[i]->blockaddr);
-      TEST(1 == ismapped_vm(&pageblock, accessmode_RDWR_PRIVATE));
+      TEST(1 == ismapped_vm(&pageblock, accessmode_RDWR));
       TEST(0 != block[i]);
       TEST(block[i]->threadcontext == tcontext_maincontext());
       TEST(0 != block[i]->blockaddr);

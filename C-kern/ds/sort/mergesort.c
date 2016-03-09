@@ -310,13 +310,13 @@ static int test_memhelper(void)
    TEST(0 != sort.temp);
    TEST(pagesize_vm() == sort.tempsize);
    vmpage = (vmpage_t) vmpage_INIT(sort.tempsize, sort.temp);
-   TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+   TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR));
 
    // TEST alloctemp_mergesort: size == 0 frees memory
    TEST(0 == alloctemp_mergesort(&sort, 0));
    TEST(sort.tempmem == sort.temp);
    TEST(sizeof(sort.tempmem) == sort.tempsize);
-   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR));
 
    // alloctemp_mergesort: different sizes
    for (unsigned i = 1; i <= 10; ++i) {
@@ -324,7 +324,7 @@ static int test_memhelper(void)
       TEST(0 != sort.temp);
       TEST(i*pagesize_vm() == sort.tempsize);
       vmpage = (vmpage_t) vmpage_INIT(sort.tempsize, sort.temp);
-      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR));
    }
 
    // TEST alloctemp_mergesort: ERROR
@@ -333,7 +333,7 @@ static int test_memhelper(void)
    // freed (reset to tempmem)
    TEST(sort.tempmem == sort.temp);
    TEST(sizeof(sort.tempmem) == sort.tempsize);
-   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR));
 
    // TEST ensuretempsize: no reallocation
    for (unsigned i = 0; i <= sort.tempsize; ++i) {
@@ -349,13 +349,13 @@ static int test_memhelper(void)
       TEST(0 != sort.temp);
       TEST(i*pagesize_vm() == sort.tempsize);
       vmpage = (vmpage_t) vmpage_INIT(sort.tempsize, sort.temp);
-      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR));
       // no reallocation
       TEST(0 == ensuretempsize(&sort, 0));
       TEST(0 == ensuretempsize(&sort, i * pagesize_vm()-1));
       TEST(vmpage.addr == sort.temp);
       TEST(vmpage.size == sort.tempsize);
-      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(0 != ismapped_vm(&vmpage, accessmode_RDWR));
    }
 
    // TEST ensuretempsize: ERROR
@@ -368,7 +368,7 @@ static int test_memhelper(void)
       // freed (reset to tempmem)
       TEST(sort.tempmem == sort.temp);
       TEST(sizeof(sort.tempmem) == sort.tempsize);
-      TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE));
+      TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR));
    }
 
    return 0;

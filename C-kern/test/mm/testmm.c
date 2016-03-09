@@ -25,28 +25,23 @@
 #include "C-kern/api/test/unittest.h"
 #endif
 
-/* typedef: struct testmm_block_t
- * Shortcut for <testmm_block_t>. */
-typedef struct testmm_block_t testmm_block_t;
-
-typedef struct testmm_blocktrailer_t testmm_blocktrailer_t;
-
-/* typedef: struct testmm_page_t
- * Shortcut for <testmm_page_t>. */
-typedef struct testmm_page_t testmm_page_t;
+// === private types
+struct testmm_block_t;
+struct testmm_blocktrailer_t;
+struct testmm_page_t;
 
 
 /* struct: testmm_it
  * Declares <testmm_it> as subtype of <mm_it>. See <mm_it_DECLARE>. */
 mm_it_DECLARE(testmm_it, testmm_t)
 
-struct testmm_blocktrailer_t {
-   testmm_block_t * header[2];
-};
+typedef struct testmm_blocktrailer_t {
+   struct testmm_block_t * header[2];
+} testmm_blocktrailer_t;
 
 /* struct: testmm_block_t
  * Describes the header of an allocated memory block. */
-struct testmm_block_t {
+typedef struct testmm_block_t {
    struct {
       size_t    datasize;
       size_t    alignsize;
@@ -58,7 +53,7 @@ struct testmm_block_t {
    // user data
 
    struct testmm_blocktrailer_t  trailer;
-};
+} testmm_block_t;
 
 /* function: alignsize_testmmblock
  * Aligns a value to the next multiple of KONFIG_MEMALIGN.
@@ -170,12 +165,12 @@ static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memb
  * it is merged with. The last free block grows in this manner until all
  * freed blocks are merged.
  */
-struct testmm_page_t {
+typedef struct testmm_page_t {
    vmpage_t       vmblock;
    memblock_t     datablock;
    memblock_t     freeblock;
-   testmm_page_t* next;
-};
+   struct testmm_page_t* next;
+} testmm_page_t;
 
 // group: lifetime
 
@@ -818,10 +813,10 @@ static int test_testmmpage(void)
    page[2] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr + mmpage->datablock.size);
    page[3] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr - pagesize_vm());
    TEST(0 == init_vmmappedregions(&mapping));
-   TEST(1 == ismapped_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE)));
-   TEST(1 == ismapped_vmmappedregions(&mapping, &page[1], (accessmode_RDWR|accessmode_PRIVATE)));
-   TEST(1 == ismapped_vmmappedregions(&mapping, &page[2], (accessmode_NONE|accessmode_PRIVATE)));
-   TEST(1 == ismapped_vmmappedregions(&mapping, &page[3], (accessmode_NONE|accessmode_PRIVATE)));
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[0], accessmode_RDWR));
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[1], accessmode_RDWR));
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[2], accessmode_NONE));
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[3], accessmode_NONE));
    TEST(0 == free_vmmappedregions(&mapping));
 
    // TEST free: memory is unmapped

@@ -1,153 +1,153 @@
-[1: 1443695037.097520s]
-freeblock_testmmpage() C-kern/test/mm/testmm.c:271
+[1: 1456471970.185064s]
+freeblock_testmmpage() C-kern/test/mm/testmm.c:266
 Function input violates condition (isblockvalid_testmmpage(mmpage, memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.097529s]
-mfree_testmm() C-kern/test/mm/testmm.c:773
+[1: 1456471970.185073s]
+mfree_testmm() C-kern/test/mm/testmm.c:768
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.256110s]
+[1: 1456471970.346951s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.256232s]
+[1: 1456471970.347069s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.256348s]
+[1: 1456471970.347183s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.256462s]
+[1: 1456471970.347296s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.259546s]
+[1: 1456471970.350380s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 17 - File exists
-[1: 1443695037.260235s]
+[1: 1456471970.351055s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260304s]
+[1: 1456471970.351124s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260314s]
+[1: 1456471970.351134s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260348s]
+[1: 1456471970.351169s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260354s]
+[1: 1456471970.351175s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260364s]
+[1: 1456471970.351185s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260366s]
+[1: 1456471970.351187s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260530s]
+[1: 1456471970.351343s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260533s]
+[1: 1456471970.351350s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260631s]
+[1: 1456471970.351443s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.260634s]
+[1: 1456471970.351451s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.261676s]
+[1: 1456471970.352470s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.269100s]
+[1: 1456471970.359849s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.269105s]
+[1: 1456471970.359854s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.272196s]
+[1: 1456471970.362990s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.272204s]
+[1: 1456471970.362998s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.272206s]
+[1: 1456471970.363001s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.281069s]
+[1: 1456471970.371988s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.281074s]
+[1: 1456471970.371991s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.281077s]
+[1: 1456471970.371994s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.285385s]
+[1: 1456471970.376374s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.285393s]
+[1: 1456471970.376377s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.285396s]
+[1: 1456471970.376385s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.285401s]
+[1: 1456471970.376389s]
 insert2_trie() C-kern/ds/inmem/trie.c:1721
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695037.285885s]
+[1: 1456471970.376854s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.285889s]
+[1: 1456471970.376857s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.285894s]
+[1: 1456471970.376863s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.285898s]
+[1: 1456471970.376867s]
 free_trie() C-kern/ds/inmem/trie.c:1372
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695037.785202s]
+[1: 1456471970.868859s]
 remove2_trie() C-kern/ds/inmem/trie.c:1849
 Exit function with
 Error 3 - No such process
