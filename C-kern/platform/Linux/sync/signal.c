@@ -364,6 +364,15 @@ struct signalstate_t {
    struct sigaction  signal_handlers[/*nr_signal_handlers*/] ;
 } ;
 
+// group: constants
+
+/* define: FLAGMASK
+ * Used to compare sigactino.sa_flags.
+ * On Raspbian/RaspberryPi2 the flg 0x4000000 could be set randomly?. */
+#define FLAGMASK \
+         ((int) ((  SA_NOCLDSTOP|SA_NOCLDWAIT|SA_SIGINFO|SA_ONSTACK \
+                 | SA_RESTART|SA_NODEFER|SA_RESETHAND|SA_INTERRUPT )))
+
 // group: helper
 
 /* function: nrhandlers_signalstate
@@ -451,32 +460,30 @@ ONERR:
 int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * sigstate2)
 {
    if (sigstate1 && sigstate2) {
-      int nr_diff = sigstate1->nr_signal_handlers - sigstate2->nr_signal_handlers ;
-      nr_diff = sign_int(nr_diff) ;
+      const int nr_diff = sigstate1->nr_signal_handlers - sigstate2->nr_signal_handlers;
       if (nr_diff) {
-         return nr_diff ;
+         return sign_int(nr_diff);
       }
 
-      int cmp = memcmp(&sigstate1->signalmask, &sigstate2->signalmask, sizeof(sigstate2->signalmask)) ;
+      int cmp = memcmp(&sigstate1->signalmask, &sigstate2->signalmask, sizeof(sigstate2->signalmask));
       if (cmp) {
-         return cmp ;
+         return cmp;
       }
 
-      for (int i = sigstate1->nr_signal_handlers; i > 0; ) {
-         --i ;
-         if (sigstate1->signal_handlers[i].sa_flags != sigstate2->signal_handlers[i].sa_flags) {
+      for (int i = sigstate1->nr_signal_handlers; i-- > 0; ) {
+         if (0 != (FLAGMASK & (sigstate1->signal_handlers[i].sa_flags ^ sigstate2->signal_handlers[i].sa_flags))) {
             return sign_int(sigstate1->signal_handlers[i].sa_flags - sigstate2->signal_handlers[i].sa_flags) ;
          }
          cmp = memcmp(&sigstate1->signal_handlers[i].sa_sigaction, &sigstate2->signal_handlers[i].sa_sigaction, sizeof(sigstate2->signal_handlers[i].sa_sigaction)) ;
          if (cmp) {
-            return cmp ;
+            return cmp;
          }
       }
 
-      return 0 ;
+      return 0;
    }
 
-   return (sigstate1) ? 1 : ((sigstate2) ? -1 : 0) ;
+   return (sigstate1) ? 1 : ((sigstate2) ? -1 : 0);
 }
 
 
@@ -766,27 +773,27 @@ static int test_signalstate(void)
    // TEST compare_signalstate: change handler setting
    int testsignals[] = { SIGSEGV, SIGUSR1, SIGRTMIN, SIGRTMAX } ;
    for (unsigned i = 0; i < lengthof(testsignals); ++i) {
-      int signr = testsignals[i] ;
-      TEST(0 == new_signalstate(&sigstate1)) ;
-      sigact.sa_sigaction = &dummy_sighandler ;
-      sigact.sa_flags     = SA_SIGINFO | SA_ONSTACK ;
-      TEST(0 == sigemptyset(&sigact.sa_mask)) ;
-      TEST(0 == sigaction(signr, &sigact, &oldact)) ;
-      isoldact = true ;
-      oldsignr = signr ;
-      TEST(0 == new_signalstate(&sigstate2)) ;
+      const int signr = testsignals[i];
+      TEST(0 == new_signalstate(&sigstate1));
+      sigact.sa_sigaction = &dummy_sighandler;
+      sigact.sa_flags     = SA_SIGINFO | SA_ONSTACK;
+      TEST(0 == sigemptyset(&sigact.sa_mask));
+      TEST(0 == sigaction(signr, &sigact, &oldact));
+      isoldact = true;
+      oldsignr = signr;
+      TEST(0 == new_signalstate(&sigstate2));
       TEST(&dummy_sighandler == sigstate2->signal_handlers[signr-1].sa_sigaction)
-      TEST(0 != compare_signalstate(sigstate1, sigstate2)) ;
-      TEST(0 == delete_signalstate(&sigstate2)) ;
-      isoldact = false ;
-      TEST(0 == sigaction(signr, &oldact, 0)) ;
-      TEST(0 == new_signalstate(&sigstate2)) ;
-      TEST(0 == compare_signalstate(sigstate1, sigstate2)) ;
-      TEST(0 == delete_signalstate(&sigstate2)) ;
-      TEST(0 == delete_signalstate(&sigstate1)) ;
+      TEST(0 != compare_signalstate(sigstate1, sigstate2));
+      TEST(0 == delete_signalstate(&sigstate2));
+      isoldact = false;
+      TEST(0 == sigaction(signr, &oldact, 0));
+      TEST(0 == new_signalstate(&sigstate2));
+      TEST(0 == compare_signalstate(sigstate1, sigstate2));
+      TEST(0 == delete_signalstate(&sigstate2));
+      TEST(0 == delete_signalstate(&sigstate1));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    if (isoldact) sigaction(oldsignr, &oldact, 0) ;
    if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0) ;
@@ -847,13 +854,13 @@ static int test_signalhandler_helper(void)
       TEST(&test_handler == get_signalhandler((unsigned)signr)) ;
 
       // TEST set_signalhandler: restore previous if handler == 0
-      TEST(0 == set_signalhandler((unsigned)signr, 0)) ;
-      TEST(0 == s_signalhandler[signr-1].isvalid) ;
-      TEST(0 == s_signalhandler[signr-1].handler) ;
-      s_signalhandler[signr-1] = handler ;
-      TEST(0 == sigaction(signr, 0, &oldstate2)) ;
-      TEST(oldstate.sa_handler == oldstate2.sa_handler) ;
-      TEST(oldstate.sa_flags   == oldstate2.sa_flags) ;
+      TEST(0 == set_signalhandler((unsigned)signr, 0));
+      TEST(0 == s_signalhandler[signr-1].isvalid);
+      TEST(0 == s_signalhandler[signr-1].handler);
+      s_signalhandler[signr-1] = handler;
+      TEST(0 == sigaction(signr, 0, &oldstate2));
+      TEST(oldstate.sa_handler == oldstate2.sa_handler);
+      TEST(0 == (FLAGMASK & (oldstate.sa_flags ^ oldstate2.sa_flags)));
 
       // TEST get_signalhandler: 0 value
       TEST(0 == get_signalhandler((unsigned)signr)) ;
@@ -868,13 +875,13 @@ static int test_signalhandler_helper(void)
       TEST(0 == s_signr) ;
 
       // TEST clear_signalhandler: restore previous
-      TEST(0 == clear_signalhandler((unsigned)signr)) ;
-      TEST(0 == s_signalhandler[signr-1].isvalid) ;
-      TEST(0 == s_signalhandler[signr-1].handler) ;
-      s_signalhandler[signr-1] = handler ;
-      TEST(0 == sigaction(signr, 0, &oldstate2)) ;
-      TEST(oldstate.sa_handler == oldstate2.sa_handler) ;
-      TEST(oldstate.sa_flags   == oldstate2.sa_flags) ;
+      TEST(0 == clear_signalhandler((unsigned)signr));
+      TEST(0 == s_signalhandler[signr-1].isvalid);
+      TEST(0 == s_signalhandler[signr-1].handler);
+      s_signalhandler[signr-1] = handler;
+      TEST(0 == sigaction(signr, 0, &oldstate2));
+      TEST(oldstate.sa_handler == oldstate2.sa_handler);
+      TEST(0 == (FLAGMASK & (oldstate.sa_flags ^ oldstate2.sa_flags)));
 
       // TEST get_signalhandler: 0 value
       TEST(0 == get_signalhandler((unsigned)signr)) ;
@@ -896,13 +903,13 @@ static int test_signalhandler_helper(void)
    TEST(EINVAL == set_signalhandler(lengthof(s_signalhandler)+1, &test_handler)) ;
 
    // TEST setignore_signalhandler: EINVAL
-   TEST(EINVAL == setignore_signalhandler(0)) ;
-   TEST(EINVAL == setignore_signalhandler(lengthof(s_signalhandler)+1)) ;
+   TEST(EINVAL == setignore_signalhandler(0));
+   TEST(EINVAL == setignore_signalhandler(lengthof(s_signalhandler)+1));
 
-   return 0 ;
+   return 0;
 ONERR:
-   if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0) ;
-   return EINVAL ;
+   if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0);
+   return EINVAL;
 }
 
 static int test_signalhandler_initonce(void)
@@ -1336,9 +1343,9 @@ int unittest_platform_sync_signal()
    if (test_signalrt())                goto ONERR;
    if (test_signalwait())              goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

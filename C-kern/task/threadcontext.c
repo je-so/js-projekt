@@ -643,6 +643,10 @@ static int test_query(void)
 {
    threadcontext_t tcontext  = threadcontext_INIT_STATIC(castPcontext_threadlocalstore(&tcontext));
 
+   // TEST maincontext_threadcontext
+   TEST( &g_maincontext == maincontext_threadcontext(&tcontext));
+   TEST( &tcontext.maincontext == &maincontext_threadcontext(&tcontext));
+
    // TEST isstatic_threadcontext
    TEST(1 == isstatic_threadcontext(&tcontext));
    tcontext.maincontext = 0;

@@ -36,9 +36,6 @@
  * Thread variables stored in thread local storage. */
 struct thread_localstore_t {
    // group: private variables
-   /* variable: threadcontext
-    * Context of <thread_t>. */
-   threadcontext_t   threadcontext;
    /* variable: thread
     * Thread object itself. */
    thread_t          thread;
@@ -58,13 +55,6 @@ struct thread_localstore_t {
     * Static memory used in <init_threadcontext> to allocate additional memory. */
    uint8_t           mem[/*memsize*/];
 };
-
-// group: constants
-
-/* define: thread_localstore_INIT_STATIC
- * Static initializer. Used to initialize all variables of thread locval storage. */
-#define thread_localstore_INIT_STATIC(tls, sizevars) \
-         {  threadcontext_INIT_STATIC(tls), thread_FREE, logwriter_FREE, sizemem_threadlocalstore(sizevars), 0, { 0 } }
 
 // group: static variables
 
@@ -120,8 +110,7 @@ static int init_threadlocalstore(/*out*/thread_localstore_t * tls, size_t sizeva
 {
    int err;
 
-   tls->threadcontext = (threadcontext_t) threadcontext_INIT_STATIC(tls);
-   tls->thread = (thread_t) thread_FREE;
+   tls->thread = (thread_t) thread_INIT_STATIC(tls);
 
    if (! PROCESS_testerrortimer(&s_threadlocalstore_errtimer, &err)) {
       err = initstatic_logwriter(&tls->logwriter, sizeof(tls->logmem), tls->logmem);
@@ -252,8 +241,8 @@ int new_threadlocalstore(/*out*/thread_localstore_t** tls, /*out*/struct membloc
    }
 
    static_assert(
-      (uintptr_t)context_threadlocalstore(0)   == offsetof(thread_localstore_t, threadcontext)
-      && (uintptr_t)thread_threadlocalstore(0) == offsetof(thread_localstore_t, thread),
+      (uintptr_t) context_threadlocalstore(0)   == offsetof(thread_t, threadcontext)
+      && (uintptr_t) thread_threadlocalstore(0) == offsetof(thread_localstore_t, thread),
       "query functions use offset corresponding to struct thread_localstore_t"
    );
 
@@ -393,9 +382,7 @@ size_t sizestatic_threadlocalstore(const thread_localstore_t* tls)
 static int test_initfree(void)
 {
    thread_localstore_t*  tls = 0;
-   thread_localstore_t   tls2;
    const size_t   sizevars = sizevars_threadlocalstore(pagesize_vm());
-   thread_t       thrfree  = thread_FREE;
    memblock_t     threadstack = memblock_FREE;
    memblock_t     signalstack = memblock_FREE;
    vmpage_t       vmpage;
@@ -412,15 +399,6 @@ static int test_initfree(void)
    TEST(olderr > 0);
    TEST(STDERR_FILENO == dup2(pipe.write, STDERR_FILENO));
 
-   // TEST thread_localstore_INIT_STATIC
-   for (size_t i = 0; i < 4096; i *= 2, i += (i==0)) {
-      tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(&tls2, sizeof(thread_localstore_t) + i);
-      TEST( isstatic_threadcontext(&tls2.threadcontext));
-      TEST(0 == memcmp(&thrfree, &tls2.thread, sizeof(thread_t)));
-      TEST(i == tls2.memsize);
-      TEST(0 == tls2.memused);
-   }
-
    for (int tc = 0; tc < 2; ++tc) {
 
       // prepare
@@ -436,14 +414,16 @@ static int test_initfree(void)
       TEST(0 != tls);
       TEST(0 == (uintptr_t)tls % size_threadlocalstore());
       // check *tls
-      TEST( isstatic_threadcontext(&tls->threadcontext));
+      TEST( isstatic_threadcontext(&tls->thread.threadcontext));
+      thread_t sthread = thread_INIT_STATIC(tls);
+      TEST( memcmp(&tls->thread, &sthread, sizeof(sthread)) == 0);
       TEST( tls->logwriter.addr == tls->logmem);
       TEST( tls->logwriter.size == minbufsize_logwriter());
       TEST( tls->memsize == sizemem_threadlocalstore(sizevars));
       TEST( tls->memused == 0);
-      tls2 = (thread_localstore_t) thread_localstore_INIT_STATIC(tls, sizevars);
-      tls2.logwriter = tls->logwriter;
-      TEST(0 == memcmp(tls, &tls2, sizeof(thread_localstore_t)));
+      for (unsigned i = 0; i < lengthof(tls->logmem); ++i) {
+         TEST( 0 == tls->logmem[i]);
+      }
 
       // TEST delete_threadlocalstore
       TEST(0 == delete_threadlocalstore(&tls));
@@ -550,6 +530,7 @@ static int test_query(void)
 {
    thread_localstore_t* tls = 0;
    thread_localstore_t  tls2;
+   const size_t         MINSIZE = 3*pagesize_vm() + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + sizevars_threadlocalstore(pagesize_vm());
    memblock_t stackmem;
 
    // prepare
@@ -571,9 +552,9 @@ static int test_query(void)
 
    // TEST size_threadlocalstore
    TEST(0 == size_threadlocalstore() % pagesize_vm());
-   size_t minsize = 3*pagesize_vm() + sizesignalstack_threadlocalstore(pagesize_vm()) + sizestack_threadlocalstore(pagesize_vm()) + sizevars_threadlocalstore(pagesize_vm());
-   TEST(size_threadlocalstore()/2 < minsize);
-   TEST(size_threadlocalstore()  >= minsize);
+   TEST(size_threadlocalstore()/2 < MINSIZE);
+   TEST(size_threadlocalstore()  >= MINSIZE);
+   TEST(size_threadlocalstore()  == sys_tlssize_syscontext());
 
    // TEST signalstack_threadlocalstore
    signalstack_threadlocalstore(tls, &stackmem);
@@ -594,21 +575,12 @@ static int test_query(void)
    TEST(1 == isfree_memblock(&stackmem));
 
    // TEST self_threadlocalstore
-   TEST(self_threadlocalstore() == (thread_localstore_t*) (((uintptr_t)&tls) - ((uintptr_t)&tls) % size_threadlocalstore()));
-
-   // TEST sys_self_threadlocalstore
-   TEST(sys_self_threadlocalstore() == (thread_localstore_t*) (((uintptr_t)&tls) - ((uintptr_t)&tls) % size_threadlocalstore()));
-
-   // TEST sys_self2_threadlocalstore
-   for (size_t i = 0; i < 1000*size_threadlocalstore(); i += size_threadlocalstore()) {
-      TEST((thread_localstore_t*)i == sys_self2_threadlocalstore(i));
-      TEST((thread_localstore_t*)i == sys_self2_threadlocalstore(i+1));
-      TEST((thread_localstore_t*)i == sys_self2_threadlocalstore(i+size_threadlocalstore()-1));
-   }
+   TEST( self_threadlocalstore() == (thread_localstore_t*) (((uintptr_t)&tls) - ((uintptr_t)&tls) % size_threadlocalstore()));
+   TEST( self_threadlocalstore() == (thread_localstore_t*) sys_tcontext_syscontext());
 
    // TEST castPcontext_threadlocalstore
-   TEST(tls == castPcontext_threadlocalstore(&tls->threadcontext));
-   TEST(&tls2 == castPcontext_threadlocalstore(&tls2.threadcontext));
+   TEST(tls == castPcontext_threadlocalstore(&tls->thread.threadcontext));
+   TEST(&tls2 == castPcontext_threadlocalstore(&tls2.thread.threadcontext));
 
    // TEST castPthread_threadlocalstore
    TEST(tls == castPthread_threadlocalstore(&tls->thread));
@@ -620,20 +592,30 @@ static int test_query(void)
    TEST(logwriter_threadlocalstore((thread_localstore_t*)0) == (logwriter_t*)offsetof(thread_localstore_t, logwriter));
 
    // TEST thread_threadlocalstore
-   TEST(thread_threadlocalstore(tls) == (thread_t*) ((uint8_t*)tls + sizeof(threadcontext_t)));
+   TEST(thread_threadlocalstore(tls) == &tls->thread);
    TEST(thread_threadlocalstore(&tls2) == &tls2.thread);
-   TEST(thread_threadlocalstore((thread_localstore_t*)0) == (thread_t*) sizeof(threadcontext_t));
+   TEST(thread_threadlocalstore((thread_localstore_t*)0) == (thread_t*) 0);
 
    // TEST context_threadlocalstore
-   TEST(context_threadlocalstore(tls) == (threadcontext_t*) (uint8_t*)tls);
-   TEST(context_threadlocalstore(&tls2) == &tls2.threadcontext);
-   TEST(0 == context_threadlocalstore((thread_localstore_t*)0));
+   TEST(context_threadlocalstore(tls) == &tls->thread.threadcontext);
+   TEST(context_threadlocalstore(&tls2) == &tls2.thread.threadcontext);
+   TEST(context_threadlocalstore((thread_localstore_t*)0) == (threadcontext_t*) 0);
 
-   // TEST sys_context_threadlocalstore
-   TEST(sys_context_threadlocalstore() == context_threadlocalstore(self_threadlocalstore()));
+   // TEST sys_tcontext_syscontext
+   TEST(sys_tcontext_syscontext() == (threadcontext_t*) (((uintptr_t)&tls) - ((uintptr_t)&tls) % size_threadlocalstore()));
 
-   // TEST sys_thread_threadlocalstore
-   TEST(sys_thread_threadlocalstore() == thread_threadlocalstore(self_threadlocalstore()));
+   // TEST sys_tcontext2_syscontext
+   for (size_t i = 0; i < 1000*size_threadlocalstore(); i += size_threadlocalstore()) {
+      TEST((threadcontext_t*)i == sys_tcontext2_syscontext(i));
+      TEST((threadcontext_t*)i == sys_tcontext2_syscontext(i+1));
+      TEST((threadcontext_t*)i == sys_tcontext2_syscontext(i+size_threadlocalstore()-1));
+   }
+
+   // TEST sys_tlssize_syscontext
+   TEST(0 == sys_tlssize_syscontext() % pagesize_vm());
+   TEST( sys_tlssize_syscontext()/2 < MINSIZE);
+   TEST( sys_tlssize_syscontext()  >= MINSIZE);
+   TEST( sys_tlssize_syscontext()  == size_threadlocalstore());
 
    // unprepare
    TEST(0 == delete_threadlocalstore(&tls));

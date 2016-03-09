@@ -21,6 +21,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
@@ -147,20 +148,20 @@ static int thread_sloop(mutex_t * mutex)
    return err ;
 }
 
-static volatile int s_lockmutex_signal = 0 ;
+static volatile int s_lockmutex_signal = 0;
 
 static int thread_lockunlockmutex(mutex_t * mutex)
 {
-   int err ;
-   err = lock_mutex(mutex) ;
+   int err;
+   err = lock_mutex(mutex);
    if (!err) {
-      s_lockmutex_signal = 1 ;
-      while( s_lockmutex_signal ) {
-         pthread_yield() ;
+      add_atomicint(&s_lockmutex_signal, 1);
+      while (0 != read_atomicint(&s_lockmutex_signal)) {
+         pthread_yield();
       }
-      err = unlock_mutex(mutex) ;
+      err = unlock_mutex(mutex);
    }
-   return err ;
+   return err;
 }
 
 static int thread_freemutex(mutex_t * mutex)
@@ -255,16 +256,16 @@ static int test_staticinit(void)
    }
 
    // TEST EBUSY: calling free on a locked mutex
-   s_lockmutex_signal = 0 ;
-   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
-   while( ! s_lockmutex_signal ) {
-      pthread_yield() ;
+   clear_atomicint(&s_lockmutex_signal);
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex));
+   while (0 == read_atomicint(&s_lockmutex_signal)) {
+      pthread_yield();
    }
-   TEST(EBUSY == free_mutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == join_thread(thread1)) ;
-   TEST(0 == returncode_thread(thread1)) ;
-   TEST(0 == delete_thread(&thread1)) ;
+   TEST( EBUSY == free_mutex(&mutex));
+   clear_atomicint(&s_lockmutex_signal);
+   TEST( 0 == join_thread(thread1));
+   TEST( 0 == returncode_thread(thread1));
+   TEST( 0 == delete_thread(&thread1));
 
    // TEST calling unlock from another thread is executed
    TEST(0 == lock_mutex(&mutex)) ;
@@ -343,16 +344,16 @@ static int test_errorcheck(void)
    TEST(0 == unlock_mutex(&mutex)) ;
 
    // TEST EBUSY: calling free on a locked mutex
-   s_lockmutex_signal = 0 ;
-   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
-   while( ! s_lockmutex_signal ) {
-      pthread_yield() ;
+   clear_atomicint(&s_lockmutex_signal);
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex));
+   while (0 == read_atomicint(&s_lockmutex_signal)) {
+      pthread_yield();
    }
-   TEST(EBUSY == free_mutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == join_thread(thread1)) ;
-   TEST(0 == returncode_thread(thread1)) ;
-   TEST(0 == delete_thread(&thread1)) ;
+   TEST( EBUSY == free_mutex(&mutex));
+   clear_atomicint(&s_lockmutex_signal);
+   TEST( 0 == join_thread(thread1));
+   TEST( 0 == returncode_thread(thread1));
+   TEST( 0 == delete_thread(&thread1));
 
    // TEST EPERM: calling unlock from another thread is prevented
    s_lockmutex_signal = 0 ;

@@ -1074,11 +1074,27 @@ static int test_query(void)
    }
 
    // TEST isutf8_terminal
-   TEST(0 != isutf8_terminal(&term));
+   {
+      uint8_t* logbuf;
+      size_t   logsize;
+      GETBUFFER_ERRLOG(&logbuf, &logsize);
+      isutf8_terminal(&term); // either true or false
+      size_t   logsize2;
+      GETBUFFER_ERRLOG(&logbuf, &logsize2);
+      TEST(logsize == logsize2); // no error
+   }
 
    // TEST isutf8_terminal: ERROR
-   init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
-   TEST(0 == isutf8_terminal(&term));
+   {
+      uint8_t* logbuf;
+      size_t   logsize;
+      GETBUFFER_ERRLOG(&logbuf, &logsize);
+      init_testerrortimer(&s_terminal_errtimer, 1, EINVAL);
+      TEST(0 == isutf8_terminal(&term));
+      size_t   logsize2;
+      GETBUFFER_ERRLOG(&logbuf, &logsize2);
+      TEST(logsize < logsize2); // error log writen
+   }
 
    // TEST pathname_terminal
    TEST(0 == pathname_terminal(&term, sizeof(name), name));

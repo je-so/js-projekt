@@ -26,9 +26,8 @@ struct thread_t;
 struct threadcontext_t;
 struct logwriter_t;
 
-/* typedef: struct thread_localstore_t
- * Export <thread_localstore_t> into global namespace. */
-typedef struct thread_localstore_t thread_localstore_t;
+// === exported (opaque) types
+struct thread_localstore_t;
 
 
 // section: Functions
@@ -46,7 +45,7 @@ int unittest_platform_task_thread_localstore(void);
  * Holds thread local memory.
  * The memory comprises the variables <thread_t> and <threadcontext_t>,
  * the signal stack and thread stack and 3 protection pages in between. */
-struct thread_localstore_t;
+typedef struct thread_localstore_t thread_localstore_t;
 
 // group: lifetime
 
@@ -83,14 +82,12 @@ thread_localstore_t* self_threadlocalstore(void);
 
 /* function: context_threadlocalstore
  * Returns pointer to <threadcontext_t> stored in thread local storage.
- * The function <sys_context_threadlocalstore> is identical with context_threadlocalstore(self_threadlocalstore()).
- * If you change this function change sys_context_threadlocalstore also. */
+ * The function <syscontext_t.sys_tcontext_syscontext> is identical with context_threadlocalstore(self_threadlocalstore()).
+ * If you change this function change <sycontext_t.sys_tcontext_syscontext> also. */
 struct threadcontext_t* context_threadlocalstore(thread_localstore_t* tls);
 
 /* function: thread_threadlocalstore
- * Returns pointer to <thread_t> stored in thread local storage.
- * The function <sys_thread_threadlocalstore> is identical with thread_threadlocalstore(self_threadlocalstore()).
- * If you change this function change sys_thread_threadlocalstore also. */
+ * Returns pointer to <thread_t> stored in thread local storage. */
 struct thread_t* thread_threadlocalstore(thread_localstore_t* tls);
 
 /* function: logwriter_threadlocalstore
@@ -148,9 +145,9 @@ size_t sizestatic_threadlocalstore(const thread_localstore_t* tls);
 /* define: castPthread_threadlocalstore
  * Implements <thread_localstore_t.castPthread_threadlocalstore>. */
 #define castPthread_threadlocalstore(thread) \
-         ( __extension__ ({           \
-            thread_t* _t = (thread);  \
-            ((thread_localstore_t*) ( ((uint8_t*)(_t)) - sizeof(threadcontext_t))); \
+         ( __extension__ ({                  \
+            thread_t* _t = (thread);         \
+            ((thread_localstore_t*) (_t));   \
          }))
 
 /* define: castPcontext_threadlocalstore
@@ -164,24 +161,27 @@ size_t sizestatic_threadlocalstore(const thread_localstore_t* tls);
 /* define: context_threadlocalstore
  * Implements <thread_localstore_t.context_threadlocalstore>. */
 #define context_threadlocalstore(tls) \
-         ((threadcontext_t*) (tls))
+         ( __extension__ ({                     \
+            thread_localstore_t* _tls = (tls);  \
+            ((struct threadcontext_t*) (_tls)); \
+         }))
 
 /* define: self_threadlocalstore
  * Implements <thread_localstore_t.self_threadlocalstore>. */
 #define self_threadlocalstore() \
-         (sys_self_threadlocalstore())
+         ((thread_localstore_t*) sys_tcontext_syscontext())
 
 /* define: thread_threadlocalstore
  * Implements <thread_localstore_t.thread_threadlocalstore>. */
 #define thread_threadlocalstore(tls) \
-         ( __extension__ ({                                                \
-            thread_localstore_t* _tls = (tls);                             \
-            ((thread_t*) ( ((uint8_t*)(_tls)) + sizeof(threadcontext_t))); \
+         ( __extension__ ({                     \
+            thread_localstore_t* _tls = (tls);  \
+            ((struct thread_t*) (_tls));        \
          }))
 
 /* define: size_threadlocalstore
  * Implements <thread_localstore_t.size_threadlocalstore>. */
 #define size_threadlocalstore() \
-         (sys_size_threadlocalstore())
+         (sys_tlssize_syscontext())
 
 #endif

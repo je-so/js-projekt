@@ -32,6 +32,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/memory/mm/mm_impl.h"
+#include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/platform/locale.h"
@@ -667,114 +668,82 @@ ONERR:
    return EINVAL;
 }
 
-static uint8_t s_static_buffer[20000];
-static size_t  s_static_offset = 0;
+static volatile int test_static_result;
 
-static int static_malloc(struct mm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+static int test_static(void * dummy)
 {
-   (void) mman;
-   size_t aligned_size = (size + 63) & ~(size_t)63;
-
-   if (size > aligned_size || aligned_size > sizeof(s_static_buffer) - s_static_offset) {
-      // printf("static_malloc ENOMEM\n");
-      return ENOMEM;
-   }
-
-   *memblock = (memblock_t) memblock_INIT(aligned_size, s_static_buffer + s_static_offset);
-   s_static_offset += aligned_size;
-
-   return 0;
-}
-
-static int static_mresize(struct mm_t * mman, size_t newsize, struct memblock_t * memblock)
-{
-   if (memblock->addr != 0 || memblock->size != 0) return EINVAL;
-   return static_malloc(mman, newsize, memblock);
-}
-
-static int static_mfree(struct mm_t * mman, struct memblock_t * memblock)
-{
-   (void) mman;
-   *memblock = (memblock_t) memblock_FREE;
-   return 0;
-}
-
-static int childprocess_unittest(void)
-{
-   resourceusage_t usage = resourceusage_FREE;
-   maincontext_t   oldmc;
-   threadcontext_mm_t oldmm = iobj_FREE;
-   mm_it           staticmm = mm_it_FREE;
-   bool            isStatic = true;
-   pipe_t          errpipe  = pipe_FREE;
-   int             oldstderr = -1;
-
-   // prepare
-   memcpy(&oldmc.type, &g_maincontext.type, sizeof(oldmc) - offsetof(maincontext_t, type));
-   TEST(0 == init_pipe(&errpipe));
-   oldstderr = dup(STDERR_FILENO);
-   TEST(oldstderr > 0);
-   TEST(STDERR_FILENO == dup2(errpipe.write, STDERR_FILENO));
-
-   // can not use normal mm for init_resourceusage cause free_maincontext is called
-   s_static_offset = 0;
-   TEST(0 == switchoff_testmm());
-   oldmm = mm_maincontext();
-   staticmm = (mm_it) mm_it_INIT(&static_malloc, &static_mresize, &static_mfree, oldmm.iimpl->sizeallocated);
-   mm_maincontext().iimpl = &staticmm;
-   TEST(0 == init_resourceusage(&usage));
-   mm_maincontext() = oldmm;
-   isStatic = false;
-
-   if (test_querymacros())    goto ONERR;
-   if (test_helper())         goto ONERR;
-
-   TEST(0 == same_resourceusage(&usage));
-
-   TEST(0 == free_maincontext());
+   TEST(0 == dummy);
    TEST(maincontext_STATIC == type_maincontext());
-   clear_args_maincontext(&g_maincontext);
 
    if (test_querymacros())    goto ONERR;
    if (test_helper())         goto ONERR;
    if (test_init())           goto ONERR;
    if (test_initrun())        goto ONERR;
 
-   memcpy(&g_maincontext.type, &oldmc.type, sizeof(oldmc) - offsetof(maincontext_t, type));
-   TEST(0 == init_maincontext(oldmc.type));
-   TEST(0 == same_resourceusage(&usage));
+   test_static_result = 0;
+   return 0;
+ONERR:
+   test_static_result = EINVAL;
+   return EINVAL;
+}
 
-   // unprepare
-   isStatic = true;
-   mm_maincontext().iimpl = &staticmm;
-   TEST(0 == free_resourceusage(&usage));
-   mm_maincontext() = oldmm;
-   isStatic = false;
+static int childprocess_unittest(void)
+{
+   maincontext_t   oldmc;
+   resourceusage_t usage = resourceusage_FREE;
+   pipe_t          errpipe = pipe_FREE;
+   int             oldstderr = dup(STDERR_FILENO);
 
+   // prepare
+   memcpy(&oldmc, &g_maincontext, sizeof(oldmc));
+   TEST(0 <  oldstderr);
+   TEST(0 == init_pipe(&errpipe));
+   TEST(STDERR_FILENO == dup2(errpipe.write, STDERR_FILENO));
+
+   // test initialized context
+
+   TEST(0 == init_resourceusage(&usage));
+   if (test_querymacros())    goto ONERR;
+   if (test_helper())         goto ONERR;
+   TEST( 0 == same_resourceusage(&usage));
+   TEST( 0 == free_resourceusage(&usage));
+
+   // test uninitialized context
+
+   freeonce_locale();
+   freeonce_signalhandler();
+   test_static_result = EINVAL;
+   TEST(0 == init_resourceusage(&usage));
+   memcpy(&oldmc, &g_maincontext, sizeof(oldmc));
+   g_maincontext = (maincontext_t) maincontext_INIT_STATIC;
+   TEST( 0 == initrun_syscontext(&g_maincontext.sysinfo, &test_static, (void*) 0));
+   memcpy(&g_maincontext, &oldmc, sizeof(oldmc));
+   TEST( 0 == test_static_result);
+   TEST( 0 == same_resourceusage(&usage));
+   TEST( 0 == free_resourceusage(&usage));
+
+   // get error log from pipe
+   static uint8_t s_static_buffer[20000];
    int rsize = read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1);
-   TEST(rsize > 0);
+   TEST(0 < rsize);
    s_static_buffer[rsize] = 0;
    PRINTF_ERRLOG("%s", s_static_buffer);
    TEST(-1 == read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1));
+
+   // reset
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO));
    TEST(0 == free_pipe(&errpipe));
+   TEST(0 == free_iochannel(&oldstderr))
 
    return 0;
 ONERR:
-   if (maincontext_STATIC == type_maincontext()) {
-      memcpy(&g_maincontext.type, &oldmc.type, sizeof(oldmc) - offsetof(maincontext_t, type));
-      (void) init_maincontext(oldmc.type);
-   }
-   if (!isStatic) {
-      mm_maincontext().iimpl = &staticmm;
-   }
+   memcpy(&g_maincontext, &oldmc, sizeof(oldmc));
    (void) free_resourceusage(&usage);
-   mm_maincontext() = oldmm;
-   free_pipe(&errpipe);
    if (0 < oldstderr) {
       dup2(oldstderr, STDERR_FILENO);
       close(oldstderr);
    }
+   free_pipe(&errpipe);
    return EINVAL;
 }
 

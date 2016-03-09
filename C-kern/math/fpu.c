@@ -30,32 +30,32 @@
 
 int enable_fpuexcept(fpu_except_e exception_flags)
 {
-   int err ;
+   int err;
 
    if (-1 == feenableexcept(exception_flags)) {
-      err = errno ;
+      err = errno;
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int disable_fpuexcept(fpu_except_e exception_flags)
 {
-   int err ;
+   int err;
 
    if (-1 == fedisableexcept(exception_flags)) {
-      err = errno ;
+      err = errno;
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -96,17 +96,26 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_fpuexcept_signalclear(void)
+typedef struct test_config_t {
+   bool isEnableSupported; // false ==> enable hardware exceptions are not supported
+   bool isAlsoInexact;  // true ==> fpu_except_OVERFLOW signals also fpu_except_INEXACT;
+                        //       && fpu_except_UNDERFLOW signals also fpu_except_INEXACT
+} test_config_t;
+
+#define test_config_INIT \
+         { true, false }
+
+static int test_fpuexcept_signalclear(test_config_t conf)
 {
-   fpu_except_e      oldenabled ;
-   fpu_except_e      exceptflags[6] = {
-                         fpu_except_INVALID
-                        ,fpu_except_DIVBYZERO
-                        ,fpu_except_OVERFLOW
-                        ,fpu_except_UNDERFLOW
-                        ,fpu_except_INEXACT
-                        ,fpu_except_MASK_ALL
-                     } ;
+   fpu_except_e   oldenabled ;
+   fpu_except_e   exceptflags[6] = {
+      fpu_except_INVALID,
+      fpu_except_DIVBYZERO,
+      fpu_except_OVERFLOW|(conf.isAlsoInexact ? fpu_except_INEXACT : 0),
+      fpu_except_UNDERFLOW|(conf.isAlsoInexact ? fpu_except_INEXACT : 0),
+      fpu_except_INEXACT,
+      fpu_except_MASK_ALL
+   };
 
    // prepare
    oldenabled = getenabled_fpuexcept() ;
@@ -131,20 +140,22 @@ static int test_fpuexcept_signalclear(void)
       TEST(0 == getsignaled_fpuexcept(exceptflags[i])) ;
       TEST(mask == getsignaled_fpuexcept(fpu_except_MASK_ALL)) ;
       for (unsigned i2 = i+1; i2 < lengthof(exceptflags); ++i2) {
-         if (fpu_except_MASK_ALL == exceptflags[i2]) continue ;
-         TEST(exceptflags[i2] == getsignaled_fpuexcept(exceptflags[i2])) ;
+         if (exceptflags[i2] & ~mask) continue/*already cleared*/;
+         TEST(exceptflags[i2] == getsignaled_fpuexcept(exceptflags[i2]));
       }
    }
 
    // TEST signal_fpuexcept: single bit
    for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
-      TEST(0 == signal_fpuexcept(exceptflags[i])) ;
-      TEST(exceptflags[i] == getsignaled_fpuexcept(exceptflags[i])) ;
+      fpu_except_e flags = exceptflags[i];
+      TEST(0 == signal_fpuexcept(flags));
+      TEST(flags == getsignaled_fpuexcept(flags));
+      TESTP(flags == getsignaled_fpuexcept(fpu_except_MASK_ALL), "i: %d fl:0x%x efl:0x%x get():0x%x", i, flags, exceptflags[i], getsignaled_fpuexcept(fpu_except_MASK_ALL));
       for (unsigned i2 = 0; i2 < lengthof(exceptflags); ++i2) {
-         TEST((exceptflags[i2] & exceptflags[i]) == getsignaled_fpuexcept(exceptflags[i2])) ;
+         TESTP((exceptflags[i2] & flags) == getsignaled_fpuexcept(exceptflags[i2]), "i:%d i2:%d get():0x%x", i, i2, getsignaled_fpuexcept(exceptflags[i2]));
       }
-      TEST(0 == clear_fpuexcept(exceptflags[i])) ;
-      TEST(0 == getsignaled_fpuexcept(fpu_except_MASK_ALL)) ;
+      TEST(0 == clear_fpuexcept(flags));
+      TEST(0 == getsignaled_fpuexcept(fpu_except_MASK_ALL));
    }
 
    // TEST fpu_except_INVALID: sqrt(-1)
@@ -207,16 +218,16 @@ static int test_fpuexcept_signalclear(void)
    }
 
    // unprepare
-   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == enable_fpuexcept(oldenabled)) ;
+   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
+   TEST(!conf.isEnableSupported || 0 == enable_fpuexcept(oldenabled));
 
-   return 0 ;
+   return 0;
 ONERR:
-   clear_fpuexcept(fpu_except_MASK_ALL) ;
-   disable_fpuexcept(fpu_except_MASK_ALL) ;
-   enable_fpuexcept(oldenabled) ;
-   return EINVAL ;
+   clear_fpuexcept(fpu_except_MASK_ALL);
+   disable_fpuexcept(fpu_except_MASK_ALL);
+   enable_fpuexcept(oldenabled);
+   return EINVAL;
 }
 
 static ucontext_t    s_continue ;
@@ -243,7 +254,7 @@ static long double generate_all_exceptions(long double dmin, long double dmax, d
    return result ;
 }
 
-static int test_fpuexcept_enabledisable(void)
+static int test_fpuexcept_enabledisable(test_config_t conf)
 {
    volatile bool     isoldsignalmask = false;
    volatile bool     isoldact1       = false;
@@ -254,36 +265,40 @@ static int test_fpuexcept_enabledisable(void)
    fpu_except_e      oldenabled;
    volatile unsigned i;
    fpu_except_e      exceptflags[6] = {
-                         fpu_except_INVALID
-                        ,fpu_except_DIVBYZERO
-                        ,fpu_except_OVERFLOW
-                        ,fpu_except_UNDERFLOW
-                        ,fpu_except_INEXACT
-                        ,fpu_except_MASK_ALL
-                     } ;
+      fpu_except_INVALID,
+      fpu_except_DIVBYZERO,
+      fpu_except_OVERFLOW,
+      fpu_except_UNDERFLOW,
+      fpu_except_INEXACT,
+      fpu_except_MASK_ALL
+   };
+
+   if (!conf.isEnableSupported) {
+      return 0;
+   }
 
    // prepare: install signalhandler
-   oldenabled = getenabled_fpuexcept() ;
-   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == sigemptyset(&signalmask)) ;
-   TEST(0 == sigaddset(&signalmask, SIGFPE)) ;
-   TEST(0 == sigprocmask(SIG_UNBLOCK, &signalmask, &oldsignalmask)) ;
-   isoldsignalmask = true ;
-   sigact1.sa_sigaction = &fpe_sighandler ;
-   sigact1.sa_flags     = SA_SIGINFO | SA_ONSTACK ;
-   TEST(0 == sigemptyset(&sigact1.sa_mask)) ;
-   TEST(0 == sigaction(SIGFPE, &sigact1, &oldact1)) ;
-   isoldact1 = true ;
+   oldenabled = getenabled_fpuexcept();
+   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == sigemptyset(&signalmask));
+   TEST(0 == sigaddset(&signalmask, SIGFPE));
+   TEST(0 == sigprocmask(SIG_UNBLOCK, &signalmask, &oldsignalmask));
+   isoldsignalmask = true;
+   sigact1.sa_sigaction = &fpe_sighandler;
+   sigact1.sa_flags     = SA_SIGINFO | SA_ONSTACK;
+   TEST(0 == sigemptyset(&sigact1.sa_mask));
+   TEST(0 == sigaction(SIGFPE, &sigact1, &oldact1));
+   isoldact1 = true;
 
    // TEST enable_fpuexcept, disable_fpuexcept
-   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == getenabled_fpuexcept()) ;
+   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == getenabled_fpuexcept());
    for (i = 0; i < lengthof(exceptflags); ++i) {
-      TEST(0 == enable_fpuexcept(exceptflags[i])) ;
-      TEST(exceptflags[i] == getenabled_fpuexcept()) ;
-      TEST(0 == disable_fpuexcept(exceptflags[i])) ;
-      TEST(0 == getenabled_fpuexcept()) ;
+      TESTP(0 == enable_fpuexcept(exceptflags[i]), "i:%d err:%d", i, enable_fpuexcept(exceptflags[i]));
+      TEST(exceptflags[i] == getenabled_fpuexcept());
+      TEST(0 == disable_fpuexcept(exceptflags[i]));
+      TEST(0 == getenabled_fpuexcept());
    }
 
    // TEST enable_fpuexcept + throwing exception with fpu instruction
@@ -350,13 +365,13 @@ static int test_fpuexcept_enabledisable(void)
    }
 
    // unprepare: restore signalhandler
-   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == enable_fpuexcept(oldenabled)) ;
-   isoldsignalmask = false ;
-   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
-   isoldact1 = false ;
-   TEST(0 == sigaction(SIGFPE, &oldact1, 0)) ;
+   TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
+   TEST(0 == enable_fpuexcept(oldenabled));
+   isoldsignalmask = false;
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0));
+   isoldact1 = false;
+   TEST(0 == sigaction(SIGFPE, &oldact1, 0));
 
    return 0 ;
 ONERR:
@@ -368,93 +383,120 @@ ONERR:
    return EINVAL ;
 }
 
+static bool s_isEnableSupported;
+
 static int thread_testenabled(fpu_except_e * flag)
 {
    if (         0 == wait_signalrt(4, 0)
-         && *flag == getenabled_fpuexcept()
-         && (fpu_except_MASK_ALL & ~*flag) == getsignaled_fpuexcept(fpu_except_MASK_ALL)) {
-      disable_fpuexcept(*flag) ;
-      if (0 == *flag) enable_fpuexcept(fpu_except_INVALID) ;
-      return 0 ;
+         && (!s_isEnableSupported || (fpu_except_MASK_ALL & ~*flag) == getenabled_fpuexcept())
+         && *flag == getsignaled_fpuexcept(fpu_except_MASK_ALL)) {
+      disable_fpuexcept(*flag);
+      return 0;
    }
 
    return EINVAL ;
 }
 
-static int test_fpuexcept_thread(void)
+static int test_fpuexcept_thread(test_config_t conf)
 {
-   thread_t          * thread1      = 0 ;
-   fpu_except_e      oldenabled ;
-   fpu_except_e      exceptflags[6] = {
-                        0
-                        ,fpu_except_INVALID
-                        ,fpu_except_DIVBYZERO
-                        ,fpu_except_OVERFLOW
-                        ,fpu_except_UNDERFLOW
-                        ,fpu_except_INEXACT
-                     } ;
+   thread_t     * thread1 = 0;
+   fpu_except_e   oldenabled;
+   fpu_except_e   exceptflags[6] = {
+      0,
+      fpu_except_INVALID,
+      fpu_except_DIVBYZERO,
+      fpu_except_OVERFLOW|(conf.isAlsoInexact ? fpu_except_INEXACT : 0),
+      fpu_except_UNDERFLOW|(conf.isAlsoInexact ? fpu_except_INEXACT : 0),
+      fpu_except_INEXACT
+   };
 
    // prepare
-   oldenabled = getenabled_fpuexcept() ;
-   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
+   s_isEnableSupported = conf.isEnableSupported;
+   oldenabled = getenabled_fpuexcept();
+   TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
 
    // TEST thread inherits fpu settings and does not change settings in main thread
    TEST(EAGAIN == trywait_signalrt(4, 0)) ;
    for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
-      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-      TEST(0 == enable_fpuexcept(exceptflags[i])) ;
-      TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL & ~exceptflags[i])) ;
-      TEST(0 == newgeneric_thread(&thread1, &thread_testenabled, &exceptflags[i])) ;
-      TEST(0 == send_signalrt(4, 0)) ;
-      TEST(0 == join_thread(thread1)) ;
-      TEST(0 == returncode_thread(thread1)) ;
-      TEST(0 == delete_thread(&thread1)) ;
-      TEST(exceptflags[i] == getenabled_fpuexcept()) ;
-      TEST(0 == disable_fpuexcept(exceptflags[i])) ;
+      const fpu_except_e E = (fpu_except_MASK_ALL & ~exceptflags[i]);
+      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+      TEST(!conf.isEnableSupported || 0 == enable_fpuexcept(E));
+      TEST(0 == signal_fpuexcept(exceptflags[i]));
+      TESTP(exceptflags[i] == getsignaled_fpuexcept(fpu_except_MASK_ALL), "i:%d F:0x%x get():0x%x", i, exceptflags[i], getsignaled_fpuexcept(fpu_except_MASK_ALL));
+      TEST(0 == newgeneric_thread(&thread1, &thread_testenabled, &exceptflags[i]));
+      TEST(0 == send_signalrt(4, 0));
+      TEST(0 == join_thread(thread1));
+      TESTP(0 == returncode_thread(thread1), "i:%d", i);
+      TEST(0 == delete_thread(&thread1));
+      TEST(!conf.isEnableSupported || E == getenabled_fpuexcept());
+      TEST(0 == disable_fpuexcept(E));
    }
-   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0));
 
    // TEST changes in main thread are also local
    TEST(EAGAIN == trywait_signalrt(4, 0)) ;
    for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
-      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-      TEST(0 == enable_fpuexcept(exceptflags[i])) ;
-      TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL & ~exceptflags[i])) ;
-      TEST(0 == newgeneric_thread(&thread1, &thread_testenabled, &exceptflags[i])) ;
-      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-      if (exceptflags[i])  { TEST(0 == disable_fpuexcept(exceptflags[i])) ; }
-      else                 { TEST(0 == enable_fpuexcept(fpu_except_INVALID)) ; }
-      TEST(0 == send_signalrt(4, 0)) ;
-      TEST(0 == join_thread(thread1)) ;
-      TEST(0 == returncode_thread(thread1)) ;
-      TEST(0 == delete_thread(&thread1)) ;
-      TEST(0 == disable_fpuexcept(fpu_except_INVALID)) ;
+      const fpu_except_e E = (fpu_except_MASK_ALL & ~exceptflags[i]);
+      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+      TEST(!conf.isEnableSupported || 0 == enable_fpuexcept(E));
+      TEST(0 == signal_fpuexcept(exceptflags[i]));
+      TEST(0 == newgeneric_thread(&thread1, &thread_testenabled, &exceptflags[i]));
+      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+      TEST(!conf.isEnableSupported || 0 == enable_fpuexcept(fpu_except_MASK_ALL));
+      TEST(0 == send_signalrt(4, 0));
+      TEST(0 == join_thread(thread1));
+      TEST(0 == returncode_thread(thread1));
+      TEST(0 == delete_thread(&thread1));
+      TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL));
    }
-   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0));
 
    // unprepare
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
-   TEST(0 == enable_fpuexcept(oldenabled)) ;
+   TEST(!conf.isEnableSupported || 0 == enable_fpuexcept(oldenabled));
 
    return 0 ;
 ONERR:
-   delete_thread(&thread1) ;
-   clear_fpuexcept(fpu_except_MASK_ALL) ;
-   disable_fpuexcept(fpu_except_MASK_ALL) ;
-   enable_fpuexcept(oldenabled) ;
-   return EINVAL ;
+   send_signalrt(4, 0);
+   delete_thread(&thread1);
+   clear_fpuexcept(fpu_except_MASK_ALL);
+   disable_fpuexcept(fpu_except_MASK_ALL);
+   enable_fpuexcept(oldenabled);
+   return EINVAL;
 }
 
 int unittest_math_fpu()
 {
-   if (test_fpuexcept_signalclear())      goto ONERR;
-   if (test_fpuexcept_enabledisable())    goto ONERR;
-   if (test_fpuexcept_thread())           goto ONERR;
+   test_config_t conf = test_config_INIT;
 
-   return 0 ;
+   // check if supported
+   if (0 == getenabled_fpuexcept()) {
+      clear_fpuexcept(fpu_except_MASK_ALL);
+      if (-1 != feenableexcept(fpu_except_MASK_ALL)) {
+         disable_fpuexcept(fpu_except_MASK_ALL);
+      } else {
+         if (! isrepeat_unittest()) {
+            logwarning_unittest("fpu hardware exceptions not supported");
+         }
+         conf.isEnableSupported = false;
+      }
+
+      clear_fpuexcept(fpu_except_MASK_ALL);
+      signal_fpuexcept(fpu_except_OVERFLOW);
+      if ((fpu_except_OVERFLOW|fpu_except_INEXACT) == getsignaled_fpuexcept(fpu_except_MASK_ALL)) {
+         conf.isAlsoInexact = true;
+      }
+      clear_fpuexcept(fpu_except_MASK_ALL);
+   }
+
+   if (test_fpuexcept_signalclear(conf))     goto ONERR;
+   if (test_fpuexcept_enabledisable(conf))   goto ONERR;
+   if (test_fpuexcept_thread(conf))          goto ONERR;
+
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

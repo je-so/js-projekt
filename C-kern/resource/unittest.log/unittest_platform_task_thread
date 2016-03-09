@@ -1,44 +1,44 @@
-[1: 1450416673.106707s]
-exit_thread() C-kern/platform/Linux/task/thread.c:398
+[1: 1457438577.351150s]
+exit_thread() C-kern/platform/Linux/task/thread.c:400
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error
-[1: 1450416673.111212s]
-new_thread() C-kern/platform/Linux/task/thread.c:225
+[1: 1457438577.355735s]
+new_thread() C-kern/platform/Linux/task/thread.c:227
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450416673.111257s]
-new_thread() C-kern/platform/Linux/task/thread.c:184
+[1: 1457438577.355759s]
+new_thread() C-kern/platform/Linux/task/thread.c:186
 System call 'pthread_attr_init' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1450416673.111311s]
-new_thread() C-kern/platform/Linux/task/thread.c:192
+[1: 1457438577.355779s]
+new_thread() C-kern/platform/Linux/task/thread.c:194
 System call 'pthread_attr_setstack' failed with error 3
 stack.addr=0xXXXXXXXX
 stack.size=262144
 Exit function with
 Error 3 - No such process
-[1: 1450416673.111357s]
-new_thread() C-kern/platform/Linux/task/thread.c:204
+[1: 1457438577.355801s]
+new_thread() C-kern/platform/Linux/task/thread.c:206
 System call 'pthread_create' failed with error 4
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450416673.113069s]
-delete_thread() C-kern/platform/Linux/task/thread.c:152
+[1: 1457438577.357142s]
+delete_thread() C-kern/platform/Linux/task/thread.c:154
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450416673.136865s]
-join_thread() C-kern/platform/Linux/task/thread.c:247
+[1: 1457438577.390733s]
+join_thread() C-kern/platform/Linux/task/thread.c:249
 Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1450416673.137863s]
-join_thread() C-kern/platform/Linux/task/thread.c:247
+[1: 1457438577.391642s]
+join_thread() C-kern/platform/Linux/task/thread.c:249
 Exit function with
 Error 3 - No such process
-[1: 1450416674.071137s]
-exit_thread() C-kern/platform/Linux/task/thread.c:398
+[1: 1457438578.234955s]
+exit_thread() C-kern/platform/Linux/task/thread.c:400
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error

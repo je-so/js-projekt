@@ -289,7 +289,7 @@ ONERR:
  * Subtracts two integers.
  * The sign of lbig is used to determine the sign of the result.
  * If the magnitude of lbig is bigger than rbig (<cmpmagnitude_bigint>)
- * the result has the same sign as lbig else it is reverted. */
+ * the result has the same sign as lbig else it is reversed. */
 static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
@@ -1256,46 +1256,60 @@ int cmpmagnitude_bigint(const bigint_t * lbig, const bigint_t * rbig)
    return 0 ;
 }
 
-
 double todouble_bigint(const bigint_t * big)
 {
-   const uint16_t digits = nrdigits_bigint(big) ;
-   long double value ;
-   uint64_t    ivalue ;
-   uint32_t    first ;
-   unsigned    bits ;
-   int32_t     expadd ;
+   const uint16_t digits = nrdigits_bigint(big);
+   long double value;
+   uint32_t first;
+   int32_t  expadd;
+   int bits;
 
    switch (digits) {
-   case 0:
-      return 0 ;
-   case 1:
-      value  = (long double) big->digits[0] ;
-      expadd = 32*big->exponent ;
-      break ;
-   case 2:
-      ivalue = ((uint64_t)big->digits[1] << 32) + big->digits[0] ;
-      value  = (long double) ivalue ;
-      expadd = 32*big->exponent ;
-      break ;
-   default:
-      expadd  = 32 * (big->exponent + (int32_t)digits - 2) ;
-      first   = big->digits[digits-1] ;
-      bits    = 31u - log2_int(first) ;
-      expadd -= (int) bits ;
-      ivalue  = ((uint64_t)first << 32) + big->digits[digits-2] ;
-      if (bits) {
-         ivalue <<= bits ;
-         ivalue  |= big->digits[digits-3] >> (32 - bits) ;
-      }
-      value  = (long double) ivalue ;
-      break ;
+   case 0:     return 0;
+   case 1:     // no rounding necessary (53 bits > 32 bits)
+               if (big->sign_and_used_digits < 0) {
+                  value = - (double) big->digits[0];
+               } else {
+                  value = (double) big->digits[0];
+               }
+               expadd = 32*big->exponent;
+               break;
+   case 2:     if (big->sign_and_used_digits < 0) {
+                  value  = - (double) ((uint64_t)big->digits[1] << 32);
+                  value -= (double) big->digits[0]; // ! rounding !
+               } else {
+                  value  = (double) ((uint64_t)big->digits[1] << 32);
+                  value += (double) big->digits[0]; // ! rounding !
+               }
+               expadd = 32*big->exponent;
+               break;
+   // to make the default case exact one should scan through digits[digits-4]...digits[0] if one is != 0
+   // and set the low order bit to provide a correct rounding
+   // another possibility is to introduce the normalized invariant: digits[0] != 0 !!
+   default:    expadd  = 32 * (big->exponent + (int32_t)digits - 2);
+               first   = big->digits[digits-1];
+               bits    = 31 - log2_int(first);
+               expadd -= (int) bits;
+               if (big->sign_and_used_digits < 0) {
+                  value  = - (double) ((uint64_t)first << 32);
+                  value -= (double) big->digits[digits-2]; // ! rounding !
+                  if (bits) {
+                     value = ldexpl(value, bits) - (big->digits[digits-3] >> (32 - bits));
+                  }
+               } else {
+                  value  = (double) ((uint64_t)first << 32);
+                  value += (double) big->digits[digits-2]; // ! rounding !
+                  if (bits) {
+                     value = ldexpl(value, bits) + (big->digits[digits-3] >> (32 - bits));
+                  }
+               }
+               break;
    }
 
-   if (big->sign_and_used_digits < 0) value = -value ;
-   if (expadd) value = ldexpl(value, expadd) ;
+   if (expadd) value = ldexpl(value, expadd);
 
-   return (double) value ;
+   // this is the place of rounding in case of processor (x86) supports (long double)
+   return (double) value;
 }
 
 // group: assign
@@ -1333,7 +1347,7 @@ ONERR:
    return err ;
 }
 
-void setPi64_bigint(bigint_t * big, int32_t value)
+void setPi32_bigint(bigint_t * big, int32_t value)
 {
    if (0 == value) {
       big->sign_and_used_digits = 0 ;
@@ -1402,11 +1416,11 @@ int setPdouble_bigint(bigint_t * big, double value)
             big->exponent             = 0 ;
             big->digits[0] = (uint32_t) magnitudeval ;
          } else {
-            uint64_t ivalue = (uint64_t) magnitudeval ;
-            big->sign_and_used_digits = (int16_t) (2 * negativemult) ;
-            big->exponent             = 0 ;
-            big->digits[0] = (uint32_t) ivalue ;
-            big->digits[1] = (uint32_t) (ivalue >> 32) ;
+            uint64_t ivalue = (uint64_t) magnitudeval;
+            big->sign_and_used_digits = (int16_t) (2 * negativemult);
+            big->exponent             = 0;
+            big->digits[0] = (uint32_t) ivalue;
+            big->digits[1] = (uint32_t) (ivalue >> 32);
          }
       } else {
 
@@ -1437,10 +1451,10 @@ int setPdouble_bigint(bigint_t * big, double value)
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent)
@@ -2130,23 +2144,23 @@ static int test_compare(void)
    big2->allocated_digits = 10 ;
 
    // TEST cmp_bigint: sign 0, 0
-   setPi64_bigint(big1, 0) ;
-   setPi64_bigint(big2, 0) ;
+   setPi32_bigint(big1, 0) ;
+   setPi32_bigint(big2, 0) ;
    TEST(0 == cmp_bigint(big1, big2)) ;
    TEST(0 == cmp_bigint(big2, big1)) ;
 
    // TEST cmp_bigint: sign 0, +1
-   setPi64_bigint(big2, +1) ;
+   setPi32_bigint(big2, +1) ;
    TEST(-1 == cmp_bigint(big1, big2)) ;
    TEST(+1 == cmp_bigint(big2, big1)) ;
 
    // TEST cmp_bigint: sign 0, -1
-   setPi64_bigint(big2, -1) ;
+   setPi32_bigint(big2, -1) ;
    TEST(+1 == cmp_bigint(big1, big2)) ;
    TEST(-1 == cmp_bigint(big2, big1)) ;
 
    // TEST cmp_bigint: sign +1, -1
-   setPi64_bigint(big1, +1) ;
+   setPi32_bigint(big1, +1) ;
    TEST(+1 == cmp_bigint(big1, big2)) ;
    TEST(-1 == cmp_bigint(big2, big1)) ;
 
@@ -2308,7 +2322,7 @@ static int test_initfree(void)
    // TEST initcopy: simple integers
    TEST(0 == new_bigint(&big, 32)) ;
    for (unsigned i = 0; i < lengthof(copyvalues); ++i) {
-      setPi64_bigint(big, copyvalues[i]) ;
+      setPi32_bigint(big, copyvalues[i]) ;
       TEST(0 == newcopy_bigint(&big2, big)) ;
       TEST((double)copyvalues[i] == todouble_bigint(big2)) ;
       TEST(0 == delete_bigint(&big2)) ;
@@ -2368,7 +2382,7 @@ static int test_unaryops(void)
    clearfirstdigit_bigint(big) ;
    TEST(0 == nrdigits_bigint(big)) ;
    TEST(0 == exponent_bigint(big)) ;
-   setPi64_bigint(big, -1) ;
+   setPi32_bigint(big, -1) ;
    TEST(0 == shiftleft_bigint(&big, bitsperdigit_bigint())) ;
    TEST(1 == nrdigits_bigint(big)) ;
    TEST(1 == exponent_bigint(big)) ;
@@ -2453,11 +2467,12 @@ ONERR:
 
 static int test_assign(void)
 {
-   bigint_t       * big     = 0 ;
-   bigint_t       * big2    = 0 ;
-   fpu_except_e   oldexcept = getenabled_fpuexcept() ;
-   uint16_t       copylength[4] = { 2, 10, 20, 60 } ;
-   double         value ;
+   bigint_t     * big  = 0;
+   bigint_t     * big2 = 0;
+   fpu_except_e   oldexcept = getenabled_fpuexcept();
+   uint16_t       copylength[4] = { 2, 10, 20, 60 };
+   double         value;
+   int            oldroundmode = fegetround();
 
    // prepare: turn exceptions off
    TEST(0 == new_bigint(&big, 3200)) ;
@@ -2513,13 +2528,13 @@ static int test_assign(void)
       }
    }
 
-   // TEST setPi64_bigint, setPu32_bigint
+   // TEST setPi32_bigint, setPu32_bigint
    uint32_t testvaluesint[7] = { 0, 1, 0xffffffff, 0x7fffffff, 0x80000000, 0x0f0f0f0f, 0xf0f0f0f0 } ;
    for (unsigned i = 0; i < lengthof(testvaluesint); ++i) {
       big->sign_and_used_digits = 0 ;
       big->exponent  = 1 ;
       big->digits[0] = ~ testvaluesint[i] ;
-      setPi64_bigint(big, (int32_t)testvaluesint[i]) ;
+      setPi32_bigint(big, (int32_t)testvaluesint[i]) ;
       TEST(sign_int((int32_t)testvaluesint[i]) == sign_bigint(big)) ;
       TEST((testvaluesint[i] ? 1 : 0) == nrdigits_bigint(big)) ;
       TEST(0 == big->exponent) ;
@@ -2679,58 +2694,103 @@ static int test_assign(void)
    TEST(fpu_except_OVERFLOW == getsignaled_fpuexcept(fpu_except_OVERFLOW)) ;
 
    // TEST todouble_bigint: (54th bit == 1) => rounding up or down (uneven) according to round mode
-   int oldroundmode = fegetround() ;
-   double val   = (double)0xfffffffffffff800ul ;
-   double upval = val + 0x800 ;
-   TEST(0 == setPdouble_bigint(big, val)) ;
-   TEST(big->digits[0] == 0xfffff800) ;
-   big->digits[0] = 0xfffff800 + 0x400 ;
-   fesetround(FE_TONEAREST) ;
-   TEST(upval == todouble_bigint(big)) ;
-   fesetround(FE_UPWARD) ;
-   TEST(upval == todouble_bigint(big)) ;
-   fesetround(FE_DOWNWARD) ;
-   TEST((val) == todouble_bigint(big)) ;
-   fesetround(FE_TOWARDZERO) ;
-   TEST((val) == todouble_bigint(big)) ;
-   negate_bigint(big) ;
-   TEST(-val == todouble_bigint(big)) ;
-   fesetround(FE_DOWNWARD) ;
-   TEST(-upval == todouble_bigint(big)) ;
-   fesetround(FE_UPWARD) ;
-   TEST(-val == todouble_bigint(big)) ;
-   fesetround(FE_TONEAREST) ;
-   TEST(-upval == todouble_bigint(big)) ;
-   fesetround(oldroundmode) ;
+   double val   = (double)0xfffffffffffff800ul;
+   double upval = val + 0x800;
+   TEST(0 == setPdouble_bigint(big, val));
+   TEST(0xfffff800 == big->digits[0]);
+   big->digits[0] = 0xfffff800 + 0x400;
+   fesetround(FE_TONEAREST);
+   TESTP( upval == todouble_bigint(big), "%a == %a", upval, todouble_bigint(big));
+   fesetround(FE_UPWARD);
+   TESTP( upval == todouble_bigint(big), "%a == %a", upval, todouble_bigint(big));
+   fesetround(FE_DOWNWARD);
+   TEST(  val == todouble_bigint(big));
+   fesetround(FE_TOWARDZERO);
+   TEST(  val == todouble_bigint(big));
+   negate_bigint(big);
+   TEST( -val == todouble_bigint(big));
+   fesetround(FE_DOWNWARD);
+   TEST( -upval == todouble_bigint(big));
+   fesetround(FE_UPWARD);
+   TEST( -val == todouble_bigint(big));
+   fesetround(FE_TONEAREST);
+   TEST( -upval == todouble_bigint(big));
+   fesetround(oldroundmode);
 
    // TEST todouble_bigint: (54th bit == 1) => rounding up or down (even) according to round mode
-   oldroundmode = fegetround() ;
-   val   = (double)0xfffffffffffff000ul ;
+   val   = (double)0xfffffffffffff000ul;
    upval = val + 0x800 ;
-   TEST(0 == setPdouble_bigint(big, val)) ;
-   TEST(big->digits[0] == 0xfffff000) ;
-   big->digits[0] = 0xfffff000 + 0x400 ;
-   fesetround(FE_TONEAREST) ;
-   TEST(val == todouble_bigint(big)) ;
-   fesetround(FE_UPWARD) ;
-   TEST(upval == todouble_bigint(big)) ;
-   fesetround(FE_DOWNWARD) ;
-   TEST((val) == todouble_bigint(big)) ;
-   fesetround(FE_TOWARDZERO) ;
-   TEST((val) == todouble_bigint(big)) ;
-   negate_bigint(big) ;
-   TEST(-val == todouble_bigint(big)) ;
-   fesetround(FE_DOWNWARD) ;
-   TEST(-upval == todouble_bigint(big)) ;
-   fesetround(FE_UPWARD) ;
-   TEST(-val == todouble_bigint(big)) ;
-   fesetround(FE_TONEAREST) ;
-   TEST(-val == todouble_bigint(big)) ;
-   fesetround(oldroundmode) ;
+   TEST(0 == setPdouble_bigint(big, val));
+   TEST(big->digits[0] == 0xfffff000);
+   big->digits[0] = 0xfffff000 + 0x400;
+   fesetround(FE_TONEAREST);
+   TEST( val == todouble_bigint(big));
+   fesetround(FE_UPWARD);
+   TEST( upval == todouble_bigint(big));
+   fesetround(FE_DOWNWARD);
+   TEST( val == todouble_bigint(big));
+   fesetround(FE_TOWARDZERO);
+   TEST( val == todouble_bigint(big));
+   negate_bigint(big);
+   TEST( -val == todouble_bigint(big));
+   fesetround(FE_DOWNWARD);
+   TEST( -upval == todouble_bigint(big));
+   fesetround(FE_UPWARD);
+   TEST( -val == todouble_bigint(big));
+   fesetround(FE_TONEAREST);
+   TEST( -val == todouble_bigint(big));
+   fesetround(oldroundmode);
+
+   // TEST todouble_bigint: rounding 54 bits with 3 digits (default case)
+   for (int s = -1; s <= +1; s += 2) {
+      uint64_t values[] = { (uint64_t)0xfffffffffffff800, (uint64_t)0xfffffffffffff000 };
+      for (unsigned tc = 0; tc < lengthof(values); ++tc) {
+         val   = (double) values[tc];
+         upval = val + (double) 0x800;
+         setPu64_bigint(big, values[tc] + 0x400/*set 54th bit*/);
+         val   *= s;
+         upval *= s;
+         if (s < 0) negate_bigint(big);
+         TEST(2 == nrdigits_bigint(big));
+         for (unsigned shift = 0; shift <= 32; ++shift) {
+            if (shift) {
+               val   *= 2;
+               upval *= 2;
+               TEST(0 == shiftleft_bigint(&big, 1));
+               TEST(3 == nrdigits_bigint(big));
+            }
+            int val_roundmode[2][2][3] = {
+               { /*negative sign/lobit 1*/ { FE_TOWARDZERO, FE_UPWARD, FE_TOWARDZERO/*dummy*/ },
+                 /*negative sign/lobit 0*/ { FE_TOWARDZERO, FE_UPWARD, FE_TONEAREST  } },
+               { /*positive sign/lobit 1*/ { FE_TOWARDZERO, FE_DOWNWARD, FE_TOWARDZERO/*dummy*/ },
+                 /*positive sign/lobit 0*/ { FE_TOWARDZERO, FE_DOWNWARD, FE_TONEAREST } },
+            };
+            for (unsigned i = 0; i < lengthof(val_roundmode[0][0]); ++i) {
+               // test rounding towards zero (down)
+               fesetround(val_roundmode[(s+1)/2][tc][i]);
+               TESTP( val == todouble_bigint(big), "s:%d tc:%d i:%d shift:%d", s, tc, i, shift);
+            }
+
+            int upval_roundmode[2][2][2] = {
+               { /*negative sign/lobit 1*/ { FE_DOWNWARD, FE_TONEAREST },
+                 /*negative sign/lobit 0*/ { FE_DOWNWARD, FE_DOWNWARD/*dummy*/ } },
+               { /*positive sign/lobit 1*/ { FE_UPWARD,   FE_TONEAREST },
+                 /*positive sign/lobit 0*/ { FE_UPWARD,   FE_UPWARD/*dummy*/ } },
+            };
+            for (unsigned i = 0; i < lengthof(upval_roundmode[0][0]); ++i) {
+               // test rounding towards +/-oo (up)
+               fesetround(upval_roundmode[(s+1)/2][tc][i]);
+               TESTP( upval == todouble_bigint(big), "s:%d tc:%d i:%d", s, tc, i);
+            }
+         }
+      }
+   }
+   // reset
+   fesetround(oldroundmode);
 
    // TEST EINVAL
-   TEST(EINVAL == setPdouble_bigint(big, INFINITY)) ;
-   TEST(EINVAL == setPdouble_bigint(big, NAN)) ;
+   TEST(EINVAL == setPdouble_bigint(big, INFINITY));
+   TEST(EINVAL == setPdouble_bigint(big, NAN));
 
    // TEST setbigfirst_bigint
    TEST(0 == delete_bigint(&big)) ;
@@ -2828,9 +2888,10 @@ static int test_assign(void)
 
    return 0 ;
 ONERR:
-   delete_bigint(&big) ;
-   delete_bigint(&big2) ;
-   return EINVAL ;
+   fesetround(oldroundmode);
+   delete_bigint(&big);
+   delete_bigint(&big2);
+   return EINVAL;
 }
 
 static int test_addsub(void)
@@ -3408,13 +3469,13 @@ static int test_div(void)
    }
 
    // TEST divisor == 0
-   setPi64_bigint(big[0], 0) ;
-   setPi64_bigint(big[1], 0) ;
+   setPi32_bigint(big[0], 0) ;
+   setPi32_bigint(big[1], 0) ;
    TEST(EINVAL == divui32_bigint(&big[2], big[0], 0)) ;
    TEST(EINVAL == divmodui32_bigint(&big[2], &big[3], big[0], 0)) ;
    TEST(EINVAL == div_bigint(&big[2], big[0], big[1])) ;
    TEST(EINVAL == divmod_bigint(&big[2], &big[3], big[0], big[1])) ;
-   setPi64_bigint(big[0], 10) ;
+   setPi32_bigint(big[0], 10) ;
    TEST(EINVAL == divui32_bigint(&big[2], big[0], 0)) ;
    TEST(EINVAL == divmodui32_bigint(&big[2], &big[3], big[0], 0)) ;
    TEST(EINVAL == div_bigint(&big[2], big[0], big[1])) ;

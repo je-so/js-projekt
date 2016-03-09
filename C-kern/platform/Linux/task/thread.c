@@ -29,6 +29,8 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/writer/log/logbuffer.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/time/timevalue.h"
 #include "C-kern/api/time/sysclock.h"
@@ -40,8 +42,8 @@
  * The function <main_thread> then calls the main task of the thread which
  * is stored in <thread_t.main>. */
 typedef struct thread_startargument_t {
-   thread_t *           self;
-   stack_t              signalstack;
+   thread_t *  self;
+   stack_t     signalstack;
 } thread_startargument_t;
 
 
@@ -72,7 +74,7 @@ static void* main_thread(thread_startargument_t * startarg)
 
    thread->sys_thread = pthread_self();
 
-   err = init_threadcontext(tcontext_maincontext(), type_maincontext());
+   err = init_threadcontext(&thread->threadcontext, maincontext_threadcontext(&thread->threadcontext)->type);
    if (err) {
       TRACECALL_ERRLOG("init_threadcontext", err);
       goto ONERR_NOABORT;
@@ -106,7 +108,7 @@ static void* main_thread(thread_startargument_t * startarg)
       thread->returncode = thread->main_task(thread->main_arg);
    }
 
-   err = free_threadcontext(sys_context_threadlocalstore());
+   err = free_threadcontext(&thread->threadcontext);
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err);
       goto ONERR;
@@ -174,8 +176,8 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
 
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr;
 
-   startarg->self        = newthread;
-   startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
+   startarg->self         = newthread;
+   startarg->signalstack  = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
       err = pthread_attr_init(&thread_attr);
@@ -399,7 +401,7 @@ int exit_thread(int retcode)
 
    setreturncode_thread(thread, retcode);
 
-   err = free_threadcontext(sys_context_threadlocalstore());
+   err = free_threadcontext(&thread->threadcontext);
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err);
       abort_maincontext(err);
@@ -453,16 +455,30 @@ static int thread_returncode(intptr_t retcode)
 static int test_initfree(void)
 {
    thread_t * thread = 0;
+   thread_t  sthread = thread_FREE;
+   threadcontext_t tcfree = threadcontext_FREE;
+   threadcontext_t tcinit = threadcontext_INIT_STATIC((thread_localstore_t*)&sthread);
 
    // TEST thread_FREE
-   thread_t sthread = thread_FREE;
-   TEST(sthread.nextwait   == 0);
-   TEST(sthread.lockflag   == 0);
-   TEST(sthread.ismain     == 0);
-   TEST(sthread.main_task  == 0);
-   TEST(sthread.main_arg   == 0);
-   TEST(sthread.returncode == 0);
-   TEST(sthread.sys_thread == sys_thread_FREE);
+   TEST( 0 == memcmp(&tcfree, &sthread.threadcontext, sizeof(tcfree)));
+   TEST( 0 == sthread.nextwait);
+   TEST( 0 == sthread.main_task);
+   TEST( 0 == sthread.main_arg);
+   TEST( 0 == sthread.returncode);
+   TEST( 0 == sthread.lockflag);
+   TEST( 0 == sthread.ismain);
+   TEST( sys_thread_FREE == sthread.sys_thread);
+
+   // TEST thread_INIT_STATIC
+   sthread = (thread_t) thread_INIT_STATIC((thread_localstore_t*)&sthread);
+   TEST( 0 == memcmp(&tcinit, &sthread.threadcontext, sizeof(tcinit)));
+   TEST( 0 == sthread.nextwait);
+   TEST( 0 == sthread.main_task);
+   TEST( 0 == sthread.main_arg);
+   TEST( 0 == sthread.returncode);
+   TEST( 0 == sthread.lockflag);
+   TEST( 0 == sthread.ismain);
+   TEST( sys_thread_FREE == sthread.sys_thread);
 
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3));
@@ -603,7 +619,7 @@ static int test_query(void)
 
    // TEST self_thread
    TEST(self_thread() == thread_threadlocalstore(self_threadlocalstore()));
-   TEST(self_thread() == sys_thread_threadlocalstore());
+   TEST(&self_thread()->threadcontext == sys_tcontext_syscontext());
 
    // TEST returncode_thread
    for (int R = -10; R <= 10; ++R) {
@@ -962,12 +978,12 @@ static int thread_stackoverflow(void * argument)
 
 static int test_stackoverflow(void)
 {
-   sigset_t          oldprocmask;
-   struct sigaction  newact, oldact;
-   thread_t *        thread     = 0;
-   thread_t *        mainthread = self_thread();
-   volatile bool     isProcmask = false;
-   volatile bool     isAction   = false;
+   sigset_t           oldprocmask;
+   struct sigaction   newact, oldact;
+   thread_t *         thread     = 0;
+   thread_t* volatile mainthread = self_thread();
+   volatile bool      isProcmask = false;
+   volatile bool      isAction   = false;
 
    // prepare
    sigemptyset(&newact.sa_mask);

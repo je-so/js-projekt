@@ -1,109 +1,109 @@
-[1: 1443695053.498663s]
+[1: 1457368548.432405s]
 clear_signalhandler() C-kern/platform/Linux/sync/signal.c:104
 Function input violates condition (signr > 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.498675s]
+[1: 1457368548.432417s]
 clear_signalhandler() C-kern/platform/Linux/sync/signal.c:105
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.498682s]
+[1: 1457368548.432421s]
 set_signalhandler() C-kern/platform/Linux/sync/signal.c:138
 Function input violates condition (signr > 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.498688s]
+[1: 1457368548.432424s]
 set_signalhandler() C-kern/platform/Linux/sync/signal.c:139
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.498693s]
+[1: 1457368548.432426s]
 setignore_signalhandler() C-kern/platform/Linux/sync/signal.c:177
 Function input violates condition (signr > 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.498699s]
+[1: 1457368548.432429s]
 setignore_signalhandler() C-kern/platform/Linux/sync/signal.c:178
 Function input violates condition (signr <= lengthof(s_signalhandler))
 signr=65
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.504485s]
-trywait_signalrt() C-kern/platform/Linux/sync/signal.c:645
+[1: 1457368548.437828s]
+trywait_signalrt() C-kern/platform/Linux/sync/signal.c:652
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.504719s]
-wait_signalrt() C-kern/platform/Linux/sync/signal.c:596
+[1: 1457368548.438080s]
+wait_signalrt() C-kern/platform/Linux/sync/signal.c:603
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.604218s]
-send_signalrt() C-kern/platform/Linux/sync/signal.c:558
+[1: 1457368548.555419s]
+send_signalrt() C-kern/platform/Linux/sync/signal.c:565
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.627922s]
-send_signalrt() C-kern/platform/Linux/sync/signal.c:563
+[1: 1457368548.576359s]
+send_signalrt() C-kern/platform/Linux/sync/signal.c:570
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.627934s]
-send_signalrt() C-kern/platform/Linux/sync/signal.c:563
+[1: 1457368548.576372s]
+send_signalrt() C-kern/platform/Linux/sync/signal.c:570
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.627939s]
-send2_signalrt() C-kern/platform/Linux/sync/signal.c:581
+[1: 1457368548.576377s]
+send2_signalrt() C-kern/platform/Linux/sync/signal.c:588
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.724197s]
-send2_signalrt() C-kern/platform/Linux/sync/signal.c:577
+[1: 1457368548.690733s]
+send2_signalrt() C-kern/platform/Linux/sync/signal.c:584
 Function input violates condition (nr <= maxnr_signalrt())
 nr=31
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.748812s]
-send2_signalrt() C-kern/platform/Linux/sync/signal.c:581
+[1: 1457368548.714404s]
+send2_signalrt() C-kern/platform/Linux/sync/signal.c:588
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.748823s]
-send2_signalrt() C-kern/platform/Linux/sync/signal.c:581
+[1: 1457368548.714415s]
+send2_signalrt() C-kern/platform/Linux/sync/signal.c:588
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.748829s]
-send_signalrt() C-kern/platform/Linux/sync/signal.c:563
+[1: 1457368548.714420s]
+send_signalrt() C-kern/platform/Linux/sync/signal.c:570
 System call 'sigqueue' failed with error 11
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1443695053.765832s]
-initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:492
+[1: 1457368548.731407s]
+initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:499
 Function input violates condition (minrt <= maxrt)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.765841s]
-initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:493
+[1: 1457368548.731416s]
+initrealtime_signalwait() C-kern/platform/Linux/sync/signal.c:500
 Function input violates condition (maxrt <= maxnr_signalrt())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695053.765846s]
+[1: 1457368548.731429s]
 free_iochannel() C-kern/platform/Linux/io/iochannel.c:76
 System call 'close' failed with error 9
 close_ioc=3
 One or more resources could not be freed
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1443695053.765849s]
-free_signalwait() C-kern/platform/Linux/sync/signal.c:537
+[1: 1457368548.731433s]
+free_signalwait() C-kern/platform/Linux/sync/signal.c:544
 One or more resources could not be freed
 Exit function with
 Error 9 - Bad file descriptor

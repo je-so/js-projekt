@@ -1057,7 +1057,7 @@ static int test_query_path(void)
       GETBUFFER_ERRLOG(&logbuffer, &logsize2);
       if (!err) {
          TEST(logsize == logsize2);
-         TESTP(40 < i, "i=%d", i);
+         TESTP(20 < i, "i=%d", i);
          // reset
          free_testerrortimer(&s_directory_errtimer);
          TEST(0 == removedirectory_directory(tempdir, "1"));
@@ -1068,7 +1068,7 @@ static int test_query_path(void)
       TEST(i == err);
       TEST(0 == size_wbuffer(&pathwb));
       // reset
-      TRUNCATEBUFFER_ERRLOG(logsize); // too much log
+      TRUNCATEBUFFER_ERRLOG(logsize);
    }
 
    // reset
@@ -1080,6 +1080,7 @@ static int test_query_path(void)
 
    return 0;
 ONERR:
+   free_testerrortimer(&s_directory_errtimer);
    free_cstring(&parent);
    free_cstring(&cstrbuf);
    delete_directory(&tempdir);

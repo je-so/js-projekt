@@ -1201,20 +1201,21 @@ ONERR:
    return EINVAL ;
 }
 
-static ucontext_t    s_usercontext ;
+static ucontext_t s_usercontext;
 
 static void sigsegfault(int _signr)
 {
-   (void) _signr ;
-   setcontext(&s_usercontext) ;
+   (void) _signr;
+   setcontext(&s_usercontext);
 }
 
 static int test_protection(void)
 {
-   vmpage_t          vmpage   = vmpage_FREE ;
-   bool              isOldact = false ;
-   struct sigaction  oldact ;
-   volatile int      is_exception ;
+   vmpage_t          vmpage   = vmpage_FREE;
+   bool              isOldact = false;
+   struct sigaction  oldact;
+   volatile int      is_exception;
+   volatile int      err_count = 0;
 
    // install exception handler for SEGMENTATION FAULT
    {
@@ -1254,34 +1255,38 @@ static int test_protection(void)
    }
 
    // TEST write of readonly page is not possible
-   TEST(0 == init_vmpage(&vmpage, pagesize_vm())) ;
-   TEST(0 == protect_vmpage(&vmpage, accessmode_READ)) ;
-   is_exception = 0 ;
-   TEST(0 == getcontext(&s_usercontext)) ;
+   is_exception = 0;
+   TEST(0 == init_vmpage(&vmpage, pagesize_vm()));
+   TEST(0 == protect_vmpage(&vmpage, accessmode_READ));
+   TEST(0 == getcontext(&s_usercontext));
    if (!is_exception) {
-      is_exception = 1 ;
-      vmpage.addr[0] = 0xff ;
-      ++ is_exception ;
+      is_exception = 1;
+      ((volatile uint8_t*)vmpage.addr)[0] = 0xff;
+      ++ is_exception;
+      err_count += is_exception;
+      err_count += vmpage.addr[0];
    }
-   TEST(1 == is_exception) ;
-   TEST(0 == free_vmpage(&vmpage)) ;
+   TEST(1 == is_exception);
+   TEST(0 == err_count);
+   TEST(0 == free_vmpage(&vmpage));
 
    // TEST read of not accessible page is not possible
-   TEST(0 == init2_vmpage(&vmpage, pagesize_vm(), accessmode_NONE)) ;
-   is_exception = 0 ;
-   TEST(0 == getcontext(&s_usercontext)) ;
+   is_exception = 0;
+   TEST(0 == init2_vmpage(&vmpage, pagesize_vm(), accessmode_NONE));
+   TEST(0 == getcontext(&s_usercontext));
    if (!is_exception) {
-      is_exception = 1 ;
-      is_exception = vmpage.addr[0] ;
-      is_exception = 2 ;
+      is_exception = 1;
+      err_count += vmpage.addr[0];
+      err_count += is_exception;
    }
-   TEST(1 == is_exception) ;
-   TEST(0 == free_vmpage(&vmpage)) ;
+   TEST(1 == is_exception);
+   TEST(0 == err_count);
+   TEST(0 == free_vmpage(&vmpage));
 
    // uninstall exception handler
-   TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
+   TEST(0 == sigaction(SIGSEGV, &oldact, 0));
 
-   return 0 ;
+   return 0;
 ONERR:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    (void) free_vmpage(&vmpage) ;
@@ -1303,7 +1308,7 @@ int unittest_platform_vm()
 
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;
-   TEST(size_vmmappedregions(&mappedregions2) == size_vmmappedregions(&mappedregions)) ;
+   TEST(size_vmmappedregions(&mappedregions2) == size_vmmappedregions(&mappedregions));
    for (size_t i = 0; i < size_vmmappedregions(&mappedregions2); ++i) {
       const vm_region_t  * next = next_vmmappedregions(&mappedregions) ;
       const vm_region_t * next2 = next_vmmappedregions(&mappedregions2) ;

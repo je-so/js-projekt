@@ -50,7 +50,7 @@ static test_errortimer_t   s_syscontext_errtimer = test_errortimer_FREE;
 // group: helper
 
 /* function: callmain_platform
- * Calls the main threads main function.
+ * Calls the main thread's main function.
  * The whole process is aborted if the main thread aborts. */
 static void callmain_platform(void)
 {

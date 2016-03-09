@@ -193,9 +193,9 @@ void clear_bigint(bigint_t * big) ;
  * fails ENOMEM is returned. */
 int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom) ;
 
-/* function: setPi64_bigint
+/* function: setPi32_bigint
  * Sets the value of big to the value of the provided parameter. */
-void setPi64_bigint(bigint_t * big, int32_t value) ;
+void setPi32_bigint(bigint_t * big, int32_t value);
 
 /* function: setPu32_bigint
  * Sets the value of big to the positive value of the provided parameter . */

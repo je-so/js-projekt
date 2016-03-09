@@ -26,9 +26,8 @@ struct logwriter_t;
 struct processcontext_t;
 struct syncrunner_t;
 
-/* typedef: struct threadcontext_t
- * Export <threadcontext_t>. */
-typedef struct threadcontext_t threadcontext_t;
+// === exported types
+struct threadcontext_t;
 
 /* typedef: threadcontext_mm_t
  * Definiert als <iobj_T>(mm). */
@@ -61,7 +60,7 @@ int unittest_task_threadcontext(void);
 /* struct: threadcontext_t
  * Stores services useable exclusively from one thread.
  * */
-struct threadcontext_t {
+typedef struct threadcontext_t {
    /* variable: maincontext
     * Points to shared <maincontext_t>. */
    struct maincontext_t *     maincontext;
@@ -95,7 +94,7 @@ struct threadcontext_t {
    /* variable: staticmemblock
     * Start address of static memory block. */
    void*    staticmemblock;
-};
+} threadcontext_t;
 
 // group: lifetime
 
@@ -112,7 +111,7 @@ struct threadcontext_t {
  * Parameter:
  * tls - Pointer to thread_localstore_t the threadcontext is located. */
 #define threadcontext_INIT_STATIC(tls) \
-         { &g_maincontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*)logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
+         { &g_maincontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*) logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.
@@ -139,6 +138,10 @@ bool isstatic_threadcontext(const threadcontext_t* tcontext);
  * Gibt Speicher zurück, der zusätzlich von <init_threadcontext> benötigt wird. */
 size_t extsize_threadcontext(void);
 
+/* function: maincontext_threadcontext
+ * Returns pointer to <maincontext_t>. */
+struct maincontext_t* maincontext_threadcontext(const threadcontext_t* tcontext);
+
 // group: change
 
 /* function: resetthreadid_threadcontext
@@ -149,5 +152,13 @@ void resetthreadid_threadcontext(void);
 /* function: setmm_threadcontext
  * Overwrites old mm_t of threadcontext_t with new_mm. */
 void setmm_threadcontext(threadcontext_t* tcontext, const threadcontext_mm_t* new_mm);
+
+
+// section: inline implementation
+
+// group: threadcontext_t
+
+#define maincontext_threadcontext(tcontext) \
+         ((tcontext)->maincontext)
 
 #endif

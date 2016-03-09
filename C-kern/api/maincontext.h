@@ -316,7 +316,7 @@ struct syncrunner_t* syncrunner_maincontext(void);
 
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */
-#define tcontext_maincontext()            (sys_context_threadlocalstore())
+#define tcontext_maincontext()            (sys_tcontext_syscontext())
 
 /* define: threadid_maincontext
  * Inline implementation of <maincontext_t.threadid_maincontext>. */

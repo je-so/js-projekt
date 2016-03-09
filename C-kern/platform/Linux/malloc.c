@@ -205,8 +205,13 @@ static int test_allocatedsize(void)
 {
    size_t   allocated;
    void *   memblocks[256] = { 0 };
-   int      fd[4096];
+   int  *   fd = 0;
    unsigned fdcount = 0;
+   const unsigned FDLENGTH = 256000;
+   int      err;
+
+   // prepare
+   TEST(0 != (fd = (int*) malloc(FDLENGTH * sizeof(int))));
 
    // TEST allocatedsize_malloc: allocated > 0
    allocated = 0;
@@ -236,17 +241,20 @@ static int test_allocatedsize(void)
    }
 
    // TEST allocatedsize_malloc: EMFILE
-   for (; fdcount < lengthof(fd); ++fdcount) {
+   for (; fdcount < FDLENGTH; ++fdcount) {
       fd[fdcount] = dup(STDOUT_FILENO);
       if (fd[fdcount] == -1) break;
    }
    allocated = 1;
-   TEST(EMFILE == allocatedsize_malloc(&allocated));
+   TESTP(EMFILE == (err = allocatedsize_malloc(&allocated)), "err:%d", err);
    TEST(1 == allocated);
    while (fdcount > 0) {
       -- fdcount;
       TEST(0 == close(fd[fdcount]));
    }
+
+   // reset
+   free(fd); fd = 0;
 
    return 0;
 ONERR:
@@ -259,6 +267,7 @@ ONERR:
          free(memblocks[i]);
       }
    }
+   free(fd);
    return EINVAL;
 }
 

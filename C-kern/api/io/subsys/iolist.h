@@ -21,16 +21,13 @@
 #define CKERN_IO_SUBSYS_IOLIST_HEADER
 
 // forward
+struct thread_t;
 struct iothread_t;
 struct itccounter_t;
 
-/* typedef: struct iolist_t
- * Export <iolist_t> into global namespace. */
-typedef struct iolist_t iolist_t;
-
-/* typedef: struct iotask_t
- * Export <iotask_t> into global namespace. */
-typedef struct iotask_t iotask_t;
+// === exported typees
+struct iolist_t;
+struct iotask_t;
 
 /* enums: ioop_e
  * Bezeichnet die auszuführende Operation. Siehe <iotask_t.op>.
@@ -98,12 +95,12 @@ int unittest_io_subsys_iolist(void);
  * bearbeitet wurde, darf readycount freigegeben werden.
  * Ein Counter darf auch zwischen mehreren <iotask_t> geteilt werden,
  * da er das Schreiben durch mehr als einen <iothread_t> unterstützt. */
-struct iotask_t {
+typedef struct iotask_t {
    // group: set by iothread; read by owner
 
    /* variable: iolist_next
     * Erlaubt die Verlinkung aller in die <iolist_t> eingefügten <iotask_t>. */
-   iotask_t* iolist_next;
+   struct iotask_t* iolist_next;
 
    union {
       /* variable: err
@@ -145,7 +142,7 @@ struct iotask_t {
     * Pro fertig bearbeitetem <iotask_t> wird der counter um eins inkrementiert.
     * Der Wert kann 0 sein. */
    struct itccounter_t* readycount;
-};
+} iotask_t;
 
 // group: lifetime
 
@@ -212,7 +209,7 @@ static inline void setsize_iotask(iotask_t* iotask, size_t size);
  * Entfernt Elemente aus der Liste mit <tryremovefirst_iolist> und bearbeitet diese dann.
  *
  * */
-struct iolist_t {
+typedef struct iolist_t {
    // group: private fields
    /* variable: lock
     * Schützt Zugriff auf <size> und <last>. */
@@ -226,7 +223,7 @@ struct iolist_t {
     * verwendet, so daß auf einen Lock verzichtet werden kann. last wird nur dann vom lesenden
     * <iothread_t> auf 0 gesetzt, dann nämlich, wenn <first> == 0. */
    iotask_t* last;
-};
+} iolist_t;
 
 // group: lifetime
 

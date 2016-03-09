@@ -50,6 +50,12 @@ void initsingleton_unittest(const char * log_files_directory);
  * Frees any resources allocated with the single object of type <unittest_t>. */
 void freesingleton_unittest(void);
 
+// group: query
+
+/* function: isrepeat_unittest
+ * Returns true if test is repeated due to recognized resource leak else false. */
+int isrepeat_unittest(void);
+
 // group: log
 // Called from thread which executes the unit test.
 
