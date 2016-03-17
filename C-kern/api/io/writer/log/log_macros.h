@@ -185,7 +185,7 @@
 /* define: TRACE_LOG
  * Logs any TEXTID and a header.
  * Calls <TRACE2_LOG> with parameters funcname, filename, and linenr
- * set to __FUNCTION__, __FILE__, and __LINE__ respectively.
+ * set to __func__, __FILE__, and __LINE__ respectively.
  *
  * Parameter:
  * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
@@ -194,7 +194,7 @@
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
  * ...        - Additional value parameters of correct type as determined by the text resource. */
 #define TRACE_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, ...)   \
-         TRACE2_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
+         TRACE2_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 /* define: TRACE2_LOG
  * Logs any TEXTID and a header.
@@ -229,13 +229,13 @@
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - Error text ID from C-kern/resource/errlog.text. */
 #define TRACE_NOARG_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID) \
-         do {                                \
-            log_header_t _header =           \
-               log_header_INIT(__FUNCTION__, \
-                  __FILE__, __LINE__);       \
-            PRINTTEXT_NOARG_LOG(BIND,        \
-               LOGCHANNEL, FLAGS,            \
-               &_header, TEXTID);            \
+         do {                             \
+            log_header_t _header =        \
+               log_header_INIT(__func__,  \
+                  __FILE__, __LINE__);    \
+            PRINTTEXT_NOARG_LOG(BIND,     \
+               LOGCHANNEL, FLAGS,         \
+               &_header, TEXTID);         \
          }  while(0)
 
 

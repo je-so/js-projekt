@@ -1120,7 +1120,7 @@ static int test_logmacros(void)
    logwriter_t    oldlog = *lgwrt;
    uint8_t        buffer[128];
    logwriter_chan_t newchan = logwriter_chan_INIT(sizeof(buffer), buffer, STDERR_FILENO, log_state_BUFFERED);
-   log_header_t   header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   log_header_t   header = log_header_INIT(__func__, __FILE__, __LINE__);
 
    // prepare
    TEST(interface_logwriter() == log_maincontext().iimpl);
@@ -1378,7 +1378,7 @@ static int test_initlogmacros(void)
    uint8_t        buffer[128];
    logwriter_chan_t oldchan = lgwrt->chan[log_channel_ERR];
    logwriter_chan_t newchan = logwriter_chan_INIT(sizeof(buffer), buffer, STDERR_FILENO, log_state_BUFFERED);
-   log_header_t   header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   log_header_t   header = log_header_INIT(__func__, __FILE__, __LINE__);
 
    // prepare
    TEST(interface_logwriter() == log_maincontext().iimpl);
@@ -1510,7 +1510,7 @@ static int test_autologmacros(void)
    int            oldfd = -1;
    pipe_t         pipe = pipe_FREE;
    uint8_t        buffer[128];
-   log_header_t   header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   log_header_t   header = log_header_INIT(__func__, __FILE__, __LINE__);
    uint8_t *      logbuffer;
    size_t         logsize;
 
@@ -1584,7 +1584,7 @@ static int test_freeisignored(void)
    uint8_t *   buffer;
    size_t      size;
    va_list     args;
-   log_header_t header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   log_header_t header = log_header_INIT(__func__, __FILE__, __LINE__);
    memset(&args, 0, sizeof(args));
 
    for (uint8_t chan = 0; chan < log_channel__NROF; ++chan) {
@@ -1698,7 +1698,7 @@ static int test_invalidchannel(void)
    logwriter_t    lgwrt = logwriter_FREE;
    logwriter_t    oldlgwrt;
    maincontext_e  oldtype = g_maincontext.type;
-   log_header_t   header = log_header_INIT(__FUNCTION__, __FILE__, __LINE__);
+   log_header_t   header = log_header_INIT(__func__, __FILE__, __LINE__);
    int            oldfd = -1;
    pipe_t         pipe = pipe_FREE;
    uint8_t        buffer[128];

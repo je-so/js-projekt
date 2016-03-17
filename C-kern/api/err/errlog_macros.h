@@ -132,8 +132,7 @@ struct logbuffer_t;
 
 /* define: TRACE_ERRLOG
  * Logs TEXTID from C-kern/resource/errlog.text and a header.
- * Calls <TRACE2_ERRLOG> with parameters funcname, filename, and linenr
- * set to __FUNCTION__, __FILE__, and __LINE__ respectively.
+ * Calls <TRACE_LOG> with default binding and channel set to log_channel_ERR.
  *
  * Parameter:
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
@@ -144,6 +143,7 @@ struct logbuffer_t;
 
 /* define: TRACE2_ERRLOG
  * Logs TEXTID from C-kern/resource/errlog.text and a header.
+ * Calls <TRACE2_LOG> with default binding and channel set to log_channel_ERR.
  *
  * Parameter:
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
@@ -170,13 +170,13 @@ struct logbuffer_t;
  * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
  * The next argumen after FLAGS is mandatory and is the printf format string. */
 #define TRACE_PRINTF_ERRLOG(FLAGS, ...) \
-         do {                                \
-            log_header_t _header =           \
-               log_header_INIT(__FUNCTION__, \
-                  __FILE__, __LINE__);       \
-            PRINTF_LOG(,                     \
-               log_channel_ERR, FLAGS,       \
-               &_header, __VA_ARGS__);       \
+         do {                             \
+            log_header_t _header =        \
+               log_header_INIT(__func__,  \
+                  __FILE__, __LINE__);    \
+            PRINTF_LOG(,                  \
+               log_channel_ERR, FLAGS,    \
+               &_header, __VA_ARGS__);    \
          }  while(0)
 
 // group: log-variables

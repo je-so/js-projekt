@@ -23,7 +23,7 @@
  * Prints »Assertion failed« and aborts process.
  * Uses <assertfail_maincontext> to implement its functionality. */
 #define assert(expr) \
-   ((expr) ? (void) 0 : assertfail_maincontext(STR(expr), __FILE__, __LINE__, __FUNCTION__))
+   ((expr) ? (void) 0 : assertfail_maincontext(STR(expr), __FILE__, __LINE__, __func__))
 
 /* define: static_assert
  * Checks condition to be true during compilation. No runtime code is generated.
