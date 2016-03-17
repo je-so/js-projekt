@@ -142,10 +142,10 @@ static int test_callfunctions(void)
    testnode_t           nodes[100] ;
 
    // prepare
-   for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      nodes[i].addr = (const void*) (1 + i) ;
-      nodes[i].size = - (size_t) i ;
-      nodes[i].is_getbinarykey = 0 ;
+   for (uintptr_t i = 0; i < lengthof(nodes); ++i) {
+      nodes[i].addr = (const void*) (1 + i);
+      nodes[i].size = - (size_t) i;
+      nodes[i].is_getbinarykey = 0;
    }
 
    // TEST callgetbinarykey_typeadaptgetkey
@@ -159,9 +159,9 @@ static int test_callfunctions(void)
       TEST(1 == nodes[i].is_getbinarykey) ;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 typeadapt_getkey_DECLARE(testadapter_it, testadapter_t, testnode_t) ;
@@ -173,10 +173,10 @@ static int test_generic(void)
    testnode_t     nodes[100] ;
 
    // prepare
-   for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      nodes[i].addr = (const void*) (1 + i) ;
-      nodes[i].size = - (size_t) i ;
-      nodes[i].is_getbinarykey = 0 ;
+   for (uintptr_t i = 0; i < lengthof(nodes); ++i) {
+      nodes[i].addr = (const void*) (1 + i);
+      nodes[i].size = - (size_t) i;
+      nodes[i].is_getbinarykey = 0;
    }
 
    // TEST typeadapt_getkey_DECLARE

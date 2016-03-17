@@ -1372,10 +1372,10 @@ static int test_iterator(void)
 
    // TEST both iterator
    srand(400) ;
-   for (int test = 0; test < 20; ++test) {
+   for (unsigned test = 0; test < 20; ++test) {
       typeadapt.getbinkey_count = 0 ;
-      for (int i = 0; i < MAX_TREE_NODES; ++i) {
-         int id = rand() % MAX_TREE_NODES ;
+      for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
+         int id = rand() % MAX_TREE_NODES;
          if (nodes[id].is_used) {
             nodes[id].is_used = 0 ;
             patriciatrie_node_t * removed_node ;
@@ -1387,7 +1387,7 @@ static int test_iterator(void)
       }
       TEST(typeadapt.getbinkey_count > MAX_TREE_NODES) ;
       TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
-      for (int i = 0; i < MAX_TREE_NODES; ++i) {
+      for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
          if (! (i % 10)) {
             TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, sizeof(nodes[i].key)-1, nodes[i].key)) ;
          }
@@ -1402,48 +1402,48 @@ static int test_iterator(void)
       TEST(false == next_patriciatrieiterator(&iter, &found_node)) ;
       TEST(found_node == (void*)1/*not changed*/) ;
       TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
-      for (int i = MAX_TREE_NODES-1; i >= 0 ; --i) {
+      for (unsigned i = MAX_TREE_NODES-1; i < MAX_TREE_NODES; --i) {
          if (nodes[i].is_used) {
-            TEST(1 == prev_patriciatrieiterator(&iter, &found_node)) ;
-            TEST(found_node == &nodes[i].node) ;
+            TEST(1 == prev_patriciatrieiterator(&iter, &found_node));
+            TEST(found_node == &nodes[i].node);
          }
       }
-      found_node = (void*)1 ;
+      found_node = (void*)1;
       TEST(false == prev_patriciatrieiterator(&iter, &found_node)) ;
       TEST(found_node == (void*)1/*not changed*/) ;
    }
 
    TEST(0 == removenodes_patriciatrie(&tree)) ;
-   for (int i = 0; i < MAX_TREE_NODES; ++i) {
+   for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       if (nodes[i].is_freed) {
-         TEST(nodes[i].is_used) ;
-         nodes[i].is_used = 0 ;
-         nodes[i].is_freed = 0 ;
+         TEST(nodes[i].is_used);
+         nodes[i].is_used = 0;
+         nodes[i].is_freed = 0;
       }
-      TEST(! nodes[i].is_used) ;
+      TEST(! nodes[i].is_used);
    }
 
    // TEST prefix iterator
-   for (int i = 0; i < MAX_TREE_NODES ; ++i) {
-      nodes[i].key[0] = 0 ;
-      nodes[i].key[1] = (uint8_t)(i / 256) ;
-      nodes[i].key[2] = 0 ;
-      nodes[i].key[3] = (uint8_t)(i % 256) ;
+   for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
+      nodes[i].key[0] = 0;
+      nodes[i].key[1] = (uint8_t)(i / 256);
+      nodes[i].key[2] = 0;
+      nodes[i].key[3] = (uint8_t)(i % 256);
    }
-   for (int i = 0; i < MAX_TREE_NODES; ++i) {
-      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
+   for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
+      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
    TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 1, nodes[0].key)) ;
-   for (int i = 0; i < MAX_TREE_NODES; ++i) {
-      TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
-      TEST(found_node == &nodes[i].node) ;
+   for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
+      TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node));
+      TEST(found_node == &nodes[i].node);
    }
-   found_node = (void*)1 ;
+   found_node = (void*)1;
    TEST(false == next_patriciatrieprefixiter(&preiter, &found_node)) ;
    TEST(found_node == (void*)1/*not changed*/) ;
-   for (int i = 0; i < MAX_TREE_NODES-255; i += 256) {
+   for (unsigned i = 0; i < MAX_TREE_NODES-255; i += 256) {
       TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 2, nodes[i].key)) ;
-      for (int g = 0; g <= 255; ++g) {
+      for (unsigned g = 0; g <= 255; ++g) {
          TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
          TEST(found_node == &nodes[i+g].node) ;
       }
@@ -1453,13 +1453,13 @@ static int test_iterator(void)
    }
 
    // unprepare
-   TEST(0 == FREE_MM(&memblock)) ;
-   nodes = 0 ;
+   TEST(0 == FREE_MM(&memblock));
+   nodes = 0;
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) FREE_MM(&memblock) ;
-   return EINVAL ;
+   (void) FREE_MM(&memblock);
+   return EINVAL;
 }
 
 patriciatrie_IMPLEMENT(_testtree, testnode_t, node)

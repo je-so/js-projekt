@@ -200,21 +200,21 @@ static int test_fpuexcept_signalclear(test_config_t conf)
    // TEST fpu_except_UNDERFLOW: DBL_MIN / 2
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    for (int i = 2; i > 0; --i) {
-      d = LDBL_MIN ;
-      d /= 1e10 * (1 + (time(0) & 0x03)) ;
-      TEST(fpu_except_UNDERFLOW == getsignaled_fpuexcept(fpu_except_UNDERFLOW)) ;
-      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
+      d  = LDBL_MIN;
+      d /= 1e10 * (1 + (int) (time(0) & 0x03));
+      TEST(fpu_except_UNDERFLOW == getsignaled_fpuexcept(fpu_except_UNDERFLOW));
+      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
    }
 
    // TEST fpu_except_INEXACT: 1 / 3
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    d = 1 ;
    for (int i = 2; i > 0; --i) {
-      volatile double d1 = 1.0 / (3.0 * (1 + (time(0) & 0x3))) ;
-      TEST(fpu_except_INEXACT == getsignaled_fpuexcept(fpu_except_INEXACT)) ;
-      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-      d += d1 ;
-      d *= (time(0) & 0x3) ;
+      volatile double d1 = 1.0 / (3.0 * (1 + (int) (time(0) & 0x3)));
+      TEST(fpu_except_INEXACT == getsignaled_fpuexcept(fpu_except_INEXACT));
+      TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL));
+      d += d1;
+      d *= (time(0) & 0x3);
    }
 
    // unprepare
@@ -246,12 +246,12 @@ static void fpe_sighandler(int signr, siginfo_t * siginfo, void * ucontext)
 
 static long double generate_all_exceptions(long double dmin, long double dmax, double dneg, double dzero)
 {
-   volatile long double result = 0 ;
-   result += dmin / (1e10 * (1 + (time(0) & 0x03))) ;
-   result += dmax * 2 ;
-   result += sqrt(dneg) ;
-   if (1 > (1 / dzero)) result += 0.1 ;
-   return result ;
+   volatile long double result = 0;
+   result += dmin / (1e10 * (1 + (int) (time(0) & 0x03)));
+   result += dmax * 2;
+   result += sqrt(dneg);
+   if (1 > (1 / dzero)) result += 0.1;
+   return result;
 }
 
 static int test_fpuexcept_enabledisable(test_config_t conf)

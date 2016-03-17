@@ -90,33 +90,37 @@ ONERR:
 int readall_pipe(pipe_t* pipe, size_t size, void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
 {
    int err;
-   size_t bytes = 0;
+   size_t readsize = 0;
 
    for (;;) {
-      int part = read(pipe->read, (uint8_t*)data + bytes, size-bytes);
+      ssize_t nrbytes = read(pipe->read, (uint8_t*)data + readsize, size-readsize);
 
-      if (part > 0) {
-         bytes += (unsigned) part;
-         if (bytes == size) break/*DONE*/;
+      if (nrbytes > 0) {
+         readsize += (unsigned) nrbytes;
+         if (readsize == size) break/*DONE*/;
          continue;
       }
 
-      if (part < 0) {
+      if (nrbytes < 0) {
          err = errno;
-         if (err == EAGAIN && msec_timeout) {
-            // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
-            struct pollfd pfd = { .events = POLLIN, .fd = pipe->read };
-            err = poll(&pfd, 1, msec_timeout);
-            if (err > 0) continue;
-            err = (err < 0) ? errno : ETIME;
+         if (EAGAIN == err || EWOULDBLOCK == err) {
+            if (EAGAIN != EWOULDBLOCK) err = EAGAIN;
+            if (msec_timeout) {
+               // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
+               struct pollfd pfd = { .events = POLLIN, .fd = pipe->read };
+               err = poll(&pfd, 1, msec_timeout);
+               if (err > 0) continue;
+               err = (err < 0) ? errno : ETIME;
+            }
          }
+
+         // error => discard read bytes
+         goto ONERR;
 
       } else { // end-of-input (not logged)
          return EPIPE;
       }
 
-      // error => discard read bytes
-      goto ONERR;
    }
 
 /*DONE*/
@@ -129,24 +133,27 @@ ONERR:
 int writeall_pipe(pipe_t* pipe, size_t size, const void* data/*uint8_t[size]*/, int32_t msec_timeout/*<0: infinite timeout*/)
 {
    int err;
-   size_t bytes = 0;
+   size_t writesize = 0;
 
    for (;;) {
-      int part = write(pipe->write, (const uint8_t*)data + bytes, size-bytes);
+      ssize_t nrbytes = write(pipe->write, (const uint8_t*)data + writesize, size-writesize);
 
-      if (part >= 0) {
-         bytes += (unsigned) part;
-         if (bytes == size) break/*DONE*/;
+      if (nrbytes >= 0) {
+         writesize += (unsigned) nrbytes;
+         if (writesize == size) break/*DONE*/;
          continue;
       }
 
       err = errno;
-      if (err == EAGAIN && msec_timeout) {
-         // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
-         struct pollfd pfd = { .events = POLLOUT, .fd = pipe->write };
-         err = poll(&pfd, 1, msec_timeout);
-         if (err > 0) continue;
-         err = (err < 0) ? errno : ETIME;
+      if (EAGAIN == err || EWOULDBLOCK == err) {
+         if (EAGAIN != EWOULDBLOCK) err = EAGAIN;
+         if (msec_timeout) {
+            // wait msec_timeout milliseconds (if (msec_timeout < 0) "inifinite timeout")
+            struct pollfd pfd = { .events = POLLOUT, .fd = pipe->write };
+            err = poll(&pfd, 1, msec_timeout);
+            if (err > 0) continue;
+            err = (err < 0) ? errno : ETIME;
+         }
       }
 
       // error => undo of already written data is not possible
@@ -181,7 +188,7 @@ static int test_initfree(void)
 
    // TEST init_pipe
    TEST(0 == init_pipe(&pipe));
-   for (int i = 0; i <= 1; ++i) {
+   for (unsigned i = 0; i <= 1; ++i) {
       // check close-on-exec
       TEST(! isfree_iochannel((&pipe.read)[i]));
       flags = fcntl((&pipe.read)[i], F_GETFD);
@@ -212,7 +219,7 @@ static int test_initfree(void)
    TEST(isfree_iochannel(pipe.write));
 
    // TEST free_pipe: partial close
-   for (int i = 0; i <= 1; ++i) {
+   for (unsigned i = 0; i <= 1; ++i) {
       // prepare partial close
       TEST(0 == init_pipe(&pipe));
       TEST(0 == close((&pipe.read)[i]));
@@ -225,12 +232,13 @@ static int test_initfree(void)
    }
 
    // TEST free_pipe: simluated ERROR
-   for (int i = 1; i <= 2; ++i) {
+   for (unsigned i = 1; i <= 2; ++i) {
+      const int E = (int) i;
       // prepare
       TEST(0 == init_pipe(&pipe));
       // test
-      init_testerrortimer(&s_pipe_errtimer, (unsigned)i, i);
-      TEST(i == free_pipe(&pipe));
+      init_testerrortimer(&s_pipe_errtimer, i, E);
+      TEST(E == free_pipe(&pipe));
       // check
       TEST(isfree_iochannel(pipe.read));
       TEST(isfree_iochannel(pipe.write));
@@ -247,7 +255,7 @@ static int determinte_buffer_size(pipe_t* pipe, /*out*/size_t* bufsize)
    uint8_t buffer[1024];
    size_t  bytes = 0;
 
-   for (int b; 0 < (b = write(pipe->write, buffer, sizeof(buffer)));) {
+   for (ssize_t b; 0 < (b = write(pipe->write, buffer, sizeof(buffer)));) {
       bytes += (unsigned) b;
    }
    TEST(-1 == write(pipe->write, buffer, 1));
@@ -266,7 +274,7 @@ static int fill_buffer(pipe_t* pipe, size_t size)
    uint8_t buffer[1024];
    size_t  bytes = 0;
 
-   for (int b; bytes != size && 0 < (b = write(pipe->write, buffer, size-bytes > sizeof(buffer) ? sizeof(buffer):size-bytes));) {
+   for (ssize_t b; bytes != size && 0 < (b = write(pipe->write, buffer, size-bytes > sizeof(buffer) ? sizeof(buffer):size-bytes));) {
       bytes += (unsigned) b;
    }
 
@@ -381,7 +389,7 @@ static int test_readwrite(void)
    TEST(0 == returncode_thread(thr));
    // check buffer content
    for (size_t i = 0; i < sizeof(buffer); ++i) {
-      TESTP(buffer[i] == (uint8_t) (i/13), "buffer[%d] != %d", i, (int)(uint8_t)(i/13));
+      TESTP(buffer[i] == (uint8_t) (i/13), "buffer[%zu] != %d", i, (int)(uint8_t)(i/13));
    }
    // reset
    TEST(0 == delete_thread(&thr));
@@ -412,7 +420,7 @@ static int test_readwrite(void)
    TEST(0 == returncode_thread(thr));
    // check buffer content
    for (size_t i = 0; i < sizeof(buffer); ++i) {
-      TESTP(buffer[i] == (uint8_t) (i/11), "buffer[%d] != %d", i, (int)(uint8_t)(i/11));
+      TESTP(buffer[i] == (uint8_t) (i/11), "buffer[%zu] != %d", i, (int)(uint8_t)(i/11));
    }
    // reset
    TEST(0 == delete_thread(&thr));

@@ -106,7 +106,7 @@ ONERR:
 
 // /// belongs to test_update
 
-static int s_runcount;
+static unsigned s_runcount;
 static int s_runerr;
 
 static int sf_wait(syncfunc_param_t* param)
@@ -240,7 +240,7 @@ static int test_update(void)
    TEST(0 == s_runerr);
 
    // TEST wakeup_synccond
-   for (int i = 1; i <= 10; ++i) {
+   for (unsigned i = 1; i <= 10; ++i) {
       TEST(iswaiting_synccond(&scond));
       TEST(0 == wakeup_synccond(&scond, &sfparam));
       TEST(iswakeup_syncrunner(&srun));

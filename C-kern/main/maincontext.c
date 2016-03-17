@@ -535,7 +535,7 @@ static int test_init_param(maincontext_t * maincontext)
 static int test_init_returncode(maincontext_t * maincontext)
 {
    if (maincontext != &g_maincontext) return EINVAL;
-   if (maincontext->type != s_mainmode[(unsigned) maincontext->main_arg % lengthof(s_mainmode) ]) return EINVAL;
+   if (maincontext->type != s_mainmode[(uintptr_t) maincontext->main_arg % lengthof(s_mainmode) ]) return EINVAL;
    if (maincontext->main_thread != &test_init_returncode) return EINVAL;
    if (strcmp("", maincontext->progname)) return EINVAL;
    if (maincontext->argc != 0) return EINVAL;
@@ -543,7 +543,7 @@ static int test_init_returncode(maincontext_t * maincontext)
 
    s_is_called = 1;
 
-   return (int) maincontext->main_arg;
+   return (int) (intptr_t) maincontext->main_arg;
 }
 
 static int test_ealready(maincontext_t * maincontext)
@@ -578,10 +578,10 @@ static int test_initrun(void)
    }
 
    // TEST initrun_maincontext: return value
-   for (int i = 0; i < 10; ++i) {
+   for (uintptr_t i = 0; i < 10; ++i) {
       s_is_called = 0;
       // test
-      TEST(i == initrun_maincontext(s_mainmode[(unsigned)i%lengthof(s_mainmode)], &test_init_returncode, (void*)i, 0, 0));
+      TEST(i == (unsigned) initrun_maincontext(s_mainmode[i%lengthof(s_mainmode)], &test_init_returncode, (void*)i, 0, 0));
       TEST(1 == s_is_called);
 
       // check free_maincontext called
@@ -724,7 +724,7 @@ static int childprocess_unittest(void)
 
    // get error log from pipe
    static uint8_t s_static_buffer[20000];
-   int rsize = read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1);
+   ssize_t rsize = read(errpipe.read, s_static_buffer, sizeof(s_static_buffer)-1);
    TEST(0 < rsize);
    s_static_buffer[rsize] = 0;
    PRINTF_ERRLOG("%s", s_static_buffer);

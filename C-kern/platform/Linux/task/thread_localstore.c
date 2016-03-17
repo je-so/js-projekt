@@ -715,9 +715,9 @@ static int test_memory(void)
    TEST(! isfree_memblock(&mblock));
 
    // TEST memfree_threadlocalstore: EINVAL (addr wrong)
-   for (int i = -1; i <= 1; i +=2) {
+   for (unsigned i = 0; i <= 2; i +=2) {
       tls->memused = 128;
-      mblock.addr = tls->mem + 128 - 32 + i;
+      mblock.addr = tls->mem + 128 - 32 -1 + i;
       mblock.size = 32;
       TEST(EINVAL == memfree_threadlocalstore(tls, &mblock));
       TEST(! isfree_memblock(&mblock));
@@ -740,13 +740,13 @@ ONERR:
 
 int unittest_platform_task_thread_localstore()
 {
-   if (test_initfree())    goto ONERR;
-   if (test_query())       goto ONERR;
-   if (test_memory())      goto ONERR;
+   int err;
 
-   return 0;
-ONERR:
-   return EINVAL;
+   err = test_initfree();
+   if (!err) err = test_query();
+   if (!err) err = test_memory();
+
+   return err;
 }
 
 #endif

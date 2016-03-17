@@ -101,8 +101,8 @@ uint32_t increment_itccounter(itccounter_t* counter)
 
    if (0 == count) {
       uint64_t syscount = 1;
-      err = write(counter->sysio, &syscount, sizeof(syscount));
-      if (err < 0) {
+      ssize_t nrbytes = write(counter->sysio, &syscount, sizeof(syscount));
+      if (nrbytes < 0) {
          err = errno;
          TRACESYSCALL_ERRLOG("write", err);
          PRINTINT_ERRLOG(counter->sysio);
@@ -137,8 +137,8 @@ uint32_t add_itccounter(itccounter_t* counter, uint16_t incr)
 
    if (0 == count) {
       uint64_t syscount = 1;
-      err = write(counter->sysio, &syscount, sizeof(syscount));
-      if (err < 0) {
+      ssize_t nrbytes = write(counter->sysio, &syscount, sizeof(syscount));
+      if (nrbytes < 0) {
          err = errno;
          TRACESYSCALL_ERRLOG("write", err);
          PRINTINT_ERRLOG(counter->sysio);
@@ -175,11 +175,11 @@ uint32_t reset_itccounter(itccounter_t* counter/*is reset to 0 before return*/)
    int err;
 
    uint64_t syscount;
-   err = read(counter->sysio, &syscount, sizeof(syscount));
+   ssize_t nrbytes = read(counter->sysio, &syscount, sizeof(syscount));
    // prevents race reading count>0 but no signal from sysio
-   if (err < 0) {
+   if (nrbytes < 0) {
       err = errno;
-      if (err == EAGAIN) return 0;
+      if (err == EAGAIN || err == EWOULDBLOCK) return 0;
       TRACESYSCALL_ERRLOG("read", err);
       PRINTINT_ERRLOG(counter->sysio);
    }

@@ -156,7 +156,7 @@ static uint8_t compute_minslicelen(size_t n)
    unsigned r = 0;
 
    while (n >= 64) {
-      r |= n & 1;
+      r |= (unsigned)n & 1;
       n >>= 1;
    }
 
@@ -599,7 +599,7 @@ static int test_searchgrequal(void)
    uint8_t     barray[3*512];
 
    // prepare
-   for (unsigned i = 0; i < lengthof(larray); ++i) {
+   for (uintptr_t i = 0; i < lengthof(larray); ++i) {
       parray[i] = (void*) (3*i+1);
       larray[i] = (long) (3*i+1);
    }
@@ -707,7 +707,7 @@ static int test_rsearchgrequal(void)
    uint8_t     barray[3*512];
 
    // prepare
-   for (unsigned i = 0; i < lengthof(larray); ++i) {
+   for (uintptr_t i = 0; i < lengthof(larray); ++i) {
       parray[i] = (void*) (3*i+1);
       larray[i] = (long) (3*i+1);
    }
@@ -815,7 +815,7 @@ static int test_searchgreater(void)
    uint8_t     barray[3*512];
 
    // prepare
-   for (unsigned i = 0; i < lengthof(larray); ++i) {
+   for (uintptr_t i = 0; i < lengthof(larray); ++i) {
       parray[i] = (void*) (3*i+1);
       larray[i] = (long)  (3*i+1);
    }
@@ -925,7 +925,7 @@ static int test_rsearchgreater(void)
    uint8_t     barray[3*512];
 
    // prepare
-   for (unsigned i = 0; i < lengthof(larray); ++i) {
+   for (uintptr_t i = 0; i < lengthof(larray); ++i) {
       parray[i] = (void*) (3*i+1);
       larray[i] = (long) (3*i+1);
    }
@@ -1050,9 +1050,9 @@ ONERR:
    return EINVAL;
 }
 
-static int compare_content(int type, uint8_t * barray, long * larray, void ** parray, unsigned len)
+static int compare_content(int type, uint8_t * barray, long * larray, void ** parray, size_t len)
 {
-   for (unsigned i = 0; i < len; ++i) {
+   for (size_t i = 0; i < len; ++i) {
       uintptr_t key = 5*i;
       switch (type) {
       case 0: TEST(barray[3*i]   == (uint8_t) (key / 256));
@@ -1171,8 +1171,8 @@ static int test_merge(void)
       { { 0, 1 }, { 1, 2*MIN_BLK_LEN }, { 2*MIN_BLK_LEN+1, 1 } }, // triggers reverse fourth if (llen == 0) goto DONE;
    };
    for (unsigned ti = 0; ti < lengthof(blocksize); ++ti) {
-      unsigned llen = 0;
-      unsigned rlen = 0;
+      size_t llen = 0;
+      size_t rlen = 0;
       for (unsigned bi = 0; bi < lengthof(blocksize[ti]); ++bi) {
          llen += blocksize[ti][bi][0];
          rlen += blocksize[ti][bi][1];
@@ -1180,15 +1180,15 @@ static int test_merge(void)
       for (int type = 0; type < 3; ++type) {
          for (int reverse = 0; reverse <= 1; ++reverse) {
             for (unsigned isswap = 0; isswap <= 1; ++isswap) {
-               unsigned ki = 0, li = 0, ri = llen;
+               size_t ki = 0, li = 0, ri = llen;
                for (unsigned bi = 0; bi < lengthof(blocksize[ti]); ++bi) {
-                  unsigned lk = ki + (!isswap ? 0 : blocksize[ti][bi][1]);
-                  unsigned rk = ki + (isswap  ? 0 : blocksize[ti][bi][0]);
+                  size_t lk = ki + (!isswap ? 0 : blocksize[ti][bi][1]);
+                  size_t rk = ki + (isswap  ? 0 : blocksize[ti][bi][0]);
                   ki += blocksize[ti][bi][0] + blocksize[ti][bi][1];
-                  for (unsigned i = 0; i < blocksize[ti][bi][0]; ++i, ++lk, ++li) {
+                  for (size_t i = 0; i < blocksize[ti][bi][0]; ++i, ++lk, ++li) {
                      set_value(5*lk, barray+3*li, larray+li, parray+li);
                   }
-                  for (unsigned i = 0; i < blocksize[ti][bi][1]; ++i, ++rk, ++ri) {
+                  for (size_t i = 0; i < blocksize[ti][bi][1]; ++i, ++rk, ++ri) {
                      set_value(5*rk, barray+3*ri, larray+ri, parray+ri);
                   }
                }
@@ -1278,7 +1278,7 @@ static int test_merge(void)
                sort.stack[top-1].len  = s*lengthof(larray)/4;
                sort.stack[top].base = left + s*lengthof(larray)/4 * sort.elemsize;
                sort.stack[top].len  = lengthof(larray) - s*lengthof(larray)/4;
-               sort.stack[top+1].base = (void*)s;
+               sort.stack[top+1].base = (void*)(uintptr_t)s;
                sort.stack[top+1].len  = SIZE_MAX/s;
                sort.stacksize = stacksize;
                switch (type) {
@@ -1289,10 +1289,10 @@ static int test_merge(void)
                TEST(sort.stacksize == stacksize-1);
                TEST(sort.stack[top-1].base == left);
                TEST(sort.stack[top-1].len  == lengthof(larray));
-               TEST(sort.stack[top+1].base == (void*)s);
+               TEST(sort.stack[top+1].base == (void*)(uintptr_t)s);
                TEST(sort.stack[top+1].len  == SIZE_MAX/s);
                if (isSecondTop) {
-                  TEST(sort.stack[top].base == (void*)s);
+                  TEST(sort.stack[top].base == (void*)(uintptr_t)s);
                   TEST(sort.stack[top].len  == SIZE_MAX/s);
                } else {
                   TEST(sort.stack[top].base == left + s*lengthof(larray)/4 * sort.elemsize);
@@ -1345,7 +1345,7 @@ static int test_merge(void)
    memset(barray, 0, sizeof(barray));
    memset(larray, 0, sizeof(larray));
    memset(parray, 0, sizeof(parray));
-   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += lengthof(sort.stack)/2) {
+   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += (unsigned)lengthof(sort.stack)/2) {
       for (unsigned size = 1; size <= 10; ++size) {
          for (int type = 0; type < 3; ++type) {
             uint8_t * left;
@@ -1387,7 +1387,7 @@ static int test_merge(void)
    }
 
    // TEST establish_stack_invariant: merge if top[-2].len <= top[-1].len
-   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/3; stackoffset += lengthof(sort.stack)/3) {
+   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/3; stackoffset += (unsigned)lengthof(sort.stack)/3) {
       for (unsigned size = 1; size <= 10; ++size) {
          for (int type = 0; type < 3; ++type) {
             uint8_t * left;
@@ -1430,7 +1430,7 @@ static int test_merge(void)
    }
 
    // TEST establish_stack_invariant: merge if top[-3].len <= top[-2].len + top[-1].len
-   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += lengthof(sort.stack)/2) {
+   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += (unsigned)lengthof(sort.stack)/2) {
       for (unsigned size = 1; size <= 10; ++size) {
          for (int type = 0; type < 3; ++type) {
             uint8_t * left;
@@ -1487,7 +1487,7 @@ static int test_merge(void)
 
    // TEST establish_stack_invariant: merge if top[-4].len <= top[-3].len + top[-2].len after merge
    // uses example: 120, 80, 25, 20, 30 ==> 120, 80, 45, 30 ==> 120, 80, 75 ==> 120, 155 ==> 275
-   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += lengthof(sort.stack)/2) {
+   for (unsigned stackoffset = 0; stackoffset <= lengthof(sort.stack)/2; stackoffset += (unsigned)lengthof(sort.stack)/2) {
       for (int type = 0; type < 3; ++type) {
          uint8_t * left;
          switch (type) {
@@ -1738,10 +1738,10 @@ ONERR:
 
 static void shuffle(uint8_t elemsize, size_t len, uint8_t a[len*elemsize])
 {
-   assert(elemsize < 16);
-   uint8_t temp[16];
+   assert(elemsize <= 32);
+   uint8_t temp[32];
    for (unsigned i = 0; i < len; ++i) {
-      unsigned r = ((unsigned) random()) % len;
+      size_t r = (size_t)random() % len;
       memcpy(temp, &a[elemsize*r], elemsize);
       memcpy(&a[r*elemsize], &a[i*elemsize], elemsize);
       memcpy(&a[i*elemsize], temp, elemsize);
@@ -1917,7 +1917,7 @@ static int test_measuretime(mergesort_t * sort, const unsigned len, memblock_t *
    for (uintptr_t i = 0; i < len; ++i) {
       ((long*)a)[i] = (long) i;
    }
-   srandom(123458);
+   srandom(312854);
    shuffle(sizeof(long), len, a);
    TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
    TEST(0 == startinterval_systimer(timer, &(struct timevalue_t){.nanosec = 1000000}));
@@ -1929,7 +1929,7 @@ static int test_measuretime(mergesort_t * sort, const unsigned len, memblock_t *
    for (uintptr_t i = 0; i < len; ++i) {
       TEST(((long*)a)[i] == (long) i);
    }
-   srandom(123458);
+   srandom(312854);
    shuffle(sizeof(long), len, a);
    TEST(0 == startinterval_systimer(timer, &(struct timevalue_t){.nanosec = 1000000}));
    s_compare_count = 0;
@@ -1941,7 +1941,7 @@ static int test_measuretime(mergesort_t * sort, const unsigned len, memblock_t *
       logwarning_unittest("quicksort uses less compares") ;
    }
    // mergesort beats quicksort sometimes
-   if (qsorttime_ms < mergetime_ms) {
+   if (qsorttime_ms < mergetime_ms && !isrepeat_unittest()) {
       logwarning_unittest("quicksort is faster") ;
    }
 

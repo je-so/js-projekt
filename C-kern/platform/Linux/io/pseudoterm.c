@@ -218,7 +218,8 @@ static int test_helper(void)
    char        buffer[16];
 
    // TEST prepare_pseudoterm: normal operation
-   for (int flag = 0; flag <= SA_SIGINFO; flag += SA_SIGINFO) {
+   for (unsigned isflag = 0; isflag <= 1; ++isflag) {
+      int flag = isflag ? SA_SIGINFO : 0;
       // prepare
       newact.sa_flags = flag;
       if (flag)
@@ -262,7 +263,8 @@ static int test_helper(void)
    }
 
    // TEST prepare_pseudoterm: SIGCHLD handler installed
-   for (int flag = 0; flag <= SA_SIGINFO; flag += SA_SIGINFO) {
+   for (unsigned isflag = 0; isflag <= 1; ++isflag) {
+      int flag = isflag ? SA_SIGINFO : 0;
       // prepare
       newact.sa_flags = flag;
       if (flag)
@@ -362,13 +364,13 @@ static int test_initfree(void)
    struct pollfd pfd = { .fd = pty.master_device, .events = POLLIN };
    TEST(1 == poll(&pfd, 1, 0));
    TEST(0 != (pfd.revents&POLLHUP));
-   for (int i = 0; i < 2; ++i) {
+   for (unsigned i = 0; i < 2; ++i) {
       TEST(-1 == read(pty.master_device, buffer, sizeof(buffer)));
       TEST(EIO == errno);
    }
 
    // TEST free_pseudoterm: (+ double free)
-   for (int i = 0; i < 2; ++i) {
+   for (unsigned i = 0; i < 2; ++i) {
       TEST(0 == free_pseudoterm(&pty));
       TEST(sys_iochannel_FREE == pty.master_device);
       // check open of slave is *no more* possible
@@ -464,7 +466,7 @@ static int test_query(void)
    memcpy(expect, name, S);
 
    // TEST pathname_pseudoterm
-   for (int issize = 0; issize <= 1; ++issize) {
+   for (unsigned issize = 0; issize <= 1; ++issize) {
       memset(ptypath, 255, sizeof(ptypath));
       namesize = 0;
       TEST(0 == pathname_pseudoterm(&pty, sizeof(ptypath), ptypath, issize ? &namesize : 0));
@@ -480,7 +482,7 @@ static int test_query(void)
    pathname_param_t param = { .pty = &pty, .expect = expect, .S = S, .started = 0 };
    TEST(0 == set_atomicflag(&s_pseudoterm_lock));
    TEST(0 == newgeneric_thread(&thr, &thread_pathname, &param));
-   for (int i = 0; i < 10000; ++i) {
+   for (unsigned i = 0; i < 10000; ++i) {
       sched_yield();
       if (read_atomicint(&param.started)) break;
    }

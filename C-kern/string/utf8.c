@@ -326,7 +326,7 @@ int validate_utf8validator(utf8validator_t * utf8validator, size_t size, const u
       // if size_to_validate is too low then VALIDATE generates an error (utf8validator->prefix is filled with 0)
       size_to_validate = utf8validator->size_of_prefix ;
       data_to_validate = utf8validator->prefix ;
-      goto VALIDATE ;
+      goto VALIDATE;
    }
 
    for (;;) {
@@ -476,11 +476,11 @@ ONERR:
          // last sequence is a bad prefix
          data_to_validate = data + size - utf8validator->size_of_prefix ;
       }
-      utf8validator->size_of_prefix = 0 ;
+      utf8validator->size_of_prefix = 0;
    }
    // set err parameter
-   if (erroffset) *erroffset = erroffset2 + (size_t) (data_to_validate - data) ;
-   return EILSEQ ;
+   if (erroffset) *erroffset = erroffset2 + (size_t) (data_to_validate - data);
+   return EILSEQ;
 }
 
 
@@ -672,7 +672,8 @@ static int test_utf8(void)
    const char * teststrings[] = { "\U0010FFFF\U00010000", "\u0800\u0999\uFFFF", "\u00A0\u00A1\u07FE\u07FF", "\x01\x02""abcde\x07e\x7f", "\U0010FFFF\uF999\u06FEY" } ;
    size_t       testlength[]  = { 2,                      3,                    4,                          9,                          4 } ;
    for (unsigned i = 0; i < lengthof(teststrings); ++i) {
-      TEST(testlength[i] == length_utf8((const uint8_t*)teststrings[i], (const uint8_t*)teststrings[i]+strlen(teststrings[i]))) ;
+      const char * endstr = (const char*) ((uintptr_t)teststrings[i] + (uintptr_t) strlen(teststrings[i]));
+      TEST(testlength[i] == length_utf8((const uint8_t*)teststrings[i], (const uint8_t*)endstr));
    }
 
    // TEST length_utf8: empty string
@@ -684,7 +685,8 @@ static int test_utf8(void)
    const char * teststrings2[] = { "\xFC\x80",  "b\xC2",                 "ab\xE0",  "abc\xF0" } ;
    size_t       testlength2[]  = { 0/*EILSEQ*/, 2/*last not contained*/, 3/*ditto*/, 4/*ditto*/ } ;
    for (unsigned i = 0; i < lengthof(teststrings2); ++i) {
-      TEST(testlength2[i] == length_utf8((const uint8_t*)teststrings2[i], (const uint8_t*)teststrings2[i]+strlen(teststrings2[i]))) ;
+      const char * endstr = (const char*) ((uintptr_t)teststrings2[i] + (uintptr_t) strlen(teststrings2[i]));
+      TEST(testlength2[i] == length_utf8((const uint8_t*)teststrings2[i], (const uint8_t*)endstr)) ;
    }
 
    // TEST decodechar_utf8, skipchar_utf8: whole range of first byte
@@ -781,9 +783,9 @@ static int test_utf8(void)
    // TEST encodechar_utf8: out of range
    TEST(0 == encodechar_utf8(4, utf8buffer, 0x110000)) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_utf8validator(void)

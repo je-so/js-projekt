@@ -111,7 +111,7 @@ int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshi
    toplevelsize  = makepowerof2_int(toplevelsize) ;
 
    VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONERR, PRINTUINT32_ERRLOG(toplevelsize)) ;
-   VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONERR, PRINTUINT32_ERRLOG(posshift)) ;
+   VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONERR, PRINTUINT32_ERRLOG(posshift));
 
    const size_t objsize = objectsize_arraysf(toplevelsize) ;
 
@@ -597,22 +597,19 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct testnode_t              testnode_t ;
-typedef struct testnode_adapt_t        testnode_adapt_t ;
+typedef struct testnode_t {
+   arraysf_node_t node;
+   int            copycount;
+   arraysf_node_EMBED(pos2);
+   int            freecount;
+} testnode_t;
 
-struct testnode_t {
-   arraysf_node_t node ;
-   int            copycount ;
-   arraysf_node_EMBED(pos2) ;
-   int            freecount ;
-} ;
-
-struct testnode_adapt_t {
+typedef struct testnode_adapt_t {
    struct {
-      typeadapt_EMBED(testnode_adapt_t, testnode_t, void*) ;
-   } ;
-   test_errortimer_t    errcounter ;
-} ;
+      typeadapt_EMBED(struct testnode_adapt_t, testnode_t, void*);
+   };
+   test_errortimer_t    errcounter;
+} testnode_adapt_t;
 
 static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copied_node, const testnode_t * node)
 {
@@ -709,19 +706,19 @@ ONERR:
 
 static int test_initfree(void)
 {
-   const size_t      nrnodes   = 50000 ;
-   memblock_t        memblock  = memblock_FREE ;
-   arraysf_t *       array     = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   testnode_t *      nodes ;
-   arraysf_node_t *  inserted_node ;
-   arraysf_node_t *  removed_node ;
+   const size_t      nrnodes   = (1024*1024)/sizeof(testnode_t);
+   memblock_t        memblock  = memblock_FREE;
+   arraysf_t *       array     = 0;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE };
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node));
+   testnode_t *      nodes;
+   arraysf_node_t *  inserted_node;
+   arraysf_node_t *  removed_node;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
 
    // TEST arraysf_node_INIT
    for (unsigned i = 1; i; i <<= 1) {
@@ -1047,29 +1044,29 @@ ONERR:
 
 static int test_error(void)
 {
-   const size_t      nrnodes   = 50000 ;
-   memblock_t        memblock  = memblock_FREE ;
-   arraysf_t *       array     = 0 ;
-   arraysf_t *       array2    = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   testnode_t      * nodes ;
-   arraysf_node_t  * removed_node  = 0 ;
-   arraysf_node_t  * inserted_node = 0 ;
-   arraysf_node_t  * existing_node = 0 ;
-   uint8_t         * logbuffer ;
+   const size_t      nrnodes   = (1024*1024)/sizeof(testnode_t);
+   memblock_t        memblock  = memblock_FREE;
+   arraysf_t *       array     = 0;
+   arraysf_t *       array2    = 0;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE };
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node));
+   testnode_t      * nodes;
+   arraysf_node_t  * removed_node  = 0;
+   arraysf_node_t  * inserted_node = 0;
+   arraysf_node_t  * existing_node = 0;
+   uint8_t         * logbuffer;
    size_t            logsize1;
    size_t            logsize2;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraysf(&array, 256, 0)) ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
+   TEST(0 == new_arraysf(&array, 256, 0));
 
    // TEST EINVAL
-   TEST(EINVAL == new_arraysf(&array2, 0x800001/*too big*/, 0)) ;
-   TEST(EINVAL == new_arraysf(&array2, 256, bitsof(size_t)-8+1/*too big*/)) ;
+   TEST(EINVAL == new_arraysf(&array2, 0x800001/*too big*/, 0));
+   TEST(EINVAL == new_arraysf(&array2, 0x800000, bitsof(size_t)-8+1/*too big*/));
 
    // TEST EEXIST
    nodes[0] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
@@ -1129,26 +1126,26 @@ ONERR:
 
 static int test_iterator(void)
 {
-   const size_t   nrnodes  = 30000 ;
-   memblock_t     memblock = memblock_FREE ;
-   arraysf_iterator_t iter = arraysf_iterator_FREE ;
-   arraysf_t  *   array    = 0 ;
-   testnode_t *   nodes ;
-   arraysf_node_t*removed_node ;
-   size_t         nextpos ;
+   const size_t   nrnodes  = (1024*1024)/sizeof(testnode_t) < 30000 ? (1024*1024)/sizeof(testnode_t) : 30000;
+   memblock_t     memblock = memblock_FREE;
+   arraysf_iterator_t iter = arraysf_iterator_FREE;
+   arraysf_t  *   array    = 0;
+   testnode_t *   nodes;
+   arraysf_node_t*removed_node;
+   size_t         nextpos;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraysf(&array, 256, bitsof(size_t)-8)) ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
+   TEST(0 == new_arraysf(&array, 256, bitsof(size_t)-8));
    for (size_t i = 0; i < nrnodes; ++i) {
-      nodes[i] = (testnode_t)  { .node = arraysf_node_INIT(i) } ;
-      TEST(0 == insert_arraysf(array, &nodes[i].node, 0, 0)) ;
+      nodes[i] = (testnode_t)  { .node = arraysf_node_INIT(i) };
+      TEST(0 == insert_arraysf(array, &nodes[i].node, 0, 0));
    }
 
    // TEST arraysf_iterator_FREE
-   TEST(0 == iter.stack) ;
+   TEST(0 == iter.stack);
    TEST(0 == iter.array) ;
    TEST(0 == iter.ri) ;
 
@@ -1391,9 +1388,21 @@ int unittest_ds_inmem_arraysf()
    if (test_iterator())       goto ONERR;
    if (test_generic())        goto ONERR;
 
-   return 0 ;
+   // adapt LOG buffer ("posshift=25" replaced with posshift=XX"
+   // (sizeof(size_t) differs on architectures))
+   uint8_t* logbuffer = 0;
+   size_t   logsize   = 0;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   char * pos = (char*)logbuffer;
+   while ((pos=strstr(pos, "\nposshift="))) {
+      pos += strlen("\nposshift=");
+      *pos++='X';
+      *pos++='X';
+   }
+
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

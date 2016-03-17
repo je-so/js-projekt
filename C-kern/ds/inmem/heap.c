@@ -240,13 +240,13 @@ int insert_heap(heap_t * heap, const void * elem)
    if (heap->nrofelem == heap->maxnrofelem) return ENOMEM;
 
    INITCOPYTYPE;
-   unsigned i = heap->nrofelem ++;
-   unsigned child = i * heap->elemsize;
+   size_t i = heap->nrofelem ++;
+   size_t child = i * heap->elemsize;
 
    while (i > 0) {
       i = (i - 1);
 
-      unsigned parent = child - heap->elemsize;
+      size_t parent = child - heap->elemsize;
       if (i&1) parent -= heap->elemsize;
       i /= 2;
       parent /= 2;
@@ -276,10 +276,10 @@ int remove_heap(heap_t * heap, /*out*/void * elem)
       const size_t cmaxoff = heap->nrofelem * heap->elemsize;
       const size_t pmaxoff = (heap->nrofelem / 2) * heap->elemsize;
 
-      unsigned parent = 0;
+      size_t parent = 0;
 
       while (parent < pmaxoff) {
-         unsigned child = (2 * parent) + heap->elemsize;
+         size_t child = (2 * parent) + heap->elemsize;
 
          size_t swapelem = cmaxoff;
          if (ISSWAP(ELEM(swapelem), ELEM(child))) {
@@ -410,7 +410,7 @@ static int test_initfree(void)
    }
 
    // TEST init_heap: init data field
-   for (unsigned i = 1; i < 256; ++i) {
+   for (uintptr_t i = 1; i < 256; ++i) {
       memset(&heap, 0, sizeof(heap));
       TEST(0 == init_heap(&heap, (uint8_t)i, 0, 1+i, (void*)i, &compare_long, (void*)(2*i)));
       TEST(heap.cmp == &compare_long);
@@ -423,7 +423,7 @@ static int test_initfree(void)
 
    // TEST init_heap: build heap from ascending / descending elements
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += (unsigned)sizeof(long)-1) {
          for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             for (unsigned len = 1; len <= 255; ++len) {
                for (unsigned isasc = 0; isasc <= 1;  ++isasc) {
@@ -455,8 +455,8 @@ static int test_initfree(void)
 
    // TEST init_heap: build heap from random order
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
-         for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
+      for (size_t basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+         for (size_t elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             long array[5*255];
             memset(array, 0, sizeof(array));
             for (unsigned i = 0; i < 255; ++i) {
@@ -491,7 +491,7 @@ static int test_initfree(void)
 
    // TEST init_heap: build heap from equal elements
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += (unsigned)sizeof(long)-1) {
          for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             for (unsigned isasc = 0; isasc <= 1;  ++isasc) {
                long array[5*256];
@@ -553,7 +553,7 @@ static int test_query(void)
 
    // TEST invariant_heap: ascending, descending, equal
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += sizeof(long)-1) {
+      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += (unsigned)sizeof(long)-1) {
          for (unsigned isasc = 0; isasc <= 1; ++isasc) {
             unsigned len = lengthof(array);
             memset(array, 0, sizeof(array));
@@ -583,7 +583,7 @@ static int test_query(void)
 
    // TEST invariant_heap: EINVARIANT
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += sizeof(long)-1) {
+      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += (unsigned)sizeof(long)-1) {
          for (unsigned isasc = 0; isasc <= 1; ++isasc) {
             for (unsigned len = lengthof(array)-5; len <= lengthof(array); ++len) {
                memset(array, 0, sizeof(array));
@@ -653,7 +653,7 @@ static int test_foreach(void)
 
    // TEST foreach_heap: different element sizes
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += (unsigned)sizeof(long)-1) {
          for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             for (unsigned len = 1; len <= 255; ++len) {
                // fill array
@@ -701,7 +701,7 @@ static int test_update(void)
 
    // TEST insert_heap, remove_heap: ascending, descending
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += (unsigned)sizeof(long)-1) {
          for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             for (unsigned len = 1; len <= 255; ++len) {
                if (len == 32) len = 240;
@@ -751,7 +751,7 @@ static int test_update(void)
 
    // TEST insert_heap, remove_heap: equal elements
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += sizeof(long)-1) {
+      for (unsigned elemsize = 1; elemsize <= sizeof(long); elemsize += (unsigned)sizeof(long)-1) {
          for (unsigned len = 240; len <= 250; ++len) {
             for (unsigned isasc = 0; isasc <= 1;  ++isasc) {
                TEST(0 == init_heap(&heap, (uint8_t)elemsize, 0, len, array,
@@ -798,7 +798,7 @@ static int test_update(void)
 
    // TEST insert_heap, remove_heap: random
    for (unsigned ismin = 0; ismin <= 1; ++ismin) {
-      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += sizeof(long)-1) {
+      for (unsigned basesize = 1; basesize <= sizeof(long); basesize += (unsigned)sizeof(long)-1) {
          for (unsigned elemsize = basesize; elemsize <= 5*basesize; elemsize += basesize) {
             for (unsigned len = 250; len <= 255; ++len) {
                TEST(0 == init_heap(&heap, (uint8_t)elemsize, 0, len, array,
@@ -877,15 +877,15 @@ static int test_time(void)
    heap_t     heap  = heap_FREE;
    systimer_t timer = systimer_FREE;
    size_t     len   = 100000;
-   long *     a;
+   unsigned long * a;
    memblock_t mblock = memblock_FREE;
 
    // prepare
-   TEST(0 == ALLOC_MM(len * sizeof(long), &mblock));
-   a = (long*) mblock.addr;
+   TEST(0 == ALLOC_MM(len * sizeof(unsigned long), &mblock));
+   a = (unsigned long*) mblock.addr;
 
    // measure time init_heap
-   for (long i = 0; i < (long)len; ++i) {
+   for (unsigned long i = 0; i < len; ++i) {
       a[i] = i;
    }
    TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
@@ -898,22 +898,23 @@ static int test_time(void)
    // measure time insert_heap
    TEST(0 == init_heap(&heap, sizeof(long), 0, len, a, &compare_long, 0));
    TEST(0 == startinterval_systimer(timer, &(struct timevalue_t){.nanosec = 1000000}));
-   for (long i = 0; i < (long)len; ++i) {
+   for (unsigned long i = 0; i < len; ++i) {
       TEST(0 == insert_heap(&heap, &i));
    }
    uint64_t time2_ms;
    TEST(0 == expirationcount_systimer(timer, &time2_ms));
    TEST(0 == invariant_heap(&heap));
 
-   // measure time for remove_heap
-   for (long i = 0; i < (long)len; ++i) {
+   // measure time for remove_hea917p
+   for (unsigned long i = 0; i < len; ++i) {
       a[i] = i;
    }
-   TEST(0 == init_heap(&heap, sizeof(long), len, len, a, &compare_long, 0));
+   TEST(0 == init_heap(&heap, sizeof(unsigned long), len, len, a, &compare_long, 0));
    TEST(0 == startinterval_systimer(timer, &(struct timevalue_t){.nanosec = 1000000}));
-   for (size_t i = 0; i < len; ++i) {
-      long v[2];
+   for (unsigned long i = 0; i < len; ++i) {
+      unsigned long v;
       TEST(0 == remove_heap(&heap, &v));
+      TEST(v == len-1-i);
    }
    uint64_t time3_ms;
    TEST(0 == expirationcount_systimer(timer, &time3_ms));

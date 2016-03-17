@@ -77,7 +77,7 @@ static inline int init_syscontext(/*out*/struct syscontext_t * scontext)
 {
    int err;
 
-   uint32_t pagesize = (uint32_t) sys_pagesize_vm();
+   size_t pagesize = sys_pagesize_vm();
 
    if (PROCESS_testerrortimer(&s_syscontext_errtimer, &err)) {
       pagesize = 0;
@@ -294,18 +294,18 @@ static int test_init(void)
 
    // TEST initrun_syscontext: argument
    s_retcode = 0;
-   for (int i = 10; i >= 0; --i) {
+   for (uintptr_t i = 0; i <= 10; ++i) {
       TEST(0 == initrun_syscontext(&sc, &main_testthread, (void*)i));
       TEST(1 == isfree_syscontext(&sc));
-      TEST(i == (int) s_userarg);
+      TEST(i == (uintptr_t) s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
 
    // TEST initrun_syscontext: return code
-   for (int i = 10; i >= 0; --i) {
-      s_retcode = i;
+   s_retcode = 0;
+   for (unsigned i = 0; i <= 10; ++i, ++s_retcode) {
       s_userarg = (void*) 1;
-      TEST(i == initrun_syscontext(&sc, &main_testthread, 0));
+      TEST(i == (unsigned) initrun_syscontext(&sc, &main_testthread, 0));
       TEST(1 == isfree_syscontext(&sc));
       TEST(0 == s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
@@ -318,19 +318,20 @@ static int test_init(void)
    TEST(0 != pthread_equal(s_thread, pthread_self()));
 
    // TEST initrun_syscontext: simulated ERROR
-   for (unsigned i = 1; i; ++i) {
+   s_retcode = 0;
+   for (unsigned i = 1; ; ++i) {
       init_testerrortimer(&s_syscontext_errtimer, i, 333);
       s_userarg = 0;
       int err = initrun_syscontext(&sc, &main_testthread, (void*)1);
       TEST(1 == isfree_syscontext(&sc));
-      TEST((i > 6) == (int) s_userarg);
+      TEST((i > 6) == (intptr_t) s_userarg);
       if (!err) {
          TEST(10 == i);
          TEST(-1 == read(pfd.read, buffer, sizeof(buffer)));
          free_testerrortimer(&s_syscontext_errtimer);
          break;
       }
-      TEST((i < 4 ? EINVAL : 333) == err);
+      TESTP((i < 4 ? EINVAL : 333) == err, "i:%d err:%d", i, err);
       ssize_t len = read(pfd.read, buffer, sizeof(buffer));
       TESTP(165 < len, "len=%zd", len);
       buffer[len] = 0;

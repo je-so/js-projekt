@@ -229,7 +229,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
          unsigned major, minor ;
          unsigned long inode ;
          int scanned_items = sscanf((char*)(buffer+line_start),
-                  "%" SCNxPTR "-%" SCNxPTR " %c%c%c%c %llx %02x:%02x %lu ",
+                  "%" SCNxPTR "-%" SCNxPTR " %c%c%c%c %"SCNx64" %02x:%02x %lu ",
                   &start, &end,
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode) ;
@@ -448,10 +448,10 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator)
 
 int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes, accessmode_e access_mode)
 {
-   int    err ;
-   int    prot ;
-   const size_t   pgsize       = pagesize_vm() ;
-   size_t         aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1) ;
+   int    err;
+   int    prot;
+   const size_t   pgsize       = pagesize_vm();
+   size_t         aligned_size = (size_in_bytes + (pgsize-1)) & ~(pgsize-1);
 
    VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)), ONERR,);
    VALIDATE_INPARAM_TEST(size_in_bytes > 0, ONERR,);
@@ -984,8 +984,8 @@ static int test_vmpage(void)
    }
 
    // TEST init_vmpage: EINVAL
-   TEST(EINVAL == init_vmpage(&page, 0)) ;
-   TEST(EINVAL == init_vmpage(&page, 1 + (SIZE_MAX & ~(pagesize_vm()-1)))) ;
+   TEST(EINVAL == init_vmpage(&page, 0));
+   TEST(EINVAL == init_vmpage(&page, 1 + (SIZE_MAX & ~(pagesize_vm()-1))));
 
    // TEST init2_vmpage: EINVAL
    TEST(EINVAL == init2_vmpage(&page, 0, accessmode_RDWR)) ;

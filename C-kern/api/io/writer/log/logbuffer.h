@@ -47,17 +47,17 @@ int unittest_io_writer_log_logbuffer(void);
 struct logbuffer_t {
    /* variable: addr
     * Holds start address of memory buffer. */
-   uint8_t *         addr;
+   uint8_t *       addr;
    /* variable: size
     * Holds size in bytes of memory buffer. */
-   uint32_t          size;
+   size_t          size;
    /* variable: logsize
     * Stores the size in bytes of the buffered log entries.
     * If the buffer is empty logsize is 0. */
-   uint32_t          logsize;
+   size_t          logsize;
    /* variable: io
     * Holds iochannel the log is written to. */
-   sys_iochannel_t   io;
+   sys_iochannel_t io;
 };
 
 // group: lifetime
@@ -79,7 +79,7 @@ struct logbuffer_t {
 
 /* function: init_logbuffer
  * Initializes object. No additional resources are allocated. */
-int init_logbuffer(/*out*/logbuffer_t * logbuf, uint32_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io);
+int init_logbuffer(/*out*/logbuffer_t * logbuf, size_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io);
 
 /* function: free_logbuffer
  * Clears all members. The memory is not freed it is considered managed by the calling object.
@@ -91,15 +91,15 @@ int free_logbuffer(logbuffer_t * logbuf);
 /* function: sizefree_logbuffer
  * Returns free size usable by the next written entry.
  * Call <write_logbuffer> if this value is less than log_config_MINSIZE+"terminating \0 byte". */
-uint32_t sizefree_logbuffer(const logbuffer_t * logbuf);
+static inline size_t sizefree_logbuffer(const logbuffer_t * logbuf);
 
 /* function: io_logbuffer
  * Returns the <iochannel_t> the content of the buffer is written to. */
-sys_iochannel_t io_logbuffer(const logbuffer_t * logbuf);
+static inline sys_iochannel_t io_logbuffer(const logbuffer_t * logbuf);
 
 /* function: getbuffer_logbuffer
  * Returns the start address of the memory buffer and size of written log. */
-void getbuffer_logbuffer(const logbuffer_t * logbuf, /*out*/uint8_t ** addr, /*out*/size_t * logsize);
+static inline void getbuffer_logbuffer(const logbuffer_t * logbuf, /*out*/uint8_t ** addr, /*out*/size_t * logsize);
 
 /* function: compare_logbuffer
  * Returns 0 if logbuffer compares equal to content in logbuf.
@@ -112,7 +112,7 @@ int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t 
 
 /* function: truncate_logbuffer
  * Resets buffer length to smaller size without writting it out. */
-void truncate_logbuffer(logbuffer_t * logbuf, size_t size);
+static inline void truncate_logbuffer(logbuffer_t * logbuf, size_t size);
 
 /* function: write_logbuffer
  * Writes (flushes) the buffer to the configured io channel.
@@ -141,41 +141,35 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args);
 
 /* define: truncate_logbuffer
  * Implements <logbuffer_t.truncate_logbuffer>. */
-#define truncate_logbuffer(logbuf, size) \
-         do {                          \
-            logbuffer_t * _lb;         \
-            size_t _sz;                \
-            _lb = (logbuf);            \
-            _sz = (size);              \
-            if (_sz < _lb->logsize) {  \
-               _lb->addr[_sz] = 0;     \
-               _lb->logsize   = _sz;   \
-            }                          \
-         } while(0)
+static inline void truncate_logbuffer(logbuffer_t * logbuf, size_t size)
+{
+            if (size < logbuf->logsize) {
+               logbuf->addr[size] = 0;
+               logbuf->logsize    = size;
+            }
+}
 
 /* define: getbuffer_logbuffer
  * Implements <logbuffer_t.getbuffer_logbuffer>. */
-#define getbuffer_logbuffer(logbuf, _addr, _logsize) \
-         ( __extension__ ({               \
-            const logbuffer_t * _lb;      \
-            _lb = (logbuf);               \
-            *(_addr)    = _lb->addr;      \
-            *(_logsize) = _lb->logsize;   \
-         }))
-
+static inline void getbuffer_logbuffer(const logbuffer_t * logbuf, /*out*/uint8_t ** addr, /*out*/size_t * logsize)
+{
+         *addr    = logbuf->addr;
+         *logsize = logbuf->logsize;
+}
 
 /* define: io_logbuffer
  * Implements <logbuffer_t.io_logbuffer>. */
-#define io_logbuffer(logbuf)  \
-         ((logbuf)->io)
+static inline sys_iochannel_t io_logbuffer(const logbuffer_t * logbuf)
+{
+         return logbuf->io;
+}
 
 /* define: sizefree_logbuffer
  * Implements <logbuffer_t.sizefree_logbuffer>. */
-#define sizefree_logbuffer(logbuf) \
-         ( __extension__ ({            \
-            const logbuffer_t * _lb;   \
-            _lb = (logbuf);            \
-            _lb->size - _lb->logsize;  \
-         }))
+static inline size_t sizefree_logbuffer(const logbuffer_t * logbuf)
+
+{
+         return logbuf->size - logbuf->logsize;
+}
 
 #endif

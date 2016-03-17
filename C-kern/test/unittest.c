@@ -1003,7 +1003,7 @@ ONERR:
 
 static void call_test_macro(void)
 {
-   int bytes;
+   ssize_t bytes;
    TEST(1);
    bytes = write(STDOUT_FILENO, "X", 1);
    (void) bytes;
@@ -1019,7 +1019,7 @@ ONERR:
 
 static void call_testp_macro(void)
 {
-   int bytes;
+   ssize_t bytes;
    TESTP(1 == 1, "%d %d", 1, 2);
    bytes = write(STDOUT_FILENO, "X", 1);
    (void) bytes;

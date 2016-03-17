@@ -25,7 +25,6 @@
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/exthash.h"
 #include "C-kern/api/string/string.h"
-#include "C-kern/api/test/assert.h"
 #include <glob.h>
 #include <pwd.h>
 
@@ -615,7 +614,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
       hash_entry_subclass_t * hash_entry ;
       string_t  hashkey = string_INIT(varEnd-varStart, (const uint8_t*)&linebuffer[varStart]) ;
       if (find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
-         print_err( "line %d undefined value $(%.*s) used in file '%s'\n", lineNr, varEnd-varStart, &linebuffer[varStart], filename ) ;
+         print_err( "line %d undefined value $(%.*s) used in file '%s'\n", lineNr, (int)(varEnd-varStart), &linebuffer[varStart], filename ) ;
          err = 1 ;
          break ;
       }
@@ -738,7 +737,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
          print_err( "line %d expected cmdline-variable after %s in file '%s'\n", lineNr, g_cmdInclude, filename );
          return 1;
       } else if (matchedCommand != CmdIfdef && paramLen) {
-         print_err( "line %d expected no parameter after %.*s in file '%s'\n", lineNr, idLen, &linebuffer[idStart], filename);
+         print_err( "line %d expected no parameter after %.*s in file '%s'\n", lineNr, (int)idLen, &linebuffer[idStart], filename);
          return 1;
       }
    } else if (strlen(g_cmdInclude) == idLen && !strncmp(&linebuffer[idStart], g_cmdInclude, idLen)) {
@@ -1324,7 +1323,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                /* ifdef COMMAND_LINE_VARIABLE_NAME / else / endif */
                if (CmdIfdef == parsed.command) {
                   if (prj_file_stack[0].isIfdefOrElse) {
-                     print_err( "'%s':%d: expected endif instead of %s %.*s\n", prj_file_stack[0].name, lineNr, g_cmdIfdef, parsed.paramLen, &linebuffer[parsed.paramStart]);
+                     print_err( "'%s':%d: expected endif instead of %s %.*s\n", prj_file_stack[0].name, lineNr, g_cmdIfdef, (int)parsed.paramLen, &linebuffer[parsed.paramStart]);
                      err = 1;
                      break;
                   }
@@ -1337,7 +1336,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                         isKnown = 1;
                         if (g_cmdlineVariables[i].isDefined < 0) {
                            printf("\n");
-                           int ch = write(STDOUT_FILENO, "Define command line variable '", 30);
+                           ssize_t ch = write(STDOUT_FILENO, "Define command line variable '", 30);
                            ch = write(STDOUT_FILENO, g_cmdlineVariables[i].name, g_cmdlineVariables[i].len);
                            ch = write(STDOUT_FILENO, "'? [Y/n]:", 9);
                            ch = getchar();
@@ -1349,7 +1348,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                   }
                   if (!isKnown) {
                      prj_file_stack[0].isIgnore = 1;
-                     print_warn("'%s':%d: unknown variable '%.*s'\n", prj_file_stack[0].name, lineNr, parsed.paramLen, &linebuffer[parsed.paramStart]);
+                     print_warn("'%s':%d: unknown variable '%.*s'\n", prj_file_stack[0].name, lineNr, (int)parsed.paramLen, &linebuffer[parsed.paramStart]);
                   }
                } else if (CmdElse == parsed.command) {
                   if (CmdIfdef != prj_file_stack[0].isIfdefOrElse) {
@@ -1643,7 +1642,7 @@ int write_makefile(
    struct passwd * user = getpwuid(getuid()) ;
    size_t userlen = user ? strlen(user->pw_gecos) : 1 ;
    if (strchr(user->pw_gecos,',')) userlen = (size_t) (strchr(user->pw_gecos,',') - user->pw_gecos) ;
-   fprintf(makefile, "GeneratedBy     := %.*s\n", userlen, user?user->pw_gecos:"?") ;
+   fprintf(makefile, "GeneratedBy     := %.*s\n", (int)userlen, user?user->pw_gecos:"?") ;
 
    for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n## %s\n", konfig->modes[m]) ;
@@ -1806,7 +1805,7 @@ PRINT_USAGE:
    fprintf(stderr, "-v?VAR\n -> Query user if variable VAR should be enabled or disabled\n");
    fprintf(stderr, "-v+VAR\n -> Command line variable VAR should be enabled\n");
    fprintf(stderr, "-v-VAR\n -> Command line variable VAR should be disabled\n");
-   fprintf(stderr, "    (Up to %d variables are supported)\n", lengthof(g_cmdlineVariables));
+   fprintf(stderr, "    (Up to %zd variables are supported)\n", lengthof(g_cmdlineVariables));
 
 
    if (isPrintHelp) {

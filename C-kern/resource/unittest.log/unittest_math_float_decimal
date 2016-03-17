@@ -1,236 +1,236 @@
-[1: 1443695038.879408s]
-new_decimal() C-kern/math/float/decimal.c:1467
+[1: 1458127447.559757s]
+new_decimal() C-kern/math/float/decimal.c:1458
 Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.879418s]
-new_decimal() C-kern/math/float/decimal.c:1467
+[1: 1458127447.559773s]
+new_decimal() C-kern/math/float/decimal.c:1458
 Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.879420s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.559776s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879423s]
-new_decimal() C-kern/math/float/decimal.c:1479
+[1: 1458127447.559778s]
+new_decimal() C-kern/math/float/decimal.c:1470
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879425s]
-delete_decimal() C-kern/math/float/decimal.c:1500
+[1: 1458127447.559780s]
+delete_decimal() C-kern/math/float/decimal.c:1491
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879855s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.560196s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879858s]
-setPi32_decimal() C-kern/math/float/decimal.c:1800
+[1: 1458127447.560201s]
+setPi32_decimal() C-kern/math/float/decimal.c:1791
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879860s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.560208s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879862s]
-setPi64_decimal() C-kern/math/float/decimal.c:1839
+[1: 1458127447.560209s]
+setPi64_decimal() C-kern/math/float/decimal.c:1830
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695038.879864s]
-setPi32_decimal() C-kern/math/float/decimal.c:1800
+[1: 1458127447.560211s]
+setPi32_decimal() C-kern/math/float/decimal.c:1791
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.879866s]
-setPi32_decimal() C-kern/math/float/decimal.c:1800
+[1: 1458127447.560213s]
+setPi32_decimal() C-kern/math/float/decimal.c:1791
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.879868s]
-setPi64_decimal() C-kern/math/float/decimal.c:1839
+[1: 1458127447.560216s]
+setPi64_decimal() C-kern/math/float/decimal.c:1830
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.879870s]
-setPi64_decimal() C-kern/math/float/decimal.c:1839
+[1: 1458127447.560218s]
+setPi64_decimal() C-kern/math/float/decimal.c:1830
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906417s]
-setPfloat_decimal() C-kern/math/float/decimal.c:1854
+[1: 1458127447.586703s]
+setPfloat_decimal() C-kern/math/float/decimal.c:1845
 Function input violates condition (isfinite(value))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906420s]
-setPfloat_decimal() C-kern/math/float/decimal.c:1854
+[1: 1458127447.586706s]
+setPfloat_decimal() C-kern/math/float/decimal.c:1845
 Function input violates condition (isfinite(value))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906422s]
-setPfloat_decimal() C-kern/math/float/decimal.c:1854
+[1: 1458127447.586709s]
+setPfloat_decimal() C-kern/math/float/decimal.c:1845
 Function input violates condition (isfinite(value))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906464s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586764s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906467s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586766s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906469s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586767s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906470s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586769s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906472s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586771s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906474s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586773s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906476s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586774s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906478s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586776s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906479s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586778s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906481s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586779s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906483s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586781s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.906485s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586783s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906487s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586785s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906488s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586788s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906490s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586790s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906495s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586795s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906499s]
-setPchar_decimal() C-kern/math/float/decimal.c:2222
+[1: 1458127447.586799s]
+setPchar_decimal() C-kern/math/float/decimal.c:2213
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906628s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.586931s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906630s]
-add_decimalhelper() C-kern/math/float/decimal.c:613
+[1: 1458127447.586933s]
+add_decimalhelper() C-kern/math/float/decimal.c:603
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906632s]
-add_decimal() C-kern/math/float/decimal.c:2244
+[1: 1458127447.586935s]
+add_decimal() C-kern/math/float/decimal.c:2235
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906637s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.586937s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906638s]
-sub_decimalhelper() C-kern/math/float/decimal.c:793
+[1: 1458127447.586941s]
+sub_decimalhelper() C-kern/math/float/decimal.c:783
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906640s]
-sub_decimal() C-kern/math/float/decimal.c:2263
+[1: 1458127447.586943s]
+sub_decimal() C-kern/math/float/decimal.c:2254
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906642s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.586945s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906644s]
-add_decimalhelper() C-kern/math/float/decimal.c:613
+[1: 1458127447.586947s]
+add_decimalhelper() C-kern/math/float/decimal.c:603
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906645s]
-add_decimal() C-kern/math/float/decimal.c:2244
+[1: 1458127447.586948s]
+add_decimal() C-kern/math/float/decimal.c:2235
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906647s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.586950s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906649s]
-sub_decimalhelper() C-kern/math/float/decimal.c:793
+[1: 1458127447.586952s]
+sub_decimalhelper() C-kern/math/float/decimal.c:783
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.906650s]
-sub_decimal() C-kern/math/float/decimal.c:2263
+[1: 1458127447.586953s]
+sub_decimal() C-kern/math/float/decimal.c:2254
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960779s]
-allocate_decimalhelper() C-kern/math/float/decimal.c:432
+[1: 1458127447.642178s]
+allocate_decimalhelper() C-kern/math/float/decimal.c:422
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960782s]
-mult_decimal() C-kern/math/float/decimal.c:2313
+[1: 1458127447.642183s]
+mult_decimal() C-kern/math/float/decimal.c:2304
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960785s]
-mult_decimal() C-kern/math/float/decimal.c:2313
+[1: 1458127447.642186s]
+mult_decimal() C-kern/math/float/decimal.c:2304
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960787s]
-mult_decimal() C-kern/math/float/decimal.c:2313
+[1: 1458127447.642188s]
+mult_decimal() C-kern/math/float/decimal.c:2304
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960804s]
-divi32_decimal() C-kern/math/float/decimal.c:2394
+[1: 1458127447.642203s]
+divi32_decimal() C-kern/math/float/decimal.c:2385
 Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.960806s]
-divi32_decimal() C-kern/math/float/decimal.c:2394
+[1: 1458127447.642205s]
+divi32_decimal() C-kern/math/float/decimal.c:2385
 Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.960809s]
-divi32_decimal() C-kern/math/float/decimal.c:2425
+[1: 1458127447.642207s]
+divi32_decimal() C-kern/math/float/decimal.c:2416
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960811s]
-divi32_decimal() C-kern/math/float/decimal.c:2425
+[1: 1458127447.642209s]
+divi32_decimal() C-kern/math/float/decimal.c:2416
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960938s]
-div_decimal() C-kern/math/float/decimal.c:2385
+[1: 1458127447.642334s]
+div_decimal() C-kern/math/float/decimal.c:2376
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695038.960940s]
-div_decimal() C-kern/math/float/decimal.c:2385
+[1: 1458127447.642340s]
+div_decimal() C-kern/math/float/decimal.c:2376
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960942s]
-div_decimal() C-kern/math/float/decimal.c:2385
+[1: 1458127447.642342s]
+div_decimal() C-kern/math/float/decimal.c:2376
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1443695038.960944s]
-div_decimal() C-kern/math/float/decimal.c:2385
+[1: 1458127447.642343s]
+div_decimal() C-kern/math/float/decimal.c:2376
 Exit function with
 Error 75 - Value too large for defined data type

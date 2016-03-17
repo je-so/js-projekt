@@ -41,7 +41,7 @@ int initcopy_convertwchar(/*out*/convert_wchar_t * restrict dest, const convert_
 int skip_convertwchar(convert_wchar_t * conv, size_t char_count)
 {
    int err ;
-   for(size_t i = char_count; i; --i) {
+   for (size_t i = char_count; i; --i) {
       wchar_t  dummy ;
 
       if (!conv->len) {
@@ -73,7 +73,7 @@ int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t *
 
    memcpy( &conv2, conv, sizeof(convert_wchar_t)) ;
 
-   for(size_t i = 0; i < char_count; ++i) {
+   for (size_t i = 0; i < char_count; ++i) {
 
       if (!conv2.len) {
          wchar_array[i] = 0 ;
@@ -129,61 +129,48 @@ static int test_fromutf8(void)
       ,{ /*utf8*/"\xf0\x90\x8e\xa3\xf0\x90\x8e\xa4\xf0\x90\x8e\xa5", L"\x103A3\x103A4\x103A5" }
       ,{ 0, 0 }
    } ;
-   for(int i = 0; testcases[i].cstring ; ++i) {
-      wchar_t next_wchar ;
+   for (unsigned i = 0; testcases[i].cstring; ++i) {
+      wchar_t next_wchar;
       TEST(0 == init_convertwchar(&conv, strlen(testcases[i].cstring), testcases[i].cstring)) ;
-      convert_wchar_t conv2 ;
-      TEST(0 == initcopy_convertwchar(&conv2, &conv)) ;
+      convert_wchar_t conv2;
+      TEST(0 == initcopy_convertwchar(&conv2, &conv));
       // skip
-      for(int len = 0; testcases[i].wstring[len]; ++len) {
+      for (unsigned len = 0; testcases[i].wstring[len]; ++len) {
          convert_wchar_t conv3 ;
          TEST(0 == initcopy_convertwchar(&conv3, &conv2)) ;
-         TEST(0 == skip_convertwchar(&conv3, (size_t)len)) ;
+         TEST(0 == skip_convertwchar(&conv3, len)) ;
          TEST(0 == next_convertwchar( &conv3, &next_wchar )) ;
          TEST(next_wchar == testcases[i].wstring[len]) ;
          TEST(0 == free_convertwchar(&conv3)) ;
          if (!testcases[i].wstring[len+1]) {
-            TEST(0 == initcopy_convertwchar(&conv3, &conv2)) ;
-            TEST(ENODATA == skip_convertwchar(&conv3, (size_t)len+2)) ;
-            TEST(conv3.len  == 0) ;
-            TEST(conv3.next == testcases[i].cstring + strlen(testcases[i].cstring)) ;
-            TEST(0 == free_convertwchar(&conv3)) ;
+            TEST(0 == initcopy_convertwchar(&conv3, &conv2));
+            TEST(ENODATA == skip_convertwchar(&conv3, len+2));
+            TEST(conv3.len  == 0);
+            TEST(conv3.next == testcases[i].cstring + strlen(testcases[i].cstring));
+            TEST(0 == free_convertwchar(&conv3));
          }
       }
-      // peek
-      for(int len = 0; testcases[i].wstring[len-1]; ++len) {
-         wchar_t wchar_array[10] = {0} ;
+      // TEST peek_convertwchar: range 0..wstrlen(testcases[i].wstring)+1
+      for (unsigned len = 0; len <= 1 || testcases[i].wstring[len-2]; ++len) {
+         wchar_t peek_result[10] = {0};
          convert_wchar_t conv3 ;
-         assert( len < 10 ) ;
-         TEST(0 == initcopy_convertwchar(&conv3, &conv2)) ;
-         TEST(0 == peek_convertwchar(&conv3, (size_t)len, wchar_array )) ;
-         for(int len2 = 0; len2 < 10; ++len2) {
-            if (len2 < len) {
-               TEST(wchar_array[len2] == testcases[i].wstring[len2]) ;
-            } else {
-               TEST(wchar_array[len2] == 0) ;
-            }
+         TEST(len < 10);
+         TEST(0 == initcopy_convertwchar(&conv3, &conv2));
+         // test (in case len == wstrlen(testcases[i].wstring)+1) value 0 is returned
+         TEST(0 == peek_convertwchar(&conv3, len, peek_result));
+         // check conv3 unchanged
+         TEST(conv3.len  == strlen(testcases[i].cstring));
+         TEST(conv3.next == testcases[i].cstring);
+         TEST(0 == next_convertwchar(&conv3, &next_wchar));
+         TEST(next_wchar == testcases[i].wstring[0]);
+         // check peek_result
+         for (unsigned len2 = 0; len2 < lengthof(peek_result); ++len2) {
+            TEST(peek_result[len2] == (len2 < len ? testcases[i].wstring[len2] : 0));
          }
-         TEST(0 == next_convertwchar( &conv3, &next_wchar )) ;
-         TEST(next_wchar == testcases[i].wstring[0]) ;
-         TEST(0 == free_convertwchar(&conv3)) ;
-         if (!testcases[i].wstring[len]) {
-            TEST(0 == initcopy_convertwchar(&conv3, &conv2)) ;
-            TEST(0 == peek_convertwchar(&conv3, (size_t)len+1, wchar_array)) ;
-            TEST(conv3.len  == strlen(testcases[i].cstring)) ;
-            TEST(conv3.next == testcases[i].cstring) ;
-            for(int len2 = 0; len2 < 10; ++len2) {
-               if (len2 < len) {
-                  TEST(wchar_array[len2] == testcases[i].wstring[len2]) ;
-               } else {
-                  TEST(wchar_array[len2] == 0) ;
-               }
-            }
-            TEST(0 == free_convertwchar(&conv3)) ;
-         }
+         TEST(0 == free_convertwchar(&conv3));
       }
       // next + copy
-      for(int len = 0; testcases[i].wstring[len]; ++len) {
+      for (unsigned len = 0; testcases[i].wstring[len]; ++len) {
          {
             convert_wchar_t conv3 ;
             TEST(0 == initcopy_convertwchar(&conv3, &conv2)) ;
@@ -263,10 +250,10 @@ static int test_fromutf8(void)
       TEST(0 == free_convertwchar(&conv)) ;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) free_convertwchar(&conv) ;
-   return EINVAL ;
+   (void) free_convertwchar(&conv);
+   return EINVAL;
 }
 
 static int childprocess_unittest(void)

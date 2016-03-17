@@ -36,9 +36,9 @@ static int test_initfree(void)
    TEST(0 == mblock.size);
 
    // TEST addr_memblock & size_memblock
-   for (unsigned i = 0; i < 299; ++i) {
+   for (uintptr_t i = 0; i < 299; ++i) {
       mblock = (memblock_t) { .addr = (uint8_t*) (10 * i), .size = i+5 };
-      TEST((uint8_t*) (10*i) == addr_memblock(&mblock));
+      TEST( 10*i == (uintptr_t) addr_memblock(&mblock));
       TEST( 5 + i == size_memblock(&mblock));
    }
 
@@ -106,34 +106,34 @@ static int test_resize(void)
       if (i == 1000) i = 1000000-1000;
       mblock = (memblock_t) memblock_INIT(0, (uint8_t*)1000000);
       TEST(0 == growleft_memblock(&mblock, i));
-      TEST(addr_memblock(&mblock) == (uint8_t*)(1000000-i));
-      TEST(size_memblock(&mblock) == i);
+      TEST(1000000-i == (uintptr_t) addr_memblock(&mblock));
+      TEST(i == size_memblock(&mblock));
    }
 
    // TEST growleft_memblock ENOMEM
    mblock = (memblock_t) memblock_INIT(0, (uint8_t*)10000);
    TEST(ENOMEM == growleft_memblock(&mblock, 10000 + 1));
-   TEST(addr_memblock(&mblock) == (uint8_t*)10000);
-   TEST(size_memblock(&mblock) == 0);
+   TEST(10000 == (uintptr_t) addr_memblock(&mblock));
+   TEST(0 == size_memblock(&mblock));
 
    // TEST growright_memblock with 0
    mblock = (memblock_t) memblock_FREE;
-   TEST(0 == growright_memblock(&mblock, 0));
-   TEST(addr_memblock(&mblock) == 0);
-   TEST(size_memblock(&mblock) == 0);
+   TEST( 0 == growright_memblock(&mblock, 0));
+   TEST( 0 == addr_memblock(&mblock));
+   TEST( 0 == size_memblock(&mblock));
 
    // TEST growright_memblock with SIZE_MAX
    mblock = (memblock_t) memblock_FREE;
-   TEST(0 == growright_memblock(&mblock, SIZE_MAX));
-   TEST(addr_memblock(&mblock) == 0);
-   TEST(size_memblock(&mblock) == SIZE_MAX);
+   TEST( 0 == growright_memblock(&mblock, SIZE_MAX));
+   TEST( 0 == addr_memblock(&mblock));
+   TEST( SIZE_MAX == size_memblock(&mblock));
 
    // TEST growright_memblock
-   for (unsigned i = 0; i <= 1000000; ++i) {
+   for (uintptr_t i = 0; i <= 1000000; ++i) {
       mblock = (memblock_t) memblock_INIT((i/1000), (uint8_t*)(1000000+i));
-      TEST(0 == growright_memblock(&mblock, i));
-      TEST(addr_memblock(&mblock) == (uint8_t*)(1000000+i));
-      TEST(size_memblock(&mblock) == i+(i/1000));
+      TEST( 0 == growright_memblock(&mblock, i));
+      TEST( 1000000+i == (uintptr_t) addr_memblock(&mblock));
+      TEST( i +i/1000 == size_memblock(&mblock));
    }
 
    // TEST growright_memblock ENOMEM
@@ -142,8 +142,8 @@ static int test_resize(void)
    TEST(addr_memblock(&mblock) == (uint8_t*)10000);
    TEST(size_memblock(&mblock) == 65536);
    TEST(ENOMEM == growright_memblock(&mblock, SIZE_MAX-10000-65536+1/*addr overflows*/));
-   TEST(addr_memblock(&mblock) == (uint8_t*)10000);
-   TEST(size_memblock(&mblock) == 65536);
+   TEST(10000 == (uintptr_t) addr_memblock(&mblock));
+   TEST(65536 == size_memblock(&mblock));
 
    // TEST shrinkleft_memblock: incr == 0
    mblock = (memblock_t) memblock_FREE;
@@ -151,11 +151,11 @@ static int test_resize(void)
    TEST(isfree_memblock(&mblock));
 
    // TEST shrinkleft_memblock
-   for (unsigned i = 0; i < 1000000; ++i) {
+   for (uintptr_t i = 0; i < 1000000; ++i) {
       mblock = (memblock_t) memblock_INIT(1000000, (uint8_t*)(i/1000));
-      TEST(0 == shrinkleft_memblock(&mblock, i));
-      TEST(addr_memblock(&mblock) == (uint8_t*)((i/1000)+i));
-      TEST(size_memblock(&mblock) == 1000000 - i);
+      TEST( 0 == shrinkleft_memblock(&mblock, i));
+      TEST( i+i/1000  == (uintptr_t) addr_memblock(&mblock));
+      TEST( 1000000-i == size_memblock(&mblock));
    }
 
    // TEST shrinkleft_memblock ENOMEM
@@ -170,18 +170,18 @@ static int test_resize(void)
    TEST(isfree_memblock(&mblock));
 
    // TEST shrinkright_memblock
-   for (unsigned i = 0; i < 1000000; ++i) {
+   for (uintptr_t i = 0; i < 1000000; ++i) {
       mblock = (memblock_t) memblock_INIT(1000000, (uint8_t*)i);
-      TEST(0 == shrinkright_memblock(&mblock, i));
-      TEST(addr_memblock(&mblock) == (uint8_t*)i);
-      TEST(size_memblock(&mblock) == 1000000 - i);
+      TEST( 0 == shrinkright_memblock(&mblock, i));
+      TEST( i == (uintptr_t) addr_memblock(&mblock));
+      TEST( 1000000-i == size_memblock(&mblock));
    }
 
    // TEST shrinkright_memblock ENOMEM
    mblock = (memblock_t) memblock_INIT(10000, (uint8_t*)2);
    TEST(ENOMEM == shrinkleft_memblock(&mblock, 10000 + 1));
-   TEST(addr_memblock(&mblock) == (uint8_t*)2);
-   TEST(size_memblock(&mblock) == 10000);
+   TEST( 2     == (uintptr_t) addr_memblock(&mblock));
+   TEST( 10000 == size_memblock(&mblock));
 
    return 0;
 ONERR:

@@ -61,7 +61,7 @@ static int readsignal_perftest(perftest_t* ptest, bool isprepare)
    return err ? err : isabort ? ECANCELED : 0;
 }
 
-static int writesignal_perftest(perftest_t* ptest, bool isprepare, uint32_t nrsignal, uint8_t isabort)
+static int writesignal_perftest(perftest_t* ptest, bool isprepare, size_t nrsignal, uint8_t isabort)
 {
    int err;
    uint8_t buffer[256];
@@ -509,16 +509,17 @@ static int test_initfree(void)
 
    // TEST new_perftest: Fehler in new_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
-   for (int tc = 1; tc < 10; ++tc) {
-      init_testerrortimer(&s_perftest_errtimer, (unsigned)tc, tc);
-      TEST(tc == new_perftest(&ptest, &iimpl, 3, 1));
+   for (unsigned tc = 1; tc < 10; ++tc) {
+      const int E = (int)tc;
+      init_testerrortimer(&s_perftest_errtimer, tc, E);
+      TEST(E == new_perftest(&ptest, &iimpl, 3, 1));
       TEST(0 == ptest);
    }
 
    // TEST new_perftest: Fehler in processmain_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
-   for (int tc = 1; tc <= 3; ++tc) {
-      init_testerrortimer(&s_perftest_errtimer2, (unsigned)tc, tc);
+   for (unsigned tc = 1; tc <= 3; ++tc) {
+      init_testerrortimer(&s_perftest_errtimer2, tc, (int)tc);
       TEST(ECANCELED == new_perftest(&ptest, &iimpl, 5, 3));
       TEST(0 == ptest);
    }
@@ -526,10 +527,11 @@ static int test_initfree(void)
 
    // TEST delete_perftest: Fehler in delete_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
-   for (int tc = 1; tc < 8; ++tc) {
+   for (unsigned tc = 1; tc < 8; ++tc) {
+      const int E = (int)tc;
       TEST(0 == new_perftest(&ptest, &iimpl, 3, 1));
-      init_testerrortimer(&s_perftest_errtimer, (unsigned)tc, tc);
-      TEST(tc == delete_perftest(&ptest));
+      init_testerrortimer(&s_perftest_errtimer, tc, E);
+      TEST(E == delete_perftest(&ptest));
       TEST(0 == ptest);
    }
 
@@ -606,7 +608,7 @@ static int run_stats(perftest_instance_t* tinst)
 {
    test_stats_t* stats = sharedaddr_perftest(tinst->ptest);
    add_atomicint(&stats->count_run, 1);
-   tinst->addr = (void*) tinst->tid;
+   tinst->addr = (void*) (uintptr_t) tinst->tid;
    return tinst->tid == stats->errtid ? stats->run_err : 0;
 }
 
@@ -654,7 +656,7 @@ static int test_measure(void)
    TEST(ptest->nrinstance == (unsigned) stats->count_run);
    TEST(ptest->nrinstance == (unsigned) stats->count_unprepare);
    // prüfe Thread Instanzen einzeln
-   for (unsigned i = 0; i < ptest->nrinstance; ++i) {
+   for (uintptr_t i = 0; i < ptest->nrinstance; ++i) {
       TEST(ptest->tinst[i].thread == 0);
       TEST(ptest->tinst[i].nrops == i);
       TEST(ptest->tinst[i].addr  == (void*)i);

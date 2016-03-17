@@ -474,7 +474,7 @@ static int test_remove(directory_t* tempdir)
    // TEST remove_file
    for (unsigned i = 0; i < 10; ++i) {
       // create
-      const size_t datasize = i * 1000;
+      const off_t datasize = i * 1000;
       TEST(0 == makefile_directory(tempdir, "remove", datasize));
       TEST(0 == filesize_directory(tempdir, "remove", &filesize));
       TEST(filesize == datasize);
@@ -1186,12 +1186,12 @@ static int test_allocate(directory_t* tempdir)
       TEST(0 == write_file(file, sizeof(buffer), buffer, &bwritten));
       TEST(bwritten == sizeof(buffer));
       TEST(0 == size_file(file, &size));
-      TEST(size == sizeof(buffer)*i);
+      TEST(size == (off_t) (sizeof(buffer)*i));
    }
    for (unsigned i = 256; i >= 1; --i) {
-      TEST(0 == truncate_file(file, sizeof(buffer)*(i-1)));
+      TEST(0 == truncate_file(file, (off_t) (sizeof(buffer)*(i-1))));
       TEST(0 == size_file(file, &size));
-      TEST(size == sizeof(buffer)*(i-1));
+      TEST(size == (off_t)(sizeof(buffer)*(i-1)));
       TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
       for (unsigned i2 = 1; i2 < i; i2++) {
          memset(buffer2, 1, sizeof(buffer2));
@@ -1210,9 +1210,10 @@ static int test_allocate(directory_t* tempdir)
    TEST(0 == size_file(file, &size));
    TEST(size == 11);
    for (unsigned i = 1; i <= 256; ++i) {
-      TEST(0 == truncate_file(file, sizeof(buffer)*i));
+      const off_t newsize = (off_t) (sizeof(buffer)*i);
+      TEST(0 == truncate_file(file, newsize));
       TEST(0 == size_file(file, &size));
-      TEST(size == sizeof(buffer)*i);
+      TEST(newsize == size);
       TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
       for (unsigned i2 = 0; i2 < i; i2++) {
          memset(buffer2, 1, sizeof(buffer2));
@@ -1234,10 +1235,14 @@ static int test_allocate(directory_t* tempdir)
       TEST(0 == size_file(file, &size));
       TEST(9 == size);
       for (unsigned i = 1; i <= 256; ++i) {
-         TEST(0 == allocate_file(file, isoffset?sizeof(buffer)*(i-1):0, isoffset?sizeof(buffer):sizeof(buffer)*i));
-         TEST(0 == size_file(file, &size));
-         TEST(size == sizeof(buffer)*i);
-         TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
+         const off_t OFF = (off_t) (isoffset ? sizeof(buffer)*(i-1) : 0);
+         const off_t SIZ = (off_t) (isoffset ? sizeof(buffer) : i*sizeof(buffer));
+         TEST( 0 == allocate_file(file, OFF, SIZ));
+         // check filesize
+         TEST( 0 == size_file(file, &size));
+         TEST( OFF + SIZ == size);
+         // check file content set to 0
+         TEST( 0 == init_file(&file2, "testallocate", accessmode_READ, tempdir));
          for (unsigned i2 = 0; i2 < i; i2++) {
             memset(buffer2, 1, sizeof(buffer2));
             TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread));
@@ -1245,17 +1250,20 @@ static int test_allocate(directory_t* tempdir)
             TEST(0 == memcmp(buffer, buffer2, sizeof(buffer)));
          }
          TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread));
-         TEST(0 == bread/*end of input*/);
+         TESTP(0 == bread/*end of input*/, "bread:%zu", bread);
          TEST(0 == free_file(&file2));
       }
    }
 
    // TEST allocate_file: no shrink possible
    for (unsigned i = 1; i <= 256; ++i) {
-      TEST(0 == allocate_file(file, 0, sizeof(buffer)*i));
-      TEST(0 == size_file(file, &size));
-      TEST(size == sizeof(buffer)*256);
+      const off_t S = (off_t) (sizeof(buffer)*i);
+      const off_t M = (off_t) (sizeof(buffer)*256);
+      TEST( 0 == allocate_file(file, 0, S));
+      TEST( 0 == size_file(file, &size));
+      TEST( M == size);
    }
+   // reset
    TEST(0 == free_file(&file));
 
    // TEST allocate_file: free disk blocks really allocated on file system
@@ -1265,12 +1273,17 @@ static int test_allocate(directory_t* tempdir)
       TEST(0 == removefile_directory(tempdir, "testallocate"));
       TEST(0 == initcreate_file(&file, "testallocate", tempdir));
       TEST(0 == fstatvfs(file, &statvfs_result1));
-      TEST(0 == allocate_file(file, isoffset ? statvfs_result1.f_frsize * 5000 : 0, statvfs_result1.f_frsize * (isoffset?5000:10000)));
-      TEST(0 == fstatvfs(file, &statvfs_result2));
-      TEST(statvfs_result2.f_bfree + (isoffset ? 5000 : 10000) <= statvfs_result1.f_bfree);
-      TEST(0 == truncate_file(file, 0));
-      TEST(0 == fstatvfs(file, &statvfs_result2));
-      TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
+      // test
+      const off_t OFF = (off_t) (isoffset ? statvfs_result1.f_frsize * 5000 : 0);
+      const off_t SIZ = (off_t) (statvfs_result1.f_frsize * (isoffset ? 5000 : 10000));
+      TEST( 0 == allocate_file(file, OFF, SIZ));
+      // check
+      TEST( 0 == fstatvfs(file, &statvfs_result2));
+      TEST( statvfs_result2.f_bfree + (isoffset ? 5000 : 10000) <= statvfs_result1.f_bfree);
+      TEST( 0 == truncate_file(file, 0));
+      TEST( 0 == fstatvfs(file, &statvfs_result2));
+      TEST( statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
+      // reset
       TEST(0 == free_file(&file));
    }
 
@@ -1278,9 +1291,12 @@ static int test_allocate(directory_t* tempdir)
    TEST(0 == removefile_directory(tempdir, "testallocate"));
    TEST(0 == initcreate_file(&file, "testallocate", tempdir));
    TEST(0 == fstatvfs(file, &statvfs_result1));
-   TEST(0 == truncate_file(file, statvfs_result1.f_frsize * 10000));
-   TEST(0 == fstatvfs(file, &statvfs_result2));
-   TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
+   // test
+   TEST( 0 == truncate_file(file, (off_t) (statvfs_result1.f_frsize * 10000)));
+   // check
+   TEST( 0 == fstatvfs(file, &statvfs_result2));
+   TEST( statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree);
+   // reset
    TEST(0 == free_file(&file));
 
    // TEST EINVAL
@@ -1337,19 +1353,19 @@ ONERR:
 
 static int test_advise(directory_t* tempdir)
 {
-   file_t         fd     = file_FREE;
-   uint8_t        buffer[256];
-   size_t         bytes_read;
-   size_t         bytes_written;
-   const size_t   filesize = 1024*1024;
+   file_t      fd = file_FREE;
+   uint8_t     buffer[256];
+   size_t      bytes_read;
+   size_t      bytes_written;
+   const off_t filesize = 1024*1024;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "advise1", filesize));
    TEST(0 == init_file(&fd, "advise1", accessmode_WRITE, tempdir));
-   for (unsigned i = 0; i < sizeof(buffer); ++i) {
+   for (size_t i = 0; i < sizeof(buffer); ++i) {
       buffer[i] = (uint8_t)i;
    }
-   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+   for (size_t i = 0; i < (size_t) filesize; i += sizeof(buffer)) {
       buffer[0] = (uint8_t) (i/sizeof(buffer));
       TEST(0 == write_file(fd, sizeof(buffer), buffer, &bytes_written));
       TEST(bytes_written == sizeof(buffer));
@@ -1360,7 +1376,7 @@ static int test_advise(directory_t* tempdir)
    TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir));
    TEST(0 == advisereadahead_file(fd, 0, 0/*whole file*/));
    TEST(0 == advisereadahead_file(fd, 0, filesize));
-   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+   for (size_t i = 0; i < (size_t) filesize; i += sizeof(buffer)) {
       TEST(0 == read_file(fd, sizeof(buffer), buffer, &bytes_read));
       TEST(bytes_read == sizeof(buffer));
       TEST(buffer[0] == (uint8_t)(i/sizeof(buffer)));
@@ -1387,7 +1403,7 @@ static int test_advise(directory_t* tempdir)
    TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir));
    TEST(0 == advisedontneed_file(fd, 0, 0/*whole file*/));
    TEST(0 == advisedontneed_file(fd, 0, filesize));
-   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+   for (size_t i = 0; i < (size_t) filesize; i += sizeof(buffer)) {
       TEST(0 == read_file(fd, sizeof(buffer), buffer, &bytes_read));
       TEST(bytes_read == sizeof(buffer));
       TEST(buffer[0] == (uint8_t)(i/sizeof(buffer)));

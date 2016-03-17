@@ -442,7 +442,7 @@ static int test_changeandquery(void)
    }
 
    // TEST allocate_cstring: doubles in size
-   for (unsigned i = 2*cstr.capacity; i <= 65536; i <<= 1) {
+   for (size_t i = 2*cstr.capacity; i <= 65536; i <<= 1) {
       TEST(0 == allocate_cstring(&cstr, cstr.capacity+1));
       TEST(0 == cstr.size);
       TEST(i == cstr.capacity);

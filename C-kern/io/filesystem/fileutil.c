@@ -129,8 +129,8 @@ static int test_loadsave(directory_t * tempdir)
       const size_t datasize = strlen(testcontent[ti]) ;
       TEST(0 == save_file("save", datasize, testcontent[ti], tempdir)) ;
       TEST(0 == trypath_directory(tempdir, "save")) ;
-      TEST(0 == filesize_directory(tempdir, "save", &filesize)) ;
-      TEST(filesize == datasize) ;
+      TEST(0 == filesize_directory(tempdir, "save", &filesize));
+      TEST(castPoff_size(filesize) == datasize);
       // load_file
       uint8_t buffer[1+datasize] ;
       memset(buffer, 0, datasize) ;

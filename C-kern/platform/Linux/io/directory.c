@@ -894,21 +894,21 @@ static int test_filesize(void)
    // prepare
    TEST(0 == new_directory(&workdir, "", 0));
    TEST(0 == newtemp_directory(&tempdir, "tempdir", &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(tmppath), tmppath)));
-   for (int i = 0; i < 100; ++i) {
+   for (unsigned i = 0; i < 100; ++i) {
       char filename[100];
-      sprintf( filename, "file_%06d", i);
+      sprintf( filename, "file_%06u", i);
       TEST(0 == makefile_directory(tempdir, filename, 0));
       int fd = openat(io_directory(tempdir), filename, O_RDWR|O_CLOEXEC);
       TEST(fd > 0);
-      int written = (int) write(fd, filename, (size_t) i);
+      size_t written = (size_t) write(fd, filename, (size_t) i);
       free_iochannel(&fd);
       TEST(i == written);
    }
 
    // TEST filesize workdir != 0
-   for (int i = 0; i < 100; ++i) {
+   for (unsigned i = 0; i < 100; ++i) {
       char filename[100];
-      sprintf( filename, "file_%06d", i);
+      sprintf( filename, "file_%06u", i);
       off_t file_size = -1;
       TEST(0 == filesize_directory( tempdir, filename, &file_size));
       TEST(i == file_size);
@@ -916,9 +916,9 @@ static int test_filesize(void)
 
    // TEST filesize workdir == 0
    TEST(0 == fchdir(io_directory(tempdir)));
-   for (int i = 0; i < 100; ++i) {
+   for (unsigned i = 0; i < 100; ++i) {
       char filename[100];
-      sprintf( filename, "file_%06d", i);
+      sprintf( filename, "file_%06u", i);
       off_t file_size = -1;
       TEST(0 == filesize_directory( 0, filename, &file_size));
       TEST(i == file_size);

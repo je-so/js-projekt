@@ -22,27 +22,21 @@
 // forward
 struct thread_t ;
 
-/* typedef: struct signalhandler_t
- * Export <signalhandler_t> into global namespace. */
-typedef struct signalhandler_t            signalhandler_t ;
 
-/* typedef: struct signalrt_t
+// ==== exported types
+typedef struct signalhandler_t signalhandler_t;
+struct signalstate_t;
+// signalwait_t;
+
+/* typedef: signalrt_t
  * Define <signalrt_t> signal type as uint8_t. */
-typedef uint8_t                           signalrt_t ;
-
-/* typedef: struct signalstate_t
- * Export <signalstate_t>. */
-typedef struct signalstate_t              signalstate_t ;
-
-/* typedef: struct signalwait_t
- * Export <signalwait_t> into global namespace. */
-typedef sys_iochannel_t                   signalwait_t ;
+typedef uint8_t signalrt_t;
 
 /* typedef: signalhandler_f
  * Export function signature of a signal handler.
  * Use this signature to write your own signal handler
  * for user send signals. */
-typedef void                           (* signalhandler_f) (unsigned signr, uintptr_t value) ;
+typedef void (* signalhandler_f) (unsigned signr, uintptr_t value);
 
 /* typedef: signalhandler_segv_f
  * Export function signature of segmentation violation (fault) signal handler.
@@ -51,7 +45,7 @@ typedef void                           (* signalhandler_f) (unsigned signr, uint
  * access an unmapped memory region. The parameter ismapped is true if the memory
  * protection does not allow the access (write on read-only or read on none-access).
  * The parameter ismapped is false if memaddr is not mapped in the address space of the process. */
-typedef void                           (* signalhandler_segv_f) (void * memaddr, bool ismapped) ;
+typedef void (* signalhandler_segv_f) (void * memaddr, bool ismapped);
 
 
 // section: Functions
@@ -61,7 +55,7 @@ typedef void                           (* signalhandler_segv_f) (void * memaddr,
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_sync_signal
  * Tests posix signals functionality. */
-int unittest_platform_sync_signal(void) ;
+int unittest_platform_sync_signal(void);
 #endif
 
 
@@ -191,13 +185,13 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value) ;
  * Stores current state of all signal handlers and the signal mask.
  * Use this object to compare the current setting of all signal handlers
  * with the setting stored in this object to be equal. */
-struct signalstate_t ;
+typedef struct signalstate_t signalstate_t;
 
 // group: lifetime
 
 /* function: new_signalstate
  * Stores in <signalstate_t> the current settings of all signal handlers. */
-int new_signalstate(/*out*/signalstate_t ** sigstate) ;
+int new_signalstate(/*out*/signalstate_t ** sigstate);
 
 /* function: delete_signalstate
  * Frees any resources associated with sigstate. */

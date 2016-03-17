@@ -27,13 +27,9 @@
 struct syncrunner_t;
 struct synccond_t;
 
-/* typedef: struct syncfunc_t
- * Export <syncfunc_t> into global namespace. */
-typedef struct syncfunc_t syncfunc_t;
-
-/* typedef: struct syncfunc_param_t
- * Export <syncfunc_param_t> into global namespace. */
-typedef struct syncfunc_param_t syncfunc_param_t;
+// === exported types
+struct syncfunc_t;
+struct syncfunc_param_t;
 
 /* typedef: syncfunc_f
  * Definiert Signatur einer wiederholt auszuführenden Funktion.
@@ -47,20 +43,20 @@ typedef struct syncfunc_param_t syncfunc_param_t;
  *
  * Return:
  * Der Rückgabewert ist das vom Aufrufer auszuführende Kommando – auch aus <synccmd_e>. */
-typedef int (* syncfunc_f) (syncfunc_param_t * sfparam);
+typedef int (* syncfunc_f) (struct syncfunc_param_t * sfparam);
 
 /* enums: syncfunc_opt_e
  * Bitfeld das die vorhandenen Felder in <syncfunc_t> kodiert.
  *
- * syncfunc_opt_NONE       - Weder <syncfunc_t.state> noch <syncfunc_t.contlabel> sind vorhanden.
- * syncfunc_opt_WAITFIELDS - Die optionalen Felder <syncfunc_t.waitresult> und <syncfunc_t.waitlist> sind vorhanden.
- * syncfunc_opt_ALL        - Alle optionalen Felder sind vorhanden. Stimmt mit <syncfunc_opt_WAITFIELDS> überein.
- *                          */
+ * syncfunc_opt_NONE     - Weder <syncfunc_t.state> noch <syncfunc_t.contlabel> sind vorhanden.
+ * syncfunc_opt_WAITLIST - Die optionalen Felder <syncfunc_t.waitresult> und <syncfunc_t.waitlist> sind vorhanden.
+ * */
 typedef enum syncfunc_opt_e {
-   syncfunc_opt_NONE            = 0,
-   syncfunc_opt_WAITFIELDS      = 1,
-   syncfunc_opt_ALL             = 1
+   syncfunc_opt_NONE     = 0,
+   syncfunc_opt_WAITLIST = 1
 } syncfunc_opt_e;
+
+#define syncfunc_opt__NROF 2
 
 
 
@@ -77,23 +73,22 @@ int unittest_task_syncfunc(void);
 
 /* struct: syncfunc_param_t
  * Definiert Ein- Ausgabeparameter von <syncfunc_f> Funktionen. */
-struct syncfunc_param_t {
+typedef struct syncfunc_param_t {
    /* variable: srun
     * In-Param: Der Verwalter-Kontext von <syncfunc_t>. */
-   struct
-   syncrunner_t* const  srun;
+   struct syncrunner_t* const srun;
    /* variable: isterminate
     * In-Param: Falls true, wird die Funktion abnormal beendet.
     * Dieser Wert wird von <syncrunner_t.terminate_syncrunner> auf true (!= 0) gesetzt,
     * ansonsten ist er 0. */
-   uint8_t       const  isterminate;
+   uint8_t              const isterminate;
    /* variable: srun
     * In-Param: Zeigt auf aktuell ausgeführte Funktion. */
-   syncfunc_t*          sfunc;
+   struct syncfunc_t*         sfunc;
    /* variable: condition
     * Out-Param: Referenziert die Bedingung, auf die gewartet werden soll.
     * Der Wert wird genau dann verwendet, wenn die Funktion den Wert <synccmd_WAIT> zurückgibt. */
-   struct synccond_t*   condition;
+   struct synccond_t*         condition;
    /* variable: err
     * In-Param: Das Ergebnis der Warteoperation.
     * Eine 0 zeigt Erfolg an, != 0 ist ein Fehlercode – etwa ENOMEM wenn zu wenig Ressourcen
@@ -102,8 +97,8 @@ struct syncfunc_param_t {
     * Out-Param: Der Returnwert der Funktion.
     * Beendet sich die Funktion mit »return <synccmd_EXIT>«, dann steht in diesem Wert
     * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode). */
-   int                  err;
-};
+   int                        err;
+} syncfunc_param_t;
 
 // group: lifetime
 
@@ -168,7 +163,7 @@ struct syncfunc_param_t {
  * >    exit_syncfunc(sfparam, err);
  * > }
  * */
-struct syncfunc_t {
+typedef struct syncfunc_t {
    // group: private fields
 
    /* variable: mainfct
@@ -209,16 +204,16 @@ struct syncfunc_t {
    /* variable: optflags
     * Kodiert, welche optionalen Felder vorhanden sind – siehe <syncfunc_opt_e>. */
    uint8_t     optflags;
+   /* variable: waitresult
+    * Das Ergebnis der Warteoperation. */
+   uint8_t     waitresult;
 
    // == optional fields for use in wait operations ==
 
-   /* variable: waitresult
-    * *Optional*: Das Ergebnis der Warteoperation. */
-   int         waitresult;
    /* variable: waitlist
     * *Optional*: Verbindet wartende <syncfunc_t> in einer Liste mit der Wartebdingung <synccond_t>. */
    linkd_t     waitlist;
-};
+} syncfunc_t;
 
 // group: lifetime
 
@@ -249,21 +244,19 @@ static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncf
  * Unchecked Precondition:
  * o is_aligned_long(src) && is_aligned_long(dest)
  * o size_allocated_memory(dest) == getsize_syncfunc(src->optflags)
- * o 0 == (src->optflags & syncfunc_opt_WAITFIELDS)
- *   || ( (src->optflags & syncfunc_opt_WAITFIELDS)
+ * o 0 == (src->optflags & syncfunc_opt_WAITLIST)
+ *   || ( (src->optflags & syncfunc_opt_WAITLIST)
  *        && isvalid_linkd(src->waitlist))
  * */
-void initmove_syncfunc(/*out*/syncfunc_t* __restrict__ dest, const syncfunc_t* __restrict__ src);
+static inline void initmove_syncfunc(/*out*/syncfunc_t* __restrict__ dest, const syncfunc_t* __restrict__ src);
 
 
 // group: query
 
 /* function: waitresult_syncfunc
  * Liefert Wert, den <setwaitresult_syncfunc> gesetzt hat.
- *
- * Unchecked Precondition:
- * o (<syncfunc_t.optflags> & syncfunc_opt_WAITFIELDS) != 0 */
-int waitresult_syncfunc(const syncfunc_t* sfunc);
+ * */
+uint8_t waitresult_syncfunc(const syncfunc_t* sfunc);
 
 /* function: getsize_syncfunc
  * Liefere die aus den optionalen Feldern optflags berechnte Größe in Byte einer <syncfunc_t>.
@@ -285,23 +278,20 @@ static inline syncfunc_t* castPwaitlist_syncfunc(linkd_t* waitlist);
  * Liefere die Adresse des optionalen Feldes <waitlist>.
  *
  * Unchecked Precondition:
- * o (<syncfunc_t.optflags> & syncfunc_opt_WAITFIELDS) != 0
+ * o (<syncfunc_t.optflags> & syncfunc_opt_WAITLIST) != 0
  * o Space is reserved for optional <waitlist> and <waitresult>. */
 linkd_t* waitlist_syncfunc(syncfunc_t* sfunc);
 
 // group: update
 
 /* function: setwaitresult_syncfunc
- * Setzt <waitresult> auf result.
- *
- * Precondition:
- * o (<syncfunc_t.optflags> & syncfunc_opt_WAITFIELDS) != 0
- * o Space is reserved for optional <waitlist> and <waitresult>. */
-static inline void setwaitresult_syncfunc(syncfunc_t* sfunc, int result);
+ * Setzt <waitresult> auf result. */
+static inline void setwaitresult_syncfunc(syncfunc_t* sfunc, uint8_t result);
 
 /* function: unlink_syncfunc
- * Invalidiert die Ziellinks <waitlist>.
- * Inhalt von <waitlist> ist danach ungültig, aber unverändert. */
+ * Entfernt sfunc aus allen Listen.
+ * Entfernt sfunc aus <waitlist>, falls 0!=(src->optflags & syncfunc_opt_WAITLIST).
+ * Inhalt von <waitlist> ist danach unverändert, aber Nachbarknoten verweisen nicht mehr auf sfunc. */
 void unlink_syncfunc(syncfunc_t* sfunc);
 
 // group: implementation-support
@@ -412,10 +402,11 @@ static inline syncfunc_t* castPwaitlist_syncfunc(linkd_t* waitlist)
 /* define: getsize_syncfunc
  * Implementiert <syncfunc_t.getsize_syncfunc>. */
 #define getsize_syncfunc(optflags) \
-         ( (uint16_t) (             \
-            + (((optflags) & syncfunc_opt_WAITFIELDS) \
+         ( (uint16_t) (                               \
+              (((optflags) & syncfunc_opt_WAITLIST)   \
               ? sizeof(syncfunc_t)                    \
-              : offsetof(syncfunc_t, waitresult))))
+              : offsetof(syncfunc_t, waitlist)))      \
+         )
 
 /* define: init_syncfunc
  * Implementiert <syncfunc_t.init_syncfunc>. */
@@ -439,28 +430,22 @@ static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncf
 
 /* define: initmove_syncfunc
  * Implementiert <syncfunc_t.initmove_syncfunc>. */
-#define initmove_syncfunc(_dest, _src) \
-         do {                                            \
-            syncfunc_t* __restrict__ _d = (_dest);       \
-            const syncfunc_t* __restrict__ _s = (_src);  \
-            int _waitop = (_s->optflags & syncfunc_opt_WAITFIELDS); \
-            static_assert(3*sizeof(long) == getsize_syncfunc(syncfunc_opt_NONE), "supports long copy"); \
-            ((long*)_d)[0] = ((const long*)_s)[0];       \
-            ((long*)_d)[1] = ((const long*)_s)[1];       \
-            ((long*)_d)[2] = ((const long*)_s)[2];       \
-            if (_waitop) {                               \
-               static_assert(6*sizeof(long) == getsize_syncfunc(syncfunc_opt_WAITFIELDS), "supports long copy"); \
-               if (isself_linkd(&_s->waitlist)) {        \
-                  _d->waitresult = _s->waitresult;       \
-                  initself_linkd(&_d->waitlist);         \
-               } else {                                  \
-                  ((long*)_d)[3] = ((const long*)_s)[3]; \
-                  ((long*)_d)[4] = ((const long*)_s)[4]; \
-                  ((long*)_d)[5] = ((const long*)_s)[5]; \
-                  relink_linkd(&_d->waitlist);           \
-               }                                         \
-            }                                            \
-         } while(0)
+static inline void initmove_syncfunc(/*out*/syncfunc_t* __restrict__ dest, const syncfunc_t* __restrict__ src)
+{
+         int iswaitlist = (src->optflags & syncfunc_opt_WAITLIST);
+         static_assert(3*sizeof(long) == getsize_syncfunc(syncfunc_opt_NONE), "supports long copy");
+         ((long*)dest)[0] = ((const long*)src)[0];
+         ((long*)dest)[1] = ((const long*)src)[1];
+         ((long*)dest)[2] = ((const long*)src)[2];
+         if (iswaitlist) {
+            if (isself_linkd(&src->waitlist)) {
+               initself_linkd(&dest->waitlist);
+            } else {
+               dest->waitlist = src->waitlist;
+               relink_linkd(&dest->waitlist);
+            }
+         }
+}
 
 /* define: setcontoffset_syncfunc
  * Implementiert <syncfunc_t.setcontoffset_syncfunc>. */
@@ -469,7 +454,7 @@ static inline void initcopy_syncfunc(/*out*/syncfunc_t* __restrict__ dest, syncf
 
 /* define: setwaitresult_syncfunc
  * Implementiert <syncfunc_t.setwaitresult_syncfunc>. */
-static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, int result)
+static inline void setwaitresult_syncfunc(syncfunc_t * sfunc, uint8_t result)
 {
          sfunc->waitresult = result;
 }

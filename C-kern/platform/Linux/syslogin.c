@@ -619,9 +619,10 @@ ONERR:
 static int thread_initinfo(void* param)
 {
    syslogin_info_t* info = 0;
-   TEST(1 == write((int)param, "1", 1));
+   int fd = (int) (intptr_t) param;
+   TEST(1 == write(fd, "1", 1));
    TEST(0 == new_syslogininfo(&info, 0/*root*/));
-   TEST(1 == write((int)param, "2", 1));
+   TEST(1 == write(fd, "2", 1));
    TEST(0 == delete_syslogininfo(&info));
    return 0;
 ONERR:
@@ -687,7 +688,7 @@ static int test_logininfo(void)
    }
 
    // TEST new_syslogininfo: lock
-   TEST(0 == new_thread(&thr, &thread_initinfo, (void*)fd[1]));
+   TEST(0 == new_thread(&thr, &thread_initinfo, (void*)(intptr_t)fd[1]));
    TEST(0 == lock_mutex(&s_syslogininfo_lock));
    struct pollfd pfd = { .fd = fd[0], .events = POLLIN };
    TEST(1 == poll(&pfd, 1, 10000));

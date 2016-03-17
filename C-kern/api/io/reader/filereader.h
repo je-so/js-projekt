@@ -132,11 +132,11 @@ int ioerror_filereader(const filereader_t * frd) ;
 /* function: iseof_filereader
  * Returns true if end of file is reached.
  * If there is no more data to read <readnext_filereader> will also return ENODATA. */
-bool iseof_filereader(const filereader_t * frd) ;
+static inline bool iseof_filereader(const filereader_t * frd);
 
 /* function: isfree_filereader
  * Returns true in case frd == <filereader_FREE>. */
-bool isfree_filereader(const filereader_t * frd) ;
+bool isfree_filereader(const filereader_t * frd);
 
 // group: setter
 
@@ -183,13 +183,10 @@ void unread_filereader(filereader_t * frd) ;
 
 /* define: iseof_filereader
  * Implements <filereader_t.iseof_filereader>. */
-#define iseof_filereader(frd)          \
-         ( __extension__ ({            \
-            const filereader_t * _f;   \
-            _f = (frd);                \
-            (  _f->fileoffset          \
-               == _f->filesize);       \
-         }))
+static inline bool iseof_filereader(const filereader_t * frd)
+{
+         return frd->fileoffset == frd->filesize;
+}
 
 /* define: setioerror_filereader
  * Implements <filereader_t.setioerror_filereader>. */

@@ -111,7 +111,7 @@ int init_filereader(/*out*/filereader_t * frd, const char * filepath, const stru
    err = initfile_filereader(&frd->file, &frd->filesize, filepath, relative_to);
    if (err) goto ONERR;
 
-   if (frd->filesize <= bufsize) {
+   if (castPoff_size(frd->filesize) <= bufsize) {
       err = initsinglebuffer_filereader(frd->page, (size_t)frd->filesize);
       if (err) goto ONERR;
 
@@ -208,7 +208,7 @@ int readnext_filereader(filereader_t * frd, /*out*/struct memstream_ro_t * buffe
 
    uint8_t * bufferaddr = frd->page[frd->nextindex].addr;
    size_t    buffersize = frd->page[frd->nextindex].size;
-   if (unreadsize < buffersize) {
+   if (castPoff_size(unreadsize) < buffersize) {
       buffersize = (size_t) unreadsize;
    }
 
@@ -224,7 +224,7 @@ int readnext_filereader(filereader_t * frd, /*out*/struct memstream_ro_t * buffe
    frd->unreadsize -= buffersize;
    frd->nextindex = ! frd->nextindex;
    -- frd->nrfreebuffer;
-   frd->fileoffset += buffersize;
+   frd->fileoffset += (off_t) buffersize;
 
    // set out param
    init_memstream(buffer, bufferaddr, bufferaddr + buffersize);
@@ -250,7 +250,7 @@ void unread_filereader(filereader_t * frd)
       ++ frd->nrfreebuffer;
       if (frd->fileoffset == frd->filesize) {
          // last buffer unread
-         if (frd->page[frd->nextindex].size >= frd->filesize) {
+         if (frd->page[frd->nextindex].size >= castPoff_size(frd->filesize)) {
             buffer_size = (size_t)frd->filesize;
          } else {
             buffer_size = ((size_t)frd->filesize & (frd->page[frd->nextindex].size-1));
@@ -259,7 +259,7 @@ void unread_filereader(filereader_t * frd)
          buffer_size = frd->page[frd->nextindex].size;
       }
       frd->unreadsize += buffer_size;
-      frd->fileoffset -= buffer_size;
+      frd->fileoffset -= (off_t) buffer_size;
    }
 }
 
@@ -291,8 +291,8 @@ static int test_initfree(directory_t * tempdir)
    TEST((vmpage_t*)&frd.page[0].addr == cast_vmpage(&frd.page[0],));
 
    // prepare
-   TEST(0 == makefile_directory(tempdir, "single", B));
-   TEST(0 == makefile_directory(tempdir, "double", 2*B));
+   TEST(0 == makefile_directory(tempdir, "single", (off_t) B));
+   TEST(0 == makefile_directory(tempdir, "double", (off_t) (2*B)));
 
    // TEST init_filereader: file size <= sizebuffer_filereader
    TEST(0 == init_filereader(&frd, "single", tempdir));
@@ -305,7 +305,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(frd.nextindex  == 0);
    TEST(frd.nrfreebuffer == 2);
    TEST(frd.fileoffset == 0);
-   TEST(frd.filesize   == B);
+   TEST(frd.filesize   == (off_t)B);
    TEST(!isfree_file(frd.file));
 
    // TEST free_filereader: double free
@@ -325,7 +325,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(frd.nextindex  == 0);
    TEST(frd.nrfreebuffer == 2);
    TEST(frd.fileoffset == 0);
-   TEST(frd.filesize   == 2*B);
+   TEST(frd.filesize   == (off_t)(2*B));
    TEST(!isfree_file(frd.file));
 
    // TEST free_filereader
@@ -372,15 +372,15 @@ static int test_query(void)
    for (size_t s = 0; s < 2; ++s) {
       frd.fileoffset = 0;
       frd.filesize   = 0;
-      frd.unreadsize = s;
+      frd.unreadsize = s; // unchecked
       TEST(1 == iseof_filereader(&frd));
-      frd.fileoffset = s + 1;
+      frd.fileoffset = 1;
       TEST(0 == iseof_filereader(&frd));
-      frd.filesize   = s + 1;
+      frd.filesize = 1;
       TEST(1 == iseof_filereader(&frd));
-      frd.filesize = s + 2;
+      frd.filesize = 2;
       TEST(0 == iseof_filereader(&frd));
-      frd.fileoffset = s + 2;
+      frd.fileoffset = 2;
       TEST(1 == iseof_filereader(&frd));
    }
 
@@ -464,7 +464,7 @@ static int test_read(directory_t * tempdir)
       TEST(0 == frd.unreadsize); // all read
       TEST(1 == frd.nextindex); // nextindex incremented
       TEST(1 == frd.nrfreebuffer); // acquired 1 buffer
-      TEST(B == frd.fileoffset);
+      TEST(B == castPoff_size(frd.fileoffset));
       // check content
       for (size_t i = 0; isnext_memstream(&buffer); ++i) {
          uint8_t byte = nextbyte_memstream(&buffer);
@@ -481,7 +481,7 @@ static int test_read(directory_t * tempdir)
    TEST(0 == frd.unreadsize);
    TEST(1 == frd.nextindex);
    TEST(2 == frd.nrfreebuffer);
-   TEST(B == frd.fileoffset);
+   TEST(B == castPoff_size(frd.fileoffset));
 
    // TEST readnext_filereader: ENODATA
    TEST(ENODATA == readnext_filereader(&frd, &buffer));
@@ -494,27 +494,25 @@ static int test_read(directory_t * tempdir)
 
    for (size_t i = 0, offset = 0; i < 3; ++i) {
 
-      // TODO: add unread functionality !!!
-
       // TEST release_filereader: frd.nrfreebuffer == 2 ==> does nothing
       release_filereader(&frd);
       TEST( 0 == frd.unreadsize);
       TEST( 0 == frd.nextindex);
       TEST( 2 == frd.nrfreebuffer);
-      TEST( offset == frd.fileoffset);
+      TEST( offset == castPoff_size(frd.fileoffset));
 
       // TEST unread_filereader: frd.nrfreebuffer == 2 ==> does nothing
       unread_filereader(&frd);
       TEST( 0 == frd.unreadsize);
       TEST( 0 == frd.nextindex);
       TEST( 2 == frd.nrfreebuffer);
-      TEST( offset == frd.fileoffset);
+      TEST( offset == castPoff_size(frd.fileoffset));
 
       const size_t S = (i != 2 ? B/2 : 1);
 
-      for (int U = 1; U >= 0; --U) {   // test unread
+      for (unsigned U = 1; U <= 1; --U) {   // test unread
 
-         for (unsigned n = 0, u = (U == 1 || S == 1)?0:S; n <= 1; ++n, u -= u?S:0) {
+         for (size_t n = 0, u = (U == 1 || S == 1)?0:S; n <= 1; ++n, u -= u?S:0) {
             // TEST readnext_filereader: reads one buffer
             TEST( 0 == readnext_filereader(&frd, &buffer));
             // check buffer
@@ -522,9 +520,9 @@ static int test_read(directory_t * tempdir)
             TEST( buffer.end  == frd.page[n].addr + S);
             // check frd
             TEST( u == frd.unreadsize);
-            TEST( !n == frd.nextindex);
-            TEST( !n == frd.nrfreebuffer);
-            TEST( offset + S == frd.fileoffset);
+            TEST( (!n) == frd.nextindex);
+            TEST( (!n) == frd.nrfreebuffer);
+            TEST( (offset + S) == castPoff_size(frd.fileoffset));
             // check content
             for (; isnext_memstream(&buffer); ++offset) {
                uint8_t byte = nextbyte_memstream(&buffer);
@@ -534,7 +532,7 @@ static int test_read(directory_t * tempdir)
          }
 
          // TEST readnext_filereader: more than 2 buffers or ENODATA
-         const unsigned N = frd.nextindex;
+         const uint8_t N = frd.nextindex;
          buffer = (memstream_ro_t) memstream_FREE;
          TEST( (N?ENODATA:ENOBUFS) == readnext_filereader(&frd, &buffer));
          TEST( N == iseof_filereader(&frd));
@@ -545,10 +543,10 @@ static int test_read(directory_t * tempdir)
          TEST( 0 == frd.unreadsize);
          TEST( N == frd.nextindex);
          TEST( N == frd.nrfreebuffer);
-         TEST( offset == frd.fileoffset);
+         TEST( offset == castPoff_size(frd.fileoffset));
 
          if (U) {
-            for (unsigned n = N+1, u = S; n <= 2; ++n, u += S) {
+            for (size_t n = N+1u, u = S; n <= 2; ++n, u += S) {
                // TEST unread_filereader: unreads second buffer
                unread_filereader(&frd);
                // check frd
@@ -556,7 +554,7 @@ static int test_read(directory_t * tempdir)
                TEST( (n==1) == frd.nextindex);
                TEST( n == frd.nrfreebuffer);
                offset -= S;
-               TEST( offset == frd.fileoffset);
+               TEST( offset == castPoff_size(frd.fileoffset));
             }
          }
       }
@@ -568,7 +566,7 @@ static int test_read(directory_t * tempdir)
          TEST( 0 == frd.unreadsize);
          TEST( (N==1) == frd.nextindex);
          TEST( n == frd.nrfreebuffer);
-         TEST( offset == frd.fileoffset);
+         TEST( offset == castPoff_size(frd.fileoffset));
       }
    }
 

@@ -742,7 +742,7 @@ static int test_reading(void)
    F = (int) (strlen(tmppath) + strlen("/empty"));
    TEST(F == snprintf(filepath, sizeof(filepath), "%s/empty", tmppath));
    const char * empty ="# gggg\n  \t  # fff\n\n\n# fojsfoj";
-   TEST(0 == makefile_directory(tmpdir, "empty", strlen(empty)));
+   TEST(0 == makefile_directory(tmpdir, "empty", (off_t) strlen(empty)));
    TEST(0 == init_file(&file, "empty", accessmode_WRITE, tmpdir));
    TEST(0 == write_file(file, strlen(empty), empty, 0));
    TEST(0 == free_file(&file));
@@ -761,7 +761,7 @@ static int test_reading(void)
    // TEST init_csvfilereader: read error
    for (unsigned i = 0; i < lengthof(errdata); ++i) {
       // prepare
-      TEST(0 == makefile_directory(tmpdir, "error", strlen(errdata[i])));
+      TEST(0 == makefile_directory(tmpdir, "error", (off_t) strlen(errdata[i])));
       TEST(0 == init_file(&file, "error", accessmode_WRITE, tmpdir));
       TEST(0 == write_file(file, strlen(errdata[i]), errdata[i], 0));
       TEST(0 == free_file(&file));

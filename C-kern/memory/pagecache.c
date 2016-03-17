@@ -220,7 +220,7 @@ int test_call(void)
    pagecache_t    pgcache = pagecache_INIT((struct pagecache_t*)&obj, cast_pagecacheit(&iimpl, struct pagecachex_t));
 
    // TEST allocpage_pagecache
-   for (unsigned i = 0; i <= 10; ++i) {
+   for (uintptr_t i = 0; i <= 10; ++i) {
       TEST(0 == allocpage_pagecache(pgcache, (pagesize_e)(i+2), (struct memblock_t*)(i+3)));
       TEST(i+1 == obj.is_allocpage);
       TEST(i+2 == obj.pgsize);
@@ -228,7 +228,7 @@ int test_call(void)
    }
 
    // TEST releasepage_pagecache
-   for (unsigned  i = 0; i <= 10; ++i) {
+   for (uintptr_t  i = 0; i <= 10; ++i) {
       TEST(0 == releasepage_pagecache(pgcache, (struct memblock_t*)(i+2)));
       TEST(i+1 == obj.is_releasepage);
       TEST(i+2 == (uintptr_t)obj.page);

@@ -140,7 +140,7 @@ static int test_initfree(void)
       TEST(0 == init_module(&mod, name[i]));
       TEST(mod.page_addr != 0);
       TEST(mod.page_size == aligned_size);
-      TEST(mod.code_size == code_size);
+      TEST(mod.code_size == castPoff_size(code_size));
       TEST(1 == ismapped_vm(cast_vmpage(&mod, page_), accessmode_RDEX));
 
       // TEST free_module

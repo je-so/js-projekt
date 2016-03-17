@@ -34,7 +34,7 @@ typedef struct syscontext_t {
     * The size of a virtual memory page in bytes.
     * Same value as returned by <sys_pagesize_vm>.
     * This value can be queried with function pagesize_vm. */
-   uint32_t       pagesize_vm;
+   size_t         pagesize_vm;
    /* variable: log2pagesize_vm
     * The <log2_int> value of <pagesize_vm>. */
    uint8_t        log2pagesize_vm;

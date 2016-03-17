@@ -43,6 +43,7 @@
 /* variable: s_iothread_errtimer
  * Simuliert Fehler in <init_iothread> und <free_iothread>. */
 static test_errortimer_t s_iothread_errtimer = test_errortimer_FREE;
+static size_t            s_iothread_errtimer_count = 0;
 #endif
 
 // group: runtime-helper
@@ -53,7 +54,8 @@ static inline size_t SIZE(size_t size, size_t off) \
          #ifdef KONFIG_UNITTEST
          int err;
          if (process_testerrortimer(&s_iothread_errtimer, &err)) {
-            init_testerrortimer(&s_iothread_errtimer, 1, err+1);
+            ++ s_iothread_errtimer_count;
+            init_testerrortimer(&s_iothread_errtimer, 1, err);
             if (size2 > size/32) size2 = size/32;
          }
          #endif
@@ -107,7 +109,7 @@ static int ioop_worker_thread(iothread_t* iothr)
                            SIZE(iot->bufsize,off));
                } else {
                   bytes = pread(iot->ioc, (uint8_t*)iot->bufaddr+off,
-                           SIZE(iot->bufsize,off), iot->offset+off);
+                           SIZE(iot->bufsize,off), iot->offset+(off_t)off);
                }
 
                if (bytes < 0) {
@@ -131,7 +133,7 @@ static int ioop_worker_thread(iothread_t* iothr)
                            SIZE(iot->bufsize,off));
                } else {
                   bytes = pwrite(iot->ioc, (uint8_t*)iot->bufaddr+off,
-                           SIZE(iot->bufsize,off), iot->offset+off);
+                           SIZE(iot->bufsize,off), iot->offset+(off_t)off);
                }
 
                if (bytes < 0) {
@@ -271,8 +273,7 @@ static int test_helper(void)
    }
 
    // TEST SIZE: testcase ==> returns size/32
-   init_testerrortimer(&s_iothread_errtimer, 1, 1);
-   int err = 1;
+   init_testerrortimer(&s_iothread_errtimer, 1, 2);
    for (unsigned size = 0; size < 100*1024*1024; ++size, size *= 4) {
       for (unsigned off = 0; off <= size; ++off) {
          if (off > 10) off += (size - off) / 32;
@@ -281,9 +282,9 @@ static int test_helper(void)
             expect = size-off;
          }
          TEST(expect == SIZE(size, off));
-         ++err;
-         TEST(err == errcode_testerrortimer(&s_iothread_errtimer));
-         TEST(1 == s_iothread_errtimer.timercount/*reinit*/);
+         /*reinit*/
+         TEST(2 == s_iothread_errtimer.errcode);
+         TEST(1 == s_iothread_errtimer.timercount);
       }
    }
    free_testerrortimer(&s_iothread_errtimer);
@@ -466,7 +467,7 @@ static int test_read(directory_t* tmpdir)
    TEST(0 == initcreate_file(&file, "testread", tmpdir));
    for (size_t i = 0, val = 0; i < lengthof(mblock); ++i) {
       for (size_t off = 0; off < mblock[i].size/sizeof(uint32_t); ++off, ++val) {
-         ((uint32_t*)mblock[0].addr)[off] = val;
+         ((uint32_t*)mblock[0].addr)[off] = (uint32_t) val;
       }
       TEST((int)mblock[0].size == write(io_file(file), mblock[0].addr, mblock[0].size));
    }
@@ -479,7 +480,7 @@ static int test_read(directory_t* tmpdir)
       // prepare
       TEST(0 == init_file(&file, "testread", accessmode_READ, tmpdir));
       for (unsigned i = 0; i < nrio; ++i) {
-         initreadp_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, i*mblock[0].size, &counter);
+         initreadp_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t) (i*mblock[0].size), &counter);
       }
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
@@ -514,7 +515,7 @@ static int test_read(directory_t* tmpdir)
       // prepare
       TEST(0 == init_file(&file, "testread", accessmode_READ, tmpdir));
       for (unsigned i = 0; i < nrio; ++i) {
-         initreadp_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t)(nrio-1-i)*mblock[0].size, &counter);
+         initreadp_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t)((nrio-1-i)*mblock[0].size), &counter);
       }
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
@@ -570,7 +571,7 @@ static int test_read(directory_t* tmpdir)
       memset(mblock[i].addr, 0, mblock[i].size);
    }
    // check file position (offset) changed
-   TEST(lengthof(mblock)*mblock[0].size == lseek(io_file(file), 0, SEEK_CUR));
+   TEST((off_t) (lengthof(mblock)*mblock[0].size) == lseek(io_file(file), 0, SEEK_CUR));
    // reset
    TEST(0 == free_iochannel(&file));
 
@@ -616,7 +617,7 @@ static int test_write(directory_t* tmpdir)
    for (size_t i = 0, val = 0; i < lengthof(mblock); ++i) {
       TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &mblock[i]));
       for (size_t off = 0; off < mblock[i].size/sizeof(uint32_t); ++off, ++val) {
-         ((uint32_t*)mblock[i].addr)[off] = val;
+         ((uint32_t*)mblock[i].addr)[off] = (uint32_t) val;
       }
    }
    // alloc read buffer
@@ -629,7 +630,7 @@ static int test_write(directory_t* tmpdir)
       // prepare
       TEST(0 == initcreate_file(&file, "testwrite", tmpdir));
       for (size_t i = 0; i < nrio; ++i) {
-         initwritep_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, i*mblock[0].size, &counter);
+         initwritep_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t) (i*mblock[0].size), &counter);
       }
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
@@ -665,7 +666,7 @@ static int test_write(directory_t* tmpdir)
       // prepare
       TEST(0 == initcreate_file(&file, "testwrite", tmpdir));
       for (unsigned i = 0; i < nrio; ++i) {
-         initwritep_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t)(nrio-1-i)*mblock[0].size, &counter);
+         initwritep_iotask(iotask[i], io_file(file), mblock[i].size, mblock[i].addr, (off_t)((nrio-1-i)*mblock[0].size), &counter);
       }
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
@@ -714,7 +715,7 @@ static int test_write(directory_t* tmpdir)
       TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_WRITE, io_file(file),
                   -1, mblock[i].addr, mblock[i].size, 0));
       // check written bytes
-      TEST((int)readbuf.size == pread(io_file(file), readbuf.addr, readbuf.size, i*mblock[0].size));
+      TEST((int)readbuf.size == pread(io_file(file), readbuf.addr, readbuf.size, (off_t)(i*mblock[0].size)));
       for (size_t vi = 0, val = (i*mblock[0].size)/sizeof(uint32_t); vi < readbuf.size/sizeof(uint32_t); ++vi, ++val) {
          TEST(val == ((uint32_t*)readbuf.addr)[vi]);
       }
@@ -722,7 +723,8 @@ static int test_write(directory_t* tmpdir)
       iotask[i]->bytesrw = 0;
    }
    // check file position (offset) changed
-   TEST(lengthof(mblock)*mblock[0].size == lseek(io_file(file), 0, SEEK_CUR));
+   TEST((off_t)(lengthof(mblock)*mblock[0].size) == lseek(io_file(file), 0, SEEK_CUR));
+
    // reset
    TEST(0 == free_iochannel(&file));
    TEST(0 == removefile_directory(tmpdir, "testwrite"));
@@ -882,7 +884,7 @@ static int test_rwpartial(directory_t* tmpdir)
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &readbuf));
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &writebuf));
    for (size_t val = 0; val < writebuf.size/sizeof(uint32_t); ++val) {
-      ((uint32_t*)writebuf.addr)[val] = val;
+      ((uint32_t*)writebuf.addr)[val] = (uint32_t) val;
    }
    memset(readbuf.addr, 0, readbuf.size);
 
@@ -896,6 +898,7 @@ static int test_rwpartial(directory_t* tmpdir)
          initwrite_iotask(iotask, io_file(file), writebuf.size, writebuf.addr, &counter);
       }
       // test
+      s_iothread_errtimer_count = 0;
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for writer ready
@@ -912,7 +915,7 @@ static int test_rwpartial(directory_t* tmpdir)
       TEST(iotask->bufsize    == writebuf.size);
       TEST(iotask->readycount == &counter);
       // check 32 partial writes (1+32)
-      TEST(33 == errcode_testerrortimer(&s_iothread_errtimer));
+      TEST(32 == s_iothread_errtimer_count);
       // reset
       TEST(0 == free_file(&file));
       free_testerrortimer(&s_iothread_errtimer);
@@ -925,6 +928,7 @@ static int test_rwpartial(directory_t* tmpdir)
          initread_iotask(iotask, io_file(file), readbuf.size, readbuf.addr, &counter);
       }
       // test
+      s_iothread_errtimer_count = 0;
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for reader ready
@@ -945,7 +949,7 @@ static int test_rwpartial(directory_t* tmpdir)
          TEST(val == ((uint32_t*)readbuf.addr)[val]);
       }
       // check 32 partial writes (1+32)
-      TEST(33 == errcode_testerrortimer(&s_iothread_errtimer));
+      TEST(32 == s_iothread_errtimer_count);
       // reset
       memset(readbuf.addr, 0, readbuf.size);
       TEST(0 == free_file(&file));

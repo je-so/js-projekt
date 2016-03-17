@@ -928,7 +928,7 @@ static int dumpnode_stree(suffixtree_t * tree, cstring_t * cstr, suffixtree_node
       suffixtree_node_t * childs = node ? node->childs : tree->childs ;
       if (node) {
          size_t maxlen = (20 < STR_SIZE(node) ? 20 : STR_SIZE(node)) ;
-         printfappend_cstring(cstr, "node(%"PRIxPTR"): '%.*s'\n", (uintptr_t)node, maxlen, STR_START(node)) ;
+         printfappend_cstring(cstr, "node(%"PRIxPTR"): '%.*s'\n", (uintptr_t)node, (int)maxlen, STR_START(node)) ;
          printfappend_cstring(cstr, " suffix->node(%"PRIxPTR"), parent->node(%"PRIxPTR"), childs:\n", (uintptr_t)node->suffix_link, (uintptr_t)parent) ;
       } else {
          printfappend_cstring(cstr, "node(0):\n childs:\n") ;
@@ -936,7 +936,7 @@ static int dumpnode_stree(suffixtree_t * tree, cstring_t * cstr, suffixtree_node
       for (suffixtree_node_t * child = childs; child; child = child->next_child) {
          if (ISLEAF(child)) {
             size_t maxlen = (20 < STR_SIZE(child) ? 20 : STR_SIZE(child)) ;
-            if (maxlen) printfappend_cstring(cstr, " %c -> leaf: '%.*s'\n", *STR_START(child), maxlen, STR_START(child)) ;
+            if (maxlen) printfappend_cstring(cstr, " %c -> leaf: '%.*s'\n", *STR_START(child), (int)maxlen, STR_START(child)) ;
             else        printfappend_cstring(cstr, " ::-> leaf: ''\n") ;
          } else {
             printfappend_cstring(cstr, " %c -> node(%"PRIxPTR")\n", *STR_START(child), (uintptr_t)child) ;
@@ -1443,7 +1443,8 @@ static int test_matchfile(void)
    const uint8_t* iterposstr = (const uint8_t*) "suffixtree_iterator_t";
    // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-   size_t         compare_pos[] = {933,972,1066,1093,1960,2255,2368,2809,2891,3003,3076,3205,3276,3390,3673,3760,3874,3991,4076,4189,4354,4433,4509,4587,4663,43713,43988,44801,44972,59566,59689};
+   size_t         compare_pos[] = {
+933,972,1066,1093,1960,2255,2368,2809,2891,3003,3076,3205,3276,3390,3673,3760,3874,3991,4076,4189,4354,4433,4509,4587,4663,43723,43998,44811,44982,59576,59699};
    const uint8_t* matched_pos[1+lengthof(compare_pos)];
    size_t         matched_count;
    const uint8_t* teststring;

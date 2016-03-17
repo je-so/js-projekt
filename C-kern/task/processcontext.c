@@ -269,7 +269,7 @@ static int test_helper(void)
    TEST(S == static_memory_size());
    TEST(S != 0);
    TEST(S <  1024);
-   TEST(0 == S % sizeof(size_t));
+   TEST(0 == S % KONFIG_MEMALIGN);
 
    // TEST alloc_static_memory
    TEST(0 == alloc_static_memory(&pcontext, tls, &mblock))

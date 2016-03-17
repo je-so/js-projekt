@@ -437,16 +437,16 @@ static int test_synchronize(void)
       }
    }
    TEST(lengthof(threads) == read_atomicint(&s_thread_runcount)) ;
-   for (unsigned i = 0; i < lengthof(threads); ++i) {
-      TEST(0 == trywakeup_waitlist(&wlist, (thread_f)i, (void*)i)) ;
-      TEST(i == (uintptr_t) maintask_thread(threads[i])) ;
-      TEST(i == (uintptr_t) mainarg_thread(threads[i])) ;
-      TEST(0 == join_thread(threads[i])) ;
-      TEST(0 == returncode_thread(threads[i])) ;
-      TEST(0 == delete_thread(&threads[i])) ;
+   for (uintptr_t i = 0; i < lengthof(threads); ++i) {
+      TEST(0 == trywakeup_waitlist(&wlist, (thread_f)i, (void*)i));
+      TEST(i == (uintptr_t) maintask_thread(threads[i]));
+      TEST(i == (uintptr_t) mainarg_thread(threads[i]));
+      TEST(0 == join_thread(threads[i]));
+      TEST(0 == returncode_thread(threads[i]));
+      TEST(0 == delete_thread(&threads[i]));
       TEST(lengthof(threads)-1-i == nrwaiting_waitlist(&wlist)) ;
       TEST(wlist.last            == (i+1 < lengthof(threads) ? cast2node_wlist(threads[lengthof(threads)-1]) : 0)) ;
-      TEST(wlist.lockflag        == 0) ;
+      TEST(wlist.lockflag        == 0);
    }
 
    // TEST free_waitlist: calls trywakeup_waitlist

@@ -29,9 +29,9 @@
 
 void unlink_syncfunc(syncfunc_t* sfunc)
 {
-   const int waitop = (sfunc->optflags & syncfunc_opt_WAITFIELDS);
+   const int iswaitlist = (sfunc->optflags & syncfunc_opt_WAITLIST);
 
-   if (waitop) {
+   if (iswaitlist) {
       linkd_t* waitlist = waitlist_syncfunc(sfunc);
       if (isvalid_linkd(waitlist)) {
          unlink_linkd(waitlist);
@@ -96,7 +96,7 @@ static int test_initfree(void)
    TEST(0 == sfunc.waitlist.next);
 
    // TEST init_syncfunc
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
       for (uintptr_t state = 0; state != (uintptr_t)-1; state <<= 1, ++state) {
          memset(&sfunc, 255, sizeof(sfunc));
          init_syncfunc(&sfunc, &test_dummy, (void*) state, opt);
@@ -112,15 +112,18 @@ static int test_initfree(void)
    }
 
    // TEST initcopy_syncfunc
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
       sfunc2.waitresult = 1;
       sfunc2.waitlist.prev = (void*)2;
       sfunc2.waitlist.next = (void*)3;
-      for (syncfunc_opt_e opt2 = 0; opt2 <= syncfunc_opt_ALL; ++opt2) {
+      for (syncfunc_opt_e opt2 = 0; opt2 < syncfunc_opt__NROF; ++opt2) {
          void*    state = (void*) (uintptr_t) (256 * opt + opt2);
          uint16_t contoff = (uint16_t) (11 + opt + opt2);
          init_syncfunc(&sfunc, &test_dummy, state, opt);
-         sfunc.contoffset = contoff;
+         sfunc.contoffset    = contoff;
+         sfunc.waitresult    = 0;
+         sfunc.waitlist.prev = 0;
+         sfunc.waitlist.next = 0;
          // test
          sfunc2.mainfct  = 0;
          sfunc2.optflags = (uint8_t)-1;
@@ -137,75 +140,75 @@ static int test_initfree(void)
       }
    }
 
-   // TEST initmove_syncfunc: 0==(optfield&syncfunc_opt_WAITFIELDS)
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      if (opt & syncfunc_opt_WAITFIELDS) continue;
-      for (int r = 1; r <= 3; ++r) {
-         void*    state   = (void*) (uintptr_t) (256 * r);
-         uint16_t contoff = (uint16_t) (11 + r);
-         init_syncfunc(&sfunc, &test_dummy, state, opt);
-         sfunc.contoffset = contoff;
-         sfunc.waitresult = 1;
-         sfunc.waitlist.prev = (void*)2;
-         sfunc.waitlist.next = (void*)3;
-         // test self link
-         memset(&sfunc2, 0, sizeof(sfunc2));
-         initmove_syncfunc(&sfunc2, &sfunc);
-         // check content
-         TEST(sfunc2.mainfct    == &test_dummy);
-         TEST(sfunc2.state      == state);
-         TEST(sfunc2.contoffset == contoff);
-         TEST(sfunc2.optflags   == opt);
-         // check not copied
-         TEST(sfunc2.waitresult == 0);
-         TEST(sfunc2.waitlist.prev == 0);
-         TEST(sfunc2.waitlist.next == 0);
-      }
+   // TEST initmove_syncfunc: 0 == optflags
+   for (int r = 1; r <= 3; ++r) {
+      linkd_t  waitlist;
+      void*    state   = (void*) (uintptr_t) (256 * r);
+      uint16_t contoff = (uint16_t) (11 + r);
+      uint8_t  wr      = (uint8_t) (9 * r);
+      init_syncfunc(&sfunc, &test_dummy, state, syncfunc_opt_NONE);
+      sfunc.contoffset = contoff;
+      sfunc.waitresult = wr;
+      init_linkd(&sfunc.waitlist, &waitlist);
+      // test
+      memset(&sfunc2, 0, sizeof(sfunc2));
+      initmove_syncfunc(&sfunc2, &sfunc);
+      // check content
+      TEST(sfunc2.mainfct    == &test_dummy);
+      TEST(sfunc2.state      == state);
+      TEST(sfunc2.contoffset == contoff);
+      TEST(sfunc2.optflags   == 0);
+      TEST(sfunc2.waitresult == wr);
+      // check not copied
+      TEST(sfunc2.waitlist.prev == 0);
+      TEST(sfunc2.waitlist.next == 0);
+      // check not changed
+      TEST(sfunc.waitlist.prev == &waitlist);
+      TEST(sfunc.waitlist.next == &waitlist);
+      TEST(waitlist.prev == &sfunc.waitlist);
+      TEST(waitlist.next == &sfunc.waitlist);
    }
 
-   // TEST initmove_syncfunc: 0!=(optfield&syncfunc_opt_WAITFIELDS)
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      if (0 == (opt & syncfunc_opt_WAITFIELDS)) continue;
-      for (int r = 1; r <= 3; ++r) {
-         linkd_t  waitlist;
-         void*    state   = (void*) (uintptr_t) (256 * r);
-         uint16_t contoff = (uint16_t) (11 + r);
-         int   waitresult = (int) (10 * r);
-         init_syncfunc(&sfunc, &test_dummy, state, opt);
-         sfunc.contoffset = contoff;
-         sfunc.waitresult = waitresult;
-         initself_linkd(&sfunc.waitlist);
+   // TEST initmove_syncfunc: optflags == syncfunc_opt_WAITLIST
+   for (int r = 1; r <= 3; ++r) {
+      linkd_t  waitlist;
+      void*    state   = (void*) (uintptr_t) (256 * r);
+      uint16_t contoff = (uint16_t) (11 + r);
+      uint8_t  wr      = (uint8_t) (10 * r);
+      init_syncfunc(&sfunc, &test_dummy, state, syncfunc_opt_WAITLIST);
+      sfunc.contoffset = contoff;
+      sfunc.waitresult = wr;
+      initself_linkd(&sfunc.waitlist);
 
-         // test self link
-         memset(&sfunc2, 0, sizeof(sfunc2));
-         initmove_syncfunc(&sfunc2, &sfunc);
-         // check content
-         TEST(sfunc2.mainfct    == &test_dummy);
-         TEST(sfunc2.state      == state);
-         TEST(sfunc2.contoffset == contoff);
-         TEST(sfunc2.optflags   == opt);
-         TEST(sfunc2.waitresult == waitresult);
-         // check self link preserved
-         TEST(sfunc2.waitlist.prev == &sfunc2.waitlist);
-         TEST(sfunc2.waitlist.next == &sfunc2.waitlist);
+      // test self link
+      memset(&sfunc2, 0, sizeof(sfunc2));
+      initmove_syncfunc(&sfunc2, &sfunc);
+      // check content
+      TEST(sfunc2.mainfct    == &test_dummy);
+      TEST(sfunc2.state      == state);
+      TEST(sfunc2.contoffset == contoff);
+      TEST(sfunc2.optflags   == syncfunc_opt_WAITLIST);
+      TEST(sfunc2.waitresult == wr);
+      // check self link preserved
+      TEST(sfunc2.waitlist.prev == &sfunc2.waitlist);
+      TEST(sfunc2.waitlist.next == &sfunc2.waitlist);
 
-         // test no self
-         init_linkd(&sfunc.waitlist, &waitlist);
-         memset(&sfunc2, 0, sizeof(sfunc2));
-         initmove_syncfunc(&sfunc2, &sfunc);
-         // check content
-         TEST(sfunc2.mainfct    == &test_dummy);
-         TEST(sfunc2.state      == state);
-         TEST(sfunc2.contoffset == contoff);
-         TEST(sfunc2.optflags   == opt);
-         TEST(sfunc2.waitresult == waitresult);
-         // check link copied
-         TEST(sfunc2.waitlist.prev == &waitlist);
-         TEST(sfunc2.waitlist.next == &waitlist);
-         // check waitlist relinked
-         TEST(waitlist.prev == &sfunc2.waitlist);
-         TEST(waitlist.next == &sfunc2.waitlist);
-      }
+      // test no self
+      init_linkd(&sfunc.waitlist, &waitlist);
+      memset(&sfunc2, 0, sizeof(sfunc2));
+      initmove_syncfunc(&sfunc2, &sfunc);
+      // check content
+      TEST(sfunc2.mainfct    == &test_dummy);
+      TEST(sfunc2.state      == state);
+      TEST(sfunc2.contoffset == contoff);
+      TEST(sfunc2.optflags   == syncfunc_opt_WAITLIST);
+      TEST(sfunc2.waitresult == wr);
+      // check link copied
+      TEST(sfunc2.waitlist.prev == &waitlist);
+      TEST(sfunc2.waitlist.next == &waitlist);
+      // check waitlist relinked
+      TEST(waitlist.prev == &sfunc2.waitlist);
+      TEST(waitlist.next == &sfunc2.waitlist);
    }
 
    return 0;
@@ -219,9 +222,9 @@ static int test_getset(void)
    syncfunc_t sfunc2 = syncfunc_FREE;
 
    // TEST getsize_syncfunc
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
       uint16_t size   = getsize_syncfunc(opt);
-      uint16_t expect = (0 != (opt & syncfunc_opt_WAITFIELDS)) ? sizeof(syncfunc_t) : offsetof(syncfunc_t, waitresult);
+      uint16_t expect = (0 != (opt & syncfunc_opt_WAITLIST)) ? sizeof(syncfunc_t) : offsetof(syncfunc_t, waitlist);
       TEST(expect == size);
    }
 
@@ -241,9 +244,9 @@ static int test_getset(void)
 
    // TEST waitresult_syncfunc
    sfunc = (syncfunc_t) syncfunc_FREE;
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
       sfunc.optflags = opt;
-      for (int result = -10; result <= 10; ++result) {
+      for (uint8_t result = 0; result <= 10; ++result) {
          sfunc.waitresult = result;
          TEST(result == waitresult_syncfunc(&sfunc));
          // no fields changed
@@ -254,9 +257,9 @@ static int test_getset(void)
 
    // TEST setwaitresult_syncfunc
    sfunc = (syncfunc_t) syncfunc_FREE;
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
       sfunc.optflags = opt;
-      for (int result = -10; result <= 10; ++result) {
+      for (uint8_t result = 0; result <= 10; ++result) {
          setwaitresult_syncfunc(&sfunc, result);
          TEST(sfunc.optflags   == opt);
          TEST(sfunc.waitresult == result);
@@ -264,8 +267,8 @@ static int test_getset(void)
    }
 
    // TEST unlink_syncfunc
-   for (syncfunc_opt_e opt = 0; opt <= syncfunc_opt_ALL; ++opt) {
-      const int waitop = (opt & syncfunc_opt_WAITFIELDS);
+   for (syncfunc_opt_e opt = 0; opt < syncfunc_opt__NROF; ++opt) {
+      const int iswaitlist = (opt & syncfunc_opt_WAITLIST);
 
       sfunc  = (syncfunc_t) syncfunc_FREE;
       sfunc2 = (syncfunc_t) syncfunc_FREE;
@@ -286,9 +289,9 @@ static int test_getset(void)
       TEST(sfunc.waitresult    == 1);
       TEST(sfunc.waitlist.prev == &sfunc2.waitlist);
       TEST(sfunc.waitlist.next == &sfunc2.waitlist);
-      // check sfunc2 waitlist invalidated if waitop != 0
+      // check sfunc2 waitlist invalidated if iswaitlist != 0
       TEST(sfunc2.waitresult == 2);
-      if (waitop) {
+      if (iswaitlist) {
          // check unlinked
          TEST(sfunc2.waitlist.prev == &sfunc2.waitlist);
          TEST(sfunc2.waitlist.next == &sfunc2.waitlist);
@@ -325,7 +328,7 @@ ONEXIT:
 
 static int test_exit_sf(syncfunc_param_t * sfparam)
 {
-   exit_syncfunc(sfparam, (int)(sfparam->sfunc->state));
+   exit_syncfunc(sfparam, (int)(intptr_t)(sfparam->sfunc->state));
 }
 
 static int test_wait_sf(syncfunc_param_t * sfparam)
@@ -390,16 +393,16 @@ static int test_implsupport(void)
    sfparam.sfunc = &sfunc;
 
    // TEST contoffset_syncfunc
-   for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
-      sfunc.contoffset = i;
+   for (unsigned i = 1; (uint16_t)i; i <<= 1) {
+      sfunc.contoffset = (uint16_t)i;
       TEST(i == contoffset_syncfunc(&sfparam));
    }
    sfunc.contoffset = 0;
    TEST(0 == contoffset_syncfunc(&sfparam));
 
    // TEST setcontoffset_syncfunc
-   for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
-      setcontoffset_syncfunc(&sfparam, i);
+   for (unsigned i = 1; (uint16_t)i; i <<= 1) {
+      setcontoffset_syncfunc(&sfparam, (uint16_t)i);
       TEST(i == contoffset_syncfunc(&sfparam));
    }
    setcontoffset_syncfunc(&sfparam, 0);
@@ -423,7 +426,7 @@ static int test_implsupport(void)
 
    // TEST start_syncfunc: contoffset / isterminate
    sfunc.contoffset = 0;
-   for (int r = 0; r < 3; ++r) {
+   for (unsigned r = 0; r < 3; ++r) {
       syncfunc_param_t sfparam2 = syncfunc_param_INIT(0, (uint8_t)(r == 2));
       sfparam2.sfunc = &sfunc;
       sfparam2.err = 0;
@@ -431,20 +434,20 @@ static int test_implsupport(void)
       TEST(cmd == test_start_sf(&sfparam2));
       TEST(sfparam2.srun      == 0);
       TEST(sfparam2.condition == 0);
-      TEST(sfparam2.err       == 10 + r);
+      TEST(sfparam2.err       == 10 + (int)r);
       TEST(sfunc.state        == 0);
       TEST(sfunc.contoffset   != 0);
    }
 
    // TEST exit_syncfunc
    sfunc.contoffset = 0;
-   for (int i = 0; i < 3; ++i) {
-      sfunc.state = (void*)(intptr_t)i;
+   for (uintptr_t i = 0; i < 3; ++i) {
+      sfunc.state = (void*)i;
       TEST(synccmd_EXIT == test_exit_sf(&sfparam));
       TEST(sfparam.srun      == 0);
       TEST(sfparam.condition == 0);
-      TEST(sfparam.err       == i);
-      TEST(sfunc.state       == (void*)(intptr_t)i);
+      TEST(sfparam.err       == (int) i);
+      TEST(sfunc.state       == (void*)i);
       TEST(sfunc.contoffset  == 0);
    }
 
@@ -452,7 +455,7 @@ static int test_implsupport(void)
    sfparam.err = 0;
    sfunc.state = 0;
    sfunc.contoffset = 0;
-   for (intptr_t i = 1; i <= 4; ++i) {
+   for (uintptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfunc.contoffset;
       int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.condition = 0;
@@ -466,29 +469,29 @@ static int test_implsupport(void)
 
    // TEST wait_syncfunc: waiterr != 0
    sfunc.contoffset = 0;
-   for (intptr_t i = 1; i <= 4; ++i) {
+   for (uintptr_t i = 1; i <= 4; ++i) {
       uint16_t oldoff = sfunc.contoffset;
       int      result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
       sfparam.condition = 0;
-      sfparam.err       = i;
+      sfparam.err       = (int)i;
       TEST(result == test_waiterr_sf(&sfparam));
       TEST(sfparam.srun      == 0);
       TEST(sfparam.condition == (i != 4 ? (void*)i : 0));
-      TEST(sfparam.err       == i);
+      TEST(sfparam.err       == (int) i);
       TEST(sfunc.state       == 0);
       TEST(sfunc.contoffset  != oldoff);
    }
 
    // TEST yield_syncfunc
    sfunc.contoffset = 0;
-   for (int i = 19; i <= 21; ++i) {
+   for (unsigned i = 19; i <= 21; ++i) {
       uint16_t oldoff = sfunc.contoffset;
       int      result = i != 21 ? synccmd_RUN : synccmd_EXIT;
       sfparam.err = 0;
       TEST(result == test_yield_sf(&sfparam));
       TEST(0 == sfparam.srun);
       TEST(0 == sfparam.condition);
-      TEST(i == sfparam.err);
+      TEST((int)i == sfparam.err);
       TEST(0 == sfunc.state);
       TEST(oldoff != sfunc.contoffset);
    }

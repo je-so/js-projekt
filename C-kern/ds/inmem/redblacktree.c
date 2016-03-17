@@ -795,23 +795,20 @@ bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktr
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct testadapt_t             testadapt_t ;
-typedef struct testnode_t              testnode_t ;
+typedef struct testnode_t {
+   uintptr_t            key;
+   redblacktree_node_t  node;
+   int                  is_freed;
+   int                  is_inserted;
+} testnode_t;
 
-struct testnode_t {
-   unsigned             key ;
-   redblacktree_node_t  node ;
-   int                  is_freed ;
-   int                  is_inserted ;
-} ;
-
-struct testadapt_t {
+typedef struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, uintptr_t) ;
+      typeadapt_EMBED(struct testadapt_t, testnode_t, uintptr_t) ;
    } ;
    test_errortimer_t    errcounter ;
    unsigned             freenode_count ;
-} ;
+} testadapt_t;
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
@@ -829,24 +826,24 @@ static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 
 static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const uintptr_t lkey, const testnode_t * rnode)
 {
-   (void) testadp ;
-   unsigned rkey = rnode->key ;
-   return lkey < rkey ? -1 : (lkey > rkey ? +1 : 0) ;
+   (void) testadp;
+   uintptr_t rkey = rnode->key;
+   return lkey < rkey ? -1 : (lkey > rkey ? +1 : 0);
 }
 
 static int impl_cmpobj_testadapt(testadapt_t * testadp, const testnode_t * lnode, const testnode_t * rnode)
 {
    (void) testadp ;
-   unsigned lkey = lnode->key ;
-   unsigned rkey = rnode->key ;
-   return lkey < rkey ? -1 : (lkey > rkey ? +1 : 0) ;
+   uintptr_t lkey = lnode->key;
+   uintptr_t rkey = rnode->key;
+   return lkey < rkey ? -1 : (lkey > rkey ? +1 : 0);
 }
 
 static redblacktree_node_t * build_perfect_tree(unsigned count, testnode_t * nodes)
 {
-   assert(count < 10000) ;
-   assert(0 == ((count + 1) & count)) ;   // count == (2^power)-1
-   unsigned root = (count + 1) / 2 ;
+   assert(count < 10000);
+   assert(0 == ((count + 1) & count));   // count == (2^power)-1
+   unsigned root = (count + 1) / 2;
    if (root == 1) {
       nodes[root].node.left = nodes[root].node.right = 0 ;
    } else {
@@ -1407,9 +1404,9 @@ static int test_insertremove(void)
    TEST(0 == tree.root) ;
 
    // TEST find_redblacktree: empty tree
-   treenode = (void*)1 ;
-   TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[0].key, &treenode)) ;
-   TEST(0 == tree.root) ;
+   treenode = (void*)1;
+   TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[0].key, &treenode));
+   TEST(0 == tree.root);
    TEST(treenode == (void*)1) ;
 
    // TEST insert_redblacktree: single node
@@ -1452,8 +1449,8 @@ static int test_insertremove(void)
 
    // TEST find_redblacktree: ascending order
    for (unsigned i = 0; i < lengthof(*nodes); ++i) {
-      TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode)) ;
-      TEST(treenode == &(*nodes)[i].node) ;
+      TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode));
+      TEST(treenode == &(*nodes)[i].node);
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
 
@@ -1494,15 +1491,15 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < 4*lengthof(*nodes); ++i) {
       int id = rand() % (int)lengthof(*nodes) ;
       if ((*nodes)[id].is_inserted) {
-         TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode)) ;
+         TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode));
          TEST(treenode == &(*nodes)[id].node) ;
          (*nodes)[id].is_inserted = 0 ;
          treenode = 0 ;
          TEST(0 == remove_redblacktree(&tree, &(*nodes)[id].node)) ;
       } else {
-         TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode)) ;
-         (*nodes)[id].is_inserted = 1 ;
-         TEST(0 == insert_redblacktree(&tree, &(*nodes)[id].node)) ;
+         TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode));
+         (*nodes)[id].is_inserted = 1;
+         TEST(0 == insert_redblacktree(&tree, &(*nodes)[id].node));
       }
    }
 
@@ -1510,11 +1507,11 @@ static int test_insertremove(void)
    typeadapt.freenode_count = 0 ;
    for (unsigned i = 0; i < lengthof(*nodes); ++i) {
       if ((*nodes)[i].is_inserted) {
-         TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode)) ;
-         TEST(treenode == &(*nodes)[i].node) ;
+         TEST(0 == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode));
+         TEST(treenode == &(*nodes)[i].node);
       } else {
-         TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode)) ;
-         ++ typeadapt.freenode_count ;
+         TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode));
+         ++ typeadapt.freenode_count;
       }
       TEST(0 == (*nodes)[i].is_freed) ;
    }

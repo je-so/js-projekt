@@ -418,7 +418,7 @@ static int test_initfree(void)
    TEST(0 == init_logwriter(&lgwrt));
    TEST(lgwrt.addr != 0);
    TEST(lgwrt.size == 16384);
-   for (unsigned i = 0, offset = 0; i < log_channel__NROF; ++i) {
+   for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
       TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
       TEST(lgwrt.chan[i].logbuf.size == (i == log_channel_ERR ? 16384 - (log_channel__NROF-1)*2*log_config_MINSIZE : 2*log_config_MINSIZE));
       TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR);
@@ -450,7 +450,7 @@ static int test_initfree(void)
    TEST(0 == initstatic_logwriter(&lgwrt, sizeof(logbuf), logbuf));
    TEST(lgwrt.addr == logbuf);
    TEST(lgwrt.size == sizeof(logbuf));
-   for (unsigned i = 0, offset = 0; i < log_channel__NROF; ++i) {
+   for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
       TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
       TEST(lgwrt.chan[i].logbuf.size == log_config_MINSIZE);
       TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR);
@@ -470,7 +470,7 @@ static int test_initfree(void)
       TEST(0 == initstatic_logwriter(&lgwrt, bs, logbuf));
       TEST(lgwrt.addr == logbuf);
       TEST(lgwrt.size == bs);
-      for (unsigned i = 0, offset = 0; i < log_channel__NROF; ++i) {
+      for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
          int isErr = (i == log_channel_ERR);
          TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
          TEST(lgwrt.chan[i].logbuf.size == (isErr ? bs : 0));
@@ -487,7 +487,7 @@ static int test_initfree(void)
    initshared_logwriter(&lgwrt);
    TEST(lgwrt.addr == s_logwriter_sharedbuffer);
    TEST(lgwrt.size == sizeof(s_logwriter_sharedbuffer));
-   for (unsigned i = 0, offset = 0; i < log_channel__NROF; ++i) {
+   for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
       int isErr = (i == log_channel_ERR);
       TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
       TEST(lgwrt.chan[i].logbuf.size == (isErr ? lgwrt.size : 0));
@@ -724,7 +724,7 @@ static int test_write(void)
       logfd = lgwrt.chan[i].logbuf.io;
       lgwrt.chan[i].logbuf.io = pipefd.write;
       // set log buffer
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       for (unsigned b = 0; b < S; ++b) {
          lgwrt.chan[i].logbuf.addr[b] = (uint8_t) (1+b+i);
       }
@@ -735,8 +735,8 @@ static int test_write(void)
       TEST(S == lgwrt.chan[i].logbuf.size);
       TEST(0 == lgwrt.chan[i].logbuf.logsize);
       // compare flushed content
-      int rs = read(pipefd.read, mem.addr, mem.size);
-      TESTP(S == (unsigned)rs, "rs:%d", rs);
+      ssize_t rs = read(pipefd.read, mem.addr, mem.size);
+      TESTP(S == (unsigned)rs, "rs:%zd", rs);
       for (unsigned b = 0; b < S; ++b) {
          TEST(mem.addr[b] == (uint8_t) (1+b+i));
       }
@@ -749,7 +749,7 @@ static int test_write(void)
    // TEST printf_logwriter: log_flags_NONE for all log_state_e
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      const uint32_t S = lgwrt.chan[i].logbuf.size;
+      const size_t S = lgwrt.chan[i].logbuf.size;
       // write log into pipe
       logfd = lgwrt.chan[i].logbuf.io;
       lgwrt.chan[i].logbuf.io = pipefd.write;
@@ -792,7 +792,7 @@ static int test_write(void)
    // TEST printf_logwriter: log_flags_LAST for all log_state_e
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      const uint32_t S = lgwrt.chan[i].logbuf.size;
+      const size_t S = lgwrt.chan[i].logbuf.size;
       // write log into pipe
       logfd = lgwrt.chan[i].logbuf.io;
       lgwrt.chan[i].logbuf.io = pipefd.write;
@@ -839,7 +839,7 @@ static int test_write(void)
    // TEST printf_logwriter: log_flags_NONE && buffer size > log_config_MINSIZE
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      const uint32_t S = lgwrt.chan[i].logbuf.size;
+      const size_t S = lgwrt.chan[i].logbuf.size;
       TEST(S > log_config_MINSIZE);
       // write log into pipe
       logfd = lgwrt.chan[i].logbuf.io;
@@ -881,7 +881,7 @@ static int test_write(void)
    // TEST printf_logwriter: log_flags_NONE && truncate is indicated with " ..." at end
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       TEST(S > 7);
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          if (s == log_state_IGNORED || s == log_state_IMMEDIATE) continue;
@@ -906,7 +906,7 @@ static int test_write(void)
    // TEST printf_logwriter: header
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          if (s == log_state_IGNORED || s == log_state_IMMEDIATE) continue;
          setstate_logwriter(&lgwrt, i, s);
@@ -929,7 +929,7 @@ static int test_write(void)
    // TEST printf_logwriter: header truncated
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          if (s == log_state_IGNORED || s == log_state_IMMEDIATE) continue;
          setstate_logwriter(&lgwrt, i, s);
@@ -959,7 +959,7 @@ static int test_write(void)
    // TEST printf_logwriter: header is ignored if funcname == last.funcname
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          setstate_logwriter(&lgwrt, i, s);
          log_header_t header = log_header_INIT("__func__", "__file__", i);
@@ -988,8 +988,8 @@ static int test_write(void)
          setstate_logwriter(&lgwrt, i, s);
          printf_logwriter(&lgwrt, i, log_flags_LAST, 0, 0);
          // nothing is written
-         TEST(lgwrt.chan[i].logbuf.logsize == 0);
-         TEST(-1 == read(pipefd.read, mem.addr, mem.size));
+         TEST( 0  == lgwrt.chan[i].logbuf.logsize);
+         TEST( -1 == read(pipefd.read, mem.addr, mem.size));
       }
       // reset
       lgwrt.chan[i].logbuf.io = logfd;
@@ -999,7 +999,7 @@ static int test_write(void)
    // TEST printtext_logwriter: header + text resource + truncated message
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       TEST(S > log_config_MINSIZE);
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          if (s == log_state_IGNORED || s == log_state_IMMEDIATE) continue;
@@ -1034,7 +1034,7 @@ static int test_write(void)
    // TEST printtext_logwriter: header + null textresource is ignored
    TEST(0 == init_logwriter(&lgwrt));
    for (uint8_t i = 0; i < log_channel__NROF; ++i) {
-      uint32_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size;
       for (uint8_t s = 0; s < log_state__NROF; ++s) {
          if (s == log_state_IGNORED || s == log_state_IMMEDIATE) continue;
          setstate_logwriter(&lgwrt, i, s);

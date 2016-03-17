@@ -21,9 +21,8 @@
 // forward
 struct ioevent_t;
 
-/* typedef: struct iopoll_t
- * Export <iopoll_t> into global namespace. */
-typedef struct iopoll_t iopoll_t;
+// === exported types
+struct iopoll_t;
 
 
 // section: Functions
@@ -59,12 +58,12 @@ int unittest_io_iopoll(void);
  * Only if new data arrives on the channel another event is generated.
  *
  * */
-struct iopoll_t {
+typedef struct iopoll_t {
    // group: struct fields
    /* variable: sys_poll
     * Handle to the underlying system event queue. */
    sys_iochannel_t   sys_poll;
-};
+} iopoll_t;
 
 // group: lifetime
 
@@ -102,7 +101,7 @@ int free_iopoll(iopoll_t * iopoll);
  * EINTR - In case of SIGSTOP/SIGCONT or any other called interrupt handler. EINTR is not logged as error code.
  * EBADF - Object iopoll contains is in a freed state.
  * EINVAL - Object iopoll contains a wrong file descriptor. */
-int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms);
+int wait_iopoll(iopoll_t * iopoll, /*out*/size_t * nr_events, size_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms);
 
 // group: change
 

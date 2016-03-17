@@ -368,8 +368,8 @@ static int test_initfree(void)
       TEST(0 == list.last);
       // check nodes
       TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
-      unsigned I = (lengthof(nodes)-1+ta) % lengthof(nodes);
-      for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      size_t I = (lengthof(nodes)-1+ta) % lengthof(nodes);
+      for (size_t i = 0; i < lengthof(nodes); ++i) {
          TEST(0 == nodes[i].node.next);
          TEST(0 == nodes[i].node.prev);
          TEST(0 == nodes[i].node2.next);
@@ -1064,8 +1064,8 @@ static int test_setops(void)
          TEST(0 == list.last);
          // check nodes
          TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
-         unsigned I = (lengthof(nodes)-1+(unsigned)(3*no+isNoDelete)) % lengthof(nodes);
-         for (unsigned i = 0; i < lengthof(nodes); ++i) {
+         size_t I = (lengthof(nodes)-1+(unsigned)(3*no+isNoDelete)) % lengthof(nodes);
+         for (size_t i = 0; i < lengthof(nodes); ++i) {
             TEST(0 == nodes[i].node.next  && 0 == nodes[i].node.prev);
             TEST(0 == nodes[i].next       && 0 == nodes[i].prev);
             TEST(0 == nodes[i].node2.next && 0 == nodes[i].node2.prev);

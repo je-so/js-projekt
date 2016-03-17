@@ -682,9 +682,9 @@ ONERR:
 
 bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_node_t ** node)
 {
-   int err ;
-   size_t         nrelemroot = toplevelsize_arraystf(iter->array) ;
-   arraystf_pos_t * pos ;
+   int err;
+   size_t   nrelemroot = toplevelsize_arraystf(iter->array);
+   arraystf_pos_t * pos;
 
    for (;;) {
 
@@ -768,14 +768,14 @@ static int test_arraystfnode(void)
    TEST(0 == node.size) ;
 
    // TEST arraystf_node_INIT
-   for (unsigned i = 0; i < 1000; i += 100) {
-      node = (arraystf_node_t) arraystf_node_INIT(i+1,(const uint8_t*)i) ;
-      TEST(i   == (uintptr_t)node.addr) ;
-      TEST(i+1 == node.size) ;
+   for (uintptr_t i = 0; i < 1000; i += 100) {
+      node = (arraystf_node_t) arraystf_node_INIT(i+1,(const uint8_t*)i);
+      TEST(i   == (uintptr_t)node.addr);
+      TEST(i+1 == node.size);
    }
 
    // TEST cast_arraystfnode
-   for (unsigned i = 0; i < 1000; i += 100) {
+   for (uintptr_t i = 0; i < 1000; i += 100) {
       TEST(cast_arraystfnode((string_t*)i) == (arraystf_node_t*)i) ;
    }
 
@@ -883,37 +883,34 @@ static int test_arraystfkeyval(void)
       TEST(i       == keyval.offset) ;
    }
 
-   // TEST init_arraystfkeyval (offset higher key size)
+   // TEST init_arraystfkeyval (offset > key size)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
    node1 = (arraystf_node_t) arraystf_node_INIT(17, key1) ;
-   for (unsigned i = 17; i < SIZE_MAX; i <<= 1, i++) {
-      keyval.data   = 0 ;
-      keyval.offset = i+1 ;
-      init_arraystfkeyval(&keyval, i, &node1) ;
-      TEST(0 == keyval.data /*always 0*/) ;
-      TEST(i == keyval.offset) ;
+   for (size_t i = 17; i < SIZE_MAX; i <<= 1, ++i) {
+      keyval.data   = 0;
+      keyval.offset = i+1;
+      init_arraystfkeyval(&keyval, i, &node1);
+      TEST(0 == keyval.data /*always 0*/);
+      TEST(i == keyval.offset);
    }
 
    // TEST init_arraystfkeyval (special value -1)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
    for (unsigned i = 1; i <= 17; i++) {
-      node1 = (arraystf_node_t) arraystf_node_INIT(i, key1) ;
-      keyval.data   = 0 ;
-      keyval.offset = 0 ;
-      init_arraystfkeyval(&keyval, SIZE_MAX, &node1) ;
-      TEST(i        == keyval.data/*always key size*/) ;
-      TEST(SIZE_MAX == keyval.offset) ;
+      node1 = (arraystf_node_t) arraystf_node_INIT(i, key1);
+      keyval.data   = 0;
+      keyval.offset = 0;
+      init_arraystfkeyval(&keyval, SIZE_MAX, &node1);
+      TEST(i        == keyval.data/*always key size*/);
+      TEST(SIZE_MAX == keyval.offset);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
-typedef struct testnode_t              testnode_t ;
-typedef struct testnode_adapt_t        testnode_adapt_t ;
-
-struct testnode_t {
+typedef struct testnode_t {
    arraystf_node_t node ;
    uint8_t         copycount ;
    uint8_t         freecount ;
@@ -922,14 +919,14 @@ struct testnode_t {
       arraystf_node_EMBED(addr, size) ;
    }               node2 ;
    uint8_t         key2[40] ;
-} ;
+} testnode_t;
 
-struct testnode_adapt_t {
+typedef struct testnode_adapt_t {
    struct {
-      typeadapt_EMBED(testnode_adapt_t, testnode_t, void*) ;
-   } ;
-   test_errortimer_t    errcounter ;
-} ;
+      typeadapt_EMBED(struct testnode_adapt_t, testnode_t, void*);
+   };
+   test_errortimer_t errcounter;
+} testnode_adapt_t;
 
 static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copied_node, const testnode_t * node)
 {
@@ -953,7 +950,7 @@ static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node
 
 static int test_initfree(void)
 {
-   const size_t      nrnodes   = 10000 ;
+   const size_t      nrnodes   = 1024*1024/sizeof(testnode_t);
    memblock_t        memblock  = memblock_FREE ;
    arraystf_t  *     array     = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
@@ -963,9 +960,9 @@ static int test_initfree(void)
    arraystf_node_t * removed_node ;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
 
    // TEST arraystf_node_EMBED
    static_assert(sizeof(nodes->node) == sizeof(nodes->node2), "arraystf_node_EMBED creates same structure");
@@ -1273,7 +1270,7 @@ ONERR:
 
 static int test_error(void)
 {
-   const size_t      nrnodes   = 10000 ;
+   const size_t      nrnodes   = 1024*1024/sizeof(testnode_t);
    memblock_t        memblock  = memblock_FREE ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_FREE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
@@ -1287,10 +1284,10 @@ static int test_error(void)
    size_t            logbufsize2 ;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraystf(&array, 256)) ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
+   TEST(0 == new_arraystf(&array, 256));
 
    // TEST EINVAL
    TEST(EINVAL == new_arraystf(&array, 0x800001/*too big*/)) ;
@@ -1353,7 +1350,7 @@ ONERR:
 
 static int test_iterator(void)
 {
-   const size_t      nrnodes  = 10000 ;
+   const size_t      nrnodes  = 1024*1024/sizeof(testnode_t);
    memblock_t        memblock = memblock_FREE ;
    arraystf_iterator_t iter   = arraystf_iterator_FREE ;
    arraystf_t      * array    = 0 ;
@@ -1362,10 +1359,10 @@ static int test_iterator(void)
    size_t            nextpos ;
 
    // prepare
-   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
-   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock)) ;
-   nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraystf(&array, 256)) ;
+   static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max");
+   TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &memblock));
+   nodes = (testnode_t *) memblock.addr;
+   TEST(0 == new_arraystf(&array, 256));
    for (size_t i = 0; i < nrnodes; ++i) {
       snprintf((char*)nodes[i].key, sizeof(nodes[i].key), "%05zu", i) ;
       nodes[i].node = (arraystf_node_t) arraystf_node_INIT(5, nodes[i].key) ;

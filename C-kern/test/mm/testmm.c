@@ -1103,7 +1103,7 @@ static int test_allocate(void)
       memblocks[i] = (memblock_t) memblock_FREE;
    }
    for (size_t ri = 0, datasize = 0; ri < 100000; ++ri) {
-      unsigned i = (unsigned)random() % lengthof(memblocks);
+      size_t i = (size_t)random() % lengthof(memblocks);
       if (isfree_memblock(&memblocks[i])) {
          datasize += blocksize/2;
          TEST(0 == malloc_testmm(&testmm, blocksize/2, &memblocks[i]));

@@ -1020,13 +1020,14 @@ static void test_sighandler(int signr)
 static int thread_callwaitsize(void* arg)
 {
    sigset_t sigmask;
+   int fd = (int) (intptr_t) arg;
    TEST(0 == sigemptyset(&sigmask));
    TEST(0 == sigaddset(&sigmask, SIGINT));
-   TEST(1 == write((int)arg, "S", 1));
+   TEST(1 == write(fd, "S", 1));
 
    int err = waitsizechange_terminal();
    TEST(0 == sigprocmask(SIG_BLOCK, &sigmask, 0));
-   TEST(1 == write((int)arg, "E", 1));
+   TEST(1 == write(fd, "E", 1));
 
    return err;
 ONERR:
@@ -1165,7 +1166,7 @@ static int test_query(void)
    act.sa_handler = &test_sighandler;
    act.sa_flags = SA_RESTART; // does not work (sigwaitinfo is aborted !)
    TEST(0 == sigaction(SIGINT, &act, &oldact));
-   TEST(0 == new_thread(&thread, &thread_callwaitsize, (void*)pfd[1]));
+   TEST(0 == new_thread(&thread, &thread_callwaitsize, (void*)(intptr_t)pfd[1]));
    TEST(0 == sigprocmask(SIG_SETMASK, &oldmask, 0));
    TEST(1 == read(pfd[0], name, 1)); // wait for thread_callwaitsize
    for (int i = 0; i < 100; ++i) {
@@ -1180,7 +1181,7 @@ static int test_query(void)
    TEST(0 == delete_thread(&thread));
 
    // TEST waitsizechange_terminal: EINTR (SIGSTOP / SIGCONT)
-   TEST(0 == new_thread(&thread, &thread_callwaitsize, (void*)pfd[1]));
+   TEST(0 == new_thread(&thread, &thread_callwaitsize, (void*)(intptr_t)pfd[1]));
    TEST(0 == sigprocmask(SIG_SETMASK, &oldmask, 0));
    TEST(1 == read(pfd[0], name, 1)); // wait for thread_callwaitsize
    for (int i = 0; i < 100; ++i) {
@@ -1333,11 +1334,11 @@ static int test_read(void)
 
    // test with input
    for (int i = 0; i < 5000; ++i) {
-      int err;
+      ssize_t nrbytes;
       do {
-         err = write(fd[1], "1234567890", 10);
-      } while (err == -1 && errno == EINTR);
-      TEST(10 == err);
+         nrbytes = write(fd[1], "1234567890", 10);
+      } while (nrbytes == -1 && errno == EINTR);
+      TEST(10 == nrbytes);
       memset(buf, 0, sizeof(buf));
       TEST(10 == tryread_terminal(&term2, sizeof(buf), buf));
       TEST(0 == memcmp(buf, "1234567890", 10));

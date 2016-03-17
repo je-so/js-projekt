@@ -25,13 +25,9 @@
 struct binarystack_t ;
 struct typeadapt_member_t ;
 
-/* typedef: struct arraystf_t
- * Export <arraystf_t>. */
-typedef struct arraystf_t              arraystf_t ;
-
-/* typedef: struct arraystf_iterator_t
- * Export <arraystf_iterator_t>, iterator type to iterate of contained nodes. */
-typedef struct arraystf_iterator_t     arraystf_iterator_t ;
+// === exported types
+struct arraystf_t;
+struct arraystf_iterator_t;
 
 
 // section: Functions
@@ -73,21 +69,21 @@ int unittest_ds_inmem_arraystf(void) ;
  * - The byte values at offset 0 .. key->size-1 are taken from key->addr
  * - The byte values at offset key->size .. SIZE_MAX-1 are always 0
  * - The value at offset SIZE_MAX is key->size and has bitsof(size_t) bits instead of only 8 */
-struct arraystf_t {
+typedef struct arraystf_t {
    /* variable: length
     * The number of elements stored in this array. */
-   size_t                  length ;
+   size_t                  length;
    /* variable: toplevelsize
     * The size of array <root>. */
-   uint32_t                toplevelsize:24 ;
+   uint32_t                toplevelsize:24;
    /* variable: rootidxshift
     * Nr of bits to shift right before root key is used to access <root>. */
-   uint32_t                rootidxshift:8 ;
+   uint32_t                rootidxshift:8;
    /* variable: root
     * Points to top level nodes.
     * The size of the root array is determined by <toplevelsize>. */
-   union arraystf_unode_t  * root[/*toplevelsize*/] ;
-} ;
+   union arraystf_unode_t* root[/*toplevelsize*/];
+} arraystf_t;
 
 // group: lifetime
 
@@ -106,12 +102,12 @@ int delete_arraystf(arraystf_t ** array, struct typeadapt_member_t * nodeadp) ;
 /* typedef: iteratortype_arraystf
  * Declaration to associate <arraystf_iterator_t> with <arraystf_t>.
  * The association is done with a typedef which looks like a function. */
-typedef arraystf_iterator_t      iteratortype_arraystf ;
+typedef struct arraystf_iterator_t iteratortype_arraystf;
 
 /* typedef: iteratedtype_arraystf
  * Function declaration to associate <arraystf_node_t> with <arraystf_t>.
  * The association is done with a typedef which looks like a function. */
-typedef struct arraystf_node_t * iteratedtype_arraystf ;
+typedef struct arraystf_node_t * iteratedtype_arraystf;
 
 // group: query
 
@@ -170,17 +166,17 @@ void arraystf_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* struct: arraystf_iterator_t
  * Iterates over elements contained in <arraystf_t>. */
-struct arraystf_iterator_t {
+typedef struct arraystf_iterator_t {
    /* variable: stack
     * Remembers last position in tree. */
-   struct binarystack_t *  stack ;
+   struct binarystack_t *  stack;
    /* variable: array
     * Remembers iterated container. */
-   arraystf_t           *  array ;
+   arraystf_t           *  array;
    /* variable: ri
     * Index into <arraystf_t.root>. */
-   unsigned                ri ;
-} ;
+   size_t                  ri;
+} arraystf_iterator_t;
 
 // group: lifetime
 

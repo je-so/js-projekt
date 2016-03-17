@@ -43,92 +43,92 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
       goto ONERR;
    }
 
-   static_assert(sizeof(fd) == sizeof(semaobj), "init all fields of struct") ;
-   semaobj->sys_sema = fd ;
+   // set out
+   semaobj->sys_sema = fd;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int free_semaphore(semaphore_t * semaobj)
 {
-   int err = 0 ;
-   int err2 ;
+   int err = 0;
+   int err2;
 
    if (!isfree_iochannel(semaobj->sys_sema)) {
       // wake up any waiters
-      int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
-      flags |= O_NONBLOCK ;
-      fcntl(semaobj->sys_sema, F_SETFL, flags) ;
+      int flags = fcntl(semaobj->sys_sema, F_GETFL);
+      flags |= O_NONBLOCK;
+      fcntl(semaobj->sys_sema, F_SETFL, flags);
       for (uint64_t increment = 0xffff; increment; increment <<= 16) {
-         err2 = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
-         if (-1 == err2) {
+         ssize_t nrbytes = write(semaobj->sys_sema, &increment, sizeof(increment));
+         if (-1 == nrbytes) {
             if (EAGAIN != errno) {
-               err = errno ;
-               TRACESYSCALL_ERRLOG("write", err) ;
-               PRINTINT_ERRLOG(semaobj->sys_sema) ;
-               break ;
+               err = errno;
+               TRACESYSCALL_ERRLOG("write", err);
+               PRINTINT_ERRLOG(semaobj->sys_sema);
+               break;
             }
          }
       }
       // free resource
-      err2 = free_iochannel(&semaobj->sys_sema) ;
-      if (err2) err = err2 ;
+      err2 = free_iochannel(&semaobj->sys_sema);
+      if (err2) err = err2;
 
       if (err) goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: synchronize
 
 int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
 {
-   int err ;
-   uint64_t increment = signal_count ;
+   int err;
+   uint64_t increment = signal_count;
 
-   err = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
-   if (-1 == err) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("write", err) ;
-      PRINTINT_ERRLOG(semaobj->sys_sema) ;
-      PRINTUINT32_ERRLOG(signal_count) ;
+   const ssize_t nrbytes = write(semaobj->sys_sema, &increment, sizeof(increment));
+   if (-1 == nrbytes) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("write", err);
+      PRINTINT_ERRLOG(semaobj->sys_sema);
+      PRINTUINT32_ERRLOG(signal_count);
       goto ONERR;
    }
 
-   assert(sizeof(uint64_t) == err) ;
+   assert(nrbytes == sizeof(uint64_t));
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int wait_semaphore(semaphore_t * semaobj)
 {
-   int err ;
-   uint64_t decrement = 0 ;
+   int err;
+   uint64_t decrement = 0;
 
-   err = read(semaobj->sys_sema, &decrement, sizeof(decrement)) ;
-   if (-1 == err) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("read", err) ;
-      PRINTINT_ERRLOG(semaobj->sys_sema) ;
+   const ssize_t nrbytes = read(semaobj->sys_sema, &decrement, sizeof(decrement));
+   if (-1 == nrbytes) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("read", err);
+      PRINTINT_ERRLOG(semaobj->sys_sema);
       goto ONERR;
    }
 
-   assert(1 == decrement) ;
+   assert(1 == decrement);
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -138,10 +138,10 @@ ONERR:
 
 static int test_semaphore_init(void)
 {
-   semaphore_t    sema = semaphore_FREE ;
+   semaphore_t sema = semaphore_FREE;
 
    // TEST static init
-   TEST(sema.sys_sema == sys_semaphore_FREE) ;
+   TEST(sema.sys_sema == sys_semaphore_FREE);
 
    // TEST init, double free
    TEST(0 == init_semaphore(&sema, 2)) ;
@@ -324,9 +324,9 @@ ONERR:
 
 static int test_overflow(void)
 {
-   sys_semaphore_t   sema = sys_semaphore_FREE ;
-   int               size ;
-   uint64_t          value ;
+   sys_semaphore_t sema = sys_semaphore_FREE;
+   ssize_t  size;
+   uint64_t value;
 
    // TEST value overflow => EAGAIN value has not changed
    sema = eventfd(0,EFD_CLOEXEC|EFD_NONBLOCK) ;

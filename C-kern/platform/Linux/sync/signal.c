@@ -355,14 +355,14 @@ ONERR:
 struct signalstate_t {
    /* variable: nr_signal_handlers
     * Number of stored signal handlers. */
-   int               nr_signal_handlers ;
+   unsigned          nr_signal_handlers;
    /* variable: signalmask
     * The signal mask of the current thread. */
-   sigset_t          signalmask ;
+   sigset_t          signalmask;
    /* variable:      signal_handlers
     * Stores setting for every signal handler. */
-   struct sigaction  signal_handlers[/*nr_signal_handlers*/] ;
-} ;
+   struct sigaction  signal_handlers[/*nr_signal_handlers*/];
+};
 
 // group: constants
 
@@ -378,9 +378,9 @@ struct signalstate_t {
 /* function: nrhandlers_signalstate
  * Returns the number of valid signal handlers.
  * Linux supports signals numbers from 1 to 31 and from SIGRTMIN to SIGRTMAX. */
-static int nrhandlers_signalstate(void)
+static unsigned nrhandlers_signalstate(void)
 {
-   return SIGRTMAX ; // signal nr 0 is not used
+   return (unsigned)SIGRTMAX; // signal nr 0 is not used
 }
 
 /* function: objectsize_signalstate
@@ -396,32 +396,32 @@ static size_t objectsize_signalstate(void)
 
 int new_signalstate(/*out*/signalstate_t ** sigstate)
 {
-   int err ;
-   const int         nr_signal_handlers = nrhandlers_signalstate() ;
-   const size_t      objectsize         = objectsize_signalstate() ;
-   memblock_t        mem                = memblock_FREE ;
-   signalstate_t *   newsigstate        = 0 ;
+   int err;
+   const unsigned    nr_signal_handlers = nrhandlers_signalstate();
+   const size_t      objectsize         = objectsize_signalstate();
+   memblock_t        mem                = memblock_FREE;
+   signalstate_t *   newsigstate        = 0;
 
-   err = RESIZE_MM(objectsize, &mem) ;
+   err = RESIZE_MM(objectsize, &mem);
    if (err) goto ONERR;
 
-   newsigstate = (signalstate_t*) mem.addr ;
-   memset(newsigstate, 0, objectsize) ;
-   newsigstate->nr_signal_handlers = nr_signal_handlers ;
+   newsigstate = (signalstate_t*) mem.addr;
+   memset(newsigstate, 0, objectsize);
+   newsigstate->nr_signal_handlers = nr_signal_handlers;
 
-   err = pthread_sigmask(SIG_SETMASK, 0, &newsigstate->signalmask) ;
+   err = pthread_sigmask(SIG_SETMASK, 0, &newsigstate->signalmask);
    if (err) {
-      TRACESYSCALL_ERRLOG("pthread_sigmask", err) ;
+      TRACESYSCALL_ERRLOG("pthread_sigmask", err);
       goto ONERR;
    }
 
-   for (int i = nr_signal_handlers; i > 0; --i) {
-      if (32 <= i && i < SIGRTMIN) continue ; // not used in Linux
-      err = sigaction(i, 0, &newsigstate->signal_handlers[i-1]) ;
+   for (unsigned i = nr_signal_handlers; i > 0; --i) {
+      if (32 <= i && i < (unsigned)SIGRTMIN) continue; // not used in Linux
+      err = sigaction((int)i, 0, &newsigstate->signal_handlers[i-1]) ;
       if (err) {
-         err = errno ;
-         TRACESYSCALL_ERRLOG("sigaction(i,...)", err) ;
-         PRINTINT_ERRLOG(i) ;
+         err = errno;
+         TRACESYSCALL_ERRLOG("sigaction(i,...)", err);
+         PRINTINT_ERRLOG(i);
          goto ONERR;
       }
    }
@@ -460,7 +460,7 @@ ONERR:
 int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * sigstate2)
 {
    if (sigstate1 && sigstate2) {
-      const int nr_diff = sigstate1->nr_signal_handlers - sigstate2->nr_signal_handlers;
+      const int nr_diff = (int)sigstate1->nr_signal_handlers - (int)sigstate2->nr_signal_handlers;
       if (nr_diff) {
          return sign_int(nr_diff);
       }
@@ -470,7 +470,7 @@ int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * s
          return cmp;
       }
 
-      for (int i = sigstate1->nr_signal_handlers; i-- > 0; ) {
+      for (unsigned i = sigstate1->nr_signal_handlers; i-- > 0; ) {
          if (0 != (FLAGMASK & (sigstate1->signal_handlers[i].sa_flags ^ sigstate2->signal_handlers[i].sa_flags))) {
             return sign_int(sigstate1->signal_handlers[i].sa_flags - sigstate2->signal_handlers[i].sa_flags) ;
          }
@@ -493,40 +493,40 @@ int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * s
 
 int initrealtime_signalwait(/*out*/signalwait_t * signalwait, signalrt_t minrt, signalrt_t maxrt)
 {
-   int err ;
-   sigset_t signalmask ;
+   int err;
+   sigset_t signalmask;
 
-   VALIDATE_INPARAM_TEST(minrt <= maxrt, ONERR, ) ;
-   VALIDATE_INPARAM_TEST(maxrt <= maxnr_signalrt(), ONERR, ) ;
+   VALIDATE_INPARAM_TEST(minrt <= maxrt, ONERR, );
+   VALIDATE_INPARAM_TEST(maxrt <= maxnr_signalrt(), ONERR, );
 
-   err = sigemptyset(&signalmask) ;
+   err = sigemptyset(&signalmask);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigemptyset", err);
       goto ONERR;
    }
 
-   for (int signr = minrt; signr <= maxrt; ++signr) {
-      if (sigaddset(&signalmask, SIGRTMIN+signr)) {
-         err = EINVAL ;
-         TRACESYSCALL_ERRLOG("sigaddset", err) ;
+   for (unsigned signr = minrt; signr <= maxrt; ++signr) {
+      if (sigaddset(&signalmask, SIGRTMIN+(int)signr)) {
+         err = EINVAL;
+         TRACESYSCALL_ERRLOG("sigaddset", err);
          goto ONERR;
       }
    }
 
-   int fd = signalfd(-1, &signalmask, SFD_NONBLOCK|SFD_CLOEXEC) ;
+   int fd = signalfd(-1, &signalmask, SFD_NONBLOCK|SFD_CLOEXEC);
    if (-1 == fd) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("signalfd", err) ;
+      err = errno;
+      TRACESYSCALL_ERRLOG("signalfd", err);
       goto ONERR;
    }
 
-   *signalwait = fd ;
+   *signalwait = fd;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 /* function: free_signalwait
@@ -715,7 +715,7 @@ static int test_signalstate(void)
    // TEST new_signalstate, delete_signalstate
    TEST(0 == new_signalstate(&sigstate1)) ;
    TEST(0 != sigstate1) ;
-   TEST(SIGRTMAX == sigstate1->nr_signal_handlers) ;
+   TEST(SIGRTMAX == (int) sigstate1->nr_signal_handlers);
    memset(&signalmask, 0, sizeof(signalmask));
    TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &signalmask)) ;
    TEST(0 == memcmp(&signalmask, &sigstate1->signalmask, sizeof(signalmask)));
@@ -846,12 +846,12 @@ static int test_signalhandler_helper(void)
       TEST(s_signr    == (unsigned)signr) ;
       TEST(s_sigvalue == 0) ;
       s_signr    = 0 ;
-      pthread_sigqueue(pthread_self(), signr, (union sigval) { .sival_ptr = (void*)(100+i) } ) ;
-      TEST(s_signr    == (unsigned)signr) ;
-      TEST(s_sigvalue == 100+i) ;
+      pthread_sigqueue(pthread_self(), signr, (union sigval) { .sival_ptr = (void*)(uintptr_t)(100+i) } );
+      TEST(s_signr    == (unsigned)signr);
+      TEST(s_sigvalue == 100+i);
 
       // TEST get_signalhandler
-      TEST(&test_handler == get_signalhandler((unsigned)signr)) ;
+      TEST(&test_handler == get_signalhandler((unsigned)signr));
 
       // TEST set_signalhandler: restore previous if handler == 0
       TEST(0 == set_signalhandler((unsigned)signr, 0));

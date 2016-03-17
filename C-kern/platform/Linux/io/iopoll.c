@@ -112,20 +112,15 @@ ONERR:
 
 // group: query
 
-int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms)
+int wait_iopoll(iopoll_t * iopoll, /*out*/size_t * nr_events, size_t queuesize, /*out*/struct ioevent_t * eventqueue/*[queuesize]*/, uint16_t timeout_ms)
 {
    int err;
    int resultsize;
 
-   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONERR, PRINTUINT32_ERRLOG(queuesize) );
+   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize));
 
    static_assert( sizeof(int) > sizeof(timeout_ms), "(int)timeout_ms is never -1");
-   static_assert( sizeof(ioevent_t) == sizeof(struct epoll_event)
-                  && sizeof(((ioevent_t*)0)->ioevents) == sizeof(((struct epoll_event*)0)->events)
-                  && offsetof(ioevent_t, ioevents) == offsetof(struct epoll_event, events)
-                  && sizeof(((ioevent_t*)0)->eventid) == sizeof(((struct epoll_event*)0)->data)
-                  && offsetof(ioevent_t, eventid) == offsetof(struct epoll_event, data),
-                  "struct epoll_event compatible with ioevent_t");
+   static_assert( sizeof(ioevent_t) >= sizeof(struct epoll_event), "buffer is big enough");
 
    resultsize = epoll_wait(iopoll->sys_poll, (struct epoll_event*)eventqueue, (int)queuesize, timeout_ms);
    if (resultsize < 0) {
@@ -136,8 +131,22 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
       goto ONERR;
    }
 
-   for (int i = 0; i < resultsize; ++i) {
-      eventqueue[i].ioevents = convert2ioeventbits_iopoll(eventqueue[i].ioevents);
+   struct epoll_event * kernel_queue = (struct epoll_event*)eventqueue;
+   for (int i = resultsize-1; i >= 0; --i) {
+      static_assert( sizeof(eventqueue[i].eventid.ptr) == sizeof(eventqueue[i].eventid)
+                     || sizeof(eventqueue[i].eventid.val64) == sizeof(eventqueue[i].eventid),
+                     "pointer or uint64_t copy is enough");
+      static_assert( sizeof(kernel_queue[i].data.ptr) == sizeof(kernel_queue[i].data)
+                     || sizeof(kernel_queue[i].data.u64) == sizeof(kernel_queue[i].data),
+                     "pointer or uint64_t copy is enough");
+      if (sizeof(kernel_queue[i].data.u64) > sizeof(kernel_queue[i].data.ptr)) {
+         eventqueue[i].eventid.val64 = kernel_queue[i].data.u64;
+      } else {
+         eventqueue[i].eventid.ptr = kernel_queue[i].data.ptr;
+      }
+      static_assert( offsetof(struct ioevent_t, eventid) > offsetof(struct ioevent_t, ioevents), "ensure correct memmove semantics");
+      static_assert( offsetof(struct epoll_event, data) > offsetof(struct epoll_event, events), "ensure correct memmove semantics");
+      eventqueue[i].ioevents = convert2ioeventbits_iopoll(kernel_queue[i].events);
    }
 
    *nr_events = (unsigned) resultsize;
@@ -286,7 +295,7 @@ ONERR:
 static int test_registerfd(void)
 {
    iopoll_t    iopoll = iopoll_FREE;
-   uint32_t    nr_events;
+   size_t      nr_events;
    int         fd[20][2];
    ioevent_t   ioevents[21];
    directory_t* dir = 0;
@@ -688,9 +697,9 @@ static int s_pipefd;
 
 static int threadorchild_waitiopoll(iopoll_t* iopoll)
 {
-   uint32_t  nr_events;
+   size_t    nr_events;
    ioevent_t ioevents[1];
-   uint8_t*  logbuffer;
+   uint8_t * logbuffer;
    size_t    logsize1,logsize2;
 
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);
@@ -703,15 +712,15 @@ static int threadorchild_waitiopoll(iopoll_t* iopoll)
 static int test_interrupt(void)
 {
    iopoll_t    iopoll = iopoll_FREE;
-   int         fd[4] = { -1, -1, -1, -1 };
+   int         fd[4]  = { -1, -1, -1, -1 };
    uint8_t     buffer[10];
-   bool     isoldprocmask = false;
-   bool     isoldact = false;
-   sigset_t oldprocmask;
+   bool        isoldprocmask = false;
+   bool        isoldact = false;
+   sigset_t    oldprocmask;
    struct sigaction newact;
    struct sigaction oldact;
-   thread_t* thread = 0;
-   process_t process = process_FREE;
+   thread_t*   thread  = 0;
+   process_t   process = process_FREE;
 
    // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC));

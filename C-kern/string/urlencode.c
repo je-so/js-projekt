@@ -104,11 +104,11 @@ int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto
 {
    int err ;
    uint8_t       *encodedchar ;
-   const uint8_t *next    = str->addr ;
+   const uint8_t *next    = str->addr;
    size_t         oldsize = size_wbuffer(result);
 
    for(size_t count = str->size; count; ++next, --count) {
-      const uint8_t c = *next ;
+      const uint8_t c = *next;
 
       if (s_isurlencode[c]) {
          if (  except_char
@@ -120,12 +120,12 @@ int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto
             if (err) goto ONERR;
 
             encodedchar[0] = '%' ;
-            int nibble = (c / 16) + '0' ;
-            if (nibble > '9') nibble += ('A' - '0' - 10) ;
-            encodedchar[1] =  (uint8_t) nibble ;
-            nibble = (c % 16) + '0' ;
-            if (nibble > '9') nibble += ('A' - '0' - 10) ;
-            encodedchar[2] = (uint8_t) nibble ;
+            unsigned nibble = (c / 16u) + '0' ;
+            if (nibble > '9') nibble += ('A' - '0' - 10u);
+            encodedchar[1] =  (uint8_t) nibble;
+            nibble = (c % 16u) + '0';
+            if (nibble > '9') nibble += ('A' - '0' - 10u);
+            encodedchar[2] = (uint8_t) nibble;
          }
       } else {
          err = appendbyte_wbuffer(result, c) ;
@@ -158,14 +158,14 @@ int urldecode_string(const string_t * str, uint8_t changefrom_char, uint8_t chan
                || ('A' <= next[2] && next[2] <= 'F')
                || ('a' <= next[2] && next[2] <= 'f'))) {
          static_assert( '0' < 'A' && 'A' < 'a', ) ;
-         int nibb1 = ((++next)[0] - '0') ;
-         int nibb2 = ((++next)[0] - '0') ;
+         unsigned nibb1 = ((++next)[0] - (unsigned)'0');
+         unsigned nibb2 = ((++next)[0] - (unsigned)'0');
          count -= 2 ;
-         if (nibb1 > 9)  nibb1 -= ('A' - '0' - 10) ;
-         if (nibb2 > 9)  nibb2 -= ('A' - '0' - 10) ;
-         if (nibb1 > 15) nibb1 -= ('a' - 'A') ;
-         if (nibb2 > 15) nibb2 -= ('a' - 'A') ;
-         err = appendbyte_wbuffer(result, (uint8_t) (nibb1 * 16 + nibb2)) ;
+         if (nibb1 > 9)  nibb1 -= ('A' - '0' - 10u);
+         if (nibb2 > 9)  nibb2 -= ('A' - '0' - 10u);
+         if (nibb1 > 15) nibb1 -= ('a' - (unsigned)'A');
+         if (nibb2 > 15) nibb2 -= ('a' - (unsigned)'A');
+         err = appendbyte_wbuffer(result, (uint8_t) (nibb1 * 16 + nibb2));
          if (err) goto ONERR;
       } else {
          if (changefrom_char == next[0]) {
@@ -177,7 +177,7 @@ int urldecode_string(const string_t * str, uint8_t changefrom_char, uint8_t chan
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    shrink_wbuffer(result, oldsize);
    TRACEEXIT_ERRLOG(err);
@@ -239,7 +239,7 @@ static int test_urlencode(void)
    test =   (const uint8_t*)"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "0123456789"
             "-_.*" ;
-   for(size_t i = 0; i < 256; ++i) {
+   for(unsigned i = 0; i < 256; ++i) {
       uint8_t c[4] = { (uint8_t)i, 0 } ;
       if (c[0] && strchr((const char*)test, c[0])) {
          TEST(1 == sizeurlencode_string(&(string_t)string_INIT(1,c), 0)) ;
@@ -351,9 +351,9 @@ int unittest_string_urlencode()
    if (test_urlencode())   goto ONERR;
    if (test_urldecode())   goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

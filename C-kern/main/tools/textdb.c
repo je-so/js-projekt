@@ -72,15 +72,15 @@ static void print_err(const char* printf_format, ...)
 
 static int process_arguments(int argc, const char * argv[])
 {
-   g_programname = argv[0] ;
+   g_programname = argv[0];
 
    if (argc < 2) {
-      return EINVAL ;
+      return EINVAL;
    }
 
-   g_infilename = argv[argc-1] ;
+   g_infilename = argv[--argc];
 
-   for (int i = 1; i < (argc-1); ++i) {
+   for (unsigned i = 1; i < (unsigned) argc; ++i) {
       if (     argv[i][0] != '-'
             || argv[i][1] == 0
             || argv[i][2] != 0 ) {
@@ -94,11 +94,11 @@ static int process_arguments(int argc, const char * argv[])
          g_foverwrite = 1 ;
          break ;
       case 'o':
-         if (i == (argc-2)) {
-            return EINVAL ;
+         if (i+1 == (unsigned) argc) {
+            return EINVAL;
          }
-         g_outfilename = argv[++i] ;
-         break ;
+         g_outfilename = argv[++i];
+         break;
       }
    }
 
@@ -244,7 +244,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
    while (input_len) {
       if ('\'' != *next_char && '"' != *next_char) {
-         print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %zd", txtdb->filename, txtdb->line_number);
          goto ONERR;
       }
 
@@ -259,13 +259,13 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
                   || ('0' <= *next_char && *next_char <= '9')
                   ||  '_' == *next_char
                   ||  '-' == *next_char)) {
-            print_err( "Header name contains wrong character '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
+            print_err( "Header name contains wrong character '%c' in textdb file '%s' in line: %zd", *next_char, txtdb->filename, txtdb->line_number);
             goto ONERR;
          }
       }
 
       if (!input_len) {
-         print_err( "Expected closing '%c' in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
+         print_err( "Expected closing '%c' in textdb file '%s' in line: %zd", end_of_string, txtdb->filename, txtdb->line_number) ;
          goto ONERR;
       }
 
@@ -282,7 +282,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
       }
 
       if (',' != *next_char) {
-         print_err( "Expected ',' not '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
+         print_err( "Expected ',' not '%c' in textdb file '%s' in line: %zd", *next_char, txtdb->filename, txtdb->line_number);
          goto ONERR;
       }
 
@@ -296,7 +296,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
       if (  !input_len
             || '\n' == *next_char) {
-         print_err( "No data after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         print_err( "No data after ',' in textdb file '%s' in line: %zd", txtdb->filename, txtdb->line_number);
          goto ONERR;
       }
    }
@@ -409,7 +409,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
             ++ column_index ;
             if (column_index >= txtdb->column_count) {
                err = E2BIG ;
-               print_err( "Expected only %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+               print_err( "Expected only %zd columns in textdb file '%s' in line: %zd", txtdb->column_count, txtdb->filename, txtdb->line_number);
                goto ONERR;
             }
             -- input_len ;
@@ -418,7 +418,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
          }
          if ('\'' != *next_char && '\"' != *next_char) {
             err = EINVAL ;
-            print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+            print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %zd", txtdb->filename, txtdb->line_number);
             goto ONERR;
          }
          char end_of_string = *next_char ;
@@ -438,7 +438,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
          }
          if (!input_len || end_of_string != *next_char) {
             err = EINVAL ;
-            print_err( "Expected closing %c in in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
+            print_err( "Expected closing %c in in textdb file '%s' in line: %zd", end_of_string, txtdb->filename, txtdb->line_number);
             goto ONERR;
          }
          size_t str_len = (size_t) (next_char - str) ;
@@ -452,9 +452,9 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index)
             || (column_index + 1) != txtdb->column_count) {
          err = ENODATA ;
          if ( isExpectData) {
-            print_err( "Expected a value after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+            print_err( "Expected a value after ',' in textdb file '%s' in line: %zd", txtdb->filename, txtdb->line_number);
          } else {
-            print_err( "Expected %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+            print_err( "Expected %zd columns in textdb file '%s' in line: %zd", txtdb->column_count, txtdb->filename, txtdb->line_number);
          }
          goto ONERR;
       }
@@ -630,7 +630,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/const char **
    }
 
    if (start_expr == start_name) {
-      print_err( "Expected column-name in WHERE() in line: %d", start_linenr) ;
+      print_err( "Expected column-name in WHERE() in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -645,7 +645,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/const char **
                      || start_expr[1] != '=')
                && (     start_expr[0] != '='
                      || start_expr[1] != '='))) {
-      print_err( "Expected '==' or '!=' after column-name in WHERE() in line: %d", start_linenr) ;
+      print_err( "Expected '==' or '!=' after column-name in WHERE() in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -658,7 +658,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/const char **
    if (     start_value >= end_macro
          || (     start_value[0] != '\''
                && start_value[0] != '"')) {
-      print_err( "Expected 'value' after compare in WHERE() in line: %d", start_linenr) ;
+      print_err( "Expected 'value' after compare in WHERE() in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -669,7 +669,7 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/const char **
    }
 
    if (start_expr >= end_macro) {
-      print_err( "Expected closing %c in line: %d", start_value[0], start_linenr) ;
+      print_err( "Expected closing %c in line: %zd", start_value[0], start_linenr);
       goto ONERR;
    }
 
@@ -704,7 +704,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/const char ** 
 
    if (  start_expr >= end_macro
          || '(' != start_expr[0]) {
-      print_err( "Expected '(' after WHERE in line: %d", start_linenr) ;
+      print_err( "Expected '(' after WHERE in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -725,7 +725,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/const char ** 
       skip_space( &start_expr, end_macro) ;
 
       if ( start_expr >= end_macro) {
-         print_err( "Expected ')' after WHERE(... in line: %d", start_linenr) ;
+         print_err( "Expected ')' after WHERE(... in line: %zd", start_linenr);
          goto ONERR;
       }
 
@@ -744,7 +744,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/const char ** 
                               || '&' != start_expr[1])
                         && (     '|' != start_expr[0]
                               || '|' != start_expr[1]))) {
-         print_err( "Expected ')' after WHERE(... in line: %d", start_linenr) ;
+         print_err( "Expected ')' after WHERE(... in line: %zd", start_linenr);
          goto ONERR;
       }
 
@@ -792,7 +792,7 @@ int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, c
          }
       }
       if (!isMatch) {
-         print_err( "Unknown column name '%.*s' in WHERE() in line: %d", where_expr->length, where_expr->value, start_linenr) ;
+         print_err( "Unknown column name '%.*s' in WHERE() in line: %zd", (int)where_expr->length, where_expr->value, start_linenr) ;
          goto ONERR;
       }
    }
@@ -823,7 +823,7 @@ bool ismatch_expression( expression_t * where_expr, size_t row, const textdb_t *
       return      data[where_expr->left->col_index].length != where_expr->right->length
                || 0 != strncmp(data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
    default:
-      print_err( "Internal error in WHERE() in line: %d", start_linenr) ;
+      print_err( "Internal error in WHERE() in line: %zd", start_linenr);
       assert(0) ;
    }
 
@@ -890,7 +890,7 @@ static int prepare_value(value_t* value, const textdb_t * dbfile, const size_t s
          }
          if (!isMatch) {
             err = EINVAL;
-            print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr );
+            print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %zd", (int)p->length, p->value, start_linenr);
             goto ONERR;
          }
 
@@ -1053,7 +1053,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** e
       if (  next >= end_macro
             || (  next[0] != '\''
                   && next[0] != '"')) {
-         print_err( "Expected string after <(if () > in line: %d", start_linenr ) ;
+         print_err( "Expected string after <(if () > in line: %zd", start_linenr);
          goto ONERR;
       }
       ++ next ;
@@ -1061,7 +1061,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** e
          ++ next ;
 
       if (next >= end_macro) {
-         print_err( "Expected closing %c after <(if () %c> in line: %d", *start_ifstr, *start_ifstr, start_linenr ) ;
+         print_err( "Expected closing %c after <(if () %c> in line: %zd", *start_ifstr, *start_ifstr, start_linenr);
          goto ONERR;
       }
       ++ start_ifstr ;
@@ -1080,7 +1080,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** e
       if (     next >= end_macro
             || (     next[0] != '\''
                   && next[0] != '"' )) {
-         print_err( "Expected string after <(if () '' else> in line: %d", start_linenr ) ;
+         print_err( "Expected string after <(if () '' else> in line: %zd", start_linenr);
          goto ONERR;
       }
 
@@ -1088,7 +1088,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** e
       while (next < end_macro && next[0] != *start_elsestr)
          ++ next ;
       if (next >= end_macro) {
-         print_err( "Expected closing %c after <(if () '' else %c> in line: %d", *start_elsestr, *start_elsestr, start_linenr ) ;
+         print_err( "Expected closing %c after <(if () '' else %c> in line: %zd", *start_elsestr, *start_elsestr, start_linenr);
          goto ONERR;
       }
       ++ start_elsestr ;
@@ -1099,7 +1099,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/const char ** e
    }
 
    if (next >= end_macro || ')' != next[0]) {
-      print_err( "Expected closing ) after <(if () '' else ''> in line: %d", start_linenr ) ;
+      print_err( "Expected closing ) after <(if () '' else ''> in line: %zu", start_linenr ) ;
       goto ONERR;
    }
 
@@ -1154,7 +1154,7 @@ static int parse_string(/*out*/char ** str, /*out*/const char ** end_param, cons
 
    if (  start_param >= end_macro
          || '(' != start_param[0] ) {
-      print_err( "Expected '(' after %s in line: %d", cmd, start_linenr ) ;
+      print_err( "Expected '(' after %s in line: %zd", cmd, start_linenr);
       goto ONERR;
    }
 
@@ -1178,7 +1178,7 @@ static int parse_string(/*out*/char ** str, /*out*/const char ** end_param, cons
    string_len = (size_t) (end_string - start_string);
 
    if (next >= end_macro) {
-      print_err("Expected ) after %s('' in line: %d", cmd, start_linenr);
+      print_err("Expected ) after %s('' in line: %zd", cmd, start_linenr);
       goto ONERR;
    }
 
@@ -1208,7 +1208,7 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** 
 
    if (  start_param >= end_macro
          || '(' != start_param[0] ) {
-      print_err( "Expected '(' after %s in line: %d", cmd, start_linenr ) ;
+      print_err( "Expected '(' after %s in line: %zd", cmd, start_linenr);
       goto ONERR;
    }
 
@@ -1244,7 +1244,7 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** 
          if (0 == strncmp( next, "(if ", strlen("(if "))) {
             err = parse_iffunction( &funcobj, &next, next+strlen("(if "), end_macro, start_linenr) ;
          } else {
-            print_err( "Unknown function '%.4s' in line: %d", start_func, start_linenr ) ;
+            print_err( "Unknown function '%.4s' in line: %zd", start_func, start_linenr);
             goto ONERR;
          }
 
@@ -1267,7 +1267,7 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** 
                ++ next ;
             } while (next < end_macro && '"' != next[0]) ;
             if (next >= end_macro) {
-               print_err( "Expected \" after %s(...\" in line: %d", cmd, start_linenr ) ;
+               print_err( "Expected \" after %s(...\" in line: %zd", cmd, start_linenr);
                goto ONERR;
             }
             string_len = (size_t) (next - start_string) ;
@@ -1276,20 +1276,20 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** 
                ++ next ;
             } while (next < end_macro && '\'' != next[0]) ;
             if (next >= end_macro) {
-               print_err( "Expected ' after %s(...' in line: %d", cmd, start_linenr ) ;
+               print_err( "Expected ' after %s(...' in line: %zd", cmd, start_linenr);
                goto ONERR;
             }
             string_len = (size_t) (next - start_string) ;
          } else if ('\\' == next[0]) {
             ++ next ;
             if (next >= end_macro) {
-               print_err( "Expected no endofline after \\ in line: %d", start_linenr ) ;
+               print_err( "Expected no endofline after \\ in line: %zd", start_linenr);
                goto ONERR;
             }
             switch (next[0]) {
             case 'n':   start_string = "\n" ;
                         break ;
-            default:    print_err( "Unsupported escaped character \\%c in line: %d", next[0], start_linenr ) ;
+            default:    print_err( "Unsupported escaped character \\%c in line: %zd", next[0], start_linenr);
                         goto ONERR;
             }
             string_len = strlen(start_string) ;
@@ -1309,7 +1309,7 @@ static int parse_select_parameter(/*out*/value_t ** param, /*out*/const char ** 
    }
 
    if ( next >= end_macro ) {
-      print_err( "Expected ')' after %s( in line: %d", cmd, start_linenr ) ;
+      print_err( "Expected ')' after %s( in line: %zd", cmd, start_linenr);
       goto ONERR;
    }
 
@@ -1342,7 +1342,7 @@ static int process_selectcmd( const char * start_macro, const char * end_macro, 
    if (     (end_macro - start_from) < 4
          || strncmp( start_from, "FROM", 4) ) {
       err = EINVAL;
-      print_err( "Expected 'FROM' after SELECT() in line: %d", start_linenr ) ;
+      print_err( "Expected 'FROM' after SELECT() in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -1378,7 +1378,7 @@ static int process_selectcmd( const char * start_macro, const char * end_macro, 
 
    if (end_param < end_macro) {
       err = EINVAL ;
-      print_err( "Expected nothing after SELECT()FROM()WHERE()\\(ASCENDING\\|DESCENDING\\) in line: %d", start_linenr ) ;
+      print_err( "Expected nothing after SELECT()FROM()WHERE()\\(ASCENDING\\|DESCENDING\\) in line: %zd", start_linenr);
       goto ONERR;
    }
 
@@ -1502,7 +1502,7 @@ static int process_macro(const string_t str)
 
       if (     13 == end_macro - start_macro
             && strncmp(start_macro, "// TEXTDB:END", 13)) {
-         print_err( "Found end of macro '// TEXTDB:END' without beginning of macro in line: %d", line_number ) ;
+         print_err( "Found end of macro '// TEXTDB:END' without beginning of macro in line: %zd", line_number);
          goto ONERR;
       }
 
@@ -1512,7 +1512,7 @@ static int process_macro(const string_t str)
       err = find_macro(&start_macro2, &end_macro2, &line_number, next_input, input_size) ;
       if (     err
             || strncmp( start_macro2, "// TEXTDB:END", (size_t) (end_macro2 - start_macro2)) ) {
-         print_err( "Can not find end of macro '// TEXTDB:END' which starts at line: %d", start_linenr ) ;
+         print_err( "Can not find end of macro '// TEXTDB:END' which starts at line: %zd", start_linenr);
          goto ONERR;
       }
       input_size -= (size_t) (end_macro2 - next_input) ;
@@ -1525,7 +1525,7 @@ static int process_macro(const string_t str)
          err = process_selectcmd( start_macro, end_macro, start_linenr) ;
          if (err) goto ONERR;
       } else  {
-         print_err( "Unknown macro '%.*s' in line: %"PRIuSIZE, macro_size > 16 ? 16 : macro_size, start_macro, start_linenr) ;
+         print_err( "Unknown macro '%.*s' in line: %zu", (int) (macro_size > 16 ? 16 : macro_size), start_macro, start_linenr);
          goto ONERR;
       }
 

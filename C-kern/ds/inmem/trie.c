@@ -57,9 +57,9 @@ typedef uint8_t header_t;
  *                      trie_node_t.key[0..keylen-1] == binary key digits
  * header_VALUE       - If set indicates that a value member (type void*) is available.
  * header_CHILD       - Child and digit array available. digit[x] contains next digit and child[x] points to next <trie_node_t>.
- * header_SUBNODE     - Subnode pointer is avialable and digit[0] counts the number of valid pointers to trie_node_t not null.
- *                      If a pointer in <trie_subnode_t> or <trie_subnode2_t> is null there is no entry with such a key.
- *                      The number of stored pointers is (digit[0]+1), i.e. it at least one pointer must be valid.
+ * header_SUBNODE     - Subnode pointer is available and nrchild counts the number of valid pointers in subnode_t not null.
+ *                      If a pointer in <trie_subnode_t> is null there is no entry with such a key.
+ *                      The number of stored pointers is (nrchild+1), i.e. it at least one pointer must be valid.
  * header_SIZEMASK  - Mask to determine the value of one of the following 6 size configurations.
  * header_SIZESHIFT - Number of bits to shift a masked size value to the right
  *                    All header_SIZEX values must be shifted left before they could be stored in the header.
@@ -70,7 +70,7 @@ typedef uint8_t header_t;
  * header_SIZE4     - The size of the node is 32 * sizeof(void*)
  * header_SIZE5     - The size of the node is 64 * sizeof(void*)
  * */
-enum header_e {
+typedef enum header_e {
    header_KEYLENMASK = 7,
    header_KEYLEN0    = 0,
    header_KEYLEN1    = 1,
@@ -92,9 +92,7 @@ enum header_e {
    header_SIZE5    = 5,
    // header_SIZE6 / header_SIZE7 not used
    header_SIZEMAX  = header_SIZE5,
-};
-
-typedef enum header_e header_e;
+} header_e;
 
 // group: query
 
@@ -260,9 +258,9 @@ struct trie_node_t {
    /* variable: keylen
     * Start of byte-aligned data.
     * Contains optional byte size of key. */
-   uint8_t     keylen;     // optional (fixed size)
+   uint8_t     keylen;        // optional (fixed size)
    // uint8_t  key[keylen];   // optional (variable size)
-   // uint8_t  digit[];    // optional (variable size)
+   // uint8_t  digit[];       // optional (variable size)
    /* variable: value
     * Start of ptr-aligned data.
     * Contains an optional stored value.
@@ -280,7 +278,7 @@ struct trie_node_t {
  * byte aligned data which is in turn followed by pointer aligned data.
  * This value is the alignment necessary for a pointer on this architecture.
  * This value must be a power of two. */
-#define PTRALIGN  (offsetof(trie_node_t, value))
+#define PTRALIGN  ((unsigned)offsetof(trie_node_t, value))
 
 /* define: MAXSIZE
  * The maximum size in bytes used by a <trie_node_t>. */
@@ -290,27 +288,37 @@ struct trie_node_t {
  * The minumum size in bytes used by a <trie_node_t>. */
 #define MINSIZE   (2*sizeof(void*))
 
-/* define: MAXNROFCHILD
+/* define: MAXNROFCHILD_WITH_VALUE
  * The maximum nr of child pointer in child array of <trie_node_t>.
  * The value is calculated with the assumption that no key is stored in the node
  * but with an additional value.
  * If a node needs to hold more child pointers it has to switch to a <trie_subnode_t>.
  * This value must be less than 256 else <trie_node_t.nrchild> would overflow.
  * */
-#define MAXNROFCHILD \
-         (  (MAXSIZE-offsetof(trie_node_t, keylen)-sizeof(void*)) \
-            / (sizeof(trie_node_t*)+sizeof(uint8_t)))
+#define MAXNROFCHILD_WITH_VALUE \
+         ((unsigned) ((MAXSIZE-offsetof(trie_node_t, keylen)-sizeof(void*)) \
+            / (sizeof(trie_node_t*)+sizeof(uint8_t))))
+
+/* define: MAXNROFCHILD_NO_VALUE
+ * The maximum nr of child pointer in child array of <trie_node_t>.
+ * The value is calculated with the assumption that no key is stored in the node
+ * and with NO additional value.
+ * If a node needs to hold more child pointers it has to switch to a <trie_subnode_t>.
+ * This value must be less than 256 else <trie_node_t.nrchild> would overflow.
+ * */
+#define MAXNROFCHILD_NO_VALUE \
+         ((unsigned) ((MAXSIZE-offsetof(trie_node_t, keylen)) \
+            / (sizeof(trie_node_t*)+sizeof(uint8_t))))
 
 /* define: COMPUTEKEYLEN
  * Used to implement <NOSPLITKEYLEN> and <MAXKEYLEN>. */
 #define COMPUTEKEYLEN(NODESIZE) \
-         ((NODESIZE)-offsetof(trie_node_t, keylen) \
-            -(sizeof(void*) >= sizeof(trie_node_t*) ? sizeof(void*) : sizeof(trie_node_t*)) /*child or value*/ \
-            -sizeof(uint8_t) /*keylenbyte*/)
+         ((unsigned) ((NODESIZE)-offsetof(trie_node_t, keylen) \
+            -sizeof(void*) /*value*/ -sizeof(uint8_t) /*keylenbyte*/))
 
 /* define: NOSPLITKEYLEN
  * Up to this keylen keys are not split over several nodes.
- * The function assumes a node with a single value or a single child. */
+ * The function assumes a node with a single value. */
 #define NOSPLITKEYLEN COMPUTEKEYLEN(4*sizeof(void*))
 
 /* define: MAXKEYLEN
@@ -334,7 +342,7 @@ static inline int isvalue_trienode(const trie_node_t * node)
  * */
 static inline unsigned nodesize_trienode(const trie_node_t * node)
 {
-   return (2*sizeof(void*)) << sizeflags_header(node->header);
+   return (unsigned)(2*sizeof(void*)) << sizeflags_header(node->header);
 }
 
 // group: query-helper
@@ -458,7 +466,7 @@ static inline trie_node_t ** childs_trienode(trie_node_t * node, unsigned off4_c
 
 static inline unsigned childsize_trienode(const int issubnode, const uint8_t nrchild)
 {
-   return issubnode ? sizeof(void*) : nrchild * sizeof(trie_node_t*);
+   return issubnode ? (unsigned) sizeof(void*) : nrchild * (unsigned) sizeof(trie_node_t*);
 }
 
 static inline uint8_t * digits_trienode(trie_node_t * node, unsigned off3_digit)
@@ -1160,7 +1168,7 @@ static int new_trienode(
    size += valuesize_trienode(value != 0);
    size += keylen + needkeylenbyte_header(keylen);
 
-   if (nrchild > MAXNROFCHILD) {
+   if (nrchild > (value != 0 ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE)) {
       size += childsize_trienode(1, nrchild);
       if (size > MAXSIZE) return EINVAL;
 
@@ -1788,7 +1796,7 @@ int remove2_trie(trie_t * trie, uint16_t keylen, const uint8_t key[keylen], /*ou
 
             if (chainroot_parentchild) {
                if (issubnode_trienode(*chainroot_parentchild)) {
-                  if (((*chainroot_parentchild)->nrchild--) < MAXNROFCHILD-2) {
+                  if (((*chainroot_parentchild)->nrchild--) < MAXNROFCHILD_WITH_VALUE-2) {
                      // try to restructure subnode into child array !
                      (void) trydelsubnode_trienode(chainroot_parentchild, chainroot_off3);
                   }
@@ -2094,7 +2102,7 @@ static int test_subnode(void)
    for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       subnode->child[i] = (trie_node_t*) (i+1);
    }
-   for (unsigned i = 0; i < lengthof(subnode->child); ++i) {
+   for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       trie_node_t * child = (trie_node_t*) (i+1);
       TEST(child == child_triesubnode(subnode, (uint8_t)i));
    }
@@ -2105,7 +2113,7 @@ static int test_subnode(void)
    for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       subnode->child[i] = (trie_node_t*) (i+1);
    }
-   for (unsigned i = 0; i < lengthof(subnode->child); ++i) {
+   for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       trie_node_t * child = (trie_node_t*) (i+1);
       TEST(0     != childaddr_triesubnode(subnode, (uint8_t)i));
       TEST(child == childaddr_triesubnode(subnode, (uint8_t)i)[0]);
@@ -2119,7 +2127,7 @@ static int test_subnode(void)
    for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       setchild_triesubnode(subnode, (uint8_t)i, (trie_node_t*) (i+1));
    }
-   for (unsigned i = 0; i < lengthof(subnode->child); ++i) {
+   for (uintptr_t i = 0; i < lengthof(subnode->child); ++i) {
       trie_node_t * child = (trie_node_t*) (i+1);
       TEST(child == child_triesubnode(subnode, (uint8_t)i));
    }
@@ -2153,19 +2161,38 @@ static int test_node_query(void)
    node->header = encodesizeflag_header(0, header_SIZE0);
    TEST(MINSIZE == nodesize_trienode(node));
 
-   // TEST MAXNROFCHILD
-   static_assert( 32 < MAXNROFCHILD
-                  && 64 > MAXNROFCHILD
-                  && MAXSIZE/(sizeof(trie_node_t*)+1) > MAXNROFCHILD,
-                  && MAXSIZE/(sizeof(trie_node_t*)+1) <= MAXNROFCHILD+2
-                  "MAXNROFCHILD depends on MAXSIZE");
+   // TEST MAXNROFCHILD_WITH_VALUE
+   static_assert( 32 < MAXNROFCHILD_WITH_VALUE
+                  && 64 > MAXNROFCHILD_WITH_VALUE
+                  && MAXSIZE/(sizeof(trie_node_t*)+1) > MAXNROFCHILD_WITH_VALUE
+                  && MAXSIZE/(sizeof(trie_node_t*)+1) <= MAXNROFCHILD_WITH_VALUE+2,
+                  "MAXNROFCHILD_WITH_VALUE depends on MAXSIZE");
    {
       unsigned off6_size = off6_size_trienode(
                               off5_value_trienode(
                                  off4_child_trienode( off3_digit_trienode(off2_key_trienode(0), 0),
-                                                      digitsize_trienode(0, MAXNROFCHILD)),
-                                 childsize_trienode(0, MAXNROFCHILD)),
+                                                      digitsize_trienode(0, MAXNROFCHILD_WITH_VALUE)),
+                                 childsize_trienode(0, MAXNROFCHILD_WITH_VALUE)),
                               valuesize_trienode(1/*contains value*/));
+      TEST(MAXSIZE >= off6_size);
+      TEST(MAXSIZE <  off6_size + (1+sizeof(trie_node_t)));
+   }
+
+   // TEST MAXNROFCHILD_NO_VALUE
+   static_assert( MAXNROFCHILD_WITH_VALUE <= MAXNROFCHILD_NO_VALUE, "at least same nr of children or one more");
+   static_assert( MAXNROFCHILD_WITH_VALUE > MAXNROFCHILD_NO_VALUE-2, "at least same nr of children or one more");
+   static_assert( 32 < MAXNROFCHILD_NO_VALUE
+                  && 64 > MAXNROFCHILD_NO_VALUE
+                  && MAXSIZE/(sizeof(trie_node_t*)+1) >= MAXNROFCHILD_NO_VALUE
+                  && MAXSIZE/(sizeof(trie_node_t*)+1) <= MAXNROFCHILD_NO_VALUE+2,
+                  "MAXNROFCHILD_NO_VALUE depends on MAXSIZE");
+   {
+      unsigned off6_size = off6_size_trienode(
+                              off5_value_trienode(
+                                 off4_child_trienode( off3_digit_trienode(off2_key_trienode(0), 0),
+                                                      digitsize_trienode(0, MAXNROFCHILD_NO_VALUE)),
+                                 childsize_trienode(0, MAXNROFCHILD_NO_VALUE)),
+                              valuesize_trienode(0/*contains value*/));
       TEST(MAXSIZE >= off6_size);
       TEST(MAXSIZE <  off6_size + (1+sizeof(trie_node_t)));
    }
@@ -2181,7 +2208,7 @@ static int test_node_query(void)
    }
 
    // TEST NOSPLITKEYLEN
-   static_assert( NOSPLITKEYLEN > MINSIZE
+   static_assert( MINSIZE < NOSPLITKEYLEN
                   && NOSPLITKEYLEN < 2*MINSIZE,
                   "keylen is stored unsplitted into a node of size <= header_SIZE1");
    TEST(1 == needkeylenbyte_header(NOSPLITKEYLEN));
@@ -2272,7 +2299,7 @@ static int test_node_query(void)
    // TEST alignoffset_trienode
    TEST(0 == alignoffset_trienode(0));
    for (unsigned i = 0; i < 10; ++i) {
-      unsigned offset = sizeof(void*)*i;
+      unsigned offset = (unsigned)sizeof(void*)*i;
       for (unsigned b = 1; b <= sizeof(void*); ++b) {
          TEST(offset+sizeof(void*) == alignoffset_trienode(offset+b));
       }
@@ -2288,7 +2315,7 @@ static int test_node_query(void)
    TEST((uint8_t*)buffer == memaddr_trienode(node));
 
    // TEST off1_keylen_trienode
-   TEST((unsigned)&((trie_node_t*)0)->keylen == off1_keylen_trienode());
+   TEST((uintptr_t)&((trie_node_t*)0)->keylen == off1_keylen_trienode());
 
    // TEST off2_key_trienode
    for (uint8_t i = 0; i < header_KEYLENBYTE; ++i) {
@@ -2384,7 +2411,7 @@ static int test_node_query(void)
    }
 
    // TEST subnode_trienode
-   for (unsigned off4_child = 0; off4_child < MAXSIZE; off4_child += sizeof(void*)) {
+   for (unsigned off4_child = 0; off4_child < MAXSIZE; off4_child += (unsigned)sizeof(void*)) {
       buffer[off4_child/sizeof(void*)] = (void*)buffer;
       TEST(subnode_trienode(node, off4_child) == (trie_subnode_t*)buffer);
       buffer[off4_child/sizeof(void*)] = 0;
@@ -2392,7 +2419,7 @@ static int test_node_query(void)
    }
 
    // TEST value_trienode
-   for (unsigned off5_value = 0; off5_value < MAXSIZE; off5_value += sizeof(void*)) {
+   for (unsigned off5_value = 0; off5_value < MAXSIZE; off5_value += (unsigned)sizeof(void*)) {
       buffer[off5_value/sizeof(void*)] = buffer;
       TEST(value_trienode(node, off5_value) == (void*)buffer);
       buffer[off5_value/sizeof(void*)] = 0;
@@ -2477,7 +2504,7 @@ static void get_node_size(unsigned size, /*out*/unsigned * nodesize, /*out*/head
 
 static unsigned calc_used_size(unsigned keylen, unsigned nrchild, bool isvalue)
 {
-   const bool issubnode = (nrchild > MAXNROFCHILD);
+   const bool issubnode = (nrchild > (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE));
    unsigned off2_key   = off2_key_trienode(needkeylenbyte_header((uint8_t)keylen));
    unsigned off3_digit = off3_digit_trienode(off2_key, (uint8_t)keylen);
    unsigned off4_child = off3_digit + digitsize_trienode(issubnode, (uint8_t)nrchild);
@@ -2509,6 +2536,7 @@ static int test_node_lifetime(void)
 
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
       for (unsigned keylen = 0; keylen <= 255; ++keylen) {
+         const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
          for (uint8_t nrchild = 0; nrchild <= MAXNROFCHILD; ++nrchild) {
 
             unsigned size = calc_used_size(keylen, nrchild, isvalue);
@@ -2554,7 +2582,7 @@ static int test_node_lifetime(void)
             TEST(0 == node);
          }
 
-         for (uint8_t nrchild = MAXNROFCHILD+1; nrchild >= MAXNROFCHILD+1; ++nrchild) {
+         for (uint8_t nrchild = (uint8_t)(MAXNROFCHILD+1); nrchild >= MAXNROFCHILD+1; ++nrchild) {
 
             unsigned size = calc_used_size(keylen, nrchild, isvalue);
 
@@ -2616,7 +2644,9 @@ static int test_node_lifetime(void)
    // with subnode
    for (unsigned i = 1; i <= 2; ++i) {
       init_testerrortimer(&s_trie_errtimer, i, ENOMEM);
-      TEST(ENOMEM == new_trienode(&node, 0, MAXNROFCHILD+1, 0, digit, child, &value));
+      TEST(ENOMEM == new_trienode(&node, 0, MAXNROFCHILD_WITH_VALUE+1, 0, digit, child, &value));
+      init_testerrortimer(&s_trie_errtimer, i, ENOMEM);
+      TEST(ENOMEM == new_trienode(&node, 0, MAXNROFCHILD_NO_VALUE+1, 0, digit, child, 0));
       TEST(0 == node);
    }
 
@@ -2629,7 +2659,7 @@ static int test_node_lifetime(void)
    TEST(size_allocated == SIZEALLOCATED_MM());
    // with subnode
    for (unsigned i = 1; i <= 2; ++i) {
-      TEST(0 == new_trienode(&node, 0, MAXNROFCHILD+1, 0, digit, child, (void*)0));
+      TEST(0 == new_trienode(&node, 0, MAXNROFCHILD_NO_VALUE+1, 0, digit, child, (void*)0));
       init_testerrortimer(&s_trie_errtimer, i, EINVAL);
       TEST(EINVAL == delete_trienode(&node));
       TEST(0 == node);
@@ -2721,7 +2751,7 @@ static int test_node_change(void)
    // == group: change-helper ==
 
    // TEST setsubnode_trienode
-   for (unsigned off4_child = 0; off4_child < MAXSIZE; off4_child += sizeof(void*)) {
+   for (unsigned off4_child = 0; off4_child < MAXSIZE; off4_child += (unsigned)sizeof(void*)) {
       buffer[off4_child/sizeof(void*)] = 0;
       setsubnode_trienode(node, off4_child, (trie_subnode_t*)buffer);
       TEST(buffer[off4_child/sizeof(void*)] == (trie_subnode_t*)buffer);
@@ -2730,7 +2760,7 @@ static int test_node_change(void)
    }
 
    // TEST setvalue_trienode
-   for (unsigned off5_value = 0; off5_value < MAXSIZE; off5_value += sizeof(void*)) {
+   for (unsigned off5_value = 0; off5_value < MAXSIZE; off5_value += (unsigned)sizeof(void*)) {
       buffer[off5_value/sizeof(void*)] = 0;
       setvalue_trienode(node, off5_value, (void*)buffer);
       TEST(buffer[off5_value/sizeof(void*)] == (void*)buffer);
@@ -2877,6 +2907,7 @@ static int test_node_change(void)
 
    // addsubnode_trienode, trydelsubnode_trienode
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (unsigned keylen = 0; keylen <= 255; ++keylen) {
          for (unsigned nrchild = 1; nrchild <= 255; ++nrchild) {
 
@@ -2945,7 +2976,7 @@ static int test_node_change(void)
 
                unsigned freesize = nodesize - calc_used_size(keylen, 0, isvalue);
                unsigned minnrchild = freesize / (1 + sizeof(trie_node_t*));
-               unsigned maxnrchild = (MAXSIZE - nodesize + freesize) / (1 + sizeof(trie_node_t*));
+               unsigned maxnrchild = (unsigned) ((MAXSIZE - nodesize + freesize) / (1 + sizeof(trie_node_t*)));
                unsigned nrchild2 = nrchild // nrchild > MAXNROFCHILD !!
                                  - MAXNROFCHILD
                                  + minnrchild; // ==> realloc
@@ -2974,7 +3005,7 @@ static int test_node_change(void)
                   node->nrchild = (uint8_t) (nrchild2-1);
                   unsigned newsize;
                   header_t sizeflags;
-                  get_node_size(nodesize - freesize + nrchild2 * (1+sizeof(trie_node_t*)), &newsize, &sizeflags);
+                  get_node_size(nodesize - freesize + nrchild2 * (unsigned) (1+sizeof(trie_node_t*)), &newsize, &sizeflags);
                   TEST(newsize > nodesize);
 
                   // TEST trydelsubnode_trienode: ENOMEM
@@ -3031,6 +3062,7 @@ static int test_node_change(void)
 
    // delvalue_trienode, tryaddvalue_trienode
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (unsigned keylen = 0; keylen <= 255; ++keylen) {
          for (unsigned nrchild = 0; nrchild <= MAXNROFCHILD+2; ++nrchild) {
 
@@ -3115,6 +3147,7 @@ static int test_node_change(void)
 
    // tryaddkeyprefix_trienode, delkeyprefix_trienode
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (unsigned keylen = 0; keylen <= 255; ++keylen) {
          if (30 <= keylen && keylen <= 240) { keylen = 240; continue; }
          for (unsigned nrchild = 0; nrchild <= MAXNROFCHILD+2; ++nrchild) {
@@ -3263,6 +3296,7 @@ static int test_node_change(void)
 
    // tryaddchild_trienode, delchild_trienode
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (unsigned keylen = 0; keylen <= 255; ++keylen) {
          for (unsigned nrchild = 0; nrchild <= MAXNROFCHILD; ++nrchild) {
 
@@ -3580,7 +3614,7 @@ static int test_inserthelper(void)
    for (unsigned i = 0; i < UINT16_MAX; ++i) {
       key.addr[i] = (uint8_t) (i * 23);
    }
-   for (unsigned i = 0; i < lengthof(digit); ++i) {
+   for (uintptr_t i = 0; i < lengthof(digit); ++i) {
       digit[i] = (uint8_t) i;
       child[i] = (void*) (3+i);
    }
@@ -3588,10 +3622,11 @@ static int test_inserthelper(void)
 
    // TEST restructnode_trie: extract childs into trie_subnode_t
    for (uint8_t isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (int isChild = 0; isChild <= 1; ++isChild) {
          for (unsigned keylen = 0; keylen < 2*sizeof(trie_node_t*); ++keylen) {
             unsigned usedsize = calc_used_size(keylen, 0, isvalue);
-            unsigned nrchild = (MAXSIZE - usedsize) / (sizeof(uint8_t) + sizeof(trie_node_t*));
+            unsigned nrchild  = (unsigned) ((MAXSIZE - usedsize) / (sizeof(uint8_t) + sizeof(trie_node_t*)));
             unsigned reservesize = isChild ? 0 : sizeof(void*);
             usedsize = calc_used_size(keylen, MAXNROFCHILD+1, isvalue) + reservesize;
             get_node_size(usedsize, &nodesize, &sizeflags);
@@ -3618,7 +3653,7 @@ static int test_inserthelper(void)
 
    // TEST restructnode_trie: ENOMEM (extract childs into trie_subnode_t)
    for (unsigned i = 1; i <= 2; ++i) {
-      TEST(0 == new_trienode(&node, 0, MAXNROFCHILD, 0, digit, child, 0));
+      TEST(0 == new_trienode(&node, 0, MAXNROFCHILD_NO_VALUE, 0, digit, child, 0));
       init_testerrortimer(&s_trie_errtimer, i, ENOMEM);
       header_t      oldheader = node->header;
       trie_node_t * oldnode   = node;
@@ -3628,7 +3663,7 @@ static int test_inserthelper(void)
       TEST(0 == memcmp(&off2, &off, sizeof(off2)));
       TEST(oldnode == node);
       TEST(0 == compare_content(node, oldheader,
-                                0, MAXNROFCHILD, 0, digit, child, 0));
+                                0, MAXNROFCHILD_NO_VALUE, 0, digit, child, 0));
       TEST(0 == delete_trienode(&node));
    }
 
@@ -3637,7 +3672,7 @@ static int test_inserthelper(void)
       for (unsigned isChild = 0; isChild <= 1; ++isChild) {
          for (unsigned keylen = 2*sizeof(trie_node_t*); keylen <= MAXKEYLEN; ++keylen) {
             unsigned usedsize = calc_used_size(keylen, 0, isvalue);
-            unsigned nrchild  = (MAXSIZE - usedsize) / (sizeof(uint8_t) + sizeof(trie_node_t*));
+            unsigned nrchild  = (unsigned) ((MAXSIZE - usedsize) / (sizeof(uint8_t) + sizeof(trie_node_t*)));
             unsigned reservesize = isChild ? (1+sizeof(trie_node_t*)) : sizeof(void*);
             usedsize = calc_used_size(0, nrchild, isvalue) + reservesize;
             get_node_size(usedsize, &nodesize, &sizeflags);
@@ -3685,7 +3720,7 @@ static int test_inserthelper(void)
    // build_nodechain_trienode
    for (unsigned keylen = 0; keylen <= UINT16_MAX; ++keylen) {
       if (keylen == 4*MAXKEYLEN) keylen = UINT16_MAX - 5;
-      value = (void*)(0x01020304 + keylen);
+      value = (void*) (uintptr_t) (0x01020304 + keylen);
 
       // TEST build_nodechain_trienode
       TEST(0 == build_nodechain_trienode(&trie.root, (uint16_t)keylen, key.addr, value));
@@ -3874,7 +3909,7 @@ static int test_insert(void)
    for (unsigned i = 0; i < UINT16_MAX; ++i) {
       key.addr[i] = (uint8_t) (i * 47);
    }
-   for (unsigned i = 0; i < lengthof(digit); ++i) {
+   for (uintptr_t i = 0; i < lengthof(digit); ++i) {
       digit[i] = (uint8_t) i;
       child[i] = (void*) (0xf0000f + (i << 16));
    }
@@ -3884,11 +3919,12 @@ static int test_insert(void)
 
    // TEST insert_trie: (depth 0)
    for (unsigned keylen = 0; keylen <= 3*MAXKEYLEN; ++keylen) {
-      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, (void*)(0x01020304 + keylen)));
+      void * VAL = (void*) (uintptr_t) (0x01020304 + keylen);
+      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, VAL));
       size_used = SIZEALLOCATED_MM() - size_allocated;
       TEST(0 != trie.root);
       TEST(0 != size_used);
-      TEST(0 == compare_nodechain(trie.root, size_used, keylen, key.addr, (void*)(0x01020304 + keylen)));
+      TEST(0 == compare_nodechain(trie.root, size_used, keylen, key.addr, VAL));
 
       // EEXIST is logged
       if (keylen == 10) {
@@ -3914,8 +3950,8 @@ static int test_insert(void)
 
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);
    for (unsigned keylen = 0, isENOMEM = 0; keylen <= 2*sizeof(void*); ++keylen) {
-      for (unsigned nrchild = 1; nrchild <= MAXNROFCHILD+1; ++nrchild) {
-         if (nrchild == 4) nrchild = MAXNROFCHILD+1;
+      for (unsigned nrchild = 1; nrchild <= MAXNROFCHILD_NO_VALUE+1; ++nrchild) {
+         if (nrchild == 4) nrchild = MAXNROFCHILD_NO_VALUE+1;
          TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digit, child, 0));
          get_node_size(calc_used_size(keylen, nrchild, true), &nodesize, &sizeflags);
          oldheader = trie.root->header;
@@ -3937,7 +3973,7 @@ static int test_insert(void)
 
          // TEST insert_trie: add value (expand node if necessary) (depth 1)
          TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, (void*)0x12345));
-         TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + (nrchild > MAXNROFCHILD?sizeof(trie_subnode_t):0));
+         TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + (nrchild > MAXNROFCHILD_NO_VALUE?sizeof(trie_subnode_t):0));
          TEST(0 == compare_content( trie.root, expectheader,
                                     keylen, nrchild, key.addr, digit, child, (void*)0x12345));
 
@@ -3950,33 +3986,33 @@ static int test_insert(void)
       }
    }
 
-   for (unsigned i = 0; i < 2; ++i) {
-      uint8_t keylen[2]  = { sizeof(void*),(uint8_t)(2*sizeof(void*)-off1_keylen_trienode()) };
-      uint8_t nrchild[2] = { MAXNROFCHILD,  MAXNROFCHILD-1 };
+   for (unsigned i = 0; i < 1; ++i) {
+      uint8_t keylen[1]  = { sizeof(void*) };
+      uint8_t nrchild[1] = { MAXNROFCHILD_WITH_VALUE };
       TEST(0 == new_trienode(&trie.root, keylen[i], nrchild[i], key.addr, digit, child, 0));
       TEST(MAXSIZE == nodesize_trienode(trie.root));
-      get_node_size(calc_used_size(keylen[i], MAXNROFCHILD+1, true), &nodesize, &sizeflags);
+      get_node_size(calc_used_size(keylen[i], MAXNROFCHILD_WITH_VALUE+1, true), &nodesize, &sizeflags);
       sizeflags = (header_t) (sizeflags|(trie.root->header&header_KEYLENMASK));
 
+      void * VAL = (void*) (uintptr_t) (keylen[i]+1);
+
       // TEST insert_trie: ENOMEM add value / restructure into subnode (depth 1)
-      if (i == 0) {
-         size_t oldsize = SIZEALLOCATED_MM();
-         oldheader = trie.root->header;
-         init_testerrortimer(&s_trie_errtimer, 1, ENOMEM);
-         TEST(ENOMEM == insert_trie(&trie, keylen[i], key.addr, (void*)8));
-         TEST(SIZEALLOCATED_MM() == oldsize);
-         TEST(0 == compare_content( trie.root, oldheader,
-                                    keylen[i], nrchild[i], key.addr, digit, child, 0));
-         GETBUFFER_ERRLOG(&logbuffer, &logsize2);
-         TEST(logsize1 < logsize2); // log
-         logsize1 = logsize2;
-      }
+      oldheader = trie.root->header;
+      init_testerrortimer(&s_trie_errtimer, 1, ENOMEM);
+      TEST(ENOMEM == insert_trie(&trie, keylen[i], key.addr, (void*)8));
+      TESTP(SIZEALLOCATED_MM() == size_allocated + MAXSIZE, "i:%u", i);
+      TEST(0 == compare_content( trie.root, oldheader,
+                                 keylen[i], nrchild[i], key.addr, digit, child, 0));
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize1 < logsize2); // log
+      logsize1 = logsize2;
 
       // TEST insert_trie: add value / restructure into subnode (depth 1)
-      TEST(0 == insert_trie(&trie, keylen[i], key.addr, (void*)(keylen[i]+1)));
-      TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + sizeof(trie_subnode_t));
+      // keylen[i] < 2*sizeof(void*) ensures conversion into subnode
+      TEST(0 == insert_trie(&trie, keylen[i], key.addr, VAL));
+      TESTP(SIZEALLOCATED_MM() == size_allocated + nodesize + sizeof(trie_subnode_t), "i:%u", i);
       TEST(0 == compare_content( trie.root, (header_t)(sizeflags|header_VALUE|header_SUBNODE),
-                                 keylen[i], nrchild[i], key.addr, digit, child, (void*)(keylen[i]+1)));
+                                 keylen[i], nrchild[i], key.addr, digit, child, VAL));
 
       // TEST tryinsert_trie: EEXIST
       TEST(EEXIST == tryinsert_trie(&trie, keylen[i], key.addr, 0));
@@ -3986,43 +4022,51 @@ static int test_insert(void)
       TEST(0 == delete_trienode(&trie.root));
    }
 
-   for (unsigned i = 0; i < 2; ++i) {
-      uint8_t keylen[2]  = { MAXKEYLEN-1, MAXKEYLEN };
-      uint8_t nrchild[2] = { 1,           MAXNROFCHILD+1 };
+   for (unsigned i = 0; i < 1; ++i) {
+      uint8_t keylen[1]  = { MAXKEYLEN-1 };
+      uint8_t nrchild[1] = { 1 };
+      while (MAXSIZE >= calc_used_size(keylen[i], nrchild[i]+1u, 0)){
+         ++ nrchild[i];
+      }
+      header_t extractedkey_headersize;
+      unsigned extractedkey_nodesize;
+      get_node_size(calc_used_size(MAXKEYLEN-1, 1, 0), &extractedkey_nodesize, &extractedkey_headersize);
       TEST(0 == new_trienode(&trie.root, keylen[i], nrchild[i], key.addr, digit, child, 0));
       TEST(MAXSIZE == nodesize_trienode(trie.root));
       get_node_size(calc_used_size(0, nrchild[i], true), &nodesize, &sizeflags);
-      sizeflags = (header_t) (sizeflags|(nrchild[i] > MAXNROFCHILD?header_SUBNODE:0));
+      sizeflags = (header_t) (sizeflags|(nrchild[i] > MAXNROFCHILD_WITH_VALUE?header_SUBNODE:0));
+
+      void * VAL = (void*) (uintptr_t) (keylen[i]+1);
 
       // TEST insert_trie: ENOMEM add value / restructure extract key (depth 1)
-      if (i == 0) {
-         size_t oldsize = SIZEALLOCATED_MM();
-         oldheader = trie.root->header;
-         init_testerrortimer(&s_trie_errtimer, 1, ENOMEM);
-         TEST(ENOMEM == insert_trie(&trie, keylen[i], key.addr, (void*)8));
-         TEST(SIZEALLOCATED_MM() == oldsize);
-         TEST(0 == compare_content( trie.root, oldheader,
-                                    keylen[i], nrchild[i], key.addr, digit, child, 0));
-         GETBUFFER_ERRLOG(&logbuffer, &logsize2);
-         TEST(logsize1 < logsize2); // log
-         logsize1 = logsize2;
-      }
+      oldheader = trie.root->header;
+      init_testerrortimer(&s_trie_errtimer, 1, ENOMEM);
+      TEST(ENOMEM == insert_trie(&trie, keylen[i], key.addr, (void*)8));
+      TEST(SIZEALLOCATED_MM() == size_allocated + MAXSIZE);
+      TEST(0 == compare_content( trie.root, oldheader,
+                                 keylen[i], nrchild[i], key.addr, digit, child, 0));
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize1 < logsize2); // log
+      logsize1 = logsize2;
 
       // TEST insert_trie: add value / restructure extract key (depth 1)
-      TEST(0 == insert_trie(&trie, keylen[i], key.addr, (void*)(keylen[i]+1)));
-      TEST(SIZEALLOCATED_MM() == size_allocated + MAXSIZE + nodesize + (nrchild[i] > MAXNROFCHILD?sizeof(trie_subnode_t):0));
-      trie_node_t * node = childs_trienode(trie.root, childoff4_trienode(trie.root))[0];
-      TEST(0 == compare_content( trie.root, (header_t)((header_SIZEMAX<<header_SIZESHIFT)|header_KEYLENBYTE),
+      trie_node_t * node;
+      TEST(0 == insert_trie(&trie, keylen[i], key.addr, VAL));
+      // TODO: ==> use extra bit in header to support 512 bytes keylen on 64bit)
+      TEST(SIZEALLOCATED_MM() == size_allocated + extractedkey_nodesize + nodesize + (nrchild[i] > MAXNROFCHILD_NO_VALUE?sizeof(trie_subnode_t):0));
+      node = childs_trienode(trie.root, childoff4_trienode(trie.root))[0];
+      TEST(0 == compare_content( trie.root, (header_t)(extractedkey_headersize|header_KEYLENBYTE),
                                  keylen[i]-1u, 1, key.addr, key.addr+keylen[i]-1, &node, 0));
       TEST(0 == compare_content( node, (header_t)(sizeflags|header_VALUE),
-                                 0, nrchild[i], 0, digit, child, (void*)(keylen[i]+1)));
+                                 0, nrchild[i], 0, digit, child, VAL));
 
+      // reset
       TEST(0 == delete_trienode(&node));
       TEST(0 == delete_trienode(&trie.root));
    }
 
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);
-   for (unsigned nrchild = 0, isENOMEM = 0; nrchild < MAXNROFCHILD; nrchild += (nrchild>4?5:1)) {
+   for (unsigned nrchild = 0, isENOMEM = 0; nrchild < MAXNROFCHILD_WITH_VALUE; nrchild += (nrchild>4?5:1)) {
       for (unsigned keylen = 0; keylen <= 2*sizeof(void*); keylen += 3) {
          unsigned childidx[3] = { 0, nrchild/2, nrchild };
          for (unsigned i = 0; i < 3; ++i) {
@@ -4056,15 +4100,18 @@ static int test_insert(void)
             }
 
             // TEST insert_trie: add child to child array (expand if necessary) (depth 1)
-            TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, (void*)(keylen+3)));
-            TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE);
-            memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
-            trie_node_t * node = childs_trienode(trie.root, childoff4_trienode(trie.root))[childidx[i]];
-            child2[childidx[i]] = node;
-            TEST(0 == compare_content( trie.root, expectheader,
-                                       keylen, nrchild+1, key.addr, digit, child2, 0));
-            TEST(0 == compare_content( node, header_VALUE,
-                                       0, 0, 0, 0, 0, (void*)(keylen+3)));
+            trie_node_t * node;
+            {
+               void * VAL = (void*) (uintptr_t) (keylen+3);
+               TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, VAL));
+               TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE);
+               memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
+               node = childs_trienode(trie.root, childoff4_trienode(trie.root))[childidx[i]];
+               child2[childidx[i]] = node;
+               TEST(0 == compare_content( trie.root, expectheader,
+                                          keylen, nrchild+1, key.addr, digit, child2, 0));
+               TEST(0 == compare_content( node, header_VALUE, 0, 0, 0, 0, 0, VAL));
+            }
 
             // TEST tryinsert_trie: EEXIST
             TEST(EEXIST == tryinsert_trie(&trie, (uint16_t)(keylen+1), key2, 0));
@@ -4078,8 +4125,8 @@ static int test_insert(void)
    }
 
    for (unsigned keylen = 0; keylen < 2*sizeof(void*); ++keylen) {
-      unsigned nrchild = (MAXSIZE-off1_keylen_trienode()-keylen-needkeylenbyte_header((uint8_t)keylen))
-                       / (1+sizeof(void*));
+      unsigned nrchild = (unsigned) ((MAXSIZE-off1_keylen_trienode()-keylen-needkeylenbyte_header((uint8_t)keylen))
+                       / (1+sizeof(void*)));
       unsigned childidx[4] = { 0, nrchild/2-2, nrchild };
       for (unsigned i = 0; i < 4; ++i) {
          memcpy(digit2, digit, childidx[i]);
@@ -4091,7 +4138,7 @@ static int test_insert(void)
          TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digit2, child2, 0));
          TEST(keylen == keylen_trienode(trie.root));
          TEST(MAXSIZE == nodesize_trienode(trie.root));
-         get_node_size(calc_used_size(keylen, MAXNROFCHILD+1, false), &nodesize, &sizeflags);
+         get_node_size(calc_used_size(keylen, MAXNROFCHILD_NO_VALUE+1, false), &nodesize, &sizeflags);
          oldheader = trie.root->header;
 
          // TEST insert_trie: ENOMEM add child to child array / restructure into subnode (depth 1)
@@ -4111,16 +4158,19 @@ static int test_insert(void)
          }
 
          // TEST insert_trie: add child to child array / restructure into subnode (depth 1)
-         TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, (void*)(keylen+3)));
-         TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE + sizeof(trie_subnode_t));
-         header_t expectheader = addflags_header(delflags_header(oldheader, header_SIZEMASK),sizeflags|header_SUBNODE);
-         memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
-         trie_node_t * node = child_triesubnode(subnode_trienode(trie.root, childoff4_trienode(trie.root)), digit[childidx[i]]);
-         child2[childidx[i]] = node;
-         TEST(0 == compare_content( trie.root, expectheader,
-                                    keylen, nrchild+1, key.addr, digit, child2, 0));
-         TEST(0 == compare_content( node, header_VALUE,
-                                    0, 0, 0, 0, 0, (void*)(keylen+3)));
+         trie_node_t * node;
+         {
+            void * VAL = (void*) (uintptr_t) (keylen+3);
+            TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, VAL));
+            TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE + sizeof(trie_subnode_t));
+            header_t expectheader = addflags_header(delflags_header(oldheader, header_SIZEMASK),sizeflags|header_SUBNODE);
+            memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
+            node = child_triesubnode(subnode_trienode(trie.root, childoff4_trienode(trie.root)), digit[childidx[i]]);
+            child2[childidx[i]] = node;
+            TEST(0 == compare_content( trie.root, expectheader,
+                                       keylen, nrchild+1, key.addr, digit, child2, 0));
+            TEST(0 == compare_content( node, header_VALUE, 0, 0, 0, 0, 0, VAL));
+         }
 
          // TEST tryinsert_trie: EEXIST
          TEST(EEXIST == tryinsert_trie(&trie, (uint16_t)(keylen+1), key2, 0));
@@ -4133,7 +4183,7 @@ static int test_insert(void)
    }
 
    for (unsigned keylen = 2*sizeof(void*); keylen <= MAXKEYLEN; ++keylen) {
-      unsigned nrchild = (MAXSIZE-calc_used_size(keylen, 0, false)) / (1+sizeof(trie_node_t*));
+      unsigned nrchild = (unsigned) ((MAXSIZE-calc_used_size(keylen, 0, false)) / (1+sizeof(trie_node_t*)));
       unsigned childidx[3] = { 0, nrchild/2, nrchild };
       for (unsigned i = 0; i < 3; ++i) {
          if (i && childidx[i-1] == childidx[i]) continue;
@@ -4157,7 +4207,7 @@ static int test_insert(void)
                size_t oldsize = SIZEALLOCATED_MM();
                oldheader = trie.root->header;
                init_testerrortimer(&s_trie_errtimer, e, ENOMEM);
-               TEST(ENOMEM == insert_trie(&trie, (uint16_t)(keylen+1), key2, (void*)(keylen+13)));
+               TEST(ENOMEM == insert_trie(&trie, (uint16_t)(keylen+1), key2, &keylen));
                TEST(SIZEALLOCATED_MM() == oldsize);
                TEST(0 == compare_content( trie.root, oldheader,
                                           keylen, (uint8_t)nrchild, key.addr, digit2, child2, 0));
@@ -4168,18 +4218,23 @@ static int test_insert(void)
          }
 
          // TEST insert_trie: add child to child array / restructure extract key (depth 1)
-         TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, (void*)(keylen+13)));
-         TEST(SIZEALLOCATED_MM() == size_allocated + root_nodesize + nodesize + MINSIZE);
-         trie_node_t * node = childs_trienode(trie.root, childoff4_trienode(trie.root))[0];
-         TEST(0 == compare_content( trie.root, (header_t)(root_sizeflags|header_KEYLENBYTE),
-                                    keylen-1, 1, key.addr, key.addr+keylen-1, &node, 0));
-         trie_node_t * node_value = childs_trienode(node, childoff4_trienode(node))[childidx[i]];
-         memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
-         child2[childidx[i]] = node_value;
-         TEST(0 == compare_content( node, sizeflags,
-                                    0, nrchild+1, 0, digit, child2, 0));
-         TEST(0 == compare_content( node_value, header_VALUE,
-                                    0, 0, 0, 0, 0, (void*)(keylen+13)));
+         trie_node_t * node;
+         trie_node_t * node_value;
+         {
+            void * VAL = (void*) (uintptr_t) (keylen+13);
+            TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, VAL));
+            TEST(SIZEALLOCATED_MM() == size_allocated + root_nodesize + nodesize + MINSIZE);
+            node = childs_trienode(trie.root, childoff4_trienode(trie.root))[0];
+            TEST(0 == compare_content( trie.root, (header_t)(root_sizeflags|header_KEYLENBYTE),
+                                       keylen-1, 1, key.addr, key.addr+keylen-1, &node, 0));
+            node_value = childs_trienode(node, childoff4_trienode(node))[childidx[i]];
+            memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
+            child2[childidx[i]] = node_value;
+            TEST(0 == compare_content( node, sizeflags,
+                                       0, nrchild+1, 0, digit, child2, 0));
+            TEST(0 == compare_content( node_value, header_VALUE,
+                                       0, 0, 0, 0, 0, VAL));
+         }
 
          // TEST tryinsert_trie: EEXIST
          TEST(EEXIST == tryinsert_trie(&trie, (uint16_t)(keylen+1), key2, 0));
@@ -4193,7 +4248,7 @@ static int test_insert(void)
    }
 
    for (unsigned childidx = 0; childidx <= 255; ++childidx) {
-      unsigned keylen  = (childidx % 5*sizeof(void*));
+      unsigned keylen  = (childidx % 5*(unsigned)sizeof(void*));
       unsigned nrchild = 255;
       memcpy(digit2, digit, childidx);
       memcpy(digit2+childidx, digit+childidx+1, nrchild-childidx);
@@ -4203,7 +4258,7 @@ static int test_insert(void)
       key2[keylen] = digit[childidx];
       TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digit2, child2, 0));
       TEST(0 != issubnode_trienode(trie.root));
-      nodesize  = nodesize_trienode(trie.root) + sizeof(trie_subnode_t);
+      nodesize  = nodesize_trienode(trie.root) + (unsigned) sizeof(trie_subnode_t);
       oldheader = trie.root->header;
 
       // TEST insert_trie: ENOMEM add child to subnode (depth 1)
@@ -4219,15 +4274,18 @@ static int test_insert(void)
       }
 
       // TEST insert_trie: add child to subnode (depth 1)
-      TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, (void*)(keylen+13)));
-      TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE);
-      trie_node_t * node = child_triesubnode(subnode_trienode(trie.root, childoff4_trienode(trie.root)), digit[childidx]);
-      memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
-      child2[childidx] = node;
-      TEST(0 == compare_content( trie.root, oldheader,
-                                 keylen, nrchild+1, key.addr, digit, child2, 0));
-      TEST(0 == compare_content( node, header_VALUE,
-                                 0, 0, 0, 0, 0, (void*)(keylen+13)));
+      trie_node_t * node;
+      {
+         void* VAL = (void*) (uintptr_t) (keylen+13);
+         TEST(0 == insert_trie(&trie, (uint16_t)(keylen+1), key2, VAL));
+         TEST(SIZEALLOCATED_MM() == size_allocated + nodesize + MINSIZE);
+         node = child_triesubnode(subnode_trienode(trie.root, childoff4_trienode(trie.root)), digit[childidx]);
+         memcpy(child2, child, (nrchild+1)*sizeof(child[0]));
+         child2[childidx] = node;
+         TEST(0 == compare_content( trie.root, oldheader,
+                                    keylen, nrchild+1, key.addr, digit, child2, 0));
+         TEST(0 == compare_content( node, header_VALUE, 0, 0, 0, 0, 0, VAL));
+      }
 
       // TEST tryinsert_trie: EEXIST
       TEST(EEXIST == tryinsert_trie(&trie, (uint16_t)(keylen+1), key2, 0));
@@ -4536,7 +4594,7 @@ static int test_remove(void)
    for (unsigned i = 0; i < UINT16_MAX; ++i) {
       key.addr[i] = (uint8_t) (i * 69);
    }
-   for (unsigned i = 0; i < 256; ++i) {
+   for (uintptr_t i = 0; i < 256; ++i) {
       digits[i] = (uint8_t)i;
       childs[i] = (void*) (1+i);
    }
@@ -4557,18 +4615,19 @@ static int test_remove(void)
 
    // TEST remove_trie: single node or chain of nodes
    for (unsigned keylen = 0; keylen < 5*MAXKEYLEN; ++keylen) {
+      void * VAL = (void*) (uintptr_t) (keylen+0x54321);
       if (keylen >= MAXKEYLEN) keylen += MAXKEYLEN;
-      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, (void*)(keylen+0x54321)));
+      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, VAL));
 
       // ESRCH
       if (keylen == 2*MAXKEYLEN) {
          for (unsigned keylen2 = 0; keylen2 < keylen; ++keylen2) {
-            value = (void*)keylen2;
+            value = &keylen2;
             TEST(ESRCH == tryremove_trie(&trie, (uint16_t)keylen2, key.addr, &value));
             ++ key.addr[keylen2-(keylen2 > 0)];
             TEST(ESRCH == tryremove_trie(&trie, (uint16_t)keylen2, key.addr, &value));
             -- key.addr[keylen2-(keylen2 > 0)];
-            TEST(value == (void*)keylen2/*not changed*/);
+            TEST(value == &keylen2/*not changed*/);
             GETBUFFER_ERRLOG(&logbuffer, &logsize2);
             TEST(logsize1 == logsize2); // no log written in case of ESRCH
          }
@@ -4579,7 +4638,7 @@ static int test_remove(void)
       TEST(0 == remove_trie(&trie, (uint16_t)keylen, key.addr, &value));
       TEST(0 == isenabled_testerrortimer(&s_trie_errtimer));
       TEST(trie.root == 0);
-      TEST(value     == (void*)(keylen+0x54321));
+      TEST(value     == VAL);
       TEST(SIZEALLOCATED_MM() == size_allocated);
    }
 
@@ -4587,31 +4646,33 @@ static int test_remove(void)
 
    // TEST remove_trie: root node has value + 1 child ==> child removed ==> root is kept
    for (unsigned keylen = MAXKEYLEN+1; keylen < 5*MAXKEYLEN; ++keylen) {
+      void * VAL  = (void*) (uintptr_t) (keylen+0x54321);
+      void * VAL2 = (void*) (uintptr_t) keylen;
       if (keylen >= MAXKEYLEN) keylen += MAXKEYLEN;
-      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, (void*)(keylen+0x54321)));
+      TEST(0 == insert_trie(&trie, (uint16_t)keylen, key.addr, VAL));
       init_nodeoffsets(&off, trie.root);
-      TEST(0 == tryaddvalue_trienode(&trie.root, off.off4_child, (void*)keylen));
+      TEST(0 == tryaddvalue_trienode(&trie.root, off.off4_child, VAL2));
       TEST(0 == remove_trie(&trie, (uint16_t)keylen, key.addr, &value));
-      TEST(value == (void*)(keylen+0x54321));
+      TEST(VAL == value);
       TEST(0 != trie.root);
       TEST(0 == nrchild_trienode(trie.root));
       TEST(0 != isvalue_trienode(trie.root));
       TEST(0 == remove_trie(&trie, keylen_trienode(trie.root), key.addr, &value));
       TEST(trie.root == 0);
-      TEST(value     == (void*)keylen);
+      TEST(value     == VAL2);
       TEST(SIZEALLOCATED_MM() == size_allocated);
    }
 
    // TEST remove_trie: root node has value + childs ==> value of root removed ==> root is kept
    for (unsigned keylen = 0; keylen <= 2*sizeof(void*); ++keylen) {
-      for (unsigned nrchild = 1; nrchild <= MAXNROFCHILD-2; ++nrchild) {
-         value = (void*) (keylen+nrchild);
-         TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digits, childs, &value));
+      for (unsigned nrchild = 1; nrchild <= MAXNROFCHILD_WITH_VALUE-2; ++nrchild) {
+         void * VAL = (void*) (uintptr_t) (keylen+nrchild);
+         TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digits, childs, &VAL));
          oldheader = trie.root->header;
          value = 0;
          TEST(0 == remove_trie(&trie, (uint16_t)keylen, key.addr, &value));
          TEST(0 != trie.root);
-         TEST(value == (void*)(keylen+nrchild));
+         TEST(VAL == value);
          TEST(0 == compare_content(trie.root, delflags_header(oldheader, header_VALUE),
                                    keylen, nrchild, key.addr, digits, childs, 0));
          TEST(0 == delete_trienode(&trie.root));
@@ -4621,13 +4682,15 @@ static int test_remove(void)
 
    // TEST remove_trie: child array + possible resize
    for (int isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) (isvalue ? MAXNROFCHILD_WITH_VALUE : MAXNROFCHILD_NO_VALUE);
       for (unsigned keylen = 0; keylen < MAXKEYLEN; ++keylen) {
          for (unsigned nrchild = 2; nrchild <= MAXNROFCHILD; ++nrchild) {
             if (calc_used_size(keylen, nrchild, isvalue) > MAXSIZE) break;
             get_node_size(calc_used_size(keylen, nrchild-1, isvalue), &nodesize, &sizeflags); // check for resize
             for (unsigned childidx = 0; childidx < nrchild; ++childidx) {
-               value = (void*)(keylen + childidx);
-               TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digits, childs, isvalue ? &value : 0));
+               void * VAL  = (void*) (uintptr_t) (keylen + childidx);
+               void * VAL2 = (void*) (uintptr_t) childidx;
+               TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, (uint8_t)nrchild, key.addr, digits, childs, isvalue ? &VAL : 0));
                uint8_t expect_digits[lengthof(digits)];
                trie_node_t * expect_childs[lengthof(childs)];
                memcpy(expect_digits, digits, sizeof(expect_digits));
@@ -4635,14 +4698,14 @@ static int test_remove(void)
                memcpy(expect_digits+childidx, digits+childidx+1, sizeof(uint8_t)*(lengthof(expect_digits)-childidx-1));
                memcpy(expect_childs+childidx, childs+childidx+1, sizeof(trie_node_t*)*(lengthof(expect_childs)-childidx-1));
                init_nodeoffsets(&off, trie.root);
-               TEST(0 == build_nodechain_trienode(&childs_trienode(trie.root, off.off4_child)[childidx], (uint16_t) (childidx*32), key.addr+keylen+1, (void*)childidx));
+               TEST(0 == build_nodechain_trienode(&childs_trienode(trie.root, off.off4_child)[childidx], (uint16_t) (childidx*32), key.addr+keylen+1, VAL2));
                uint8_t old = key.addr[keylen];
                key.addr[keylen] = digits[childidx];
                TEST(0 == remove_trie(&trie, (uint16_t)(keylen+1+32*childidx), key.addr, &value));
                key.addr[keylen] = old;
-               TEST(value == (void*)childidx);
+               TEST(VAL2 == value);
                TEST(0 == compare_content(trie.root, addflags_header(delflags_header(trie.root->header, header_SIZEMASK), sizeflags),
-                                         keylen, nrchild-1, key.addr, expect_digits, expect_childs, (void*)(keylen + childidx)));
+                                         keylen, nrchild-1, key.addr, expect_digits, expect_childs, VAL));
                TEST(0 == delete_trienode(&trie.root));
                TEST(SIZEALLOCATED_MM() == size_allocated);
             }
@@ -4665,22 +4728,24 @@ static int test_remove(void)
    // TEST remove_trie: subnode + possible conversion into child array
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);
    for (int isvalue = 0; isvalue <= 1; ++isvalue) {
+      const unsigned MAXNROFCHILD = (unsigned) MAXNROFCHILD_WITH_VALUE;
       for (unsigned keylen = 0; keylen < 2*sizeof(void*); ++keylen) {
-         value = (void*)(5 * keylen + 1);
-         TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, 255, key.addr, digits, childs, isvalue ? &value : 0));
+         void * VAL = (void*) (uintptr_t) (5*keylen + 1);
+         TEST(0 == new_trienode(&trie.root, (uint8_t)keylen, 255, key.addr, digits, childs, isvalue ? &VAL : 0));
          init_nodeoffsets(&off, trie.root);
          trie_subnode_t * subnode = subnode_trienode(trie.root, off.off4_child);
          oldheader = trie.root->header;
          uint8_t old = key.addr[keylen];
          for (unsigned childidx = 254; childidx >= MAXNROFCHILD-2; --childidx) {
             // no conversion
-            TEST(0 == build_nodechain_trienode(&subnode->child[childidx], (uint16_t) (childidx*5), key.addr+keylen+1, (void*)childidx));
+            void * VAL2 = (void*) (uintptr_t) childidx;
+            TEST(0 == build_nodechain_trienode(&subnode->child[childidx], (uint16_t) (childidx*5), key.addr+keylen+1, VAL2));
             key.addr[keylen] = (uint8_t) childidx;
             TEST(0 == remove_trie(&trie, (uint16_t)(keylen+1+5*childidx), key.addr, &value));
-            TEST(value == (void*)childidx);
+            TEST(VAL2 == value);
             TEST(0 == subnode->child[childidx]);
             TEST(0 == compare_content(trie.root, oldheader,
-                                      keylen, childidx, key.addr, digits, childs, (void*)(5*keylen + 1)));
+                                      keylen, childidx, key.addr, digits, childs, VAL));
             // ESRCH
             TEST(ESRCH == tryremove_trie(&trie, (uint16_t)(keylen+1), key.addr, &value));
             key.addr[keylen] = old;
@@ -4689,22 +4754,22 @@ static int test_remove(void)
          }
          // conversion with ENOMEM ==> no conversion into child
          TEST(0 == build_nodechain_trienode(&subnode->child[MAXNROFCHILD-3], 2, key.addr+keylen+1, (void*)0x44881));
-         key.addr[keylen] = MAXNROFCHILD-3;
+         key.addr[keylen] = (uint8_t) (MAXNROFCHILD-3);
          init_testerrortimer(&s_trie_errtimer, 2, ENOMEM);
          TEST(0 == remove_trie(&trie, (uint16_t)(keylen+1+2), key.addr, &value));
          TEST(value == (void*)0x44881);
          TEST(0 == compare_content(trie.root, oldheader,
-                                   keylen, MAXNROFCHILD-3, key.addr, digits, childs, (void*)(5*keylen + 1)));
+                                   keylen, MAXNROFCHILD-3, key.addr, digits, childs, VAL));
          ++trie.root->nrchild;
 
          // conversion
-         TEST(0 == build_nodechain_trienode(&subnode->child[MAXNROFCHILD-3], 2*MAXNROFCHILD+12, key.addr+keylen+1, (void*)0x44321));
-         key.addr[keylen] = MAXNROFCHILD-3;
+         TEST(0 == build_nodechain_trienode(&subnode->child[MAXNROFCHILD-3], (uint16_t) (2*MAXNROFCHILD+12), key.addr+keylen+1, (void*)0x44321));
+         key.addr[keylen] = (uint8_t) (MAXNROFCHILD-3);
          TEST(0 == remove_trie(&trie, (uint16_t)(keylen+1+2*MAXNROFCHILD+12), key.addr, &value));
          TEST(value == (void*)0x44321);
          TEST(0 == issubnode_trienode(trie.root));
          TEST(0 == compare_content(trie.root, (header_t) ((header_SIZEMAX<<header_SIZESHIFT)|(oldheader&(header_KEYLENMASK|header_VALUE))),
-                                   keylen, MAXNROFCHILD-3, key.addr, digits, childs, (void*)(5*keylen + 1)));
+                                   keylen, MAXNROFCHILD-3, key.addr, digits, childs, VAL));
 
          key.addr[keylen] = old;
          TEST(0 == delete_trienode(&trie.root));
@@ -4715,8 +4780,8 @@ static int test_remove(void)
    // TEST remove_trie: subnode with a single child (error case) does not crash
    for (int isvalue = 0; isvalue <= 1; ++isvalue) {
       for (unsigned nrchild = 1; nrchild < 5; ++nrchild) {
-         value = (void*)(5 * nrchild + 1);
-         TEST(0 == new_trienode(&trie.root, 0, (uint8_t)nrchild, 0, digits, childs, isvalue ? &value : 0));
+         void * VAL = (void*) (uintptr_t) (5*nrchild + 1);
+         TEST(0 == new_trienode(&trie.root, 0, (uint8_t)nrchild, 0, digits, childs, isvalue ? &VAL : 0));
          init_nodeoffsets(&off, trie.root);
          TEST(0 == addsubnode_trienode(&trie.root, off.off3_digit, 0));
          init_nodeoffsets(&off, trie.root);
@@ -4735,11 +4800,11 @@ static int test_remove(void)
             trie.root->nrchild = 0;
             setchild_triesubnode(subnode, digits[1], childs[1]);
             TEST(0 == compare_content(trie.root, trie.root->header,
-                                      0, 1, 0, digits+1, childs+1, (void*)(5*nrchild + 1)));
+                                      0, 1, 0, digits+1, childs+1, VAL));
          } else {
             TEST(0 == issubnode_trienode(trie.root));
             TEST(0 == compare_content(trie.root, trie.root->header,
-                                      0, nrchild-1, 0, digits+1, childs+1, (void*)(5*nrchild + 1)));
+                                      0, nrchild-1, 0, digits+1, childs+1, VAL));
          }
 
          TEST(0 == delete_trienode(&trie.root));
@@ -4754,6 +4819,7 @@ static int test_remove(void)
 
    // TEST remove_trie: node has value + 1 child ==> child removed ==> node is kept (depth X)
    for (unsigned depth = 2; depth <= 8; ++depth) {
+      void * VAL = (void*) (uintptr_t) depth;
       unsigned keylen;
       trie_node_t ** parentchild;
       TEST(0 == build_depthx_trie(&trie, &parentchild, &keylen, 0, depth, key.addr));
@@ -4763,30 +4829,30 @@ static int test_remove(void)
       init_nodeoffsets(&off, *parentchild);
       if (issubnode_trienode(*parentchild)) {
          trie_subnode_t * subnode = subnode_trienode(*parentchild, off.off4_child);
-         TEST(0 == build_nodechain_trienode(childaddr_triesubnode(subnode, key.addr[keylen]), 2, key.addr+keylen+1, (void*)depth));
+         TEST(0 == build_nodechain_trienode(childaddr_triesubnode(subnode, key.addr[keylen]), 2, key.addr+keylen+1, VAL));
       } else {
          // build_depthx_trie adds one child with digit (key.addr[keylen]+1)
          digits_trienode(*parentchild, off.off3_digit)[0] = key.addr[keylen];
-         TEST(0 == build_nodechain_trienode(childs_trienode(*parentchild, off.off4_child), 2, key.addr+keylen+1, (void*)depth));
+         TEST(0 == build_nodechain_trienode(childs_trienode(*parentchild, off.off4_child), 2, key.addr+keylen+1, VAL));
       }
 
       // ESRCH
       if (depth == 8) {
          for (unsigned keylen2 = 0; keylen2 < keylen+3; ++keylen2) {
             if (keylen2 == keylen) continue; // this node contains a value
-            value = (void*)keylen2;
+            value = &keylen2;
             TEST(ESRCH == tryremove_trie(&trie, (uint16_t)keylen2, key.addr, &value));
             ++ key.addr[keylen2-(keylen2 > 0)];
             TEST(ESRCH == tryremove_trie(&trie, (uint16_t)keylen2, key.addr, &value));
             -- key.addr[keylen2-(keylen2 > 0)];
-            TEST(value == (void*)keylen2/*not changed*/);
+            TEST(value == &keylen2/*not changed*/);
             GETBUFFER_ERRLOG(&logbuffer, &logsize2);
             TEST(logsize1 == logsize2); // no log written in case of ESRCH
          }
       }
 
       TEST(0 == remove_trie(&trie, (uint16_t)(keylen+3), key.addr, &value));
-      TEST(value == (void*)depth);
+      TEST(VAL == value);
       init_nodeoffsets(&off, *parentchild);
       if (issubnode_trienode(*parentchild)) {
          TEST(255/*underflow*/ == nrchild_trienode(*parentchild));
@@ -4800,16 +4866,17 @@ static int test_remove(void)
 
    // TEST remove_trie: node has value + childs ==> value of node removed ==> node is kept  (depth X)
    for (unsigned depth = 2; depth <= 8; ++depth) {
+      void * VAL = (void*) (uintptr_t) (0x33+depth);
       unsigned keylen;
       trie_node_t ** parentchild;
       TEST(0 == build_depthx_trie(&trie, &parentchild, &keylen, 0, depth, key.addr));
       TEST(0 == isvalue_trienode(*parentchild));
       init_nodeoffsets(&off, *parentchild);
-      TEST(0 == tryaddvalue_trienode(parentchild, off.off4_child, (void*)(0x33+depth)));
+      TEST(0 == tryaddvalue_trienode(parentchild, off.off4_child, VAL));
       int issubnode = issubnode_trienode(*parentchild);
 
       TEST(0 == remove_trie(&trie, (uint16_t)keylen, key.addr, &value));
-      TEST(value == (void*)(0x33+depth));
+      TEST(VAL == value);
       TEST(nrchild_trienode(*parentchild)   == 1-(issubnode != 0));
       TEST(issubnode_trienode(*parentchild) == issubnode);
 
@@ -4820,6 +4887,7 @@ static int test_remove(void)
    // TEST remove_trie: child array with possible resize (depth X)
    // TEST remove_trie: subnode with possible conversion into child array (depth X)
    for (unsigned depth = 2; depth <= 8; ++depth) {
+      void * VAL = (void*) (uintptr_t) depth;
       trie_node_t * old;
       bool     isresize = false;
       unsigned keylen;
@@ -4828,7 +4896,7 @@ static int test_remove(void)
       init_nodeoffsets(&off, *parentchild);
       if (issubnode_trienode(*parentchild)) {
          trie_subnode_t * subnode = subnode_trienode(*parentchild, off.off4_child);
-         TEST(0 == build_nodechain_trienode(childaddr_triesubnode(subnode, key.addr[keylen]), 12, key.addr+keylen+1, (void*)depth));
+         TEST(0 == build_nodechain_trienode(childaddr_triesubnode(subnode, key.addr[keylen]), 12, key.addr+keylen+1, VAL));
          setchild_triesubnode(subnode, (uint8_t)(key.addr[keylen]+1), (void*)1); // not empty: ensures correct conversion
          ++ (*parentchild)->nrchild;
       } else {
@@ -4838,12 +4906,12 @@ static int test_remove(void)
          TEST(0 == tryaddchild_trienode(parentchild, off.off3_digit, off.off4_child, idx, key.addr[keylen], childs[0]));
          isresize = (old != *parentchild);
          init_nodeoffsets(&off, *parentchild); // possible resize
-         TEST(0 == build_nodechain_trienode(childs_trienode(*parentchild, off.off4_child)+idx, 12, key.addr+keylen+1, (void*)depth));
+         TEST(0 == build_nodechain_trienode(childs_trienode(*parentchild, off.off4_child)+idx, 12, key.addr+keylen+1, VAL));
       }
 
       old = *parentchild;
       TEST(0 == remove_trie(&trie, (uint16_t)(keylen+13), key.addr, &value));
-      TEST(value == (void*)depth);
+      TEST(VAL == value);
       TEST(1 == nrchild_trienode(*parentchild));
       TEST(0 == issubnode_trienode(*parentchild));
       TEST(!isresize || old != *parentchild);

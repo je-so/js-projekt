@@ -494,7 +494,7 @@ ONERR:
    return err;
 }
 
-int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/uint32_t * readsize, /*out*/uint32_t * writesize)
+int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * readsize, /*out*/size_t * writesize)
 {
    int err;
    int value;
@@ -525,16 +525,15 @@ ONERR:
    return err;
 }
 
-int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t queuesize_write)
+int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t queuesize_write)
 {
    int err;
    int        value;
    socklen_t  len = sizeof(int);
    int        fd  = *ipsock;
 
-   VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
-                           && queuesize_write <= INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize_read);
-                           PRINTSIZE_ERRLOG(queuesize_write) );
+   VALIDATE_INPARAM_TEST(  queuesize_read <= INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize_read));
+   VALIDATE_INPARAM_TEST(  queuesize_write <= INT_MAX, ONERR, PRINTSIZE_ERRLOG(queuesize_write));
 
    if (queuesize_read)  {
       value = (int) (queuesize_read/2);
@@ -542,7 +541,7 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t
          err = errno;
          TRACESYSCALL_ERRLOG("setsockopt(SO_RCVBUF)", err);
          PRINTINT_ERRLOG(fd);
-         PRINTINT_ERRLOG(queuesize_read);
+         PRINTSIZE_ERRLOG(queuesize_read);
          goto ONERR;
       }
    }
@@ -553,7 +552,7 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, uint32_t queuesize_read, uint32_t
          err = errno;
          TRACESYSCALL_ERRLOG("setsockopt(SO_SNDBUF)", err);
          PRINTINT_ERRLOG(fd);
-         PRINTINT_ERRLOG(queuesize_write);
+         PRINTSIZE_ERRLOG(queuesize_write);
          goto ONERR;
       }
    }
@@ -1060,7 +1059,7 @@ static int test_buffersize(void)
       TEST(0 == initaccept_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
 
       // TEST setqueuesize_ipsocket: 0 does not change values
-      uint32_t rwsize[4] = { 0 };
+      size_t rwsize[4] = { 0 };
       TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
       TEST(0 == setqueuesize_ipsocket( &ipsockCL, 0, 0));
       TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[2], &rwsize[3]));
@@ -1177,7 +1176,7 @@ static int test_buffersize(void)
 
       // TEST setqueuesize_ipsocket
       for (size_t bs = buffer_size/2; bs <= buffer_size; bs += buffer_size/2) {
-         uint32_t rsize, wsize;
+         size_t rsize, wsize;
          TEST(0 == setqueuesize_ipsocket(&ipsockCL, buffer_size, bs));
          TEST(0 == queuesize_ipsocket(&ipsockCL, &rsize, &wsize));
          TEST(rsize == buffer_size);

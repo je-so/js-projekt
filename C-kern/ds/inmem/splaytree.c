@@ -635,25 +635,22 @@ bool prev_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t
 
 #ifdef KONFIG_UNITTEST
 
-typedef struct testadapt_t             testadapt_t ;
-typedef struct testnode_t              testnode_t ;
+typedef struct testnode_t {
+   int      is_freed;
+   int      is_inserted;
+   splaytree_node_t   index;
+   intptr_t key;
+} testnode_t;
 
-struct testnode_t {
-   int   is_freed ;
-   int   is_inserted ;
-   splaytree_node_t   index ;
-   int   key ;
-} ;
+typedef testnode_t nodesarray_t[10000];
 
-typedef testnode_t                     nodesarray_t[10000] ;
-
-struct testadapt_t {
+typedef struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, intptr_t) ;
+      typeadapt_EMBED(struct testadapt_t, testnode_t, intptr_t);
    } ;
-   test_errortimer_t    errcounter ;
-   unsigned             freenode_count ;
-} ;
+   test_errortimer_t    errcounter;
+   size_t               freenode_count;
+} testadapt_t;
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
@@ -672,25 +669,25 @@ static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const intptr_t lkey, const testnode_t * rnode)
 {
    (void) testadp;
-   int rkey = rnode->key;
-   return sign_int((int)lkey - rkey);
+   intptr_t rkey = rnode->key;
+   return sign_int(lkey - rkey);
 }
 
 static int impl_cmpobj_testadapt(testadapt_t * testadp, const testnode_t * lnode, const testnode_t * rnode)
 {
    (void) testadp;
-   int lkey = lnode->key;
-   int rkey = rnode->key;
+   intptr_t lkey = lnode->key;
+   intptr_t rkey = rnode->key;
    return sign_int(lkey - rkey);
 }
 
 static splaytree_node_t * build_perfect_tree(int count, testnode_t * nodes)
 {
-   assert(count > 0 && count < 10000) ;
-   assert(0 == ((count + 1) & count)) ;   // count == (2^power)-1
-   int root = (count + 1) / 2 ;
+   assert(count > 0 && count < 10000);
+   assert(0 == ((count + 1) & count));   // count == (2^power)-1
+   int root = (count + 1) / 2;
    if (root == 1) {
-      nodes[root].index.left = nodes[root].index.right = 0 ;
+      nodes[root].index.left = nodes[root].index.right = 0;
    } else {
       splaytree_node_t * left  = build_perfect_tree(root - 1, nodes) ;
       splaytree_node_t * right = build_perfect_tree(root - 1, nodes+root) ;
@@ -866,7 +863,7 @@ static int test_insertremove(void)
 
    // TEST splaykey_splaytree, splaynode_splaytree: compare it with recursivesplay_splaytree
    init_splaytree(&tree) ;
-   for (int i = 0; i <= 1024; ++i) {
+   for (intptr_t i = 0; i <= 1024; ++i) {
       tree.root = build_perfect_tree(1023, (*nodes1)) ;
       TEST(tree.root == &(*nodes1)[512].index) ;
       recursivesplay_splaytree(&tree, tree.root, (void*)i, offsetof(testnode_t, index), typeadp) ;

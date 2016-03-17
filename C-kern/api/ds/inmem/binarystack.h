@@ -58,14 +58,14 @@ int unittest_ds_inmem_binarystack(void) ;
 struct binarystack_t {
    /* variable: freeblocksize
     * The number of free bytes of memory block <blockstart> points to. */
-   uint32_t    freeblocksize ;
+   size_t      freeblocksize;
    /* variable: blocksize
     * Size in bytes of allocated memory block <blockstart> points to. */
-   uint32_t    blocksize ;
+   size_t      blocksize;
    /* variable: blockstart
     * Start address of latest allocated memory block.
     * The size of this block is stored in <blocksize>. */
-   uint8_t *   blockstart ;
+   uint8_t *   blockstart;
 } ;
 
 // group: lifetime
@@ -76,7 +76,7 @@ struct binarystack_t {
 
 /* function: init_binarystack
  * Initializes stack object and reserves at least preallocate_size bytes. */
-int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size) ;
+int init_binarystack(/*out*/binarystack_t * stack, size_t preallocate_size);
 
 /* function: free_binarystack
  * Frees memory resources held by stack. All pointers into the stack become invalid. */
@@ -116,7 +116,7 @@ void * top_binarystack(binarystack_t * stack) ;
  * Use <top_binarystack> to get the new address of a partially shrinked object.
  * If size is bigger than <size_binarystack> the the error EINVAL is returned and nothing is done.
  * This function calls <pop2_binarystack> if one or more memory blocks have to be freed. */
-int pop_binarystack(binarystack_t * stack, size_t size) ;
+static inline int pop_binarystack(binarystack_t * stack, size_t size);
 
 /* function: push_binarystack
  * Allocates memory for new object and returns pointer to its start address.
@@ -137,7 +137,7 @@ int pop_binarystack(binarystack_t * stack, size_t size) ;
  *              The allocated memory space contains random data.
  *              The size of the object is determined from its type (see above).
  * */
-int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed) ;
+int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed);
 
 /* function: pop2_binarystack
  * Same functionality as <pop_binarystack>.
@@ -148,13 +148,13 @@ int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed) ;
  * But it continues the work until size bytes are popped off the stack.
  * The reason is that the error can occur any time after some blocks have already been freed.
  * So doing nothing in case of an error does not work here. */
-int pop2_binarystack(binarystack_t * stack, size_t size) ;
+int pop2_binarystack(binarystack_t * stack, size_t size);
 
 /* function: push2_binarystack
  * Does same as <push_binarystack> but allocates a new block if necessary.
  * This function is called from <push_binarystack> in case a new memory must be allocated.
  * Do not call this function - always use <push_binarystack>. */
-int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** lastpushed) ;
+int push2_binarystack(binarystack_t * stack, size_t size, /*out*/uint8_t ** lastpushed);
 
 
 
@@ -166,42 +166,41 @@ int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** la
 
 /* define: pop_binarystack
  * Implements <binarystack_t.pop_binarystack>. */
-#define pop_binarystack(stack, size)                                 \
-   ( __extension__ ({                                                \
-      int _err ;                                                     \
-      binarystack_t * _stack = (stack) ;                             \
-      uint32_t      _size    = (size) ;                              \
-      if (_stack->blocksize - _stack->freeblocksize > _size) {       \
-         _stack->freeblocksize += _size ;                            \
-         _err = 0 ;                                                  \
-      } else {                                                       \
-         _err = pop2_binarystack(_stack, _size) ;                    \
-      }                                                              \
-      _err ;                                                         \
-   }))
+static inline int pop_binarystack(binarystack_t * stack, size_t size)
+{
+            int err;
+            if (stack->blocksize - stack->freeblocksize > size) {
+               stack->freeblocksize += size;
+               err = 0;
+            } else {
+               err = pop2_binarystack(stack, size);
+            }
+            return err;
+}
 
 /* define: push_binarystack
  * Implements <binarystack_t.push_binarystack>. */
-#define push_binarystack(stack, lastpushed)                          \
-   ( __extension__ ({                                                \
-      int _err ;                                                     \
-      binarystack_t * _stack = (stack) ;                             \
-      static_assert(sizeof(**(lastpushed)) < UINT32_MAX, "cast") ;   \
-      const uint32_t  _size  = (uint32_t)sizeof(**(lastpushed)) ;    \
-      if (_stack->freeblocksize >= _size) {                          \
-         _stack->freeblocksize -= _size ;                            \
-         *(lastpushed) = (void*) &_stack->blockstart[                \
-                                          _stack->freeblocksize] ;   \
-         _err = 0 ;                                                  \
-      } else {                                                       \
-         _err = push2_binarystack(_stack, _size,                     \
-                                  (uint8_t**)(lastpushed)) ;         \
-      }                                                              \
-      _err ;                                                         \
-   }))
+#define push_binarystack(stack, lastpushed) \
+         ( __extension__ ({                                             \
+            int _err;                                                   \
+            binarystack_t * _stack = (stack);                           \
+            const size_t    _size = sizeof(**(lastpushed));             \
+            if (_stack->freeblocksize >= _size) {                       \
+               _stack->freeblocksize -= _size;                          \
+               *(lastpushed) = (void*)                                  \
+                           &_stack->blockstart[_stack->freeblocksize];  \
+               _err = 0;                                                \
+            } else {                                                    \
+               uint8_t * _lp2;                                          \
+               _err = push2_binarystack(_stack, _size, &_lp2);          \
+               if (!_err) *(lastpushed) = (void*)_lp2;                  \
+            }                                                           \
+            _err ;                                                      \
+         }))
 
 /* define: top_binarystack
  * Implements <binarystack_t.top_binarystack>. */
-#define top_binarystack(stack)                        ((void*)(&(stack)->blockstart[(stack)->freeblocksize]))
+#define top_binarystack(stack) \
+         ((void*)(&(stack)->blockstart[(stack)->freeblocksize]))
 
 #endif

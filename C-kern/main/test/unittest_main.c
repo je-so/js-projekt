@@ -15,7 +15,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/init.h"
 // *** DO COMPILETIME tests (include is enough) ***
-#include "C-kern/api/test/assert.h"
 #include "C-kern/api/test/compiletime.h"
 // *** ***
 #include "C-kern/api/test/run/run_unittest.h"

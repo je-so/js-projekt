@@ -19,30 +19,23 @@
 // forward
 struct string_t;
 
-/* typedef: struct arraystf_node_t
- * Export <arraystf_node_t>. User supplied (external) type. */
-typedef struct arraystf_node_t         arraystf_node_t;
-
-/* typedef: struct arraystf_mwaybranch_t
- * Exports <arraystf_mwaybranch_t>i. Internal node type. */
-typedef struct arraystf_mwaybranch_t   arraystf_mwaybranch_t;
-
-/* typedef: struct arraystf_unode_t
- * Export <arraystf_unode_t>. Either internal or external type. */
-typedef union arraystf_unode_t         arraystf_unode_t;
+// === exported types
+struct arraystf_node_t;
+struct arraystf_mwaybranch_t;
+union  arraystf_unode_t;
 
 
 /* struct: arraystf_node_t
  * Generic user node type stored by <arraystf_t>.
  * See also <string_t>. */
-struct arraystf_node_t {
+typedef struct arraystf_node_t {
    /* variable: addr
     * Memory start address of binary/string key. */
    const uint8_t* addr;
    /* variable: size
     * Length of key in memory in bytes. */
    size_t         size;
-};
+} arraystf_node_t;
 
 // group: lifetime
 
@@ -90,15 +83,15 @@ static inline arraystf_node_t * cast_arraystfnode(struct string_t * str);
 /* struct: arraystf_mwaybranch_t
  * Internal node to implement a *multiway* trie.
  * Currently this node type supports only a 4-way tree. */
-struct arraystf_mwaybranch_t {
+typedef struct arraystf_mwaybranch_t {
    /* variable: child
     * A 4-way array of child nodes. */
-   arraystf_unode_t  * child[4];
+   union arraystf_unode_t * child[4];
    /* variable: offset
     * Memory offset of first data byte of key used to branch.
     * The key value at this offset is then shifted right according to
     * value <shift> and masked to get an index into array <child>. */
-   size_t            offset;
+   size_t   offset;
    /* variable: shift
     * Index of bit of key data byte at position <offset> used to branch.
     * The two bits at position shift and shift+1 are used as index into array <child>.
@@ -106,11 +99,11 @@ struct arraystf_mwaybranch_t {
     * > uint8_t               pos = key[offset]; // array index
     * > arraystf_mwaybranch_t * branch;           // current branch node
     * > branch->child[(pos >> branch->shift) & 0x03] */
-   uint8_t           shift;
+   uint8_t  shift;
    /* variable: used
     * The number of entries in <child> which are *not* 0. */
-   uint8_t           used;
-};
+   uint8_t  used;
+} arraystf_mwaybranch_t;
 
 // group: lifetime
 
@@ -118,7 +111,7 @@ struct arraystf_mwaybranch_t {
  * Initializes a new branch node.
  * A branch node must point to at least two child nodes. This is the reason
  * two pointers and their corresponding index key has to be provided as parameter. */
-static inline void init_arraystfmwaybranch(/*out*/arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_unode_t * childnode1, size_t data2, arraystf_unode_t * childnode2);
+static inline void init_arraystfmwaybranch(/*out*/arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, union arraystf_unode_t * childnode1, size_t data2, union arraystf_unode_t * childnode2);
 
 // group: query
 
@@ -131,16 +124,16 @@ unsigned childindex_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t da
 
 /* function: setchild_arraystfmwaybranch
  * Changes entries in arry <arraystf_mwaybranch_t.child>. */
-static inline void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned childindex, arraystf_unode_t * childnode);
+static inline void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned childindex, union arraystf_unode_t * childnode);
 
 
 /* union: arraystf_unode_t
  * Either <arraystf_node_t> or <arraystf_mwaybranch_t>.
  * The least significant bit in the pointer to this node discriminates between the two. */
-union arraystf_unode_t {
+typedef union arraystf_unode_t {
    arraystf_node_t         node;
    arraystf_mwaybranch_t   branch;
-};
+} arraystf_unode_t;
 
 // group: query
 

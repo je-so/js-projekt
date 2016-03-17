@@ -18,7 +18,6 @@
 #include "C-kern/api/err/errorcontext.h"
 #include "C-kern/api/err/errornr.h"
 #include "C-kern/api/err/errlog_macros.h"
-#include "C-kern/api/test/assert.h"
 #include "C-kern/api/test/validate.h"
 
 

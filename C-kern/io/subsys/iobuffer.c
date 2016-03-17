@@ -112,7 +112,7 @@ static void start_reading(iobuffer_stream_t* iostream, iochannel_t file, off_t f
    for (nrtask = 0; filesize && nrtask < lengthof(iostream->iotask)-1; ++nrtask) {
       iot[nrtask] = &iostream->iotask[nrtask];
       size_t size = iostream->buffer[nrtask].size;
-      if (size > filesize) {
+      if (size > castPoff_size(filesize)) {
          size = (size_t) filesize;
          setsize_iotask(&iostream->iotask[nrtask], size);
       }
@@ -249,9 +249,9 @@ int readnext_iobufferstream(iobuffer_stream_t* iostream, /*out*/struct memblock_
                                  );
    // queue next I/O
    if (iostream->readpos < iostream->filesize) {
-      const unsigned prev = (iostream->nextbuffer ? iostream->nextbuffer : lengthof(iostream->buffer)) - 1;
+      const unsigned prev = (iostream->nextbuffer ? iostream->nextbuffer : (unsigned)lengthof(iostream->buffer)) - 1;
       size_t size = iostream->buffer[prev].size;
-      if (size > iostream->filesize - iostream->readpos) {
+      if (size > castPoff_size(iostream->filesize - iostream->readpos)) {
          size = (size_t) (iostream->filesize - iostream->readpos);
          setsize_iotask(&iostream->iotask[prev], size);
       }
@@ -357,7 +357,7 @@ static int test_initfree_stream(directory_t* tmpdir)
    TEST(0 == initcreate_file(&file, "stream", tmpdir));
    for (size_t val = 0, mb = 0; mb <= lengthof(iostream.buffer); ++mb) {
       for (size_t i = 0; i < iobuf.size/sizeof(uint32_t); ++i, ++val) {
-         ((uint32_t*)iobuf.addr)[i] = val;
+         ((uint32_t*)iobuf.addr)[i] = (uint32_t) val;
       }
       TEST(iobuf.size == (size_t) write(io_file(file), iobuf.addr, iobuf.size));
    }
@@ -391,8 +391,8 @@ static int test_initfree_stream(directory_t* tmpdir)
       TEST(! isfree_itccounter(&iostream.ready));
       TEST(! isfree_iochannel(iostream.ioc));
       TEST(iostream.nextbuffer == 0);
-      TEST(iostream.filesize   == filesize);
-      TEST(iostream.readpos    == (nrbuffer < lengthof(iostream.buffer)-1 ? filesize : SZ*(lengthof(iostream.buffer)-1)));
+      TEST(iostream.filesize   == (off_t) filesize);
+      TEST(iostream.readpos    == (off_t) (nrbuffer < lengthof(iostream.buffer)-1 ? filesize : SZ*(lengthof(iostream.buffer)-1)));
       // check iostream.buffer[]
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
          TEST(0 != iostream.buffer[i].addr);
@@ -422,7 +422,7 @@ static int test_initfree_stream(directory_t* tmpdir)
             TEST(iostream.iotask[i].bufsize == iostream.iotask[i].bytesrw);
             // check content of read buffer
             for (size_t i2 = 0, val = (size_t)iostream.iotask[i].offset/sizeof(uint32_t); i2 < iostream.iotask[i].bufsize/sizeof(uint32_t); ++i2, ++val) {
-               ((uint32_t*)iostream.iotask[i].bufaddr)[i2] = val;
+               ((uint32_t*)iostream.iotask[i].bufaddr)[i2] = (uint32_t) val;
             }
          }
       }
@@ -488,9 +488,10 @@ static int test_initfree_stream(directory_t* tmpdir)
    TEST(isfree_iochannel(iostream.ioc));
 
    // TEST init_iobufferstream: simulated ERROR
-   for (int e = 1; e <= 7; ++e) {
-      init_testerrortimer(&s_iobufferstream_errtimer, (unsigned)e, e);
-      TEST(e == init_iobufferstream(&iostream, "stream", tmpdir));
+   for (unsigned e = 1; e <= 7; ++e) {
+      const int E = (int) e;
+      init_testerrortimer(&s_iobufferstream_errtimer, e, E);
+      TEST(E == init_iobufferstream(&iostream, "stream", tmpdir));
       TEST(0 == iostream.iothread.thread);
       TEST( isfree_itccounter(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
@@ -507,10 +508,11 @@ static int test_initfree_stream(directory_t* tmpdir)
    TEST(EBADF == free_iobufferstream(&iostream));
 
    // TEST free_iobufferstream: simulated ERROR
-   for (int e = 1; e <= 6; ++e) {
+   for (unsigned e = 1; e <= 6; ++e) {
+      const int E = (int) e;
       TEST(0 == init_iobufferstream(&iostream, "stream", tmpdir));
-      init_testerrortimer(&s_iobufferstream_errtimer, (unsigned)e, e);
-      TEST(e == free_iobufferstream(&iostream));
+      init_testerrortimer(&s_iobufferstream_errtimer, e, E);
+      TEST(E == free_iobufferstream(&iostream));
       TEST(0 == iostream.iothread.thread);
       TEST( isfree_itccounter(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
@@ -548,7 +550,7 @@ static int test_read_stream(directory_t* tmpdir)
    TEST(0 == initcreate_file(&file, "stream", tmpdir));
    for (size_t val = 0, mb = 0; mb < 25; ++mb) {
       for (size_t i = 0; i < iobuf.size/sizeof(uint32_t); ++i, ++val) {
-         ((uint32_t*)iobuf.addr)[i] = val;
+         ((uint32_t*)iobuf.addr)[i] = (uint32_t) val;
       }
       TEST(iobuf.size == (size_t) write(io_file(file), iobuf.addr, iobuf.size));
    }
@@ -574,7 +576,7 @@ static int test_read_stream(directory_t* tmpdir)
          }
          // check content
          for (size_t i = 0, val = (size_t)off/sizeof(uint32_t); i < iobuf.size/sizeof(uint32_t); ++i, ++val) {
-            ((uint32_t*)mblock.addr)[i] = val;
+            ((uint32_t*)mblock.addr)[i] = (uint32_t) val;
          }
          // check iostream.iotask[pbi]
          if (isLoad) {
@@ -602,10 +604,10 @@ static int test_read_stream(directory_t* tmpdir)
       TEST(0 == free_iobufferstream(&iostream));
 
       // switch to other filesize
-      if (filesize > iobuf.size*lengthof(iostream.buffer)) {
-         filesize = iobuf.size * lengthof(iostream.buffer);
+      if (castPoff_size(filesize) > iobuf.size*lengthof(iostream.buffer)) {
+         filesize = (off_t) (iobuf.size * lengthof(iostream.buffer));
       } else {
-         filesize -= 1+iobuf.size;
+         filesize -= (off_t) (1+iobuf.size);
       }
       if (filesize > 0) {
          TEST(0 == init_file(&file, "stream", accessmode_RDWR, tmpdir));

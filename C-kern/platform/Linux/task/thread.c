@@ -120,7 +120,7 @@ ONERR:
 ONERR_NOABORT:
    setreturncode_thread(self_thread(), err);
    TRACEEXIT_ERRLOG(err);
-   return (void*)err;
+   return (void*)(intptr_t)err;
 }
 
 // group: lifetime
@@ -622,9 +622,9 @@ static int test_query(void)
    TEST(&self_thread()->threadcontext == sys_tcontext_syscontext());
 
    // TEST returncode_thread
-   for (int R = -10; R <= 10; ++R) {
-      setreturncode_thread(&thread, R);
-      TEST(R == returncode_thread(&thread));
+   for (unsigned R = 0; R <= 20; ++R) {
+      setreturncode_thread(&thread, (int)R - 10);
+      TEST( (int)R - 10 == returncode_thread(&thread));
    }
 
    // TEST maintask_thread
@@ -1496,8 +1496,8 @@ static int thread_readpipe(reapipe_arg_t* arg)
 
    resume_thread(arg->resume);
 
-   err = read(arg->fd, buffer, 4);
-   err = err < 0 ? errno : 0;
+   ssize_t nrbytes = read(arg->fd, buffer, 4);
+   err = nrbytes < 0 ? errno : 0;
 
    return err;
 }
@@ -1678,12 +1678,12 @@ static int test_exit(void)
    thread_t * thread[20] = { 0 };
 
    // TEST exit_thread: called from created thread
-   for (int i = 0; i < (int)lengthof(thread); ++i) {
+   for (uintptr_t i = 0; i < lengthof(thread); ++i) {
       TEST(0 == newgeneric_thread(&thread[i], &thread_callexit, (intptr_t)i));
    }
-   for (int i = 0; i < (int)lengthof(thread); ++i) {
+   for (unsigned i = 0; i < lengthof(thread); ++i) {
       TEST(0 == join_thread(thread[i]));
-      TEST(i == returncode_thread(thread[i]));
+      TEST( (int)i == returncode_thread(thread[i]));
       TEST(0 == delete_thread(&thread[i]));
    }
 

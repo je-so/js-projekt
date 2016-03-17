@@ -23,7 +23,7 @@
 #        Signed integer types with different byte size:
 #        int8_t, int16_t, int32_t, int64_t, int, long
 #        Unsigned integer types with different byte size:
-#        uint8_t, uint16_t, uint32_t, uint64_t, unsigned, unsigned long
+#        uint8_t, uint16_t, uint32_t, uint64_t, unsigned int, unsigned long
 #        Floating point types:
 #        float, double
 #        String types:

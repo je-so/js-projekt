@@ -280,29 +280,29 @@ static int test_query(void)
    TEST(1 == isfree_string(&str)) ;
 
    // TEST addr_string
-   for (unsigned i = 0; i < 256; ++i) {
+   for (uintptr_t i = 0; i < 256; ++i) {
       init_string(&str, 0, (uint8_t*)i) ;
-      TEST(addr_string(&str) == (uint8_t*)i) ;
+      TEST((uint8_t*) i == addr_string(&str));
    }
 
    // TEST size_string
-   for (unsigned i = 0; i < 256; ++i) {
+   for (size_t i = 0; i < 256; ++i) {
       init_string(&str, i, 0) ;
-      TEST(size_string(&str) == i) ;
+      TEST( i == size_string(&str));
    }
 
    // TEST findbyte_string
-   init_string(&str, sizeof(buffer), buffer) ;
+   init_string(&str, sizeof(buffer), buffer);
    for (unsigned i = 0; i < sizeof(buffer); ++i) {
-      buffer[i] = (uint8_t)(i+1) ;
-      TEST(findbyte_string(&str, i) == 0/*not found*/) ;
-      buffer[i] = (uint8_t)i ;
-      TEST(findbyte_string(&str, i) == buffer+i/*found*/) ;
+      buffer[i] = (uint8_t)(i+1);
+      TEST(findbyte_string(&str, i) == 0/*not found*/);
+      buffer[i] = (uint8_t)i;
+      TEST(findbyte_string(&str, i) == buffer+i/*found*/);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_compare(void)
@@ -437,20 +437,20 @@ static int test_change(void)
    TEST(size_string(&str) == sizeof(buffer)) ;
 
    // TEST skipbyte_string
-   str = (string_t) string_INIT(0, (uint8_t*)0) ;
-   skipbyte_string(&str) ;
-   TEST(str.addr == (uint8_t*)1) ;
-   TEST(str.size == (size_t)-1) ;
-   str = (string_t) string_INIT(44, (uint8_t*)0) ;
-   for (unsigned i = 1; i <= 44; ++i) {
-      skipbyte_string(&str) ;
-      TEST(str.addr == (uint8_t*)i) ;
-      TEST(str.size == 44u-i) ;
+   str = (string_t) string_INIT(0, (uint8_t*)0);
+   skipbyte_string(&str);
+   TEST(str.addr == (uint8_t*)1);
+   TEST(str.size == (size_t)-1);
+   str = (string_t) string_INIT(44, (uint8_t*)0);
+   for (uintptr_t i = 1; i <= 44; ++i) {
+      skipbyte_string(&str);
+      TEST( str.addr == (uint8_t*)i);
+      TEST( str.size == 44u-i);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_generic(void)

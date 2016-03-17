@@ -30,20 +30,10 @@
 #include "C-kern/api/test/errortimer.h"
 #endif
 
-/* typedef: struct decimal_frombigint_t
- * Export <decimal_frombigint_t> into global namespace. */
+// === internal types
+struct alignedexpandshift_t;
 typedef struct decimal_frombigint_t       decimal_frombigint_t;
-
-/* typedef: struct decimal_frombigint_state_t
- * Export <decimal_frombigint_state_t> into global namespace. */
 typedef struct decimal_frombigint_state_t decimal_frombigint_state_t;
-
-/* typedef: struct alignedexpandshift_t
- * Export <alignedexpandshift_t> into global namespace. */
-typedef struct alignedexpandshift_t       alignedexpandshift_t;
-
-/* typedef: struct decimal_divstate_t
- * Export <decimal_divstate_t> into global namespace. */
 typedef struct decimal_divstate_t         decimal_divstate_t;
 
 /* typedef: shiftleft10p_f
@@ -56,17 +46,17 @@ typedef struct decimal_divstate_t         decimal_divstate_t;
  * Before return parameter *shiftcarry* is set to:
  * > shiftdigit / pow(10,9-x)
  * which becomes the next shiftcarry. */
-typedef uint32_t                       (* shiftleft10p_f) (/*inout*/uint32_t * shiftcarry, uint32_t shiftdigit);
+typedef uint32_t (* shiftleft10p_f) (/*inout*/uint32_t * shiftcarry, uint32_t shiftdigit);
 
 
 /* struct: alignedexpandshift_t
  * Stores an exponent of DIGITSBASE and a reference to a shift-left function.
  * Call this function to shift all decimal digits left starting
  * from least significant digit. */
-struct alignedexpandshift_t {
+typedef struct alignedexpandshift_t {
    int16_t           alignedexp;
    shiftleft10p_f    shiftleft;
-};
+} alignedexpandshift_t;
 
 
 /* struct: decimal_frombigint_state_t
@@ -1140,10 +1130,11 @@ static void submul_decimalhelper(decimal_divstate_t * state)
    if (state->rsize > 2) {
       uint32_t       carry     = 0 ;
       const uint32_t * rdigits = state->rdigits ;
-      int32_t        i ;
+      uint32_t       i;
 
-      i = state->loffset + (int32_t)2 - state->rsize ;
-      if (i < 0) i += state->lsize ; /*(state->lsize >= state->rsize) ==> i > 0 && i < lsize*/
+      i = state->loffset + 2u;
+      if (i < state->rsize) i += state->lsize; /* (state->lsize >= state->rsize) */
+      i -= state->rsize;                       /*  ==> 0 <= i && i < lsize */
 
       if (  state->nextdigit == 1)  {                 // no multiplication needed
          for (int32_t diff; i != state->loffset; ++i, ++rdigits) {
@@ -1156,26 +1147,25 @@ static void submul_decimalhelper(decimal_divstate_t * state)
 
       } else if (state->nextdigit == DIGITSBASE-1) {  // no multiplication needed
          uint32_t lastdigit = 0 ;
-         carry = 1 ; // redefine carry: 0: "subtract 1", 1: "no carry", 2: "add 1"
-         for (int32_t diff; i != state->loffset; ++i, ++rdigits) {
+         carry = 0; // carry: (uint32_t)-1: "subtract 1", 0: "no carry", 1: "add 1"
+         for (uint32_t diff; i != state->loffset; ++i, ++rdigits) {
             if (i == state->lsize) i = 0 ; // ringbuffer
             static_assert( (uint64_t)DIGITSBASE + DIGITSBASE < INT32_MAX, "diff is big enough" ) ;
-            diff = (int32_t)state->ldigits[i] + (int32_t)rdigits[0] - (int32_t)lastdigit + (int32_t)carry - 1/*signed carry*/ ;
-            lastdigit = rdigits[0] ;
-            carry = 1 ;
-            if (diff >= (int32_t)DIGITSBASE) {
-               ++ carry ;
-               diff -= (int32_t)DIGITSBASE ;
-            } else if (diff < 0) {
-               -- carry ;
-               diff += (int32_t)DIGITSBASE ;
+            diff = state->ldigits[i] + rdigits[0] - lastdigit + carry/*signed carry*/;
+            lastdigit = rdigits[0];
+            carry = 0;
+            if (diff >= 0x80000000/*aka diff < 0*/) {
+               -- carry;
+               diff += DIGITSBASE;
+            } else if (diff >= (int32_t)DIGITSBASE) {
+               ++ carry;
+               diff -= DIGITSBASE;
             }
-            state->ldigits[i] = (uint32_t)diff ;
+            state->ldigits[i] = diff;
          }
-
-         // case not possible: (lastdigit == 0) && (carry == 2) ; Why ?
-         // (lastdigit == 0) && (carry == 2) ==> previous rdigits[0] == 0 && carry == 2 and so on ==> contradiction to carry = 1 as start condition
-         carry = lastdigit + 1u - carry ;
+         // case not possible: (lastdigit == 0) && (carry == 1) ; Why ?
+         // (lastdigit == 0) && (carry == 1) ==> previous rdigits[0] == 0 && carry == 1 and so on ==> contradiction to carry = 0 as start condition
+         carry = lastdigit - carry;
 
       } else {
          for (int32_t diff; i != state->loffset; ++i, ++rdigits) {
@@ -1202,8 +1192,9 @@ static void submul_decimalhelper(decimal_divstate_t * state)
 
          -- state->nextdigit ;
 
-         i = state->loffset + (int32_t)2 - state->rsize ;
-         if (i < 0) i += state->lsize ;
+         i = state->loffset + 2u;
+         if (i < state->rsize) i += state->lsize; /* (state->lsize >= state->rsize) */
+         i -= state->rsize;                       /*  ==> 0 <= i && i < lsize */
 
          for (; i != state->loffset; ++i, ++rdigits) {
             if (i == state->lsize) i = 0 ; // ringbuffer
@@ -1218,7 +1209,7 @@ static void submul_decimalhelper(decimal_divstate_t * state)
       }
    }
 
-   return ;
+   return;
 }
 
 /* function: div_decimalhelper
@@ -2932,21 +2923,23 @@ static int test_copy(void)
       ,{ 10, { 3, 222, 10000, 0, 2001, 123456789, 999999999, 0, 4 } }
    } ;
    for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
-      for (int s = -1; s <= 1; s += 2) {
-         for (int32_t e = -INT16_MAX; e <= INT16_MAX; e += INT16_MAX) {
-            const int n = testvalues[tvi].nrdigits ;
-            dec->sign_and_used_digits = (uint8_t) (n | (s < 0 ? 0x80 : 0));
-            dec->exponent             = (int16_t) e ;
-            for (int i = 0; i < n; ++i) {
+      for (unsigned s = 0; s <= 2; s += 2) {
+         const int S = (int)s - 1;
+         for (uint32_t e = 0; e <= 2*INT16_MAX; e += INT16_MAX) {
+            const int16_t  E = (int16_t) ((int32_t)e - INT16_MAX);
+            const unsigned n = testvalues[tvi].nrdigits ;
+            dec->sign_and_used_digits = (uint8_t) (n | (s == 0 ? 0x80 : 0));
+            dec->exponent             = E;
+            for (unsigned i = 0; i < n; ++i) {
                dec->digits[i] = testvalues[tvi].digits[i] ;
             }
             TEST(0 == delete_decimal(&copy)) ;
             TEST(0 == new_decimal(&copy, 1)) ;
             TEST(0 == copy_decimal(&copy, dec)) ;
             TEST(n == copy->size_allocated) ;
-            TEST(e == copy->exponent) ;
-            TEST(s == sign_decimal(copy)) ;
-            for (int i = 0; i < n; ++i) {
+            TEST(E == copy->exponent);
+            TEST(S == sign_decimal(copy));
+            for (unsigned i = 0; i < n; ++i) {
                TEST(testvalues[tvi].digits[i] == copy->digits[i]) ;
             }
          }
@@ -3018,21 +3011,22 @@ static int test_setint(void)
    int32_t testexponent[] = { expmax_decimal(), expmax_decimal()-8, 1, 0, -1, -(expmax_decimal()-8), -expmax_decimal() } ;
    for (unsigned i = 0; i < lengthof(testvalues); ++i) {
       for (unsigned ei = 0; ei < lengthof(testexponent); ++ei) {
-         for (int s = -1; s <= +1; s += 2) {
-            for (int bits=32; bits <= 64; bits += 32) {
+         for (unsigned s = 0; s <= 2; s += 2) {
+            const int S = (int)s -1;
+            for (unsigned bits=32; bits <= 64; bits += 32) {
                int32_t  expdiff      = testexponent[ei] - alignexp_test(testexponent[ei]) ;
                uint64_t shifteddigit = (uint64_t)testvalues[i] * power10_decimalhelper((uint32_t)expdiff) ;
                TEST(0 == new_decimal(&dec, 1)) ;
                if (32 == bits) {
-                  TEST(0 == setPi32_decimal(&dec, s * testvalues[i], testexponent[ei])) ;
+                  TEST(0 == setPi32_decimal(&dec, S * testvalues[i], testexponent[ei])) ;
                } else {
-                  TEST(0 == setPi64_decimal(&dec, s * testvalues[i], testexponent[ei])) ;
+                  TEST(0 == setPi64_decimal(&dec, S * testvalues[i], testexponent[ei])) ;
                }
                TEST(dec->size_allocated   == 1 + (shifteddigit > 999999999)) ;
-               TEST(dec->sign_and_used_digits == ((1 + (shifteddigit > 999999999))|(s < 0 ? 0x80 : 0)));
+               TEST(dec->sign_and_used_digits == ((1 + (shifteddigit > 999999999))|(s == 0 ? 0x80 : 0)));
                TEST(size_decimal(dec)     == 1 + (shifteddigit > 999999999)) ;
                TEST(nrdigits_decimal(dec) == 1 + log10_int((uint32_t)testvalues[i]) + (uint32_t)expdiff) ;
-               TEST(sign_decimal(dec)     == s) ;
+               TEST(sign_decimal(dec)     == S) ;
                TEST(exponent_decimal(dec) == alignexp_test(testexponent[ei])) ;
                TEST(dec->digits[0]     == (uint32_t) (shifteddigit % 1000000000)) ;
                if (1 < size_decimal(dec)) {
@@ -3044,12 +3038,12 @@ static int test_setint(void)
                   expectval /= 10 ;
                   ++ expectexp ;
                }
-               expectval *= s ;
+               expectval *= S;
                int32_t decexp  = 2 ;
                TEST(expectval == first9digits_decimal(dec, &decexp)) ;
                TEST(expectexp == decexp) ;
                expectexp = alignexp_test(testexponent[ei]) ;
-               expectval = s * (int64_t)shifteddigit ;
+               expectval = S * (int64_t)shifteddigit ;
                decexp    = 2 ;
                TEST(expectval == first18digits_decimal(dec, &decexp)) ;
                TEST(expectexp == decexp) ;
@@ -3064,21 +3058,22 @@ static int test_setint(void)
    int32_t testexponent2[] = { expmax_decimal()-18, expmax_decimal()-26, 11, 0, -10, -(expmax_decimal()-5), -expmax_decimal() } ;
    for (unsigned i = 0; i < lengthof(testvalues2); ++i) {
       for (unsigned ei = 0; ei < lengthof(testexponent2); ++ei) {
-         for (int s = -1; s <= +1; s += 2) {
-            uint16_t expdiff         = (uint16_t) (testexponent2[ei] - alignexp_test(testexponent2[ei])) ;
-            uint32_t shifteddigit[3] ;
+         for (unsigned s = 0; s <= 2; s += 2) {
+            const int S = (int)s -1;
+            uint16_t expdiff = (uint16_t) (testexponent2[ei] - alignexp_test(testexponent2[ei])) ;
+            uint32_t shifteddigit[3];
             for (int64_t si = 0, value = testvalues2[i], carry = 0; si < 3; ++si, value /= DIGITSBASE) {
                int64_t  shifted = (value % DIGITSBASE) * power10_decimalhelper(expdiff) ;
                shifteddigit[si] = (uint32_t)carry + (uint32_t)(shifted % DIGITSBASE) ;
                carry            = shifted / DIGITSBASE ;
             }
             TEST(0 == new_decimal(&dec, 1)) ;
-            TEST(0 == setPi64_decimal(&dec, s * testvalues2[i], testexponent2[ei])) ;
+            TEST(0 == setPi64_decimal(&dec, S * testvalues2[i], testexponent2[ei])) ;
             TEST(dec->size_allocated     == (2 + (0 != shifteddigit[2]))) ;
-            TEST(dec->sign_and_used_digits == ((2 + (0 != shifteddigit[2]))|(s < 0 ? 0x80:0)));
+            TEST(dec->sign_and_used_digits == ((2 + (0 != shifteddigit[2]))|(s == 0 ? 0x80:0)));
             TEST(size_decimal(dec)     == 2 + (0 != shifteddigit[2])) ;
             TEST(nrdigits_decimal(dec) == 1 + log10_int((uint64_t)testvalues2[i]) + expdiff) ;
-            TEST(sign_decimal(dec)     == s) ;
+            TEST(sign_decimal(dec)     == S);
             TEST(dec->exponent         == alignexp_test(testexponent2[ei]) / digitsperint_decimal()) ;
             for (unsigned si = 0; si < size_decimal(dec); ++si) {
                TEST(dec->digits[si]    == shifteddigit[si]) ;
@@ -3087,14 +3082,14 @@ static int test_setint(void)
             int64_t expectval = testvalues2[i] ;
             int32_t decexp = 2 ;
             for (; expectval >= DIGITSBASE; expectval /= 10, ++expectexp) ;
-            expectval *= s ;
+            expectval *= S;
             TEST(expectval == first9digits_decimal(dec, &decexp)) ;
             TEST(expectexp == decexp) ;
             decexp    = 2 ;
             expectexp = testexponent2[ei] ;
             expectval = testvalues2[i] ;
             for (; expectval >= ((int64_t)DIGITSBASE * DIGITSBASE); expectval /= 10, ++expectexp) ;
-            expectval *= s ;
+            expectval *= S;
             TEST(expectval == first18digits_decimal(dec, &decexp)) ;
             TEST(expectexp == decexp) ;
             TEST(0 == delete_decimal(&dec)) ;
@@ -3141,10 +3136,16 @@ static int test_setfloat(void)
    decimal_t   * dec    = 0 ;
    bigint_t    * big[4] = { 0, 0 } ;
    float       fvalue ;
-   int         fmaxexp ;
+   unsigned    fmaxexp;
 
    // prepare
-   frexp(FLT_MAX, &fmaxexp) ;
+   {
+      int _maxexp;
+      frexp(FLT_MAX, &_maxexp);
+      TEST(0 < _maxexp);
+      fmaxexp = (unsigned) _maxexp;
+   }
+
    for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
@@ -3168,12 +3169,12 @@ static int test_setfloat(void)
    uint32_t testvalues1[] = { 0x00ffffff, 0x00fffff9, 0x00800001, 0x1f3, 0x3f5, 0x707, 0x70001, 0x80001 } ;
    for (unsigned tvi = 0; tvi < lengthof(testvalues1); ++tvi) {
       fvalue = (float) testvalues1[tvi] / 2.0f ;
-      for (int nrshift = 1; fvalue > 2; ++ nrshift, fvalue /= 2) {
+      for (unsigned nrshift = 1; fvalue > 2; ++ nrshift, fvalue /= 2) {
          float integral, fraction = modff(fvalue, &integral) ;
          TEST(0 != integral && 0 != fraction) ;
          // compute expected result
          setPu32_bigint(big[0], (testvalues1[tvi] << (32-nrshift))) ;
-         for (int mulcount = nrshift; mulcount > 0; mulcount -= digitsperint_decimal()) {
+         for (unsigned mulcount = nrshift; 0 < mulcount && mulcount <= nrshift; mulcount -= digitsperint_decimal()) {
             TEST(0 == multui32_bigint(&big[1], big[0], DIGITSBASE)) ;
             TEST(0 == copy_bigint(&big[0], big[1])) ;
          }
@@ -3187,9 +3188,10 @@ static int test_setfloat(void)
          }
          expecteddigits[expectedsize++] = (testvalues1[tvi] >> nrshift) ;
          // call setPfloat_decimal + compare result
-         for (int s =-1; s <= +1; s += 2) {
-            TEST(0 == setPfloat_decimal(&dec, (float)s * fvalue)) ;
-            TEST(sign_decimal(dec)     == s)
+         for (unsigned s = 0; s <= 2; s += 2) {
+            const int S = (int)s -1;
+            TEST(0 == setPfloat_decimal(&dec, (float)S * fvalue)) ;
+            TEST(sign_decimal(dec)     == S)
             TEST(size_decimal(dec)     == expectedsize) ;
             TEST(exponent_decimal(dec) == digitsperint_decimal() * (1 - (int)expectedsize)) ;
             for (unsigned i = expectedsize; i > 0 ; --i) {
@@ -3202,18 +3204,19 @@ static int test_setfloat(void)
    // TEST setPfloat_decimal: only integral part
    uint32_t testvalues2[] = { 0xffffff, 1, 3, 7, 9999999, 0x800001, 0x888888, 0x123456, 0xf, 0xff, 0xfff, 0xffff, 0xfffff } ;
    for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
-      int fexp ;
+      int fexp;
       fvalue = (float) testvalues2[tvi] ;
       frexp(fvalue, &fexp) ;
       setPu32_bigint(big[3], testvalues2[tvi]) ;
-      for (unsigned nrshift = 0; fexp < fmaxexp; ++ nrshift, ++ fexp, fvalue = (fexp <= fmaxexp ? fvalue * 2 : fvalue)) {
-         for (int s =-1; s <= +1; s += 2) {
-            TEST(0 == setPfloat_decimal(&dec, (float)s * fvalue)) ;
-            TEST(s == sign_decimal(dec)) ;
+      for (unsigned nrshift = 0, fexp2 = (unsigned)fexp; fexp2 < fmaxexp; ++ nrshift, ++fexp2, fvalue = (fexp2 <= fmaxexp ? fvalue * 2 : fvalue)) {
+         for (unsigned s = 0; s <= 2; s += 2) {
+            const int S = (int)s -1;
+            TEST(0 == setPfloat_decimal(&dec, (float)S * fvalue));
+            TEST(S == sign_decimal(dec));
             TEST(0 == dec->exponent) ;
             // convert decimal to integer
             setPu32_bigint(big[0], 0) ;
-            for (unsigned i = size_decimal(dec); i > 0 ; --i) {
+            for (unsigned i = size_decimal(dec); i; --i) {
                TEST(0 == multui32_bigint(&big[1], big[0], DIGITSBASE)) ;
                setPu32_bigint(big[2], dec->digits[i-1]) ;
                TEST(0 == add_bigint(&big[0], big[1], big[2])) ;
@@ -3244,10 +3247,11 @@ static int test_setfloat(void)
             TEST(0 == copy_bigint(&big[3], big[2])) ;
          }
          int32_t exponent = (int32_t)(mantissabits + nrleadingzero) ;
-         for (int s =-1; s <= +1; s += 2) {
-            TEST(0 == setPfloat_decimal(&dec, (float)s * fvalue)) ;
-            TEST(sign_decimal(dec)     == s) ;
-            TEST(exponent_decimal(dec) <= -exponent) ;
+         for (unsigned s = 0; s <= 2; s += 2) {
+            const int S = (int)s -1;
+            TEST(0 == setPfloat_decimal(&dec, (float)S * fvalue));
+            TEST(sign_decimal(dec)     == S) ;
+            TEST(exponent_decimal(dec) <= -exponent);
             // convert decimal to integer
             setPu32_bigint(big[0], 0) ;
             for (unsigned i = size_decimal(dec); i > 0 ; --i) {
@@ -3336,15 +3340,16 @@ static int test_setchar(void)
       ,{ "-000034.0567812345678900000000000000000e-32745", -32760, 16+1, { 34056781, 234567890 } }
    } ;
    for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
-      for (int s = -1; s <= 1; s += 2) {
-         uint32_t    size = (uint32_t) (testvalues[tvi].nrdigits + digitsperint_decimal()-1) / digitsperint_decimal() ;
-         const char * str = testvalues[tvi].decimalstr + (s == +1) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         const int S = (int)s -1;
+         uint32_t    size = (uint32_t) (testvalues[tvi].nrdigits + digitsperint_decimal()-1) / digitsperint_decimal();
+         const char * str = testvalues[tvi].decimalstr + (s == 2);
          TEST(0 == setPchar_decimal(&dec, strlen(str), str)) ;
          TEST(nrdigits_decimal(dec) == testvalues[tvi].nrdigits) ;
          TEST(size_decimal(dec)     == size) ;
-         TEST(sign_decimal(dec)     == s*(0 != testvalues[tvi].nrdigits));
-         TEST(exponent_decimal(dec) == testvalues[tvi].exponent10) ;
-         for (uint32_t i = 0; i < size; ++i) {
+         TEST(sign_decimal(dec)     == S*(0 != testvalues[tvi].nrdigits));
+         TEST(exponent_decimal(dec) == testvalues[tvi].exponent10);
+         for (uint32_t i = 0; i < size; ++i){
             TEST(dec->digits[size-1-i] == testvalues[tvi].digits[i]) ;
          }
       }
@@ -3382,13 +3387,13 @@ static int test_setchar(void)
    strbuf[10] = '.' ;
    TEST(EOVERFLOW  == setPchar_decimal(&dec, nrdigitsmax_decimal()+3, strbuf)) ;
 
-   // unprepare
-   TEST(0 == delete_decimal(&dec)) ;
+   // reset
+   TEST(0 == delete_decimal(&dec));
 
-   return 0 ;
+   return 0;
 ONERR:
-   delete_decimal(&dec) ;
-   return EINVAL ;
+   delete_decimal(&dec);
+   return EINVAL;
 }
 
 static int test_compare(void)
@@ -3425,13 +3430,14 @@ static int test_compare(void)
       for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
-      for (int s = -1;  s <= 1; s += 2) {
-         TEST(0 == cmp_decimal(dec[0], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[1], dec[1])) ;
-         TEST(s == cmp_decimal(dec[0], dec[1])) ;
-         TEST(s == - cmp_decimal(dec[1], dec[0])) ;
-         negate_decimal(dec[0]) ;
-         negate_decimal(dec[1]) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         const int S = (int)s -1;
+         TEST(0 == cmp_decimal(dec[0], dec[0]));
+         TEST(0 == cmp_decimal(dec[1], dec[1]));
+         TEST(S == cmp_decimal(dec[0], dec[1]));
+         TEST(S == - cmp_decimal(dec[1], dec[0]));
+         negate_decimal(dec[0]);
+         negate_decimal(dec[1]);
       }
    }
 
@@ -3451,27 +3457,27 @@ static int test_compare(void)
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
       }
       dec[1]->digits[0] = 0 ;
-      for (int s = -1;  s <= 1; s += 2) {
-         TEST(0 == cmp_decimal(dec[0], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[1], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[0], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[1], dec[0])) ;
-         negate_decimal(dec[0]) ;
-         negate_decimal(dec[1]) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         TEST(0 == cmp_decimal(dec[0], dec[0]));
+         TEST(0 == cmp_decimal(dec[1], dec[1]));
+         TEST(0 == cmp_decimal(dec[0], dec[1]));
+         TEST(0 == cmp_decimal(dec[1], dec[0]));
+         negate_decimal(dec[0]);
+         negate_decimal(dec[1]);
       }
    }
 
    // unprepare
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      TEST(0 == delete_decimal(&dec[i])) ;
+      TEST(0 == delete_decimal(&dec[i]));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      delete_decimal(&dec[i]) ;
+      delete_decimal(&dec[i]);
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_addsub(void)
@@ -3508,21 +3514,21 @@ static int test_addsub(void)
       for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
-      for (int s = -1; s <= +1; s += 2) {
-         TEST(0 == add_decimal(&dec[3], dec[0], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         TEST(0 == add_decimal(&dec[3], dec[1], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[1]) ;
-         TEST(0 == setPi32_decimal(&dec[3], -1, -1)) ;
-         TEST(0 == sub_decimal(&dec[3], dec[0], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[1]) ;
-         negate_decimal(dec[0]) ;
-         TEST(0 == sub_decimal(&dec[3], dec[1], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[1]) ;
-         negate_decimal(dec[2]) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         TEST(0 == add_decimal(&dec[3], dec[0], dec[1]));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
+         TEST(0 == add_decimal(&dec[3], dec[1], dec[0]));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
+         negate_decimal(dec[1]);
+         TEST(0 == setPi32_decimal(&dec[3], -1, -1));
+         TEST(0 == sub_decimal(&dec[3], dec[0], dec[1]));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
+         negate_decimal(dec[1]);
+         negate_decimal(dec[0]);
+         TEST(0 == sub_decimal(&dec[3], dec[1], dec[0]));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
+         negate_decimal(dec[1]);
+         negate_decimal(dec[2]);
       }
    }
 
@@ -3531,26 +3537,26 @@ static int test_addsub(void)
       for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
-      for (int s = -1; s <= +1; s += 2) {
-         TEST(0 == sub_decimal(&dec[3], dec[2], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[0])) ;
-         TEST(0 == sub_decimal(&dec[3], dec[2], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[1])) ;
-         TEST(0 == sub_decimal(&dec[3], dec[1], dec[2])) ;
-         negate_decimal(dec[3]) ;
-         TEST(0 == cmp_decimal(dec[3], dec[0])) ;
-         TEST(0 == sub_decimal(&dec[3], dec[0], dec[2])) ;
-         negate_decimal(dec[3]) ;
-         TEST(0 == cmp_decimal(dec[3], dec[1])) ;
-         negate_decimal(dec[1]) ;
-         TEST(0 == add_decimal(&dec[3], dec[2], dec[1])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[0])) ;
-         negate_decimal(dec[1]) ;
-         negate_decimal(dec[0]) ;
-         TEST(0 == add_decimal(&dec[3], dec[2], dec[0])) ;
-         TEST(0 == cmp_decimal(dec[3], dec[1])) ;
-         negate_decimal(dec[1]) ;
-         negate_decimal(dec[2]) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         TEST(0 == sub_decimal(&dec[3], dec[2], dec[1]));
+         TEST(0 == cmp_decimal(dec[3], dec[0]));
+         TEST(0 == sub_decimal(&dec[3], dec[2], dec[0]));
+         TEST(0 == cmp_decimal(dec[3], dec[1]));
+         TEST(0 == sub_decimal(&dec[3], dec[1], dec[2]));
+         negate_decimal(dec[3]);
+         TEST(0 == cmp_decimal(dec[3], dec[0]));
+         TEST(0 == sub_decimal(&dec[3], dec[0], dec[2]));
+         negate_decimal(dec[3]);
+         TEST(0 == cmp_decimal(dec[3], dec[1]));
+         negate_decimal(dec[1]);
+         TEST(0 == add_decimal(&dec[3], dec[2], dec[1]));
+         TEST(0 == cmp_decimal(dec[3], dec[0]));
+         negate_decimal(dec[1]);
+         negate_decimal(dec[0]);
+         TEST(0 == add_decimal(&dec[3], dec[2], dec[0]));
+         TEST(0 == cmp_decimal(dec[3], dec[1]));
+         negate_decimal(dec[1]);
+         negate_decimal(dec[2]);
       }
    }
 
@@ -3568,7 +3574,7 @@ static int test_addsub(void)
             dec[i]->digits[0] = 0 ;
          }
       }
-      for (int s = -1; s <= +1; s += 2) {
+      for (unsigned s = 0; s <= 2; s += 2) {
          TEST(0 == add_decimal(&dec[3], dec[0], dec[1])) ;
          TEST(nrdigits_decimal(dec[3]) == nrdigits_decimal(dec[2])/*trailing zero skipped*/) ;
          TEST(0 == cmp_decimal(dec[3], dec[2])) ;
@@ -3598,7 +3604,7 @@ static int test_addsub(void)
             dec[i]->digits[0] = 0 ;
          }
       }
-      for (int s = -1; s <= +1; s += 2) {
+      for (unsigned s = 0; s <= 2; s += 2) {
          TEST(0 == sub_decimal(&dec[3], dec[2], dec[1])) ;
          TEST(0 == cmp_decimal(dec[3], dec[0])) ;
          TEST(0 == sub_decimal(&dec[3], dec[2], dec[0])) ;
@@ -3636,15 +3642,15 @@ static int test_addsub(void)
 
    // unprepare
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      TEST(0 == delete_decimal(&dec[i])) ;
+      TEST(0 == delete_decimal(&dec[i]));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      delete_decimal(&dec[i]) ;
+      delete_decimal(&dec[i]);
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_mult(void)
@@ -3681,20 +3687,20 @@ static int test_mult(void)
       for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
-      for (int s = -1; s <= +1; s += 2) {
+      for (unsigned s = 0; s <= 2; s += 2) {
          TEST(0 == mult_decimal(&dec[3], dec[0], dec[1])) ;
          TEST(0 == cmp_decimal(dec[3], dec[2])) ;
          negate_decimal(dec[1]) ;
          negate_decimal(dec[2]) ;
          TEST(0 == mult_decimal(&dec[3], dec[1], dec[0])) ;
          TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         int e1 = (random() % (INT16_MAX/2)) ;
-         int e2 = (random() % (INT16_MAX/2)) ;
+         int e1 = (int) (random() % (INT16_MAX/2));
+         int e2 = (int) (random() % (INT16_MAX/2));
          dec[0]->exponent = (int16_t) (dec[0]->exponent - e1) ;
          dec[1]->exponent = (int16_t) (dec[1]->exponent + e2) ;
          dec[2]->exponent = (int16_t) (dec[2]->exponent - e1 + e2) ;
-         negate_decimal(dec[0]) ;
-         negate_decimal(dec[2]) ;
+         negate_decimal(dec[0]);
+         negate_decimal(dec[2]);
       }
       if (0 == dec[0]->exponent) {
          // generate trailing zero by adding 1 to first number
@@ -3727,11 +3733,11 @@ static int test_mult(void)
       while (!dec[1]->digits[S-1]) dec[1]->digits[S-1] = (uint32_t) random() % DIGITSBASE ;
       while (!dec[2]->digits[S-1]) dec[2]->digits[S-1] = (uint32_t) random() % DIGITSBASE ;
       mult_decimalhelper(dec[0], S, dec[1]->digits, S, dec[2]->digits, 0) ;
-      for (int s =-1; s <= +1; s += 2) {
-         setpositive_decimal(dec[0]) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         setpositive_decimal(dec[0]);
          TEST(0 == mult_decimal(&dec[3], dec[1], dec[2])) ;
          TEST(0 == cmp_decimal(dec[0], dec[3])) ;
-         negate_decimal(dec[1]) ;
+         negate_decimal(dec[1]);
          setnegative_decimal(dec[0]) ;
          TEST(0 == mult_decimal(&dec[3], dec[2], dec[1])) ;
          TEST(0 == cmp_decimal(dec[0], dec[3])) ;
@@ -3754,15 +3760,15 @@ static int test_mult(void)
 
    // unprepare
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      TEST(0 == delete_decimal(&dec[i])) ;
+      TEST(0 == delete_decimal(&dec[i]));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(dec); ++i) {
-      delete_decimal(&dec[i]) ;
+      delete_decimal(&dec[i]);
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_div(void)
@@ -3787,14 +3793,15 @@ static int test_div(void)
       for (unsigned i = 0; i < lengthof(testvalues1[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues1[tvi][i]), testvalues1[tvi][i])) ;
       }
-      for (int s = +1; s >= -1; s -= 2) {
-         TEST(0 == divi32_decimal(&dec[3], dec[0], s * (int32_t)dec[1]->digits[0], size_decimal(dec[2]))) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         const int S = (int)s -1;
+         TEST(0 == divi32_decimal(&dec[3], dec[0], -S * (int32_t)dec[1]->digits[0], size_decimal(dec[2])));
          TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[2]) ;
-         TEST(0 == divi32_decimal(&dec[3], dec[0], -s * (int32_t)dec[1]->digits[0], size_decimal(dec[2]))) ;
+         negate_decimal(dec[2]);
+         TEST(0 == divi32_decimal(&dec[3], dec[0], S * (int32_t)dec[1]->digits[0], size_decimal(dec[2])));
          TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[0]) ;
-         negate_decimal(dec[2]) ;
+         negate_decimal(dec[0]);
+         negate_decimal(dec[2]);
       }
 
       // TEST divi32_decimal: divisor == DIGITSBASE only exponent is decremented
@@ -3870,13 +3877,13 @@ static int test_div(void)
       for (unsigned i = 0; i < lengthof(testvalues2[0]); ++i) {
          TEST(0 == setPchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
       }
-      for (int s = -1; s <= +1; s += 2) {
-         TEST(0 == div_decimal(&dec[3], dec[0], dec[1], size_decimal(dec[2]))) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
-         negate_decimal(dec[1]) ;
-         negate_decimal(dec[2]) ;
-         TEST(0 == div_decimal(&dec[3], dec[0], dec[1], size_decimal(dec[2]))) ;
-         TEST(0 == cmp_decimal(dec[3], dec[2])) ;
+      for (unsigned s = 0; s <= 2; s += 2) {
+         TEST(0 == div_decimal(&dec[3], dec[0], dec[1], size_decimal(dec[2])));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
+         negate_decimal(dec[1]);
+         negate_decimal(dec[2]);
+         TEST(0 == div_decimal(&dec[3], dec[0], dec[1], size_decimal(dec[2])));
+         TEST(0 == cmp_decimal(dec[3], dec[2]));
          negate_decimal(dec[0]) ;
          negate_decimal(dec[2]) ;
       }

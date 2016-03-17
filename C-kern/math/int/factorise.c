@@ -282,14 +282,14 @@ static int test_commonfactors(void)
    TEST(1 == commonfactors_int((uint64_t)1 << 35, 123456789));
 
    // TEST commonfactors_int: 2 factor several times
-   for (int i = 1; i < 32; ++i) {
-      for (int j = 1; j <= i; ++j) {
+   for (unsigned i = 1; i < 32; ++i) {
+      for (unsigned j = 1; j <= i; ++j) {
          TEST(commonfactors_int((uint32_t)1 << i, (uint32_t)1 << j) == (uint32_t)1 << j);
          TEST(commonfactors_int((uint32_t)1 << j, (uint32_t)1 << i) == (uint32_t)1 << j);
       }
    }
-   for (int i = 1; i < 64; ++i) {
-      for (int j = 1; j <= i; ++j) {
+   for (unsigned i = 1; i < 64; ++i) {
+      for (unsigned j = 1; j <= i; ++j) {
          TEST(commonfactors_int((uint64_t)1 << i, (uint64_t)1 << j) == (uint64_t)1 << j);
          TEST(commonfactors_int((uint64_t)1 << j, (uint64_t)1 << i) == (uint64_t)1 << j);
       }

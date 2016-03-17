@@ -191,8 +191,8 @@ int sizeread_iochannel(const iochannel_t ioc, /*out*/size_t * size)
          && ! S_ISSOCK(statbuf.st_mode)
          && ! S_ISCHR(statbuf.st_mode) ) {
       off_t stsize = statbuf.st_size;
-      if (stsize > SIZE_MAX) {
-         stsize = SIZE_MAX;
+      if (sizeof(off_t) > sizeof(size_t) && stsize > (off_t) SIZE_MAX) {
+         stsize = (off_t) SIZE_MAX;
       }
       *size = (size_t) stsize;
 
@@ -342,7 +342,7 @@ int readall_iochannel(iochannel_t ioc, size_t size, void* buffer/*uint8_t[size]*
    size_t bytes = 0;
 
    for (;;) {
-      int part = read(ioc, (uint8_t*)buffer + bytes, size-bytes);
+      ssize_t part = read(ioc, (uint8_t*)buffer + bytes, size-bytes);
 
       if (part > 0) {
          bytes += (unsigned) part;
@@ -382,7 +382,7 @@ int writeall_iochannel(iochannel_t ioc, size_t size, const void* buffer/*uint8_t
    size_t bytes = 0;
 
    for (;;) {
-      int part = write(ioc, (const uint8_t*)buffer + bytes, size-bytes);
+      ssize_t part = write(ioc, (const uint8_t*)buffer + bytes, size-bytes);
 
       if (part >= 0) {
          bytes += (unsigned) part;
@@ -784,12 +784,12 @@ static int test_query(directory_t * tempdir)
 
    // TEST sizeread_iochannel: file
    TEST(0 == initcreate_file(&file, "readsize", tempdir));
-   off_t test_sizes[] = { 100, INT_MAX, (off_t)INT_MAX+1, SIZE_MAX, (off_t)SIZE_MAX+1, (off_t)SIZE_MAX + INT_MAX };
+   off_t test_sizes[] = { 100, INT_MAX, (off_t)INT_MAX+1, UINT32_MAX, (off_t)UINT32_MAX+1, (off_t)UINT32_MAX + INT_MAX };
    for (unsigned ts = 0; ts < lengthof(test_sizes); ++ts) {
       const off_t S = test_sizes[ts];
       TEST(0 == truncate_file(file, S));
       TEST(0 == sizeread_iochannel(file, &size));
-      TEST(size == (S > SIZE_MAX ? SIZE_MAX : S));
+      TEST(size == (SIZE_MAX == UINT32_MAX && S > (off_t)SIZE_MAX ? SIZE_MAX : (size_t)S));
    }
    TEST(0 == free_file(&file));
    TEST(0 == remove_file("readsize", tempdir));

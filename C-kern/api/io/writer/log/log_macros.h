@@ -277,7 +277,7 @@
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(log_channel_ERR, s,names,i) ; } */
 #define PRINTARRAYFIELD_LOG(BIND, LOGCHANNEL, format, arrname, index)  \
-         PRINTF_LOG(BIND, LOGCHANNEL, log_flags_NONE, 0, #arrname "[%d]=%" format "\n", i, (arrname)[i])
+         PRINTF_LOG(BIND, LOGCHANNEL, log_flags_NONE, 0, #arrname "[%zd]=%" format "\n", (size_t)i, (arrname)[i])
 
 /* define: PRINTCSTR_LOG
  * Log "name=value" of string variable.

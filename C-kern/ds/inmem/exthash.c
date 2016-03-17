@@ -860,12 +860,12 @@ ONERR:
 static int test_findinsertremove(void)
 {
    exthash_t            htable    = exthash_FREE ;
-   testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node)) ;
-   const size_t         MAXNODES  = 524288 ;
-   memblock_t           mem       = memblock_FREE ;
-   testobject_t         * nodes ;
-   exthash_node_t       * found_node ;
+   testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt);
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(cast_typeadapt(&typeadapt, testadapt_t, testobject_t, uintptr_t), offsetof(testobject_t, node));
+   const size_t         MAXNODES  = 524288 * sizeof(testobject_t) < 13000000 ? 524288 : 524288/2;
+   memblock_t           mem       = memblock_FREE;
+   testobject_t       * nodes;
+   exthash_node_t     * found_node;
 
    // prepare
    TEST(0 == RESIZE_MM(MAXNODES * sizeof(testobject_t), &mem)) ;

@@ -32,49 +32,49 @@ typedef struct blockheader_t           blockheader_t ;
  * This structure links a header to a previously allocated block.
  * And it contains some book-keeping information.
  * */
-struct blockheader_t {
+typedef struct blockheader_t {
    /* variable: next
     * Points to previously allocated block. */
-   blockheader_t *   next ;
+   blockheader_t *   next;
    /* variable: size
     * Size in bytes of this block.
     * The start address in memory is the same as <blockheader_t>. */
-   uint32_t          size ;
+   size_t            size;
    /* variable: usedsize
     * The size of pushed objects stored in this block. */
-   uint32_t          usedsize ;
-} ;
+   size_t            usedsize;
+} blockheader_t;
 
 // group: lifetime
 
-static inline void init_blockheader(/*out*/blockheader_t * header, uint32_t size, blockheader_t * next)
+static inline void init_blockheader(/*out*/blockheader_t * header, size_t size, blockheader_t * next)
 {
-   header->next     = next ;
-   header->size     = size ;
-   header->usedsize = 0 ;
+   header->next     = next;
+   header->size     = size;
+   header->usedsize = 0;
 }
 
 // group: query
 
 /* function: blocksize_blockheader
  * Returns the size of the allocated block usable pushing objects. */
-static inline uint32_t blocksize_blockheader(blockheader_t * header)
+static inline size_t blocksize_blockheader(blockheader_t * header)
 {
-   return header->size - sizeof(blockheader_t) ;
+   return header->size - sizeof(blockheader_t);
 }
 
 /* function: usedsize_blockheader
  * Returns the number bytes used by pushed objects. */
-static inline uint32_t usedsize_blockheader(blockheader_t * header)
+static inline size_t usedsize_blockheader(blockheader_t * header)
 {
-   return header->usedsize ;
+   return header->usedsize;
 }
 
 /* function: freesize_blockheader
  * Returns the number of unused bytes. */
-static inline uint32_t freesize_blockheader(blockheader_t * header)
+static inline size_t freesize_blockheader(blockheader_t * header)
 {
-   return header->size - sizeof(blockheader_t) - header->usedsize ;
+   return header->size - sizeof(blockheader_t) - header->usedsize;
 }
 
 /* function: blockstart_blockheader
@@ -94,9 +94,9 @@ static inline blockheader_t * header_blockheader(uint8_t * blockstart)
 
 /* function: headersize_blockheader
  * Returns the size which needs to be allocated additional. */
-static inline uint32_t headersize_blockheader(void)
+static inline size_t headersize_blockheader(void)
 {
-   return sizeof(blockheader_t) ;
+   return sizeof(blockheader_t);
 }
 
 
@@ -116,7 +116,7 @@ static test_errortimer_t   s_binarystack_errtimer = test_errortimer_FREE ;
  * Allocates a block of memory.
  * The newly allocated block is the new first entry in the list of allocated blocks.
  * The stack variables are adapted. */
-static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
+static int allocateblock_binarystack(binarystack_t * stack, size_t size)
 {
    int err;
    memblock_t     mem;
@@ -142,12 +142,12 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
       oldheader = 0 ;
    }
 
-   header = (blockheader_t *) mem.addr ;
-   init_blockheader(header, (uint32_t) mem.size, oldheader) ;
+   header = (blockheader_t *) mem.addr;
+   init_blockheader(header, mem.size, oldheader);
 
-   stack->freeblocksize = blocksize_blockheader(header) ;
-   stack->blocksize     = blocksize_blockheader(header) ;
-   stack->blockstart    = blockstart_blockheader(header) ;
+   stack->freeblocksize = blocksize_blockheader(header);
+   stack->blocksize     = blocksize_blockheader(header);
+   stack->blockstart    = blockstart_blockheader(header);
 
    return 0;
 ONERR:
@@ -171,7 +171,7 @@ ONERR:
 
 // group: lifetime
 
-int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size)
+int init_binarystack(/*out*/binarystack_t * stack, size_t preallocate_size)
 {
    int err;
 
@@ -239,12 +239,12 @@ size_t size_binarystack(binarystack_t * stack)
 
 // group: change
 
-int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** lastpushed)
+int push2_binarystack(binarystack_t * stack, size_t size, /*out*/uint8_t ** lastpushed)
 {
    int err ;
 
    if (size > stack->freeblocksize) {
-      err = allocateblock_binarystack(stack, size) ;
+      err = allocateblock_binarystack(stack, size);
       if (err) goto ONERR;
    }
 
@@ -420,7 +420,7 @@ static int test_query(void)
    }
 
    // TEST size_binarystack, top_binarystack: multiple allocated block
-   for (unsigned i = 1, s = stack.blocksize; i < lengthof(header); ++i) {
+   for (size_t i = 1, s = stack.blocksize; i < lengthof(header); ++i) {
       TEST(0 == allocateblock_binarystack(&stack, i <= 5 ? 1 : 99990)) ;
       header[i] = header_blockheader(stack.blockstart) ;
       TEST(header[i]->next == header[i-1]) ;
@@ -431,7 +431,7 @@ static int test_query(void)
       TEST(s == size_binarystack(&stack)) ;
       TEST(t == top_binarystack(&stack)) ;
    }
-   for (unsigned i = lengthof(header)-1, s = size_binarystack(&stack); i >= 1; --i) {
+   for (size_t i = lengthof(header)-1, s = size_binarystack(&stack); i >= 1; --i) {
       TEST(0 == freeblock_binarystack(&stack, header[i])) ;
       header[i] = 0 ;
       s -= 9999 * i ;
@@ -511,24 +511,24 @@ static int test_change(void)
    }
 
    // TEST pop2_binarystack: single block
-   for (unsigned i = stack.blocksize; i >= 1; --i) {
+   for (size_t i = stack.blocksize; i >= 1; --i) {
       TEST(0 == pop2_binarystack(&stack, 1)) ;
-      TEST(stack.freeblocksize == old.freeblocksize - i +1) ;
-      TEST(stack.blocksize     == old.blocksize) ;
-      TEST(stack.blockstart    == old.blockstart) ;
+      TEST(stack.freeblocksize == old.freeblocksize - i +1);
+      TEST(stack.blocksize     == old.blocksize);
+      TEST(stack.blockstart    == old.blockstart);
    }
-   for (unsigned i = 1; i <= stack.blocksize; ++i) {
-      stack.freeblocksize = old.freeblocksize - i ;
-      TEST(0 == pop2_binarystack(&stack, i)) ;
-      TEST(stack.freeblocksize == old.freeblocksize) ;
-      TEST(stack.blocksize     == old.blocksize) ;
-      TEST(stack.blockstart    == old.blockstart) ;
+   for (size_t i = 1; i <= stack.blocksize; ++i) {
+      stack.freeblocksize = old.freeblocksize - i;
+      TEST(0 == pop2_binarystack(&stack, i));
+      TEST(stack.freeblocksize == old.freeblocksize);
+      TEST(stack.blocksize     == old.blocksize);
+      TEST(stack.blockstart    == old.blockstart);
    }
 
    // TEST push_binarystack: multiple blocks of size 65536
    TEST(0 == size_binarystack(&stack)) ;
    blockstart = stack.blockstart ;
-   for(uint32_t i = 1; i <= 65536; ++i) {
+   for (uint32_t i = 1; i <= 65536; ++i) {
       uint32_t *  ptri     = 0 ;
       size_t      freesize = stack.freeblocksize ;
       TEST(0 == push_binarystack(&stack, &ptri)) ;
@@ -548,9 +548,9 @@ static int test_change(void)
 
    // TEST pop_binarystack: multiple blocks of size 65536
    blockheader_t * next = header_blockheader(blockstart)->next ;
-   for(uint32_t i = 65536; i; --i) {
+   for (uint32_t i = 65536; i; --i) {
       uint32_t *  ptri     = top_binarystack(&stack) ;
-      uint32_t    freesize = stack.freeblocksize + sizeof(uint32_t) ;
+      size_t      freesize = stack.freeblocksize + sizeof(uint32_t);
       TEST(0 != ptri) ;
       TEST(i == *ptri) ;
       TEST(0 == pop_binarystack(&stack, sizeof(i))) ;
@@ -570,7 +570,7 @@ static int test_change(void)
    TEST(stack.blockstart    == old.blockstart) ;
 
    // TEST push2_binarystack: big size
-   for (unsigned i = 1; i <= 20; ++i) {
+   for (size_t i = 1; i <= 20; ++i) {
       blockstart = stack.blockstart ;
       TEST(0 == push2_binarystack(&stack, 1024*1024-headersize_blockheader(), &addr)) ;
       next = header_blockheader(stack.blockstart)->next ;
@@ -596,16 +596,18 @@ static int test_change(void)
    TEST(stack.blockstart    == old.blockstart) ;
 
    // TEST push_binarystack: E2BIG
-   typedef uint8_t ARRAY[1024*1024] ;
-   ARRAY * array = 0 ;
-   TEST(E2BIG == push_binarystack(&stack, &array)) ;
+   typedef uint8_t ARRAY[1024*1024];
+   ARRAY * array = (void*) &stack;
+   TEST( E2BIG == push_binarystack(&stack, &array));
+   TEST( array == (void*) &stack); // not changed
 
    // TEST push2_binarystack: ENOMEM
-   init_testerrortimer(&s_binarystack_errtimer, 1, ENOMEM) ;
-   TEST(ENOMEM == push2_binarystack(&stack, 65536, &addr)) ;
-   TEST(stack.freeblocksize == old.freeblocksize) ;
-   TEST(stack.blocksize     == old.blocksize) ;
-   TEST(stack.blockstart    == old.blockstart) ;
+   init_testerrortimer(&s_binarystack_errtimer, 1, ENOMEM);
+   TEST( ENOMEM == push2_binarystack(&stack, 65536, &addr));
+   TEST( array == (void*) &stack); // not changed
+   TEST( stack.freeblocksize == old.freeblocksize);
+   TEST( stack.blocksize     == old.blocksize);
+   TEST( stack.blockstart    == old.blockstart);
 
    // TEST pop2_binarystack: EINVAL
    for (unsigned i = 1; i <= 32; ++i) {

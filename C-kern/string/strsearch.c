@@ -40,11 +40,6 @@
  * where you have to continue to compare if comparison failed for index i.
  * sidx[findsize-1] is set to findsize which marks the end of chain.
  *
- * >     FINDSTR
- * >           ^findsize-1: comparison fails
- * >    FINDSTR        <==> shift left
- * >           ^findsize: new index into findstr after shift
- *
  * Unchecked Precondition:
  * - findsize >= 1
  * */
@@ -73,8 +68,8 @@ static inline void buildtable_rsearchkmp(uint8_t findsize, const uint8_t findstr
  */
 static inline void optimizetable_rsearchkmp(uint8_t findsize, const uint8_t findstr[findsize], /*inout*/uint8_t sidx[findsize])
 {
-   for (int i = findsize-1; i > 0; ) {
-      int i2 = sidx[--i];
+   for (unsigned i = findsize-1u; i > 0; ) {
+      unsigned i2 = sidx[--i];
       // findstr[i] does not match, i2 is the next index into findstr
       if (findstr[i] == findstr[i2]) {
          // findstr[i2] equals findstr[i] ==> could not match either
@@ -92,15 +87,9 @@ static inline void optimizetable_rsearchkmp(uint8_t findsize, const uint8_t find
  * shift[i] gives the nr of positions findstr is to shift right.
  * Index i equals the nr of matched positions starting from end of findstr.
  *
- * > FINDSTR
- * >       ^findsize-1: comparison fails
- * >  FINDSTR   <==> shift right
- * >        ^findsize-1: new index into findstr after shift
- * >         (findstr += shift[i])
- *
  * How it works:
  * Consider findstr "ABCABC". If comparison fails for second C then findstr must be
- * shift 3 places to the right so that first "ABC" lies above the second "ABC" which
+ * shifted 3 places to the right so that left "ABC" lies above the rigth one which
  * has been already matched.
  *
  * The algorithm to build the table uses the nr of matched chars from end of findstr
@@ -164,8 +153,8 @@ static const uint8_t* rsearch_kmp(size_t size, const uint8_t data[size], uint8_t
    uint8_t sidx[findsize];
    buildtable_rsearchkmp(findsize, findstr, sidx);
 
-   size_t dpos = size;
-   int    spos = findsize;
+   size_t   dpos = size;
+   unsigned spos = findsize;
    while (dpos > 0) {
       --dpos;
       --spos;
@@ -186,7 +175,7 @@ static const uint8_t* rsearch_kmp(size_t size, const uint8_t data[size], uint8_t
 
 void init_strsearch(/*out*/strsearch_t* strsrch, uint8_t findsize, const uint8_t findstr[findsize], uint8_t shift[findsize])
 {
-   if (1 - findsize < 0/*used instead of findsize > 1 to remove warning*/) {
+   if ((unsigned) findsize > 1) {
       buildtable_strsearch(findsize, findstr, shift);
    }
 
@@ -292,59 +281,42 @@ const uint8_t* strsearch(size_t size, const uint8_t data[size], uint8_t findsize
 
 #ifdef KONFIG_UNITTEST
 
-#if 0
-void test_buildtable(int findsize, bool isoptimize, uint8_t findstr[findsize], uint8_t sidx[findsize])
-{
-   sidx[findsize-1] = (uint8_t) findsize;
-   for (int si = findsize-2; si >= 0; --si) {
-      int i;
-      for (i = si+2; i <= findsize; ++i) {
-         if (  (!isoptimize || (findstr[si] != findstr[i-1]))
-               && (i == findsize || 0 == memcmp(findstr+si+1, findstr+i, (size_t) (findsize-i)))) {
-            break;
-         }
-      }
-      sidx[si] = (uint8_t) (i-1);
-   }
-}
-#endif
-
 static int test_helper(void)
 {
-   uint8_t findstr[255];
-   uint8_t _sidx[255+2];
-   uint8_t* sidx = _sidx + 1;
+   uint8_t  findstr[255];
+   uint8_t  _sidx[255+2];
+   uint8_t* sidx = &_sidx[1];
 
    memset(_sidx, 129, sizeof(_sidx));
-   for (int findsize = 1; findsize <= (int)sizeof(findstr); findsize += ((int)sizeof(findstr)+2-findsize)/2) {
+   for (unsigned findsize = 1; findsize <= sizeof(findstr); findsize += ((unsigned)sizeof(findstr)+2-findsize)/2) {
 
       // TEST buildtable_rsearchkmp: all chars different
-      for (int chr = 0; chr < findsize; ++chr) {
+      for (unsigned chr = 0; chr < findsize; ++chr) {
          findstr[chr] = (uint8_t) (findsize + chr);
       }
       buildtable_rsearchkmp((uint8_t) findsize, findstr, sidx);
       TEST(findsize == sidx[findsize-1]);
-      for (int i = findsize-2; i >= 0; --i) {
+      for (unsigned i = findsize-2; i < findsize-1; --i) {
          TEST(findsize-1 == sidx[i]);
       }
 
       // TEST optimizetable_rsearchkmp: all chars different
       optimizetable_rsearchkmp((uint8_t) findsize, findstr, sidx);
       TEST(findsize == sidx[findsize-1]);
-      for (int i = findsize-2; i >= 0; --i) {
+      for (unsigned i = findsize-2; i < findsize-1; --i) {
          TEST(findsize-1 == sidx[i]);
       }
 
       // TEST buildtable_rsearchkmp: all chars equal
-      memset(findstr, findsize, sizeof(findstr));
+      memset(findstr, (int)findsize, sizeof(findstr));
       buildtable_rsearchkmp((uint8_t) findsize, findstr, sidx);
-      for (int i = findsize-1; i >= 0; --i) {
+      for (unsigned i = findsize-1; i <= findsize-1; --i) {
          TEST(i+1 == sidx[i]);
       }
 
       // TEST optimizetable_rsearchkmp: all chars different
       optimizetable_rsearchkmp((uint8_t) findsize, findstr, sidx);
-      for (int i = findsize-1; i >= 0; --i) {
+      for (unsigned i = findsize-1; i <= findsize-1; --i) {
          TEST(findsize == sidx[i]);
       }
 
@@ -403,36 +375,36 @@ static int test_helper(void)
    }
 
    memset(_sidx, 129, sizeof(_sidx));
-   for (int findsize = 1; findsize <= (int)sizeof(findstr); findsize += ((int)sizeof(findstr)+2-findsize)/2) {
+   for (size_t findsize = 1; findsize <= sizeof(findstr); findsize += (sizeof(findstr)+2-findsize)/2) {
 
       // TEST buildtable_strsearch: all chars different
-      for (int chr = 0; chr < findsize; ++chr) {
+      for (unsigned chr = 0; chr < findsize; ++chr) {
          findstr[chr] = (uint8_t) (findsize + chr);
       }
       buildtable_strsearch((uint8_t) findsize, findstr, sidx);
       TEST(1 == sidx[0]);
-      for (int i = 1; i < findsize; ++i) {
+      for (unsigned i = 1; i < findsize; ++i) {
          TEST(findsize == sidx[i]);
       }
 
       // TEST buildtable_strsearch: all chars equal (worst case)
-      memset(findstr, findsize, (size_t)findsize);
+      memset(findstr, (int)findsize, findsize);
       buildtable_strsearch((uint8_t) findsize, findstr, sidx);
-      for (int i = 0; i < findsize; ++i) {
+      for (unsigned i = 0; i < findsize; ++i) {
          TEST(1 == sidx[i]);
       }
 
       // TEST buildtable_strsearch: all chars equal except one
       findstr[findsize-1] = (uint8_t) (findsize+1);
       buildtable_strsearch((uint8_t) findsize, findstr, sidx);
-      for (int i = 0; i < findsize; ++i) {
+      for (unsigned i = 0; i < findsize; ++i) {
          TEST((i ? findsize : 1) == sidx[i]);
       }
       findstr[findsize-1] = (uint8_t) findsize;
       findstr[findsize/2] = (uint8_t) (findsize+1);
       buildtable_strsearch((uint8_t) findsize, findstr, sidx);
       TEST(1 == sidx[0]);
-      for (int i = 1; i < findsize; ++i) {
+      for (unsigned i = 1; i < findsize; ++i) {
          TEST(sidx[i] == (findsize-1-i > findsize/2 ? 1 : 1+findsize/2));
       }
 
@@ -441,21 +413,21 @@ static int test_helper(void)
 
    // TEST buildtable_strsearch: repeat pattern
    memset(_sidx, 129, sizeof(_sidx));
-   for (int findsize = 10, replen = 1; findsize <= (int)sizeof(findstr); findsize += 35, ++replen) {
+   for (unsigned findsize = 10, replen = 1; findsize <= sizeof(findstr); findsize += 35, ++replen) {
       uint8_t sidx2[255];
 
-      for (int pos = findsize-1-replen; pos >= 0; --pos) {
+      for (unsigned pos = findsize-1-replen; pos <= findsize-1-replen; --pos) {
          // init findstr with all chars equal
-         memset(findstr, findsize, (size_t)(findsize-replen));
-         for (int i = findsize-1; i >= findsize-replen; --i) {
+         memset(findstr, (int)findsize, findsize-replen);
+         for (unsigned i = findsize-1; i >= findsize-replen; --i) {
             findstr[i] = (uint8_t) i;
          }
          // prepare findstr + result
          memset(sidx2, 1, (size_t)findsize);
          {
-            int len = pos+1 < replen ? pos+1 : replen;
-            memmove(findstr+pos+1-len, findstr+findsize-len, (size_t)len);
-            for (int i = 1; i < findsize; ++i) {
+            unsigned len = pos+1 < replen ? pos+1 : replen;
+            memmove(findstr+pos+1-len, findstr+findsize-len, len);
+            for (unsigned i = 1; i < findsize; ++i) {
                sidx2[i] = (uint8_t) (findsize-1-pos > pos || findsize-1-i >= pos ? findsize-1-pos : findsize);
             }
          }
@@ -476,7 +448,7 @@ static int test_initfree(void)
    strsearch_t strsrch = strsearch_FREE;
    uint8_t     findstr[255];
    uint8_t     _shift[257];
-   uint8_t*    shift = _shift+1;
+   uint8_t*    shift = &_shift[1];
 
    // TEST strsearch_FREE
    TEST(0 == strsrch.shift);
@@ -486,26 +458,26 @@ static int test_initfree(void)
    // TEST init_strsearch: all char equal / test different parameter values
    memset(findstr, 0, sizeof(findstr));
    memset(_shift, 129, sizeof(_shift));
-   for (int findsize = 0; findsize <= 255; ++findsize) {
+   for (unsigned findsize = 0; findsize <= 255; ++findsize) {
       memset(&strsrch, 0, sizeof(strsrch));
       init_strsearch(&strsrch, (uint8_t)findsize, findstr+255-findsize, shift+255-findsize);
       TEST(strsrch.shift    == shift+255-findsize);
       TEST(strsrch.findstr  == findstr+255-findsize);
       TEST(strsrch.findsize == findsize);
-      TEST(129 == shift[255] && 129 == shift[254-findsize]);
-      for (int i = 1; i <= findsize; ++i) {
+      TEST(129 == shift[255] && 129 == shift[(int)(255-findsize)-1]); // check out of bounds access
+      for (unsigned i = 1; i <= findsize; ++i) {
          TEST(shift[255-i] == (findsize < 2 ? 129 : 1));
       }
    }
 
    // TEST init_strsearch: all char different
-   for (int i = 0; i < 255; ++i) {
+   for (unsigned i = 0; i < 255; ++i) {
       findstr[i] = (uint8_t) i;
    }
    memset(&strsrch, 0, sizeof(strsrch));
    init_strsearch(&strsrch, 255, findstr, shift);
    TEST(129 == shift[255] && 129 == shift[-1]);
-   for (int i = 0; i < 255; ++i) {
+   for (unsigned i = 0; i < 255; ++i) {
       TEST(shift[i] == (i ? 255 : 1));
    }
 
@@ -513,7 +485,7 @@ static int test_initfree(void)
    memset(_shift, 129, sizeof(_shift));
    init_strsearch(&strsrch, 10, (const uint8_t*)"xyy12345xy", shift);
    TEST(129 == shift[10] && 129 == shift[-1]);
-   for (int i = 0; i < 10; ++i) {
+   for (unsigned i = 0; i < 10; ++i) {
       TEST(shift[i] == (i == 0 ? 1 : i == 1 ? 7 : 8));
    }
 
@@ -546,7 +518,7 @@ static int test_find(void)
    TEST(0 == strsearch(sizeof(data), data, 0, findstr));
 
    // TEST find_strsearch, rsearch_kmp, strsearch: findsize == datasize
-   for (int equal = 0; equal <= 1; ++equal) {
+   for (unsigned equal = 0; equal <= 1; ++equal) {
       for (size_t findsize = 1; findsize <= 255; ++findsize) {
          uint8_t* d = data+findsize;
          if (equal) {
@@ -567,13 +539,13 @@ static int test_find(void)
 
    // TEST find_strsearch, rsearch_kmp, strsearch: find key with equal chars
    memset(data, 0, sizeof(data));
-   for (int findsize = 1; findsize <= 255; findsize += (findsize & (findsize+1)) ? findsize-1 : 1) {
-      memset(findstr, findsize, (size_t)findsize);
+   for (unsigned findsize = 1; findsize <= 255; findsize += (findsize & (findsize+1)) ? findsize-1 : 1) {
+      memset(findstr, (int) findsize, findsize);
       init_strsearch(&strsrch, (uint8_t)findsize, findstr, shift);
-      for (int pos = 0; pos <= (int)sizeof(data)-findsize; pos += (pos & (pos+1)) ? pos-1 : 1) {
+      for (unsigned pos = 0; pos <= sizeof(data)-findsize; pos += (pos & (pos+1)) ? pos-1 : 1) {
          uint8_t* d = data+pos;
          if (pos) d[-1] = 0;
-         memset(d, findsize, (size_t)findsize);
+         memset(d, (int) findsize, findsize);
          TEST(d == find_strsearch(&strsrch, sizeof(data), data));
          TEST(d == rsearch_kmp(sizeof(data), data, (uint8_t)findsize, findstr));
          TEST(d == strsearch(sizeof(data), data, (uint8_t)findsize, findstr));
@@ -587,7 +559,7 @@ static int test_find(void)
    {
       // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
       /* > grep -ob find_strsearch C-kern/string/strsearch.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-      size_t  compare_pos[] = {6286,17080,17280,17482,17597,17772,18387,18598,19142,19408,19435,19482,19627};
+      size_t  compare_pos[] = {5906,16371,16571,16773,16888,17063,17683,17894,18439,18705,18732,18779,18924};
       {
          wbuffer_t wbuf = wbuffer_INIT_MEMBLOCK(&file_data);
          TEST(0 == load_file(__FILE__, &wbuf, 0));
@@ -596,7 +568,7 @@ static int test_find(void)
       uint8_t findsize = sizeof(STR(FIND_STRSEARCH))-1;
       memcpy(findstr, STR(FIND_STRSEARCH), (size_t)findsize);
       init_strsearch(&strsrch, (uint8_t)findsize, findstr, shift);
-      for (unsigned pi = 0, off = 0; pi < lengthof(compare_pos); ++pi) {
+      for (size_t pi = 0, off = 0; pi < lengthof(compare_pos); ++pi) {
          uint8_t* d = file_data.addr + compare_pos[pi];
          TEST(d == FIND_STRSEARCH(&strsrch, file_size-off, file_data.addr + off));
          TEST(d == strsearch(file_size-off, file_data.addr + off, findsize, findstr));
@@ -606,7 +578,7 @@ static int test_find(void)
             TEST(0 == strsearch(file_size-off, file_data.addr + off, findsize, findstr));
          }
       }
-      for (unsigned pi = lengthof(compare_pos)-1, s = file_size; pi < lengthof(compare_pos); --pi) {
+      for (size_t pi = lengthof(compare_pos)-1, s = file_size; pi < lengthof(compare_pos); --pi) {
          uint8_t* d = file_data.addr + compare_pos[pi];
          TEST(d == rsearch_kmp(s, file_data.addr, findsize, findstr));
          s = compare_pos[pi]+findsize-1u;

@@ -114,7 +114,7 @@ void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
    struct p_LOGENTRY_HEADER_ERRLOG * p = _p;
 
-   PRINTF("[%zu: %llu.%06us]\n%s() %s:%d\n", p->threadid, p->sec, p->usec, p->funcname, p->filename, p->linenr);
+   PRINTF("[%zu: %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\n", p->threadid, p->sec, p->usec, p->funcname, p->filename, p->linenr);
 }
 
 void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)

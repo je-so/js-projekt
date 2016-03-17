@@ -43,7 +43,7 @@ void insertlast_iolist(iolist_t* iolist, uint8_t nrtask, /*own*/iotask_t* iot[nr
       yield_thread();
    }
 
-   int i = nrtask-1;
+   unsigned i = (unsigned)nrtask-1;
    iotask_t* last = iolist->last;
    iolist->last = iot[i];
 
@@ -186,21 +186,21 @@ static int test_iotask(void)
    TEST(0 == iotask.readycount);
 
    for (size_t size = 1; size; size <<= 1) {
-      for (void* addr = (void*)(uintptr_t)1; addr; addr = (void*)((uintptr_t)addr << 1)) {
-         for (uintptr_t off = 1; off; off <<= 1) {
+      for (void* addr = (void*)1; addr; addr = (void*)((uintptr_t)addr << 1)) {
+         for (uint64_t off = 1; off; off <<= 1) {
             for (int ioc = 1; ioc <= 256; ioc <<= 1) {
                for (int iscounter = 0; iscounter <= 1; ++iscounter) {
                   itccounter_t* c = iscounter ? &counter : 0;
 
                   // TEST initreadp_iotask
                   memset(&iotask, 255, sizeof(iotask));
-                  initreadp_iotask(&iotask, ioc, size, addr, off, c);
+                  initreadp_iotask(&iotask, ioc, size, addr, (off_t) off, c);
                   TEST(iotask.iolist_next == 0);
                   TEST(iotask.bytesrw == (size_t)-1); // not changed
                   TEST(iotask.state == iostate_NULL);
                   TEST(iotask.op == ioop_READ);
                   TEST(iotask.ioc == ioc);
-                  TEST(iotask.offset == off);
+                  TEST(iotask.offset == (off_t) off);
                   TEST(iotask.bufaddr == addr);
                   TEST(iotask.bufsize == size);
                   TEST(iotask.readycount == c);
@@ -220,13 +220,13 @@ static int test_iotask(void)
 
                   // TEST initwritep_iotask
                   memset(&iotask, 255, sizeof(iotask));
-                  initwritep_iotask(&iotask, ioc, size, (const void*)addr, off, c);
+                  initwritep_iotask(&iotask, ioc, size, (const void*)addr, (off_t) off, c);
                   TEST(iotask.iolist_next == 0);
                   TEST(iotask.bytesrw == (size_t)-1); // not changed
                   TEST(iotask.state == iostate_NULL);
                   TEST(iotask.op == ioop_WRITE);
                   TEST(iotask.ioc == ioc);
-                  TEST(iotask.offset == off);
+                  TEST(iotask.offset == (off_t) off);
                   TEST(iotask.bufaddr == addr);
                   TEST(iotask.bufsize == size);
                   TEST(iotask.readycount == c);
@@ -443,7 +443,7 @@ static int test_update(void)
       iotask[i]->readycount = (i&1) ? 0 : &counter;
    }
 
-   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask <<= 1, ++nrtask) {
+   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask = (nrtask<<1)+1) {
       // TEST insertlast_iolist: iolist.last == 0
       trysuspend_thread();
       TEST(EAGAIN == trysuspend_thread());
@@ -486,7 +486,7 @@ static int test_update(void)
       }
    }
 
-   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask <<= 1, ++nrtask) {
+   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask = (nrtask<<1)+1) {
       // TEST insertlast_iolist: parameter thread == 0
       insertlast_iolist(&iolist, (uint8_t)nrtask, iotask, 0/*thread == 0*/);
       // check iolist
@@ -513,7 +513,7 @@ static int test_update(void)
    }
 
    // TEST insertlast_iolist: iolist.size != 0
-   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask <<= 1, ++nrtask) {
+   for (unsigned nrtask = 1; nrtask <= lengthof(iotask); nrtask = (nrtask<<1)+1) {
       // prepare
       insertlast_iolist(&iolist, (uint8_t)nrtask, iotask, self_thread());
       TEST(0 == trysuspend_thread());

@@ -331,8 +331,8 @@ ONERR:
 
 static int test_sha1(void)
 {
-   sha1_hash_t       sha1 ;
-   sha1_hashvalue_t  sha1sum ;
+   sha1_hash_t       sha1;
+   sha1_hashvalue_t  sha1sum;
 
    // TEST init
    memset(&sha1, 0xff, sizeof(sha1)) ;
@@ -343,18 +343,18 @@ static int test_sha1(void)
    TEST(0x98BADCFE == sha1.h[2]) ;
    TEST(0x10325476 == sha1.h[3]) ;
    TEST(0xC3D2E1F0 == sha1.h[4]) ;
-   for (int i = 0; i < 64; ++i) {
+   for (unsigned i = 0; i < 64; ++i) {
       // TEST sha1.block is not changed !
       TEST(255 == sha1.block[i]) ;
    }
 
    // TEST block collects data and after 64 a starts from beginning
-   for (int i = 0; i < 256; ++i) {
-      uint8_t buffer = (uint8_t) i ;
-      TEST(0 == calculate_sha1hash(&sha1, 1, &buffer)) ;
-      TEST((size_t) (1+i) == sha1.datalen) ;
+   for (unsigned i = 0; i < 256; ++i) {
+      uint8_t buffer = (uint8_t) i;
+      TEST(0   == calculate_sha1hash(&sha1, 1, &buffer));
+      TEST(1+i == sha1.datalen);
       if (63 != (i&63)) {
-         for (int g = (i&(~63)); g <= i; ++g) {
+         for (unsigned g = (i&(~63u)); g <= i; ++g) {
             TEST(g == sha1.block[g&63]) ;
          }
       }
@@ -448,19 +448,19 @@ static int test_sha1(void)
    sha1.datalen = 0x1fffffffffffffff ;
    TEST(EOVERFLOW == calculate_sha1hash(&sha1, 1, (const uint8_t*)"")) ;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 
 int unittest_math_hash_sha1()
 {
-   if (test_sha1())        goto ONERR;
+   if (test_sha1())     goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

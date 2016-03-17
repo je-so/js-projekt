@@ -25,13 +25,9 @@
 struct binarystack_t ;
 struct typeadapt_member_t ;
 
-/* typedef: struct arraysf_t
- * Exports <arraysf_t>. */
-typedef struct arraysf_t               arraysf_t ;
-
-/* typedef: struct arraysf_iterator_t
- * Export <arraysf_iterator_t>, iterator type to iterate of contained nodes. */
-typedef struct arraysf_iterator_t      arraysf_iterator_t ;
+// === exported types
+struct arraysf_t;
+struct arraysf_iterator_t;
 
 
 // section: Functions
@@ -59,22 +55,22 @@ int unittest_ds_inmem_arraysf(void) ;
  * Therefore leaf nodes (user type <arraysf_node_t>) has a depth of less than 16
  * on a 32 bit machine or 32 on a 64 bit machine. The typical depth is log2(number_of_stored_nodes)/2.
  * */
-struct arraysf_t {
+typedef struct arraysf_t {
    /* variable: length
     * The number of elements stored in this array. */
-   size_t                  length ;
+   size_t                  length;
    /* variable: toplevelsize
     * The size of array <root>. */
-   uint32_t                toplevelsize:24 ;
+   uint32_t                toplevelsize:24;
    /* variable: posshift
     * The number of bits *pos* index of <arraysf_node_t> is shifted right
     * before it is used modulo <toplevelsize> to access <root>. */
-   uint32_t                posshift:8 ;
+   uint32_t                posshift:8;
    /* variable: root
     * Points to top level nodes.
     * The size of the root array is determined by <toplevelsize>. */
-   union arraysf_unode_t   * root[/*toplevelsize*/] ;
-} ;
+   union arraysf_unode_t * root[/*toplevelsize*/];
+} arraysf_t;
 
 // group: lifetime
 
@@ -103,12 +99,12 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp) ;
 /* typedef: iteratortype_arraysf
  * Declaration to associate <arraysf_iterator_t> with <arraysf_t>.
  * The association is done with a typedef which looks like a function. */
-typedef arraysf_iterator_t       iteratortype_arraysf ;
+typedef struct arraysf_iterator_t iteratortype_arraysf;
 
 /* typedef: iteratedtype_arraysf
  * Function declaration to associate <arraysf_node_t> with <arraysf_t>.
  * The association is done with a typedef which looks like a function. */
-typedef struct arraysf_node_t *  iteratedtype_arraysf ;
+typedef struct arraysf_node_t *  iteratedtype_arraysf;
 
 // group: query
 
@@ -167,17 +163,17 @@ void arraysf_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* struct: arraysf_iterator_t
  * Iterates over elements contained in <arraysf_t>. */
-struct arraysf_iterator_t {
+typedef struct arraysf_iterator_t {
    /* variable: stack
     * Remembers last position in tree. */
-   struct binarystack_t *  stack ;
+   struct binarystack_t *  stack;
    /* variable: array
     * Remembers iterated container. */
-   arraysf_t            *  array ;
+   arraysf_t            *  array;
    /* variable: ri
     * Index into <arraysf_t.root>. */
-   unsigned                ri ;
-} ;
+   size_t                  ri;
+} arraysf_iterator_t;
 
 // group: lifetime
 

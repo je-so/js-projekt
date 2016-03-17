@@ -22,6 +22,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/pipe.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 
@@ -30,7 +31,7 @@
 
 // group: lifetime
 
-int init_logbuffer(/*out*/logbuffer_t * logbuf, uint32_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io)
+int init_logbuffer(/*out*/logbuffer_t * logbuf, size_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io)
 {
    int err;
 
@@ -139,13 +140,13 @@ int write_logbuffer(logbuffer_t * logbuf)
 
 void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
 {
-   uint32_t    buffer_size = sizefree_logbuffer(logbuf);
-   uint8_t *   buffer      = logbuf->addr + logbuf->logsize;
+   size_t   buffer_size = sizefree_logbuffer(logbuf);
+   uint8_t* buffer      = logbuf->addr + logbuf->logsize;
 
    int bytes = vsnprintf((char*)buffer, buffer_size, format, args);
 
    if (bytes > 0) {
-      unsigned size = (unsigned)bytes;
+      size_t size = (size_t)bytes;
 
       if (size >= buffer_size) {
          // data has been truncated => mark it with " ..."
@@ -174,8 +175,9 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
       tv.tv_sec  = 0;
       tv.tv_usec = 0;
    }
-   static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works");
-   static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works");
+   static_assert(sizeof(tv.tv_sec) <= sizeof(uint64_t), "conversion works");
+   // !not needed! static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works");
+   // cause only values are expected in range 0..999999 < UINT32_MAX
 
 #define CALL(TEXTID, ...) \
    {                                         \
@@ -274,12 +276,12 @@ static int test_query(void)
 
    // TEST getbuffer_logbuffer
    for (unsigned i = 0; i <= 100; ++i) {
-      logbuf.addr    = (uint8_t*) (i*33);
+      logbuf.addr    = (uint8_t*) (uintptr_t) (i*33);
       logbuf.logsize = 10000 * i;
       uint8_t * addr = 0;
       size_t    size = 0;
       getbuffer_logbuffer(&logbuf, &addr, &size);
-      TEST(addr == (uint8_t*) (i*33));
+      TEST(addr == (uint8_t*) (uintptr_t) (i*33));
       TEST(size == 10000 * i);
    }
 
@@ -373,15 +375,15 @@ ONERR:
 
 static int test_update(void)
 {
-   logbuffer_t logbuf    = logbuffer_FREE;
-   thread_t *  thread    = 0;
-   int         pipefd[2] = { -1, -1 };
+   logbuffer_t logbuf = logbuffer_FREE;
+   thread_t *  thread = 0;
+   pipe_t      pipe   = pipe_FREE;
    uint8_t     buffer[1024];
    uint8_t     readbuffer[1024+1];
 
    // prepare
-   TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK));
-   logbuf = (logbuffer_t) logbuffer_INIT(sizeof(buffer), buffer, pipefd[1]);
+   TEST(0 == init_pipe(&pipe));
+   logbuf = (logbuffer_t) logbuffer_INIT(sizeof(buffer), buffer, pipe.write);
 
    // TEST truncate_logbuffer
    for (unsigned i = 0; i < 32; ++i) {
@@ -390,7 +392,7 @@ static int test_update(void)
       truncate_logbuffer(&logbuf, i);
       TEST(logbuf.addr == buffer);
       TEST(logbuf.size == sizeof(buffer));
-      TEST(logbuf.io == pipefd[1]);
+      TEST(logbuf.io   == pipe.write);
       TEST(logbuf.addr[i] == 0);
       TEST(logbuf.logsize == i);
    }
@@ -404,25 +406,28 @@ static int test_update(void)
       truncate_logbuffer(&logbuf, i);
       TEST(logbuf.addr == buffer);
       TEST(logbuf.size == sizeof(buffer));
-      TEST(logbuf.io == pipefd[1]);
+      TEST(logbuf.io   == pipe.write);
       TEST(logbuf.addr[i]   == 'a');
       TEST(logbuf.addr[i+1] == 'a');
       TEST(logbuf.logsize   == i);
    }
 
    // TEST write_logbuffer
-   memset(readbuffer,0 , sizeof(readbuffer));
+   memset(readbuffer, 0, sizeof(readbuffer));
    for (unsigned i = 0; i < sizeof(buffer); ++i) {
       buffer[i] = (uint8_t)i;
    }
    logbuf.logsize = logbuf.size;
-   TEST(0 == write_logbuffer(&logbuf));
-   TEST(logbuf.addr == buffer);
-   TEST(logbuf.size == sizeof(buffer));
-   TEST(logbuf.logsize == sizeof(buffer));
-   TEST(logbuf.io == pipefd[1]);
-   static_assert(sizeof(readbuffer) > sizeof(buffer), "sizeof(buffer) indicates true size");
-   TEST(sizeof(buffer) == read(pipefd[0], readbuffer, sizeof(readbuffer)));
+   // test
+   TEST( 0 == write_logbuffer(&logbuf));
+   // check logbuf
+   TEST( logbuf.addr == buffer);
+   TEST( logbuf.size == sizeof(buffer));
+   TEST( logbuf.logsize == sizeof(buffer));
+   TEST( logbuf.io   == pipe.write);
+   // check content of pipe
+   static_assert(sizeof(readbuffer) > sizeof(buffer), "check that only sizeof(buffer) are written");
+   TEST(sizeof(buffer) == read(pipe.read, readbuffer, sizeof(readbuffer)));
    for (unsigned i = 0; i < sizeof(buffer); ++i) {
       TEST(buffer[i] == readbuffer[i]);
    }
@@ -432,7 +437,7 @@ static int test_update(void)
    log_header_t header = log_header_INIT("test_update", "file", 123456);
    printheader_logbuffer(&logbuf, &header);
    TEST(0 == compare_header(logbuf.logsize, logbuf.addr, "test_update", "file", 123456));
-   for (uint32_t len = logbuf.logsize, i = 1; i < 10; ++i) {
+   for (size_t len = logbuf.logsize, i = 1; i < 10; ++i) {
       printheader_logbuffer(&logbuf, &header);
       TEST((i+1)*len == logbuf.logsize);
       TEST(0 == compare_header(len, logbuf.addr + i*len, "test_update", "file", 123456));
@@ -503,7 +508,7 @@ static int test_update(void)
    TEST(buffer == logbuf.addr);
    TEST(sizeof(buffer) == logbuf.size);
    TEST(sizeof(buffer) == logbuf.logsize);
-   TEST(pipefd[1] == logbuf.io);
+   TEST(pipe.write     == logbuf.io);
    // check content of logbuf not changed except for " ..."
    for (size_t i = 0; i < logbuf.logsize - 5; ++i) {
       TEST(255 == logbuf.addr[i]);
@@ -520,9 +525,9 @@ static int test_update(void)
       printf_logbuffer(&logbuf, "%d", 12345);
       // check logbuf
       TEST(buffer == logbuf.addr);
-      TEST(s == logbuf.size);
-      TEST((s?s-1:0) == logbuf.logsize);
-      TEST(pipefd[1] == logbuf.io);
+      TEST(s      == logbuf.size);
+      TEST((s?s-1:0)  == logbuf.logsize);
+      TEST(pipe.write == logbuf.io);
       // check content of logbuf
       if (s == 5) {
          // " ..."
@@ -539,15 +544,13 @@ static int test_update(void)
    }
 
    // unprepare
-   TEST(-1 == read(pipefd[0], readbuffer, sizeof(readbuffer)));
-   free_iochannel(&pipefd[0]);
-   free_iochannel(&pipefd[1]);
+   TEST(-1 == read(pipe.read, readbuffer, sizeof(readbuffer)));
+   TEST(0 == free_pipe(&pipe));
 
    return 0;
 ONERR:
    delete_thread(&thread);
-   free_iochannel(&pipefd[0]);
-   free_iochannel(&pipefd[1]);
+   free_pipe(&pipe);
    return EINVAL;
 }
 

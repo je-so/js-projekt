@@ -255,7 +255,7 @@ ONERR:
    return err ;
 }
 
-static int check_variable(const char * filetemplate, /*out*/variable_e * varindex, /*out*/unsigned * varlength)
+static int check_variable(const char * filetemplate, /*out*/variable_e * varindex, /*out*/size_t * varlength)
 {
    static const char * varnames[] = {
       [variable_TITLE] = "TITLE",
@@ -271,9 +271,9 @@ static int check_variable(const char * filetemplate, /*out*/variable_e * varinde
    for (unsigned i = 0; i < lengthof(varnames); ++i) {
       if (  varnames[i]
             && 0 == strncmp(varnames[i], filetemplate, strlen(varnames[i]))) {
-         *varlength = strlen(varnames[i]) ;
-         *varindex  = i ;
-         return 0 ;
+         *varlength = strlen(varnames[i]);
+         *varindex  = i;
+         return 0;
       }
    }
 
@@ -332,28 +332,28 @@ static int generate_file(const char * filetemplate, const char * filepath)
 
       if (c == '@') {
          // variable substitution
-         variable_e varindex ;
-         unsigned varlength ;
+         variable_e varindex;
+         size_t varlength;
          if (0 == check_variable(&filetemplate[toff+1], &varindex, &varlength)) {
-            toff += varlength ;
-            err = substitute_variable(outfile, varindex) ;
+            toff += varlength;
+            err = substitute_variable(outfile, varindex);
             if (err) goto ONERR;
-            continue ;
+            continue;
          }
       }
 
-      err = write_file(outfile, 1, &c, 0) ;
+      err = write_file(outfile, 1, &c, 0);
       if (err) goto ONERR;
    }
 
-   err = free_file(&outfile) ;
+   err = free_file(&outfile);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   (void) free_file(&outfile) ;
-   return err ;
+   (void) free_file(&outfile);
+   return err;
 }
 
 

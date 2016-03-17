@@ -1,217 +1,217 @@
-[1: 1443695048.218305s]
+[1: 1457763905.489748s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218342s]
+[1: 1457763905.489786s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218372s]
+[1: 1457763905.489813s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218406s]
+[1: 1457763905.489842s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218440s]
+[1: 1457763905.489876s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218476s]
+[1: 1457763905.489910s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218506s]
+[1: 1457763905.489936s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218539s]
+[1: 1457763905.489963s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:441
 System call 'getpeername' failed with error 107
 fd=3
 Exit function with
 Error 107 - Transport endpoint is not connected
-[1: 1443695048.218556s]
+[1: 1457763905.489974s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:152
 Function input violates condition (isvalid_ipaddr(localaddr))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.218562s]
+[1: 1457763905.489980s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:152
 Function input violates condition (isvalid_ipaddr(localaddr))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.218568s]
+[1: 1457763905.489989s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:164
 Exit function with
 Error 93 - Protocol not supported
-[1: 1443695048.218585s]
+[1: 1457763905.490006s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: udp://127.0.0.1:20009
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218609s]
+[1: 1457763905.490033s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:164
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218756s]
+[1: 1457763905.490234s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: tcp://127.0.0.1:20019
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218774s]
+[1: 1457763905.490250s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:201
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218778s]
+[1: 1457763905.490254s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:222
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218817s]
+[1: 1457763905.490285s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: tcp://127.0.0.1:20009
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218830s]
+[1: 1457763905.490298s]
 initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:251
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218856s]
+[1: 1457763905.490323s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: udp://::1:20009
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.218870s]
+[1: 1457763905.490336s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:164
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219004s]
+[1: 1457763905.490461s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: tcp://::1:20019
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219017s]
+[1: 1457763905.490475s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:201
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219021s]
+[1: 1457763905.490478s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:222
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219058s]
+[1: 1457763905.490510s]
 initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:132
 System call 'bind' failed with error 98
 local: tcp://::1:20009
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219072s]
+[1: 1457763905.490523s]
 initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:251
 Exit function with
 Error 98 - Address already in use
-[1: 1443695048.219521s]
+[1: 1457763905.490933s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:177
 Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.219527s]
+[1: 1457763905.490940s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:222
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.219609s]
+[1: 1457763905.490999s]
 initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:274
 System call 'accept4' failed with error 22
 fd=4
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.219650s]
+[1: 1457763905.491035s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:189
 System call 'connect' failed with error 97
 new_ipsock=3
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.219666s]
+[1: 1457763905.491047s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:222
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.219679s]
+[1: 1457763905.491059s]
 initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:241
 System call 'listen' failed with error 95
 fd=3
 max_outstanding_connections=1
 Exit function with
 Error 95 - Operation not supported
-[1: 1443695048.219701s]
+[1: 1457763905.491081s]
 initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:274
 System call 'accept4' failed with error 95
 fd=3
 Exit function with
 Error 95 - Operation not supported
-[1: 1443695048.585097s]
-writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:689
+[1: 1457763905.856250s]
+writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:688
 System call 'send' failed with error 95
 fd=4
 Exit function with
 Error 95 - Operation not supported
-[1: 1443695048.585117s]
-readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:632
+[1: 1457763905.856273s]
+readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:631
 System call 'ioctl(SIOCATMARK)' failed with error 95
 fd=3
 Exit function with
 Error 95 - Operation not supported
-[1: 1443695048.585936s]
-writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:783
+[1: 1457763905.857142s]
+writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:782
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.585943s]
-readPaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:745
+[1: 1457763905.857149s]
+readPaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:744
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.585948s]
-writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:783
+[1: 1457763905.857154s]
+writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:782
 Exit function with
 Error 93 - Protocol not supported
-[1: 1443695048.587002s]
-writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:783
+[1: 1457763905.858185s]
+writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:782
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.587008s]
-readPaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:745
+[1: 1457763905.858192s]
+readPaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:744
 Exit function with
 Error 97 - Address family not supported by protocol
-[1: 1443695048.587013s]
-writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:783
+[1: 1457763905.858197s]
+writePaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:782
 Exit function with
 Error 93 - Protocol not supported
-[1: 1443695048.587162s]
+[1: 1457763905.858364s]
 waitconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:306
 Exit function with
 Error 111 - Connection refused
-[1: 1443695048.587339s]
+[1: 1457763905.858556s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:177
 Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695048.587357s]
+[1: 1457763905.858573s]
 initconnectasync_ipsocket() C-kern/platform/Linux/io/ipsocket.c:189
 System call 'connect' failed with error 97
 new_ipsock=4

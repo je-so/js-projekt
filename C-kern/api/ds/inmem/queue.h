@@ -21,19 +21,10 @@
 // forward
 struct dlist_node_t;
 
-/* typedef: struct queue_t
- * Export <queue_t> into global namespace. */
-typedef struct queue_t queue_t;
-
-/* typedef: struct queue_iterator_t
- * Export <queue_iterator_t> into global namespace. */
-typedef struct queue_iterator_t queue_iterator_t;
-
-/* typedef: struct queue_page_t
- * Export <queue_page_t> into global namespace.
- * This is an opaque type which describes a block of memory
- * holding multiple number of elements. */
-typedef struct queue_page_t queue_page_t;
+// === exported types
+struct queue_t;
+struct queue_iterator_t;
+struct queue_page_t;
 
 
 // section: Functions
@@ -58,7 +49,7 @@ int unittest_ds_inmem_queue(void);
  *
  * Never try to remove elements which are iterted over in the future.
  * The behaviour is undefined. Inserting "future" elements are possibly not iterated over. */
-struct queue_iterator_t {
+typedef struct queue_iterator_t {
    /* variable: first
     * Zeigt auf erstes Element. */
    uint8_t *      first;
@@ -68,14 +59,14 @@ struct queue_iterator_t {
    /* variable: fpage
     * Die Speicherseite, welche <page> folgt. Je nach Laufrichtung des Iterators die
     * vorherige oder nächste Seite. */
-   queue_page_t * fpage;
+   struct queue_page_t * fpage;
    /* variable: endpage
     * Letzte zu iterierende Seite der Queue. */
-   queue_page_t * endpage;
+   struct queue_page_t * endpage;
    /* variable: nodesize
     * The size of the returned node. */
    uint16_t       nodesize;
-};
+} queue_iterator_t;
 
 // group: lifetime
 
@@ -87,13 +78,13 @@ struct queue_iterator_t {
  * Initializes an iterator for <queue_t>.
  * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
  * first page of the queue contains less than nodesize bytes. */
-int initfirst_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uint16_t nodesize);
+int initfirst_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t * queue, uint16_t nodesize);
 
 /* function: initlast_queueiterator
  * Initializes a reverse iterator for <queue_t>.
  * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
  * last page of the queue contains less than nodesize bytes. */
-int initlast_queueiterator(/*out*/queue_iterator_t * iter, queue_t * queue, uint16_t nodesize);
+int initlast_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t * queue, uint16_t nodesize);
 
 /* function: free_queueiterator
  * Does nothing! There are no allocated resources */
@@ -141,13 +132,13 @@ bool prev_queueiterator(queue_iterator_t * iter, /*out*/void ** node);
  *
  * The queue maintains a list of memory pages. On every memory page
  * several nodes are stored. The queue uses a fixed pagesize of 4096. */
-struct queue_t {
+typedef struct queue_t {
    struct
    dlist_node_t * last;
    /* variable: pagesize
     * Kodiert Größe in Bytes einer <queue_page_t> als enum. */
    uint8_t        pagesize;
-};
+} queue_t;
 
 // group: lifetime
 
@@ -165,7 +156,7 @@ struct queue_t {
  * Returns:
  * 0      - pagesize supported.
  * EINVAL - pagesize not in [256, 1024, 4096, 16384] */
-int init_queue(/*out*/queue_t * queue, uint32_t pagesize);
+int init_queue(/*out*/queue_t * queue, size_t pagesize);
 
 /* function: initmove_queue
  * Moves the object to another memory address.
@@ -312,7 +303,7 @@ void queue_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t);
 
 /* struct: queue_page_t
  * Internal type used as header for memory pages. */
-struct queue_page_t {
+typedef struct queue_page_t {
    /* variable: next
     * Next memory page in list of pages. */
    struct dlist_node_t * next;
@@ -331,7 +322,7 @@ struct queue_page_t {
     * Bytes from start_offset up to <end_offset>-1 are in use.
     * Bytes from sizeof(queue_page_t) up to <start_offset>-1 are unused. */
    uint16_t       start_offset;
-};
+} queue_page_t;
 
 
 // section: inline implementation
@@ -433,9 +424,10 @@ struct queue_page_t {
                   }                                      \
                   _it->first = (uint8_t*)_it->fpage      \
                              + _it->fpage->start_offset; \
-                  _it->last  = (uint8_t*)_it->fpage      \
+                  _it->last  = (uint8_t*) ((uintptr_t)   \
+                               _it->fpage                \
                              + _it->fpage->end_offset    \
-                             - _it->nodesize;            \
+                             - _it->nodesize);           \
                   _it->fpage = _it->fpage==_it->endpage  \
                              ? 0 : (queue_page_t*)       \
                                _it->fpage->next;         \
@@ -481,9 +473,10 @@ struct queue_page_t {
                      _isprev = false;                    \
                      break;                              \
                   }                                      \
-                  _it->first = (uint8_t*)_it->fpage      \
+                  _it->first = (uint8_t*) ((uintptr_t)   \
+                               _it->fpage                \
                              + _it->fpage->start_offset  \
-                             + _it->nodesize;            \
+                             + _it->nodesize);           \
                   _it->last  = (uint8_t*)_it->fpage      \
                              + _it->fpage->end_offset;   \
                   _it->fpage = _it->fpage==_it->endpage  \

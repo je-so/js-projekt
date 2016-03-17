@@ -50,7 +50,7 @@ static inline void compiletime_(void)
 static inline void timespec2timevalue_sysclock(/*out*/timevalue_t * tval, const struct timespec * tspec)
 {
    tval->seconds = tspec->tv_sec;
-   tval->nanosec = tspec->tv_nsec;
+   tval->nanosec = (int32_t) tspec->tv_nsec;
 }
 
 /* function: timespec_MAXSECONDS

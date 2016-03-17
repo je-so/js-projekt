@@ -52,8 +52,8 @@ static inline void compiletime_(void)
  * Converts struct timespec into <timevalue_t>. */
 static inline void timespec2timevalue_systimer(/*out*/timevalue_t * tval, const struct timespec * tspec)
 {
-   tval->seconds = tspec->tv_sec ;
-   tval->nanosec = tspec->tv_nsec ;
+   tval->seconds = tspec->tv_sec;
+   tval->nanosec = (int32_t) tspec->tv_nsec;
 }
 
 /* function: timespec_MAXSECONDS
@@ -516,8 +516,8 @@ RESTART_TEST:
    TEST(1 == expcount) ;
    TEST(0 == remainingtime_systimer(systimer[2], &timeval)) ;
    TEST(0 == timeval.seconds) ;
-   TEST(3900000 < timeval.nanosec) ;
-   TEST(4000000 > timeval.nanosec) ;
+   TESTP(3500000 < timeval.nanosec, "nanosec:%d", (int)timeval.nanosec);
+   TEST(4000000 > timeval.nanosec);
    for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == expirationcount_systimer(systimer[i], &expcount)) ;
       TEST(0 == expcount) ;
@@ -528,8 +528,8 @@ RESTART_TEST:
    TEST(0 == time_sysclock(clock_type, &endtime)) ;
    uint64_t elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
                             + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
-   TEST(9000000 < elapsed_nanosec) ;
-   TEST(9100000 > elapsed_nanosec) ;
+   TEST(9000000 < elapsed_nanosec);
+   TESTP(9500000 > elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
 
    // TEST 3 interval timers running at different speed
    sleepms_thread(1) ;
@@ -555,8 +555,8 @@ RESTART_TEST:
    TEST(0 == time_sysclock(clock_type, &endtime)) ;
    elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
                    + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
-   TEST(10000000 < elapsed_nanosec) ;
-   TEST(10100000 > elapsed_nanosec) ;
+   TESTP(10000000 < elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
+   TESTP(10300000 > elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
 
    // unprepare
    for (unsigned i = 0; i < lengthof(systimer); ++i) {

@@ -160,10 +160,10 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "grow"));
 
    for (size_t i = 0; i <= 110; i+=11) {
-      TEST(0 == makefile_directory(tempdir, "grow", 10+3*i)) ;
+      TEST(0 == makefile_directory(tempdir, "grow", (off_t) (10+3*i)));
 
       // TEST init_utf8reader: non empty file
-      TEST( 0 == init_utf8reader(&utfread, "grow", tempdir)) ;
+      TEST( 0 == init_utf8reader(&utfread, "grow", tempdir));
       const uint8_t * const N = utfread.next;
       size_t const S = (10+3*i);
       size_t const S2 = (S+15) & ~(size_t)15;
@@ -313,7 +313,7 @@ static int test_read(directory_t * tempdir)
 
    // TEST skipchar_utf8reader
    TEST(0 == init_utf8reader(&utfread, "text", tempdir)) ;
-   for (unsigned i = 0, col = 0, size = mbssize; i < 5; ++i, col = 1) {
+   for (size_t i = 0, col = 0, size = mbssize; i < 5; ++i, col = 1) {
       TEST(0      == skipchar_utf8reader(&utfread)) ;
       TEST(--size == unreadsize_utf8reader(&utfread)) ;
       TEST(col+1  == column_utf8reader(&utfread)) ;

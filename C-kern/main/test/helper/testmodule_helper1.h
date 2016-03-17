@@ -17,23 +17,21 @@
 #ifndef CKERN_MAIN_TEST_HELPER_TESTMODULE_HELPER1_HEADER
 #define CKERN_MAIN_TEST_HELPER_TESTMODULE_HELPER1_HEADER
 
-/* typedef: struct testmodule_functable_t
- * Export <testmodule_functable_t> into global namespace. */
-typedef struct testmodule_functable_t     testmodule_functable_t ;
-
+// === exported types
+struct testmodule_functable_t;
 
 
 /* struct: testmodule_functable_t
  * Table of imlemented functions. */
-struct testmodule_functable_t {
+typedef struct testmodule_functable_t {
    int (* add)  (int arg1, int arg2) ;
    int (* sub)  (int arg1, int arg2) ;
    int (* mult) (int arg1, int arg2) ;
-} ;
+} testmodule_functable_t;
 
 // group: lifetime
 
-int init_testmodulefunctable(/*out*/testmodule_functable_t * functable) ;
+int init_testmodulefunctable(/*out*/testmodule_functable_t * functable);
 
 
 

@@ -95,24 +95,24 @@ static int test_initfree(void)
 
    // TEST isequal_typeadaptlifetime
    typeadapt_lifetime_it adplife2 ;
-   for (unsigned i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
-      *(((void**)&adplife) +i) = (void*)i ;
-      *(((void**)&adplife2)+i) = (void*)i ;
+   for (uintptr_t i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
+      ((void**)&adplife) [i] = (void*)i;
+      ((void**)&adplife2)[i] = (void*)i;
    }
    TEST(1 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
    TEST(1 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
-   for (unsigned i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
-      *(((void**)&adplife2)+i) = (void*)(1+i) ;
-      TEST(0 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
-      TEST(0 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
-      *(((void**)&adplife2)+i) = (void*)i ;
-      TEST(1 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
-      TEST(1 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
+   for (uintptr_t i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
+      ((void**)&adplife2)[i] = (void*)(1+i);
+      TEST(0 == isequal_typeadaptlifetime(&adplife, &adplife2));
+      TEST(0 == isequal_typeadaptlifetime(&adplife2, &adplife));
+      ((void**)&adplife2)[i] = (void*)i;
+      TEST(1 == isequal_typeadaptlifetime(&adplife, &adplife2));
+      TEST(1 == isequal_typeadaptlifetime(&adplife2, &adplife));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_callfunctions(void)
@@ -121,39 +121,41 @@ static int test_callfunctions(void)
    testadapter_t           testadp = { .err = 0 } ;
 
    // TEST: callnewcopy_typeadaptlifetime
-   for (int terr = -1000; terr <= 1000; terr += 1000) {
+   for (unsigned result = 0; result <= 2000; result += 1000) {
+      const int R = (int) result -1000;
       const uintptr_t incr = ((uintptr_t)-1) / 8u ;
       for (uintptr_t i = 0; i <= 8; ++i) {
          memset(&testadp, (int)i+1, sizeof(testadp)) ;
-         testadp.err = terr ;
-         TEST(terr == callnewcopy_typeadaptlifetime(&adplife, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t**)(i*incr), (struct typeadapt_object_t*)((8-i)*incr))) ;
+         testadp.err = R;
+         TEST(R == callnewcopy_typeadaptlifetime(&adplife, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t**)(i*incr), (struct typeadapt_object_t*)((8-i)*incr))) ;
          TEST(testadp.destobject == (struct typeadapt_object_t**) (i*incr)) ;
          TEST(testadp.srcobject  == (struct typeadapt_object_t*)  ((8-i)*incr)) ;
       }
    }
 
    // TEST: calldelete_typeadaptlifetime
-   for (int terr = -100; terr <= 100; terr += 100) {
-      const uintptr_t incr = ((uintptr_t)-1) / 8u ;
+   for (unsigned result = 0; result <= 200; result += 100) {
+      const int R = (int) result -100;
+      const uintptr_t incr = ((uintptr_t)-1) / 8u;
       for (uintptr_t i = 0; i <= 8; ++i) {
-         memset(&testadp, (int)i+1, sizeof(testadp)) ;
-         testadp.err = terr ;
-         TEST(terr == calldelete_typeadaptlifetime(&adplife, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t**)(i*incr))) ;
-         TEST(testadp.object == (struct typeadapt_object_t**) (i*incr)) ;
+         memset(&testadp, (int)i+1, sizeof(testadp));
+         testadp.err = R;
+         TEST(R == calldelete_typeadaptlifetime(&adplife, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t**)(i*incr)));
+         TEST(testadp.object == (struct typeadapt_object_t**) (i*incr));
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 typeadapt_lifetime_DECLARE(testadapter_it, testadapter_t, struct typeadapt_object_t) ;
 
 static int test_generic(void)
 {
-   testadapter_t  testadp = { .err = 0 } ;
-   testadapter_it adplife = typeadapt_lifetime_FREE ;
+   testadapter_t  testadp = { .err = 0 };
+   testadapter_it adplife = typeadapt_lifetime_FREE;
 
    // TEST typeadapt_lifetime_DECLARE
    static_assert(sizeof(testadapter_it) == sizeof(typeadapt_lifetime_it), "structur compatible") ;
@@ -173,23 +175,24 @@ static int test_generic(void)
    TEST(adplife.delete_object  == &impl_deleteobject_testadapter) ;
 
    // TEST: callnewcopy_typeadaptlifetime, calldelete_typeadaptlifetime
-   for (int terr = -10000; terr <= 10000; terr += 10000) {
+   for (unsigned result = 0; result <= 20000; result += 10000) {
+      const int R = (int) result -10000;
       const uintptr_t incr = ((uintptr_t)-1) / 4u ;
       for (uintptr_t i = 0; i <= 4; ++i) {
-         memset(&testadp, (int)i+1, sizeof(testadp)) ;
-         testadp.err = terr ;
-         TEST(terr == callnewcopy_typeadaptlifetime(&adplife, &testadp, (struct typeadapt_object_t**)(i*incr), (struct typeadapt_object_t*)((4-i)*incr))) ;
+         memset(&testadp, (int)i+1, sizeof(testadp));
+         testadp.err = R;
+         TEST(R == callnewcopy_typeadaptlifetime(&adplife, &testadp, (struct typeadapt_object_t**)(i*incr), (struct typeadapt_object_t*)((4-i)*incr))) ;
          TEST(testadp.destobject == (struct typeadapt_object_t**) (i*incr)) ;
          TEST(testadp.srcobject  == (struct typeadapt_object_t*)  ((4-i)*incr)) ;
          TEST(testadp.object     != (struct typeadapt_object_t**) (i*incr)) ;
-         TEST(terr == calldelete_typeadaptlifetime(&adplife, &testadp, (struct typeadapt_object_t**)(i*incr))) ;
+         TEST(R == calldelete_typeadaptlifetime(&adplife, &testadp, (struct typeadapt_object_t**)(i*incr))) ;
          TEST(testadp.destobject == (struct typeadapt_object_t**) (i*incr)) ;
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_ds_typeadapt_lifetime()

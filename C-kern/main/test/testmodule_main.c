@@ -22,17 +22,17 @@
  * (.text section contains machine code) */
 int main_module(/*out*/testmodule_functable_t * functable, threadcontext_t * tcontext)
 {
-   int err ;
+   int err;
 
    if (tcontext_maincontext() != tcontext) {
-      err = EINVAL ;
+      err = EINVAL;
       goto ONERR;
    }
 
-   err = init_testmodulefunctable(functable) ;
+   err = init_testmodulefunctable(functable);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return err ;
+   return err;
 }

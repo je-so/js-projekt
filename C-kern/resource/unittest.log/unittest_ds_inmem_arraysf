@@ -1,33 +1,33 @@
-[1: 1444151363.083427s]
+[1: 1457885269.679952s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:113
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
 Exit function with
 Error 22 - Invalid argument
-[1: 1444151363.083454s]
+[1: 1457885269.679973s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:114
 Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
-posshift=25
+posshift=XX
 Exit function with
 Error 22 - Invalid argument
-[1: 1444151363.083459s]
+[1: 1457885269.679979s]
 insert_arraysf() C-kern/ds/inmem/arraysf.c:457
 Exit function with
 Error 17 - File exists
-[1: 1444151363.083462s]
+[1: 1457885269.679982s]
 remove_arraysf() C-kern/ds/inmem/arraysf.c:439
 Exit function with
 Error 3 - No such process
-[1: 1444151363.103715s]
+[1: 1457885269.688777s]
 delete_arraysf() C-kern/ds/inmem/arraysf.c:212
 One or more resources could not be freed
 Exit function with
 Error 12345 - Unknown error
-[1: 1444151363.104265s]
+[1: 1457885269.696179s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:364
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1444151363.104270s]
+[1: 1457885269.696186s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:364
 Exit function with
 Error 12 - Cannot allocate memory

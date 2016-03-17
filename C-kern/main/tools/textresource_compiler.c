@@ -67,8 +67,9 @@ typedef enum xmltag_openclose_e        xmltag_openclose_e ;
 enum typemodifier_e {
    typemodifier_PLAIN    = 0,
    typemodifier_POINTER  = 1,
-   typemodifier_CONST    = 2,
-   typemodifier_RESERVED = 4
+   typemodifier_RESERVED = 2,
+   typemodifier_CONST    = 4,
+   typemodifier_UNSIGNED = 8,
 } ;
 
 typedef enum typemodifier_e            typemodifier_e ;
@@ -707,32 +708,34 @@ ONERR:
  * Initializes <textresource_t> object. */
 static int init_textresource(/*out*/textresource_t * textres, const char * read_from_filename)
 {
-   int err ;
+   int err;
    static textresource_paramtype_t  knowntypes[] = {
-          textresource_paramtype_INIT("const",    typemodifier_CONST, "")
-         ,textresource_paramtype_INIT("size_t",   typemodifier_PLAIN, "zu")
-         ,textresource_paramtype_INIT("ssize_t",  typemodifier_PLAIN, "zd")
-         ,textresource_paramtype_INIT("int8_t",   typemodifier_PLAIN, PRId8)
-         ,textresource_paramtype_INIT2("uint8_t",  typemodifier_POINTER, PRIu8, "s")
-         ,textresource_paramtype_INIT("int16_t",  typemodifier_PLAIN, PRId16)
-         ,textresource_paramtype_INIT("uint16_t", typemodifier_PLAIN, PRIu16)
-         ,textresource_paramtype_INIT("int32_t",  typemodifier_PLAIN, PRId32)
-         ,textresource_paramtype_INIT("uint32_t", typemodifier_PLAIN, PRIu32)
-         ,textresource_paramtype_INIT("int64_t",  typemodifier_PLAIN, PRId64)
-         ,textresource_paramtype_INIT("uint64_t", typemodifier_PLAIN, PRIu64)
-         ,textresource_paramtype_INIT2("char",     typemodifier_POINTER, "c", "s")
-         ,textresource_paramtype_INIT("int",      typemodifier_PLAIN, "d")
-         ,textresource_paramtype_INIT("unsigned", typemodifier_PLAIN, "u")
-         ,textresource_paramtype_INIT("long",     typemodifier_PLAIN, "ld")
-         ,textresource_paramtype_INIT("float",    typemodifier_PLAIN, "g")
-         ,textresource_paramtype_INIT("double",   typemodifier_PLAIN, "g")
-         ,textresource_paramtype_INIT("PRINTF", typemodifier_RESERVED, "")
-         ,textresource_paramtype_INIT("va_list", typemodifier_RESERVED, "")
-         ,textresource_paramtype_INIT("vargs", typemodifier_RESERVED, "")
-         ,textresource_paramtype_INIT("_err", typemodifier_RESERVED, "")
-   } ;
+         textresource_paramtype_INIT("const",    typemodifier_CONST, ""),
+         textresource_paramtype_INIT("unsigned", typemodifier_UNSIGNED, ""),
+         textresource_paramtype_INIT("size_t",   typemodifier_PLAIN, "zu"),
+         textresource_paramtype_INIT("ssize_t",  typemodifier_PLAIN, "zd"),
+         textresource_paramtype_INIT("int8_t",   typemodifier_PLAIN, "\"PRId8\""),
+         textresource_paramtype_INIT2("uint8_t",  typemodifier_POINTER, "\"PRIu8\"", "s"),
+         textresource_paramtype_INIT("int16_t",  typemodifier_PLAIN, "\"PRId16\""),
+         textresource_paramtype_INIT("uint16_t", typemodifier_PLAIN, "\"PRIu16\""),
+         textresource_paramtype_INIT("int32_t",  typemodifier_PLAIN, "\"PRId32\""),
+         textresource_paramtype_INIT("uint32_t", typemodifier_PLAIN, "\"PRIu32\""),
+         textresource_paramtype_INIT("int64_t",  typemodifier_PLAIN, "\"PRId64\""),
+         textresource_paramtype_INIT("uint64_t", typemodifier_PLAIN, "\"PRIu64\""),
+         textresource_paramtype_INIT2("char",     typemodifier_POINTER, "c", "s"),
+         textresource_paramtype_INIT("int",      typemodifier_PLAIN, "d"),
+         textresource_paramtype_INIT("long",     typemodifier_PLAIN, "ld"),
+         textresource_paramtype_INIT("unsigned int", typemodifier_PLAIN, "u"),
+         textresource_paramtype_INIT("unsigned long", typemodifier_PLAIN, "lu"),
+         textresource_paramtype_INIT("float",    typemodifier_PLAIN, "g"),
+         textresource_paramtype_INIT("double",   typemodifier_PLAIN, "g"),
+         textresource_paramtype_INIT("PRINTF", typemodifier_RESERVED, ""),
+         textresource_paramtype_INIT("va_list", typemodifier_RESERVED, ""),
+         textresource_paramtype_INIT("vargs", typemodifier_RESERVED, ""),
+         textresource_paramtype_INIT("_err", typemodifier_RESERVED, "")
+   };
 
-   *textres = (textresource_t) textresource_FREE ;
+   *textres = (textresource_t) textresource_FREE;
 
    textres->read_from_filename = read_from_filename ;
 
@@ -1155,18 +1158,28 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
 
       for (;;) {
 
-         string_t                   name_type ;
-         textresource_parameter_t   textparam = textresource_parameter_FREE ;
+         bool                       isUnsigned = false;
+         string_t                   name_type;
+         textresource_parameter_t   textparam = textresource_parameter_FREE;
 
-         do {
-            err = match_identifier(reader, &name_type) ;
+         for (;;) {
+            err = match_identifier(reader, &name_type);
             if (err) goto ONERR;
 
-            textparam.type = at_arrayptype(reader->txtres.paramtypes, name_type.size, name_type.addr) ;
+            if (isUnsigned) {
+               uint8_t buffer[20];
+               snprintf((char*)buffer, sizeof(buffer), "unsigned %.*s", (int)name_type.size, (const char*)name_type.addr);
+               textparam.type = at_arrayptype(reader->txtres.paramtypes, strlen((char*)buffer), buffer);
+            } else {
+               textparam.type = at_arrayptype(reader->txtres.paramtypes, name_type.size, name_type.addr);
+            }
+
             if (  !textparam.type
                || (textparam.type->typemod & typemodifier_RESERVED)) {
-               report_parseerror(reader, "unknown parameter type '%.*s'", (int)name_type.size, (const char*)name_type.addr) ;
-               err = EINVAL ;
+               report_parseerror(reader, "unknown parameter type '%s%.*s'",
+                                 (isUnsigned ? "unsigned ":""),
+                                 (int)name_type.size, (const char*)name_type.addr);
+               err = EINVAL;
                goto ONERR;
             }
 
@@ -1176,12 +1189,24 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
                   err = EINVAL ;
                   goto ONERR;
                }
-               textparam.typemod |= typemodifier_CONST ;
+               textparam.typemod |= typemodifier_CONST;
+               continue;
             }
 
-         } while (0 != (textparam.type->typemod & (typemodifier_CONST))) ;
+            if (0 != (textparam.type->typemod & typemodifier_UNSIGNED)) {
+               if (isUnsigned) {
+                  report_parseerror(reader, "more than one unsigned not supported in parameter type") ;
+                  err = EINVAL;
+                  goto ONERR;
+               }
+               isUnsigned = true;
+               continue;
+            }
 
-         err = skip_spaceandcomment(reader) ;
+            break;
+         }
+
+         err = skip_spaceandcomment(reader);
          if (err) goto ONERR;
 
          if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
@@ -1193,7 +1218,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
                goto ONERR;
             }
 
-            textparam.typemod |= typemodifier_POINTER ;
+            textparam.typemod |= typemodifier_POINTER;
          }
 
          err = match_identifier(reader, CONST_CAST(string_t,cast_string(&textparam.name))) ;
@@ -1320,13 +1345,13 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
             foreach (_paramlist, param, &textref->paramlist) {
                textresource_parameter_t * param2 = at_arrayparam(text->params, param->name.size, param->name.addr);
                if (0 == param2) {
-                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match name", param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
+                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match name", (int)param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
                   err = EINVAL;
                   goto ONERR;
                }
                if (param2->typemod != param->typemod
                   || param2->type != param->type) {
-                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match type", param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
+                  report_parseerror(reader, "Param '%.*s' of referenced text '%.*s' does not match type", (int)param->name.size, param->name.addr, (int)paramname.size, paramname.addr);
                   err = EINVAL;
                   goto ONERR;
                }

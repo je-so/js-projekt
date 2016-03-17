@@ -24,11 +24,11 @@
 #include "C-kern/api/task/synccmd.h"
 #include "C-kern/api/task/syncfunc.h"
 
+// forward
 struct perftest_info_t;
 
-/* typedef: struct syncrunner_t
- * Export <syncrunner_t> into global namespace. */
-typedef struct syncrunner_t syncrunner_t;
+// === exported types
+struct syncrunner_t;
 
 
 // section: Functions
@@ -76,7 +76,7 @@ int perftest_task_syncrunner_raw(/*out*/struct perftest_info_t* info);
  * Wartezeit garantieren.
  *
  * */
-struct syncrunner_t {
+typedef struct syncrunner_t {
    /* variable: wakeup
     * Verlinkt Einträge in <rwqueue>[1]. Die Felder <syncfunc_t.waitresult> und <syncfunc_t.waitlist> sind vorhanden. */
    linkd_t  wakeup;
@@ -94,7 +94,7 @@ struct syncrunner_t {
    /* variable: isrun
     * Falls true, wird <run_syncrunner> bzw. <terminate_syncrunner> ausgeführt. */
    bool     isrun;
-};
+} syncrunner_t;
 
 // group: lifetime
 

@@ -41,8 +41,8 @@ int unittest_platform_sync_semaphore(void) ;
  * This thread safe object allows to wait for or to
  * send a signal to one or more waiters. */
 struct semaphore_t {
-   sys_semaphore_t   sys_sema ;
-} ;
+   sys_semaphore_t sys_sema;
+};
 
 // group: lifetime
 
