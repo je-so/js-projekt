@@ -16,7 +16,6 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/patriciatrie.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -30,13 +29,20 @@
 
 // section: patriciatrie_t
 
+// group: helper
+
+static inline void * cast_object(patriciatrie_node_t* node, size_t nodeoffset)
+{
+   return ((uint8_t*)node - nodeoffset);
+}
+
 // group: lifetime
 
-int free_patriciatrie(patriciatrie_t * tree)
+int free_patriciatrie(patriciatrie_t * tree, delete_adapter_f delete_f)
 {
-   int err = removenodes_patriciatrie(tree);
+   int err = removenodes_patriciatrie(tree, delete_f);
 
-   tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE;
+   tree->keyadapt = (getkey_adapter_t) getkey_adapter_INIT(0,0);
 
    if (err) goto ONERR;
 
@@ -71,7 +77,8 @@ static int first_different_bit(
        size_t        const length1,
        const uint8_t * const key2,
        size_t        const length2,
-/*out*/size_t        * bit_offset)
+/*out*/size_t *      key2_bit_offset,
+/*out*/uint8_t*      key2_bit_value)
 {
    size_t length = (length1 < length2 ? length1 : length2);
    const uint8_t * k1 = key1;
@@ -93,54 +100,45 @@ static int first_different_bit(
       if (length1 == length2) return EINVAL;   // both keys are equal
       if (length1 < length2) {
          length = length2 - length1;
-         if (*k2 == 0xFF/*end marker of k1*/) {
+         b1 = 0xFF/*end marker of k1*/;
+         b2 = *k2;
+         if (b2 == b1) {
+            b1 = 0x00; // artificial extension of k1
             do {
                ++ k2;
                -- length;
-            } while (length && *k2 == 0);
-            b1 = 0x00;
-            if (!length) {
-               result = 8 * length2;
-               b2 = 0xFF;
-            } else {
-               result = 8 * (size_t)(k2 - key2);
+               if (! length) { b2 = 0xFF/*end marker*/; break; }
                b2 = *k2;
-            }
-         } else {
-            b1 = 0xFF;
-            b2 = *k2;
-            result = 8 * (size_t)(k2 - key2);
+            } while (b2 == b1);
          }
+         result = 8 * (size_t)(k2 - key2);
       } else {
          length = length1 - length2;
-         if (*k1 == 0xFF/*end marker of k2*/) {
+         b2 = 0xFF/*end marker of k2*/;
+         b1 = *k1;
+         if (b1 == b2) {
+            b2 = 0x00; // artificial extension of k2
             do {
                ++ k1;
                -- length;
-            } while (length && *k1 == 0);
-            b2 = 0x00;
-            if (!length) {
-               result = 8 * length1;
-               b1 = 0xFF;
-            } else {
-               result = 8 * (size_t)(k1 - key1);
+               if (! length) { b1 = 0xFF/*end marker*/; break; }
                b1 = *k1;
-            }
-         } else {
-            b1 = *k1;
-            b2 = 0xFF;
-            result = 8 * (size_t)(k1 - key1);
+            } while (b1 == b2);
          }
+         result = 8 * (size_t)(k1 - key1);
       }
    }
 
    // assert(b1 != b2);
    b1 ^= b2;
-   for (uint8_t mask = 0x80; (0 == (b1 & mask)) && mask; mask>>=1) {
+   unsigned mask = 0x80;
+   if (!b1) return EINVAL; // should never happen (b1 != b2)
+   for (; 0 == (mask & b1); mask >>= 1) {
       ++ result;
    }
 
-   *bit_offset = result;
+   *key2_bit_offset = result;
+   *key2_bit_value  = (uint8_t) (b2 & mask);
    return 0;
 }
 
@@ -177,8 +175,8 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
    err = findnode(tree, keylength, searchkey, &parent, &node);
    if (err) return err;
 
-   typeadapt_binarykey_t key;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key);
+   getkey_data_t key;
+   tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &key);
    if (key.size != keylength || 0 != memcmp(key.addr, searchkey, keylength)) {
       return ESRCH;
    }
@@ -196,11 +194,10 @@ ONERR:
 int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
 {
    int err;
-   typeadapt_binarykey_t   insertkey;
+   getkey_data_t key;
+   tree->keyadapt.getkey(cast_object(newnode, tree->keyadapt.nodeoffset), &key);
 
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, newnode), &insertkey);
-
-   VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONERR, );
+   VALIDATE_INPARAM_TEST((key.addr != 0 || key.size == 0) && key.size < (((size_t)-1)/8), ONERR, );
 
    if (!tree->root) {
       tree->root = newnode;
@@ -213,27 +210,28 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
    // search node
    patriciatrie_node_t * parent;
    patriciatrie_node_t * node;
-   size_t new_bitoffset;
-   (void) findnode(tree, insertkey.size, insertkey.addr, &parent, &node);
+   (void) findnode(tree, key.size, key.addr, &parent, &node);
 
+   size_t  new_bitoffset;
+   uint8_t new_bitvalue;
    if (node == newnode) {
       return EEXIST;      // found node already inserted
    } else {
-      typeadapt_binarykey_t nodek;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek);
-      if (first_different_bit(nodek.addr, nodek.size, insertkey.addr, insertkey.size, &new_bitoffset)) {
+      getkey_data_t nodek;
+      tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &nodek);
+      if (first_different_bit(nodek.addr, nodek.size, key.addr, key.size, &new_bitoffset, &new_bitvalue)) {
          return EEXIST;   // found node has same key
       }
+      // new_bitvalue == GETBIT(key.addr, key.size, new_bitoffset)
    }
 
    // search position in tree where new_bitoffset belongs to
-   if (parent->bit_offset > new_bitoffset) {
+   if (new_bitoffset < parent->bit_offset) {
       node   = tree->root;
       parent = 0;
-      // search the correct position in the tree
       while (node->bit_offset < new_bitoffset) {
          parent = node;
-         if (GETBIT(insertkey.addr, insertkey.size, node->bit_offset)) {
+         if (GETBIT(key.addr, key.size, node->bit_offset)) {
             node = node->right;
          } else {
             node = node->left;
@@ -250,14 +248,14 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
       newnode->right = newnode;
       newnode->left  = newnode;
       node->bit_offset = new_bitoffset;
-      if (GETBIT(insertkey.addr, insertkey.size, new_bitoffset)) {
+      if (new_bitvalue) {
          node->right = newnode;
       } else {
          node->left  = newnode;
       }
    } else {
       newnode->bit_offset = new_bitoffset;
-      if (GETBIT(insertkey.addr, insertkey.size, new_bitoffset)) {
+      if (new_bitvalue) {
          newnode->right = newnode;
          newnode->left  = node;
       } else {
@@ -265,8 +263,7 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
          newnode->left  = newnode;
       }
       if (parent) {
-         if (GETBIT(insertkey.addr, insertkey.size, parent->bit_offset)) {
-            assert(parent->right == node);
+         if (parent->right == node) {
             parent->right = newnode;
          } else {
             assert(parent->left == node);
@@ -295,8 +292,8 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
    err = findnode(tree, keylength, searchkey, &parent, &node);
    if (err) return err;
 
-   typeadapt_binarykey_t nodek;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek);
+   getkey_data_t nodek;
+   tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &nodek);
 
    if (  nodek.size != keylength
          || memcmp(nodek.addr, searchkey, keylength)) {
@@ -394,17 +391,17 @@ ONERR:
    return err;
 }
 
-int removenodes_patriciatrie(patriciatrie_t * tree)
+int removenodes_patriciatrie(patriciatrie_t * tree, delete_adapter_f delete_f)
 {
    int err;
-   patriciatrie_node_t   * parent = 0;
-   patriciatrie_node_t   * node   = tree->root;
+   patriciatrie_node_t * parent = 0;
+   patriciatrie_node_t * node   = tree->root;
 
    tree->root = 0;
 
    if (node) {
 
-      const bool isDeleteObject = iscalldelete_typeadapt(tree->nodeadp.typeadp);
+      const bool isDelete = (delete_f != 0);
 
       err = 0;
 
@@ -426,9 +423,9 @@ int removenodes_patriciatrie(patriciatrie_t * tree)
             node->bit_offset = 0;
             node->left       = 0;
             node->right      = 0;
-            if (isDeleteObject) {
-               typeadapt_object_t * object = cast2object_typeadaptmember(&tree->nodeadp, node);
-               int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object);
+            if (isDelete) {
+               void * object = cast_object(node, tree->keyadapt.nodeoffset);
+               int err2 = delete_f(object);
                if (err2) err = err2;
             }
             if (!parent) break;
@@ -497,8 +494,8 @@ bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
 
    *node = iter->next;
 
-   typeadapt_binarykey_t nextk;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
+   getkey_data_t nextk;
+   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
@@ -534,8 +531,8 @@ bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
 
    *node = iter->next;
 
-   typeadapt_binarykey_t nextk;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
+   getkey_data_t nextk;
+   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
@@ -595,8 +592,8 @@ int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, pa
          parent = node;
          node = node->left;
       }
-      typeadapt_binarykey_t key;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key);
+      getkey_data_t key;
+      tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &key);
       bool isPrefix =   key.size >= keylength
                         && ! memcmp(key.addr, prefixkey, keylength);
       if (!isPrefix) node = 0;
@@ -616,8 +613,8 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
 
    *node = iter->next;
 
-   typeadapt_binarykey_t nextk;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
+   getkey_data_t nextk;
+   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
@@ -657,126 +654,154 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
 
 #define MAX_TREE_NODES 10000
 
-typedef struct testnode_t     testnode_t;
-typedef struct testadapt_t    testadapt_t;
-
-struct testnode_t {
+typedef struct testnode_t {
    patriciatrie_node_t  node;
    uint8_t  key[4];
    size_t   key_len;
    int      is_freed;
    int      is_used;
-};
+} testnode_t;
 
-struct testadapt_t {
-   struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, void*);
-   };
-   test_errortimer_t    errcounter;
-   unsigned             freenode_count;
-   unsigned             getbinkey_count;
-};
+test_errortimer_t    s_errcounter;
+unsigned             s_freenode_count;
+unsigned             s_getbinkey_count;
 
-static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
+static int impl_deletenode(void * obj)
 {
    int err = 0;
+   testnode_t * node = obj;
 
-   if (! process_testerrortimer(&testadp->errcounter, &err)) {
-      ++ testadp->freenode_count;
-      ++ (*node)->is_freed;
+   if (! process_testerrortimer(&s_errcounter, &err)) {
+      ++ s_freenode_count;
+      ++ node->is_freed;
    }
-
-   *node = 0;
 
    return err;
 }
 
-static void impl_getbinarykey_testadapt(testadapt_t * testadp, testnode_t * node, /*out*/typeadapt_binarykey_t * binkey)
+static void impl_getstreamkey(void * obj, /*out*/getkey_data_t* key)
 {
    int err;
+   testnode_t * node = obj;
 
-   if (process_testerrortimer(&testadp->errcounter, &err)) {
-      binkey->addr = 0;
-      binkey->size = 1;
+   if (process_testerrortimer(&s_errcounter, &err)) {
+      // only used for input param check in insert
+      key->addr = 0;
+      key->size = 1;
    } else {
-      ++ testadp->getbinkey_count;
-      binkey->addr = node->key;
-      binkey->size = node->key_len;
+      ++ s_getbinkey_count;
+      key->addr = node->key;
+      key->size = node->key_len;
    }
 }
 
 static int test_firstdiffbit(void)
 {
-   int err = 1;
    uint8_t  key1[256] = {0};
    uint8_t  key2[256] = {0};
    size_t   bit_offset = 0;
+   uint8_t  bit_value  = 0;
 
-   // keys are equal
-   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset));
+   // TEST first_different_bit: keys are equal
+   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset, &bit_value));
 
-   // keys are equal until end of key2 + (end marker 0xFF)
-   key1[2] = 0xFF;
-   TEST(0==first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
-   TEST(bit_offset == bitsof(key1));
+   // TEST first_different_bit: keys are equal until end of key2(end marker 0xFF)
+   key1[2] = 0xFF; // end markter of key2
+   TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
+   // check out param
+   TEST( bit_value  == 0);
+   TEST( bit_offset == bitsof(key1));
+   // test parameter reversed
+   TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
+   // check out param
+   TEST( bit_value  != 0);
+   TEST( bit_offset == bitsof(key1));
+
+   // TEST first_different_bit: keys differ in end marker of key2
    for (unsigned i = 1; i < 8; ++i) {
       key1[2] = (uint8_t)(0xFF << i);
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
-      TEST(bit_offset == 24-i);
-   }
-   key1[2] = 0;
-   key2[2] = 0xFF;
-   TEST(0 == first_different_bit( key1, 2, key2, sizeof(key2),  &bit_offset));
-   TEST(bit_offset == bitsof(key2));
-   for (unsigned i = 1; i < 8; ++i) {
-      key2[2] = (uint8_t)(0xFF << i);
-      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset));
-      TEST(bit_offset == 24-i);
+      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  != 0);
+      TEST( bit_offset == 24-i);
+      // test parameter reversed
+      TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  == 0);
+      TEST( bit_offset == 24-i);
    }
 
-   // keys differ in second byte
+   // TEST first_different_bit: keys differ in second byte
    for (int i = 0; i < 8; ++i) {
       key1[1] = (uint8_t) (0x01 << i);
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
-      TEST(bit_offset == (size_t)(15-i));
-      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset));
-      TEST(bit_offset == (size_t)(15-i));
+      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  == 0);
+      TEST( bit_offset == (size_t)(15-i));
+      // test parameter reversed
+      TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  != 0);
+      TEST( bit_offset == (size_t)(15-i));
    }
 
-   // keys differ in first 8 byte
-   for (unsigned i = 0; i < sizeof(key1); ++i) {
+   // prepare
+   static_assert(lengthof(key1) == lengthof(key2), "check for overflow");
+   for (unsigned i = 0; i < lengthof(key1); ++i) {
       key1[i] = (uint8_t)i;
       key2[i] = (uint8_t)i;
    }
-   TEST(EINVAL==first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset));
-   TEST(0==first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset));
-   TEST(bit_offset == bitsof(key1));
+
+   // TEST first_different_bit: keys are equal
+   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset, &bit_value));
+   TEST(EINVAL == first_different_bit(key2, sizeof(key2), key1, sizeof(key1), &bit_offset, &bit_value));
+
+   // TEST first_different_bit: keys differ in length
+   TEST(0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset, &bit_value));
+   // check out param
+   TEST( bit_value  == 0);
+   TEST( bit_offset == bitsof(key1));
+   // test parameter reversed
+   TEST(0 == first_different_bit(key2, sizeof(key2)-1, key1, sizeof(key1), &bit_offset, &bit_value));
+   // check out param
+   TEST( bit_value  != 0);
+   TEST( bit_offset == bitsof(key1));
+
+   // TEST first_different_bit: keys differ in first 8 byte
    for (unsigned i = 0; i < 8; ++i) {
-      key2[i] = (uint8_t)(0x80 >> i);
       key1[i] = 0;
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)/3, &bit_offset));
-      TEST(bit_offset==8*i+i);
-      TEST(0 == first_different_bit(key1, sizeof(key1)/3, key2, sizeof(key2), &bit_offset));
-      TEST(bit_offset==8*i+i);
+      key2[i] = (uint8_t)(0x80 >> i);
+      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)/3, &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  != 0);
+      TEST( bit_offset == 8*i+i);
+      // test parameter reversed
+      TEST( 0 == first_different_bit(key2, sizeof(key2)/3, key1, sizeof(key1), &bit_offset, &bit_value));
+      // check out param
+      TEST( bit_value  == 0);
+      TEST( bit_offset == 8*i+i);
+      // reset
       key1[i] = (uint8_t)i;
       key2[i] = (uint8_t)i;
    }
 
-   err = 0;
+   return 0;
 ONERR:
-   return err;
+   return EINVAL;
 }
 
 static int test_initfree(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
-   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
-   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE;
+   size_t const            NODEOFFSET = offsetof(testnode_t, node);
+   getkey_adapter_t        keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
    patriciatrie_t          tree = patriciatrie_FREE;
    patriciatrie_node_t     node = patriciatrie_node_INIT;
    testnode_t              nodes[20];
 
    // prepare
+   free_testerrortimer(&s_errcounter);
+   s_freenode_count  = 0;
+   s_getbinkey_count = 0;
    memset(nodes, 0, sizeof(nodes));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].key_len = sizeof(nodes[i].key);
@@ -790,40 +815,43 @@ static int test_initfree(void)
 
    // TEST patriciatrie_FREE
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == tree.keyadapt.nodeoffset);
+   TEST(0 == tree.keyadapt.getkey);
 
    // TEST patriciatrie_INIT
-   tree = (patriciatrie_t) patriciatrie_INIT((void*)7, nodeadapt);
-   TEST(7 == (uintptr_t) tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   tree = (patriciatrie_t) patriciatrie_INIT((void*)0, emptynodeadapt);
+   tree = (patriciatrie_t) patriciatrie_INIT((void*)7, keyadapt);
+   TEST(tree.root                == (void*)7);
+   TEST(tree.keyadapt.nodeoffset == keyadapt.nodeoffset);
+   TEST(tree.keyadapt.getkey     == keyadapt.getkey);
+   tree = (patriciatrie_t) patriciatrie_INIT((void*)0, getkey_adapter_INIT(0,0));
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == tree.keyadapt.nodeoffset);
+   TEST(0 == tree.keyadapt.getkey);
 
    // TEST init_patriciatrie, free_patriciatrie
    tree.root = (void*)1;
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   TEST(0 == free_patriciatrie(&tree));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
+   TEST(0 == free_patriciatrie(&tree, 0));
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
-   TEST(0 == free_patriciatrie(&tree)); // double free
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
+   TEST(0 == free_patriciatrie(&tree, 0)); // double free
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
 
    // TEST free_patriciatrie: frees all nodes
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
    TEST(0 != tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   typeadapt.freenode_count = 0;
-   TEST(0 == free_patriciatrie(&tree));
-   TEST(lengthof(nodes) == typeadapt.freenode_count);
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
+   s_freenode_count = 0;
+   TEST(0 == free_patriciatrie(&tree, &impl_deletenode));
+   TEST(lengthof(nodes) == s_freenode_count);
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].is_freed);
       TEST(0 == nodes[i].node.bit_offset);
@@ -833,19 +861,17 @@ static int test_initfree(void)
    }
 
    // TEST free_patriciatrie: lifetime.delete_object set to 0
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
    TEST(0 != tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   typeadapt.lifetime.delete_object = 0;
-   typeadapt.freenode_count = 0;
-   TEST(0 == free_patriciatrie(&tree));
-   typeadapt.lifetime.delete_object = &impl_deletenode_testadapt;
-   TEST(0 == typeadapt.freenode_count);
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
+   s_freenode_count = 0;
+   TEST(0 == free_patriciatrie(&tree, 0));
+   TEST(0 == s_freenode_count);
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed);
       TEST(0 == nodes[i].node.bit_offset);
@@ -854,18 +880,18 @@ static int test_initfree(void)
    }
 
    // TEST free_patriciatrie: ERROR
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
    TEST(0 != tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   typeadapt.freenode_count = 0;
-   init_testerrortimer(&typeadapt.errcounter, 4, ENOENT);
-   TEST(ENOENT == free_patriciatrie(&tree));
-   TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
+   s_freenode_count = 0;
+   init_testerrortimer(&s_errcounter, 4, ENOENT);
+   TEST(ENOENT == free_patriciatrie(&tree, &impl_deletenode));
+   TEST(lengthof(nodes)-1 == s_freenode_count);
    TEST(0 == tree.root);
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST((i != 2) == nodes[i].is_freed);
       TEST(0 == nodes[i].node.bit_offset);
@@ -875,19 +901,19 @@ static int test_initfree(void)
 
    // TEST getinistate_patriciatrie
    patriciatrie_node_t * saved_root   = (void*) 1;
-   typeadapt_member_t saved_nodeadapt = nodeadapt;
+   getkey_adapter_t saved_keyadapt = keyadapt;
    tree = (patriciatrie_t)patriciatrie_FREE;
    getinistate_patriciatrie(&tree, &saved_root, 0);
    TEST(0 == saved_root);
-   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt);
+   getinistate_patriciatrie(&tree, &saved_root, &saved_keyadapt);
    TEST(0 == saved_root);
-   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &emptynodeadapt));
-   tree = (patriciatrie_t)patriciatrie_INIT(&nodes[0].node, nodeadapt);
+   TEST(1 == isequal_getkeyadapter(&saved_keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
+   tree = (patriciatrie_t)patriciatrie_INIT(&nodes[0].node, keyadapt);
    getinistate_patriciatrie(&tree, &saved_root, 0);
    TEST(&nodes[0].node == saved_root);
-   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt);
+   getinistate_patriciatrie(&tree, &saved_root, &saved_keyadapt);
    TEST(&nodes[0].node == saved_root);
-   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &nodeadapt));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
 
    // TEST isempty_patriciatrie
    tree.root = (void*)1;
@@ -902,8 +928,8 @@ ONERR:
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   size_t const         NODEOFFSET = offsetof(testnode_t, node);
+   getkey_adapter_t     keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
    patriciatrie_t       tree      = patriciatrie_FREE;
    memblock_t           memblock  = memblock_FREE;
    testnode_t           * nodes   = 0;
@@ -911,6 +937,9 @@ static int test_insertremove(void)
    unsigned             nodecount;
 
    // prepare
+   free_testerrortimer(&s_errcounter);
+   s_freenode_count  = 0;
+   s_getbinkey_count = 0;
    TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock));
    nodes = (testnode_t*)memblock.addr;
    memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES);
@@ -919,16 +948,44 @@ static int test_insertremove(void)
    }
 
    // TEST insert_patriciatrie: empty key (length == 0)
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    nodes[0].key_len = 0;
    TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
    node = 0;
    TEST(0 == find_patriciatrie(&tree, 0, 0, &node));
    TEST(&nodes[0].node == node);
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    TEST(1 == nodes[0].is_freed);
    nodes[0].key_len = sizeof(nodes[0].key);
    nodes[0].is_freed = 0;
+
+   // TEST insert_patriciatrie: differ in bit 0
+   init_patriciatrie(&tree, keyadapt);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   // test
+   nodes[1].key[0] = 0x80;
+   TEST( 0 == insert_patriciatrie(&tree, &nodes[1].node));
+   // check nodes[0]
+   TEST( nodes[0].node.bit_offset == 0);
+   TEST( nodes[0].node.left       == &nodes[0].node);
+   TEST( nodes[0].node.right      == &nodes[1].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0, 0, 0, 0 }, &node));
+   TEST( node == &nodes[0].node)
+   // check nodes[1]
+   TEST( nodes[1].node.bit_offset == 0);
+   TEST( nodes[1].node.left       == &nodes[1].node);
+   TEST( nodes[1].node.right      == &nodes[1].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0x80, 0, 0, 0 }, &node));
+   TEST( node == &nodes[1].node)
+   // reset
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
+   for (unsigned i = 0; i < 2; ++i) {
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
+      nodes[i].key[0] = 0;
+   }
+   nodes[0].is_freed = 0;
+
 
    // TEST EINVAL
    TEST(EINVAL == find_patriciatrie(&tree, 1, 0, &node));
@@ -936,7 +993,7 @@ static int test_insertremove(void)
    TEST(EINVAL == find_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node));
    TEST(EINVAL == remove_patriciatrie(&tree, 1, 0, &node));
    TEST(EINVAL == remove_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node));
-   init_testerrortimer(&typeadapt.errcounter, 1, ENOMEM);
+   init_testerrortimer(&s_errcounter, 1, ENOMEM);
    TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node));
    nodes[0].key_len = ((size_t)-1)/8;
    TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node));
@@ -959,7 +1016,7 @@ static int test_insertremove(void)
    TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
    memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 0, 1 }, 4);
    TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (int i = 0; i < 4; ++i) {
       TEST(1 == nodes[i].is_freed);
       nodes[i].is_freed = 0;
@@ -982,7 +1039,7 @@ static int test_insertremove(void)
    TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
    memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4);
    TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (int i = 0; i < 4; ++i) {
       TEST(1 == nodes[i].is_freed);
       nodes[i].is_freed = 0;
@@ -1006,7 +1063,7 @@ static int test_insertremove(void)
    TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
    memcpy(nodes[3].key, (uint8_t[4]){ 1, 0, 0, 0 }, 4);
    TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (int i = 0; i < 4; ++i) {
       TEST(1 == nodes[i].is_freed);
       nodes[i].is_freed = 0;
@@ -1068,7 +1125,7 @@ static int test_insertremove(void)
    TEST(nodes[3].node.right == &nodes[2].node);
    TEST(nodes[2].node.left == &nodes[2].node);
    TEST(nodes[2].node.right == &nodes[2].node);
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    TEST(1 == nodes[2].is_freed);
    TEST(1 == nodes[3].is_freed);
    nodes[3].is_freed = 0;
@@ -1130,7 +1187,7 @@ static int test_insertremove(void)
    TEST(nodes[3].node.right == &nodes[3].node);
    TEST(nodes[2].node.left == &nodes[2].node);
    TEST(nodes[2].node.right == &nodes[2].node);
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    TEST(1 == nodes[2].is_freed);
    TEST(1 == nodes[3].is_freed);
    nodes[3].is_freed = 0;
@@ -1187,7 +1244,7 @@ static int test_insertremove(void)
                TEST(0 == insert_patriciatrie(&tree, &nodes[nodecount].node));
                ++ nodecount;
             }
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (unsigned i = 0; i < nodecount; ++i) {
       TEST(1 == nodes[i].is_freed);
       nodes[i].is_freed = 0;
@@ -1211,7 +1268,7 @@ static int test_insertremove(void)
                TEST(!nodes[nodecount].is_freed);
                ++ nodecount;
             }
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       if (i < nodecount) {
          TEST(nodes[i].is_freed);
@@ -1233,7 +1290,7 @@ static int test_insertremove(void)
       TEST(node == &nodes[MAX_TREE_NODES-1-i].node);
       TEST(!nodes[MAX_TREE_NODES-1-i].is_freed);
    }
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       TEST(0 == nodes[i].is_freed);
    }
@@ -1265,11 +1322,11 @@ static int test_insertremove(void)
          TEST(EEXIST == insert_patriciatrie(&tree, &nodes[id].node));
       }
    }
-   removenodes_patriciatrie(&tree);
+   removenodes_patriciatrie(&tree, &impl_deletenode);
    for (int i = 0; i < MAX_TREE_NODES; ++i) {
       if (nodes[i].is_freed) {
          TEST(nodes[i].is_used);
-         nodes[i].is_used = 0;
+         nodes[i].is_used  = 0;
          nodes[i].is_freed = 0;
       }
       TEST(! nodes[i].is_used);
@@ -1287,20 +1344,21 @@ ONERR:
 
 static int test_iterator(void)
 {
-   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   size_t const               NODEOFFSET = offsetof(testnode_t, node);
+   getkey_adapter_t           keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
    patriciatrie_t             tree      = patriciatrie_FREE;
    memblock_t                 memblock  = memblock_FREE;
-   testnode_t                 * nodes   = 0;
+   testnode_t               * nodes   = 0;
    patriciatrie_iterator_t    iter      = patriciatrie_iterator_FREE;
    patriciatrie_prefixiter_t  preiter   = patriciatrie_prefixiter_FREE;
-   patriciatrie_node_t        * found_node;
+   patriciatrie_node_t      * found_node;
 
    // prepare
+   free_testerrortimer(&s_errcounter);
    TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock));
    nodes = (testnode_t*)memblock.addr;
    memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES);
-   init_patriciatrie(&tree, &nodeadapt);
+   init_patriciatrie(&tree, keyadapt);
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4");
       nodes[i].key_len = sizeof(nodes[i].key);
@@ -1373,7 +1431,7 @@ static int test_iterator(void)
    // TEST both iterator
    srand(400);
    for (unsigned test = 0; test < 20; ++test) {
-      typeadapt.getbinkey_count = 0;
+      s_getbinkey_count = 0;
       for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
          int id = rand() % MAX_TREE_NODES;
          if (nodes[id].is_used) {
@@ -1385,7 +1443,7 @@ static int test_iterator(void)
             TEST(0 == insert_patriciatrie(&tree, &nodes[id].node));
          }
       }
-      TEST(typeadapt.getbinkey_count > MAX_TREE_NODES);
+      TEST(s_getbinkey_count > MAX_TREE_NODES);
       TEST(0 == initfirst_patriciatrieiterator(&iter, &tree));
       for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
          if (! (i % 10)) {
@@ -1413,7 +1471,7 @@ static int test_iterator(void)
       TEST(found_node == (void*)1/*not changed*/);
    }
 
-   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       if (nodes[i].is_freed) {
          TEST(nodes[i].is_used);
@@ -1462,19 +1520,18 @@ ONERR:
    return EINVAL;
 }
 
-patriciatrie_IMPLEMENT(_testtree, testnode_t, node)
+patriciatrie_IMPLEMENT(_testtree, testnode_t, node, &impl_getstreamkey)
 
 static int test_generic(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
-   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
-   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE;
-   patriciatrie_t          tree = patriciatrie_FREE;
-   testnode_t              nodes[50];
+   size_t const         NODEOFFSET = offsetof(testnode_t, node);
+   getkey_adapter_t     keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
+   patriciatrie_t       tree = patriciatrie_FREE;
+   testnode_t           nodes[50];
 
    // prepare
+   free_testerrortimer(&s_errcounter);
    memset(nodes, 0, sizeof(nodes));
-   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4");
       nodes[i].key_len = sizeof(nodes[i].key);
@@ -1486,26 +1543,29 @@ static int test_generic(void)
 
    // TEST init_patriciatrie, free_patriciatrie
    tree.root = (void*)1;
-   init_testtree(&tree, &nodeadapt);
+   init_testtree(&tree);
+   TEST(tree.root                == 0);
+   TEST(tree.keyadapt.nodeoffset == keyadapt.nodeoffset);
+   TEST(tree.keyadapt.getkey     == keyadapt.getkey);
+   TEST(0 == free_testtree(&tree, &impl_deletenode));
    TEST(0 == tree.root);
-   TEST(isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
-   init_testtree(&tree, &nodeadapt);
-   TEST(0 == free_testtree(&tree));
-   TEST(isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == tree.keyadapt.nodeoffset);
+   TEST(0 == tree.keyadapt.getkey);
 
    // TEST getinistate_patriciatrie
-   testnode_t         * root     = 0;
-   typeadapt_member_t nodeadapt2 = typeadapt_member_FREE;
-   init_testtree(&tree, &nodeadapt);
+   patriciatrie_node_t * root = 0;
+   getkey_adapter_t keyadapt2 = getkey_adapter_INIT(0,0);
+   init_testtree(&tree);
    tree.root = &nodes[10].node;
-   getinistate_testtree(&tree, &root, &nodeadapt2);
-   TEST(&nodes[10] == root);
-   TEST(isequal_typeadaptmember(&nodeadapt2, &nodeadapt));
+   getinistate_testtree(&tree, &root, &keyadapt2);
+   TEST( &nodes[10].node == root);
+   TEST( isequal_getkeyadapter(&keyadapt2, &keyadapt2));
    tree = (patriciatrie_t) patriciatrie_FREE;
-   nodeadapt2 = nodeadapt;
-   getinistate_testtree(&tree, &root, &nodeadapt2);
+   keyadapt2 = keyadapt;
+   getinistate_testtree(&tree, &root, &keyadapt2);
    TEST(0 == root);
-   TEST(isequal_typeadaptmember(&nodeadapt2, &emptynodeadapt));
+   TEST(0 == keyadapt2.nodeoffset);
+   TEST(0 == keyadapt2.getkey);
 
    // TEST isempty_patriciatrie
    tree.root = (void*)1;
@@ -1514,7 +1574,7 @@ static int test_generic(void)
    TEST(1 == isempty_testtree(&tree));
 
    // TEST insert_patriciatrie, find_patriciatrie, remove_patriciatrie
-   init_testtree(&tree, &nodeadapt);
+   init_testtree(&tree);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
@@ -1531,26 +1591,26 @@ static int test_generic(void)
    }
 
    // TEST removenodes_patriciatrie, free_patriciatrie
-   init_testtree(&tree, &nodeadapt);
+   init_testtree(&tree);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
-   TEST(0 == removenodes_testtree(&tree));
-   TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == removenodes_testtree(&tree, &impl_deletenode));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &keyadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].is_freed);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
-   TEST(0 == free_testtree(&tree));
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == free_testtree(&tree, &impl_deletenode));
+   TEST(1 == isequal_getkeyadapter(&tree.keyadapt, &(getkey_adapter_t) getkey_adapter_INIT(0,0)));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(2 == nodes[i].is_freed);
    }
 
    // TEST foreach, foreachReverse
-   init_testtree(&tree, &nodeadapt);
+   init_testtree(&tree);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
