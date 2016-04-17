@@ -34,16 +34,16 @@
 
 int free_patriciatrie(patriciatrie_t * tree)
 {
-   int err = removenodes_patriciatrie(tree) ;
+   int err = removenodes_patriciatrie(tree);
 
-   tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE ;
+   tree->nodeadp = (typeadapt_member_t) typeadapt_member_FREE;
 
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: search
@@ -53,12 +53,12 @@ ONERR:
  * Every string has a virtual end marker of 0xFF.
  * If bitoffset/8 equals therefore length a value of 1 is returned.
  * If bitoffset is beyond string length and beyond virtual end marker a value of 0 is returned. */
-#define GETBIT(key, length, bitoffset)                      \
+#define GETBIT(key, length, bitoffset) \
    ( __extension__ ({                                       \
-         size_t _byteoffset = (bitoffset) / 8 ;             \
+         size_t _byteoffset = (bitoffset) / 8;              \
          (_byteoffset < (length))                           \
          ? (0x80>>((bitoffset)%8)) & ((key)[_byteoffset])   \
-         : ((_byteoffset == (length)) ? 1 : 0) ;            \
+         : ((_byteoffset == (length)) ? 1 : 0);             \
    }))
 
 /* function: first_different_bit
@@ -73,381 +73,381 @@ static int first_different_bit(
        size_t        const length2,
 /*out*/size_t        * bit_offset)
 {
-   size_t length = (length1 < length2 ? length1 : length2) ;
-   const uint8_t * k1 = key1 ;
-   const uint8_t * k2 = key2 ;
+   size_t length = (length1 < length2 ? length1 : length2);
+   const uint8_t * k1 = key1;
+   const uint8_t * k2 = key2;
    while (length && *k1 == *k2) {
-      -- length ;
-      ++ k1 ;
-      ++ k2 ;
+      -- length;
+      ++ k1;
+      ++ k2;
    }
 
-   uint8_t b1 ;
-   uint8_t b2 ;
-   size_t  result ;
+   uint8_t b1;
+   uint8_t b2;
+   size_t  result;
    if (length) {
-      b1 = *k1 ;
-      b2 = *k2 ;
-      result = 8 * (size_t)(k1 - key1) ;
+      b1 = *k1;
+      b2 = *k2;
+      result = 8 * (size_t)(k1 - key1);
    } else {
-      if (length1 == length2) return EINVAL ;   // both keys are equal
+      if (length1 == length2) return EINVAL;   // both keys are equal
       if (length1 < length2) {
-         length = length2 - length1 ;
+         length = length2 - length1;
          if (*k2 == 0xFF/*end marker of k1*/) {
             do {
-               ++ k2 ;
-               -- length ;
-            } while (length && *k2 == 0) ;
-            b1 = 0x00 ;
+               ++ k2;
+               -- length;
+            } while (length && *k2 == 0);
+            b1 = 0x00;
             if (!length) {
-               result = 8 * length2 ;
-               b2 = 0xFF ;
+               result = 8 * length2;
+               b2 = 0xFF;
             } else {
-               result = 8 * (size_t)(k2 - key2) ;
-               b2 = *k2 ;
+               result = 8 * (size_t)(k2 - key2);
+               b2 = *k2;
             }
          } else {
-            b1 = 0xFF ;
-            b2 = *k2 ;
-            result = 8 * (size_t)(k2 - key2) ;
+            b1 = 0xFF;
+            b2 = *k2;
+            result = 8 * (size_t)(k2 - key2);
          }
       } else {
-         length = length1 - length2 ;
+         length = length1 - length2;
          if (*k1 == 0xFF/*end marker of k2*/) {
             do {
-               ++ k1 ;
-               -- length ;
-            } while (length && *k1 == 0) ;
-            b2 = 0x00 ;
+               ++ k1;
+               -- length;
+            } while (length && *k1 == 0);
+            b2 = 0x00;
             if (!length) {
-               result = 8 * length1 ;
-               b1 = 0xFF ;
+               result = 8 * length1;
+               b1 = 0xFF;
             } else {
-               result = 8 * (size_t)(k1 - key1) ;
-               b1 = *k1 ;
+               result = 8 * (size_t)(k1 - key1);
+               b1 = *k1;
             }
          } else {
-            b1 = *k1 ;
-            b2 = 0xFF ;
-            result = 8 * (size_t)(k1 - key1) ;
+            b1 = *k1;
+            b2 = 0xFF;
+            result = 8 * (size_t)(k1 - key1);
          }
       }
    }
 
-   // assert(b1 != b2) ;
-   b1 ^= b2 ;
+   // assert(b1 != b2);
+   b1 ^= b2;
    for (uint8_t mask = 0x80; (0 == (b1 & mask)) && mask; mask>>=1) {
-      ++ result ;
+      ++ result;
    }
 
-   *bit_offset = result ;
-   return 0 ;
+   *bit_offset = result;
+   return 0;
 }
 
 static int findnode(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** found_parent, patriciatrie_node_t ** found_node)
 {
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * node = tree->root ;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * node = tree->root;
 
-   if (!node) return ESRCH ;
+   if (!node) return ESRCH;
 
    do {
-      parent = node ;
+      parent = node;
       if (GETBIT(searchkey, keylength, node->bit_offset)) {
-         node = node->right ;
+         node = node->right;
       } else {
-         node = node->left ;
+         node = node->left;
       }
-   } while (node->bit_offset > parent->bit_offset) ;
+   } while (node->bit_offset > parent->bit_offset);
 
-   *found_node   = node ;
-   *found_parent = parent ;
+   *found_node   = node;
+   *found_parent = parent;
 
-   return 0 ;
+   return 0;
 }
 
 int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** found_node)
 {
-   int err ;
-   patriciatrie_node_t * node ;
-   patriciatrie_node_t * parent ;
+   int err;
+   patriciatrie_node_t * node;
+   patriciatrie_node_t * parent;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, );
 
-   err = findnode(tree, keylength, searchkey, &parent, &node) ;
-   if (err) return err ;
+   err = findnode(tree, keylength, searchkey, &parent, &node);
+   if (err) return err;
 
-   typeadapt_binarykey_t key ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key) ;
+   typeadapt_binarykey_t key;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key);
    if (key.size != keylength || 0 != memcmp(key.addr, searchkey, keylength)) {
-      return ESRCH ;
+      return ESRCH;
    }
 
-   *found_node = node ;
+   *found_node = node;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: change
 
 int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
 {
-   int err ;
-   typeadapt_binarykey_t   insertkey ;
+   int err;
+   typeadapt_binarykey_t   insertkey;
 
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, newnode), &insertkey) ;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, newnode), &insertkey);
 
-   VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8), ONERR, );
 
    if (!tree->root) {
-      tree->root = newnode ;
-      newnode->bit_offset = 0 ;
-      newnode->right = newnode ;
-      newnode->left  = newnode ;
-      return 0 ;
+      tree->root = newnode;
+      newnode->bit_offset = 0;
+      newnode->right = newnode;
+      newnode->left  = newnode;
+      return 0;
    }
 
    // search node
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * node ;
-   size_t new_bitoffset ;
-   (void) findnode(tree, insertkey.size, insertkey.addr, &parent, &node) ;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * node;
+   size_t new_bitoffset;
+   (void) findnode(tree, insertkey.size, insertkey.addr, &parent, &node);
 
    if (node == newnode) {
-      return EEXIST ;      // found node already inserted
+      return EEXIST;      // found node already inserted
    } else {
-      typeadapt_binarykey_t nodek ;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek) ;
+      typeadapt_binarykey_t nodek;
+      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek);
       if (first_different_bit(nodek.addr, nodek.size, insertkey.addr, insertkey.size, &new_bitoffset)) {
-         return EEXIST ;   // found node has same key
+         return EEXIST;   // found node has same key
       }
    }
 
    // search position in tree where new_bitoffset belongs to
    if (parent->bit_offset > new_bitoffset) {
-      node   = tree->root ;
-      parent = 0 ;
+      node   = tree->root;
+      parent = 0;
       // search the correct position in the tree
       while (node->bit_offset < new_bitoffset) {
-         parent = node ;
+         parent = node;
          if (GETBIT(insertkey.addr, insertkey.size, node->bit_offset)) {
-            node = node->right ;
+            node = node->right;
          } else {
-            node = node->left ;
+            node = node->left;
          }
       }
    }
 
-   assert(parent == 0 || parent->bit_offset < new_bitoffset || tree->root == parent) ;
+   assert(parent == 0 || parent->bit_offset < new_bitoffset || tree->root == parent);
 
    if (node->right == node->left) {
       // LEAF points to itself (bit_offset is unused) and is at the tree bottom
-      assert(node->bit_offset == 0 && node->left == node) ;
-      newnode->bit_offset = 0 ;
-      newnode->right = newnode ;
-      newnode->left  = newnode ;
-      node->bit_offset = new_bitoffset ;
+      assert(node->bit_offset == 0 && node->left == node);
+      newnode->bit_offset = 0;
+      newnode->right = newnode;
+      newnode->left  = newnode;
+      node->bit_offset = new_bitoffset;
       if (GETBIT(insertkey.addr, insertkey.size, new_bitoffset)) {
-         node->right = newnode ;
+         node->right = newnode;
       } else {
-         node->left  = newnode ;
+         node->left  = newnode;
       }
    } else {
-      newnode->bit_offset = new_bitoffset ;
+      newnode->bit_offset = new_bitoffset;
       if (GETBIT(insertkey.addr, insertkey.size, new_bitoffset)) {
-         newnode->right = newnode ;
-         newnode->left  = node ;
+         newnode->right = newnode;
+         newnode->left  = node;
       } else {
-         newnode->right = node ;
-         newnode->left  = newnode ;
+         newnode->right = node;
+         newnode->left  = newnode;
       }
       if (parent) {
          if (GETBIT(insertkey.addr, insertkey.size, parent->bit_offset)) {
-            assert(parent->right == node) ;
-            parent->right = newnode ;
+            assert(parent->right == node);
+            parent->right = newnode;
          } else {
-            assert(parent->left == node) ;
-            parent->left = newnode ;
+            assert(parent->left == node);
+            parent->left = newnode;
          }
       } else {
-         assert(tree->root == node) ;
-         tree->root = newnode ;
+         assert(tree->root == node);
+         tree->root = newnode;
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** removed_node)
 {
-   int err ;
-   patriciatrie_node_t * node ;
-   patriciatrie_node_t * parent ;
+   int err;
+   patriciatrie_node_t * node;
+   patriciatrie_node_t * parent;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, ) ;
+   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, );
 
-   err = findnode(tree, keylength, searchkey, &parent, &node) ;
-   if (err) return err ;
+   err = findnode(tree, keylength, searchkey, &parent, &node);
+   if (err) return err;
 
-   typeadapt_binarykey_t nodek ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek) ;
+   typeadapt_binarykey_t nodek;
+   callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &nodek);
 
    if (  nodek.size != keylength
          || memcmp(nodek.addr, searchkey, keylength)) {
-      return ESRCH ;
+      return ESRCH;
    }
 
-   patriciatrie_node_t * const delnode = node ;
-   patriciatrie_node_t * replacednode = 0 ;
-   patriciatrie_node_t * replacedwith ;
+   patriciatrie_node_t * const delnode = node;
+   patriciatrie_node_t * replacednode = 0;
+   patriciatrie_node_t * replacedwith;
 
    if (node->right == node->left) {
       // LEAF points to itself (bit_offset is unused) and is at the tree bottom
-      assert(node->left == node) ;
-      assert(0==node->bit_offset) ;
+      assert(node->left == node);
+      assert(0==node->bit_offset);
       if (node == parent) {
-         assert(tree->root == node) ;
-         tree->root = 0 ;
+         assert(tree->root == node);
+         tree->root = 0;
       } else if ( parent->left == parent
                   || parent->right == parent) {
          // parent is new LEAF
-         parent->bit_offset = 0 ;
-         parent->left  = parent ;
-         parent->right = parent ;
+         parent->bit_offset = 0;
+         parent->left  = parent;
+         parent->right = parent;
       } else {
          // shift parents other child into parents position
-         replacednode = parent ;
-         replacedwith = (parent->left == node ? parent->right : parent->left) ;
-         assert(replacedwith != node && replacedwith != parent) ;
-         parent->bit_offset = 0 ;
-         parent->left  = parent ;
-         parent->right = parent ;
+         replacednode = parent;
+         replacedwith = (parent->left == node ? parent->right : parent->left);
+         assert(replacedwith != node && replacedwith != parent);
+         parent->bit_offset = 0;
+         parent->left  = parent;
+         parent->right = parent;
       }
    } else if ( node->left == node
                || node->right == node) {
       // node can be removed (cause only one child)
-      assert(parent == node) ;
-      replacednode = node ;
-      replacedwith = (node->left == node ? node->right : node->left) ;
-      assert(replacedwith != node) ;
+      assert(parent == node);
+      replacednode = node;
+      replacedwith = (node->left == node ? node->right : node->left);
+      assert(replacedwith != node);
    } else {
       // node has two childs
-      assert(parent != node) ;
-      replacednode = node ;
-      replacedwith = parent ;
+      assert(parent != node);
+      replacednode = node;
+      replacedwith = parent;
       // find parent of replacedwith
       do {
-         parent = node ;
+         parent = node;
          if (GETBIT(nodek.addr, nodek.size, node->bit_offset)) {
-            node = node->right ;
+            node = node->right;
          } else {
-            node = node->left ;
+            node = node->left;
          }
-      } while (node != replacedwith) ;
+      } while (node != replacedwith);
       // now let parent of replacedwith point to other child of replacedwith instead to replacedwith
       if (parent->left == node)
-         parent->left = (node->left == replacednode ? node->right : node->left) ;
+         parent->left = (node->left == replacednode ? node->right : node->left);
       else
-         parent->right = (node->left == replacednode ? node->right : node->left) ;
+         parent->right = (node->left == replacednode ? node->right : node->left);
       // copy replacednode into replacedwith
-      node->bit_offset = replacednode->bit_offset ;
-      node->left       = replacednode->left ;
-      node->right      = replacednode->right ;
+      node->bit_offset = replacednode->bit_offset;
+      node->left       = replacednode->left;
+      node->right      = replacednode->right;
    }
 
    // find parent of replacednode and let it point to replacedwith
    if (replacednode) {
-      node = tree->root ;
+      node = tree->root;
       if (node == replacednode) {
-         tree->root = replacedwith ;
+         tree->root = replacedwith;
       } else {
          do {
-            parent = node ;
+            parent = node;
             if (GETBIT(nodek.addr, nodek.size, node->bit_offset)) {
-               node = node->right ;
+               node = node->right;
             } else {
-               node = node->left ;
+               node = node->left;
             }
-         } while (node != replacednode) ;
+         } while (node != replacednode);
          if (parent->left == replacednode)
-            parent->left = replacedwith ;
+            parent->left = replacedwith;
          else
-            parent->right = replacedwith ;
+            parent->right = replacedwith;
       }
    }
 
-   delnode->bit_offset = 0 ;
-   delnode->left       = 0 ;
-   delnode->right      = 0 ;
+   delnode->bit_offset = 0;
+   delnode->left       = 0;
+   delnode->right      = 0;
 
-   *removed_node = delnode ;
+   *removed_node = delnode;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int removenodes_patriciatrie(patriciatrie_t * tree)
 {
-   int err ;
-   patriciatrie_node_t   * parent = 0 ;
-   patriciatrie_node_t   * node   = tree->root ;
+   int err;
+   patriciatrie_node_t   * parent = 0;
+   patriciatrie_node_t   * node   = tree->root;
 
-   tree->root = 0 ;
+   tree->root = 0;
 
    if (node) {
 
-      const bool isDeleteObject = iscalldelete_typeadapt(tree->nodeadp.typeadp) ;
+      const bool isDeleteObject = iscalldelete_typeadapt(tree->nodeadp.typeadp);
 
-      err = 0 ;
+      err = 0;
 
       for (;;) {
          while (  node->left->bit_offset > node->bit_offset
                   || (node->left != node && node->left->left == node->left && node->left->right == node->left) /*node->left has unused bit_offset*/) {
-            patriciatrie_node_t * nodeleft = node->left ;
-            node->left = parent ;
-            parent = node ;
-            node   = nodeleft ;
+            patriciatrie_node_t * nodeleft = node->left;
+            node->left = parent;
+            parent = node;
+            node   = nodeleft;
          }
          if (  node->right->bit_offset > node->bit_offset
                || (node->right != node && node->right->left == node->right && node->right->right == node->right) /*node->right has unused bit_offset*/) {
-            patriciatrie_node_t * noderight = node->right ;
-            node->left = parent ;
-            parent = node ;
-            node   = noderight ;
+            patriciatrie_node_t * noderight = node->right;
+            node->left = parent;
+            parent = node;
+            node   = noderight;
          } else {
-            node->bit_offset = 0 ;
-            node->left       = 0 ;
-            node->right      = 0 ;
+            node->bit_offset = 0;
+            node->left       = 0;
+            node->right      = 0;
             if (isDeleteObject) {
-               typeadapt_object_t * object = cast2object_typeadaptmember(&tree->nodeadp, node) ;
-               int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
-               if (err2) err = err2 ;
+               typeadapt_object_t * object = cast2object_typeadaptmember(&tree->nodeadp, node);
+               int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object);
+               if (err2) err = err2;
             }
-            if (!parent) break ;
+            if (!parent) break;
             if (parent->right == node) {
-               parent->right = parent ;
+               parent->right = parent;
             }
-            node   = parent ;
-            parent = node->left ;
-            node->left = node ;
+            node   = parent;
+            parent = node->left;
+            node->left = node;
          }
       }
 
       if (err) goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -457,112 +457,112 @@ ONERR:
 
 int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree)
 {
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * node = tree->root ;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * node = tree->root;
 
    if (node) {
       do {
-         parent = node ;
-         node   = node->left ;
-      } while (node->bit_offset > parent->bit_offset) ;
+         parent = node;
+         node   = node->left;
+      } while (node->bit_offset > parent->bit_offset);
    }
 
-   iter->next = node ;
-   iter->tree = tree ;
-   return 0 ;
+   iter->next = node;
+   iter->tree = tree;
+   return 0;
 }
 
 int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree)
 {
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * node = tree->root ;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * node = tree->root;
 
    if (node) {
       do {
-         parent = node ;
-         node = node->right ;
-      } while (node->bit_offset > parent->bit_offset) ;
+         parent = node;
+         node = node->right;
+      } while (node->bit_offset > parent->bit_offset);
    }
 
-   iter->next = node ;
-   iter->tree = tree ;
-   return 0 ;
+   iter->next = node;
+   iter->tree = tree;
+   return 0;
 }
 
 // group: iterate
 
 bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
 {
-   if (!iter->next) return false ;
+   if (!iter->next) return false;
 
-   *node = iter->next ;
+   *node = iter->next;
 
-   typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   typeadapt_binarykey_t nextk;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
 
-   patriciatrie_node_t * next = iter->tree->root ;
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * higher_branch_parent = 0 ;
+   patriciatrie_node_t * next = iter->tree->root;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * higher_branch_parent = 0;
    do {
-      parent = next ;
+      parent = next;
       if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
-         next = next->right ;
+         next = next->right;
       } else {
-         higher_branch_parent = parent ;
-         next = next->left ;
+         higher_branch_parent = parent;
+         next = next->left;
       }
-   } while (next->bit_offset > parent->bit_offset) ;
+   } while (next->bit_offset > parent->bit_offset);
 
    if (higher_branch_parent) {
-      parent = higher_branch_parent ;
-      next = parent->right ;
+      parent = higher_branch_parent;
+      next = parent->right;
       while (next->bit_offset > parent->bit_offset) {
-         parent = next ;
-         next = next->left ;
+         parent = next;
+         next = next->left;
       }
-      iter->next = next ;
+      iter->next = next;
    } else {
-      iter->next = 0 ;
+      iter->next = 0;
    }
 
-   return true ;
+   return true;
 }
 
 bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
 {
-   if (!iter->next) return false ;
+   if (!iter->next) return false;
 
-   *node = iter->next ;
+   *node = iter->next;
 
-   typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   typeadapt_binarykey_t nextk;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
 
-   patriciatrie_node_t * next = iter->tree->root ;
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * lower_branch_parent = 0 ;
+   patriciatrie_node_t * next = iter->tree->root;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * lower_branch_parent = 0;
    do {
-      parent = next ;
+      parent = next;
       if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
-         lower_branch_parent = parent ;
-         next = next->right ;
+         lower_branch_parent = parent;
+         next = next->right;
       } else {
-         next = next->left ;
+         next = next->left;
       }
-   } while (next->bit_offset > parent->bit_offset) ;
+   } while (next->bit_offset > parent->bit_offset);
 
    if (lower_branch_parent) {
-      parent = lower_branch_parent ;
-      next = parent->left ;
+      parent = lower_branch_parent;
+      next = parent->left;
       while (next->bit_offset > parent->bit_offset) {
-         parent = next ;
-         next = next->right ;
+         parent = next;
+         next = next->right;
       }
-      iter->next = next ;
+      iter->next = next;
    } else {
-      iter->next = 0 ;
+      iter->next = 0;
    }
 
-   return true ;
+   return true;
 }
 
 // section: patriciatrie_prefixiter_t
@@ -571,81 +571,81 @@ bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
 
 int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, patriciatrie_t * tree, size_t keylength, const uint8_t prefixkey[keylength])
 {
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * node = tree->root ;
-   size_t         prefix_bits = 8 * keylength ;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * node = tree->root;
+   size_t         prefix_bits = 8 * keylength;
 
    if (  (prefixkey || !keylength)
          && keylength < (((size_t)-1)/8)
          && node) {
       if (node->bit_offset < prefix_bits) {
          do {
-            parent = node ;
+            parent = node;
             if (GETBIT(prefixkey, keylength, node->bit_offset)) {
-               node = node->right ;
+               node = node->right;
             } else {
-               node = node->left ;
+               node = node->left;
             }
-         } while (node->bit_offset > parent->bit_offset && node->bit_offset < prefix_bits) ;
+         } while (node->bit_offset > parent->bit_offset && node->bit_offset < prefix_bits);
       } else {
-         parent = node ;
-         node = node->left ;
+         parent = node;
+         node = node->left;
       }
       while (node->bit_offset > parent->bit_offset) {
-         parent = node ;
-         node = node->left ;
+         parent = node;
+         node = node->left;
       }
-      typeadapt_binarykey_t key ;
-      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key) ;
+      typeadapt_binarykey_t key;
+      callgetbinarykey_typeadaptmember(&tree->nodeadp, cast2object_typeadaptmember(&tree->nodeadp, node), &key);
       bool isPrefix =   key.size >= keylength
-                        && ! memcmp(key.addr, prefixkey, keylength) ;
-      if (!isPrefix) node = 0 ;
+                        && ! memcmp(key.addr, prefixkey, keylength);
+      if (!isPrefix) node = 0;
    }
 
-   iter->next        = node ;
-   iter->tree        = tree ;
-   iter->prefix_bits = prefix_bits ;
-   return 0 ;
+   iter->next        = node;
+   iter->tree        = tree;
+   iter->prefix_bits = prefix_bits;
+   return 0;
 }
 
 // group: iterate
 
 bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patriciatrie_node_t ** node)
 {
-   if (!iter->next) return false ;
+   if (!iter->next) return false;
 
-   *node = iter->next ;
+   *node = iter->next;
 
-   typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
+   typeadapt_binarykey_t nextk;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, cast2object_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk);
 
-   patriciatrie_node_t * next = iter->tree->root ;
-   patriciatrie_node_t * parent ;
-   patriciatrie_node_t * higher_branch_parent = 0 ;
+   patriciatrie_node_t * next = iter->tree->root;
+   patriciatrie_node_t * parent;
+   patriciatrie_node_t * higher_branch_parent = 0;
    do {
-      parent = next ;
+      parent = next;
       if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
-         next = next->right ;
+         next = next->right;
       } else {
-         higher_branch_parent = parent ;
-         next = next->left ;
+         higher_branch_parent = parent;
+         next = next->left;
       }
-   } while (next->bit_offset > parent->bit_offset) ;
+   } while (next->bit_offset > parent->bit_offset);
 
    if (  higher_branch_parent
          && higher_branch_parent->bit_offset >= iter->prefix_bits) {
-      parent = higher_branch_parent ;
-      next = parent->right ;
+      parent = higher_branch_parent;
+      next = parent->right;
       while (next->bit_offset > parent->bit_offset) {
-         parent = next ;
-         next = next->left ;
+         parent = next;
+         next = next->left;
       }
-      iter->next = next ;
+      iter->next = next;
    } else {
-      iter->next = 0 ;
+      iter->next = 0;
    }
 
-   return true ;
+   return true;
 }
 
 
@@ -657,25 +657,25 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
 
 #define MAX_TREE_NODES 10000
 
-typedef struct testnode_t     testnode_t ;
-typedef struct testadapt_t    testadapt_t ;
+typedef struct testnode_t     testnode_t;
+typedef struct testadapt_t    testadapt_t;
 
 struct testnode_t {
-   patriciatrie_node_t  node ;
-   uint8_t  key[4] ;
-   size_t   key_len ;
-   int      is_freed ;
-   int      is_used ;
-} ;
+   patriciatrie_node_t  node;
+   uint8_t  key[4];
+   size_t   key_len;
+   int      is_freed;
+   int      is_used;
+};
 
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, void*) ;
-   } ;
-   test_errortimer_t    errcounter ;
-   unsigned             freenode_count ;
-   unsigned             getbinkey_count ;
-} ;
+      typeadapt_EMBED(testadapt_t, testnode_t, void*);
+   };
+   test_errortimer_t    errcounter;
+   unsigned             freenode_count;
+   unsigned             getbinkey_count;
+};
 
 static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
 {
@@ -707,240 +707,240 @@ static void impl_getbinarykey_testadapt(testadapt_t * testadp, testnode_t * node
 
 static int test_firstdiffbit(void)
 {
-   int err = 1 ;
-   uint8_t  key1[256] = {0} ;
-   uint8_t  key2[256] = {0} ;
-   size_t   bit_offset = 0 ;
+   int err = 1;
+   uint8_t  key1[256] = {0};
+   uint8_t  key2[256] = {0};
+   size_t   bit_offset = 0;
 
    // keys are equal
-   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset)) ;
+   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset));
 
    // keys are equal until end of key2 + (end marker 0xFF)
-   key1[2] = 0xFF ;
-   TEST(0==first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset)) ;
-   TEST(bit_offset == bitsof(key1)) ;
+   key1[2] = 0xFF;
+   TEST(0==first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
+   TEST(bit_offset == bitsof(key1));
    for (unsigned i = 1; i < 8; ++i) {
-      key1[2] = (uint8_t)(0xFF << i) ;
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset)) ;
-      TEST(bit_offset == 24-i) ;
+      key1[2] = (uint8_t)(0xFF << i);
+      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
+      TEST(bit_offset == 24-i);
    }
-   key1[2] = 0 ;
-   key2[2] = 0xFF ;
-   TEST(0 == first_different_bit( key1, 2, key2, sizeof(key2),  &bit_offset)) ;
-   TEST(bit_offset == bitsof(key2)) ;
+   key1[2] = 0;
+   key2[2] = 0xFF;
+   TEST(0 == first_different_bit( key1, 2, key2, sizeof(key2),  &bit_offset));
+   TEST(bit_offset == bitsof(key2));
    for (unsigned i = 1; i < 8; ++i) {
-      key2[2] = (uint8_t)(0xFF << i) ;
-      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset)) ;
-      TEST(bit_offset == 24-i) ;
+      key2[2] = (uint8_t)(0xFF << i);
+      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset));
+      TEST(bit_offset == 24-i);
    }
 
    // keys differ in second byte
    for (int i = 0; i < 8; ++i) {
-      key1[1] = (uint8_t) (0x01 << i) ;
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset)) ;
-      TEST(bit_offset == (size_t)(15-i)) ;
-      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset)) ;
-      TEST(bit_offset == (size_t)(15-i)) ;
+      key1[1] = (uint8_t) (0x01 << i);
+      TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset));
+      TEST(bit_offset == (size_t)(15-i));
+      TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset));
+      TEST(bit_offset == (size_t)(15-i));
    }
 
    // keys differ in first 8 byte
    for (unsigned i = 0; i < sizeof(key1); ++i) {
-      key1[i] = (uint8_t)i ;
-      key2[i] = (uint8_t)i ;
+      key1[i] = (uint8_t)i;
+      key2[i] = (uint8_t)i;
    }
-   TEST(EINVAL==first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset)) ;
-   TEST(0==first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset)) ;
-   TEST(bit_offset == bitsof(key1)) ;
+   TEST(EINVAL==first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset));
+   TEST(0==first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset));
+   TEST(bit_offset == bitsof(key1));
    for (unsigned i = 0; i < 8; ++i) {
-      key2[i] = (uint8_t)(0x80 >> i) ;
-      key1[i] = 0 ;
-      TEST(0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)/3, &bit_offset)) ;
-      TEST(bit_offset==8*i+i) ;
-      TEST(0 == first_different_bit(key1, sizeof(key1)/3, key2, sizeof(key2), &bit_offset)) ;
-      TEST(bit_offset==8*i+i) ;
-      key1[i] = (uint8_t)i ;
-      key2[i] = (uint8_t)i ;
+      key2[i] = (uint8_t)(0x80 >> i);
+      key1[i] = 0;
+      TEST(0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)/3, &bit_offset));
+      TEST(bit_offset==8*i+i);
+      TEST(0 == first_different_bit(key1, sizeof(key1)/3, key2, sizeof(key2), &bit_offset));
+      TEST(bit_offset==8*i+i);
+      key1[i] = (uint8_t)i;
+      key2[i] = (uint8_t)i;
    }
 
-   err = 0 ;
+   err = 0;
 ONERR:
-   return err ;
+   return err;
 }
 
 static int test_initfree(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
-   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE ;
-   patriciatrie_t          tree = patriciatrie_FREE ;
-   patriciatrie_node_t     node = patriciatrie_node_INIT ;
-   testnode_t              nodes[20] ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
+   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE;
+   patriciatrie_t          tree = patriciatrie_FREE;
+   patriciatrie_node_t     node = patriciatrie_node_INIT;
+   testnode_t              nodes[20];
 
    // prepare
-   memset(nodes, 0, sizeof(nodes)) ;
+   memset(nodes, 0, sizeof(nodes));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      nodes[i].key_len = sizeof(nodes[i].key) ;
-      nodes[i].key[0] = (uint8_t) i ;
+      nodes[i].key_len = sizeof(nodes[i].key);
+      nodes[i].key[0] = (uint8_t) i;
    }
 
    // TEST patriciatrie_node_INIT
-   TEST(0 == node.bit_offset) ;
-   TEST(0 == node.left) ;
-   TEST(0 == node.right) ;
+   TEST(0 == node.bit_offset);
+   TEST(0 == node.left);
+   TEST(0 == node.right);
 
    // TEST patriciatrie_FREE
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
 
    // TEST patriciatrie_INIT
-   tree = (patriciatrie_t) patriciatrie_INIT((void*)7, nodeadapt) ;
-   TEST(7 == (uintptr_t) tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   tree = (patriciatrie_t) patriciatrie_INIT((void*)0, emptynodeadapt) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   tree = (patriciatrie_t) patriciatrie_INIT((void*)7, nodeadapt);
+   TEST(7 == (uintptr_t) tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   tree = (patriciatrie_t) patriciatrie_INIT((void*)0, emptynodeadapt);
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
 
    // TEST init_patriciatrie, free_patriciatrie
-   tree.root = (void*)1 ;
-   init_patriciatrie(&tree, &nodeadapt) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   TEST(0 == free_patriciatrie(&tree)) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   TEST(0 == free_patriciatrie(&tree)) ; // double free
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   tree.root = (void*)1;
+   init_patriciatrie(&tree, &nodeadapt);
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   TEST(0 == free_patriciatrie(&tree));
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
+   TEST(0 == free_patriciatrie(&tree)); // double free
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
 
    // TEST free_patriciatrie: frees all nodes
-   init_patriciatrie(&tree, &nodeadapt) ;
+   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
+      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
-   TEST(0 != tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   typeadapt.freenode_count = 0 ;
-   TEST(0 == free_patriciatrie(&tree)) ;
-   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 != tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   typeadapt.freenode_count = 0;
+   TEST(0 == free_patriciatrie(&tree));
+   TEST(lengthof(nodes) == typeadapt.freenode_count);
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(1 == nodes[i].is_freed) ;
-      TEST(0 == nodes[i].node.bit_offset) ;
-      TEST(0 == nodes[i].node.left) ;
-      TEST(0 == nodes[i].node.right) ;
-      nodes[i].is_freed = 0 ;
+      TEST(1 == nodes[i].is_freed);
+      TEST(0 == nodes[i].node.bit_offset);
+      TEST(0 == nodes[i].node.left);
+      TEST(0 == nodes[i].node.right);
+      nodes[i].is_freed = 0;
    }
 
    // TEST free_patriciatrie: lifetime.delete_object set to 0
-   init_patriciatrie(&tree, &nodeadapt) ;
+   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
+      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
-   TEST(0 != tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   typeadapt.lifetime.delete_object = 0 ;
-   typeadapt.freenode_count = 0 ;
-   TEST(0 == free_patriciatrie(&tree)) ;
-   typeadapt.lifetime.delete_object = &impl_deletenode_testadapt ;
-   TEST(0 == typeadapt.freenode_count) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 != tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   typeadapt.lifetime.delete_object = 0;
+   typeadapt.freenode_count = 0;
+   TEST(0 == free_patriciatrie(&tree));
+   typeadapt.lifetime.delete_object = &impl_deletenode_testadapt;
+   TEST(0 == typeadapt.freenode_count);
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == nodes[i].is_freed) ;
-      TEST(0 == nodes[i].node.bit_offset) ;
-      TEST(0 == nodes[i].node.left) ;
-      TEST(0 == nodes[i].node.right) ;
+      TEST(0 == nodes[i].is_freed);
+      TEST(0 == nodes[i].node.bit_offset);
+      TEST(0 == nodes[i].node.left);
+      TEST(0 == nodes[i].node.right);
    }
 
    // TEST free_patriciatrie: ERROR
-   init_patriciatrie(&tree, &nodeadapt) ;
+   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
+      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
-   TEST(0 != tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   typeadapt.freenode_count = 0 ;
-   init_testerrortimer(&typeadapt.errcounter, 4, ENOENT) ;
-   TEST(ENOENT == free_patriciatrie(&tree)) ;
-   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
-   TEST(0 == tree.root) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 != tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   typeadapt.freenode_count = 0;
+   init_testerrortimer(&typeadapt.errcounter, 4, ENOENT);
+   TEST(ENOENT == free_patriciatrie(&tree));
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count);
+   TEST(0 == tree.root);
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST((i != 2) == nodes[i].is_freed) ;
-      TEST(0 == nodes[i].node.bit_offset) ;
-      TEST(0 == nodes[i].node.left) ;
-      TEST(0 == nodes[i].node.right) ;
+      TEST((i != 2) == nodes[i].is_freed);
+      TEST(0 == nodes[i].node.bit_offset);
+      TEST(0 == nodes[i].node.left);
+      TEST(0 == nodes[i].node.right);
    }
 
    // TEST getinistate_patriciatrie
-   patriciatrie_node_t * saved_root   = (void*) 1 ;
-   typeadapt_member_t saved_nodeadapt = nodeadapt ;
-   tree = (patriciatrie_t)patriciatrie_FREE ;
-   getinistate_patriciatrie(&tree, &saved_root, 0) ;
-   TEST(0 == saved_root) ;
-   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt) ;
-   TEST(0 == saved_root) ;
-   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &emptynodeadapt)) ;
-   tree = (patriciatrie_t)patriciatrie_INIT(&nodes[0].node, nodeadapt) ;
-   getinistate_patriciatrie(&tree, &saved_root, 0) ;
-   TEST(&nodes[0].node == saved_root) ;
-   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt) ;
-   TEST(&nodes[0].node == saved_root) ;
-   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &nodeadapt)) ;
+   patriciatrie_node_t * saved_root   = (void*) 1;
+   typeadapt_member_t saved_nodeadapt = nodeadapt;
+   tree = (patriciatrie_t)patriciatrie_FREE;
+   getinistate_patriciatrie(&tree, &saved_root, 0);
+   TEST(0 == saved_root);
+   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt);
+   TEST(0 == saved_root);
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &emptynodeadapt));
+   tree = (patriciatrie_t)patriciatrie_INIT(&nodes[0].node, nodeadapt);
+   getinistate_patriciatrie(&tree, &saved_root, 0);
+   TEST(&nodes[0].node == saved_root);
+   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt);
+   TEST(&nodes[0].node == saved_root);
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &nodeadapt));
 
    // TEST isempty_patriciatrie
-   tree.root = (void*)1 ;
-   TEST(0 == isempty_patriciatrie(&tree)) ;
-   tree.root = (void*)0 ;
-   TEST(1 == isempty_patriciatrie(&tree)) ;
+   tree.root = (void*)1;
+   TEST(0 == isempty_patriciatrie(&tree));
+   tree.root = (void*)0;
+   TEST(1 == isempty_patriciatrie(&tree));
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   patriciatrie_t       tree      = patriciatrie_FREE ;
-   memblock_t           memblock  = memblock_FREE ;
-   testnode_t           * nodes   = 0 ;
-   patriciatrie_node_t  * node ;
-   unsigned             nodecount ;
+   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   patriciatrie_t       tree      = patriciatrie_FREE;
+   memblock_t           memblock  = memblock_FREE;
+   testnode_t           * nodes   = 0;
+   patriciatrie_node_t  * node;
+   unsigned             nodecount;
 
    // prepare
-   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
-   nodes = (testnode_t*)memblock.addr ;
-   memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES) ;
+   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock));
+   nodes = (testnode_t*)memblock.addr;
+   memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES);
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
-      nodes[i].key_len = sizeof(nodes[i].key) ;
+      nodes[i].key_len = sizeof(nodes[i].key);
    }
 
    // TEST insert_patriciatrie: empty key (length == 0)
-   init_patriciatrie(&tree, &nodeadapt) ;
-   nodes[0].key_len = 0 ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   node = 0 ;
-   TEST(0 == find_patriciatrie(&tree, 0, 0, &node)) ;
-   TEST(&nodes[0].node == node) ;
+   init_patriciatrie(&tree, &nodeadapt);
+   nodes[0].key_len = 0;
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   node = 0;
+   TEST(0 == find_patriciatrie(&tree, 0, 0, &node));
+   TEST(&nodes[0].node == node);
    TEST(0 == removenodes_patriciatrie(&tree));
-   TEST(1 == nodes[0].is_freed) ;
-   nodes[0].key_len = sizeof(nodes[0].key) ;
-   nodes[0].is_freed = 0 ;
+   TEST(1 == nodes[0].is_freed);
+   nodes[0].key_len = sizeof(nodes[0].key);
+   nodes[0].is_freed = 0;
 
    // TEST EINVAL
-   TEST(EINVAL == find_patriciatrie(&tree, 1, 0, &node)) ;
-   TEST(EINVAL == find_patriciatrie(&tree, ((size_t)-1), nodes[0].key, &node)) ;
-   TEST(EINVAL == find_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node)) ;
-   TEST(EINVAL == remove_patriciatrie(&tree, 1, 0, &node)) ;
-   TEST(EINVAL == remove_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node)) ;
-   init_testerrortimer(&typeadapt.errcounter, 1, ENOMEM) ;
-   TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   nodes[0].key_len = ((size_t)-1)/8 ;
-   TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   nodes[0].key_len = sizeof(nodes[0].key) ;
+   TEST(EINVAL == find_patriciatrie(&tree, 1, 0, &node));
+   TEST(EINVAL == find_patriciatrie(&tree, ((size_t)-1), nodes[0].key, &node));
+   TEST(EINVAL == find_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node));
+   TEST(EINVAL == remove_patriciatrie(&tree, 1, 0, &node));
+   TEST(EINVAL == remove_patriciatrie(&tree, ((size_t)-1)/8, nodes[0].key, &node));
+   init_testerrortimer(&typeadapt.errcounter, 1, ENOMEM);
+   TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node));
+   nodes[0].key_len = ((size_t)-1)/8;
+   TEST(EINVAL == insert_patriciatrie(&tree, &nodes[0].node));
+   nodes[0].key_len = sizeof(nodes[0].key);
 
    // TEST insert_patriciatrie, removenodes_patriciatrie: special case
    /*           (0111)
@@ -950,19 +950,19 @@ static int test_insertremove(void)
     * > (0001)|
     * |__| |__|
     */
-   static_assert(sizeof(nodes[0].key) == 4, "code assumes 4 byte keys") ;
-   memcpy(nodes[0].key, (uint8_t[4]){ 0, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 0, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node)) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   static_assert(sizeof(nodes[0].key) == 4, "code assumes 4 byte keys");
+   memcpy(nodes[0].key, (uint8_t[4]){ 0, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 0, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (int i = 0; i < 4; ++i) {
-      TEST(1 == nodes[i].is_freed) ;
-      nodes[i].is_freed = 0 ;
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
    }
 
    // TEST insert_patriciatrie, removenodes_patriciatrie: special case
@@ -973,19 +973,19 @@ static int test_insertremove(void)
     * | (0011)<
     * |__| |__|
     */
-   static_assert(sizeof(nodes[0].key) == 4, "code assumes 4 byte keys") ;
-   memcpy(nodes[0].key, (uint8_t[4]){ 0, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 0, 0, 0, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node)) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   static_assert(sizeof(nodes[0].key) == 4, "code assumes 4 byte keys");
+   memcpy(nodes[0].key, (uint8_t[4]){ 0, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 0, 0, 0, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   memcpy(nodes[3].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (int i = 0; i < 4; ++i) {
-      TEST(1 == nodes[i].is_freed) ;
-      nodes[i].is_freed = 0 ;
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
    }
 
    // TEST removenodes_patriciatrie: special dual case
@@ -998,18 +998,18 @@ static int test_insertremove(void)
     *
     *
     */
-   memcpy(nodes[0].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 1, 0, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   memcpy(nodes[3].key, (uint8_t[4]){ 1, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node)) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   memcpy(nodes[0].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 1, 0, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   memcpy(nodes[3].key, (uint8_t[4]){ 1, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (int i = 0; i < 4; ++i) {
-      TEST(1 == nodes[i].is_freed) ;
-      nodes[i].is_freed = 0 ;
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
    }
 
    // TEST remove_patriciatrie: special case
@@ -1022,57 +1022,57 @@ static int test_insertremove(void)
     *                     > (1100)|
     *                     |___||__|
     */
-   assert(sizeof(nodes[0].key) == 4) ;
-   memcpy(nodes[0].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 1, 0, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   memcpy(nodes[3].key, (uint8_t[4]){ 1, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node)) ;
-   memcpy(nodes[4].key, (uint8_t[4]){ 1, 1, 0, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[4].node)) ;
-   memcpy(nodes[5].key, (uint8_t[4]){ 1, 1, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[5].node)) ;
-   TEST(tree.root == &nodes[0].node) ;
-   TEST(nodes[0].node.left == &nodes[1].node) ;
-   TEST(nodes[0].node.right == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[3].node) ;
-   TEST(nodes[2].node.right == &nodes[4].node) ;
-   TEST(nodes[4].node.left == &nodes[5].node) ;
-   TEST(nodes[4].node.right == &nodes[0].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[0].key, &node)) ;
-   TEST(tree.root == &nodes[4].node) ;
-   TEST(nodes[4].node.left == &nodes[1].node) ;
-   TEST(nodes[4].node.right == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[3].node) ;
-   TEST(nodes[2].node.right == &nodes[5].node) ;
-   TEST(nodes[5].node.left == &nodes[5].node) ;
-   TEST(nodes[5].node.right == &nodes[4].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[5].key, &node)) ;
-   TEST(tree.root == &nodes[4].node) ;
-   TEST(nodes[4].node.left == &nodes[1].node) ;
-   TEST(nodes[4].node.right == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[3].node) ;
-   TEST(nodes[2].node.right == &nodes[4].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[4].key, &node)) ;
-   TEST(tree.root == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[1].node) ;
-   TEST(nodes[2].node.right == &nodes[3].node) ;
-   TEST(nodes[3].node.left == &nodes[3].node) ;
-   TEST(nodes[3].node.right == &nodes[2].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[1].key, &node)) ;
-   TEST(tree.root == &nodes[3].node) ;
-   TEST(nodes[3].node.left == &nodes[3].node) ;
-   TEST(nodes[3].node.right == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[2].node) ;
-   TEST(nodes[2].node.right == &nodes[2].node) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
-   TEST(1 == nodes[2].is_freed) ;
-   TEST(1 == nodes[3].is_freed) ;
-   nodes[3].is_freed = 0 ;
-   nodes[2].is_freed = 0 ;
+   assert(sizeof(nodes[0].key) == 4);
+   memcpy(nodes[0].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 1, 0, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   memcpy(nodes[3].key, (uint8_t[4]){ 1, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
+   memcpy(nodes[4].key, (uint8_t[4]){ 1, 1, 0, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[4].node));
+   memcpy(nodes[5].key, (uint8_t[4]){ 1, 1, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[5].node));
+   TEST(tree.root == &nodes[0].node);
+   TEST(nodes[0].node.left == &nodes[1].node);
+   TEST(nodes[0].node.right == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[3].node);
+   TEST(nodes[2].node.right == &nodes[4].node);
+   TEST(nodes[4].node.left == &nodes[5].node);
+   TEST(nodes[4].node.right == &nodes[0].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[0].key, &node));
+   TEST(tree.root == &nodes[4].node);
+   TEST(nodes[4].node.left == &nodes[1].node);
+   TEST(nodes[4].node.right == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[3].node);
+   TEST(nodes[2].node.right == &nodes[5].node);
+   TEST(nodes[5].node.left == &nodes[5].node);
+   TEST(nodes[5].node.right == &nodes[4].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[5].key, &node));
+   TEST(tree.root == &nodes[4].node);
+   TEST(nodes[4].node.left == &nodes[1].node);
+   TEST(nodes[4].node.right == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[3].node);
+   TEST(nodes[2].node.right == &nodes[4].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[4].key, &node));
+   TEST(tree.root == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[1].node);
+   TEST(nodes[2].node.right == &nodes[3].node);
+   TEST(nodes[3].node.left == &nodes[3].node);
+   TEST(nodes[3].node.right == &nodes[2].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[1].key, &node));
+   TEST(tree.root == &nodes[3].node);
+   TEST(nodes[3].node.left == &nodes[3].node);
+   TEST(nodes[3].node.right == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[2].node);
+   TEST(nodes[2].node.right == &nodes[2].node);
+   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(1 == nodes[2].is_freed);
+   TEST(1 == nodes[3].is_freed);
+   nodes[3].is_freed = 0;
+   nodes[2].is_freed = 0;
 
    // TEST remove_patriciatrie: special dual case
    /*   ------->  (0000)
@@ -1084,324 +1084,324 @@ static int test_insertremove(void)
     *       |(0011) <
     *       |__||___|
     */
-   assert(sizeof(nodes[0].key) == 4) ;
-   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 0, 1, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   memcpy(nodes[3].key, (uint8_t[4]){ 0, 1, 1, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node)) ;
-   memcpy(nodes[4].key, (uint8_t[4]){ 0, 0, 1, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[4].node)) ;
-   memcpy(nodes[5].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[5].node)) ;
-   TEST(tree.root == &nodes[0].node) ;
-   TEST(nodes[0].node.left == &nodes[2].node) ;
-   TEST(nodes[0].node.right == &nodes[1].node) ;
-   TEST(nodes[2].node.left == &nodes[4].node) ;
-   TEST(nodes[2].node.right == &nodes[3].node) ;
-   TEST(nodes[4].node.left == &nodes[0].node) ;
-   TEST(nodes[4].node.right == &nodes[5].node) ;
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node)) ;
-   TEST(tree.root == &nodes[4].node) ;
-   TEST(nodes[4].node.left == &nodes[2].node) ;
-   TEST(nodes[4].node.right == &nodes[1].node) ;
-   TEST(nodes[2].node.left == &nodes[5].node) ;
-   TEST(nodes[2].node.right == &nodes[3].node) ;
-   TEST(nodes[5].node.left == &nodes[4].node) ;
-   TEST(nodes[5].node.right == &nodes[5].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[5].key, &node)) ;
-   TEST(tree.root == &nodes[4].node) ;
-   TEST(nodes[4].node.left == &nodes[2].node) ;
-   TEST(nodes[4].node.right == &nodes[1].node) ;
-   TEST(nodes[2].node.left == &nodes[4].node) ;
-   TEST(nodes[2].node.right == &nodes[3].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[4].key, &node)) ;
-   TEST(tree.root == &nodes[2].node) ;
-   TEST(nodes[2].node.left == &nodes[3].node) ;
-   TEST(nodes[2].node.right == &nodes[1].node) ;
-   TEST(nodes[3].node.left == &nodes[2].node) ;
-   TEST(nodes[3].node.right == &nodes[3].node) ;
-   TEST(0 == remove_patriciatrie(&tree, 4, nodes[1].key, &node)) ;
-   TEST(tree.root == &nodes[3].node) ;
-   TEST(nodes[3].node.left == &nodes[2].node) ;
-   TEST(nodes[3].node.right == &nodes[3].node) ;
-   TEST(nodes[2].node.left == &nodes[2].node) ;
-   TEST(nodes[2].node.right == &nodes[2].node) ;
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
-   TEST(1 == nodes[2].is_freed) ;
-   TEST(1 == nodes[3].is_freed) ;
-   nodes[3].is_freed = 0 ;
-   nodes[2].is_freed = 0 ;
+   assert(sizeof(nodes[0].key) == 4);
+   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 1, 1, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 0, 1, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   memcpy(nodes[3].key, (uint8_t[4]){ 0, 1, 1, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[3].node));
+   memcpy(nodes[4].key, (uint8_t[4]){ 0, 0, 1, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[4].node));
+   memcpy(nodes[5].key, (uint8_t[4]){ 0, 0, 1, 1 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[5].node));
+   TEST(tree.root == &nodes[0].node);
+   TEST(nodes[0].node.left == &nodes[2].node);
+   TEST(nodes[0].node.right == &nodes[1].node);
+   TEST(nodes[2].node.left == &nodes[4].node);
+   TEST(nodes[2].node.right == &nodes[3].node);
+   TEST(nodes[4].node.left == &nodes[0].node);
+   TEST(nodes[4].node.right == &nodes[5].node);
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node));
+   TEST(tree.root == &nodes[4].node);
+   TEST(nodes[4].node.left == &nodes[2].node);
+   TEST(nodes[4].node.right == &nodes[1].node);
+   TEST(nodes[2].node.left == &nodes[5].node);
+   TEST(nodes[2].node.right == &nodes[3].node);
+   TEST(nodes[5].node.left == &nodes[4].node);
+   TEST(nodes[5].node.right == &nodes[5].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[5].key, &node));
+   TEST(tree.root == &nodes[4].node);
+   TEST(nodes[4].node.left == &nodes[2].node);
+   TEST(nodes[4].node.right == &nodes[1].node);
+   TEST(nodes[2].node.left == &nodes[4].node);
+   TEST(nodes[2].node.right == &nodes[3].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[4].key, &node));
+   TEST(tree.root == &nodes[2].node);
+   TEST(nodes[2].node.left == &nodes[3].node);
+   TEST(nodes[2].node.right == &nodes[1].node);
+   TEST(nodes[3].node.left == &nodes[2].node);
+   TEST(nodes[3].node.right == &nodes[3].node);
+   TEST(0 == remove_patriciatrie(&tree, 4, nodes[1].key, &node));
+   TEST(tree.root == &nodes[3].node);
+   TEST(nodes[3].node.left == &nodes[2].node);
+   TEST(nodes[3].node.right == &nodes[3].node);
+   TEST(nodes[2].node.left == &nodes[2].node);
+   TEST(nodes[2].node.right == &nodes[2].node);
+   TEST(0 == removenodes_patriciatrie(&tree));
+   TEST(1 == nodes[2].is_freed);
+   TEST(1 == nodes[3].is_freed);
+   nodes[3].is_freed = 0;
+   nodes[2].is_freed = 0;
 
    // TEST insert_patriciatrie: three keys, 2nd. bit 0 differs, 3rd. bit 8 differs
-   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 255, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 255, 255, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   TEST(tree.root == &nodes[0].node) ;
-   TEST(tree.root->right == &nodes[1].node) ;
-   TEST(nodes[1].node.right == &nodes[2].node) ;
+   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 255, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 255, 255, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   TEST(tree.root == &nodes[0].node);
+   TEST(tree.root->right == &nodes[1].node);
+   TEST(nodes[1].node.right == &nodes[2].node);
 
    // TEST remove_patriciatrie
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node)) ;
-   TEST(node == &nodes[0].node) ;
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[1].key), nodes[1].key, &node)) ;
-   TEST(node == &nodes[1].node) ;
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[2].key), nodes[2].key, &node)) ;
-   TEST(node == &nodes[2].node) ;
-   TEST(0 == tree.root) ;
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node));
+   TEST(node == &nodes[0].node);
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[1].key), nodes[1].key, &node));
+   TEST(node == &nodes[1].node);
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[2].key), nodes[2].key, &node));
+   TEST(node == &nodes[2].node);
+   TEST(0 == tree.root);
 
    // TEST insert_patriciatrie: three keys, 2nd. bit 8 differs, 3rd. bit 0 differs
-   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node)) ;
-   memcpy(nodes[1].key, (uint8_t[4]){ 0, 255, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node)) ;
-   memcpy(nodes[2].key, (uint8_t[4]){ 255, 255, 0, 0 }, 4) ;
-   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node)) ;
-   TEST(tree.root == &nodes[2].node) ;
-   TEST(tree.root->left == &nodes[0].node) ;
-   TEST(nodes[0].node.right == &nodes[1].node) ;
+   memcpy(nodes[0].key, (uint8_t[4]){ 0, 0, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node));
+   memcpy(nodes[1].key, (uint8_t[4]){ 0, 255, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node));
+   memcpy(nodes[2].key, (uint8_t[4]){ 255, 255, 0, 0 }, 4);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[2].node));
+   TEST(tree.root == &nodes[2].node);
+   TEST(tree.root->left == &nodes[0].node);
+   TEST(nodes[0].node.right == &nodes[1].node);
 
    // TEST remove_patriciatrie
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[1].key), nodes[1].key, &node)) ;
-   TEST(node == &nodes[1].node) ;
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node)) ;
-   TEST(node == &nodes[0].node) ;
-   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[2].key), nodes[2].key, &node)) ;
-   TEST(node == &nodes[2].node) ;
-   TEST(0 == tree.root) ;
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[1].key), nodes[1].key, &node));
+   TEST(node == &nodes[1].node);
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[0].key), nodes[0].key, &node));
+   TEST(node == &nodes[0].node);
+   TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[2].key), nodes[2].key, &node));
+   TEST(node == &nodes[2].node);
+   TEST(0 == tree.root);
 
    // TEST insert_patriciatrie, removenodes_patriciatrie
-   nodecount = 0 ;
+   nodecount = 0;
    for (int i1 = 0; i1 < 4; ++i1)
       for (int i2 = 0; i2 < 4; ++i2)
          for (int i3 = 0; i3 < 4; ++i3)
             for (int i4 = 0; i4 < 4; ++i4) {
-               uint8_t key[sizeof(nodes[nodecount].key)] = { (uint8_t)i1, (uint8_t)i2, (uint8_t)i3, (uint8_t)i4  } ;
-               memcpy(nodes[nodecount].key, key, sizeof(nodes[nodecount].key)) ;
-               TEST(0 == insert_patriciatrie(&tree, &nodes[nodecount].node)) ;
-               ++ nodecount ;
+               uint8_t key[sizeof(nodes[nodecount].key)] = { (uint8_t)i1, (uint8_t)i2, (uint8_t)i3, (uint8_t)i4  };
+               memcpy(nodes[nodecount].key, key, sizeof(nodes[nodecount].key));
+               TEST(0 == insert_patriciatrie(&tree, &nodes[nodecount].node));
+               ++ nodecount;
             }
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (unsigned i = 0; i < nodecount; ++i) {
-      TEST(1 == nodes[i].is_freed) ;
-      nodes[i].is_freed = 0 ;
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
    }
 
    // TEST insert_patriciatrie, find_patriciatrie, removenodes_patriciatrie: EEXIST
-   nodecount = 0 ;
+   nodecount = 0;
    for (int i1 = 0; i1 < 4; ++i1)
       for (int i2 = 0; i2 < 4; ++i2)
          for (int i3 = 0; i3 < 4; ++i3)
             for (int i4 = 0; i4 < 4; ++i4) {
-               uint8_t key[sizeof(nodes[0].key)] = { (uint8_t)i1, (uint8_t)i2, (uint8_t)i3, (uint8_t)i4  } ;
-               memcpy(nodes[nodecount].key, key, sizeof(key)) ;
-               TEST(0 == insert_patriciatrie(&tree, &nodes[nodecount].node)) ;
-               TEST(EEXIST == insert_patriciatrie(&tree, &nodes[nodecount].node)) ;
-               testnode_t nodecopy = { .key_len = sizeof(key) } ;
-               memcpy(nodecopy.key, key, sizeof(key)) ;
-               TEST(EEXIST == insert_patriciatrie(&tree, &nodecopy.node)) ;
-               TEST(0 == find_patriciatrie(&tree, sizeof(key), key, &node)) ;
-               TEST(&nodes[nodecount].node == node) ;
-               TEST(!nodes[nodecount].is_freed) ;
-               ++ nodecount ;
+               uint8_t key[sizeof(nodes[0].key)] = { (uint8_t)i1, (uint8_t)i2, (uint8_t)i3, (uint8_t)i4  };
+               memcpy(nodes[nodecount].key, key, sizeof(key));
+               TEST(0 == insert_patriciatrie(&tree, &nodes[nodecount].node));
+               TEST(EEXIST == insert_patriciatrie(&tree, &nodes[nodecount].node));
+               testnode_t nodecopy = { .key_len = sizeof(key) };
+               memcpy(nodecopy.key, key, sizeof(key));
+               TEST(EEXIST == insert_patriciatrie(&tree, &nodecopy.node));
+               TEST(0 == find_patriciatrie(&tree, sizeof(key), key, &node));
+               TEST(&nodes[nodecount].node == node);
+               TEST(!nodes[nodecount].is_freed);
+               ++ nodecount;
             }
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       if (i < nodecount) {
-         TEST(nodes[i].is_freed) ;
-         nodes[i].is_freed = 0 ;
+         TEST(nodes[i].is_freed);
+         nodes[i].is_freed = 0;
       }
-      TEST(0 == nodes[i].is_freed) ;
+      TEST(0 == nodes[i].is_freed);
    }
 
    // TEST insert_patriciatrie, remove_patriciatrie
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
-      uint32_t key = (uint32_t)i ;
-      assert(sizeof(nodes[i].key) == sizeof(key)) ;
-      memcpy(nodes[i].key, &key, sizeof(key)) ;
-      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
+      uint32_t key = (uint32_t)i;
+      assert(sizeof(nodes[i].key) == sizeof(key));
+      memcpy(nodes[i].key, &key, sizeof(key));
+      TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
-      uint32_t key = (uint32_t)(MAX_TREE_NODES-1-i) ;
-      TEST(0 == remove_patriciatrie(&tree, sizeof(key), (uint8_t*)&key, &node)) ;
-      TEST(node == &nodes[MAX_TREE_NODES-1-i].node) ;
-      TEST(!nodes[MAX_TREE_NODES-1-i].is_freed) ;
+      uint32_t key = (uint32_t)(MAX_TREE_NODES-1-i);
+      TEST(0 == remove_patriciatrie(&tree, sizeof(key), (uint8_t*)&key, &node));
+      TEST(node == &nodes[MAX_TREE_NODES-1-i].node);
+      TEST(!nodes[MAX_TREE_NODES-1-i].is_freed);
    }
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
-      TEST(0 == nodes[i].is_freed) ;
+      TEST(0 == nodes[i].is_freed);
    }
 
    // TEST insert_patriciatrie, remove_patriciatrie: random
    for (int i = 0; i < MAX_TREE_NODES; ++i) {
-      assert(sizeof(nodes[i].key) == 4) ;
-      nodes[i].is_freed = 0 ;
-      nodes[i].is_used = 0 ;
-      nodes[i].key[0] = (uint8_t)((i/1000) % 10) ;
-      nodes[i].key[1] = (uint8_t)((i/100) % 10) ;
-      nodes[i].key[2] = (uint8_t)((i/10) % 10) ;
-      nodes[i].key[3] = (uint8_t)((i/1) % 10) ;
+      assert(sizeof(nodes[i].key) == 4);
+      nodes[i].is_freed = 0;
+      nodes[i].is_used = 0;
+      nodes[i].key[0] = (uint8_t)((i/1000) % 10);
+      nodes[i].key[1] = (uint8_t)((i/100) % 10);
+      nodes[i].key[2] = (uint8_t)((i/10) % 10);
+      nodes[i].key[3] = (uint8_t)((i/1) % 10);
    }
-   srand(100) ;
+   srand(100);
    for (int i = 0; i < 10*MAX_TREE_NODES; ++i) {
-      int id = rand() % MAX_TREE_NODES ;
-      assert(id >= 0 && id < MAX_TREE_NODES) ;
+      int id = rand() % MAX_TREE_NODES;
+      assert(id >= 0 && id < MAX_TREE_NODES);
       if (nodes[id].is_used) {
-         nodes[id].is_used = 0 ;
-         TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node)) ;
-         TEST(&nodes[id].node == node) ;
-         TEST(ESRCH == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node)) ;
+         nodes[id].is_used = 0;
+         TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node));
+         TEST(&nodes[id].node == node);
+         TEST(ESRCH == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node));
       } else {
-         nodes[id].is_used = 1 ;
-         TEST(0 == insert_patriciatrie(&tree, &nodes[id].node)) ;
-         TEST(0 == find_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node)) ;
-         TEST(&nodes[id].node == node) ;
-         TEST(EEXIST == insert_patriciatrie(&tree, &nodes[id].node)) ;
+         nodes[id].is_used = 1;
+         TEST(0 == insert_patriciatrie(&tree, &nodes[id].node));
+         TEST(0 == find_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &node));
+         TEST(&nodes[id].node == node);
+         TEST(EEXIST == insert_patriciatrie(&tree, &nodes[id].node));
       }
    }
-   removenodes_patriciatrie(&tree) ;
+   removenodes_patriciatrie(&tree);
    for (int i = 0; i < MAX_TREE_NODES; ++i) {
       if (nodes[i].is_freed) {
-         TEST(nodes[i].is_used) ;
-         nodes[i].is_used = 0 ;
-         nodes[i].is_freed = 0 ;
+         TEST(nodes[i].is_used);
+         nodes[i].is_used = 0;
+         nodes[i].is_freed = 0;
       }
-      TEST(! nodes[i].is_used) ;
+      TEST(! nodes[i].is_used);
    }
 
    // unprepare
-   TEST(0 == FREE_MM(&memblock)) ;
-   nodes = 0 ;
+   TEST(0 == FREE_MM(&memblock));
+   nodes = 0;
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) FREE_MM(&memblock) ;
-   return EINVAL ;
+   (void) FREE_MM(&memblock);
+   return EINVAL;
 }
 
 static int test_iterator(void)
 {
-   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   patriciatrie_t             tree      = patriciatrie_FREE ;
-   memblock_t                 memblock  = memblock_FREE ;
-   testnode_t                 * nodes   = 0 ;
-   patriciatrie_iterator_t    iter      = patriciatrie_iterator_FREE ;
-   patriciatrie_prefixiter_t  preiter   = patriciatrie_prefixiter_FREE ;
-   patriciatrie_node_t        * found_node ;
+   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
+   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   patriciatrie_t             tree      = patriciatrie_FREE;
+   memblock_t                 memblock  = memblock_FREE;
+   testnode_t                 * nodes   = 0;
+   patriciatrie_iterator_t    iter      = patriciatrie_iterator_FREE;
+   patriciatrie_prefixiter_t  preiter   = patriciatrie_prefixiter_FREE;
+   patriciatrie_node_t        * found_node;
 
    // prepare
-   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
-   nodes = (testnode_t*)memblock.addr ;
-   memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES) ;
-   init_patriciatrie(&tree, &nodeadapt) ;
+   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock));
+   nodes = (testnode_t*)memblock.addr;
+   memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES);
+   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
-      static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4") ;
-      nodes[i].key_len = sizeof(nodes[i].key) ;
-      nodes[i].key[0] = (uint8_t)((i/1000) % 10) ;
-      nodes[i].key[1] = (uint8_t)((i/100) % 10) ;
-      nodes[i].key[2] = (uint8_t)((i/10) % 10) ;
-      nodes[i].key[3] = (uint8_t)((i/1) % 10) ;
+      static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4");
+      nodes[i].key_len = sizeof(nodes[i].key);
+      nodes[i].key[0] = (uint8_t)((i/1000) % 10);
+      nodes[i].key[1] = (uint8_t)((i/100) % 10);
+      nodes[i].key[2] = (uint8_t)((i/10) % 10);
+      nodes[i].key[3] = (uint8_t)((i/1) % 10);
    }
 
    // TEST patriciatrie_iterator_FREE
-   TEST(0 == iter.next) ;
-   TEST(0 == iter.tree) ;
+   TEST(0 == iter.next);
+   TEST(0 == iter.tree);
 
    // TEST initfirst_patriciatrieiterator: empty tree
-   iter.next = (void*)1 ;
-   iter.tree = 0 ;
-   TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
-   TEST(iter.next == 0) ;
-   TEST(iter.tree == &tree) ;
+   iter.next = (void*)1;
+   iter.tree = 0;
+   TEST(0 == initfirst_patriciatrieiterator(&iter, &tree));
+   TEST(iter.next == 0);
+   TEST(iter.tree == &tree);
 
    // TEST initlast_patriciatrieiterator: empty tree
-   iter.next = (void*)1 ;
-   iter.tree = 0 ;
-   TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
-   TEST(iter.next == 0) ;
-   TEST(iter.tree == &tree) ;
+   iter.next = (void*)1;
+   iter.tree = 0;
+   TEST(0 == initlast_patriciatrieiterator(&iter, &tree));
+   TEST(iter.next == 0);
+   TEST(iter.tree == &tree);
 
    // TEST next_patriciatrieiterator: empty tree
-   TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == next_patriciatrieiterator(&iter, 0/*not used*/)) ;
+   TEST(0 == initfirst_patriciatrieiterator(&iter, &tree));
+   TEST(0 == next_patriciatrieiterator(&iter, 0/*not used*/));
 
    // TEST prev_patriciatrieiterator: empty tree
-   TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == prev_patriciatrieiterator(&iter, 0/*not used*/)) ;
+   TEST(0 == initlast_patriciatrieiterator(&iter, &tree));
+   TEST(0 == prev_patriciatrieiterator(&iter, 0/*not used*/));
 
    // TEST free_patriciatrieiterator
-   iter.next = (void*)1 ;
-   iter.tree = &tree ;
-   TEST(0 == free_patriciatrieiterator(&iter)) ;
-   TEST(0 == iter.next) ;
-   TEST(0 != iter.tree) ;
+   iter.next = (void*)1;
+   iter.tree = &tree;
+   TEST(0 == free_patriciatrieiterator(&iter));
+   TEST(0 == iter.next);
+   TEST(0 != iter.tree);
 
    // TEST patriciatrie_prefixiter_FREE
-   TEST(0 == preiter.next) ;
-   TEST(0 == preiter.tree) ;
-   TEST(0 == preiter.prefix_bits) ;
+   TEST(0 == preiter.next);
+   TEST(0 == preiter.tree);
+   TEST(0 == preiter.prefix_bits);
 
    // TEST initfirst_patriciatrieprefixiter: empty tree
-   preiter.next = (void*)1 ;
-   preiter.tree = 0 ;
-   preiter.prefix_bits = 1 ;
-   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0)) ;
-   TEST(preiter.next        == 0) ;
-   TEST(preiter.tree        == &tree) ;
-   TEST(preiter.prefix_bits == 0) ;
+   preiter.next = (void*)1;
+   preiter.tree = 0;
+   preiter.prefix_bits = 1;
+   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0));
+   TEST(preiter.next        == 0);
+   TEST(preiter.tree        == &tree);
+   TEST(preiter.prefix_bits == 0);
 
    // TEST next_patriciatrieprefixiter: empty tree
-   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0)) ;
-   TEST(0 == next_patriciatrieprefixiter(&preiter, 0/*not used*/)) ;
+   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0));
+   TEST(0 == next_patriciatrieprefixiter(&preiter, 0/*not used*/));
 
    // TEST free_patriciatrieprefixiter
-   preiter.next = (void*)1 ;
-   preiter.tree = &tree ;
-   preiter.prefix_bits = 1 ;
-   TEST(0 == free_patriciatrieprefixiter(&preiter)) ;
-   TEST(0 == preiter.next) ;
-   TEST(0 != preiter.tree) ;
-   TEST(0 != preiter.prefix_bits) ;
+   preiter.next = (void*)1;
+   preiter.tree = &tree;
+   preiter.prefix_bits = 1;
+   TEST(0 == free_patriciatrieprefixiter(&preiter));
+   TEST(0 == preiter.next);
+   TEST(0 != preiter.tree);
+   TEST(0 != preiter.prefix_bits);
 
    // TEST both iterator
-   srand(400) ;
+   srand(400);
    for (unsigned test = 0; test < 20; ++test) {
-      typeadapt.getbinkey_count = 0 ;
+      typeadapt.getbinkey_count = 0;
       for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
          int id = rand() % MAX_TREE_NODES;
          if (nodes[id].is_used) {
-            nodes[id].is_used = 0 ;
-            patriciatrie_node_t * removed_node ;
-            TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &removed_node)) ;
+            nodes[id].is_used = 0;
+            patriciatrie_node_t * removed_node;
+            TEST(0 == remove_patriciatrie(&tree, sizeof(nodes[id].key), nodes[id].key, &removed_node));
          } else {
-            nodes[id].is_used = 1 ;
-            TEST(0 == insert_patriciatrie(&tree, &nodes[id].node)) ;
+            nodes[id].is_used = 1;
+            TEST(0 == insert_patriciatrie(&tree, &nodes[id].node));
          }
       }
-      TEST(typeadapt.getbinkey_count > MAX_TREE_NODES) ;
-      TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
+      TEST(typeadapt.getbinkey_count > MAX_TREE_NODES);
+      TEST(0 == initfirst_patriciatrieiterator(&iter, &tree));
       for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
          if (! (i % 10)) {
-            TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, sizeof(nodes[i].key)-1, nodes[i].key)) ;
+            TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, sizeof(nodes[i].key)-1, nodes[i].key));
          }
          if (nodes[i].is_used) {
-            TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
-            TEST(found_node == &nodes[i].node) ;
-            TEST(1 == next_patriciatrieiterator(&iter, &found_node)) ;
-            TEST(found_node == &nodes[i].node) ;
+            TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node));
+            TEST(found_node == &nodes[i].node);
+            TEST(1 == next_patriciatrieiterator(&iter, &found_node));
+            TEST(found_node == &nodes[i].node);
          }
       }
-      found_node = (void*)1 ;
-      TEST(false == next_patriciatrieiterator(&iter, &found_node)) ;
-      TEST(found_node == (void*)1/*not changed*/) ;
-      TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
+      found_node = (void*)1;
+      TEST(false == next_patriciatrieiterator(&iter, &found_node));
+      TEST(found_node == (void*)1/*not changed*/);
+      TEST(0 == initlast_patriciatrieiterator(&iter, &tree));
       for (unsigned i = MAX_TREE_NODES-1; i < MAX_TREE_NODES; --i) {
          if (nodes[i].is_used) {
             TEST(1 == prev_patriciatrieiterator(&iter, &found_node));
@@ -1409,11 +1409,11 @@ static int test_iterator(void)
          }
       }
       found_node = (void*)1;
-      TEST(false == prev_patriciatrieiterator(&iter, &found_node)) ;
-      TEST(found_node == (void*)1/*not changed*/) ;
+      TEST(false == prev_patriciatrieiterator(&iter, &found_node));
+      TEST(found_node == (void*)1/*not changed*/);
    }
 
-   TEST(0 == removenodes_patriciatrie(&tree)) ;
+   TEST(0 == removenodes_patriciatrie(&tree));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       if (nodes[i].is_freed) {
          TEST(nodes[i].is_used);
@@ -1433,23 +1433,23 @@ static int test_iterator(void)
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node));
    }
-   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 1, nodes[0].key)) ;
+   TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 1, nodes[0].key));
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node));
       TEST(found_node == &nodes[i].node);
    }
    found_node = (void*)1;
-   TEST(false == next_patriciatrieprefixiter(&preiter, &found_node)) ;
-   TEST(found_node == (void*)1/*not changed*/) ;
+   TEST(false == next_patriciatrieprefixiter(&preiter, &found_node));
+   TEST(found_node == (void*)1/*not changed*/);
    for (unsigned i = 0; i < MAX_TREE_NODES-255; i += 256) {
-      TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 2, nodes[i].key)) ;
+      TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 2, nodes[i].key));
       for (unsigned g = 0; g <= 255; ++g) {
-         TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
-         TEST(found_node == &nodes[i+g].node) ;
+         TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node));
+         TEST(found_node == &nodes[i+g].node);
       }
-      found_node = (void*)1 ;
-      TEST(false == next_patriciatrieprefixiter(&preiter, &found_node)) ;
-      TEST(found_node == (void*)1/*not changed*/) ;
+      found_node = (void*)1;
+      TEST(false == next_patriciatrieprefixiter(&preiter, &found_node));
+      TEST(found_node == (void*)1/*not changed*/);
    }
 
    // unprepare
@@ -1466,109 +1466,109 @@ patriciatrie_IMPLEMENT(_testtree, testnode_t, node)
 
 static int test_generic(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 } ;
-   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
-   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE ;
-   patriciatrie_t          tree = patriciatrie_FREE ;
-   testnode_t              nodes[50] ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_FREE, 0, 0 };
+   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(cast_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node));
+   typeadapt_member_t emptynodeadapt = typeadapt_member_FREE;
+   patriciatrie_t          tree = patriciatrie_FREE;
+   testnode_t              nodes[50];
 
    // prepare
-   memset(nodes, 0, sizeof(nodes)) ;
-   init_patriciatrie(&tree, &nodeadapt) ;
+   memset(nodes, 0, sizeof(nodes));
+   init_patriciatrie(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4") ;
-      nodes[i].key_len = sizeof(nodes[i].key) ;
-      nodes[i].key[0] = (uint8_t)((i/1000) % 10) ;
-      nodes[i].key[1] = (uint8_t)((i/100) % 10) ;
-      nodes[i].key[2] = (uint8_t)((i/10) % 10) ;
-      nodes[i].key[3] = (uint8_t)((i/1) % 10) ;
+      static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4");
+      nodes[i].key_len = sizeof(nodes[i].key);
+      nodes[i].key[0] = (uint8_t)((i/1000) % 10);
+      nodes[i].key[1] = (uint8_t)((i/100) % 10);
+      nodes[i].key[2] = (uint8_t)((i/10) % 10);
+      nodes[i].key[3] = (uint8_t)((i/1) % 10);
    }
 
    // TEST init_patriciatrie, free_patriciatrie
-   tree.root = (void*)1 ;
-   init_testtree(&tree, &nodeadapt) ;
-   TEST(0 == tree.root) ;
-   TEST(isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
-   init_testtree(&tree, &nodeadapt) ;
-   TEST(0 == free_testtree(&tree)) ;
-   TEST(isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   tree.root = (void*)1;
+   init_testtree(&tree, &nodeadapt);
+   TEST(0 == tree.root);
+   TEST(isequal_typeadaptmember(&tree.nodeadp, &nodeadapt));
+   init_testtree(&tree, &nodeadapt);
+   TEST(0 == free_testtree(&tree));
+   TEST(isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
 
    // TEST getinistate_patriciatrie
-   testnode_t         * root     = 0 ;
-   typeadapt_member_t nodeadapt2 = typeadapt_member_FREE ;
-   init_testtree(&tree, &nodeadapt) ;
-   tree.root = &nodes[10].node ;
-   getinistate_testtree(&tree, &root, &nodeadapt2) ;
-   TEST(&nodes[10] == root) ;
-   TEST(isequal_typeadaptmember(&nodeadapt2, &nodeadapt)) ;
-   tree = (patriciatrie_t) patriciatrie_FREE ;
-   nodeadapt2 = nodeadapt ;
-   getinistate_testtree(&tree, &root, &nodeadapt2) ;
-   TEST(0 == root) ;
-   TEST(isequal_typeadaptmember(&nodeadapt2, &emptynodeadapt)) ;
+   testnode_t         * root     = 0;
+   typeadapt_member_t nodeadapt2 = typeadapt_member_FREE;
+   init_testtree(&tree, &nodeadapt);
+   tree.root = &nodes[10].node;
+   getinistate_testtree(&tree, &root, &nodeadapt2);
+   TEST(&nodes[10] == root);
+   TEST(isequal_typeadaptmember(&nodeadapt2, &nodeadapt));
+   tree = (patriciatrie_t) patriciatrie_FREE;
+   nodeadapt2 = nodeadapt;
+   getinistate_testtree(&tree, &root, &nodeadapt2);
+   TEST(0 == root);
+   TEST(isequal_typeadaptmember(&nodeadapt2, &emptynodeadapt));
 
    // TEST isempty_patriciatrie
-   tree.root = (void*)1 ;
-   TEST(0 == isempty_testtree(&tree)) ;
-   tree.root = (void*)0 ;
-   TEST(1 == isempty_testtree(&tree)) ;
+   tree.root = (void*)1;
+   TEST(0 == isempty_testtree(&tree));
+   tree.root = (void*)0;
+   TEST(1 == isempty_testtree(&tree));
 
    // TEST insert_patriciatrie, find_patriciatrie, remove_patriciatrie
-   init_testtree(&tree, &nodeadapt) ;
+   init_testtree(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      testnode_t * found_node = 0 ;
-      TEST(0 == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &found_node)) ;
-      TEST(found_node == &nodes[i]) ;
+      testnode_t * found_node = 0;
+      TEST(0 == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &found_node));
+      TEST(found_node == &nodes[i]);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      testnode_t * removed_node = 0 ;
-      TEST(0 == remove_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node)) ;
-      TEST(removed_node == &nodes[i]) ;
-      TEST(ESRCH == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node)) ;
+      testnode_t * removed_node = 0;
+      TEST(0 == remove_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node));
+      TEST(removed_node == &nodes[i]);
+      TEST(ESRCH == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node));
    }
 
    // TEST removenodes_patriciatrie, free_patriciatrie
-   init_testtree(&tree, &nodeadapt) ;
+   init_testtree(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
-   TEST(0 == removenodes_testtree(&tree)) ;
-   TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 == removenodes_testtree(&tree));
+   TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(1 == nodes[i].is_freed) ;
+      TEST(1 == nodes[i].is_freed);
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
-   TEST(0 == free_testtree(&tree)) ;
-   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   TEST(0 == free_testtree(&tree));
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(2 == nodes[i].is_freed) ;
+      TEST(2 == nodes[i].is_freed);
    }
 
    // TEST foreach, foreachReverse
-   init_testtree(&tree, &nodeadapt) ;
+   init_testtree(&tree, &nodeadapt);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i]));
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, node, &tree) {
-         TEST(node == &nodes[i++]) ;
+         TEST(node == &nodes[i++]);
       }
-      TEST(i == lengthof(nodes)) ;
+      TEST(i == lengthof(nodes));
 
       foreachReverse (_testtree, node, &tree) {
-         TEST(node == &nodes[--i]) ;
+         TEST(node == &nodes[--i]);
       }
-      TEST(i == 0) ;
+      TEST(i == 0);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_ds_inmem_patriciatrie()
@@ -1579,9 +1579,9 @@ int unittest_ds_inmem_patriciatrie()
    if (test_iterator())          goto ONERR;
    if (test_generic())           goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

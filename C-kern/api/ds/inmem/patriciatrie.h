@@ -26,21 +26,10 @@
 
 #include "C-kern/api/ds/inmem/node/patriciatrie_node.h"
 
-// forward
-
-
-/* typedef: struct patriciatrie_t
- * Exports <patriciatrie_t> into global namespace. */
-typedef struct patriciatrie_t             patriciatrie_t ;
-
-/* typedef: struct patriciatrie_iterator_t
- * Exports <patriciatrie_iterator_t> into global namespace. */
-typedef struct patriciatrie_iterator_t    patriciatrie_iterator_t ;
-
-/* typedef: struct patriciatrie_prefixiter_t
- * Exports <patriciatrie_prefixiter_t> into global namespace. */
-typedef struct patriciatrie_prefixiter_t  patriciatrie_prefixiter_t ;
-
+// === exported types
+struct patriciatrie_t;
+struct patriciatrie_iterator_t;
+struct patriciatrie_prefixiter_t;
 
 
 // section: Functions
@@ -50,7 +39,7 @@ typedef struct patriciatrie_prefixiter_t  patriciatrie_prefixiter_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_patriciatrie
  * Tests implementation of <patriciatrie_t>. */
-int unittest_ds_inmem_patriciatrie(void) ;
+int unittest_ds_inmem_patriciatrie(void);
 #endif
 
 
@@ -83,10 +72,10 @@ int unittest_ds_inmem_patriciatrie(void) ;
  * strings are large (i.e. strlen >> log n) other algorithms like trees or hash tables has
  * a best effort of at least O(strlen).
  * */
-struct patriciatrie_t {
-   patriciatrie_node_t  * root ;
-   typeadapt_member_t   nodeadp ;
-} ;
+typedef struct patriciatrie_t {
+   patriciatrie_node_t  * root;
+   typeadapt_member_t   nodeadp;
+} patriciatrie_t;
 
 // group: lifetime
 
@@ -105,37 +94,37 @@ struct patriciatrie_t {
  * Inits an empty tree object.
  * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
  * So do not delete <typeadapt_t> as long as this object lives. */
-void init_patriciatrie(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) ;
+void init_patriciatrie(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp);
 
 /* function: free_patriciatrie
  * Frees all resources. Calling it twice is safe. */
-int free_patriciatrie(patriciatrie_t * tree) ;
+int free_patriciatrie(patriciatrie_t * tree);
 
 // group: query
 
 /* function: getinistate_patriciatrie
  * Returns the current state of <patriciatrie_t> for later use in <patriciatrie_INIT>. */
-static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/patriciatrie_node_t ** root, /*out*/typeadapt_member_t * nodeadp/*0=>ignored*/) ;
+static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/patriciatrie_node_t ** root, /*out*/typeadapt_member_t * nodeadp/*0=>ignored*/);
 
 /* function: isempty_patriciatrie
  * Returns true if tree contains no elements. */
-bool isempty_patriciatrie(const patriciatrie_t * tree) ;
+bool isempty_patriciatrie(const patriciatrie_t * tree);
 
 // group: foreach-support
 
 /* typedef: iteratortype_patriciatrie
  * Declaration to associate <patriciatrie_iterator_t> with <patriciatrie_t>. */
-typedef patriciatrie_iterator_t      iteratortype_patriciatrie ;
+typedef struct patriciatrie_iterator_t iteratortype_patriciatrie;
 
 /* typedef: iteratedtype_patriciatrie
  * Declaration to associate <patriciatrie_node_t> with <patriciatrie_t>. */
-typedef patriciatrie_node_t       *  iteratedtype_patriciatrie ;
+typedef patriciatrie_node_t       *  iteratedtype_patriciatrie;
 
 // group: search
 
 /* function: find_patriciatrie
  * Searches for a node with equal key. If it exists it is returned in found_node else ESRCH is returned. */
-int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/patriciatrie_node_t ** found_node) ;
+int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/patriciatrie_node_t ** found_node);
 
 // group: change
 
@@ -143,17 +132,17 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
  * Inserts a new node into the tree only if it is unique.
  * If another node exists with the same key nothing is inserted and the function returns EEXIST.
  * The caller has to allocate the new node and has to transfer ownership. */
-int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode) ;
+int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode);
 
 /* function: remove_patriciatrie
  * Removes a node if its key equals searchkey.
  * The removed node is not freed but a pointer to it is returned in *removed_node* to the caller.
  * ESRCH is returned if no node with searchkey exists. */
-int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** removed_node) ;
+int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** removed_node);
 
 /* function: removenodes_patriciatrie
  * Removes all nodes from the tree. For every removed node <typeadapt_lifetime_it.delete_object> is called. */
-int removenodes_patriciatrie(patriciatrie_t * tree) ;
+int removenodes_patriciatrie(patriciatrie_t * tree);
 
 // group: generic
 
@@ -166,17 +155,17 @@ int removenodes_patriciatrie(patriciatrie_t * tree) ;
  *             The object must contain a field of type <patriciatrie_node_t>.
  * nodename  - The access path of the field <patriciatrie_node_t> in type object_t.
  * */
-void patriciatrie_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
+void patriciatrie_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename);
 
 
 
 /* struct: patriciatrie_iterator_t
  * Iterates over elements contained in <patriciatrie_t>.
  * The iterator supports removing or deleting of the current node. */
-struct patriciatrie_iterator_t {
-   patriciatrie_node_t * next ;
-   patriciatrie_t      * tree ;
-} ;
+typedef struct patriciatrie_iterator_t {
+   patriciatrie_node_t * next;
+   patriciatrie_t      * tree;
+} patriciatrie_iterator_t;
 
 // group: lifetime
 
@@ -186,15 +175,15 @@ struct patriciatrie_iterator_t {
 
 /* function: initfirst_patriciatrieiterator
  * Initializes an iterator for <patriciatrie_t>. */
-int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree) ;
+int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree);
 
 /* function: initlast_patriciatrieiterator
  * Initializes an iterator of <patriciatrie_t>. */
-int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree) ;
+int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree);
 
 /* function: free_patriciatrieiterator
  * Frees an iterator of <patriciatrie_t>. */
-int free_patriciatrieiterator(patriciatrie_iterator_t * iter) ;
+int free_patriciatrieiterator(patriciatrie_iterator_t * iter);
 
 // group: iterate
 
@@ -202,23 +191,23 @@ int free_patriciatrieiterator(patriciatrie_iterator_t * iter) ;
  * Returns next node of tree in ascending order.
  * The first call after <initfirst_patriciatrieiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node) ;
+bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node);
 
 /* function: prev_patriciatrieiterator
  * Returns next node of tree in descending order.
  * The first call after <initlast_patriciatrieiterator> returns the node with the highest key.
  * In case no previous node exists false is returned and parameter node is not changed. */
-bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node) ;
+bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node);
 
 
 /* struct: patriciatrie_prefixiter_t
  * Iterates over elements contained in <patriciatrie_t>.
  * The iterator supports removing or deleting of the current node. */
-struct patriciatrie_prefixiter_t {
-   patriciatrie_node_t* next ;
-   patriciatrie_t     * tree ;
-   size_t               prefix_bits ;
-} ;
+typedef struct patriciatrie_prefixiter_t {
+   patriciatrie_node_t* next;
+   patriciatrie_t     * tree;
+   size_t               prefix_bits;
+} patriciatrie_prefixiter_t;
 
 // group: lifetime
 
@@ -229,11 +218,11 @@ struct patriciatrie_prefixiter_t {
 
 /* function: initfirst_patriciatrieprefixiter
  * Initializes an iterator for <patriciatrie_t> for nodes with prefix *prefixkey*. */
-int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, patriciatrie_t * tree, size_t keylength, const uint8_t prefixkey[keylength]) ;
+int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, patriciatrie_t * tree, size_t keylength, const uint8_t prefixkey[keylength]);
 
 /* function: free_patriciatrieprefixiter
  * Frees an prefix iterator of <patriciatrie_t>. */
-int free_patriciatrieprefixiter(patriciatrie_iterator_t * iter) ;
+int free_patriciatrieprefixiter(patriciatrie_iterator_t * iter);
 
 // group: iterate
 
@@ -241,7 +230,7 @@ int free_patriciatrieprefixiter(patriciatrie_iterator_t * iter) ;
  * Returns next node with a certain prefix in ascending order.
  * The first call after <initfirst_patriciatrieprefixiter> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patriciatrie_node_t ** node) ;
+bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patriciatrie_node_t ** node);
 
 
 // section: inline implementation
@@ -260,8 +249,8 @@ bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patric
  * Implements <patriciatrie_t.getinistate_patriciatrie>. */
 static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/patriciatrie_node_t ** root, /*out*/typeadapt_member_t * nodeadp)
 {
-   *root = tree->root ;
-   if (0 != nodeadp) *nodeadp = tree->nodeadp ;
+   *root = tree->root;
+   if (0 != nodeadp) *nodeadp = tree->nodeadp;
 }
 
 /* define: init_patriciatrie
@@ -275,79 +264,79 @@ static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/
 /* define: patriciatrie_IMPLEMENT
  * Implements <patriciatrie_t.patriciatrie_IMPLEMENT>. */
 #define patriciatrie_IMPLEMENT(_fsuffix, object_t, nodename)   \
-   typedef patriciatrie_iterator_t  iteratortype##_fsuffix ;   \
-   typedef object_t              *  iteratedtype##_fsuffix ;   \
-   static inline int  initfirst##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)) ;   \
-   static inline int  initlast##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)) ;    \
-   static inline int  free##_fsuffix##iterator(patriciatrie_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline bool prev##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline void init##_fsuffix(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix(patriciatrie_t * tree) __attribute__ ((always_inline)) ; \
-   static inline void getinistate##_fsuffix(const patriciatrie_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline bool isempty##_fsuffix(const patriciatrie_t * tree) __attribute__ ((always_inline)) ; \
-   static inline int  find##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(patriciatrie_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
-   static inline int  removenodes##_fsuffix(patriciatrie_t * tree) __attribute__ ((always_inline)) ; \
+   typedef patriciatrie_iterator_t  iteratortype##_fsuffix;    \
+   typedef object_t              *  iteratedtype##_fsuffix;    \
+   static inline int  initfirst##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)); \
+   static inline int  initlast##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)); \
+   static inline int  free##_fsuffix##iterator(patriciatrie_iterator_t * iter) __attribute__ ((always_inline)); \
+   static inline bool next##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)); \
+   static inline bool prev##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)); \
+   static inline void init##_fsuffix(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)); \
+   static inline int  free##_fsuffix(patriciatrie_t * tree) __attribute__ ((always_inline)); \
+   static inline void getinistate##_fsuffix(const patriciatrie_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)); \
+   static inline bool isempty##_fsuffix(const patriciatrie_t * tree) __attribute__ ((always_inline)); \
+   static inline int  find##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** found_node) __attribute__ ((always_inline)); \
+   static inline int  insert##_fsuffix(patriciatrie_t * tree, object_t * new_node) __attribute__ ((always_inline)); \
+   static inline int  remove##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) __attribute__ ((always_inline)); \
+   static inline int  removenodes##_fsuffix(patriciatrie_t * tree) __attribute__ ((always_inline)); \
    static inline patriciatrie_node_t * cast2node##_fsuffix(object_t * object) { \
-      static_assert(&((object_t*)0)->nodename == (patriciatrie_node_t*)offsetof(object_t, nodename), "correct type") ; \
-      return (patriciatrie_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      static_assert(&((object_t*)0)->nodename == (patriciatrie_node_t*)offsetof(object_t, nodename), "correct type"); \
+      return (patriciatrie_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)); \
    } \
    static inline object_t * cast2object##_fsuffix(patriciatrie_node_t * node) { \
-      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
+      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)); \
    } \
    static inline object_t * castnull2object##_fsuffix(patriciatrie_node_t * node) { \
-      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
+      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0; \
    } \
    static inline void init##_fsuffix(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) { \
-      init_patriciatrie(tree, nodeadp) ; \
+      init_patriciatrie(tree, nodeadp); \
    } \
    static inline int  free##_fsuffix(patriciatrie_t * tree) { \
-      return free_patriciatrie(tree) ; \
+      return free_patriciatrie(tree); \
    } \
    static inline void getinistate##_fsuffix(const patriciatrie_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) { \
-      patriciatrie_node_t * rootnode ; \
-      getinistate_patriciatrie(tree, &rootnode, nodeadp) ; \
-      *root = castnull2object##_fsuffix(rootnode) ; \
+      patriciatrie_node_t * rootnode; \
+      getinistate_patriciatrie(tree, &rootnode, nodeadp); \
+      *root = castnull2object##_fsuffix(rootnode); \
    } \
    static inline bool isempty##_fsuffix(const patriciatrie_t * tree) { \
-      return isempty_patriciatrie(tree) ; \
+      return isempty_patriciatrie(tree); \
    } \
    static inline int  find##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** found_node) { \
-      int err = find_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)found_node) ; \
-      if (err == 0) *found_node = cast2object##_fsuffix(*(patriciatrie_node_t**)found_node) ; \
-      return err ; \
+      int err = find_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)found_node); \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(patriciatrie_node_t**)found_node); \
+      return err; \
    } \
    static inline int  insert##_fsuffix(patriciatrie_t * tree, object_t * new_node) { \
-      return insert_patriciatrie(tree, cast2node##_fsuffix(new_node)) ; \
+      return insert_patriciatrie(tree, cast2node##_fsuffix(new_node)); \
    } \
    static inline int  remove##_fsuffix(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) { \
-      int err = remove_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)removed_node) ; \
-      if (err == 0) *removed_node = cast2object##_fsuffix(*(patriciatrie_node_t**)removed_node) ; \
-      return err ; \
+      int err = remove_patriciatrie(tree, keylength, searchkey, (patriciatrie_node_t**)removed_node); \
+      if (err == 0) *removed_node = cast2object##_fsuffix(*(patriciatrie_node_t**)removed_node); \
+      return err; \
    } \
    static inline int  removenodes##_fsuffix(patriciatrie_t * tree) { \
-      return removenodes_patriciatrie(tree) ; \
+      return removenodes_patriciatrie(tree); \
    } \
    static inline int  initfirst##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) { \
-      return initfirst_patriciatrieiterator(iter, tree) ; \
+      return initfirst_patriciatrieiterator(iter, tree); \
    } \
    static inline int  initlast##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) { \
-      return initlast_patriciatrieiterator(iter, tree) ; \
+      return initlast_patriciatrieiterator(iter, tree); \
    } \
    static inline int  free##_fsuffix##iterator(patriciatrie_iterator_t * iter) { \
-      return free_patriciatrieiterator(iter) ; \
+      return free_patriciatrieiterator(iter); \
    } \
    static inline bool next##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) { \
-      bool isNext = next_patriciatrieiterator(iter, (patriciatrie_node_t**)node) ;  \
-      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node) ;        \
-      return isNext ; \
+      bool isNext = next_patriciatrieiterator(iter, (patriciatrie_node_t**)node);  \
+      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node); \
+      return isNext; \
    } \
    static inline bool prev##_fsuffix##iterator(patriciatrie_iterator_t * iter, object_t ** node) { \
-      bool isNext = prev_patriciatrieiterator(iter, (patriciatrie_node_t**)node) ;  \
-      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node) ;        \
-      return isNext ; \
+      bool isNext = prev_patriciatrieiterator(iter, (patriciatrie_node_t**)node);  \
+      if (isNext) *node = cast2object##_fsuffix(*(patriciatrie_node_t**)node); \
+      return isNext; \
    }
 
 
