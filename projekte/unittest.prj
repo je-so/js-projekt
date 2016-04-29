@@ -23,6 +23,7 @@ Src           += C-kern/io/*.c C-kern/io/*/*.c C-kern/io/writer/log/*.c
 Src           += C-kern/main/*.c
 Src           += C-kern/math/hash/*.c C-kern/math/int/*.c C-kern/math/*.c C-kern/math/float/*.c
 Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
+Src           += C-kern/proglang/*.c
 Src           += C-kern/stdtypes/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/task/*.c

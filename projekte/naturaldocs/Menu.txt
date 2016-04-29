@@ -306,6 +306,12 @@ Group: Api  {
       File: SystemLogin  (api/platform/syslogin.h)
       }  # Group: Platform
 
+   Group: Proglang  {
+
+      File: EndlicherAutomat  (api/proglang/automat.h)
+      File: RegularExpression  (api/proglang/regexpr.h)
+      }  # Group: Proglang
+
    Group: Stdtypes  {
 
       File: InterfaceableObject  (api/stdtypes/iobj.h)
@@ -605,6 +611,12 @@ Group: Implementation  {
          }  # Group: X11
 
       }  # Group: Platform
+
+   Group: Proglang  {
+
+      File: EndlicherAutomat impl  (proglang/automat.c)
+      File: RegularExpression impl  (proglang/regexpr.c)
+      }  # Group: Proglang
 
    Group: Stdtypes  {
 

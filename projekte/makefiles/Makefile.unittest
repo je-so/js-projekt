@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Mär.09  07:54:56
+GenerationDate  := 2016.Apr.29  15:11:14
 GeneratedBy     := je-so
 
 ## Debug
@@ -168,6 +168,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!memvec.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Debug)/C-kern!proglang!automat_mman.c.o \
+ $(ObjectDir_Debug)/C-kern!proglang!regexpr.c.o \
+ $(ObjectDir_Debug)/C-kern!proglang!automat.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
@@ -286,6 +289,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!memvec.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Release)/C-kern!proglang!automat_mman.c.o \
+ $(ObjectDir_Release)/C-kern!proglang!regexpr.c.o \
+ $(ObjectDir_Release)/C-kern!proglang!automat.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
@@ -595,6 +601,15 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!proglang!automat_mman.c.o: C-kern/proglang/automat_mman.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!proglang!regexpr.c.o: C-kern/proglang/regexpr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!proglang!automat.c.o: C-kern/proglang/automat.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c
@@ -943,6 +958,15 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!proglang!automat_mman.c.o: C-kern/proglang/automat_mman.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!proglang!regexpr.c.o: C-kern/proglang/regexpr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!proglang!automat.c.o: C-kern/proglang/automat.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c

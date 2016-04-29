@@ -1,0 +1,21 @@
+[1: 1461146380.922620s]
+malloc_automatmman() C-kern/proglang/automat_mman.c:296
+Exit function with
+Error 5 - Input/output error
+[1: 1461146380.922645s]
+new_automatmman() C-kern/proglang/automat_mman.c:148
+Exit function with
+Error 5 - Input/output error
+[1: 1461146380.922690s]
+delete_automatmman() C-kern/proglang/automat_mman.c:180
+One or more resources could not be freed
+Exit function with
+Error 7 - Argument list too long
+[1: 1461146380.922953s]
+mfreelast_automatmman() C-kern/proglang/automat_mman.c:318
+Exit function with
+Error 22 - Invalid argument
+[1: 1461146380.922960s]
+mfreelast_automatmman() C-kern/proglang/automat_mman.c:318
+Exit function with
+Error 22 - Invalid argument

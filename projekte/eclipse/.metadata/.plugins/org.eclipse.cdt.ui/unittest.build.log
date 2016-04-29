@@ -1,0 +1,5 @@
+12:51:47 **** Incremental Build of configuration Debug for project unittest ****
+make unittest_Debug 
+
+12:51:47 Build Finished (took 424ms)
+

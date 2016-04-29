@@ -1,4 +1,4 @@
-# (c) 2009-2012 Jörg Seebohn
+# (c) 2009-2016 Jörg Seebohn
 
 # global Makefile building all subprojects
 

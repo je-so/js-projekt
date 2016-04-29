@@ -96,32 +96,6 @@ void insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct s
    }
 }
 
-int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node)
-{
-   int err ;
-
-   // TODO: change implementation => return 0 if list is empty !
-
-   VALIDATE_INPARAM_TEST(! isempty_slist(list), ONERR, ) ;
-
-   struct slist_node_t * const last  = list->last ;
-   struct slist_node_t * const first = last->next ;
-
-   if (first == last) {
-      list->last = 0 ;
-   } else {
-      last->next = first->next ;
-   }
-
-   first->next    = 0 ;
-   *removed_node  = first ;
-
-   return 0 ;
-ONERR:
-   TRACEEXIT_ERRLOG(err);
-   return err ;
-}
-
 int removeafter_slist(slist_t * list, struct slist_node_t * prev_node, struct slist_node_t ** removed_node)
 {
    int err ;
@@ -388,16 +362,17 @@ static int test_insertremove(void)
    insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    TEST(&nodes[0].next  == (void*)nodes[0].next) ;
    TEST(slist.last == (void*)&nodes[0].next) ;
-   TEST(0 == removefirst_slist(&slist, &node)) ;
-   TEST(0 == slist.last) ;
-   TEST(node == (struct slist_node_t*)&nodes[0].next) ;
-   TEST(0 == nodes[0].is_freed) ;
+   TEST( !isempty_slist(&slist));
+   node = removefirst_slist(&slist);
+   TEST(0 == slist.last);
+   TEST(node == (struct slist_node_t*)&nodes[0].next);
+   TEST(0 == nodes[0].is_freed);
 
    // TEST insertlast, removefirst single element
    insertlast_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    TEST(&nodes[0].next == (slist_node_t**)nodes[0].next) ;
    TEST(slist.last     == (slist_node_t*)&nodes[0].next) ;
-   TEST(0 == removefirst_slist(&slist, &node)) ;
+   node = removefirst_slist(&slist);
    TEST(0 == slist.last) ;
    TEST(node == (slist_node_t*)&nodes[0].next) ;
    TEST(0 == nodes[0].is_freed) ;
@@ -492,9 +467,9 @@ static int test_insertremove(void)
       insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(&nodes[i].next                     == (void*)first_slist(&slist)) ;
-      TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist)) ;
-      TEST(0 == removefirst_slist(&slist, &node)) ;
+      TEST(&nodes[i].next                 == (void*)first_slist(&slist));
+      TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist));
+      node = removefirst_slist(&slist);
       TEST(node == (slist_node_t*)&nodes[i].next)
    }
    TEST(0 == slist.last) ;
@@ -546,11 +521,6 @@ static int test_insertremove(void)
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
    }
-
-   // TEST removefirst_slist: EINVAL
-   init_slist(&slist);
-   TEST(EINVAL == removefirst_slist(&slist, &node));
-   TEST( isempty_slist(&slist));
 
    // TEST removeafter_slist: EINVAL
    insertfirst_slist(&slist, (slist_node_t*)&nodes[1].next);
@@ -789,12 +759,10 @@ static int test_generic(void)
    TEST(&nodes[3] == last_slist2(&slist2)) ;
 
    // TEST removefirst_slist
-   removed_node = 0 ;
-   TEST(0 == removefirst_slist1(&slist1, &removed_node)) ;
-   TEST(&nodes[0] == removed_node) ;
-   removed_node = 0 ;
-   TEST(0 == removefirst_slist2(&slist2, &removed_node)) ;
-   TEST(&nodes[0] == removed_node) ;
+   removed_node = removefirst_slist1(&slist1);
+   TEST(&nodes[0] == removed_node);
+   removed_node = removefirst_slist2(&slist2);
+   TEST(&nodes[0] == removed_node);
 
    // TEST removeafter_slist
    removed_node = 0 ;

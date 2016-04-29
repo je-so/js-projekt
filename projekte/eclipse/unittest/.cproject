@@ -57,7 +57,7 @@
 					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.369485466.1181318436." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.base.1215738796" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1976961733" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
-							<builder buildPath="${jsprojekt}" id="cdt.managedbuild.target.gnu.builder.base.2145735440" incrementalBuildTarget="unittest_Debug" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc}/../.." id="cdt.managedbuild.target.gnu.builder.base.2145735440" incrementalBuildTarget="unittest_Debug" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.184397554" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.655875162" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.694270597" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
@@ -94,6 +94,9 @@
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.369485466.1181318436;cdt.managedbuild.toolchain.gnu.base.369485466.1181318436.;cdt.managedbuild.tool.gnu.c.compiler.base.694270597;cdt.managedbuild.tool.gnu.c.compiler.input.473739308">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.369485466;cdt.managedbuild.toolchain.gnu.base.369485466.420571705;cdt.managedbuild.tool.gnu.c.compiler.base.1891744039;cdt.managedbuild.tool.gnu.c.compiler.input.1068478419">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>

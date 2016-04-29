@@ -118,25 +118,23 @@ int wait_waitlist(waitlist_t * wlist)
 
 int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), void * main_arg)
 {
-   lockflag_waitlist(wlist) ;
+   lockflag_waitlist(wlist);
 
-   thread_t * thread = first_wlist(cast_slist(wlist)) ;
-
-   if (thread) {
-      lockflag_thread(thread) ;
-      (void) removefirst_wlist(cast_slist(wlist), &thread) ;
-      -- wlist->nr_waiting ;
-      unlockflag_waitlist(wlist) ;
-
-      settask_thread(thread, main_task, main_arg) ;
-      resume_thread(thread) ;
-      unlockflag_thread(thread) ;
-
-   } else {
-      unlockflag_waitlist(wlist) ;
+   if (isempty_wlist(cast_slist(wlist))) {
+      unlockflag_waitlist(wlist);
+      return EAGAIN;
    }
 
-   return thread ? 0 : EAGAIN ;
+   thread_t* thread = removefirst_wlist(cast_slist(wlist));
+   lockflag_thread(thread);
+   -- wlist->nr_waiting;
+   unlockflag_waitlist(wlist);
+
+   settask_thread(thread, main_task, main_arg);
+   resume_thread(thread);
+   unlockflag_thread(thread);
+
+   return 0;
 }
 
 
@@ -332,10 +330,10 @@ static int test_synchronize(void)
          TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
       }
       lockflag_thread(threads[i]) ;
-      thread_t * firstthread = 0 ;
-      TEST(0 == removefirst_wlist(cast_slist(&wlist), &firstthread)) ;
-      TEST(threads[i]           == firstthread) ;
-      TEST(threads[i]->nextwait == 0) ;
+      TEST( !isempty_wlist(cast_slist(&wlist)));
+      thread_t * firstthread = removefirst_wlist(cast_slist(&wlist));
+      TEST(threads[i]           == firstthread);
+      TEST(threads[i]->nextwait == 0);
       unlockflag_thread(threads[i]) ;
       resume_thread(threads[i]) ;   // real wakeup
       TEST(0 == join_thread(threads[i])) ;

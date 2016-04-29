@@ -121,8 +121,8 @@ static const char* s_templatesource =
 #ifdef KONFIG_UNITTEST\n\
 #include \"C-kern/api/test/unittest.h\"\n\
 #endif\n\n\
-// === implemented types\n\
-struct @TYPENAME;\n\n\n\
+// === private types\n\
+// TODO: struct helper_@TYPENAME;\n\n\n\
 // section: @TYPENAME\n\n\
 // group: lifetime\n\n\n\
 // section: Functions\n\n\

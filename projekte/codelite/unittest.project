@@ -257,6 +257,11 @@
       <File Name="../../C-kern/api/err/errornr.h"/>
       <File Name="../../C-kern/api/err/errlog_macros.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="proglang">
+      <File Name="../../C-kern/api/proglang/regexpr.h"/>
+      <File Name="../../C-kern/api/proglang/automat.h"/>
+      <File Name="../../C-kern/api/proglang/automat_mman.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/objectcache_impl.c"/>
@@ -634,5 +639,10 @@
     <File Name="../../C-kern/err/errorcontext.c"/>
     <File Name="../../C-kern/err/errornr.c"/>
     <File Name="../../C-kern/err/errlog.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="proglang">
+    <File Name="../../C-kern/proglang/regexpr.c"/>
+    <File Name="../../C-kern/proglang/automat.c"/>
+    <File Name="../../C-kern/proglang/automat_mman.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

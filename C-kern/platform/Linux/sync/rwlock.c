@@ -126,12 +126,12 @@ static inline void unlockflag_rwlock(rwlock_t * rwlock)
  * o rwlock->writers not empty */
 static inline void wakeupwriter_rwlock(rwlock_t * rwlock)
 {
-   thread_t * firstthread = first_rwlocklist(cast_slist(&rwlock->writers)) ;
-   lockflag_thread(firstthread) ;
-   rwlock->writer = firstthread ;
-   removefirst_rwlocklist(cast_slist(&rwlock->writers), &firstthread) ;
-   resume_thread(firstthread) ;
-   unlockflag_thread(firstthread) ;
+   thread_t * firstthread = first_rwlocklist(cast_slist(&rwlock->writers));
+   lockflag_thread(firstthread);
+   rwlock->writer = firstthread;
+   firstthread = removefirst_rwlocklist(cast_slist(&rwlock->writers));
+   resume_thread(firstthread);
+   unlockflag_thread(firstthread);
 }
 
 /* function: insertandwait_rwlock
@@ -502,10 +502,10 @@ static int test_synchronize(void)
             TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
-         thread_t * firstthread = 0 ;
-         TEST(0 == removefirst_rwlocklist(cast_slist(&rwlock.readers), &firstthread)) ;
-         TEST(threads[i]           == firstthread) ;
-         TEST(threads[i]->nextwait == 0) ;
+         TEST( !isempty_rwlocklist(cast_slist(&rwlock.readers)));
+         thread_t* firstthread = removefirst_rwlocklist(cast_slist(&rwlock.readers));
+         TEST(threads[i]           == firstthread);
+         TEST(threads[i]->nextwait == 0);
          add_atomicint(&rwlock.nrofreader, 1) ; // wakeup increments nrofreader
          resume_thread(threads[i]) ;            // real wakeup
          for (int i2 = 0; i2 < 10; ++i2) {
@@ -598,8 +598,8 @@ static int test_synchronize(void)
             TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
          }
          lockflag_thread(threads[i]) ; // flag is acquired in wakeup
-         thread_t * firstthread = 0 ;
-         TEST(0 == removefirst_rwlocklist(cast_slist(&rwlock.writers), &firstthread)) ;
+         TEST( !isempty_rwlocklist(cast_slist(&rwlock.writers)));
+         thread_t* firstthread = removefirst_rwlocklist(cast_slist(&rwlock.writers));
          TEST(threads[i]           == firstthread) ;
          TEST(threads[i]->nextwait == 0) ;
          resume_thread(threads[i]) ;   // real wakeup

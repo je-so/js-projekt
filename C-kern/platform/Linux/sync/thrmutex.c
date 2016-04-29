@@ -160,7 +160,7 @@ int unlock_thrmutex(thrmutex_t * mutex)
 
    if (! isempty_thrmutexlist(cast_slist(mutex))) {
       // resume waiting thread
-      (void) removefirst_thrmutexlist(cast_slist(mutex), &nextwait) ;
+      nextwait = removefirst_thrmutexlist(cast_slist(mutex));
       resume_thread(nextwait) ;
    }
 
@@ -370,9 +370,10 @@ static int test_synchronize(void)
       }
       lockflag_thrmutex(&mutex) ;   // acquired during wakeup
       thread_t * firstthread = 0 ;
-      TEST(0 == removefirst_thrmutexlist(cast_slist(&mutex), &firstthread)) ;
-      TEST(threads[i]           == firstthread) ;
-      TEST(threads[i]->nextwait == 0) ;
+      TEST( !isempty_thrmutexlist(cast_slist(&mutex)));
+      firstthread = removefirst_thrmutexlist(cast_slist(&mutex));
+      TEST(threads[i]           == firstthread);
+      TEST(threads[i]->nextwait == 0);
       resume_thread(threads[i]) ;   // real wakeup
       for (int i2 = 0; i2 < 10; ++i2) {
          yield_thread() ;

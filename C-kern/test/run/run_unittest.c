@@ -195,6 +195,12 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_memory_mm_mmimpl);
 //}
 
+//{ proglang unittest
+      RUN(unittest_proglang_automat_mman);
+      RUN(unittest_proglang_automat);
+      RUN(unittest_proglang_regexpr);
+//}
+
 //{ string unittest
       RUN(unittest_string);
       RUN(unittest_string_convertwchar);

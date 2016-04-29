@@ -1100,7 +1100,7 @@ int matchall_suffixtree(
          }
          node = nextpos->next_child ;
          if (!node) {
-            removefirst_iterlist(&posstack, &nextpos) ;
+            (void) removefirst_iterlist(&posstack);
             err = delete_suffixtreeiterator(&nextpos) ;
             if (err) goto ONERR;
          } else {
@@ -1443,8 +1443,7 @@ static int test_matchfile(void)
    const uint8_t* iterposstr = (const uint8_t*) "suffixtree_iterator_t";
    // BUILD compare_pos[] with bash script (all in one line after the ">" prompt)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c | while read; do echo -n "${REPLY%%:*},"; done; echo */
-   size_t         compare_pos[] = {
-933,972,1066,1093,1960,2255,2368,2809,2891,3003,3076,3205,3276,3390,3673,3760,3874,3991,4076,4189,4354,4433,4509,4587,4663,43723,43998,44811,44982,59576,59699};
+   size_t         compare_pos[] = {933,972,1066,1093,1960,2255,2368,2809,2891,3003,3076,3205,3276,3390,3673,3760,3874,3991,4076,4189,4354,4433,4509,4587,4663,43723,43998,44807,44978,59572,59695};
    const uint8_t* matched_pos[1+lengthof(compare_pos)];
    size_t         matched_count;
    const uint8_t* teststring;
