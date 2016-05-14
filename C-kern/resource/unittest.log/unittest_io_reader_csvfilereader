@@ -1,163 +1,163 @@
-[1: 1456333922.405794s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613498s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 1 - Operation not permitted
-[1: 1456333922.405806s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613515s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 2 - No such file or directory
-[1: 1456333922.405813s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613529s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 3 - No such process
-[1: 1456333922.405819s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613540s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1456333922.405825s]
-parsedata_csvparser() C-kern/io/reader/csvfilereader.c:327
+[1: 1463168716.613552s]
+parsedata_csvparser() C-kern/io/reader/csvfilereader.c:338
 Exit function with
 Error 5 - Input/output error
-[1: 1456333922.405827s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613556s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 5 - Input/output error
-[1: 1456333922.405833s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.613567s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 6 - No such device or address
-[1: 1456333922.405843s]
-free_csvfilereader() C-kern/io/reader/csvfilereader.c:412
+[1: 1463168716.613586s]
+free_csvfilereader() C-kern/io/reader/csvfilereader.c:423
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1456333922.405853s]
-free_csvfilereader() C-kern/io/reader/csvfilereader.c:412
+[1: 1463168716.613599s]
+free_csvfilereader() C-kern/io/reader/csvfilereader.c:423
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1456333922.405930s]
-colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:420
+[1: 1463168716.613784s]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:431
 Function input violates condition (column < csvfile->nrcolumns)
 column=4
 csvfile->nrcolumns=4
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.405935s]
-colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:420
+[1: 1463168716.613794s]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:431
 Function input violates condition (column < csvfile->nrcolumns)
 column=4294967295
 csvfile->nrcolumns=4
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.405938s]
-colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:421
+[1: 1463168716.613801s]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:432
 Function input violates condition (row < csvfile->nrrows)
 row=3
 csvfile->nrrows=3
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.405941s]
-colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:421
+[1: 1463168716.613806s]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:432
 Function input violates condition (row < csvfile->nrrows)
 row=4294967295
 csvfile->nrrows=3
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406098s]
-parsechar_csvparser() C-kern/io/reader/csvfilereader.c:189
-Expect character ',' in line: 1, column: 12
+[1: 1463168716.614109s]
+parsechar_csvparser() C-kern/io/reader/csvfilereader.c:191
+File '/tmp/test_reading.XXXXXX/error': line 1, column 12: Expect ',' instead of 'x'
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406102s]
-parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:265
+[1: 1463168716.614119s]
+parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:270
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406104s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614123s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406159s]
-parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:255
-Expect character '"' in line: 1, column: 12
+[1: 1463168716.614227s]
+parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:259
+File '/tmp/test_reading.XXXXXX/error': line 1, column 12: Expect '"' instead of ' '
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406163s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614236s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406212s]
-parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:255
-Expect character '"' in line: 1, column: 12
+[1: 1463168716.614332s]
+parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:259
+File '/tmp/test_reading.XXXXXX/error': line 1, column 12: Expect '"' instead of end of input
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406216s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614341s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406265s]
-parsechar_csvparser() C-kern/io/reader/csvfilereader.c:189
-Expect character '"' in line: 1, column: 14
+[1: 1463168716.614437s]
+parsechar_csvparser() C-kern/io/reader/csvfilereader.c:191
+File '/tmp/test_reading.XXXXXX/error': line 1, column 14: Expect '"' instead of end of input
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406268s]
-parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:265
+[1: 1463168716.614445s]
+parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:270
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406270s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614449s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406319s]
-parsedata_csvparser() C-kern/io/reader/csvfilereader.c:289
-Expect '(newline)' in line: 2, column: 12
+[1: 1463168716.614546s]
+parsedata_csvparser() C-kern/io/reader/csvfilereader.c:295
+File '/tmp/test_reading.XXXXXX/error': line 2, column 12: Expect newline instead of '"'
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406322s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614555s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406371s]
-parsedata_csvparser() C-kern/io/reader/csvfilereader.c:303
-Expect character ',' in line: 2, column: 5
+[1: 1463168716.614650s]
+parsedata_csvparser() C-kern/io/reader/csvfilereader.c:311
+File '/tmp/test_reading.XXXXXX/error': line 2, column 5: Expect ',' instead of newline
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406374s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614659s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406423s]
-parsedata_csvparser() C-kern/io/reader/csvfilereader.c:314
-Expect character '"' in line: 2, column: 6
+[1: 1463168716.614754s]
+parsedata_csvparser() C-kern/io/reader/csvfilereader.c:324
+File '/tmp/test_reading.XXXXXX/error': line 2, column 6: Expect '"' instead of newline
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406427s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614762s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406475s]
-parsechar_csvparser() C-kern/io/reader/csvfilereader.c:189
-Expect character '"' in line: 2, column: 10
+[1: 1463168716.614857s]
+parsechar_csvparser() C-kern/io/reader/csvfilereader.c:191
+File '/tmp/test_reading.XXXXXX/error': line 2, column 10: Expect '"' instead of end of input
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406478s]
-parsedata_csvparser() C-kern/io/reader/csvfilereader.c:327
+[1: 1463168716.614869s]
+parsedata_csvparser() C-kern/io/reader/csvfilereader.c:338
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406480s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614873s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406528s]
-parsechar_csvparser() C-kern/io/reader/csvfilereader.c:189
-Expect character '"' in line: 1, column: 3
+[1: 1463168716.614970s]
+parsechar_csvparser() C-kern/io/reader/csvfilereader.c:191
+File '/tmp/test_reading.XXXXXX/error': line 1, column 3: Expect '"' instead of newline
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406534s]
-parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:265
+[1: 1463168716.614978s]
+parsenrcolumns_csvparser() C-kern/io/reader/csvfilereader.c:270
 Exit function with
 Error 22 - Invalid argument
-[1: 1456333922.406536s]
-init_csvfilereader() C-kern/io/reader/csvfilereader.c:384
+[1: 1463168716.614981s]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:395
 Exit function with
 Error 22 - Invalid argument

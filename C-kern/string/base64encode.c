@@ -366,14 +366,14 @@ static int test_sizebase64(void)
    }
 
    // unprepare
-   TEST(0 == FREE_MM(&data)) ;
-   TEST(0 == FREE_MM(&data2)) ;
+   TEST(0 == FREE_MM(&data));
+   TEST(0 == FREE_MM(&data2));
 
-   return 0 ;
+   return 0;
 ONERR:
-   FREE_MM(&data) ;
-   FREE_MM(&data2) ;
-   return EINVAL ;
+   FREE_MM(&data);
+   FREE_MM(&data2);
+   return EINVAL;
 }
 
 

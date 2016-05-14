@@ -102,11 +102,6 @@ ERROR_IGNORED()
 de: "Fehler wird ignoriert\n"
 en: "Error will be ignored\n"
 
-# // TODO: replace it with PARSEERROR_EXPECTNEWLINE
-FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
-de: "'"filename"' enthält kein Zeilenendezeichen\n"
-en: "'"filename"' contains no newline\n"
-
 FILE_FORMAT_WRONG(const char * filename)
 de: "Datei '"filename"' besitzt unbekanntes Format\n"
 en: "File '"filename"' has unknown format\n"
@@ -114,6 +109,14 @@ en: "File '"filename"' has unknown format\n"
 FILE_NAME(const char * workdir, const char * filename)
 de: "Dateiname '"workdir filename"'\n"
 en: "File name '"workdir filename"'\n"
+
+FILE_HEADER_NAME(const char * filedir, const char * filename)
+de: "Datei '"filedir filename"': "
+en: "File '"filedir filename"': "
+
+FILE_HEADER_LINECOL(const char * filedir, const char * filename, size_t linenr, size_t colnr)
+de: "" FILE_HEADER_NAME "Zeile "linenr", Spalte "colnr ": "
+en: "" FILE_HEADER_NAME "line "linenr", column "colnr ": "
 
 # user error
 FILE_CREATE(int err, const char * workdir, const char * filename)
@@ -163,13 +166,33 @@ MEMORY_OUT_OF(size_t size, int err)
 de: "Keine "size" Bytes Speicher mehr frei - Fehler "err"\n"
 en: "Could not allocate "size" bytes of memory - error "err"\n"
 
-PARSEERROR_EXPECTCHAR(size_t linenr, size_t colnr, const char * chr)
-de: "Erwarte Zeichen '"chr"' in Zeile: "linenr", Spalte: "colnr"\n"
-en: "Expect character '"chr"' in line: "linenr", column: "colnr"\n"
+PARSEERROR_ENDOFINPUT()
+de: "Eingabeende"
+en: "end of input"
 
-PARSEERROR_EXPECTNEWLINE(size_t linenr, size_t colnr)
-de: "Erwarte '(Zeilenende)' in Zeile: "linenr", Spalte: "colnr"\n"
-en: "Expect '(newline)' in line: "linenr", column: "colnr"\n"
+PARSEERROR_ENDOFLINE()
+de: "Zeilenendezeichen"
+en: "newline"
+
+PARSEERROR_ILLEGALCHARACTERENCODING(const char* str)
+de: "Falsch kodiertes Zeichen '"str"'\n"
+en: "Wrong encoded character '"str"'\n"
+
+PARSEERROR_EXPECT_INSTEADOF(const char* expect, const char* insteadof)
+de: "Erwarte " ((p->expect[0]=='\n') PARSEERROR_ENDOFLINE else "'"expect"'") " anstatt " ((p->insteadof==0) PARSEERROR_ENDOFINPUT (p->insteadof[0]=='\n') PARSEERROR_ENDOFLINE else "'"insteadof"'") "\n"
+en: "Expect " ((p->expect[0]=='\n') PARSEERROR_ENDOFLINE else "'"expect"'") " instead of " ((p->insteadof==0) PARSEERROR_ENDOFINPUT (p->insteadof[0]=='\n') PARSEERROR_ENDOFLINE else "'"insteadof"'") "\n"
+
+PARSEERROR_UNEXPECTED_CHAR(const char* str)
+de: "Unerwartetes Zeichen '"str"'\n"
+en: "Unexpected char '"str"'\n"
+
+PARSEERROR_EXPECT_ENDOFLINE()
+de: "Erwarte Zeilenendezeichen\n"
+en: "Expect newline\n"
+
+PARSEERROR_WRONG_FORMAT()
+de: "Inhalt besitzt unbekanntes Format\n"
+en: "Content has unknown format\n"
 
 PROGRAM_ABORT(int err)
 de: "Programmabbruch wegen fatalem Fehler\n" ERROR_DESCRIPTION

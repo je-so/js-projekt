@@ -38,7 +38,7 @@ typedef struct utf8validator_t utf8validator_t;
 
 /* variable: g_utf8_bytesperchar
  * Stores the length in bytes of an encoded utf8 character indexed by the first encoded byte. */
-extern uint8_t g_utf8_bytesperchar[256];
+extern uint8_t g_utf8_bytesperchar[16];
 
 
 // section: Functions
@@ -66,23 +66,22 @@ char32_t maxchar_utf8(void) ;
  * Returns the maximum size in bytes of an utf-8 encoded multibyte sequence. */
 uint8_t maxsize_utf8(void) ;
 
-/* function: isvalidfirstbyte_utf8
- * Returns true if the byte is a legal first byte of an utf8 encoded multibyte sequence. */
-bool isvalidfirstbyte_utf8(const uint8_t firstbyte) ;
-
 /* function: isfirstbyte_utf8
  * Returns true if this byte is a possible first (start) byte of an utf-8 encoded multibyte sequence.
  * This function assumes correct encoding therefore it is possible that <isfirstbyte_utf8>
- * returns true and <isvalidfirstbyte_utf8> returns false. */
-bool isfirstbyte_utf8(const uint8_t firstbyte) ;
+ * returns true and <decodechar_utf8> returns 0. */
+bool isfirstbyte_utf8(const uint8_t firstbyte);
+
+/* function: issinglebyte_utf8
+ * Returns true if this byte is a single byte encoded value. Which is equal to ASCII encoding. */
+int issinglebyte_utf8(const uint8_t firstbyte);
 
 /* function: sizePfirst_utf8
  * Returns the size in bytes of a correct encoded mb-sequence by means of the value of its first byte.
  * The number of bytes is calculated from firstbyte - the first byte of the encoded byte sequence.
- * The returned values are in the range 0..4 (0..<maxsize_utf8>).
- * A return value between 1 and 4 describes a valid first byte.
- * A value of 0 indicates that firstbyte is not a valid first byte of an utf8 encoded byte sequence. */
-uint8_t sizePfirst_utf8(const uint8_t firstbyte) ;
+ * The returned values are in the range 1..4 (1..<maxsize_utf8>).
+ * The first byte must not be necessarily a valid byte ! */
+uint8_t sizePfirst_utf8(const uint8_t firstbyte);
 
 /* function: sizechar_utf8
  * Returns the size in bytes of uchar as encoded mb-sequence.
@@ -117,7 +116,7 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
  *
  * A return value of 0 indicates an invalid first byte of the multibyte sequence (EILSEQ).
  * The function assumes that all other bytes except the first are encoded correctly.
- * Use <utf8validator_t> to make sure that a string contains only a valid encoded utf8 string.
+ * Use <utf8validator_t> to make sure that a string contains only a valid encoded utf8 characters.
  *
  * Example:
  *
@@ -142,13 +141,13 @@ uint8_t decodechar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/]
  * The number of written bytes are returned. The maximum return value is <maxsize_utf8>.
  * A return value of 0 indicates an error. Either uchar is greater then <maxchar_utf8>
  * or strsize is not big enough. */
-uint8_t encodechar_utf8(size_t strsize, /*out*/uint8_t strstart[strsize], char32_t uchar) ;
+uint8_t encodechar_utf8(char32_t uchar, size_t strsize, /*out*/uint8_t strstart[strsize]);
 
 /* function: skipchar_utf8
  * Skips the next utf-8 encoded character.
  * The encoded byte sequence is *not* checked for correctness.
  * The number of skipped bytes is returned. The maximum return value is <maxsize_utf8>.
- * A return value of 0 indicates an error, i.e. the first byte of the multibyte sequence is invalid (EILSEQ). */
+ * The values returned are in the range [1..4]. */
 uint8_t skipchar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/]) ;
 
 
@@ -262,9 +261,10 @@ const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_
  * Implements <utf8.isfirstbyte_utf8>. */
 #define isfirstbyte_utf8(firstbyte)       (0x80 != ((firstbyte)&0xc0))
 
-/* function: isvalidfirstbyte_utf8
- * Implements <utf8.isvalidfirstbyte_utf8>. */
-#define isvalidfirstbyte_utf8(firstbyte)  (sizePfirst_utf8(firstbyte) != 0)
+/* function: issinglebyte_utf8
+ * Implements <utf8.issinglebyte_utf8>. */
+#define issinglebyte_utf8(firstbyte) \
+         (0 == ((firstbyte) & 0x80))
 
 /* function: maxsize_utf8
  * Implements <utf8.maxsize_utf8>. */
@@ -272,7 +272,8 @@ const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_
 
 /* function: sizePfirst_utf8
  * Implements <utf8.sizePfirst_utf8>. */
-#define sizePfirst_utf8(firstbyte) (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
+#define sizePfirst_utf8(firstbyte) \
+         (g_utf8_bytesperchar[((uint8_t)(firstbyte)) >> 4])
 
 /* function: sizechar_utf8
  * Implements <utf8.sizechar_utf8>. */

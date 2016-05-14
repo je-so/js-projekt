@@ -1334,13 +1334,6 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
          } else if (0 != (textref = at_arraytname(reader->txtres.textnames, paramname.size, paramname.addr))) {
             // handle referenced text
 
-            // check reference allowed
-            if (! isfree_string(&condition->condition)) {
-               report_parseerror(reader, "Text reference '%.*s' not allowed within conditional", (int)paramname.size, paramname.addr) ;
-               err = EINVAL;
-               goto ONERR;
-            }
-
             // check parameter does match (name && type)
             foreach (_paramlist, param, &textref->paramlist) {
                textresource_parameter_t * param2 = at_arrayparam(text->params, param->name.size, param->name.addr);
@@ -1379,7 +1372,6 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
                   err = addtextatom_textresourcecondition(condition, textatom);
                   if (err) goto ONERR;
                }
-
             }
 
          } else {
@@ -1436,7 +1428,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
       err = addcondition_textresourcelangref(lang, &ifcond, &ifcopy);
       if (err) goto ONERR;
 
-      err = parse_unconditional_textatoms(reader, text, 0/*not used*/, ifcopy);
+      err = parse_unconditional_textatoms(reader, text, lang, ifcopy);
       if (err) goto ONERR;
 
       if (0 != peekascii_utf8reader(&reader->txtpos, &ch)
@@ -1464,7 +1456,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
          err = addcondition_textresourcelangref(lang, &elsecond, &elsecopy) ;
          if (err) goto ONERR;
 
-         err = parse_unconditional_textatoms(reader, text, 0/*not used*/, elsecopy);
+         err = parse_unconditional_textatoms(reader, text, lang, elsecopy);
          if (err) goto ONERR;
       }
    }

@@ -26,13 +26,6 @@ void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    PRINTF("Fehler wird ignoriert\n");
 }
 
-void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
-{
-   struct p_FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG * p = _p;
-
-   PRINTF("'%s' enthält kein Zeilenendezeichen\n", p->filename);
-}
-
 void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
    struct p_FILE_FORMAT_WRONG_ERRLOG * p = _p;
@@ -45,6 +38,20 @@ void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    struct p_FILE_NAME_ERRLOG * p = _p;
 
    PRINTF("Dateiname '%s%s'\n", p->workdir, p->filename);
+}
+
+void FILE_HEADER_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_FILE_HEADER_NAME_ERRLOG * p = _p;
+
+   PRINTF("Datei '%s%s': ", p->filedir, p->filename);
+}
+
+void FILE_HEADER_LINECOL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_FILE_HEADER_LINECOL_ERRLOG * p = _p;
+
+   PRINTF("Datei '%s%s': Zeile %zu, Spalte %zu: ", p->filedir, p->filename, p->linenr, p->colnr);
 }
 
 void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
@@ -124,18 +131,60 @@ void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    PRINTF("Keine %zu Bytes Speicher mehr frei - Fehler %d\n", p->size, p->err);
 }
 
-void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFINPUT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_PARSEERROR_EXPECTCHAR_ERRLOG * p = _p;
+   (void) _p;
 
-   PRINTF("Erwarte Zeichen '%s' in Zeile: %zu, Spalte: %zu\n", p->chr, p->linenr, p->colnr);
+   PRINTF("Eingabeende");
 }
 
-void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_PARSEERROR_EXPECTNEWLINE_ERRLOG * p = _p;
+   (void) _p;
 
-   PRINTF("Erwarte '(Zeilenende)' in Zeile: %zu, Spalte: %zu\n", p->linenr, p->colnr);
+   PRINTF("Zeilenendezeichen");
+}
+
+void PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG * p = _p;
+
+   PRINTF("Falsch kodiertes Zeichen '%s'\n", p->str);
+}
+
+void PARSEERROR_EXPECT_INSTEADOF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_EXPECT_INSTEADOF_ERRLOG * p = _p;
+
+   PRINTF("Erwarte ");
+   if (p->expect[0]=='\n') PRINTF("Zeilenendezeichen");
+   else PRINTF("'%s'", p->expect);
+   PRINTF(" anstatt ");
+   if (p->insteadof==0) PRINTF("Eingabeende");
+   else if (p->insteadof[0]=='\n') PRINTF("Zeilenendezeichen");
+   else PRINTF("'%s'", p->insteadof);
+   PRINTF("\n");
+}
+
+void PARSEERROR_UNEXPECTED_CHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_UNEXPECTED_CHAR_ERRLOG * p = _p;
+
+   PRINTF("Unerwartetes Zeichen '%s'\n", p->str);
+}
+
+void PARSEERROR_EXPECT_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   (void) _p;
+
+   PRINTF("Erwarte Zeilenendezeichen\n");
+}
+
+void PARSEERROR_WRONG_FORMAT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   (void) _p;
+
+   PRINTF("Inhalt besitzt unbekanntes Format\n");
 }
 
 void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)

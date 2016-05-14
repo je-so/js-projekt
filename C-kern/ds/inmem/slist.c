@@ -404,6 +404,29 @@ static int test_insertremove(void)
       TEST(0 == nodes[i].is_freed) ;
    }
 
+   // TEST insertnext_slist
+   // prepare
+   initsingle_slist(&slist, (struct slist_node_t*)&nodes[0].next);
+   for (size_t i = 1; i < lengthof(nodes); ++i) {
+      // test
+      insertnext_slist((struct slist_node_t*)&nodes[0].next, (struct slist_node_t*)&nodes[i].next);
+      // check slist
+      TEST(last_slist(&slist)  == (void*)&nodes[0].next);
+      // check nodes[0]->next
+      TEST(first_slist(&slist) == (void*)&nodes[i].next);
+      // check nodes[i]->next
+      TEST(nodes[i].next       == (void*)&nodes[i-1].next);
+   }
+   // check slist content
+   for (size_t i = lengthof(nodes); (i--) > 0; ) {
+      TEST( !isempty_slist(&slist));
+      node = removefirst_slist(&slist);
+      TEST(node       == (void*)&nodes[i].next);
+      TEST(node->next == 0);
+   }
+   TEST(isempty_slist(&slist));
+
+
    // TEST insertfirst
    init_slist(&slist);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -750,42 +773,50 @@ static int test_generic(void)
    TEST(&nodes[0] == first_slist2(&slist2)) ;
    TEST(&nodes[2] == last_slist2(&slist2)) ;
 
+   // TEST insertnext_slist
+   insertnext_slist1(&nodes[2], &nodes[3]);
+   insertnext_slist2(&nodes[2], &nodes[3]);
+   TEST(&nodes[3] == first_slist1(&slist1));
+   TEST(&nodes[2] == last_slist1(&slist1));
+   TEST(&nodes[3] == first_slist2(&slist2));
+   TEST(&nodes[2] == last_slist2(&slist2));
+
    // TEST insertafter_slist
-   insertafter_slist1(&slist1, &nodes[2], &nodes[3]) ;
-   insertafter_slist2(&slist2, &nodes[2], &nodes[3]) ;
-   TEST(&nodes[0] == first_slist1(&slist1)) ;
-   TEST(&nodes[3] == last_slist1(&slist1)) ;
-   TEST(&nodes[0] == first_slist2(&slist2)) ;
-   TEST(&nodes[3] == last_slist2(&slist2)) ;
+   insertafter_slist1(&slist1, &nodes[2], &nodes[4]);
+   insertafter_slist2(&slist2, &nodes[2], &nodes[4]);
+   TEST(&nodes[3] == first_slist1(&slist1)) ;
+   TEST(&nodes[4] == last_slist1(&slist1)) ;
+   TEST(&nodes[3] == first_slist2(&slist2)) ;
+   TEST(&nodes[4] == last_slist2(&slist2)) ;
 
    // TEST removefirst_slist
    removed_node = removefirst_slist1(&slist1);
-   TEST(&nodes[0] == removed_node);
+   TEST(&nodes[3] == removed_node);
    removed_node = removefirst_slist2(&slist2);
-   TEST(&nodes[0] == removed_node);
+   TEST(&nodes[3] == removed_node);
 
    // TEST removeafter_slist
-   removed_node = 0 ;
-   TEST(0 == removeafter_slist1(&slist1, &nodes[2], &removed_node)) ;
-   TEST(&nodes[3] == removed_node) ;
-   removed_node = 0 ;
-   TEST(0 == removeafter_slist2(&slist2, &nodes[2], &removed_node)) ;
-   TEST(&nodes[3] == removed_node) ;
+   removed_node = 0;
+   TEST(0 == removeafter_slist1(&slist1, &nodes[2], &removed_node));
+   TEST(&nodes[4] == removed_node);
+   removed_node = 0;
+   TEST(0 == removeafter_slist2(&slist2, &nodes[2], &removed_node));
+   TEST(&nodes[4] == removed_node);
 
    // TEST free_slist: no error
-   typeadapt.freenode_count = 0 ;
-   TEST(0 == free_slist1(&slist1, typeadp)) ;
-   TEST(2 == typeadapt.freenode_count) ;
-   TEST(0 == free_slist2(&slist2, typeadp)) ;
-   TEST(4 == typeadapt.freenode_count) ;
-   for (unsigned i = 1; i <= 2; ++i) {
-      TEST(2 == nodes[i].is_freed) ;
-      nodes[i].is_freed = 0 ;
+   typeadapt.freenode_count = 0;
+   TEST( 0 == free_slist1(&slist1, typeadp));
+   TEST( 3 == typeadapt.freenode_count);
+   TEST( 0 == free_slist2(&slist2, typeadp));
+   TEST( 6 == typeadapt.freenode_count);
+   for (unsigned i = 0; i <= 2; ++i) {
+      TEST( nodes[i].is_freed == 2);
+      nodes[i].is_freed = 0;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == nodes[i].next) ;
-      TEST(0 == nodes[i].next2.next) ;
-      TEST(0 == nodes[i].is_freed) ;
+      TEST( 0 == nodes[i].next);
+      TEST( 0 == nodes[i].next2.next);
+      TEST( 0 == nodes[i].is_freed);
    }
 
    // TEST free_slist: error

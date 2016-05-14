@@ -28,24 +28,14 @@
 
 // section: utf8
 
-uint8_t g_utf8_bytesperchar[256] = {
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /*0 .. 127*/
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*128..191 not the first byte => error*/
-   0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-   2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /*192..193 (< 0x80)*/ /*194..223*/
-   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, /*224..239*/
-   4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  /*240..244*/ /*245..247 too big*/ /*248..250, 252..253, 254..255 error*/
-} ;
+uint8_t g_utf8_bytesperchar[16] = {
+   /*0*/  1, 1, 1, 1, 1, 1, 1, 1, // /*(0 .. 127)/16 valid*/
+   /*8*/  1, 1, 1, 1,             // (128..191)/16 not the first byte => error but encoded as 1
+   /*12*/ 2, 2,                   // (192..223)/16 2 byte sequences but values (192..193) invalid
+   /*14*/ 3,                      // (224..239)/16 3 byte sequences
+   /*15*/ 4                       // (240..255)/16 4 byte sequences but values (245..247) too big
+};                                //                 and values (248..254) use more than 4 bytes and 255 is an error
+
 
 uint8_t decodechar_utf8(const uint8_t strstart[], /*out*/char32_t * uchar)
 {
@@ -150,7 +140,7 @@ ONERR:
    return 0 ;  /*EILSEQ or not enough data*/
 }
 
-uint8_t encodechar_utf8(size_t strsize, /*out*/uint8_t strstart[strsize], char32_t uchar)
+uint8_t encodechar_utf8(char32_t uchar, size_t strsize, /*out*/uint8_t strstart[strsize])
 {
    if (uchar <= 0x7f) {
       if (!strsize) return 0 ;
@@ -184,26 +174,25 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend)
    size_t len = 0 ;
 
    if (strstart < strend) {
-      const uint8_t * next = strstart ;
-      const uint8_t * end  = strend - maxsize_utf8() ;
+      const uint8_t* next = strstart;
 
-      size_t bytelen = (size_t) (strend - strstart) ;
-      if (bytelen >= maxsize_utf8()) {
+      if ((size_t)(strend - strstart) >= maxsize_utf8()) {
+         const uint8_t* end = strend - maxsize_utf8();
          do {
-            const unsigned sizechr = sizePfirst_utf8(*next) ;
-            next += sizechr + (0 == sizechr) ;
-            len  += (0 != sizechr) ;
-         } while (next <= end) ;
+            const unsigned sizechr = sizePfirst_utf8(*next);
+            next += sizechr;
+            len  += 1;
+         } while (next <= end);
       }
 
       while (next < strend) {
-         const unsigned sizechr = sizePfirst_utf8(*next) ;
+         const unsigned sizechr = sizePfirst_utf8(*next);
          if ((size_t)(strend-next) < sizechr) {
-            next = strend ;
+            next = strend;
          } else {
-            next += sizechr + (0 == sizechr) ;
+            next += sizechr;
          }
-         len += (0 != sizechr) ;
+         ++ len;
       }
    }
 
@@ -624,17 +613,11 @@ static int test_utf8(void)
 
    // TEST sizePfirst_utf8 of all 256 first byte values
    for (unsigned i = 0; i < 256; ++i) {
-      unsigned bpc = (i < 128) ;
-      /* values between [128 .. 193] and [245..255] indicate an error (returned value is 0) */
-      if (194 <= i && i <= 244) {
-         bpc = 0 ;
-         for (unsigned i2 = i; (i2 & 0x80); i2 <<= 1) {
-            ++ bpc ;
-         }
-      }
-      TEST(bpc == sizePfirst_utf8(i)) ;
-      TEST(bpc == sizePfirst_utf8(256+i)) ;
-      TEST(bpc == sizePfirst_utf8(1024+i)) ;
+      unsigned bpc = 1u + (i >= 0xc0) + (i >= 0xe0) + (i >= 0xf0);
+      /* values between [128 .. 193] and [245..255] indicate an error but values returned are 1 resp. 4 */
+      TEST(bpc == sizePfirst_utf8(i));
+      TEST(bpc == sizePfirst_utf8(256+i));
+      TEST(bpc == sizePfirst_utf8(1024+i));
    }
 
    // TEST sizechar_utf8
@@ -654,18 +637,17 @@ static int test_utf8(void)
    // TEST sizechar_utf8: no range check if too big
    TEST(4 == sizechar_utf8(0x7fffffff)) ;
 
-   // TEST isvalidfirstbyte_utf8 of all 256 first byte values
-   for (unsigned i = 0; i < 256; ++i) {
-      /* values between [128 .. 193] and [245..255] indicate an error */
-      bool isOK = (i < 128 || (194 <= i && i <= 244)) ;
-      TEST(isOK == isvalidfirstbyte_utf8((uint8_t)i)) ;
-   }
-
    // TEST isfirstbyte_utf8
    for (unsigned i = 0; i < 256; ++i) {
       /* values between [128 .. 191] are used to encode follow bytes */
       bool isOK = (i < 128 || 192 <= i) ;
       TEST(isOK == isfirstbyte_utf8((uint8_t)i)) ;
+   }
+
+   // TEST issinglebyte_utf8
+   for (unsigned i = 0; i < 256; ++i) {
+      int issingle = (1 == sizechar_utf8(i));
+      TEST(issingle == issinglebyte_utf8((uint8_t)i));
    }
 
    // TEST length_utf8
@@ -683,7 +665,7 @@ static int test_utf8(void)
 
    // TEST length_utf8: illegal sequence && last sequence not fully contained in string
    const char * teststrings2[] = { "\xFC\x80",  "b\xC2",                 "ab\xE0",  "abc\xF0" } ;
-   size_t       testlength2[]  = { 0/*EILSEQ*/, 2/*last not contained*/, 3/*ditto*/, 4/*ditto*/ } ;
+   size_t       testlength2[]  = { 1/*EILSEQ*/, 2/*last not contained*/, 3/*ditto*/, 4/*ditto*/ } ;
    for (unsigned i = 0; i < lengthof(teststrings2); ++i) {
       const char * endstr = (const char*) ((uintptr_t)teststrings2[i] + (uintptr_t) strlen(teststrings2[i]));
       TEST(testlength2[i] == length_utf8((const uint8_t*)teststrings2[i], (const uint8_t*)endstr)) ;
@@ -694,36 +676,33 @@ static int test_utf8(void)
    for (char32_t i = 0; i < 256; ++i) {
       for (unsigned fci = 0; fci < lengthof(fillchar); ++fci) {
          uint8_t  buffer[4] = { (uint8_t)i, (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]) } ;
-         char32_t expect    = 0 ;
-         switch (sizePfirst_utf8(i)) {
+         char32_t expect    = 0;
+         int      isInvalid = (128 <= i && i <= 193) || (i >= 245);
+         switch (isInvalid ? 0 : sizePfirst_utf8(i)) {
          case 0:
-            expect = 0 ;
-            break ;
+            expect = 0;
+            break;
          case 1:
-            expect = i ;
-            break ;
+            expect = i;
+            break;
          case 2:
-            expect = ((i & 0x1f) << 6) + fillchar[fci] ;
-            break ;
+            expect = ((i & 0x1f) << 6) + fillchar[fci];
+            break;
          case 3:
-            expect = ((i & 0xf) << 12) + (fillchar[fci] << 6) + fillchar[fci] ;
-            break ;
+            expect = ((i & 0xf) << 12) + (fillchar[fci] << 6) + fillchar[fci];
+            break;
          case 4:
-            expect = ((i & 0x7) << 18) + (fillchar[fci] << 12) + (fillchar[fci] << 6) + fillchar[fci] ;
-            break ;
+            expect = ((i & 0x7) << 18) + (fillchar[fci] << 12) + (fillchar[fci] << 6) + fillchar[fci];
+            break;
          }
-         if (0 == sizePfirst_utf8(i)) {
-            TEST(0 == decodechar_utf8(buffer, &uchar)) ;
-            TEST(0 == skipchar_utf8(buffer)) ;
-         } else {
-            TEST(sizePfirst_utf8(i) == decodechar_utf8(buffer, &uchar)) ;
-            TEST(uchar == expect) ;
-            TEST(sizePfirst_utf8(i) == skipchar_utf8(buffer)) ;
-         }
+         TEST( skipchar_utf8(buffer) == sizePfirst_utf8(i));
+         uchar = 0;
+         TEST( decodechar_utf8(buffer, &uchar) == (isInvalid ? 0 : sizePfirst_utf8(i)));
+         TEST( uchar == (isInvalid ? 0 : expect));
       }
    }
 
-   // TEST decodechar_utf8, skipchar_utf8: check that values too low and values too high are recognized
+   // TEST decodechar_utf8: check that values too low and values too high are recognized
    struct {
       const uint8_t *   str ;
       char32_t          uchar ;
@@ -748,40 +727,42 @@ static int test_utf8(void)
       uchar = 0 ;
       TEST(minmaxstr[i].offset == decodechar_utf8(minmaxstr[i].str, &uchar)) ;
       TEST(minmaxstr[i].uchar  == uchar) ;
-      TEST(minmaxstr[i].offset == skipchar_utf8(minmaxstr[i].str)) ;
+      if (minmaxstr[i].offset != 0) {
+         TEST(minmaxstr[i].offset == skipchar_utf8(minmaxstr[i].str)/* does not recognize error cases*/);
+      }
    }
 
    // TEST encodechar_utf8
    uint8_t utf8buffer[4] ;
    for (char32_t i = 0; i <= 0x7f; ++i) {
-      TEST(1 == encodechar_utf8(1, utf8buffer, i)) ;
-      TEST(1 == decodechar_utf8(utf8buffer, &uchar)) ;
+      TEST(1 == encodechar_utf8(i, 1, utf8buffer));
+      TEST(1 == decodechar_utf8(utf8buffer, &uchar));
       TEST(i == uchar) ;
    }
    for (char32_t i = 0x80; i <= 0x7ff; ++i) {
-      TEST(2 == encodechar_utf8(2, utf8buffer, i)) ;
-      TEST(2 == decodechar_utf8(utf8buffer, &uchar)) ;
+      TEST(2 == encodechar_utf8(i, 2, utf8buffer));
+      TEST(2 == decodechar_utf8(utf8buffer, &uchar));
       TEST(i == uchar) ;
    }
    for (char32_t i = 0x800; i <= 0xffff; ++i) {
-      TEST(3 == encodechar_utf8(3, utf8buffer, i)) ;
-      TEST(3 == decodechar_utf8(utf8buffer, &uchar)) ;
+      TEST(3 == encodechar_utf8(i, 3, utf8buffer));
+      TEST(3 == decodechar_utf8(utf8buffer, &uchar));
       TEST(i == uchar) ;
    }
    for (char32_t i = 0x10000; i <= 0x10ffff; ++i) {
-      TEST(4 == encodechar_utf8(4, utf8buffer, i)) ;
-      TEST(4 == decodechar_utf8(utf8buffer, &uchar)) ;
-      TEST(i == uchar) ;
+      TEST(4 == encodechar_utf8(i, 4, utf8buffer));
+      TEST(4 == decodechar_utf8(utf8buffer, &uchar));
+      TEST(i == uchar);
    }
 
    // TEST encodechar_utf8: buffer too small
-   TEST(0 == encodechar_utf8(0, utf8buffer, 0x7f)) ;
-   TEST(0 == encodechar_utf8(1, utf8buffer, 0x7ff)) ;
-   TEST(0 == encodechar_utf8(2, utf8buffer, 0xffff)) ;
-   TEST(0 == encodechar_utf8(3, utf8buffer, 0x10ffff)) ;
+   TEST(0 == encodechar_utf8(0x7f, 0, utf8buffer));
+   TEST(0 == encodechar_utf8(0x7ff, 1, utf8buffer));
+   TEST(0 == encodechar_utf8(0xffff, 2, utf8buffer));
+   TEST(0 == encodechar_utf8(0x10ffff, 3, utf8buffer));
 
    // TEST encodechar_utf8: out of range
-   TEST(0 == encodechar_utf8(4, utf8buffer, 0x110000)) ;
+   TEST(0 == encodechar_utf8(0x110000, 4, utf8buffer));
 
    return 0;
 ONERR:
@@ -828,9 +809,9 @@ static int test_utf8validator(void)
    memset(buffer, 0, maxsize_utf8()) ;
    for (unsigned i = 0; i < 256; ++i) {
       buffer[0] = (uint8_t)i ;
-      size_t erroff = erroffset_utf8validator(buffer) ;
-      size_t expect = (i >= 128) && (0 != sizePfirst_utf8((uint8_t)i)) ;
-      TEST(erroff == expect) ;
+      size_t erroff = erroffset_utf8validator(buffer);
+      size_t expect = (i >= 194) && (i <= 244);
+      TEST(erroff == expect);
       if (i <= 127) {
          TEST(0 == validate_utf8validator(&utf8val, 1, buffer, 0))
       } else {
@@ -893,7 +874,7 @@ static int test_utf8validator(void)
    // TEST erroffset_utf8validator, validate_utf8validator: invalid follow byte
    for (unsigned i = 0; i < 256; ++i) {
       size_t mbslen = sizePfirst_utf8((uint8_t)i) ;
-      if (mbslen < 2) continue ;
+      if (mbslen < 2 || i < 194 || i > 244) continue;
       buffer[0] = (uint8_t)i ;
       for (unsigned fi = 1; fi < mbslen; ++fi) {
          memset(buffer+1, 0x80+0x3f, mbslen-1) ;
@@ -924,7 +905,7 @@ static int test_utf8validator(void)
       char32_t chr = i == 0 ? 0 : i == 1 ? 0x80 : i == 2 ? 0x800 : 0x10000 ;
       unsigned offset ;
       for (offset = 0; offset < sizeof(buffer)-maxsize_utf8(); ++chr) {
-         offset += encodechar_utf8(maxsize_utf8(), buffer+offset, chr) ;
+         offset += encodechar_utf8(chr, maxsize_utf8(), buffer+offset);
       }
       memset(buffer+offset, 0, sizeof(buffer)-offset) ;
       TEST(0 == validate_utf8validator(&utf8val, sizeof(buffer), buffer, 0))
@@ -944,7 +925,7 @@ static int test_utf8validator(void)
       char32_t chr  = mbslen == 2 ? 0x80 : mbslen == 3 ? 0x800 : 0x10000 ;
       char32_t step = chr ;
       for (unsigned i = 0; i < 5; ++i, chr += step) {
-         TEST(mbslen == encodechar_utf8(maxsize_utf8(), buffer+i*mbslen, chr)) ;
+         TEST(mbslen == encodechar_utf8(chr, maxsize_utf8(), buffer+i*mbslen));
       }
       for (unsigned buflen = 4*mbslen+1; buflen < 5*mbslen; ++buflen) {
          size_t P = buflen - 4*mbslen ;
@@ -971,7 +952,7 @@ static int test_utf8validator(void)
       char32_t chr  = mbslen == 2 ? 0x100 : mbslen == 3 ? 0x3800 : 0x50000 ;
       char32_t step = chr >> 4 ;
       for (unsigned i = 0; i < 5; ++i, chr += step) {
-         TEST(mbslen == encodechar_utf8(maxsize_utf8(), buffer+i*mbslen, chr)) ;
+         TEST(mbslen == encodechar_utf8(chr, maxsize_utf8(), buffer+i*mbslen));
       }
       for (uint8_t P = 1; P < mbslen; ++P) {
          init_utf8validator(&utf8val) ;
@@ -1003,7 +984,7 @@ static int test_utf8validator(void)
       char32_t chr  = mbslen == 2 ? 0x300 : mbslen == 3 ? 0x1080 : 0x30500 ;
       char32_t step = chr >> 4 ;
       for (unsigned i = 0; i < 7; ++i, chr += step) {
-         TEST(mbslen == encodechar_utf8(maxsize_utf8(), buffer+i*mbslen, chr)) ;
+         TEST(mbslen == encodechar_utf8(chr, maxsize_utf8(), buffer+i*mbslen));
       }
       for (uint8_t P = 1; P < mbslen; ++P) {
          for (uint8_t E = 1; E < mbslen; ++E) {
@@ -1046,7 +1027,7 @@ static int test_readmemstr(void)
    // TEST nextutf8_memstream, peekutf8_memstream, skiputf8_memstream: all characters
    for (char32_t i = 0; i < maxchar_utf8(); ++i) {
       uint8_t buffer[maxsize_utf8()] ;
-      uint8_t len = encodechar_utf8(maxsize_utf8(), buffer, i) ;
+      uint8_t len = encodechar_utf8(i, maxsize_utf8(), buffer);
       init_memstream(&memstr, buffer, buffer+maxsize_utf8());
       TEST(0 == peekutf8_memstream(&memstr, &uchar)) ;
       TEST(i == uchar) ;
@@ -1125,11 +1106,12 @@ static int test_readmemstr(void)
    char32_t fillchar[] = { 0x0, 0x1, 0x3F } ;
    for (char32_t i = 0; i < 256; ++i) {
       bool is_check_follow_bytes = false ;
+      const int isInvalid = (128 <= i && i <= 193) || i >= 245;
       for (unsigned fci = 0; fci < lengthof(fillchar); ++fci) {
          uint8_t  buffer[4] = { (uint8_t)i, (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]) } ;
          init_memstream(&memstr, buffer, buffer+4);
-         char32_t expect = 0 ;
-         switch (sizePfirst_utf8(i)) {
+         char32_t expect = 0;
+         switch (isInvalid ? 0 : sizePfirst_utf8(i)) {
          case 0:
             expect = 0 ;
             break ;
@@ -1159,7 +1141,7 @@ static int test_readmemstr(void)
          } else {
             uchar = expect + 1 ;
             TEST(0 == peekutf8_memstream(&memstr, &uchar)) ;
-            TEST(uchar == expect) ;
+            TEST(uchar == expect);
             TEST(memstr.next == buffer) ;
             uchar = expect + 1 ;
             TEST(0 == nextutf8_memstream(&memstr, &uchar)) ;
@@ -1203,7 +1185,7 @@ static int test_readmemstr(void)
             }
          }
       }
-      TEST(sizePfirst_utf8(i) == 0 || is_check_follow_bytes) ;
+      TEST(isInvalid || is_check_follow_bytes) ;
    }
 
    // TEST skipillegalutf8_memstream: first byte encoded illegal

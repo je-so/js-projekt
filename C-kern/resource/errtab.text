@@ -578,9 +578,9 @@ en: "Unknown error"
 ## Application Error Codes
 ##
 
-ESTATE
-de: "Funktion in Zustand nicht verfügbar"
-en: "Function not available in this state"
+ENOTINIT
+de: "Teilsystem wurde noch nicht initialisiert"
+en: "Subsystem not yet initialized"
 EINVARIANT
 de: "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)"
 en: "Internal invariant violated - (software bug or corrupt memory)"
@@ -593,7 +593,9 @@ en: "Failed to allocate one or more resources"
 ELEAK
 de: "Ressource(n) verloren"
 en: "Resource(s) leaked"
-0x105 -> 0xff
+ESYNTAX
+de: "Syntaktischer Fehler während Strukturanalyse"
+en: "Syntax error during parsing"
 0x106 -> 0xff
 0x107 -> 0xff
 0x108 -> 0xff

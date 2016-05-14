@@ -255,12 +255,12 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xfd] = 4830 /*same as 0x86*/,
    [0xfe] = 4830 /*same as 0x86*/,
    [0xff] = 4830 /*same as 0x86*/,
-   [ESTATE] = 4849,
-   [EINVARIANT] = 4886,
-   [ERESET] = 4957,
-   [EALLOC] = 4988,
-   [ELEAK] = 5011,
-   [0x105] = 4830 /*same as 0xff*/,
+   [ENOTINIT] = 4849,
+   [EINVARIANT] = 4891,
+   [ERESET] = 4962,
+   [EALLOC] = 4993,
+   [ELEAK] = 5016,
+   [ESYNTAX] = 5038,
    [0x106] = 4830 /*same as 0xff*/,
    [0x107] = 4830 /*same as 0xff*/,
    [0x108] = 4830 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 4830 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[5033] = {
+uint8_t g_errorcontext_strdata[5084] = {
    "Erfolg\0"
    "Vorgang nicht zulässig\0"
    "Datei oder Verzeichnis nicht gefunden\0"
@@ -649,9 +649,10 @@ uint8_t g_errorcontext_strdata[5033] = {
    "Vorgang ist nicht möglich wegen RF-kill\0"
    "Memory-Seite hat einen Hardware-Fehler\0"
    "Unbekannter Fehler\0"
-   "Funktion in Zustand nicht verfügbar\0"
+   "Teilsystem wurde noch nicht initialisiert\0"
    "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)\0"
    "Kontextzustand wurde gelöscht\0"
    "Nicht genug Ressourcen\0"
    "Ressource(n) verloren\0"
+   "Syntaktischer Fehler während Strukturanalyse\0"
 } ;

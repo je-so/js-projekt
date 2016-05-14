@@ -1,65 +1,25 @@
-[1: 1451284638.416157s]
-addpage_buffer() C-kern/proglang/regexpr.c:140
+[1: 1463152841.213044s]
+init_regexpr() C-kern/proglang/regexpr.c:538
 Exit function with
-Error 3 - No such process
-[1: 1451284638.416166s]
-addpage_buffer() C-kern/proglang/regexpr.c:140
+Error 12 - Cannot allocate memory
+[1: 1463152841.213065s]
+init_regexpr() C-kern/proglang/regexpr.c:538
 Exit function with
-Error 1 - Operation not permitted
-[1: 1451284638.416169s]
-addpage_buffer() C-kern/proglang/regexpr.c:140
+Error 13 - Permission denied
+[1: 1463152841.213069s]
+init_regexpr() C-kern/proglang/regexpr.c:538
 Exit function with
-Error 2 - No such file or directory
-[1: 1451284638.416172s]
-addpage_buffer() C-kern/proglang/regexpr.c:140
+Error 14 - Bad address
+[1: 1463152841.213122s]
+init_regexpr() C-kern/proglang/regexpr.c:538
 Exit function with
-Error 3 - No such process
-[1: 1451284638.416174s]
-addpage_buffer() C-kern/proglang/regexpr.c:140
-Exit function with
-Error 4 - Interrupted system call
-[1: 1451284638.416985s]
-free_buffer() C-kern/proglang/regexpr.c:172
+Error 15 - Block device required
+[1: 1463152841.213219s]
+free_regexpr() C-kern/proglang/regexpr.c:487
 One or more resources could not be freed
 Exit function with
-Error 1 - Operation not permitted
-[1: 1451284638.416987s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 2 - No such file or directory
-[1: 1451284638.416989s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 3 - No such process
-[1: 1451284638.416992s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 4 - Interrupted system call
-[1: 1451284638.416994s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 5 - Input/output error
-[1: 1451284638.416996s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 6 - No such device or address
-[1: 1451284638.416998s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 7 - Argument list too long
-[1: 1451284638.417001s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 8 - Exec format error
-[1: 1451284638.417003s]
-free_buffer() C-kern/proglang/regexpr.c:172
-One or more resources could not be freed
-Exit function with
-Error 9 - Bad file descriptor
+Error 22 - Invalid argument
+Unexpected char ')'
+Expect '<char>' instead of '*'
+Expect '<char>' instead of '*'
+Wrong encoded character 'ˇÅ'

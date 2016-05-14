@@ -123,7 +123,7 @@ bool isnext_memstream(const memstream_t * memstr);
 size_t size_memstream(const memstream_t * memstr);
 
 /* function: offset_memstream
- * Returns the offset of the next pointer from start.
+ * Returns the offset of the next pointer relative to start.
  * Parameter start must be the value given in <init_memstream> or <memstream_INIT>. */
 size_t offset_memstream(const memstream_t * memstr, uint8_t * start);
 

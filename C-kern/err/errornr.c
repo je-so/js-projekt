@@ -31,17 +31,18 @@
 
 static inline void test_errornr(void)
 {
-   static_assert(256 == errornr_STATE, "");
+   static_assert(256 == errornr_STATE_NOTINIT, "");
    static_assert(257 == errornr_STATE_INVARIANT, "");
    static_assert(258 == errornr_STATE_RESET, "");
    static_assert(259 == errornr_RESOURCE_ALLOCATE, "");
    static_assert(260 == errornr_RESOURCE_LEAK, "");
-   static_assert(261 == errornr_NEXTERRORCODE, "");
+   static_assert(261 == errornr_PARSER_SYNTAX, "");
+   static_assert(262 == errornr_NEXTERRORCODE, "");
 }
 
 static inline void test_defines(void)
 {
-   static_assert(ESTATE     == errornr_STATE, "");
+   static_assert(ENOTINIT   == errornr_STATE_NOTINIT, "");
    static_assert(EINVARIANT == errornr_STATE_INVARIANT, "");
    static_assert(ERESET     == errornr_STATE_RESET, "");
    static_assert(EALLOC     == errornr_RESOURCE_ALLOCATE, "");
@@ -53,11 +54,12 @@ static int test_errorstr(void)
 
 #define CHECK(ERR,STR) TEST(0 == memcmp(str_errorcontext(error_maincontext(), ERR), STR, strlen(STR)+1))
 
-   CHECK(ESTATE,     "Function not available in this state");
+   CHECK(ENOTINIT,   "Subsystem not yet initialized");
    CHECK(EINVARIANT, "Internal invariant violated - (software bug or corrupt memory)");
    CHECK(ERESET,     "Lost context state cause of power management event");
    CHECK(EALLOC,     "Failed to allocate one or more resources");
    CHECK(ELEAK,      "Resource(s) leaked");
+   CHECK(ESYNTAX,    "Syntax error during parsing");
 
 #undef CHECK
 

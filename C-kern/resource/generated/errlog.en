@@ -26,13 +26,6 @@ void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    PRINTF("Error will be ignored\n");
 }
 
-void FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
-{
-   struct p_FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG * p = _p;
-
-   PRINTF("'%s' contains no newline\n", p->filename);
-}
-
 void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
    struct p_FILE_FORMAT_WRONG_ERRLOG * p = _p;
@@ -45,6 +38,20 @@ void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    struct p_FILE_NAME_ERRLOG * p = _p;
 
    PRINTF("File name '%s%s'\n", p->workdir, p->filename);
+}
+
+void FILE_HEADER_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_FILE_HEADER_NAME_ERRLOG * p = _p;
+
+   PRINTF("File '%s%s': ", p->filedir, p->filename);
+}
+
+void FILE_HEADER_LINECOL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_FILE_HEADER_LINECOL_ERRLOG * p = _p;
+
+   PRINTF("File '%s%s': line %zu, column %zu: ", p->filedir, p->filename, p->linenr, p->colnr);
 }
 
 void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
@@ -124,18 +131,60 @@ void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    PRINTF("Could not allocate %zu bytes of memory - error %d\n", p->size, p->err);
 }
 
-void PARSEERROR_EXPECTCHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFINPUT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_PARSEERROR_EXPECTCHAR_ERRLOG * p = _p;
+   (void) _p;
 
-   PRINTF("Expect character '%s' in line: %zu, column: %zu\n", p->chr, p->linenr, p->colnr);
+   PRINTF("end of input");
 }
 
-void PARSEERROR_EXPECTNEWLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_PARSEERROR_EXPECTNEWLINE_ERRLOG * p = _p;
+   (void) _p;
 
-   PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", p->linenr, p->colnr);
+   PRINTF("newline");
+}
+
+void PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG * p = _p;
+
+   PRINTF("Wrong encoded character '%s'\n", p->str);
+}
+
+void PARSEERROR_EXPECT_INSTEADOF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_EXPECT_INSTEADOF_ERRLOG * p = _p;
+
+   PRINTF("Expect ");
+   if (p->expect[0]=='\n') PRINTF("newline");
+   else PRINTF("'%s'", p->expect);
+   PRINTF(" instead of ");
+   if (p->insteadof==0) PRINTF("end of input");
+   else if (p->insteadof[0]=='\n') PRINTF("newline");
+   else PRINTF("'%s'", p->insteadof);
+   PRINTF("\n");
+}
+
+void PARSEERROR_UNEXPECTED_CHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   struct p_PARSEERROR_UNEXPECTED_CHAR_ERRLOG * p = _p;
+
+   PRINTF("Unexpected char '%s'\n", p->str);
+}
+
+void PARSEERROR_EXPECT_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   (void) _p;
+
+   PRINTF("Expect newline\n");
+}
+
+void PARSEERROR_WRONG_FORMAT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+{
+   (void) _p;
+
+   PRINTF("Content has unknown format\n");
 }
 
 void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)

@@ -69,6 +69,7 @@ typedef struct csvparser_t {
     * The allocated table size is determined by <allocated_rows> and <nrcolumns>.
     * The valid values are determined by <nrrows> and <nrcolumns>. */
    struct string_t * tablevalues/*[nrrows][nrcolumns]*/;
+   const char   * filename;
 } csvparser_t;
 
 // group: static variables
@@ -99,8 +100,8 @@ static inline size_t tablesize_csvparser(csvparser_t * state, size_t nr_allocate
 
 /* define: csvparser_INIT
  * Static initializer. */
-#define csvparser_INIT(length, data) \
-         { data, length, 0, 0, 1, 0, 0, 0, 0 }
+#define csvparser_INIT(length, data, filename) \
+         { data, length, 0, 0, 1, 0, 0, 0, 0, filename }
 
 /* function: free_csvparser
  * Frees allocated table. Call this function only in case of
@@ -185,8 +186,10 @@ static int parsechar_csvparser(csvparser_t * state, uint8_t chr)
    int err;
    if (state->offset >= state->length || state->data[state->offset] != chr) {
       err = EINVAL;
-      const char str[2] = { (char)chr, 0 };
-      TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvparser(state), str);
+      const char expect[2] = { (char)chr, 0 };
+      const char insteadof[2] = { state->offset < state->length ? (char)state->data[state->offset] : 0, 0 };
+      TRACE_ERRLOG(log_flags_NONE, FILE_HEADER_LINECOL, "", state->filename, state->linenr, colnr_csvparser(state));
+      TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECT_INSTEADOF, expect, state->offset < state->length ? insteadof : 0);
       goto ONERR;
    }
    ++ state->offset;
@@ -249,10 +252,12 @@ static int parsenrcolumns_csvparser(csvparser_t * state)
          size_t erroffset = state2.offset;
          skipempty_csvparser(&state2);
          if (state2.offset >= state2.length || state->linenr != state2.linenr) {
+            char insteadof[2] = { erroffset < state->length ? (char)state->data[erroffset] : 0, 0 };
             state2.startofline = state->startofline;
             state2.offset      = erroffset;
             err = EINVAL;
-            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvparser(&state2), "\"");
+            TRACE_ERRLOG(log_flags_NONE, FILE_HEADER_LINECOL, "", state->filename, state->linenr, colnr_csvparser(&state2));
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECT_INSTEADOF, "\"", erroffset < state->length ? insteadof : 0);
             goto ONERR;
          }
       }
@@ -285,8 +290,10 @@ static int parsedata_csvparser(csvparser_t * state)
          if (err) goto ONERR;
       }
       if (oldlinenr == state->linenr) {
+         char insteadof[2] = { state->offset < state->length ? (char)state->data[state->offset] : 0, 0 };
          err = EINVAL;
-         TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTNEWLINE, state->linenr, colnr_csvparser(state));
+         TRACE_ERRLOG(log_flags_NONE, FILE_HEADER_LINECOL, "", state->filename, state->linenr, colnr_csvparser(state));
+         TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECT_INSTEADOF, "\n", state->offset < state->length ? insteadof : 0);
          goto ONERR;
       }
       size_t startofline = state->startofline;
@@ -297,10 +304,12 @@ static int parsedata_csvparser(csvparser_t * state)
          size_t erroffset = state->offset;
          skipempty_csvparser(state);
          if (oldlinenr != state->linenr) {
+            char insteadof[2] = { erroffset < state->length ? (char)state->data[erroffset] : 0, 0 };
             state->startofline = startofline;
             state->offset      = erroffset;
             err = EINVAL;
-            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvparser(state), ",");
+            TRACE_ERRLOG(log_flags_NONE, FILE_HEADER_LINECOL, "", state->filename, oldlinenr, colnr_csvparser(state));
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECT_INSTEADOF, ",", erroffset < state->length ? insteadof : 0);
             goto ONERR;
          }
          err = parsechar_csvparser(state, (uint8_t)',');
@@ -308,10 +317,12 @@ static int parsedata_csvparser(csvparser_t * state)
          erroffset = state->offset;
          skipempty_csvparser(state);
          if (oldlinenr != state->linenr) {
+            char insteadof[2] = { erroffset < state->length ? (char)state->data[erroffset] : 0, 0 };
             state->startofline = startofline;
             state->offset      = erroffset;
             err = EINVAL;
-            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvparser(state), "\"");
+            TRACE_ERRLOG(log_flags_NONE, FILE_HEADER_LINECOL, "", state->filename, oldlinenr, colnr_csvparser(state));
+            TRACE_ERRLOG(log_flags_NONE, PARSEERROR_EXPECT_INSTEADOF, "\"", erroffset < state->length ? insteadof : 0);
             goto ONERR;
          }
          err = parsedatafield_csvparser(state, &state->tablevalues[tableindex ++]);
@@ -346,7 +357,7 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
    (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
    if (err) goto ONERR_FREEDSTATE;
 
-   state = (csvparser_t) csvparser_INIT(size_wbuffer(&wbuf), file_data.addr);
+   state = (csvparser_t) csvparser_INIT(size_wbuffer(&wbuf), file_data.addr, filepath);
 
    err = parsenrcolumns_csvparser(&state);
    (void) PROCESS_testerrortimer(&s_csvparser_errtimer, &err);
@@ -437,19 +448,21 @@ ONERR:
 
 static int test_csvparser(void)
 {
-   uint8_t     data[8];
-   csvparser_t state = csvparser_INIT(sizeof(data), data);
+   uint8_t      data[8];
+   const char * filename = "abc";
+   csvparser_t  state = csvparser_INIT(sizeof(data), data, filename);
 
    // TEST csvparser_INIT
-   TEST( data == state.data);
-   TEST( 8 == state.length);
-   TEST( 0 == state.offset);
-   TEST( 0 == state.startofline);
-   TEST( 1 == state.linenr);
-   TEST( 0 == state.nrcolumns);
-   TEST( 0 == state.nrrows);
-   TEST( 0 == state.allocated_rows);
-   TEST( 0 == state.tablevalues);
+   TEST( state.data   == data);
+   TEST( state.length == sizeof(data));
+   TEST( state.offset == 0);
+   TEST( state.startofline == 0);
+   TEST( state.linenr == 1);
+   TEST( state.nrcolumns == 0);
+   TEST( state.nrrows == 0);
+   TEST( state.allocated_rows == 0);
+   TEST( state.tablevalues == 0);
+   TEST( state.filename == filename);
 
    // TEST free_csvparser
    state.nrcolumns = 13;
@@ -780,10 +793,10 @@ static int test_reading(void)
       // compare correct column number in error log
       size_t logend;
       GETBUFFER_ERRLOG(&logbuffer, &logend);
-      TEST(0 != strstr((char*)logbuffer + logstart, "column: "));
+      TEST(0 != strstr((char*)logbuffer + logstart, "column "));
       unsigned colnr;
-      sscanf(strstr((char*)logbuffer + logstart, "column: ")+8, "%u", &colnr);
-      TEST(errcol[i] == colnr);
+      sscanf(strstr((char*)logbuffer + logstart, "column ")+7, "%u", &colnr);
+      TESTP(errcol[i] == colnr, "colnr:%u errcol:%u", colnr, errcol[i]);
       // reset
       TEST(0 == removefile_directory(tmpdir, "error"));
    }
@@ -839,6 +852,16 @@ int unittest_io_reader_csvfilereader()
    if (test_initfree())    goto ONERR;
    if (test_query())       goto ONERR;
    if (test_reading())     goto ONERR;
+
+   // adapt log
+   uint8_t* logbuffer;
+   size_t   logsize;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   char *next;
+   for (size_t offset = 0; (next=strstr((char*)logbuffer + offset, "test_reading.")); ) {
+      offset = (size_t) (next - (char*)logbuffer + 13);
+      strncpy((char*)logbuffer + offset, "XXXXXX", 6);
+   }
 
    return 0;
 ONERR:

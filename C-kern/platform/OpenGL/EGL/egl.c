@@ -44,7 +44,7 @@ int convert2errno_egl(int eglerr)
 {
    switch (eglerr) {
    case EGL_SUCCESS:          return 0;      // The last function succeeded without error.
-   case EGL_NOT_INITIALIZED:  return ESTATE; // EGL is not initialized, or could not be initialized, for the specified EGL display connection.
+   case EGL_NOT_INITIALIZED:  return ENOTINIT; // EGL is not initialized, or could not be initialized, for the specified EGL display connection.
    case EGL_BAD_ACCESS:       return EACCES; // EGL cannot access a requested resource (for example a context is bound in another thread).
    case EGL_BAD_ALLOC:        return EALLOC; // EGL failed to allocate resources for the requested operation.
    case EGL_BAD_ATTRIBUTE:    return EINVAL; // An unrecognized attribute or attribute value was passed in the attribute list.
@@ -86,7 +86,7 @@ static int test_query2(void)
 {
    // TEST convert2errno_egl
    TEST(0 == convert2errno_egl(EGL_SUCCESS));
-   TEST(ESTATE == convert2errno_egl(EGL_NOT_INITIALIZED));
+   TEST(ENOTINIT == convert2errno_egl(EGL_NOT_INITIALIZED));
    TEST(EACCES == convert2errno_egl(EGL_BAD_ACCESS));
    TEST(EALLOC == convert2errno_egl(EGL_BAD_ALLOC));
    TEST(EINVAL == convert2errno_egl(EGL_BAD_ATTRIBUTE));
