@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="0" Name="m_selectedTab"/>
+  <int Value="6" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="101" Name="FirstVisibleLine"/>
+      <int Value="105" Name="FirstVisibleLine"/>
       <int Value="113" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
@@ -20,7 +20,7 @@
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/proglang/regexpr.c" Name="FileName"/>
       <int Value="21" Name="FirstVisibleLine"/>
-      <int Value="32" Name="CurrentLine"/>
+      <int Value="39" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks">
         <wxString Value="50:3"/>
       </wxArrayString>
@@ -56,32 +56,19 @@
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/err/errlog_macros.h" Name="FileName"/>
-      <int Value="13" Name="FirstVisibleLine"/>
-      <int Value="26" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/string/utf8.h" Name="FileName"/>
+      <int Value="160" Name="FirstVisibleLine"/>
+      <int Value="188" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="113:3"/>
+        <wxString Value="243:3"/>
+      </wxArrayString>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
     <long Value="4" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
-      <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="119" Name="lineno"/>
-      <wxString Value="" Name="function_name"/>
-      <wxString Value="" Name="memory_address"/>
-      <int Value="1" Name="bp_type"/>
-      <int Value="0" Name="watchpoint_type"/>
-      <wxString Value="" Name="watchpt_data"/>
-      <CData Name="commandlist"/>
-      <bool Value="0" Name="regex"/>
-      <bool Value="0" Name="is_temp"/>
-      <bool Value="1" Name="is_enabled"/>
-      <int Value="0" Name="ignore_number"/>
-      <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
-    </SerializedObject>
-    <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/arraysf.c" Name="file"/>
       <int Value="1043" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -97,7 +84,7 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint2">
+    <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/pseudoterm.c" Name="file"/>
       <int Value="383" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -113,9 +100,25 @@
       <wxString Value="" Name="conditions"/>
       <int Value="0" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint3">
+    <SerializedObject Name="Breakpoint2">
       <wxString Value="/jsprojekt/JS/C-kern/proglang/automat.c" Name="file"/>
       <int Value="5159" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint3">
+      <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
+      <int Value="119" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

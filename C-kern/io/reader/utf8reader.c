@@ -339,31 +339,19 @@ static int test_read(directory_t * tempdir)
    TEST(ENODATA == skipchar_utf8reader(&utfread)) ;
    TEST(0 == free_utf8reader(&utfread)) ;
 
-   // TEST nextchar_utf8reader, skipchar_utf8reader: EILSEQ + ENOTEMPTY
-   utf8reader_t old ;
-   TEST(0 == save_file("illseq", 3, (const uint8_t*)"\U0010ffff", tempdir)) ;
-   TEST(0 == init_utf8reader(&utfread, "illseq", tempdir)) ;
-   old = utfread ;
-   TEST(EILSEQ == skipchar_utf8reader(&utfread)) ;
-   TEST(ENOTEMPTY == nextchar_utf8reader(&utfread, &ch)) ;
-   TEST(0 == memcmp(&old, &utfread, sizeof(utfread))) ;
-   TEST(0 == remove_file("illseq", tempdir)) ;
-   TEST(0 == save_file("illseq", 2, (const uint8_t*)"\U0000ffff", tempdir)) ;
-   TEST(0 == free_utf8reader(&utfread)) ;
-   TEST(0 == init_utf8reader(&utfread, "illseq", tempdir)) ;
-   old = utfread ;
-   TEST(EILSEQ == skipchar_utf8reader(&utfread)) ;
-   TEST(ENOTEMPTY == nextchar_utf8reader(&utfread, &ch)) ;
-   TEST(0 == memcmp(&old, &utfread, sizeof(utfread))) ;
-   TEST(0 == remove_file("illseq", tempdir)) ;
-   TEST(0 == save_file("illseq", 1, (const uint8_t*)"\u07ff", tempdir)) ;
-   TEST(0 == free_utf8reader(&utfread)) ;
-   TEST(0 == init_utf8reader(&utfread, "illseq", tempdir)) ;
-   old = utfread ;
-   TEST(EILSEQ == skipchar_utf8reader(&utfread)) ;
-   TEST(ENOTEMPTY == nextchar_utf8reader(&utfread, &ch)) ;
-   TEST(0 == memcmp(&old, &utfread, sizeof(utfread))) ;
-   TEST(0 == free_utf8reader(&utfread)) ;
+   // TEST nextchar_utf8reader, skipchar_utf8reader: EILSEQ
+   for (unsigned len = 3; len >= 1; --len) {
+      utf8reader_t old;
+      const char   *content[3] = { u8"\u07ff", u8"\U0000ffff", u8"\U0010ffff" };
+      TEST(0 == save_file("illseq", len, content[len-1], tempdir));
+      TEST(0 == init_utf8reader(&utfread, "illseq", tempdir));
+      old = utfread;
+      TEST(EILSEQ == skipchar_utf8reader(&utfread));
+      TEST(EILSEQ == nextchar_utf8reader(&utfread, &ch));
+      TEST(0 == memcmp(&old, &utfread, sizeof(utfread)));
+      TEST(0 == remove_file("illseq", tempdir));
+      TEST(0 == free_utf8reader(&utfread));
+   }
 
    // TEST peekascii_utf8reader, skipascii_utf8reader
    TEST(0 == init_utf8reader(&utfread, "text", tempdir)) ;
@@ -415,15 +403,14 @@ static int test_read(directory_t * tempdir)
    TEST(0 == free_utf8reader(&utfread)) ;
 
    // unprepare
-   TEST(0 == removefile_directory(tempdir, "text")) ;
-   TEST(0 == removefile_directory(tempdir, "illseq")) ;
+   TEST(0 == removefile_directory(tempdir, "text"));
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_utf8reader(&utfread) ;
-   removefile_directory(tempdir, "text") ;
-   removefile_directory(tempdir, "illseq") ;
-   return EINVAL ;
+   free_utf8reader(&utfread);
+   removefile_directory(tempdir, "text");
+   removefile_directory(tempdir, "illseq");
+   return EINVAL;
 }
 
 static int test_skipline(directory_t * tempdir)

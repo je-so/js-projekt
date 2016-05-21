@@ -389,8 +389,8 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr);
  * Implements <slist_t.insertnext_slist>. */
 static inline void insertnext_slist(struct slist_node_t * prev_node, struct slist_node_t * new_node)
 {
-   new_node->next  = prev_node->next;
-   prev_node->next = new_node;
+         new_node->next  = prev_node->next;
+         prev_node->next = new_node;
 }
 
 /* define: insertlastPlist_slist

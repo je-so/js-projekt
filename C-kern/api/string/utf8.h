@@ -14,8 +14,8 @@
    0x200000 .. 0x3FFFFFF   - 0b111110xx 0b10xxxxxx 0b10xxxxxx 0b10xxxxxx 0b10xxxxxx
    0x4000000 .. 0x7FFFFFFF - 0b1111110x 0b10xxxxxx 0b10xxxxxx 0b10xxxxxx 0b10xxxxxx 0b10xxxxxx
 
-   The UTF-8 encoding is restricted to max. 4 bytes per character to be compatible with
-   UTF-16 (0 .. 0x10FFFF).
+   If you want UTF-8 encoding to be compatible with UTF-16 (0 .. 0x10FFFF)
+   restrict yourself to max. 4 bytes per character.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -32,13 +32,8 @@
 #ifndef CKERN_STRING_UTF8_HEADER
 #define CKERN_STRING_UTF8_HEADER
 
-/* typedef: struct utf8validator_t
- * Export <utf8validator_t> into global namespace. */
-typedef struct utf8validator_t utf8validator_t;
-
-/* variable: g_utf8_bytesperchar
- * Stores the length in bytes of an encoded utf8 character indexed by the first encoded byte. */
-extern uint8_t g_utf8_bytesperchar[16];
+// === exported types
+struct utf8validator_t;
 
 
 // section: Functions
@@ -55,16 +50,22 @@ int unittest_string_utf8(void);
 
 // struct: utf8
 
+// group: global-variables
+
+/* variable: g_utf8_bytesperchar
+ * Stores the length in bytes of an encoded utf8 character indexed by the first encoded byte. */
+extern uint8_t g_utf8_bytesperchar[64];
+
 // group: query
 
 /* function: maxchar_utf8
  * Returns the maximum character value (unicode code point) which can be encoded into utf-8.
  * The minumum unicode code point is 0. The returned value is 0x10FFFF. */
-char32_t maxchar_utf8(void) ;
+char32_t maxchar_utf8(void);
 
 /* function: maxsize_utf8
  * Returns the maximum size in bytes of an utf-8 encoded multibyte sequence. */
-uint8_t maxsize_utf8(void) ;
+uint8_t maxsize_utf8(void);
 
 /* function: isfirstbyte_utf8
  * Returns true if this byte is a possible first (start) byte of an utf-8 encoded multibyte sequence.
@@ -87,7 +88,7 @@ uint8_t sizePfirst_utf8(const uint8_t firstbyte);
  * Returns the size in bytes of uchar as encoded mb-sequence.
  * The returned values are in the range 1..<maxchar_utf8>.
  * If uchar is bigger than <maxchar_utf8> no error is reported and the function returns <maxsize_utf8>. */
-uint8_t sizechar_utf8(char32_t uchar) ;
+uint8_t sizechar_utf8(char32_t uchar);
 
 /* function: length_utf8
  * Returns number of UTF-8 characters encoded in string buffer.
@@ -103,7 +104,14 @@ uint8_t sizechar_utf8(char32_t uchar) ;
  * strend   - Highest memory address of byte after last byte in the string buffer.
  *            If strend <= strstart then the string is considered the empty string.
  *            Set this value to strstart + length_of_string_in_bytes. */
-size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
+size_t length_utf8(const uint8_t * strstart, const uint8_t * strend);
+
+/* function: find_utf8
+ * Searches for unicode character in utf8 encoded string str of size bytes.
+ * The returned value points to the start addr of the multibyte sequence.
+ * A return value of 0 inidcates that str[size] does not contain the multibyte sequence
+ * or that uchar is bigger than <maxchar_utf8> and therefore invalid. */
+const uint8_t * find_utf8(size_t size, const uint8_t str[size], char32_t uchar);
 
 // group: encode-decode
 
@@ -134,7 +142,7 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
  * >    str += len;
  * >    ... do something with uchar ...
  * > } */
-uint8_t decodechar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/], /*out*/char32_t * uchar) ;
+uint8_t decodechar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/], /*out*/char32_t * uchar);
 
 /* function: encodechar_utf8
  * Encodes uchar into UTF-8 enocoded string of size strsize starting at strstart.
@@ -147,29 +155,30 @@ uint8_t encodechar_utf8(char32_t uchar, size_t strsize, /*out*/uint8_t strstart[
  * Skips the next utf-8 encoded character.
  * The encoded byte sequence is *not* checked for correctness.
  * The number of skipped bytes is returned. The maximum return value is <maxsize_utf8>.
- * The values returned are in the range [1..4]. */
-uint8_t skipchar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/]) ;
+ * The values returned are in the range [1..6]. */
+uint8_t skipchar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/]);
 
 
 /* struct: utf8validator_t
- * Allows to validate a blocked stream of bytes.
- * If a multibyte sequence crosses a two data blocks
- * the first part of it is stored internally as prefix
- * data for the next block. */
-struct utf8validator_t {
-   uint8_t  size_of_prefix ;
-   uint8_t  prefix[4/*maxsize_utf8()*/] ;
-} ;
+ * Allows to validate multiple memory blocks of bytes.
+ * If a multibyte sequence crosses a block boundary the first part
+ * of it is stored internally as prefix data which is used as
+ * prefix during decoding of the next data block. */
+typedef struct utf8validator_t {
+   uint8_t  sizeprefix;
+   uint8_t  prefix[6/*maxsize_utf8()*/];
+} utf8validator_t;
 
 // group: lifetime
 
 /* define: utf8validator_INIT
  * Static initializer. */
-#define utf8validator_INIT { 0, { 0, 0, 0, 0} }
+#define utf8validator_INIT \
+         { 0, { 0 } }
 
 /* function: init_utf8validator
  * Same as assigning <utf8validator_INIT>. */
-void init_utf8validator(/*out*/utf8validator_t * utf8validator) ;
+void init_utf8validator(/*out*/utf8validator_t *utf8validator);
 
 /* function: free_utf8validator
  * Clear data members and checks that there is no internal prefix stored.
@@ -177,13 +186,13 @@ void init_utf8validator(/*out*/utf8validator_t * utf8validator) ;
  * Returns:
  * 0      - All multi-byte character sequences fit into last buffer.
  * EILSEQ - Last multi-byte character sequence was incomplete. Need more data. */
-int free_utf8validator(utf8validator_t * utf8validator) ;
+static inline int free_utf8validator(utf8validator_t *utf8validator);
 
 // group: query
 
 /* function: sizeprefix_utf8validator
  * Returns a value != 0 if the last multibyte sequence was not fully contained in the last validated buffer. */
-uint8_t sizeprefix_utf8validator(const utf8validator_t * utf8validator) ;
+uint8_t sizeprefix_utf8validator(const utf8validator_t *utf8validator);
 
 // group: validate
 
@@ -192,60 +201,7 @@ uint8_t sizeprefix_utf8validator(const utf8validator_t * utf8validator) ;
  * If the last multibyte sequence is not fully contained in the data block but a valid prefix it is stored internally as prefix.
  * If this function is called another time the internal prefix is prepended to the data block.
  * If an error occurs EILSEQ is returned the parameter offset is set to the offset of the byte which is not encoded correctly. */
-int validate_utf8validator(utf8validator_t * utf8validator, size_t size, const uint8_t data[size], /*err*/size_t * erroffset) ;
-
-
-
-// struct: memstream_t
-// Extend memstream_ro_t with UTF-8 capability.
-struct memstream_ro_t;
-
-// group: read-utf8
-
-/* function: nextutf8_memstream
- * Reads next utf-8 encoded character from memstr.
- * The character is returned as unicode character (codepoint) in uchar.
- * The next pointer of memstr is incremented with the number of decoded bytes.
- *
- * Returns:
- * 0         - UTF8 character decoded and returned in uchar and memory pointer is moved to next character.
- * ENODATA   - memstr is empty.
- * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
- *             are not enough bytes left in the string.
- * EILSEQ    - The next multibyte sequence is not encoded in a correct way. memstr is not changed.
- *             Use <skipillegalutf8_memstream> to skip all illegal bytes. */
-int nextutf8_memstream(struct memstream_ro_t * memstr, /*out*/char32_t * uchar) ;
-
-/* function: peekutf8_memstream
- * Same as <nextutf8_memstream> except that memstr is not changed.
- * Calling this function more than once returns always the same value in uchar. */
-int peekutf8_memstream(const struct memstream_ro_t * memstr, /*out*/char32_t * uchar) ;
-
-/* function: skiputf8_memstream
- * Skips next utf-8 encoded character from memstr.
- * The next pointer of memstr is incremented with the size of the next character.
- *
- * Returns:
- * 0         - Memory pointer is moved to next character.
- * ENODATA   - memstr is empty.
- * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
- *             are not enough bytes left in the string.
- * EILSEQ    - The next multibyte sequence is not encoded in a correct way. memstr is not changed.
- *             Use <skipillegalutf8_memstream> to skip all illegal bytes. */
-int skiputf8_memstream(struct memstream_ro_t * memstr);
-
-/* function: skipillegalutf8_memstream
- * Skips bytes until end of stream or the begin of a valid utf-8 encoding is found. */
-void skipillegalutf8_memstream(struct memstream_ro_t * memstr);
-
-// group: find-utf8
-
-/* function: findutf8_memstream
- * Searches for unicode character in utf8 encoded string described by memstr.
- * The returned value points to the start addr of the multibyte sequence
- * in the unread buffer. A return value of 0 inidcates that *memstr* does not contain the multibyte sequence
- * or that uchar is bigger than <maxchar_utf8> and therefore invalid. */
-const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_t uchar);
+int validate_utf8validator(utf8validator_t *utf8validator, size_t size, const uint8_t data[size], /*err*/size_t *erroffset);
 
 
 
@@ -255,11 +211,13 @@ const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_
 
 /* function: maxchar_utf8
  * Implements <utf8.maxchar_utf8>. */
-#define maxchar_utf8()                    ((char32_t)0x10ffff)
+#define maxchar_utf8() \
+         ((char32_t)0x7fffffff)
 
 /* function: isfirstbyte_utf8
  * Implements <utf8.isfirstbyte_utf8>. */
-#define isfirstbyte_utf8(firstbyte)       (0x80 != ((firstbyte)&0xc0))
+#define isfirstbyte_utf8(firstbyte) \
+         (0x80 != ((firstbyte)&0xc0))
 
 /* function: issinglebyte_utf8
  * Implements <utf8.issinglebyte_utf8>. */
@@ -268,26 +226,30 @@ const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_
 
 /* function: maxsize_utf8
  * Implements <utf8.maxsize_utf8>. */
-#define maxsize_utf8()                    ((uint8_t)4)
+#define maxsize_utf8() \
+         ((uint8_t)6)
 
 /* function: sizePfirst_utf8
  * Implements <utf8.sizePfirst_utf8>. */
 #define sizePfirst_utf8(firstbyte) \
-         (g_utf8_bytesperchar[((uint8_t)(firstbyte)) >> 4])
+         (g_utf8_bytesperchar[((uint8_t)(firstbyte)) >> 2])
 
 /* function: sizechar_utf8
  * Implements <utf8.sizechar_utf8>. */
-#define sizechar_utf8(uchar)        \
-         ( __extension__ ({         \
-            char32_t _ch = (uchar); \
-            (1 + (_ch > 0x7f)       \
-               + (_ch > 0x7ff)      \
-               + (_ch > 0xffff)) ;  \
+#define sizechar_utf8(uchar) \
+         ( __extension__ ({            \
+            char32_t _ch = (uchar);    \
+            (1 + (_ch > 0x7f)          \
+               + (_ch > 0x7ff)         \
+               + (_ch > 0xffff)        \
+               + (_ch > 0x1fffff)      \
+               + (_ch > 0x3FFFFFF));   \
          }))
 
 /* function: skipchar_utf8
  * Implements <utf8.skipchar_utf8>. */
-#define skipchar_utf8(strstart)           (sizePfirst_utf8(*(strstart)))
+#define skipchar_utf8(strstart) \
+         (sizePfirst_utf8(*(strstart)))
 
 // group: utf8validator_t
 
@@ -298,48 +260,17 @@ const uint8_t * findutf8_memstream(const struct memstream_ro_t * memstr, char32_
 
 /* define: free_utf8validator
  * Implements <utf8validator_t.free_utf8validator>. */
-#define free_utf8validator(utf8validator) \
-         ( __extension__ ({               \
-            int _err ;                    \
-            utf8validator_t * _v ;        \
-            _v = (utf8validator) ;        \
-            _err = _v->size_of_prefix     \
-                 ? EILSEQ                 \
-                 : 0 ;                    \
-            _v->size_of_prefix = 0 ;      \
-            _err ;                        \
-         }))
+static inline int free_utf8validator(utf8validator_t* utf8validator)
+{
+         int err = utf8validator->sizeprefix ? EILSEQ : 0;
+         utf8validator->sizeprefix = 0;
+         return err;
+}
 
 /* define: sizeprefix_utf8validator
  * Implements <utf8validator_t.sizeprefix_utf8validator>. */
 #define sizeprefix_utf8validator(utf8validator) \
-         ((utf8validator)->size_of_prefix)
-
-// group: memstream_t
-
-/* define: peekutf8_memstream
- * Implements <memstream_t.peekutf8_memstream>. */
-#define peekutf8_memstream(memstr, uchar) \
-         (  __extension__ ({              \
-            typeof(memstr) _m;            \
-            _m = (memstr);                \
-            memstream_ro_t _m2 =          \
-               memstream_INIT(            \
-                  _m->next, _m->end);     \
-            nextutf8_memstream( &_m2,     \
-                                 uchar);  \
-         }))
-
-/* define: skiputf8_memstream
- * Implements <memstream_t.skiputf8_memstream>. */
-#define skiputf8_memstream(memstr) \
-         ( __extension__ ({            \
-            char32_t _uchar;           \
-            nextutf8_memstream(        \
-               (memstr),               \
-               &_uchar                 \
-            );                         \
-         }))
+         ((utf8validator)->sizeprefix)
 
 
 #endif
