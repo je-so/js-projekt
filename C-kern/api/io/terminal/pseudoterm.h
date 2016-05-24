@@ -6,7 +6,7 @@
 
    Es besteht aus zwei Endgeräten, einem Master und einem Slave.
    Das "Slave"-Ende wird mit einem terminalorientierten
-   Programm verbunden, das "Master"-Ende ist mittels Pipe
+   Programm verbunden, das "Master"-Ende ist mittels Pipe mit
    dem Slave verbunden und kann alle Ein- und Ausgaben
    mitschneiden, weiterleiten oder auch nur simulieren.
 

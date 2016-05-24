@@ -209,6 +209,7 @@
         <File Name="../../C-kern/api/io/terminal/terminal.h"/>
         <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
         <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
+        <File Name="../../C-kern/api/io/terminal/sercom.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="subsys">
         <File Name="../../C-kern/api/io/subsys/iobuffer.h"/>
@@ -410,6 +411,7 @@
         <File Name="../../C-kern/platform/Linux/io/terminal.c"/>
         <File Name="../../C-kern/platform/Linux/io/pseudoterm.c"/>
         <File Name="../../C-kern/platform/Linux/io/pipe.c"/>
+        <File Name="../../C-kern/platform/Linux/io/sercom.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

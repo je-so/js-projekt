@@ -22,13 +22,9 @@
 // forward
 struct string_t;
 
-/* typedef: struct memstream_t
- * Export <memstream_t> into global namespace. */
-typedef struct memstream_t memstream_t;
-
-/* typedef: struct memstream_ro_t
- * Export <memstream_ro_t> into global namespace. */
-typedef struct memstream_ro_t memstream_ro_t;
+// == exported types
+struct memstream_t;
+struct memstream_ro_t;
 
 
 // section: Functions
@@ -38,21 +34,22 @@ typedef struct memstream_ro_t memstream_ro_t;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_memstream
  * Test <memstream_t> functionality. */
-int unittest_memory_memstream(void) ;
+int unittest_memory_memstream(void);
 #endif
+
 
 /* struct: memstream_ro_t
  * Wie <memstream_t>, erlaubt aber nur lesenden Zugriff auf den Speicher.
  * Zur Ansteuerung können dieselben Funktion, etwa <init_memstream>, Verwendung finden. */
-struct memstream_ro_t {
+typedef struct memstream_ro_t {
    /* variable: next
     * Points to next unread memory byte. next is always lower or equal to <end>. */
-   const uint8_t *   next ;
+   const uint8_t *next;
    /* variable: end
     * Points one after the last memory byte. The number of unread bytes can be determined
     * by "end - next". If next equals end all bytes are read. */
-   const uint8_t *   end ;
-} ;
+   const uint8_t *end;
+} memstream_ro_t;
 
 // group: lifetime
 
@@ -63,26 +60,26 @@ void initPstr_memstreamro(/*out*/memstream_ro_t * memstr, const struct string_t 
 // group: generic
 
 /* function: cast_memstreamro
- * Caste Zeigt obj in Zeiger auf to <memstream_ro_t>.
+ * Adaptiere obj Zeiger in Zeiger auf Typ <memstream_ro_t>.
  * Parameter obj muss auf ein generisches Objekt mit zwei Feldern namens
  * nameprefix##next and nameprefix##end zeigen die mit <memstream_ro_t>
  * strukturkompatibel sind. */
-memstream_ro_t * cast_memstreamro(void * obj, IDNAME nameprefix) ;
+memstream_ro_t * cast_memstreamro(void * obj, IDNAME nameprefix);
 
 
 /* struct: memstream_t
  * Wraps a memory block which points to start and end address.
  * The start address is the lowest address of an allocated memory block.
  * The end address points one after the highest address of the allocated memory block. */
-struct memstream_t {
+typedef struct memstream_t {
    /* variable: next
     * Points to next unread memory byte. next is always lower or equal to <end>. */
-   uint8_t *   next ;
+   uint8_t *next;
    /* variable: end
     * Points one after the last memory byte. The number of unread bytes can be determined
     * by "end - next". If next equals end all bytes are read. */
-   uint8_t *   end ;
-} ;
+   uint8_t *end;
+} memstream_t;
 
 // group: lifetime
 
@@ -201,9 +198,6 @@ void writebyte_memstream(memstream_t * memstr, uint8_t byte);
  * of the same type as the members of <memstream_t> and in the same order. */
 memstream_t * cast_memstream(void * obj, IDNAME nameprefix);
 
-/* function: cast2ro_memstream
- * Casts pointer memstr into pointer to type <memstream_ro_t>. */
-static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr);
 
 
 // section: inline implementation
@@ -212,23 +206,31 @@ static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr);
 
 /* define: cast_memstreamro
  * Implements <memstream_ro_t.cast_memstreamro>. */
-#define cast_memstreamro(obj, nameprefix)                \
+#define cast_memstreamro(obj, nameprefix) \
          ( __extension__ ({                              \
-            typeof(obj) _obj = (obj) ;                   \
+            typeof(obj) _obj = (obj);                    \
+            /* TODO: use _Generic to check for */        \
+            /* uint8_t* == const uint8_t* !!   */        \
+            (void) sizeof( (const uint8_t *)0            \
+                     == _obj->nameprefix##next);         \
+            (void) sizeof( (const uint8_t *)0            \
+                     == _obj->nameprefix##end);          \
             static_assert(                               \
-               &((memstream_ro_t*)((uintptr_t)           \
-               &_obj->nameprefix##next))->next           \
-               == &_obj->nameprefix##next                \
-               && &((memstream_ro_t*)((uintptr_t)        \
-                  &_obj->nameprefix##next))->end         \
-                  == &_obj->nameprefix##end,             \
-               "obj is compatible");                     \
+                  sizeof(((memstream_ro_t*)0)->next)     \
+                  == sizeof(_obj->nameprefix##next)      \
+               && sizeof(((memstream_ro_t*)0)->end)      \
+                  == sizeof(_obj->nameprefix##end)       \
+               && offsetof(memstream_ro_t, end)          \
+                  - offsetof(memstream_ro_t, next)       \
+                  == (uintptr_t) &_obj->nameprefix##end  \
+                  - (uintptr_t) &_obj->nameprefix##next, \
+               "offsets and size are compatible");       \
             (memstream_ro_t *)(&_obj->nameprefix##next); \
          }))
 
 /* define: initPstr_memstreamro
  * Implements <memstream_t.initPstr_memstreamro>. */
-#define initPstr_memstreamro(memstr, str)    \
+#define initPstr_memstreamro(memstr, str) \
          do {                                \
             typeof(memstr) _m = (memstr);    \
             string_t *     _s = (str);       \
@@ -240,27 +242,19 @@ static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr);
 
 /* define: cast_memstream
  * Implements <memstream_t.cast_memstream>. */
-#define cast_memstream(obj, nameprefix)                  \
-         ( __extension__ ({                              \
-            typeof(obj) _obj = (obj);                    \
-            static_assert(                               \
-               &((memstream_t*)((uintptr_t)              \
-               &_obj->nameprefix##next))->next           \
-               == &_obj->nameprefix##next                \
-               && &((memstream_t*)((uintptr_t)           \
-                  &_obj->nameprefix##next))->end         \
-                  == &_obj->nameprefix##end,             \
-               "obj is compatible");                     \
-            (memstream_t *)(&_obj->nameprefix##next);    \
+#define cast_memstream(obj, nameprefix) \
+         ( __extension__ ({                           \
+            typeof(obj) _obj = (obj);                 \
+            static_assert(                            \
+               &((memstream_t*)((uintptr_t)           \
+               &_obj->nameprefix##next))->next        \
+               == &_obj->nameprefix##next             \
+               && &((memstream_t*)((uintptr_t)        \
+                  &_obj->nameprefix##next))->end      \
+                  == &_obj->nameprefix##end,          \
+               "obj is compatible");                  \
+            (memstream_t *)(&_obj->nameprefix##next); \
          }))
-
-/* define: cast2ro_memstream
- * Implements <memstream_t.cast2ro_memstream>. */
-static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr)
-{
-         return (memstream_ro_t*) memstr;
-}
-
 
 /* define: findbyte_memstream
  * Implements <memstream_t.findbyte_memstream>. */
@@ -275,11 +269,11 @@ static inline memstream_ro_t * cast2ro_memstream(memstream_t * memstr)
 
 /* define: free_memstream
  * Implements <memstream_t.free_memstream>. */
-#define free_memstream(memstr)               \
-         do {                                \
-            typeof(memstr) _m = (memstr);    \
-            _m->next = 0;                    \
-            _m->end  = 0;                    \
+#define free_memstream(memstr) \
+         do {                             \
+            typeof(memstr) _m = (memstr); \
+            _m->next = 0;                 \
+            _m->end  = 0;                 \
          } while(0)
 
 /* define: init_memstream

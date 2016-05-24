@@ -100,12 +100,12 @@ typedef uintptr_t    uintptrf_t;
  * The size of off_t is checked in file "C-kern/test/compiletime/stdtypes.h"*/
 #define OFF_MAX      INT64_MAX
 
+#if (SIZE_MAX/2 == OFF_MAX)
 /* function: castPoff_size
  * Casts Parameter off (type off_t) to type size_t.
  *
  * Unchecked Precondition:
  * - off >= 0 */
-#if (SIZE_MAX/2 == OFF_MAX)
 static inline size_t castPoff_size(off_t off)
 {
          static_assert(sizeof(size_t) == sizeof(off_t), "same byte size; but unsigned vs. signed");

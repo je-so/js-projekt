@@ -366,42 +366,45 @@ ONERR:
 
 static int test_generic(void)
 {
+   memstream_t    obj1;
+   memstream_ro_t obj1_ro;
    struct {
       int x;
       uint8_t * next;
       uint8_t * end;
       int y;
-   }           gobj1;
+   }           obj2;
    struct {
       int x;
       uint8_t * pre_next;
       uint8_t * pre_end;
       int y;
-   }           gobj2;
+   }           obj3;
    struct {
       int x;
       const uint8_t * next;
       const uint8_t * end;
       int y;
-   }           gobj1_ro;
+   }           obj2_ro;
    struct {
       int x;
       const uint8_t * pre_next;
       const uint8_t * pre_end;
       int y;
-   }           gobj2_ro;
+   }           obj3_ro;
 
    // TEST cast_memstream
-   TEST((memstream_t*)&gobj1.next     == cast_memstream(&gobj1, ));
-   TEST((memstream_t*)&gobj2.pre_next == cast_memstream(&gobj2, pre_));
+   TEST( cast_memstream(&obj1, )     == &obj1);
+   TEST( cast_memstream(&obj2, )     == (memstream_t*)&obj2.next);
+   TEST( cast_memstream(&obj3, pre_) == (memstream_t*)&obj3.pre_next);
 
    // TEST cast_memstreamro
-   TEST((memstream_ro_t*)&gobj1_ro.next     == cast_memstreamro(&gobj1_ro, ));
-   TEST((memstream_ro_t*)&gobj2_ro.pre_next == cast_memstreamro(&gobj2_ro, pre_));
-
-   // TEST cast2ro_memstream
-   TEST((memstream_ro_t*)&gobj1.next     == cast2ro_memstream(cast_memstream(&gobj1, )));
-   TEST((memstream_ro_t*)&gobj2.pre_next == cast2ro_memstream(cast_memstream(&gobj2, pre_)));
+   TEST( cast_memstreamro(&obj1, )    == (memstream_ro_t*) &obj1);
+   TEST( cast_memstreamro(&obj1_ro, ) == &obj1_ro);
+   TEST( cast_memstreamro(&obj2, )     == (memstream_ro_t*)&obj2.next);
+   TEST( cast_memstreamro(&obj3, pre_) == (memstream_ro_t*)&obj3.pre_next);
+   TEST( cast_memstreamro(&obj2_ro, )     == (memstream_ro_t*)&obj2_ro.next);
+   TEST( cast_memstreamro(&obj3_ro, pre_) == (memstream_ro_t*)&obj3_ro.pre_next);
 
    return 0;
 ONERR:

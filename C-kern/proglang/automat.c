@@ -253,7 +253,7 @@ static size_t sizeblock_statearray(void)
 #define statearray_FREE \
          { 0, 0, slist_INIT, slist_INIT, slist_INIT, 0, 0, 0, 0, 0 }
 
-static int init_statearray(statearray_t * arr)
+static int init_statearray(/*out*/statearray_t * arr)
 {
    int err;
    automat_mman_t  *   mman = 0;
@@ -784,7 +784,7 @@ typedef struct multistate_iter_t {
 
 // group: lifetime
 
-static void init_multistateiter(multistate_iter_t* iter, const multistate_t* mst)
+static void init_multistateiter(/*out*/multistate_iter_t* iter, const multistate_t* mst)
 {
    iter->next_node = 0;
    iter->next_state = 0;
@@ -1297,7 +1297,7 @@ typedef struct rangemap_iter_t {
 
 // group: lifetime
 
-static void init_rangemapiter(rangemap_iter_t* iter, const rangemap_t* rmap)
+static void init_rangemapiter(/*out*/rangemap_iter_t* iter, const rangemap_t* rmap)
 {
    iter->next_node  = 0;
    iter->next_range = 0;
@@ -1998,7 +1998,7 @@ void print_automat(automat_t const* ndfa)
    }
 
    // print every transition of every state starting with start state
-   printf("\n");
+   printf("%sDFA(start=0, end=%zd):\n", ndfa->isDFA ? "":"N", last_statelist(&ndfa->states)->nr);
    foreach (_statelist, s, &ndfa->states) {
       foreach (_emptylist, trans, &s->emptylist) {
          printf("%zd(%p) ''--> %zd(%p)\n", s->nr, (void*)s, trans->state->nr, (void*)trans->state);

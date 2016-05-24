@@ -507,7 +507,7 @@ int switchcontrolling_terminal(const uint8_t* path)
    err = free_terminal(&term);
    if (err) goto ONERR;
 
-   // new sesion detaches current process from controlling terminal
+   // new session detaches current process from controlling terminal
    if ((pid_t) -1 == setsid()) {
       err = errno;
       TRACESYSCALL_ERRLOG("setsid", err);

@@ -211,7 +211,8 @@ static int test_allocatedsize(void)
    int      err;
 
    // prepare
-   TEST(0 != (fd = (int*) malloc(FDLENGTH * sizeof(int))));
+   fd = (int*) malloc(FDLENGTH * sizeof(int));
+   TEST(fd != 0);
 
    // TEST allocatedsize_malloc: allocated > 0
    allocated = 0;

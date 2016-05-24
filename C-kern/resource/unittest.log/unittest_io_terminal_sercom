@@ -1,0 +1,56 @@
+[1: 1464094063.667742s]
+reconfig_sercom() C-kern/platform/Linux/io/sercom.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667751s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:110
+Function call 'reconfig_sercom' failed with error 22
+devicepath=/dev/pts/0
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667768s]
+reconfig_sercom() C-kern/platform/Linux/io/sercom.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667772s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:110
+Function call 'reconfig_sercom' failed with error 22
+devicepath=/dev/pts/0
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667792s]
+reconfig_sercom() C-kern/platform/Linux/io/sercom.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667795s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:110
+Function call 'reconfig_sercom' failed with error 22
+devicepath=/dev/pts/0
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667814s]
+reconfig_sercom() C-kern/platform/Linux/io/sercom.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667818s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:110
+Function call 'reconfig_sercom' failed with error 22
+devicepath=/dev/pts/0
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667834s]
+reconfig_sercom() C-kern/platform/Linux/io/sercom.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667837s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:110
+Function call 'reconfig_sercom' failed with error 22
+devicepath=/dev/pts/0
+Exit function with
+Error 22 - Invalid argument
+[1: 1464094063.667856s]
+init_sercom() C-kern/platform/Linux/io/sercom.c:87
+System call 'isatty' failed with error 25
+devicepath=/dev/zero
+Exit function with
+Error 25 - Inappropriate ioctl for device

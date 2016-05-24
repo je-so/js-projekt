@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Apr.29  15:11:14
+GenerationDate  := 2016.Mai.24  13:12:22
 GeneratedBy     := je-so
 
 ## Debug
@@ -88,6 +88,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
@@ -209,6 +210,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
@@ -361,6 +363,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linu
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
@@ -718,6 +723,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Li
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c

@@ -762,6 +762,8 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
+#define IP_WWW_HEISE "193.99.144.91"
+
 static int test_ipport(void)
 {
    ipport_t tcp_port = ipport_ANY ;
@@ -843,10 +845,10 @@ static int test_ipaddr(void)
    TEST(version_ipaddr(ipaddr) == ipversion_4) ;
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "193.99.144.85")) ;
+   TEST(0 == strcmp( str_cstring(&name), IP_WWW_HEISE));
    TEST(13== size_cstring(&name)) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.heise.de")) ;
+   TEST(0 == strcmp( str_cstring(&name), "www.heise.de"));
    TEST(12== size_cstring(&name)) ;
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 50) ;
@@ -1202,10 +1204,10 @@ static int test_ipaddrlist(void)
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP) ;
    TEST(port_ipaddr(ipaddr)     == 0) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp(str_cstring(&name), "193.99.144.85")) ;
+   TEST(0 == strcmp(str_cstring(&name), IP_WWW_HEISE));
    TEST(13== size_cstring(&name)) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp(str_cstring(&name), "www.heise.de")) ;
+   TEST(0 == strcmp(str_cstring(&name), "www.heise.de"));
    TEST(12== size_cstring(&name)) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
    TEST(0 == delete_ipaddrlist(&addrlist)) ;
