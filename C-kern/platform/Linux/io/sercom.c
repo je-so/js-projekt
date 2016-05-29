@@ -562,6 +562,19 @@ static int test_initfree(void)
    // check comport
    TEST( isfree_iochannel(comport.sysio));
 
+   // adapt log
+   size_t   len = strlen(devicepath);
+   size_t   logsize;
+   uint8_t *logbuf;
+   GETBUFFER_ERRLOG(&logbuf, &logsize);
+   for (uint8_t* pos=logbuf; (pos=(uint8_t*)strstr((char*)pos, devicepath)) != 0; ) {
+      pos[0] = 'X';
+      memmove(pos+1, pos + len, (size_t) (logbuf + logsize - (pos + len)));
+      logsize -= (len-1);
+      logbuf[logsize] = 0;
+   }
+   TRUNCATEBUFFER_ERRLOG(logsize);
+
    // free resources
    TEST(0 == free_iochannel(&sysio));
    TEST(0 == free_iochannel(&master));

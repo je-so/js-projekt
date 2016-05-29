@@ -63,10 +63,10 @@
  * Parameter:
  * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
- * buffer     - Contains pointer to C string after return. Must have type (char**).
+ * buffer     - Contains pointer to C string after return. Must have type (uint8_t**).
  *              The string is terminated with a 0 byte.
- * size       - Contains size of of C string after return. The does does not include the 0 byte. */
-#define GETBUFFER_LOG(BIND, LOGCHANNEL, /*out char ** */buffer, /*out size_t * */size) \
+ * size       - Contains size of of C string after return. It does does not include the 0 byte. */
+#define GETBUFFER_LOG(BIND, LOGCHANNEL, /*out uint8_t ** */buffer, /*out size_t * */size) \
          CALLFUNCTION_LOG ## BIND(getbuffer, LOGCHANNEL, buffer, size)
 
 /* define: COMPARE_LOG

@@ -28,6 +28,20 @@
 
 // group: lifetime
 
+void initsplit_slist(/*out*/slist_t *list, slist_t *list2, slist_node_t *after)
+{
+   if (list2->last != after) {
+      slist_node_t *first  = after->next;
+      slist_node_t *first2 = list2->last->next;
+      list->last = list2->last;
+      list2->last->next = first;
+      after->next = first2;
+      list2->last = after;
+   } else {
+      *list = (slist_t) slist_INIT;
+   }
+}
+
 int free_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
 {
    int err ;
@@ -161,14 +175,14 @@ static int test_initfree(void)
    slist_t            slist     = slist_INIT ;
    slist_node_t       node      = slist_node_INIT ;
    testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_t *      typeadp   = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
+   typeadapt_t      * typeadp   = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
 
    // TEST slist_node_INIT
-   TEST(0 == node.next) ;
+   TEST(0 == node.next);
 
    // TEST slist_INIT
-   TEST(0 == slist.last) ;
+   TEST(0 == slist.last);
 
    // TEST init_slist, double free_slist
    slist.last  = (void*) 1 ;
@@ -192,8 +206,37 @@ static int test_initfree(void)
    TEST(1 == nodes[0].is_freed) ;
    nodes[0].is_freed = 0 ;
 
+   // TEST initsplit_slist
+   for (unsigned pos = 0; pos < lengthof(nodes); ++pos) {
+      // prepare
+      nodes[lengthof(nodes)-1].next = (slist_node_t*) &nodes[0].next;
+      for (unsigned i = 1; i < lengthof(nodes); ++i) {
+         nodes[i-1].next = (slist_node_t*) &nodes[i].next;
+      }
+      slist_t slist2 = { .last = (slist_node_t*) &nodes[lengthof(nodes)-1].next };
+      // test
+      slist.last = (void*) 1;
+      initsplit_slist(&slist, &slist2, (slist_node_t*) &nodes[pos].next);
+      // check slist2 (nodes from [0..pos])
+      TEST( last_slist(&slist2) == (slist_node_t*) &nodes[pos].next);
+      TEST( first_slist(&slist2) == (slist_node_t*) &nodes[0].next);
+      for (unsigned i = 0; i < pos; ++i) {
+         TEST( nodes[i].next == (slist_node_t*) &nodes[i+1].next);
+      }
+      // check slist
+      if (pos < lengthof(nodes)-1) {
+         TEST( last_slist(&slist)  == (slist_node_t*) &nodes[lengthof(nodes)-1].next);
+         TEST( first_slist(&slist) == (slist_node_t*) &nodes[pos+1].next);
+         for (unsigned i = pos+2; i < lengthof(nodes); ++i) {
+            TEST( nodes[i-1].next == (slist_node_t*) &nodes[i].next);
+         }
+      } else {
+         TEST( last_slist(&slist) == 0);
+      }
+   }
+
    // TEST free_slist: call free callback
-   init_slist(&slist) ;
+   init_slist(&slist);
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
@@ -351,9 +394,9 @@ static int test_insertremove(void)
 {
    slist_t            slist      = slist_INIT ;
    testnode_adapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_FREE } ;
-   typeadapt_t *      typeadp    = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
+   typeadapt_t      * typeadp    = cast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
-   slist_node_t       * node     = 0 ;
+   slist_node_t     * node       = 0;
 
    // prepare
    init_slist(&slist) ;
@@ -551,8 +594,61 @@ static int test_insertremove(void)
    slist.last = 0;
    TEST(EINVAL == removeafter_slist(&slist, (slist_node_t*)&nodes[1].next, &node));
 
-   // TEST insertlastPlist_slist: list + list2 empty
+   // TEST insertfirstPlist_slist: list + list2 empty
    slist_t slist2 = slist_INIT;
+   insertfirstPlist_slist(&slist, &slist2);
+   TEST( isempty_slist(&slist));
+   TEST( isempty_slist(&slist2));
+
+   // TEST insertfirstPlist_slist: list2 empty
+   insertlast_slist(&slist, (slist_node_t*) &nodes[0].next);
+   insertlast_slist(&slist, (slist_node_t*) &nodes[1].next);
+   insertfirstPlist_slist(&slist, &slist2);
+   // check slist, slist2
+   TEST( slist.last == (slist_node_t*) &nodes[1].next);
+   TEST( isempty_slist(&slist2));
+   // check nodes
+   TEST( nodes[0].next == (slist_node_t*) &nodes[1].next);
+   TEST( nodes[1].next == (slist_node_t*) &nodes[0].next);
+   // reset
+   slist = (slist_t) slist_INIT;
+
+   // TEST insertfirstPlist_slist: list empty
+   insertlast_slist(&slist2, (slist_node_t*) &nodes[0].next);
+   insertlast_slist(&slist2, (slist_node_t*) &nodes[1].next);
+   insertfirstPlist_slist(&slist, &slist2);
+   // check slist, slist2
+   TEST( slist.last == (slist_node_t*) &nodes[1].next);
+   TEST( isempty_slist(&slist2));
+   // check nodes
+   TEST( nodes[0].next == (slist_node_t*) &nodes[1].next);
+   TEST( nodes[1].next == (slist_node_t*) &nodes[0].next);
+   // reset
+   slist = (slist_t) slist_INIT;
+
+   // TEST insertfirstPlist_slist: list + list2 contain elements
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      insertlast_slist(&slist, (slist_node_t*) &nodes[lengthof(nodes)/2 + i].next);
+      insertlast_slist(&slist2, (slist_node_t*) &nodes[i].next);
+   }
+   insertfirstPlist_slist(&slist, &slist2);
+   // check slist, slist2
+   TEST( slist.last == (slist_node_t*) &nodes[lengthof(nodes)-1].next);
+   TEST( isempty_slist(&slist2));
+   // check nodes
+   TEST( nodes[lengthof(nodes)-1].next == (slist_node_t*) &nodes[0].next);
+   for (unsigned i = 1; i < lengthof(nodes); ++i) {
+      TEST( nodes[i-1].next == (slist_node_t*) &nodes[i].next);
+   }
+   // check nodes after additional free
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp));
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].next);
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
+   }
+
+   // TEST insertlastPlist_slist: list + list2 empty
    insertlastPlist_slist(&slist, &slist2);
    TEST( isempty_slist(&slist));
    TEST( isempty_slist(&slist2));
@@ -606,16 +702,14 @@ ONERR:
    return EINVAL;
 }
 
-typedef struct gnode_t    gnode_t ;
-
-struct gnode_t {
-   long      marker1 ;
-   slist_node_EMBED(next) ;
-   long      marker2 ;
-   slist_node_t next2 ;
-   long      marker3 ;
-   int       is_freed ;
-} ;
+typedef struct gnode_t {
+   long           marker1;
+   slist_node_EMBED(next);
+   long           marker2;
+   slist_node_t   next2;
+   long           marker3;
+   int            is_freed;
+} gnode_t;
 
 slist_IMPLEMENT(_slist1, gnode_t, next)
 slist_IMPLEMENT(_slist2, gnode_t, next2.next)
@@ -702,15 +796,71 @@ static int test_generic(void)
    TEST(&nodes[1] == first_slist2(&slist2)) ;
    TEST(&nodes[1] == last_slist2(&slist2)) ;
 
+   // TEST initsplit_slist
+   for (unsigned pos = 0; pos < lengthof(nodes); ++pos) {
+      // prepare
+      nodes[lengthof(nodes)-1].next = (slist_node_t*) &nodes[0].next;
+      nodes[lengthof(nodes)-1].next2.next = &nodes[0].next2;
+      for (unsigned i = 1; i < lengthof(nodes); ++i) {
+         nodes[i-1].next = (slist_node_t*) &nodes[i].next;
+         nodes[i-1].next2.next = &nodes[i].next2;
+      }
+      slist_t slist1_2 = { .last = (slist_node_t*) &nodes[lengthof(nodes)-1].next };
+      slist_t slist2_2 = { .last = &nodes[lengthof(nodes)-1].next2 };
+      TEST( last_slist1(&slist1_2) == &nodes[lengthof(nodes)-1]);
+      TEST( last_slist2(&slist2_2) == &nodes[lengthof(nodes)-1]);
+      TEST( first_slist1(&slist1_2) == &nodes[0]);
+      TEST( first_slist2(&slist2_2) == &nodes[0]);
+      // test
+      slist1.last = (void*) 1;
+      slist2.last = (void*) 1;
+      initsplit_slist1(&slist1, &slist1_2, &nodes[pos]);
+      initsplit_slist2(&slist2, &slist2_2, &nodes[pos]);
+      // check slist_2 (nodes from [0..pos])
+      TEST( last_slist1(&slist1_2) == &nodes[pos]);
+      TEST( last_slist2(&slist2_2) == &nodes[pos]);
+      TEST( first_slist1(&slist1_2) == &nodes[0]);
+      TEST( first_slist2(&slist2_2) == &nodes[0]);
+      for (unsigned i = 0; i < pos; ++i) {
+         TEST( next_slist1(&nodes[i]) == &nodes[i+1]);
+         TEST( next_slist2(&nodes[i]) == &nodes[i+1]);
+      }
+      // check slist
+      if (pos < lengthof(nodes)-1) {
+         TEST( last_slist1(&slist1)  == &nodes[lengthof(nodes)-1]);
+         TEST( first_slist1(&slist1) == &nodes[pos+1]);
+         TEST( last_slist2(&slist2)  == &nodes[lengthof(nodes)-1]);
+         TEST( first_slist2(&slist2) == &nodes[pos+1]);
+         for (unsigned i = pos+2; i < lengthof(nodes); ++i) {
+            TEST( next_slist1(&nodes[i-1]) == &nodes[i]);
+            TEST( next_slist2(&nodes[i-1]) == &nodes[i]);
+         }
+      } else {
+         TEST( last_slist(&slist1) == 0);
+         TEST( last_slist(&slist2) == 0);
+      }
+      // reset
+      TEST(0 == free_slist1(&slist1, 0));
+      TEST(0 == free_slist2(&slist2, 0));
+      TEST(0 == free_slist1(&slist1_2, 0));
+      TEST(0 == free_slist2(&slist2_2, 0));
+   }
+
    // TEST initfirst_slistiterator
-   slist_iterator_t it1 = slist_iterator_FREE ;
-   slist_iterator_t it2 = slist_iterator_FREE ;
-   TEST(0 == initfirst_slist1iterator(&it1, &slist1)) ;
-   TEST(it1.next == (slist_node_t*)&first_slist1(&slist1)->next) ;
-   TEST(it1.list == &slist1) ;
-   TEST(0 == initfirst_slist2iterator(&it2, &slist2)) ;
-   TEST(it2.next == (slist_node_t*)&first_slist2(&slist2)->next2.next) ;
-   TEST(it2.list == &slist2) ;
+   initsingle_slist1(&slist1, &nodes[1]);
+   initsingle_slist2(&slist2, &nodes[1]);
+   slist_iterator_t it1 = slist_iterator_FREE;
+   slist_iterator_t it2 = slist_iterator_FREE;
+   // test
+   TEST( initfirst_slist1iterator(&it1, &slist1) == 0);
+   // check it1
+   TEST( it1.next == first_slist(&slist1));
+   TEST( it1.list == &slist1);
+   // test
+   TEST( initfirst_slist2iterator(&it2, &slist2) == 0);
+   // check it2
+   TEST( it2.next == first_slist(&slist2));
+   TEST( it2.list == &slist2);
 
    // TEST free_slistiterator
    TEST(0 == free_slist1iterator(&it1)) ;
@@ -867,15 +1017,57 @@ static int test_generic(void)
       TEST(0 == nodes[i].is_freed) ;
    }
 
-   // TEST insertlastPlist_slist: list + list2 empty
+   // TTEST insertfirstPlist_slist: list + list2 empty
    slist_t slist1_2 = slist_INIT;
    slist_t slist2_2 = slist_INIT;
+   insertfirstPlist_slist1(&slist1, &slist1_2);
+   TEST( isempty_slist1(&slist1));
+   TEST( isempty_slist1(&slist1_2));
+   insertfirstPlist_slist2(&slist2, &slist2_2);
+   TEST( isempty_slist2(&slist2));
+   TEST( isempty_slist2(&slist2_2));
+
+   // TEST insertfirstPlist_slist: list + list2 contain elements
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      insertlast_slist1(&slist1, &nodes[lengthof(nodes)/2 + i]);
+      insertlast_slist1(&slist1_2, &nodes[i]);
+      insertlast_slist2(&slist2, &nodes[lengthof(nodes)/2 + i]);
+      insertlast_slist2(&slist2_2, &nodes[i]);
+   }
+   insertfirstPlist_slist1(&slist1, &slist1_2);
+   insertfirstPlist_slist2(&slist2, &slist2_2);
+   // check slist1_2, slist2_2
+   TEST( isempty_slist1(&slist1_2));
+   TEST( isempty_slist2(&slist2_2));
+   // check slist1, slist2
+   TEST( slist1.last == (slist_node_t*) &nodes[lengthof(nodes)-1].next);
+   TEST( slist2.last == &nodes[lengthof(nodes)-1].next2);
+   // check nodes
+   TEST( nodes[lengthof(nodes)-1].next == (slist_node_t*) &nodes[0].next);
+   TEST( nodes[lengthof(nodes)-1].next2.next == &nodes[0].next2);
+   for (unsigned i = 1; i < lengthof(nodes); ++i) {
+      TEST( nodes[i-1].next == (slist_node_t*) &nodes[i].next);
+      TEST( nodes[i-1].next2.next == &nodes[i].next2);
+   }
+   // check nodes after additional free
+   typeadapt.freenode_count = 0;
+   TEST(0 == free_slist1(&slist1, typeadp));
+   TEST(0 == free_slist2(&slist2, typeadp));
+   TEST(2*lengthof(nodes) == typeadapt.freenode_count);
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].next);
+      TEST(0 == nodes[i].next2.next);
+      TEST(2 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
+   }
+
+   // TEST insertlastPlist_slist: list + list2 empty
    insertlastPlist_slist1(&slist1, &slist1_2);
    TEST( isempty_slist1(&slist1));
    TEST( isempty_slist1(&slist1_2));
    insertlastPlist_slist2(&slist2, &slist2_2);
-   TEST( isempty_slist1(&slist2));
-   TEST( isempty_slist1(&slist2_2));
+   TEST( isempty_slist2(&slist2));
+   TEST( isempty_slist2(&slist2_2));
 
    // TEST insertlastPlist_slist: list2 empty
    insertlast_slist1(&slist1, &nodes[0]);
@@ -887,7 +1079,7 @@ static int test_generic(void)
    insertlastPlist_slist2(&slist2, &slist2_2);
    TEST( slist2.last == &nodes[0].next2);
    TEST( nodes[0].next2.next == &nodes[0].next2);
-   TEST( isempty_slist1(&slist2_2));
+   TEST( isempty_slist2(&slist2_2));
 
    // TEST insertlastPlist_slist: list empty
    slist1_2 = slist1;
@@ -901,7 +1093,7 @@ static int test_generic(void)
    insertlastPlist_slist2(&slist2, &slist2_2);
    TEST( slist2.last == &nodes[0].next2);
    TEST( nodes[0].next2.next == &nodes[0].next2);
-   TEST( isempty_slist1(&slist2_2));
+   TEST( isempty_slist2(&slist2_2));
 
    // TEST insertlastPlist_slist: list + list2 contain elements
    for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {

@@ -35,7 +35,7 @@ int unittest_test_errortimer(void);
 typedef struct test_errortimer_t {
    /* variable: timercount
     * The number of times <process_testerrortimer> returns success. */
-   uint32_t    timercount;
+   size_t      timercount;
    /* variable: errcode
     * The error code which is returned by <process_testerrortimer>. */
    int         errcode;
@@ -56,7 +56,7 @@ typedef struct test_errortimer_t {
  *               A value of 0 disables the timer.
  * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
-void init_testerrortimer(/*out*/test_errortimer_t* errtimer, uint32_t timercount, int errcode);
+void init_testerrortimer(/*out*/test_errortimer_t* errtimer, size_t timercount, int errcode);
 
 /* function: free_testerrortimer
  * Sets errtimer to <test_errortimer_FREE>. */

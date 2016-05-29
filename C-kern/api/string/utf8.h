@@ -60,7 +60,7 @@ extern uint8_t g_utf8_bytesperchar[64];
 
 /* function: maxchar_utf8
  * Returns the maximum character value (unicode code point) which can be encoded into utf-8.
- * The minumum unicode code point is 0. The returned value is 0x10FFFF. */
+ * The minumum unicode code point is 0. The returned value is 0x7FFFFFFF. */
 char32_t maxchar_utf8(void);
 
 /* function: maxsize_utf8

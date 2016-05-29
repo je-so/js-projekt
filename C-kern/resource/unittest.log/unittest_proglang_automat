@@ -1,208 +1,228 @@
-[1: 1462976574.939985s]
-addrange_rangemap() C-kern/proglang/automat.c:1213
+[1: 1464501324.738039s]
+addrange_rangemap() C-kern/proglang/automat.c:1219
 Function input violates condition (from <= to)
 Function input violates condition (from <= to)
-[1: 1462976574.964631s]
-free_automat() C-kern/proglang/automat.c:1502
+[1: 1464501324.779936s]
+init_statevector() C-kern/proglang/automat.c:1543
+Exit function with
+Error 22 - Invalid argument
+[1: 1464501324.779943s]
+init_statevector() C-kern/proglang/automat.c:1543
+Exit function with
+Error 22 - Invalid argument
+[1: 1464501324.779946s]
+init_statevector() C-kern/proglang/automat.c:1543
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1464501324.779948s]
+init_statevector() C-kern/proglang/automat.c:1543
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1464501324.779950s]
+init_statevector() C-kern/proglang/automat.c:1543
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1464501324.782816s]
+free_automat() C-kern/proglang/automat.c:1589
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.964643s]
-free_automat() C-kern/proglang/automat.c:1502
+[1: 1464501324.782819s]
+free_automat() C-kern/proglang/automat.c:1589
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.964647s]
-initempty_automat() C-kern/proglang/automat.c:1544
+[1: 1464501324.782823s]
+initempty_automat() C-kern/proglang/automat.c:1631
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.964652s]
-initempty_automat() C-kern/proglang/automat.c:1544
+[1: 1464501324.782825s]
+initempty_automat() C-kern/proglang/automat.c:1631
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.964654s]
-initmatch_automat() C-kern/proglang/automat.c:1586
+[1: 1464501324.782827s]
+initmatch_automat() C-kern/proglang/automat.c:1673
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.964657s]
-initmatch_automat() C-kern/proglang/automat.c:1586
+[1: 1464501324.782829s]
+initmatch_automat() C-kern/proglang/automat.c:1673
 Exit function with
 Error 7 - Argument list too long
-[1: 1462976574.964659s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.782833s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 8 - Exec format error
-[1: 1462976574.964667s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.782835s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1462976574.964669s]
-initreverse_automat() C-kern/proglang/automat.c:1777
+[1: 1464501324.782837s]
+initreverse_automat() C-kern/proglang/automat.c:1864
 Exit function with
 Error 10 - No child processes
-[1: 1462976574.964671s]
-initreverse_automat() C-kern/proglang/automat.c:1777
+[1: 1464501324.782839s]
+initreverse_automat() C-kern/proglang/automat.c:1864
 Exit function with
 Error 11 - Resource temporarily unavailable
-[1: 1462976574.964673s]
-initreverse_automat() C-kern/proglang/automat.c:1777
+[1: 1464501324.782841s]
+initreverse_automat() C-kern/proglang/automat.c:1864
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965100s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.783272s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.965103s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783275s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.965107s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.783278s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.965108s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783280s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.965110s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.783282s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.965112s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783284s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.965114s]
-initcopy_automat() C-kern/proglang/automat.c:1682
+[1: 1464501324.783286s]
+initcopy_automat() C-kern/proglang/automat.c:1769
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.965116s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783287s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.965118s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783290s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965126s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783294s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965128s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783296s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 4 - Interrupted system call
-[1: 1462976574.965130s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783298s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 5 - Input/output error
-[1: 1462976574.965134s]
-free_statearray() C-kern/proglang/automat.c:295
+[1: 1464501324.783302s]
+free_statearray() C-kern/proglang/automat.c:300
 One or more resources could not be freed
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965136s]
-follow_empty_transition() C-kern/proglang/automat.c:2276
+[1: 1464501324.783304s]
+follow_empty_transition() C-kern/proglang/automat.c:2360
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965143s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783311s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965146s]
-opand_automat() C-kern/proglang/automat.c:2755
+[1: 1464501324.783318s]
+opand_automat() C-kern/proglang/automat.c:2920
 Exit function with
 Error 6 - No such device or address
-[1: 1462976574.965158s]
-free_statearray() C-kern/proglang/automat.c:295
+[1: 1464501324.783329s]
+free_statearray() C-kern/proglang/automat.c:300
 One or more resources could not be freed
 Exit function with
 Error 7 - Argument list too long
-[1: 1462976574.965160s]
-follow_empty_transition() C-kern/proglang/automat.c:2276
+[1: 1464501324.783337s]
+follow_empty_transition() C-kern/proglang/automat.c:2360
 Exit function with
 Error 7 - Argument list too long
-[1: 1462976574.965169s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783344s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 7 - Argument list too long
-[1: 1462976574.965171s]
-opandnot_automat() C-kern/proglang/automat.c:2770
+[1: 1464501324.783346s]
+opandnot_automat() C-kern/proglang/automat.c:2935
 Exit function with
 Error 7 - Argument list too long
-[1: 1462976574.965173s]
-initmatch_automat() C-kern/proglang/automat.c:1586
+[1: 1464501324.783352s]
+initmatch_automat() C-kern/proglang/automat.c:1673
 Exit function with
 Error 8 - Exec format error
-[1: 1462976574.965175s]
-opnot_automat() C-kern/proglang/automat.c:2797
+[1: 1464501324.783353s]
+opnot_automat() C-kern/proglang/automat.c:2962
 Exit function with
 Error 8 - Exec format error
-[1: 1462976574.965182s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783355s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965184s]
-opsequence_automat() C-kern/proglang/automat.c:2120
+[1: 1464501324.783359s]
+opsequence_automat() C-kern/proglang/automat.c:2206
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965188s]
-oprepeat_automat() C-kern/proglang/automat.c:2164
+[1: 1464501324.783363s]
+oprepeat_automat() C-kern/proglang/automat.c:2250
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965189s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783365s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965191s]
-opor_automat() C-kern/proglang/automat.c:2223
+[1: 1464501324.783366s]
+opor_automat() C-kern/proglang/automat.c:2309
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965193s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783368s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965197s]
-opand_automat() C-kern/proglang/automat.c:2755
+[1: 1464501324.783370s]
+opand_automat() C-kern/proglang/automat.c:2920
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965198s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783371s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965200s]
-opand_automat() C-kern/proglang/automat.c:2755
+[1: 1464501324.783373s]
+opand_automat() C-kern/proglang/automat.c:2920
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965202s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783375s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965203s]
-opandnot_automat() C-kern/proglang/automat.c:2770
+[1: 1464501324.783376s]
+opandnot_automat() C-kern/proglang/automat.c:2935
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965205s]
-makedfa2_automat() C-kern/proglang/automat.c:2740
+[1: 1464501324.783378s]
+makedfa2_automat() C-kern/proglang/automat.c:2905
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965206s]
-opandnot_automat() C-kern/proglang/automat.c:2770
+[1: 1464501324.783379s]
+opandnot_automat() C-kern/proglang/automat.c:2935
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976574.965208s]
-opnot_automat() C-kern/proglang/automat.c:2797
+[1: 1464501324.783381s]
+opnot_automat() C-kern/proglang/automat.c:2962
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976575.006490s]
-extendmatch_automat() C-kern/proglang/automat.c:2059
+[1: 1464501324.823151s]
+extendmatch_automat() C-kern/proglang/automat.c:2145
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976575.006502s]
-extendmatch_automat() C-kern/proglang/automat.c:2059
+[1: 1464501324.823161s]
+extendmatch_automat() C-kern/proglang/automat.c:2145
 Exit function with
 Error 22 - Invalid argument
-[1: 1462976575.006504s]
-extendmatch_automat() C-kern/proglang/automat.c:2059
+[1: 1464501324.823163s]
+extendmatch_automat() C-kern/proglang/automat.c:2145
 Exit function with
 Error 12 - Cannot allocate memory

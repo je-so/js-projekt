@@ -133,7 +133,7 @@ static inline uint8_t peek_next(buffer_t* buffer)
 {
    uint8_t next = ' ';
    while (isnext_memstream(&buffer->input)) {
-      next = *buffer->input.next;
+      next = peek_memstream(&buffer->input);
       if (next != ' ') break;
       skip_memstream(&buffer->input, 1);
    }
@@ -330,7 +330,7 @@ static int parse_atom(buffer_t* buffer)
       char32_t to;
       if (next == '.') {
          from = 0;
-         to   = 0x7fffffff;
+         to   = maxchar_utf8();
       } else {
          err = parse_char(buffer, next, &from);
          if (err) goto ONERR;

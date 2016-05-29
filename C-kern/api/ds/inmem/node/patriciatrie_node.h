@@ -26,10 +26,10 @@ typedef struct patriciatrie_node_t           patriciatrie_node_t ;
  * >                ╭───────╮
  * >                │ node  │
  * >            left├───────┤right
- * > (bit at off-╭──┤ offset├──╮ (bit at
- * >  set is 0)  │  ╰───────╯  │  offset is 1)
- * >        ╭────∇──╮       ╭──∇────╮
- * >        │ left  │       │ right │
+ * > (bit is 0   ╭──┤ offset├──╮ (bit is 1
+ * >  at offset) ∇  ╰───────╯  ∇  at offset)
+ * >        ╭───────╮       ╭───────╮
+ * >        │ node  │       │ node  │
  * >        ├───────┤       ├───────┤
  * >        │ offset│       │ offset│
  * >        ╰┬─────┬╯       ╰┬─────┬╯
@@ -37,13 +37,13 @@ typedef struct patriciatrie_node_t           patriciatrie_node_t ;
 struct patriciatrie_node_t {
    /* variable: bit_offset
     * The bit offset of the bit to test. The bit with offset 0 is bit 0x80 of the first byte of the key. */
-   size_t               bit_offset ;
+   size_t               bit_offset;
    /* variable: left
     * Follow left pointer if testet bit at <bit_offset> is 0.  */
-   patriciatrie_node_t  * left ;
+   patriciatrie_node_t *left;
    /* variable: right
     * Follow right pointer if testet bit at <bit_offset> is 1.  */
-   patriciatrie_node_t  * right ;
+   patriciatrie_node_t *right;
 } ;
 
 // group: lifetime

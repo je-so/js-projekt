@@ -29,16 +29,9 @@
 
 // section: patriciatrie_t
 
-// group: helper
-
-static inline void * cast_object(patriciatrie_node_t* node, size_t nodeoffset)
-{
-   return ((uint8_t*)node - nodeoffset);
-}
-
 // group: lifetime
 
-int free_patriciatrie(patriciatrie_t * tree, delete_adapter_f delete_f)
+int free_patriciatrie(patriciatrie_t *tree, delete_adapter_f delete_f)
 {
    int err = removenodes_patriciatrie(tree, delete_f);
 
@@ -52,106 +45,253 @@ ONERR:
    return err;
 }
 
+// group: helper
+
+static inline void * cast_object(patriciatrie_node_t *node, patriciatrie_t *tree)
+{
+   return ((uint8_t*)node - tree->keyadapt.nodeoffset);
+}
+
 // group: search
 
-/* define: GETBIT
- * Returns the bit value at bitoffset. Returns (key[0]&0x80) if bitoffset is 0 and (key[0]&0x40) if it is 1 and so on.
- * Every string has a virtual end marker of 0xFF.
- * If bitoffset/8 equals therefore length a value of 1 is returned.
- * If bitoffset is beyond string length and beyond virtual end marker a value of 0 is returned. */
-#define GETBIT(key, length, bitoffset) \
-   ( __extension__ ({                                       \
-         size_t _byteoffset = (bitoffset) / 8;              \
-         (_byteoffset < (length))                           \
-         ? (0x80>>((bitoffset)%8)) & ((key)[_byteoffset])   \
-         : ((_byteoffset == (length)) ? 1 : 0);             \
-   }))
-
-/* function: first_different_bit
- * Determines the first bit which differs in key1 and key2. Virtual end markers of 0xFF
- * at end of each string are considered. If both keys are equal the functions returns
- * the error code EINVAL. On success 0 is returned and *bit_offset contains the bit index
- * of the first differing bit beginning with 0. */
-static int first_different_bit(
-       const uint8_t * const key1,
-       size_t        const length1,
-       const uint8_t * const key2,
-       size_t        const length2,
-/*out*/size_t *      key2_bit_offset,
-/*out*/uint8_t*      key2_bit_value)
+/* function: getbitinit
+ * Ensures that precondition of getbit is met. */
+static inline void getbitinit(patriciatrie_t *tree, getkey_data_t *key, size_t bitoffset)
 {
-   size_t length = (length1 < length2 ? length1 : length2);
-   const uint8_t * k1 = key1;
-   const uint8_t * k2 = key2;
-   while (length && *k1 == *k2) {
-      -- length;
-      ++ k1;
-      ++ k2;
+   size_t byteoffset = bitoffset / 8;
+   if (byteoffset < key->offset) {
+      // PRECONDITION of getbit violated ==> go back in stream
+      tree->keyadapt.getkey(key, byteoffset);
+   }
+}
+
+/* function: getbit
+ * Returns the bit value at bitoffset if bitoffset is in range [0..key->streamsize*8-1].
+ * Every key has a virtual end marker byte 0xFF at offset key->streamsize.
+ * Therefore a bitoffset in range [key->streamsize*8..key->streamsize*8+7]
+ * always results into the value 1. For every bitoffset >= (key->streamsize+1)*8
+ * a value of 0 is returned.
+ *
+ * Unchecked Precondition:
+ * - key->offset <= bitoffset/8
+ *
+ * */
+static inline int getbit(patriciatrie_t *tree, getkey_data_t *key, size_t bitoffset)
+{
+   size_t byteoffset = bitoffset / 8;
+   if (byteoffset >= key->endoffset) {
+      // end of streamed key ?
+      if (byteoffset >= key->streamsize) {
+         return (byteoffset == key->streamsize);
+      }
+      // go forward in stream
+      tree->keyadapt.getkey(key, byteoffset);
+   }
+   return key->addr[byteoffset - key->offset] & (0x80>>(bitoffset%8));
+}
+
+/* function: get_first_different_bit
+ * Determines the bit with the smallest offset which differs in foundkey and newkey.
+ * Virtual end markers of 0xFF at end of each key are used to ensure that keys of different
+ * length are always different.
+ * If both keys are equal the function returns the error code EEXIST.
+ * On success 0 is returned and *newkey_bit_offset contains the bit index
+ * of the first differing bit starting from bitoffset 0.
+ * The value *newkey_bit_value contains the value of the bit
+ * from newkey at offset *newkey_bit_offset.
+ *
+ * Unchecked Precondition:
+ * - foundobj == cast_object(foundnode, tree)
+ * - newobj   == cast_object(newnode, tree)
+ * */
+static inline int get_first_different_bit(
+      patriciatrie_t*tree,
+      getkey_data_t *foundkey,
+      getkey_data_t *newkey,
+      /*out*/size_t *newkey_bit_offset,
+      /*out*/uint8_t*newkey_bit_value)
+{
+   uint8_t bf;
+   uint8_t bn;
+
+   // reset both keys to offset 0
+   ////
+   if (foundkey->offset) {
+      tree->keyadapt.getkey(foundkey, 0);
+   }
+   if (newkey->offset) {
+      tree->keyadapt.getkey(newkey, 0);
    }
 
-   uint8_t b1;
-   uint8_t b2;
-   size_t  result;
-   if (length) {
-      b1 = *k1;
-      b2 = *k2;
-      result = 8 * (size_t)(k1 - key1);
-   } else {
-      if (length1 == length2) return EINVAL;   // both keys are equal
-      if (length1 < length2) {
-         length = length2 - length1;
-         b1 = 0xFF/*end marker of k1*/;
-         b2 = *k2;
-         if (b2 == b1) {
-            b1 = 0x00; // artificial extension of k1
-            do {
-               ++ k2;
-               -- length;
-               if (! length) { b2 = 0xFF/*end marker*/; break; }
-               b2 = *k2;
-            } while (b2 == b1);
+   // compare keys
+   ////
+   size_t offset = 0;
+   uint8_t const *keyf = foundkey->addr;
+   uint8_t const *keyn = newkey->addr;
+   for (;;) {
+      size_t endoffset = foundkey->endoffset < newkey->endoffset ? foundkey->endoffset : newkey->endoffset;
+      for (; offset < endoffset; ++offset) {
+         if (*keyf != *keyn) {
+            bf = *keyf;
+            bn = *keyn;
+            goto FOUND_DIFFERENCE;
          }
-         result = 8 * (size_t)(k2 - key2);
-      } else {
-         length = length1 - length2;
-         b2 = 0xFF/*end marker of k2*/;
-         b1 = *k1;
-         if (b1 == b2) {
-            b2 = 0x00; // artificial extension of k2
-            do {
-               ++ k1;
-               -- length;
-               if (! length) { b1 = 0xFF/*end marker*/; break; }
-               b1 = *k1;
-            } while (b1 == b2);
+         ++ keyf;
+         ++ keyn;
+      }
+      if (offset == newkey->endoffset) {
+         if (offset == newkey->streamsize) {
+            if (offset == foundkey->endoffset) {
+               if (offset == foundkey->streamsize) return EEXIST;
+               tree->keyadapt.getkey(foundkey, offset);
+               keyf = foundkey->addr;
+            }
+            if (*keyf != 0xFF/*end marker of newkey*/) {
+               bf = *keyf;
+               bn = 0xFF;
+               goto FOUND_DIFFERENCE;
+            }
+            bn = 0; // artificial extension of newkey is 0
+            ++offset;
+            ++keyf;
+            for (;;) {
+               for (; offset < foundkey->endoffset; ++offset) {
+                  if (*keyf != 0) {
+                     bf = *keyf;
+                     goto FOUND_DIFFERENCE;
+                  }
+                  ++ keyf;
+               }
+               if (offset == foundkey->streamsize) {
+                  bf = 0xFF;/*end marker of foundkey*/
+                  goto FOUND_DIFFERENCE;
+               }
+               tree->keyadapt.getkey(foundkey, offset);
+               keyf = foundkey->addr;
+            }
          }
-         result = 8 * (size_t)(k1 - key1);
+         tree->keyadapt.getkey(newkey, offset);
+         keyn = newkey->addr;
+      }
+      // == assert(offset < newkey->endoffset) ==
+      if (offset == foundkey->endoffset) {
+         if (offset == foundkey->streamsize) {
+            if (*keyn != 0xFF/*end marker of foundkey*/) {
+               bf = 0xFF;
+               bn = *keyn;
+               goto FOUND_DIFFERENCE;
+            }
+            bf = 0; // artificial extension of foundkey is 0
+            ++offset;
+            ++keyn;
+            for (;;) {
+               for (; offset < newkey->endoffset; ++offset) {
+                  if (*keyn != 0) {
+                     bn = *keyn;
+                     goto FOUND_DIFFERENCE;
+                  }
+                  ++ keyn;
+               }
+               if (offset == newkey->streamsize) {
+                  bn = 0xFF;/*end marker of newkey*/
+                  goto FOUND_DIFFERENCE;
+               }
+               tree->keyadapt.getkey(newkey, offset);
+               keyn = newkey->addr;
+            }
+         }
+         tree->keyadapt.getkey(foundkey, offset);
+         keyf = foundkey->addr;
       }
    }
 
-   // assert(b1 != b2);
-   b1 ^= b2;
+FOUND_DIFFERENCE: // == (bf != bn) ==
+   offset *= 8;
+   bf ^= bn;
    unsigned mask = 0x80;
-   if (!b1) return EINVAL; // should never happen (b1 != b2)
-   for (; 0 == (mask & b1); mask >>= 1) {
-      ++ result;
+   for (; 0 == (mask & bf); mask >>= 1) {
+      ++ offset;
    }
 
-   *key2_bit_offset = result;
-   *key2_bit_value  = (uint8_t) (b2 & mask);
+   *newkey_bit_offset = offset;
+   *newkey_bit_value  = (uint8_t) (bn & mask);
    return 0;
 }
 
-static int findnode(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** found_parent, patriciatrie_node_t ** found_node)
+static inline int is_key_equal(
+      patriciatrie_t      *tree,
+      patriciatrie_node_t *foundnode,
+      getkey_data_t       *cmpkey)
 {
-   patriciatrie_node_t * parent;
-   patriciatrie_node_t * node = tree->root;
+   getkey_data_t foundkey;
+   init1_getkeydata(&foundkey, tree->keyadapt.getkey, cast_object(foundnode, tree));
 
-   if (!node) return ESRCH;
+   if (foundkey.streamsize == cmpkey->streamsize) {
+      if (cmpkey->offset) {
+         tree->keyadapt.getkey(cmpkey, 0);
+      }
+      size_t offset = 0;
+      uint8_t const *keyf = foundkey.addr;
+      uint8_t const *keyc = cmpkey->addr;
+      if (cmpkey->endoffset == cmpkey->streamsize) {
+         for (;;) {
+            for (; offset < foundkey.endoffset ; ++offset) {
+               if (keyc[offset] != *keyf++) {
+                  return false;
+               }
+            }
+            if (offset == foundkey.streamsize) {
+               return true/*equal*/;
+            }
+            tree->keyadapt.getkey(&foundkey, offset);
+            keyf = foundkey.addr;
+         }
+
+      } else {
+         for (;;) {
+            size_t endoffset = foundkey.endoffset <= cmpkey->endoffset ? foundkey.endoffset : cmpkey->endoffset;
+            for (; offset < endoffset; ++offset) {
+               if (*keyc++ != *keyf++) {
+                  return false;
+               }
+            }
+            if (offset == foundkey.endoffset) {
+               if (offset == foundkey.streamsize) {
+                  return true/*equal*/;
+               }
+               tree->keyadapt.getkey(&foundkey, offset);
+               keyf = foundkey.addr;
+            }
+            if (offset == cmpkey->endoffset) {
+               tree->keyadapt.getkey(cmpkey, offset);
+               keyc = cmpkey->addr;
+            }
+         }
+      }
+   }
+
+   return false;
+}
+
+/* function: findnode
+ * Returns found_parent and found_node, both !=0.
+ * In case of a single node *found_node == *found_parent.
+ * In case of an empty trie ESRCH is returned else 0.
+ * Either (*found_node)->bit_offset < (*found_parent)->bit_offset),
+ * or (*found_node)->bit_offset == (*found_parent)->bit_offset) in case of a single node.
+ *
+ * Unchecked Precondition:
+ * - tree->root  != 0
+ * - key->offset == 0
+ * */
+static void findnode(patriciatrie_t *tree, getkey_data_t *key, patriciatrie_node_t ** found_parent, patriciatrie_node_t ** found_node)
+{
+   patriciatrie_node_t *parent;
+   patriciatrie_node_t *node = tree->root;
 
    do {
       parent = node;
-      if (GETBIT(searchkey, keylength, node->bit_offset)) {
+      if (getbit(tree, key, node->bit_offset)) {
          node = node->right;
       } else {
          node = node->left;
@@ -160,24 +300,23 @@ static int findnode(patriciatrie_t * tree, size_t keylength, const uint8_t searc
 
    *found_node   = node;
    *found_parent = parent;
-
-   return 0;
 }
 
-int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], patriciatrie_node_t ** found_node)
+int find_patriciatrie(patriciatrie_t *tree, size_t len, const uint8_t key[len], /*out*/patriciatrie_node_t ** found_node)
 {
    int err;
-   patriciatrie_node_t * node;
-   patriciatrie_node_t * parent;
+   patriciatrie_node_t *node;
+   patriciatrie_node_t *parent;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, );
+   VALIDATE_INPARAM_TEST((key != 0 || len == 0) && len < (((size_t)-1)/8), ONERR, );
 
-   err = findnode(tree, keylength, searchkey, &parent, &node);
-   if (err) return err;
+   if (!tree->root) return ESRCH;
 
-   getkey_data_t key;
-   tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &key);
-   if (key.size != keylength || 0 != memcmp(key.addr, searchkey, keylength)) {
+   getkey_data_t fullkey;
+   initfullkey_getkeydata(&fullkey, len, key);
+   findnode(tree, &fullkey, &parent, &node);
+
+   if (! is_key_equal(tree, node, &fullkey)) {
       return ESRCH;
    }
 
@@ -191,13 +330,13 @@ ONERR:
 
 // group: change
 
-int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode, /*err*/ patriciatrie_node_t** existing_node/*0 ==> not returned*/)
+int insert_patriciatrie(patriciatrie_t *tree, patriciatrie_node_t * newnode, /*err*/ patriciatrie_node_t** existing_node/*0 ==> not returned*/)
 {
    int err;
-   getkey_data_t key;
-   tree->keyadapt.getkey(cast_object(newnode, tree->keyadapt.nodeoffset), &key);
+   getkey_data_t newkey;
+   init1_getkeydata(&newkey, tree->keyadapt.getkey, cast_object(newnode, tree));
 
-   VALIDATE_INPARAM_TEST((key.addr != 0 || key.size == 0) && key.size < (((size_t)-1)/8), ONERR, );
+   VALIDATE_INPARAM_TEST((newkey.addr != 0 || newkey.streamsize == 0) && newkey.streamsize < (((size_t)-1)/8), ONERR, );
 
    if (!tree->root) {
       tree->root = newnode;
@@ -208,29 +347,30 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode, /*
    }
 
    // search node
-   patriciatrie_node_t * parent;
-   patriciatrie_node_t * node;
-   (void) findnode(tree, key.size, key.addr, &parent, &node);
+   patriciatrie_node_t *parent;
+   patriciatrie_node_t *node;
+   findnode(tree, &newkey, &parent, &node);
 
    size_t  new_bitoffset;
    uint8_t new_bitvalue;
    {
-      getkey_data_t nodek;
-      tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &nodek);
-      if (node == newnode || first_different_bit(nodek.addr, nodek.size, key.addr, key.size, &new_bitoffset, &new_bitvalue)) {
+      getkey_data_t foundkey;
+      init1_getkeydata(&foundkey, tree->keyadapt.getkey, cast_object(node, tree));
+      if (node == newnode || get_first_different_bit(tree, &foundkey, &newkey, &new_bitoffset, &new_bitvalue)) {
          if (existing_node) *existing_node = node;
          return EEXIST;   // found node has same key
       }
-      // new_bitvalue == GETBIT(key.addr, key.size, new_bitoffset)
+      // new_bitvalue == getbit(tree, &newkey, new_bitoffset)
    }
 
    // search position in tree where new_bitoffset belongs to
    if (new_bitoffset < parent->bit_offset) {
       node   = tree->root;
       parent = 0;
+      getbitinit(tree, &newkey, node->bit_offset);
       while (node->bit_offset < new_bitoffset) {
          parent = node;
-         if (GETBIT(key.addr, key.size, node->bit_offset)) {
+         if (getbit(tree, &newkey, node->bit_offset)) {
             node = node->right;
          } else {
             node = node->left;
@@ -238,11 +378,11 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode, /*
       }
    }
 
-   assert(parent == 0 || parent->bit_offset < new_bitoffset || tree->root == parent);
+   // == assert(parent == 0 || parent->bit_offset < new_bitoffset || (tree->root == parent && parent == node)/*single node case)*/) ==
 
    if (node->right == node->left) {
-      // LEAF points to itself (bit_offset is unused) and is at the tree bottom
-      assert(node->bit_offset == 0 && node->left == node);
+      // node points to itself (bit_offset is unused) and is at the tree bottom (LEAF)
+      // == assert(node->bit_offset == 0 && node->left == node) ==
       newnode->bit_offset = 0;
       newnode->right = newnode;
       newnode->left  = newnode;
@@ -262,14 +402,14 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode, /*
          newnode->left  = newnode;
       }
       if (parent) {
+         // == (tree->root == node) is possible therefore check for parent != 0 ==
          if (parent->right == node) {
             parent->right = newnode;
          } else {
-            assert(parent->left == node);
             parent->left = newnode;
          }
       } else {
-         assert(tree->root == node);
+         // == (parent == 0) ==> (tree->root == node) ==
          tree->root = newnode;
       }
    }
@@ -281,21 +421,21 @@ ONERR:
    return err;
 }
 
-int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/patriciatrie_node_t ** removed_node)
+int remove_patriciatrie(patriciatrie_t *tree, size_t len, const uint8_t key[len], /*out*/patriciatrie_node_t ** removed_node)
 {
    int err;
    patriciatrie_node_t * node;
    patriciatrie_node_t * parent;
 
-   VALIDATE_INPARAM_TEST((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8), ONERR, );
+   VALIDATE_INPARAM_TEST((key != 0 || len == 0) && len < (((size_t)-1)/8), ONERR, );
 
-   err = findnode(tree, keylength, searchkey, &parent, &node);
-   if (err) return err;
+   if (!tree->root) return ESRCH;
 
-   getkey_data_t nodek;
-   tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &nodek);
+   getkey_data_t fullkey;
+   initfullkey_getkeydata(&fullkey, len, key);
+   findnode(tree, &fullkey, &parent, &node);
 
-   if (nodek.size != keylength || memcmp(nodek.addr, searchkey, keylength)) {
+   if (! is_key_equal(tree, node, &fullkey)) {
       return ESRCH;
    }
 
@@ -304,11 +444,9 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
    patriciatrie_node_t * replacedwith;
 
    if (node->right == node->left) {
-      // LEAF points to itself (bit_offset is unused) and is at the tree bottom
-      assert(node->left == node);
-      assert(0==node->bit_offset);
-      if (node == parent) {
-         assert(tree->root == node);
+      // node points to itself (bit_offset is unused) and is at the tree bottom (LEAF)
+      // == assert(node->left == node && 0 == node->bit_offset) ==
+      if (tree->root == node) {
          tree->root = 0;
       } else if ( parent->left == parent
                   || parent->right == parent) {
@@ -318,29 +456,31 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
          parent->right = parent;
       } else {
          // shift parents other child into parents position
+         // other child or any child of this child points back to parent
          replacednode = parent;
          replacedwith = (parent->left == node ? parent->right : parent->left);
-         assert(replacedwith != node && replacedwith != parent);
+         // and make parent the new LEAF (only one such node in the whole trie)
          parent->bit_offset = 0;
          parent->left  = parent;
          parent->right = parent;
       }
-   } else if ( node->left == node
-               || node->right == node) {
-      // node can be removed (cause only one child)
-      assert(parent == node);
+   } else if (node->left == node || node->right == node) {
+      // node points to itself
+      // ==> (parent == node) && "node has only one child which does not point back to node"
+      // node can be replaced by single child
       replacednode = node;
       replacedwith = (node->left == node ? node->right : node->left);
-      assert(replacedwith != node);
    } else {
-      // node has two childs
-      assert(parent != node);
+      // node has two childs ==> one of the childs of node points back to node
+      // ==> (parent != node)
       replacednode = node;
       replacedwith = parent;
       // find parent of replacedwith
+      // node->bit_offset < parent->bit_offset ==> node higher in hierarchy than parent
+      // NOT NEEDED(only single data block): getbitinit(tree, &fullkey, node->bit_offset)
       do {
          parent = node;
-         if (GETBIT(nodek.addr, nodek.size, node->bit_offset)) {
+         if (getbit(tree, &fullkey, node->bit_offset)) {
             node = node->right;
          } else {
             node = node->left;
@@ -363,9 +503,10 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
       if (node == replacednode) {
          tree->root = replacedwith;
       } else {
+         // NOT NEEDED(only single data block): getbitinit(tree, &fullkey, node->bit_offset)
          do {
             parent = node;
-            if (GETBIT(nodek.addr, nodek.size, node->bit_offset)) {
+            if (getbit(tree, &fullkey, node->bit_offset)) {
                node = node->right;
             } else {
                node = node->left;
@@ -390,7 +531,7 @@ ONERR:
    return err;
 }
 
-int removenodes_patriciatrie(patriciatrie_t * tree, delete_adapter_f delete_f)
+int removenodes_patriciatrie(patriciatrie_t *tree, delete_adapter_f delete_f)
 {
    int err;
    patriciatrie_node_t * parent = 0;
@@ -423,7 +564,7 @@ int removenodes_patriciatrie(patriciatrie_t * tree, delete_adapter_f delete_f)
             node->left       = 0;
             node->right      = 0;
             if (isDelete) {
-               void * object = cast_object(node, tree->keyadapt.nodeoffset);
+               void * object = cast_object(node, tree);
                int err2 = delete_f(object);
                if (err2) err = err2;
             }
@@ -451,7 +592,7 @@ ONERR:
 
 // group: lifetime
 
-int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree)
+int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t *iter, patriciatrie_t *tree)
 {
    patriciatrie_node_t * parent;
    patriciatrie_node_t * node = tree->root;
@@ -468,7 +609,7 @@ int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patric
    return 0;
 }
 
-int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patriciatrie_t * tree)
+int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t *iter, patriciatrie_t *tree)
 {
    patriciatrie_node_t * parent;
    patriciatrie_node_t * node = tree->root;
@@ -487,21 +628,21 @@ int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patrici
 
 // group: iterate
 
-bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
+bool next_patriciatrieiterator(patriciatrie_iterator_t *iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false;
 
    *node = iter->next;
 
    getkey_data_t nextk;
-   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
+   init1_getkeydata(&nextk, iter->tree->keyadapt.getkey, cast_object(iter->next, iter->tree));
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
    patriciatrie_node_t * higher_branch_parent = 0;
    do {
       parent = next;
-      if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
+      if (getbit(iter->tree, &nextk, next->bit_offset)) {
          next = next->right;
       } else {
          higher_branch_parent = parent;
@@ -524,21 +665,21 @@ bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
    return true;
 }
 
-bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
+bool prev_patriciatrieiterator(patriciatrie_iterator_t *iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false;
 
    *node = iter->next;
 
    getkey_data_t nextk;
-   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
+   init1_getkeydata(&nextk, iter->tree->keyadapt.getkey, cast_object(iter->next, iter->tree));
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
    patriciatrie_node_t * lower_branch_parent = 0;
    do {
       parent = next;
-      if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
+      if (getbit(iter->tree, &nextk, next->bit_offset)) {
          lower_branch_parent = parent;
          next = next->right;
       } else {
@@ -565,19 +706,21 @@ bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatr
 
 // group: lifetime
 
-int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, patriciatrie_t * tree, size_t keylength, const uint8_t prefixkey[keylength])
+int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t *iter, patriciatrie_t *tree, size_t len, const uint8_t prefixkey[len])
 {
    patriciatrie_node_t * parent;
    patriciatrie_node_t * node = tree->root;
-   size_t         prefix_bits = 8 * keylength;
+   size_t         prefix_bits = 8 * len;
 
-   if (  (prefixkey || !keylength)
-         && keylength < (((size_t)-1)/8)
+   if (  (prefixkey || !len)
+         && len < (((size_t)-1)/8)
          && node) {
+      getkey_data_t prefk;
+      initfullkey_getkeydata(&prefk, len, prefixkey);
       if (node->bit_offset < prefix_bits) {
          do {
             parent = node;
-            if (GETBIT(prefixkey, keylength, node->bit_offset)) {
+            if (getbit(tree, &prefk, node->bit_offset)) {
                node = node->right;
             } else {
                node = node->left;
@@ -592,10 +735,20 @@ int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, pa
          node = node->left;
       }
       getkey_data_t key;
-      tree->keyadapt.getkey(cast_object(node, tree->keyadapt.nodeoffset), &key);
-      bool isPrefix =   key.size >= keylength
-                        && ! memcmp(key.addr, prefixkey, keylength);
-      if (!isPrefix) node = 0;
+      init1_getkeydata(&key, tree->keyadapt.getkey, cast_object(node, tree));
+      if (key.streamsize >= prefk.streamsize) {
+         uint8_t const *key2 = key.addr;
+         for (size_t offset = 0; offset < len; ++offset) {
+            if (offset == key.endoffset) {
+               tree->keyadapt.getkey(&key, offset);
+               key2 = key.addr;
+            }
+            if (prefixkey[offset] != *key2++) goto NO_PREFIX;
+         }
+
+      } else { NO_PREFIX:
+         node = 0;
+      }
    }
 
    iter->next        = node;
@@ -606,21 +759,21 @@ int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, pa
 
 // group: iterate
 
-bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patriciatrie_node_t ** node)
+bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t *iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false;
 
    *node = iter->next;
 
    getkey_data_t nextk;
-   iter->tree->keyadapt.getkey(cast_object(iter->next, iter->tree->keyadapt.nodeoffset), &nextk);
+   init1_getkeydata(&nextk, iter->tree->keyadapt.getkey, cast_object(iter->next, iter->tree));
 
    patriciatrie_node_t * next = iter->tree->root;
    patriciatrie_node_t * parent;
    patriciatrie_node_t * higher_branch_parent = 0;
    do {
       parent = next;
-      if (GETBIT(nextk.addr, nextk.size, next->bit_offset)) {
+      if (getbit(iter->tree, &nextk, next->bit_offset)) {
          next = next->right;
       } else {
          higher_branch_parent = parent;
@@ -659,6 +812,7 @@ typedef struct testnode_t {
    patriciatrie_node_t  node;
    uint8_t  key[4];
    size_t   key_len;
+   uint8_t  streamed_key[8/*2*sizeof(key)*/];
 } testnode_t;
 
 test_errortimer_t    s_errcounter;
@@ -678,110 +832,309 @@ static int impl_deletenode(void * obj)
    return err;
 }
 
-static void impl_getstreamkey(void * obj, /*out*/getkey_data_t* key)
+static void impl_gettestkey(/*inout*/getkey_data_t* key, size_t offset)
 {
    int err;
-   testnode_t * node = obj;
+   testnode_t *node = key->object;
 
    if (process_testerrortimer(&s_errcounter, &err)) {
       // only used for input param check in insert
       key->addr = 0;
-      key->size = 1;
+      key->streamsize = 1;
    } else {
       ++ s_getbinkey_count;
-      key->addr = node->key;
-      key->size = node->key_len;
+      if (offset == 0) {   // init
+         for (size_t i = 0; i < sizeof(node->key); ++i) {
+            node->streamed_key[2*i+0] = node->key[i];
+            node->streamed_key[2*i+1] = (uint8_t) ~ node->key[i];
+         }
+         init2_getkeydata(key, node->key_len, node->key_len ? 1 : 0, node->streamed_key);
+      } else {
+         assert(offset < node->key_len);
+         update_getkeydata(key, offset, 1, node->streamed_key + 2 * offset);
+      }
    }
 }
 
-static int test_firstdiffbit(void)
+typedef struct diffbitnode_t {
+   size_t  keysize;
+   size_t  nextsize;
+   uint8_t key[256];
+   getkey_data_t keydata;
+   patriciatrie_node_t node;
+} diffbitnode_t;
+
+static void set_keyandnextsize(diffbitnode_t *node, size_t keysize, size_t nextsize)
 {
-   uint8_t  key1[256] = {0};
-   uint8_t  key2[256] = {0};
-   size_t   bit_offset = 0;
-   uint8_t  bit_value  = 0;
+   node->keysize  = keysize;
+   node->nextsize = nextsize >= keysize ? keysize : nextsize + (nextsize == 0);
+}
 
-   // TEST first_different_bit: keys are equal
-   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset, &bit_value));
-
-   // TEST first_different_bit: keys are equal until end of key2(end marker 0xFF)
-   key1[2] = 0xFF; // end markter of key2
-   TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
-   // check out param
-   TEST( bit_value  == 0);
-   TEST( bit_offset == bitsof(key1));
-   // test parameter reversed
-   TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
-   // check out param
-   TEST( bit_value  != 0);
-   TEST( bit_offset == bitsof(key1));
-
-   // TEST first_different_bit: keys differ in end marker of key2
-   for (unsigned i = 1; i < 8; ++i) {
-      key1[2] = (uint8_t)(0xFF << i);
-      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  != 0);
-      TEST( bit_offset == 24-i);
-      // test parameter reversed
-      TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  == 0);
-      TEST( bit_offset == 24-i);
+static void impl_getdiffbitkey(/*inout*/getkey_data_t* key, size_t offset)
+{
+   diffbitnode_t *diffbit = key->object;
+   if (offset == 0) {
+      init2_getkeydata(key, diffbit->keysize, diffbit->nextsize, diffbit->key);
+      key->impl_ptr = diffbit;
+   } else {
+      assert(offset < key->streamsize && key->endoffset <= key->streamsize);
+      offset -= (offset % diffbit->nextsize);
+      size_t nextsize = offset + diffbit->nextsize <= key->streamsize
+                      ? diffbit->nextsize : key->streamsize - offset;
+      update_getkeydata(key, offset, nextsize, offset + diffbit->key);
    }
+   assert(key->impl_ptr == diffbit);
+}
 
-   // TEST first_different_bit: keys differ in second byte
-   for (int i = 0; i < 8; ++i) {
-      key1[1] = (uint8_t) (0x01 << i);
-      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  == 0);
-      TEST( bit_offset == (size_t)(15-i));
-      // test parameter reversed
-      TEST( 0 == first_different_bit(key2, 2, key1, sizeof(key1), &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  != 0);
-      TEST( bit_offset == (size_t)(15-i));
-   }
+static int test_searchhelper(void)
+{
+   patriciatrie_t tree;
+   diffbitnode_t  node[2] = { { 0, 0, {0}, {0}, patriciatrie_node_INIT } };
+   size_t         bitoff = 0;
+   uint8_t        bitval = 0;
 
    // prepare
-   static_assert(lengthof(key1) == lengthof(key2), "check for overflow");
-   for (unsigned i = 0; i < lengthof(key1); ++i) {
-      key1[i] = (uint8_t)i;
-      key2[i] = (uint8_t)i;
+   init_patriciatrie(&tree, (getkey_adapter_t)getkey_adapter_INIT(offsetof(diffbitnode_t, node), &impl_getdiffbitkey));
+   for (size_t i = 0; i < lengthof(node[0].key); ++i) {
+      node[0].key[i] = (uint8_t)i;
+      node[1].key[i] = (uint8_t)i;
    }
 
-   // TEST first_different_bit: keys are equal
-   TEST(EINVAL == first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset, &bit_value));
-   TEST(EINVAL == first_different_bit(key2, sizeof(key2), key1, sizeof(key1), &bit_offset, &bit_value));
+   // TEST is_key_equal: keylen == 0
+   set_keyandnextsize(&node[0], 0, 0);
+   initfullkey_getkeydata(&node[1].keydata, 0, 0);
+   TEST(1 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+   TEST(1 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
 
-   // TEST first_different_bit: keys differ in length
-   TEST(0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset, &bit_value));
-   // check out param
-   TEST( bit_value  == 0);
-   TEST( bit_offset == bitsof(key1));
-   // test parameter reversed
-   TEST(0 == first_different_bit(key2, sizeof(key2)-1, key1, sizeof(key1), &bit_offset, &bit_value));
-   // check out param
-   TEST( bit_value  != 0);
-   TEST( bit_offset == bitsof(key1));
+   // TEST is_key_equal: equal keys with different streaming patterns
+   for (size_t keysize = 1, nextsize = 1; keysize <= lengthof(node[0].key); ++keysize, ++nextsize) {
+      // test
+      set_keyandnextsize(&node[0], keysize, nextsize/3);
+      set_keyandnextsize(&node[1], keysize, nextsize/2);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 1 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+      // test
+      set_keyandnextsize(&node[0], keysize, nextsize/2);
+      set_keyandnextsize(&node[1], keysize, 1);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 1 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+      // test
+      set_keyandnextsize(&node[0], keysize, 3);
+      set_keyandnextsize(&node[1], keysize, keysize);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 1 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+   }
 
-   // TEST first_different_bit: keys differ in first 8 byte
-   for (unsigned i = 0; i < 8; ++i) {
-      key1[i] = 0;
-      key2[i] = (uint8_t)(0x80 >> i);
-      TEST( 0 == first_different_bit(key1, sizeof(key1), key2, sizeof(key2)/3, &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  != 0);
-      TEST( bit_offset == 8*i+i);
-      // test parameter reversed
-      TEST( 0 == first_different_bit(key2, sizeof(key2)/3, key1, sizeof(key1), &bit_offset, &bit_value));
-      // check out param
-      TEST( bit_value  == 0);
-      TEST( bit_offset == 8*i+i);
+   // TEST is_key_equal: unequal keys with different streaming patterns
+   for (size_t keysize = 1, nextsize = 1; keysize <= lengthof(node[0].key); ++keysize, ++nextsize) {
+      // prepare
+      node[0].key[keysize/3] ^= 0xff;
+      // test
+      set_keyandnextsize(&node[0], keysize, nextsize/3);
+      set_keyandnextsize(&node[1], keysize, nextsize/2);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 0 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+      // test
+      set_keyandnextsize(&node[0], keysize, nextsize/2);
+      set_keyandnextsize(&node[1], keysize, 1);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 0 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
+      // test
+      set_keyandnextsize(&node[0], keysize, 3);
+      set_keyandnextsize(&node[1], keysize, keysize);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST( 0 == is_key_equal(&tree, &node[0].node, &node[1].keydata));
       // reset
-      key1[i] = (uint8_t)i;
-      key2[i] = (uint8_t)i;
+      node[0].key[keysize/3] ^= 0xff;
+   }
+
+   // TEST get_first_different_bit: keylen == 0
+   memset(&node, 0, sizeof(node));
+   for (unsigned i = 0; i < 2; ++i) {
+      init1_getkeydata(&node[i].keydata, &impl_getdiffbitkey, &node[i]);
+   }
+   TEST(EEXIST == get_first_different_bit(&tree, &node[0].keydata, &node[1].keydata, &bitoff, &bitval));
+
+   // TEST get_first_different_bit: equal keys with different streaming patterns
+   for (size_t keysize = 1, nextsize = 1; keysize <= 256; keysize *= 2, ++nextsize) {
+      set_keyandnextsize(&node[0], keysize, nextsize);
+      set_keyandnextsize(&node[1], keysize, nextsize/2);
+      init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      TEST(EEXIST == get_first_different_bit(&tree, &node[0].keydata, &node[1].keydata, &bitoff, &bitval));
+      // keydata is reset if offset > 0
+      TEST(EEXIST == get_first_different_bit(&tree, &node[1].keydata, &node[0].keydata, &bitoff, &bitval));
+      node[0].nextsize = keysize;
+      TEST(EEXIST == get_first_different_bit(&tree, &node[0].keydata, &node[1].keydata, &bitoff, &bitval));
+      TEST(EEXIST == get_first_different_bit(&tree, &node[1].keydata, &node[0].keydata, &bitoff, &bitval));
+   }
+
+   // TEST get_first_different_bit: keys are equal until end marker 0xFF of node[0].key
+   memset(node[0].key, 0, sizeof(node[0].key));
+   memset(node[1].key, 0, sizeof(node[0].key));
+   node[0].key[2] = 0xFF; // end marker of node[1].key
+   set_keyandnextsize(&node[1], 2, 2);
+   init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+   for (unsigned len = sizeof(node[0].key)-4; len < sizeof(node[0].key); ++len) {
+      set_keyandnextsize(&node[0], len, 1);
+      init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+      for (unsigned tc = 0; tc < 2; ++tc) {
+         // test
+         TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+         // check out param
+         TEST( bitval == (tc ? 0x80 : 0));
+         TEST( bitoff == 8*len);
+      }
+   }
+
+   // TEST get_first_different_bit: keys differ in end marker of node[1].key
+   set_keyandnextsize(&node[0], sizeof(node[0].key), sizeof(node[0].key));
+   set_keyandnextsize(&node[1], 2, 1);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+   for (unsigned i = 1; i < 8; ++i) {
+      for (unsigned tc = 0; tc < 2; ++tc) {
+         node[0].key[2] = (uint8_t)(0xFF << i);
+         TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+         // check out param
+         TEST( bitval == (tc ? 0 : 0x01 << (i-1)));
+         TEST( bitoff == 24u-i);
+      }
+   }
+   // reset
+   node[0].key[2] = 0;
+
+   // TEST get_first_different_bit: keys differ in 0 extension of node[1].key
+   set_keyandnextsize(&node[0], sizeof(node[0].key), sizeof(node[0].key)/3);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (unsigned len = 0; len < 16; ++len) {
+      node[0].key[len] = 0xFF; // end marker of node[1].key
+      set_keyandnextsize(&node[1], len, len/2);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      for (unsigned doff = len+1; doff < sizeof(node[0].key); doff *= 2) {
+         node[0].key[doff] = (uint8_t) (1u << (doff&7));
+         for (unsigned tc = 0; tc < 2; ++tc) {
+            // test
+            TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+            // check out param
+            TEST( bitval == (tc ? 0x01 << (doff&7) : 0));
+            TEST( bitoff == 8u*doff + 7 - (doff&7));
+         }
+         node[0].key[doff] = 0;
+      }
+      // reset
+      node[0].key[len] = 0;
+   }
+
+   // TEST get_first_different_bit: keys differ in different pos
+   for (size_t i = 0; i < lengthof(node[0].key); ++i) {
+      node[0].key[i] = (uint8_t)i;
+      node[1].key[i] = (uint8_t)i;
+   }
+   set_keyandnextsize(&node[0], sizeof(node[0].key), sizeof(node[0].key)/3);
+   set_keyandnextsize(&node[1], sizeof(node[1].key), sizeof(node[1].key)/4);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+   for (unsigned pos = 0; pos < sizeof(node[0].key)-1; ++pos) {
+      for (unsigned bit = 0; bit < 8; ++bit) {
+         node[0].key[pos]   ^= (uint8_t) (0xff >> bit);
+         node[0].key[pos+1] ^= (uint8_t) 0xff;
+         for (unsigned tc = 0; tc < 2; ++tc) {
+            // test
+            TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+            // check out param
+            TEST( bitval == ((tc ? ~node[1].key[pos] : node[1].key[pos]) & (0x80>>bit)));
+            TEST( bitoff == 8u*pos + bit);
+         }
+         // reset
+         node[0].key[pos]   = (uint8_t) pos;
+         node[0].key[pos+1] = (uint8_t) (pos+1);
+      }
+   }
+
+   // TEST get_first_different_bit: keys differ in length
+   set_keyandnextsize(&node[0], sizeof(node[0].key), sizeof(node[0].key)/3);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (unsigned len = 0; len < sizeof(node[0].key)-1; ++len) {
+      set_keyandnextsize(&node[1], len, len/4);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      unsigned nrbits = 0;
+      while ((0x80 >> nrbits) & node[1].key[len]) ++ nrbits;
+      for (unsigned tc = 0; tc < 2; ++tc) {
+         // test
+         TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+         // check out param
+         TEST( bitval == (tc ? 0 : (0x80 >> nrbits)));
+         TEST( bitoff == 8u*len + nrbits);
+      }
+   }
+
+   // TEST get_first_different_bit: equal keys
+   for (unsigned len = 0; len < sizeof(node[0].key)-1; ++len) {
+      set_keyandnextsize(&node[0], len, len%5);
+      set_keyandnextsize(&node[1], len, len%7);
+      init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+      init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
+      for (unsigned tc = 0; tc < 2; ++tc) {
+         // test
+         TEST( EEXIST == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));
+      }
+   }
+
+   // TEST getbitinit: offset == 0 ==> does not change
+   set_keyandnextsize(&node[0], sizeof(node[0].key), 1);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (size_t i = 0; i < node[0].keysize; ++i) {
+      getbitinit(&tree, &node[0].keydata, 8*i);
+      TEST( 0 == node[0].keydata.offset);
+   }
+
+   // TEST getbitinit: offset set to bitoffset
+   set_keyandnextsize(&node[0], sizeof(node[0].key), 1);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (size_t i = node[0].keysize; i-- > 0; ) {
+      for (size_t i2 = 0; i2 < 8; ++i2) {
+         // prepare
+         impl_getdiffbitkey(&node[0].keydata, node[0].keysize-1);
+         TEST(node[0].keysize-1 == node[0].keydata.offset);
+         // test
+         getbitinit(&tree, &node[0].keydata, 8*i + 7 - i2);
+         // check node[0].keydata
+         TEST( i   == node[0].keydata.offset);
+         TEST( i+1 == node[0].keydata.endoffset);
+      }
+   }
+
+   // TEST getbit: 0 <= bitoffset < keysize*8
+   set_keyandnextsize(&node[0], sizeof(node[0].key), 1);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (size_t i = 0; i < 8*node[0].keysize; ++i) {
+      uint8_t b = (uint8_t) ((i/8) & ((size_t)0x80 >> (i%8)));
+      // test
+      TEST( b     == getbit(&tree, &node[0].keydata, i));
+      // check node[0].keydata
+      TEST( i/8   == node[0].keydata.offset);
+      TEST( i/8+1 == node[0].keydata.endoffset);
+   }
+
+   // TEST getbit: keysize*8 <= bitoffset < (keysize+1)*8
+   set_keyandnextsize(&node[0], sizeof(node[0].key), 1);
+   init1_getkeydata(&node[0].keydata, &impl_getdiffbitkey, &node[0]);
+   for (size_t i = 0; i < 8; ++i) {
+      // test
+      TEST( 1 == getbit(&tree, &node[0].keydata, 8*node[0].keysize + i));
+      // check node[0].keydata
+      TEST( 0 == node[0].keydata.offset);
+      TEST( 1 == node[0].keydata.endoffset);
+   }
+
+   // TEST getbit: bitoffset >= (keysize+1)*8
+   for (size_t i = 0; i < 32; ++i) {
+      // test
+      TEST( 0 == getbit(&tree, &node[0].keydata, 8*(node[0].keysize+1) + i));
+      // check node[0].keydata
+      TEST( 0 == node[0].keydata.offset);
+      TEST( 1 == node[0].keydata.endoffset);
    }
 
    return 0;
@@ -792,15 +1145,13 @@ ONERR:
 static int test_initfree(void)
 {
    size_t const            NODEOFFSET = offsetof(testnode_t, node);
-   getkey_adapter_t        keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
+   getkey_adapter_t        keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_gettestkey);
    patriciatrie_t          tree = patriciatrie_FREE;
    patriciatrie_node_t     node = patriciatrie_node_INIT;
    testnode_t              nodes[20];
 
    // prepare
    free_testerrortimer(&s_errcounter);
-   s_freenode_count  = 0;
-   s_getbinkey_count = 0;
    memset(nodes, 0, sizeof(nodes));
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].key_len = sizeof(nodes[i].key);
@@ -928,7 +1279,7 @@ ONERR:
 static int test_insertremove(void)
 {
    size_t const         NODEOFFSET = offsetof(testnode_t, node);
-   getkey_adapter_t     keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
+   getkey_adapter_t     keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_gettestkey);
    patriciatrie_t       tree      = patriciatrie_FREE;
    memblock_t           memblock  = memblock_FREE;
    testnode_t           * nodes   = 0;
@@ -938,19 +1289,17 @@ static int test_insertremove(void)
 
    // prepare
    free_testerrortimer(&s_errcounter);
-   s_freenode_count  = 0;
-   s_getbinkey_count = 0;
    TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock));
    nodes = (testnode_t*)memblock.addr;
    memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES);
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
       nodes[i].key_len = sizeof(nodes[i].key);
    }
+   existing_node = (void*)1;
 
    // TEST insert_patriciatrie: empty key (length == 0)
    init_patriciatrie(&tree, keyadapt);
    nodes[0].key_len = 0;
-   existing_node = (void*)1;
    TEST( 0 == insert_patriciatrie(&tree, &nodes[0].node, &existing_node));
    // check existing_node (not changed)
    TEST( 1 == (uintptr_t)existing_node);
@@ -963,7 +1312,7 @@ static int test_insertremove(void)
    nodes[0].key_len = sizeof(nodes[0].key);
    nodes[0].is_freed = 0;
 
-   // TEST insert_patriciatrie: differ in bit 0
+   // TEST insert_patriciatrie: differ in bit 0 (single node case)
    init_patriciatrie(&tree, keyadapt);
    TEST(0 == insert_patriciatrie(&tree, &nodes[0].node, 0));
    // test
@@ -971,6 +1320,8 @@ static int test_insertremove(void)
    TEST( 0 == insert_patriciatrie(&tree, &nodes[1].node, &existing_node));
    // check existing_node (not changed)
    TEST( 1 == (uintptr_t)existing_node);
+   // check tree
+   TEST( tree.root == &nodes[0].node);
    // check nodes[0]
    TEST( nodes[0].node.bit_offset == 0);
    TEST( nodes[0].node.left       == &nodes[0].node);
@@ -984,13 +1335,90 @@ static int test_insertremove(void)
    TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0x80, 0, 0, 0 }, &node));
    TEST( node == &nodes[1].node)
    // reset
+   s_freenode_count = 0;
    TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
+   TEST(2 == s_freenode_count);
    for (unsigned i = 0; i < 2; ++i) {
       TEST(1 == nodes[i].is_freed);
       nodes[i].is_freed = 0;
       nodes[i].key[0] = 0;
    }
-   nodes[0].is_freed = 0;
+
+   // TEST insert_patriciatrie: differ in bit 0 (two node case)
+   init_patriciatrie(&tree, keyadapt);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node, 0));
+   nodes[1].key[0] = 0x01;
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node, 0));
+   // test
+   nodes[2].key[0] = 0x81;
+   TEST( 0 == insert_patriciatrie(&tree, &nodes[2].node, &existing_node));
+   // check existing_node (not changed)
+   TEST( 1 == (uintptr_t)existing_node);
+   // check tree
+   TEST( tree.root == &nodes[2].node);
+   // check nodes[0]
+   TEST( nodes[0].node.bit_offset == 7);
+   TEST( nodes[0].node.left       == &nodes[0].node);
+   TEST( nodes[0].node.right      == &nodes[1].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0, 0, 0, 0 }, &node));
+   TEST( node == &nodes[0].node)
+   // check nodes[1]
+   TEST( nodes[1].node.bit_offset == 0);
+   TEST( nodes[1].node.left       == &nodes[1].node);
+   TEST( nodes[1].node.right      == &nodes[1].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0x01, 0, 0, 0 }, &node));
+   TEST( node == &nodes[1].node)
+   // check nodes[2]
+   TEST( nodes[2].node.bit_offset == 0);
+   TEST( nodes[2].node.left       == &nodes[0].node);
+   TEST( nodes[2].node.right      == &nodes[2].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0x81, 0, 0, 0 }, &node));
+   TEST( node == &nodes[2].node)
+   // reset
+   s_freenode_count = 0;
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
+   TEST(3 == s_freenode_count);
+   for (unsigned i = 0; i < 3; ++i) {
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
+      nodes[i].key[0] = 0;
+   }
+
+   // TEST insert_patriciatrie: case parent == node == tree.root
+   init_patriciatrie(&tree, keyadapt);
+   TEST(0 == insert_patriciatrie(&tree, &nodes[0].node, 0));
+   nodes[1].key[0] = 0x80;
+   TEST(0 == insert_patriciatrie(&tree, &nodes[1].node, 0));
+   // test
+   nodes[2].key[0] = 0x01;
+   TEST( 0 == insert_patriciatrie(&tree, &nodes[2].node, &existing_node));
+   // check existing_node (not changed)
+   TEST( 1 == (uintptr_t)existing_node);
+   // check tree
+   TEST( tree.root == &nodes[0].node);
+   // check nodes[0]
+   TEST( nodes[0].node.bit_offset == 0);
+   TEST( nodes[0].node.left       == &nodes[2].node);
+   TEST( nodes[0].node.right      == &nodes[1].node);
+   // check nodes[1]
+   TEST( nodes[1].node.bit_offset == 0);
+   TEST( nodes[1].node.left       == &nodes[1].node);
+   TEST( nodes[1].node.right      == &nodes[1].node);
+   // check nodes[2]
+   TEST( nodes[2].node.bit_offset == 7);
+   TEST( nodes[2].node.left       == &nodes[0].node);
+   TEST( nodes[2].node.right      == &nodes[2].node);
+   TEST( 0 == find_patriciatrie(&tree, 4, (uint8_t[]) { 0x01, 0, 0, 0 }, &node));
+   TEST( node == &nodes[2].node)
+   // reset
+   s_freenode_count = 0;
+   TEST(0 == removenodes_patriciatrie(&tree, &impl_deletenode));
+   TEST(3 == s_freenode_count);
+   for (unsigned i = 0; i < 3; ++i) {
+      TEST(1 == nodes[i].is_freed);
+      nodes[i].is_freed = 0;
+      nodes[i].key[0] = 0;
+   }
 
    // TEST insert_patriciatrie: EINVAL
    for (unsigned tc = 0; tc <= 3; ++tc) {
@@ -1376,7 +1804,7 @@ ONERR:
 static int test_iterator(void)
 {
    size_t const               NODEOFFSET = offsetof(testnode_t, node);
-   getkey_adapter_t           keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
+   getkey_adapter_t           keyadapt  = getkey_adapter_INIT(NODEOFFSET, &impl_gettestkey);
    patriciatrie_t             tree      = patriciatrie_FREE;
    memblock_t                 memblock  = memblock_FREE;
    testnode_t               * nodes   = 0;
@@ -1551,12 +1979,12 @@ ONERR:
    return EINVAL;
 }
 
-patriciatrie_IMPLEMENT(_testtree, testnode_t, node, &impl_getstreamkey)
+patriciatrie_IMPLEMENT(_testtree, testnode_t, node, &impl_gettestkey)
 
 static int test_generic(void)
 {
    size_t const         NODEOFFSET = offsetof(testnode_t, node);
-   getkey_adapter_t     keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_getstreamkey);
+   getkey_adapter_t     keyadapt = getkey_adapter_INIT(NODEOFFSET, &impl_gettestkey);
    patriciatrie_t       tree = patriciatrie_FREE;
    testnode_t           nodes[50];
    testnode_t         * existing_node = 0;
@@ -1684,7 +2112,7 @@ ONERR:
 
 int unittest_ds_inmem_patriciatrie()
 {
-   if (test_firstdiffbit())      goto ONERR;
+   if (test_searchhelper())      goto ONERR;
    if (test_initfree())          goto ONERR;
    if (test_insertremove())      goto ONERR;
    if (test_iterator())          goto ONERR;
