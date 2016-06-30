@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Mai.24  13:12:22
+GenerationDate  := 2016.Jun.30  06:50:53
 GeneratedBy     := je-so
 
 ## Debug
@@ -153,6 +153,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!findzerobyte.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
@@ -275,6 +276,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!findzerobyte.c.o \
  $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
@@ -558,6 +560,9 @@ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerobyte.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
@@ -918,6 +923,9 @@ $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerobyte.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c

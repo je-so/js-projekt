@@ -173,6 +173,7 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_math_int_bitorder);
       RUN(unittest_math_int_byteorder);
       RUN(unittest_math_int_factorise);
+      RUN(unittest_math_int_findzerobyte);
       RUN(unittest_math_int_log10);
       RUN(unittest_math_int_log2);
       RUN(unittest_math_int_power2);

@@ -86,7 +86,7 @@ slist_IMPLEMENT(_rangelist, range_transition_t, next)
  * Der Übergang wird immer vollzogen ohne einen Buchstaben zu konsumieren. */
 typedef struct empty_transition_t {
    slist_node_t*   next;   // used in adapted slist_t  _emptylist
-   struct state_t* state;  // goto state (only if char in [from .. to])
+   struct state_t* state;  // goto state always without consuming a char
 } empty_transition_t;
 
 // group: type support
@@ -109,7 +109,7 @@ typedef struct state_t {
    union {
       struct {
          uint8_t        isused; // used to mark a state as inserted or used
-         uint8_t        nrdfa;  // used to inidicate to which automaton state belongs (1 or 2)
+         uint8_t        nrdfa;  // used to indicate to which automaton state belongs (1 or 2)
          uint8_t        nrendstate; // 0: no endstate; nrendstate == nrdfa: is endstate
       };
       size_t            nr;     // used to assign numbers to states for printing
@@ -231,7 +231,7 @@ typedef struct statearray_t {
    size_t   length_of_block;  // see statearray_block_t
    slist_t  addlist;          // list of statearray_block_t where new entries are added to the end
    slist_t  dellist;          // list of statearray_block_t where reading removes the first entry
-   slist_t  freelist;         // list of free unsued statearray_block_t (cache)
+   slist_t  freelist;         // list of free unused statearray_block_t (cache)
    state_t** addnext;         // position where the new entry is added
    state_t** addend;          // end address of state array of statearray_block_t
    statearray_block_t * delblock;

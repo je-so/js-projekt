@@ -101,6 +101,7 @@
         <File Name="../../C-kern/api/math/int/byteorder.h"/>
         <File Name="../../C-kern/api/math/int/bitorder.h"/>
         <File Name="../../C-kern/api/math/int/factorise.h"/>
+        <File Name="../../C-kern/api/math/int/findzerobyte.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
@@ -466,6 +467,7 @@
       <File Name="../../C-kern/math/int/byteorder.c"/>
       <File Name="../../C-kern/math/int/bitorder.c"/>
       <File Name="../../C-kern/math/int/factorise.c"/>
+      <File Name="../../C-kern/math/int/findzerobyte.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>
