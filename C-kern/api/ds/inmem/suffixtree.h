@@ -33,12 +33,11 @@
 #define CKERN_STRING_SUFFIX_TREE_HEADER
 
 // forward
-struct cstring_t ;
-struct suffixtree_node_t ;
+struct cstring_t;
+struct suffixtree_node_t;
 
-/* typedef: struct suffixtree_t
- * Exports <suffixtree_t>. Implementation of a suffix tree. */
-typedef struct suffixtree_t            suffixtree_t ;
+// === exported types
+struct suffixtree_t;
 
 
 // section: Functions
@@ -48,7 +47,7 @@ typedef struct suffixtree_t            suffixtree_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_suffixtree
  * Test suffix tree with content if a C-source file. */
-int unittest_ds_inmem_suffixtree(void) ;
+int unittest_ds_inmem_suffixtree(void);
 #endif
 
 
@@ -61,14 +60,14 @@ int unittest_ds_inmem_suffixtree(void) ;
  * This implementation considers the empty string as an invalid suffix in contrast to
  * the standard definition. To query for an empty string with <isstring_suffixtree> always returns false.
  * */
-struct suffixtree_t {
+typedef struct suffixtree_t {
    /* variable: childs
     * Points to root node with all childs of root node. */
-   struct suffixtree_node_t   * childs ;
+   struct suffixtree_node_t  *childs;
    /* variable: maxlength
     * Max length (in bytes) of all added strings. */
-   size_t                     maxlength ;
-} ;
+   size_t                     maxlength;
+} suffixtree_t;
 
 // group: lifetime
 
@@ -79,13 +78,13 @@ struct suffixtree_t {
 /* fucntion: init_suffixtree
  * This function initializes the tree object with an empty tree. The adapter must live at
  * least as long as the tree object - only a reference to it is stored (no copy is made).*/
-int init_suffixtree(/*out*/suffixtree_t * tree) ;
+int init_suffixtree(/*out*/suffixtree_t *tree);
 
 /* function: free_suffixtree
  * Frees all memory of the allocated nodes.
  * The input string can also be freed if it is no longer needed.
  * TODO: Implement free memory group - allow to mark the nodes as part of a group ! */
-int free_suffixtree(suffixtree_t * tree) ;
+int free_suffixtree(suffixtree_t *tree);
 
 // group: query
 
@@ -113,7 +112,7 @@ int free_suffixtree(suffixtree_t * tree) ;
  * A leaf is only listed as child of a node. It matches only a string.
  * A leaf marked with '::' is an end marker to store only positional information.
  * */
-int dump_suffixtree(suffixtree_t * tree, struct cstring_t * cstr) ;
+int dump_suffixtree(suffixtree_t *tree, struct cstring_t *cstr);
 
 /* function: isstring_suffixtree
  * Returns true if at least one suffix begins with searchstr.
@@ -123,7 +122,7 @@ int dump_suffixtree(suffixtree_t * tree, struct cstring_t * cstr) ;
  * Returns:
  * true  - searched string is contained in input text
  * false - searched string is not contained in input text */
-bool isstring_suffixtree(suffixtree_t * tree, size_t length, const uint8_t searchstr[length]) ;
+bool isstring_suffixtree(suffixtree_t *tree, size_t length, const uint8_t searchstr[length]);
 
 /* function: matchall_suffixtree
  * Returns number of times and start addresses of suffixes which contain searchstr.
@@ -149,7 +148,7 @@ bool isstring_suffixtree(suffixtree_t * tree, size_t length, const uint8_t searc
  *       (implement it part static allocation + dynamic allocation; same as wbuffer, but possible mixed at the same time) !
  *
  * */
-int matchall_suffixtree(suffixtree_t * tree, size_t length, const uint8_t searchstr[length], size_t skip_count, /*out*/size_t * matched_count, size_t maxmatchcount, /*out*/const uint8_t * matchedpos[maxmatchcount]) ;
+int matchall_suffixtree(suffixtree_t *tree, size_t length, const uint8_t searchstr[length], size_t skip_count, /*out*/size_t * matched_count, size_t maxmatchcount, /*out*/const uint8_t * matchedpos[maxmatchcount]);
 
 // group: build
 
@@ -159,12 +158,12 @@ int matchall_suffixtree(suffixtree_t * tree, size_t length, const uint8_t search
  * The input text must live at least as long as the constructed tree cause it stores
  * references to *input_string* to describe string contents instead of making copies.
  * Memory of any previously build tree is freed before a new one is built. */
-int build_suffixtree(suffixtree_t * tree, size_t length, const uint8_t input_string[length]) ;
+int build_suffixtree(suffixtree_t *tree, size_t length, const uint8_t input_string[length]);
 
 /* function: clear_suffixtree
  * All contained suffixes are removed and all internal memory is freed.
  * After return no more references to any added input strings are held so they can be safely freed. */
-int clear_suffixtree(suffixtree_t * tree) ;
+int clear_suffixtree(suffixtree_t *tree);
 
 
 

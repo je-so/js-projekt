@@ -22,17 +22,12 @@
 
 #include "C-kern/api/ds/inmem/node/lrptree_node.h"
 
-/* typedef: struct exthash_t
- * Export <exthash_t> into global namespace. */
-typedef struct exthash_t               exthash_t ;
-
-/* typedef: struct exthash_iterator_t
- * Export <exthash_iterator_t> into global namespace. */
-typedef struct exthash_iterator_t      exthash_iterator_t ;
-
+// === exported types
+struct exthash_t;
+struct exthash_iterator_t;
 /* typedef: struct exthash_node_t
  * Rename <lrptree_node_t> into <exthash_node_t>. */
-typedef struct lrptree_node_t          exthash_node_t ;
+typedef struct lrptree_node_t  exthash_node_t;
 
 
 // section: Functions
@@ -42,26 +37,26 @@ typedef struct lrptree_node_t          exthash_node_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_exthash
  * Test <exthash_t> functionality. */
-int unittest_ds_inmem_exthash(void) ;
+int unittest_ds_inmem_exthash(void);
 #endif
 
 
 /* struct: exthash_iterator_t
  * Iterates over elements contained in <exthash_t>.
  * The iterator supports removing or deleting of the current node.
- * > exthash_t htable ;
- * > fill_tree(&htable) ;
+ * > exthash_t htable;
+ * > fill_tree(&htable);
  * > foreach (_exthash, node, &htable) {
  * >    if (need_to_remove(node)) {
- * >       err = remove_exthash(&htable, node)) ;
+ * >       err = remove_exthash(&htable, node));
  * >    }
  * > }
  * */
-struct exthash_iterator_t {
-   exthash_node_t *  next ;
-   exthash_t      *  htable ;
-   size_t            tableindex ;
-} ;
+typedef struct exthash_iterator_t {
+   exthash_node_t   *next;
+   struct exthash_t *htable;
+   size_t            tableindex;
+} exthash_iterator_t;
 
 // group: lifetime
 
@@ -71,11 +66,11 @@ struct exthash_iterator_t {
 
 /* function: initfirst_exthashiterator
  * Initializes an iterator for <exthash_t>. */
-int initfirst_exthashiterator(/*out*/exthash_iterator_t * iter, exthash_t * htable) ;
+int initfirst_exthashiterator(/*out*/exthash_iterator_t *iter, struct exthash_t *htable);
 
 /* function: free_exthashiterator
  * Frees an iterator of <exthash_t>. */
-int free_exthashiterator(exthash_iterator_t * iter) ;
+int free_exthashiterator(exthash_iterator_t *iter);
 
 // group: iterate
 
@@ -83,7 +78,7 @@ int free_exthashiterator(exthash_iterator_t * iter) ;
  * Returns next node of htable not sorted in any order.
  * The first call after <initfirst_exthashiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** node) ;
+bool next_exthashiterator(exthash_iterator_t *iter, /*out*/exthash_node_t ** node);
 
 
 // struct: exthash_node_t
@@ -118,28 +113,28 @@ bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** no
  * The service hashobject of <typeadapt_t.gethash> is used in <insert_exthash> and <remove_exthash>.
  * The service hashkey of <typeadapt_t.gethash> is used in <find_exthash>.
  * */
-struct exthash_t {
+typedef struct exthash_t {
    /* variable: hashtable
     * Pointer to table of size pow(2,level). See also <level>.
     * The directory contains a pointer to the stored node and no buckets.
     * The nodes are organized as a tree and the hashtable entry points to the root of the tree.
     * If a pointer is set to 0 the tree is empty. If it set to the value (intptr_t)-1
     * it shares the same tree as the entry of the next smaller level. */
-   exthash_node_t       ** hashtable ;
+   exthash_node_t       ** hashtable;
    /* variable: nr_nodes
     * The number of stored nodes in the hash table. */
-   size_t               nr_nodes ;
+   size_t               nr_nodes;
    /* variable: nodeadp
     * Offers lifetime + keycomparator + gethash services to handle stored nodes. */
-   typeadapt_member_t   nodeadp ;
+   typeadapt_member_t   nodeadp;
    /* variable: level
     * Determines the hash table size as pow(2,level). */
-   uint8_t              level ;
+   uint8_t              level;
    /* variable: maxlevel
     * Determines the max size of the hash table.
     * Once the <level> value has reached <maxlevel> the table does no more grow. */
-   uint8_t              maxlevel ;
-} ;
+   uint8_t              maxlevel;
+} exthash_t;
 
 // group: lifetime
 
@@ -152,38 +147,38 @@ struct exthash_t {
  * Allocates a hash table of at least size 1.
  * The parameter initial_size and max_size should be a power of two.
  * If not the next smaller power of two is chosen. */
-int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) ;
+int init_exthash(/*out*/exthash_t *htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp);
 
 /* function: free_exthash
  * Calls <removenodes_exthash> and frees the hash table memory. */
-int free_exthash(exthash_t * htable) ;
+int free_exthash(exthash_t *htable);
 
 // group: query
 
 /* function: isempty_exthash
  * Returns true if the table contains no element. */
-bool isempty_exthash(const exthash_t * htable) ;
+bool isempty_exthash(const exthash_t *htable);
 
 /* function: nrelements_exthash
  * Returns the nr of elements stored in the hash table. */
-size_t nrelements_exthash(const exthash_t * htable) ;
+size_t nrelements_exthash(const exthash_t *htable);
 
 // group: foreach-support
 
 /* typedef: iteratortype_exthash
  * Declaration to associate <exthash_iterator_t> with <exthash_t>. */
-typedef exthash_iterator_t      iteratortype_exthash ;
+typedef exthash_iterator_t      iteratortype_exthash;
 
 /* typedef: iteratedtype_exthash
  * Declaration to associate <exthash_node_t> with <exthash_t>. */
-typedef exthash_node_t       *  iteratedtype_exthash ;
+typedef exthash_node_t       *  iteratedtype_exthash;
 
 // group: search
 
 /* function: find_exthash
  * Searches for a node with equal key.
  * If it exists it is returned in found_node else ESRCH is returned. */
-int find_exthash(exthash_t * htable, const void * key, /*out*/exthash_node_t ** found_node) ;
+int find_exthash(exthash_t *htable, const void * key, /*out*/exthash_node_t ** found_node);
 
 // group: change
 
@@ -191,17 +186,17 @@ int find_exthash(exthash_t * htable, const void * key, /*out*/exthash_node_t ** 
  * Inserts a new node into the hash table if it is unique.
  * If another node exists with the same key as *new_node* nothing is inserted and the function returns EEXIST.
  * The caller has to allocate the new node and has to transfer ownership. */
-int insert_exthash(exthash_t * htable, exthash_node_t * new_node) ;
+int insert_exthash(exthash_t *htable, exthash_node_t * new_node);
 
 /* function: remove_exthash
  * Removes a node from the hash table. If the node is not part of the table the behaviour is undefined !
  * The ownership of the removed node is transfered back to the caller. */
-int remove_exthash(exthash_t * htable, exthash_node_t * node) ;
+int remove_exthash(exthash_t *htable, exthash_node_t * node);
 
 /* function: removenodes_exthash
  * Removes all nodes from the hash table.
  * For every removed node <typeadapt_lifetime_it.delete_object> is called. */
-int removenodes_exthash(exthash_t * htable) ;
+int removenodes_exthash(exthash_t *htable);
 
 // group: generic
 
@@ -216,13 +211,13 @@ int removenodes_exthash(exthash_t * htable) ;
  *             The object must contain a field of type <exthash_node_t>.
  * key_t     - The type of key the objects are sorted by.
  * nodename  - The access path of the field <exthash_node_t> in type object_t. */
-void exthash_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDNAME nodename) ;
+void exthash_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDNAME nodename);
 
 // group: test
 
 /* function: invariant_exthash
  * Checks that every bucket points to a correct red black tree. */
-int invariant_exthash(const exthash_t * htable) ;
+int invariant_exthash(const exthash_t *htable);
 
 
 // section: inline implementation
@@ -242,67 +237,55 @@ int invariant_exthash(const exthash_t * htable) ;
 /* define: exthash_IMPLEMENT
  * Implements <exthash_t.exthash_IMPLEMENT>. */
 #define exthash_IMPLEMENT(_fsuffix, object_t, key_t, nodename)  \
-   typedef exthash_iterator_t  iteratortype##_fsuffix ;         \
-   typedef object_t         *  iteratedtype##_fsuffix ;         \
-   static inline int  initfirst##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable) __attribute__ ((always_inline)) ;   \
-   static inline int  free##_fsuffix##iterator(exthash_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline int  init##_fsuffix(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
-   static inline bool isempty##_fsuffix(const exthash_t * htable) __attribute__ ((always_inline)) ; \
-   static inline size_t nrelements##_fsuffix(const exthash_t * htable) __attribute__ ((always_inline)) ; \
-   static inline int  find##_fsuffix(exthash_t * htable, const key_t key, /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(exthash_t * htable, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(exthash_t * htable, object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int  removenodes##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
-   static inline int  invariant##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
+   typedef exthash_iterator_t  iteratortype##_fsuffix;         \
+   typedef object_t         *  iteratedtype##_fsuffix;         \
    static inline exthash_node_t * cast2node##_fsuffix(object_t * object) { \
-      static_assert(&((object_t*)0)->nodename == (exthash_node_t*)offsetof(object_t, nodename), "correct type") ; \
-      return (exthash_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      static_assert(&((object_t*)0)->nodename == (exthash_node_t*)offsetof(object_t, nodename), "correct type"); \
+      return (exthash_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)); \
    } \
    static inline object_t * cast2object##_fsuffix(exthash_node_t * node) { \
-      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
+      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)); \
    } \
-   static inline int init##_fsuffix(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) { \
-      return init_exthash(htable, initial_size, max_size, nodeadp) ; \
+   static inline int init##_fsuffix(/*out*/exthash_t *htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) { \
+      return init_exthash(htable, initial_size, max_size, nodeadp); \
    } \
-   static inline int  free##_fsuffix(exthash_t * htable) { \
-      return free_exthash(htable) ; \
+   static inline int  free##_fsuffix(exthash_t *htable) { \
+      return free_exthash(htable); \
    } \
-   static inline bool isempty##_fsuffix(const exthash_t * htable) { \
-      return isempty_exthash(htable) ; \
+   static inline bool isempty##_fsuffix(const exthash_t *htable) { \
+      return isempty_exthash(htable); \
    } \
-   static inline size_t nrelements##_fsuffix(const exthash_t * htable) { \
-      return nrelements_exthash(htable) ; \
+   static inline size_t nrelements##_fsuffix(const exthash_t *htable) { \
+      return nrelements_exthash(htable); \
    } \
-   static inline int  find##_fsuffix(exthash_t * htable, const key_t key, /*out*/object_t ** found_node) { \
-      int err = find_exthash(htable, (void*)key, (exthash_node_t**)found_node) ; \
-      if (err == 0) *found_node = cast2object##_fsuffix(*(exthash_node_t**)found_node) ; \
-      return err ; \
+   static inline int  find##_fsuffix(exthash_t *htable, const key_t key, /*out*/object_t ** found_node) { \
+      int err = find_exthash(htable, (void*)key, (exthash_node_t**)found_node); \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(exthash_node_t**)found_node); \
+      return err; \
    } \
-   static inline int  insert##_fsuffix(exthash_t * htable, object_t * new_node) { \
-      return insert_exthash(htable, cast2node##_fsuffix(new_node)) ; \
+   static inline int  insert##_fsuffix(exthash_t *htable, object_t * new_node) { \
+      return insert_exthash(htable, cast2node##_fsuffix(new_node)); \
    } \
-   static inline int  remove##_fsuffix(exthash_t * htable, object_t * node) { \
-      int err = remove_exthash(htable, cast2node##_fsuffix(node)) ; \
-      return err ; \
+   static inline int  remove##_fsuffix(exthash_t *htable, object_t * node) { \
+      int err = remove_exthash(htable, cast2node##_fsuffix(node)); \
+      return err; \
    } \
-   static inline int  removenodes##_fsuffix(exthash_t * htable) { \
-      return removenodes_exthash(htable) ; \
+   static inline int  removenodes##_fsuffix(exthash_t *htable) { \
+      return removenodes_exthash(htable); \
    } \
-   static inline int  invariant##_fsuffix(exthash_t * htable) { \
-      return invariant_exthash(htable) ; \
+   static inline int  invariant##_fsuffix(exthash_t *htable) { \
+      return invariant_exthash(htable); \
    } \
-   static inline int  initfirst##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable) { \
-      return initfirst_exthashiterator(iter, htable) ; \
+   static inline int  initfirst##_fsuffix##iterator(exthash_iterator_t *iter, exthash_t *htable) { \
+      return initfirst_exthashiterator(iter, htable); \
    } \
-   static inline int  free##_fsuffix##iterator(exthash_iterator_t * iter) { \
-      return free_exthashiterator(iter) ; \
+   static inline int  free##_fsuffix##iterator(exthash_iterator_t *iter) { \
+      return free_exthashiterator(iter); \
    } \
-   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, object_t ** node) { \
-      bool isNext = next_exthashiterator(iter, (exthash_node_t**)node) ; \
-      if (isNext) *node = cast2object##_fsuffix(*(exthash_node_t**)node) ; \
-      return isNext ; \
+   static inline bool next##_fsuffix##iterator(exthash_iterator_t *iter, object_t ** node) { \
+      bool isNext = next_exthashiterator(iter, (exthash_node_t**)node); \
+      if (isNext) *node = cast2object##_fsuffix(*(exthash_node_t**)node); \
+      return isNext; \
    }
 
 #endif

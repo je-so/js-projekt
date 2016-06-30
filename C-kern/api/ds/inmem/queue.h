@@ -78,13 +78,13 @@ typedef struct queue_iterator_t {
  * Initializes an iterator for <queue_t>.
  * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
  * first page of the queue contains less than nodesize bytes. */
-int initfirst_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t * queue, uint16_t nodesize);
+int initfirst_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t *queue, uint16_t nodesize);
 
 /* function: initlast_queueiterator
  * Initializes a reverse iterator for <queue_t>.
  * Returns ENODATA in case parameter nodesize is 0, or queue is empty, or
  * last page of the queue contains less than nodesize bytes. */
-int initlast_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t * queue, uint16_t nodesize);
+int initlast_queueiterator(/*out*/queue_iterator_t * iter, struct queue_t *queue, uint16_t nodesize);
 
 /* function: free_queueiterator
  * Does nothing! There are no allocated resources */
@@ -156,7 +156,7 @@ typedef struct queue_t {
  * Returns:
  * 0      - pagesize supported.
  * EINVAL - pagesize not in [256, 1024, 4096, 16384] */
-int init_queue(/*out*/queue_t * queue, size_t pagesize);
+int init_queue(/*out*/queue_t *queue, size_t pagesize);
 
 /* function: initmove_queue
  * Moves the object to another memory address.
@@ -169,49 +169,49 @@ void initmove_queue(/*out*/queue_t * dest, queue_t * src);
 
 /* function: free_queue
  * Free all memory pages even if they are not empty. */
-int free_queue(queue_t * queue);
+int free_queue(queue_t *queue);
 
 // group: query
 
 /* function: pagesize_queue
  * Return Größe in Bytes einer <queue_page_t>. */
-uint16_t pagesize_queue(const queue_t * queue);
+uint16_t pagesize_queue(const queue_t *queue);
 
 /* function: isempty_queue
  * Return true if queue contains no elements. */
-bool isempty_queue(const queue_t * queue);
+bool isempty_queue(const queue_t *queue);
 
 /* function: isfree_queue
  * Return true if queue is freed. */
-bool isfree_queue(const queue_t * queue);
+bool isfree_queue(const queue_t *queue);
 
 /* function: first_queue
  * Returns the first element or 0.
  * In case of 0 the queue is either empty or the first
  * memory page contains less than nodesize bytes. */
-void * first_queue(const queue_t * queue, uint16_t nodesize);
+void * first_queue(const queue_t *queue, uint16_t nodesize);
 
 /* function: last_queue
  * Returns the last element or 0.
  * In case of 0 the queue is either empty or the last
  * memory page contains less than nodesize bytes. */
-void * last_queue(const queue_t * queue, uint16_t nodesize);
+void * last_queue(const queue_t *queue, uint16_t nodesize);
 
 /* function: sizefirst_queue
  * Returns the number of bytes allocated on the first memory page.
  * Its the size of all nodes stored on the first memory page. */
-size_t sizefirst_queue(const queue_t * queue);
+size_t sizefirst_queue(const queue_t *queue);
 
 /* function: sizelast_queue
  * Returns the number of bytes allocated on the last memory page.
  * Its the size of all nodes stored on the last memory page.
  * If only one memory page is allocated this value equals to <sizenodesfirstpage_queue>. */
-size_t sizelast_queue(const queue_t * queue);
+size_t sizelast_queue(const queue_t *queue);
 
 /* function: sizebytes_queue
  * Returns the number of bytes allocated on the all memory pages.
  * O(n): This operation needs to iterate over the list of all allocated pages. */
-size_t sizebytes_queue(const queue_t * queue);
+size_t sizebytes_queue(const queue_t *queue);
 
 /* function: castPaddr_queue
  * Converts address of an inserted node into queue it belongs to. */
@@ -241,7 +241,7 @@ typedef void *                iteratedtype_queue;
  * a new memory page is allocated and made the new first one.
  * The error ENOMEM is returned in case no new memory page could be allocated.
  * The error EINVAL is returned in case nodesize > 512. */
-int insertfirst_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr);
+int insertfirst_queue(queue_t *queue, uint16_t nodesize, /*out*/void ** nodeaddr);
 
 /* function: insertlast_queue
  * Allocates nodesize bytes on the last memory page.
@@ -250,26 +250,26 @@ int insertfirst_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeadd
  * a new memory page is allocated and made the new last one.
  * The error ENOMEM is returned in case no new memory page could be allocated.
  * The error EINVAL is returned in case nodesize > 512. */
-int insertlast_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr);
+int insertlast_queue(queue_t *queue, uint16_t nodesize, /*out*/void ** nodeaddr);
 
 /* function: removefirst_queue
  * Removes nodesize bytes from the first memory page.
  * If the queue is empty ENODATA is returned and nothing is done.
  * If the first memory page contains less than nodesize bytes
  * EOVERFLOW is returned and nothing is done. */
-int removefirst_queue(queue_t * queue, uint16_t nodesize);
+int removefirst_queue(queue_t *queue, uint16_t nodesize);
 
 /* function: removelast_queue
  * Removes nodesize bytes from the last memory page.
  * If the queue is empty ENODATA is returned and nothing is done.
  * If the last memory page contains less than nodesize bytes
  * EOVERFLOW is returned and nothing is done. */
-int removelast_queue(queue_t * queue, uint16_t nodesize);
+int removelast_queue(queue_t *queue, uint16_t nodesize);
 
 /* function: removeall_queue
  * Removes all stored nodes at once.
  * If the queue is empty nothing is done. */
-int removeall_queue(queue_t* queue);
+int removeall_queue(queue_t*queue);
 
 /* function: resizelast_queue
  * Removes oldsize bytes from the last memory page and add newsize bytes.
@@ -282,14 +282,14 @@ int removeall_queue(queue_t* queue);
  * will contain a changed value else it keeps the same as the value returned in
  * the last call to <insertlast_queue>. The first min(oldsize, newsize) bytes
  * keep their value. If nodeaddr changed the old content has been copied to the new page. */
-int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize, uint16_t newsize);
+int resizelast_queue(queue_t *queue, /*out*/void ** nodeaddr, uint16_t oldsize, uint16_t newsize);
 
 // group: generic
 
 /* function: cast_queue
  * Tries to cast generic object queue into pointer to <queue_t>.
  * The generic object must have a last pointer as first member. */
-queue_t * cast_queue(void * queue);
+queue_t * cast_queue(void *queue);
 
 /* define: queue_IMPLEMENT
  * Generates interface of queue_t storing elements of type object_t.
@@ -306,22 +306,22 @@ void queue_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t);
 typedef struct queue_page_t {
    /* variable: next
     * Next memory page in list of pages. */
-   struct dlist_node_t * next;
+   struct dlist_node_t *next;
    /* variable: prev
     * PRev memory page in list of pages. */
-   struct dlist_node_t * prev;
+   struct dlist_node_t *prev;
    /* variable: queue
-    * Queue this page belongs to. */
-   queue_t *      queue;
+    *queue this page belongs to. */
+   queue_t             *queue;
    /* variable: end_offset
     * Offset of end of last node relative to start address of this object.
     * Bytes from <end_offset> up to <pagesize>-1 are unused. */
-   uint16_t       end_offset;
+   uint16_t             end_offset;
    /* variable: start_offset
     * Offset of first node relative to start address of this object.
     * Bytes from start_offset up to <end_offset>-1 are in use.
     * Bytes from sizeof(queue_page_t) up to <start_offset>-1 are unused. */
-   uint16_t       start_offset;
+   uint16_t             start_offset;
 } queue_page_t;
 
 
@@ -608,74 +608,58 @@ typedef struct queue_page_t {
 #define queue_IMPLEMENT(_fsuffix, object_t) \
    typedef queue_iterator_t   iteratortype##_fsuffix;       \
    typedef object_t *         iteratedtype##_fsuffix;       \
-   static inline int  initfirst##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t * queue) __attribute__ ((always_inline)); \
-   static inline int  free##_fsuffix##iterator(queue_iterator_t * iter) __attribute__ ((always_inline)); \
-   static inline bool next##_fsuffix##iterator(queue_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)); \
-   static inline int  init##_fsuffix(/*out*/queue_t * queue, uint32_t pagesize) __attribute__ ((always_inline)); \
-   static inline void initmove##_fsuffix(/*out*/queue_t * dest, queue_t * src) __attribute__ ((always_inline)); \
-   static inline int  free##_fsuffix(queue_t * queue) __attribute__ ((always_inline)); \
-   static inline bool isempty##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline object_t * first##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline object_t * last##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline size_t sizefirst##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline size_t sizelast##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline size_t sizebytes##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)); \
-   static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) __attribute__ ((always_inline)); \
-   static inline int insertlast##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) __attribute__ ((always_inline)); \
-   static inline int removefirst##_fsuffix(queue_t * queue) __attribute__ ((always_inline)); \
-   static inline int removelast##_fsuffix(queue_t * queue) __attribute__ ((always_inline)); \
-   static inline int init##_fsuffix(/*out*/queue_t * queue, uint32_t pagesize) { \
+   static inline int init##_fsuffix(/*out*/queue_t *queue, uint32_t pagesize) { \
       return init_queue(queue, pagesize); \
    } \
    static inline void initmove##_fsuffix(/*out*/queue_t * dest, queue_t * src) { \
       initmove_queue(dest, src); \
    } \
-   static inline int free##_fsuffix(queue_t * queue) { \
+   static inline int free##_fsuffix(queue_t *queue) { \
       return free_queue(queue); \
    } \
-   static inline uint16_t pagesize##_fsuffix(const queue_t * queue) { \
+   static inline uint16_t pagesize##_fsuffix(const queue_t *queue) { \
       return pagesize_queue(queue); \
    } \
-   static inline bool isempty##_fsuffix(const queue_t * queue) { \
+   static inline bool isempty##_fsuffix(const queue_t *queue) { \
       return isempty_queue(queue); \
    } \
-   static inline bool isfree##_fsuffix(const queue_t * queue) { \
+   static inline bool isfree##_fsuffix(const queue_t *queue) { \
       return isfree_queue(queue); \
    } \
-   static inline object_t * first##_fsuffix(const queue_t * queue) { \
+   static inline object_t * first##_fsuffix(const queue_t *queue) { \
       return first_queue(queue, sizeof(object_t)); \
    } \
-   static inline object_t * last##_fsuffix(const queue_t * queue) { \
+   static inline object_t * last##_fsuffix(const queue_t *queue) { \
       return last_queue(queue, sizeof(object_t)); \
    } \
-   static inline size_t sizefirst##_fsuffix(const queue_t * queue) { \
+   static inline size_t sizefirst##_fsuffix(const queue_t *queue) { \
       return sizefirst_queue(queue); \
    } \
-   static inline size_t sizelast##_fsuffix(const queue_t * queue) { \
+   static inline size_t sizelast##_fsuffix(const queue_t *queue) { \
       return sizelast_queue(queue); \
    } \
-   static inline size_t sizebytes##_fsuffix(const queue_t * queue) { \
+   static inline size_t sizebytes##_fsuffix(const queue_t *queue) { \
       return sizebytes_queue(queue); \
    } \
-   static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) { \
+   static inline int insertfirst##_fsuffix(queue_t *queue,/*out*/object_t ** new_node) { \
       return insertfirst_queue(queue, sizeof(object_t), (void**)new_node); \
    } \
-   static inline int insertlast##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) { \
+   static inline int insertlast##_fsuffix(queue_t *queue,/*out*/object_t ** new_node) { \
       return insertlast_queue(queue, sizeof(object_t), (void**)new_node); \
    } \
-   static inline int removefirst##_fsuffix(queue_t * queue) { \
+   static inline int removefirst##_fsuffix(queue_t *queue) { \
       return removefirst_queue(queue, sizeof(object_t)); \
    } \
-   static inline int removelast##_fsuffix(queue_t * queue) { \
+   static inline int removelast##_fsuffix(queue_t *queue) { \
       return removelast_queue(queue, sizeof(object_t)); \
    } \
-   static inline int removeall##_fsuffix(queue_t * queue) { \
+   static inline int removeall##_fsuffix(queue_t *queue) { \
       return removeall_queue(queue); \
    } \
-   static inline int initfirst##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t * queue) { \
+   static inline int initfirst##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t *queue) { \
       return initfirst_queueiterator(iter, queue, sizeof(object_t)); \
    } \
-   static inline int initlast##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t * queue) { \
+   static inline int initlast##_fsuffix##iterator(/*out*/queue_iterator_t * iter, queue_t *queue) { \
       return initlast_queueiterator(iter, queue, sizeof(object_t)); \
    } \
    static inline int free##_fsuffix##iterator(queue_iterator_t * iter) { \

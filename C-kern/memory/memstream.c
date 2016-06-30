@@ -180,6 +180,26 @@ static int test_query(void)
       }
    }
 
+   // TEST peek_memstream
+   // prepare
+   for (unsigned i = 0; i < sizeof(buffer); ++i) {
+      buffer[i] = (uint8_t) i;
+   }
+   memstr = (memstream_t) memstream_INIT(buffer, buffer + sizeof(buffer)-1);
+   memstr_ro = (memstream_ro_t) memstream_INIT(buffer, buffer + sizeof(buffer)-1);
+   for (unsigned i = 0; i < sizeof(buffer)-1; ++i) {
+      // test
+      TEST( peek_memstream(&memstr)    == i);
+      TEST( peek_memstream(&memstr_ro) == i);
+      skip_memstream(&memstr, 1);
+      skip_memstream(&memstr_ro, 1);
+   }
+   // test (precondition not checked)
+   TEST( !isnext_memstream(&memstr));
+   TEST( !isnext_memstream(&memstr_ro));
+   TEST( peek_memstream(&memstr)    == sizeof(buffer)-1);
+   TEST( peek_memstream(&memstr_ro) == sizeof(buffer)-1);
+
    return 0;
 ONERR:
    return EINVAL;

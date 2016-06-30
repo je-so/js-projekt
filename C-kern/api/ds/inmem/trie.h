@@ -50,9 +50,8 @@
 // forward
 struct trie_node_t;
 
-/* typedef: struct trie_t
- * Export <trie_t> into global namespace. */
-typedef struct trie_t trie_t;
+// === exported types
+struct trie_t;
 
 
 // section: Functions
@@ -90,9 +89,9 @@ int unittest_ds_inmem_trie(void);
  * any larger.
  *
  * */
-struct trie_t {
-   struct trie_node_t * root;
-};
+typedef struct trie_t {
+   struct trie_node_t *root;
+} trie_t;
 
 // group: lifetime
 

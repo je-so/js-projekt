@@ -485,32 +485,8 @@ void dlist2_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix);
 /* define: dlist2_IMPLEMENT
  * Implements <dlist2_t.dlist2_IMPLEMENT>. */
 #define dlist2_IMPLEMENT(_fsuffix, object_t, nodeprefix) \
-   typedef dlist2_iterator_t  iteratortype##_fsuffix;    \
-   typedef object_t *         iteratedtype##_fsuffix;    \
-   static inline int  initfirst##_fsuffix##iterator(dlist2_iterator_t * iter, dlist2_t * list) __attribute__ ((always_inline));   \
-   static inline int  initlast##_fsuffix##iterator(dlist2_iterator_t * iter, dlist2_t * list) __attribute__ ((always_inline));    \
-   static inline int  free##_fsuffix##iterator(dlist2_iterator_t * iter) __attribute__ ((always_inline)); \
-   static inline bool next##_fsuffix##iterator(dlist2_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)); \
-   static inline bool prev##_fsuffix##iterator(dlist2_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)); \
-   static inline void init##_fsuffix(dlist2_t * list) __attribute__ ((always_inline)); \
-   static inline int  free##_fsuffix(dlist2_t * list, struct typeadapt_t * typeadp) __attribute__ ((always_inline)); \
-   static inline int  isempty##_fsuffix(const dlist2_t * list) __attribute__ ((always_inline)); \
-   static inline object_t * first##_fsuffix(const dlist2_t * list) __attribute__ ((always_inline));  \
-   static inline object_t * last##_fsuffix(const dlist2_t * list) __attribute__ ((always_inline));   \
-   static inline object_t * next##_fsuffix(object_t * node) __attribute__ ((always_inline)); \
-   static inline object_t * prev##_fsuffix(object_t * node) __attribute__ ((always_inline)); \
-   static inline bool isinlist##_fsuffix(object_t * node) __attribute__ ((always_inline)); \
-   static inline void insertfirst##_fsuffix(dlist2_t * list, object_t * new_node) __attribute__ ((always_inline));   \
-   static inline void insertlast##_fsuffix(dlist2_t * list, object_t * new_node) __attribute__ ((always_inline));    \
-   static inline void insertafter##_fsuffix(dlist2_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)); \
-   static inline void insertbefore##_fsuffix(dlist2_t * list, object_t* next_node, object_t * new_node) __attribute__ ((always_inline)); \
-   static inline void removefirst##_fsuffix(dlist2_t * list, object_t ** removed_node) __attribute__ ((always_inline));  \
-   static inline void removelast##_fsuffix(dlist2_t * list, object_t ** removed_node) __attribute__ ((always_inline));   \
-   static inline void remove##_fsuffix(dlist2_t * list, object_t * node) __attribute__ ((always_inline)); \
-   static inline void replacenode##_fsuffix(dlist2_t * list, object_t * oldnode, object_t * newnode) __attribute__ ((always_inline)); \
-   static inline int removeall##_fsuffix(dlist2_t * list, struct typeadapt_t * typeadp) __attribute__ ((always_inline)); \
-   static inline void insertlastPlist##_fsuffix(dlist2_t * tolist, dlist2_t * fromlist) __attribute__ ((always_inline)); \
-   static inline uint16_t nodeoffset##_fsuffix(void) __attribute__ ((always_inline)); \
+   typedef dlist2_iterator_t  iteratortype##_fsuffix; \
+   typedef object_t *         iteratedtype##_fsuffix; \
    static inline uint16_t nodeoffset##_fsuffix(void) { \
       static_assert(UINT16_MAX > (uintptr_t) & (((object_t*)0)->nodeprefix next), "offset fits in uint16_t"); \
       return (uint16_t) (uintptr_t) & (((object_t*)0)->nodeprefix next); \

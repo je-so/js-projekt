@@ -23,17 +23,13 @@
 
 #include "C-kern/api/ds/inmem/node/lrptree_node.h"
 
-/* typedef: struct redblacktree_t
- * Export <redblacktree_t> into global namespace. */
-typedef struct redblacktree_t             redblacktree_t ;
-
-/* typedef: struct redblacktree_iterator_t
- * Export <redblacktree_iterator_t>. */
-typedef struct redblacktree_iterator_t    redblacktree_iterator_t ;
+// === exported types
+struct redblacktree_t;
+struct redblacktree_iterator_t;
 
 /* typedef: redblacktree_node_t
  * Rename <lrptree_node_t> into <redblacktree_node_t>. */
-typedef struct lrptree_node_t             redblacktree_node_t ;
+typedef struct lrptree_node_t redblacktree_node_t;
 
 
 // section: Functions
@@ -43,24 +39,24 @@ typedef struct lrptree_node_t             redblacktree_node_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_redblacktree
  * Test implementation of <redblacktree_t>. */
-int unittest_ds_inmem_redblacktree(void) ;
+int unittest_ds_inmem_redblacktree(void);
 #endif
 
 
 /* struct: redblacktree_iterator_t
  * Iterates over elements contained in <redblacktree_t>.
  * The iterator supports removing or deleting of the current node.
- * > redblacktree_t tree ;
- * > fill_tree(&tree) ;
+ * > redblacktree_t tree;
+ * > fill_tree(&tree);
  * > foreach (_redblacktree, node, &tree) {
  * >    if (need_to_remove(node)) {
- * >       err = remove_redblacktree(&tree, node)) ;
+ * >       err = remove_redblacktree(&tree, node));
  * >    }
  * > }
  * */
-struct redblacktree_iterator_t {
-   redblacktree_node_t * next ;
-} ;
+typedef struct redblacktree_iterator_t {
+   redblacktree_node_t * next;
+} redblacktree_iterator_t;
 
 // group: lifetime
 
@@ -70,15 +66,15 @@ struct redblacktree_iterator_t {
 
 /* function: initfirst_redblacktreeiterator
  * Initializes an iterator for <redblacktree_t>. */
-int initfirst_redblacktreeiterator(/*out*/redblacktree_iterator_t * iter, redblacktree_t * tree) ;
+int initfirst_redblacktreeiterator(/*out*/redblacktree_iterator_t *iter, struct redblacktree_t *tree);
 
 /* function: initlast_redblacktreeiterator
  * Initializes an iterator of <redblacktree_t>. */
-int initlast_redblacktreeiterator(/*out*/redblacktree_iterator_t * iter, redblacktree_t * tree) ;
+int initlast_redblacktreeiterator(/*out*/redblacktree_iterator_t *iter, struct redblacktree_t *tree);
 
 /* function: free_redblacktreeiterator
  * Frees an iterator of <redblacktree_t>. */
-int free_redblacktreeiterator(redblacktree_iterator_t * iter) ;
+int free_redblacktreeiterator(redblacktree_iterator_t *iter);
 
 // group: iterate
 
@@ -86,13 +82,13 @@ int free_redblacktreeiterator(redblacktree_iterator_t * iter) ;
  * Returns next node of tree in ascending order.
  * The first call after <initfirst_redblacktreeiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node) ;
+bool next_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node);
 
 /* function: prev_redblacktreeiterator
  * Returns next node of tree in descending order.
  * The first call after <initlast_redblacktreeiterator> returns the node with the highest key.
  * In case no previous node exists false is returned and parameter node is not changed. */
-bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node) ;
+bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node);
 
 
 /* struct: redblacktree_t
@@ -140,14 +136,14 @@ bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktr
  *    Length of shortest path of black height n:  = n (property 4)
  *    Length of longest path of black height n:   = n + n - 1 = 2n -1
  */
-struct redblacktree_t {
+typedef struct redblacktree_t {
    /* variable: root
     * Points to the root object which has no parent. */
-   redblacktree_node_t  * root ;
+   redblacktree_node_t *root;
    /* variable: nodeadp
     * Offers lifetime + comparator services to handle stored nodes. */
-   typeadapt_member_t   nodeadp ;
-} ;
+   typeadapt_member_t   nodeadp;
+} redblacktree_t;
 
 // group: lifetime
 
@@ -165,38 +161,38 @@ struct redblacktree_t {
  * Inits an empty tree object.
  * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
  * So do not delete <typeadapt_t> as long as this object lives. */
-int init_redblacktree(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp) ;
+int init_redblacktree(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp);
 
 /* function: free_redblacktree
  * Frees all resources. Calling it twice is safe.  */
-int free_redblacktree(redblacktree_t * tree) ;
+int free_redblacktree(redblacktree_t * tree);
 
 // group: query
 
 /* function: getinistate_redblacktree
  * Returns the current state of <redblacktree_t> for later use in <redblacktree_INIT>. */
-static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/redblacktree_node_t ** root, /*out*/typeadapt_member_t * nodeadp/*0=>ignored*/) ;
+static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/redblacktree_node_t ** root, /*out*/typeadapt_member_t * nodeadp/*0=>ignored*/);
 
 /* function: isempty_redblacktree
  * Returns true if tree contains no elements. */
-bool isempty_redblacktree(const redblacktree_t * tree) ;
+bool isempty_redblacktree(const redblacktree_t *tree);
 
 // group: foreach-support
 
 /* typedef: iteratortype_redblacktree
  * Declaration to associate <redblacktree_iterator_t> with <redblacktree_t>. */
-typedef redblacktree_iterator_t      iteratortype_redblacktree ;
+typedef redblacktree_iterator_t      iteratortype_redblacktree;
 
 /* typedef: iteratedtype_redblacktree
  * Declaration to associate <redblacktree_node_t> with <redblacktree_t>. */
-typedef redblacktree_node_t       *  iteratedtype_redblacktree ;
+typedef redblacktree_node_t       *  iteratedtype_redblacktree;
 
 // group: search
 
 /* function: find_redblacktree
  * Searches for a node with equal key.
  * If it exists it is returned in found_node else ESRCH is returned. */
-int find_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblacktree_node_t ** found_node) ;
+int find_redblacktree(redblacktree_t *tree, const void *key, /*out*/redblacktree_node_t **found_node);
 
 // group: change
 
@@ -204,23 +200,23 @@ int find_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblacktr
  * Inserts a new node into the tree only if it is unique.
  * If another node exists with the same key nothing is inserted and the function returns EEXIST
  * The caller has to allocate new_node and has to transfer ownership. */
-int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node) ;
+int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node);
 
 /* function: remove_redblacktree
  * Removes a node from the tree. If the node is not part of the tree the behaviour is undefined !
  * The ownership of the removed node is transfered back to the caller. */
-int remove_redblacktree(redblacktree_t * tree, redblacktree_node_t * node) ;
+int remove_redblacktree(redblacktree_t * tree, redblacktree_node_t * node);
 
 /* function: removenodes_redblacktree
  * Removes all nodes from the tree.
  * For every removed node <typeadapt_lifetime_it.delete_object> is called. */
-int removenodes_redblacktree(redblacktree_t * tree) ;
+int removenodes_redblacktree(redblacktree_t * tree);
 
 // group: test
 
 /* function: invariant_redblacktree
  * Checks that this tree meets 5 conditions of red-black trees. */
-int invariant_redblacktree(redblacktree_t * tree) ;
+int invariant_redblacktree(redblacktree_t * tree);
 
 // group: generic
 
@@ -234,7 +230,7 @@ int invariant_redblacktree(redblacktree_t * tree) ;
  * key_t     - The type of key the objects are sorted by.
  * nodename  - The access path of the field <redblacktree_node_t> in type object_t.
  * */
-void redblacktree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDNAME nodename) ;
+void redblacktree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDNAME nodename);
 
 
 // section: inline implementation
@@ -248,8 +244,8 @@ void redblacktree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, 
  * Implements <redblacktree_t.getinistate_redblacktree>. */
 static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/redblacktree_node_t ** root, /*out*/typeadapt_member_t * nodeadp)
 {
-   *root = tree->root ;
-   if (0 != nodeadp) *nodeadp = tree->nodeadp ;
+   *root = tree->root;
+   if (0 != nodeadp) *nodeadp = tree->nodeadp;
 }
 
 /* define: init_redblacktree
@@ -263,82 +259,68 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
 /* define: redblacktree_IMPLEMENT
  * Implements <redblacktree_t.redblacktree_IMPLEMENT>. */
 #define redblacktree_IMPLEMENT(_fsuffix, object_t, key_t, nodename)  \
-   typedef redblacktree_iterator_t  iteratortype##_fsuffix ;         \
-   typedef object_t              *  iteratedtype##_fsuffix ;         \
-   static inline int  initfirst##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;   \
-   static inline int  initlast##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;    \
-   static inline int  free##_fsuffix##iterator(redblacktree_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline void init##_fsuffix(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline void getinistate##_fsuffix(const redblacktree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline bool isempty##_fsuffix(const redblacktree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline int  find##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(redblacktree_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int  removenodes##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline int  invariant##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
+   typedef redblacktree_iterator_t  iteratortype##_fsuffix; \
+   typedef object_t              *  iteratedtype##_fsuffix; \
    static inline redblacktree_node_t * cast2node##_fsuffix(object_t * object) { \
-      static_assert(&((object_t*)0)->nodename == (redblacktree_node_t*)offsetof(object_t, nodename), "correct type") ; \
-      return (redblacktree_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      static_assert(&((object_t*)0)->nodename == (redblacktree_node_t*)offsetof(object_t, nodename), "correct type"); \
+      return (redblacktree_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)); \
    } \
    static inline object_t * cast2object##_fsuffix(redblacktree_node_t * node) { \
-      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
+      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)); \
    } \
    static inline object_t * castnull2object##_fsuffix(redblacktree_node_t * node) { \
-      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
+      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0; \
    } \
    static inline void init##_fsuffix(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp) { \
-      init_redblacktree(tree, nodeadp) ; \
+      init_redblacktree(tree, nodeadp); \
    } \
    static inline int  free##_fsuffix(redblacktree_t * tree) { \
-      return free_redblacktree(tree) ; \
+      return free_redblacktree(tree); \
    } \
    static inline void getinistate##_fsuffix(const redblacktree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) { \
-      redblacktree_node_t * rootnode ; \
-      getinistate_redblacktree(tree, &rootnode, nodeadp) ; \
-      *root = castnull2object##_fsuffix(rootnode) ; \
+      redblacktree_node_t * rootnode; \
+      getinistate_redblacktree(tree, &rootnode, nodeadp); \
+      *root = castnull2object##_fsuffix(rootnode); \
    } \
    static inline bool isempty##_fsuffix(const redblacktree_t * tree) { \
-      return isempty_redblacktree(tree) ; \
+      return isempty_redblacktree(tree); \
    } \
    static inline int  find##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** found_node) { \
-      int err = find_redblacktree(tree, (void*)key, (redblacktree_node_t**)found_node) ; \
-      if (err == 0) *found_node = cast2object##_fsuffix(*(redblacktree_node_t**)found_node) ; \
-      return err ; \
+      int err = find_redblacktree(tree, (void*)key, (redblacktree_node_t**)found_node); \
+      if (err == 0) *found_node = cast2object##_fsuffix(*(redblacktree_node_t**)found_node); \
+      return err; \
    } \
    static inline int  insert##_fsuffix(redblacktree_t * tree, object_t * new_node) { \
-      return insert_redblacktree(tree, cast2node##_fsuffix(new_node)) ; \
+      return insert_redblacktree(tree, cast2node##_fsuffix(new_node)); \
    } \
    static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) { \
-      int err = remove_redblacktree(tree, cast2node##_fsuffix(node)) ; \
-      return err ; \
+      int err = remove_redblacktree(tree, cast2node##_fsuffix(node)); \
+      return err; \
    } \
    static inline int  removenodes##_fsuffix(redblacktree_t * tree) { \
-      return removenodes_redblacktree(tree) ; \
+      return removenodes_redblacktree(tree); \
    } \
    static inline int  invariant##_fsuffix(redblacktree_t * tree) { \
-      return invariant_redblacktree(tree) ; \
+      return invariant_redblacktree(tree); \
    } \
    static inline int  initfirst##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) { \
-      return initfirst_redblacktreeiterator(iter, tree) ; \
+      return initfirst_redblacktreeiterator(iter, tree); \
    } \
    static inline int  initlast##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) { \
-      return initlast_redblacktreeiterator(iter, tree) ; \
+      return initlast_redblacktreeiterator(iter, tree); \
    } \
    static inline int  free##_fsuffix##iterator(redblacktree_iterator_t * iter) { \
-      return free_redblacktreeiterator(iter) ; \
+      return free_redblacktreeiterator(iter); \
    } \
    static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
-      bool isNext = next_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
-      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node) ; \
-      return isNext ; \
+      bool isNext = next_redblacktreeiterator(iter, (redblacktree_node_t**)node); \
+      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node); \
+      return isNext; \
    } \
    static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
-      bool isNext = prev_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
-      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node) ; \
-      return isNext ; \
+      bool isNext = prev_redblacktreeiterator(iter, (redblacktree_node_t**)node); \
+      if (isNext) *node = cast2object##_fsuffix(*(redblacktree_node_t**)node); \
+      return isNext; \
    }
 
 #endif

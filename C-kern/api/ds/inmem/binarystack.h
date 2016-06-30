@@ -16,9 +16,8 @@
 #ifndef CKERN_DS_INMEM_BINARYSTACK_HEADER
 #define CKERN_DS_INMEM_BINARYSTACK_HEADER
 
-/* typedef: struct binarystack_t
- * Export <binarystack_t> into global namespace. */
-typedef struct binarystack_t              binarystack_t ;
+// === exported types
+struct binarystack_t;
 
 
 // section: Functions
@@ -28,7 +27,7 @@ typedef struct binarystack_t              binarystack_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_binarystack
  * Test <binarystack_t> functionality. */
-int unittest_ds_inmem_binarystack(void) ;
+int unittest_ds_inmem_binarystack(void);
 #endif
 
 
@@ -55,18 +54,18 @@ int unittest_ds_inmem_binarystack(void) ;
  * So if you need to align memory to number X make sure that every push operation pushes only objects
  * with sizes which are multiples of X. The first pushed object is page aligned (see <pagesize_vm>).
  * */
-struct binarystack_t {
+typedef struct binarystack_t {
    /* variable: freeblocksize
     * The number of free bytes of memory block <blockstart> points to. */
-   size_t      freeblocksize;
+   size_t   freeblocksize;
    /* variable: blocksize
     * Size in bytes of allocated memory block <blockstart> points to. */
-   size_t      blocksize;
+   size_t   blocksize;
    /* variable: blockstart
     * Start address of latest allocated memory block.
     * The size of this block is stored in <blocksize>. */
-   uint8_t *   blockstart;
-} ;
+   uint8_t *blockstart;
+} binarystack_t;
 
 // group: lifetime
 
@@ -76,23 +75,23 @@ struct binarystack_t {
 
 /* function: init_binarystack
  * Initializes stack object and reserves at least preallocate_size bytes. */
-int init_binarystack(/*out*/binarystack_t * stack, size_t preallocate_size);
+int init_binarystack(/*out*/binarystack_t *stack, size_t preallocate_size);
 
 /* function: free_binarystack
  * Frees memory resources held by stack. All pointers into the stack become invalid. */
-int free_binarystack(binarystack_t * stack) ;
+int free_binarystack(binarystack_t *stack);
 
 // group: query
 
 /* function: isempty_binarystack
  * Returns true if stack contains no more data. */
-int isempty_binarystack(const binarystack_t * stack) ;
+int isempty_binarystack(const binarystack_t *stack);
 
 /* function: size_binarystack
  * Returns the size of all pushed objects.
  * The runtime of the function depends on the number of allocated block.
  * So do not use this function in a inner loop. Instead use your own counter. */
-size_t size_binarystack(binarystack_t * stack) ;
+size_t size_binarystack(binarystack_t *stack);
 
 /* function: top_binarystack
  * Returns the start address in memory of the last pushed object.
@@ -102,7 +101,7 @@ size_t size_binarystack(binarystack_t * stack) ;
  * So always check with <isempty_binarystack> if there is an element on the stack.
  *
  * Use <at_binarystack> the get the address of an object who is not top on stack. */
-void * top_binarystack(binarystack_t * stack) ;
+void * top_binarystack(binarystack_t *stack);
 
 // group: change
 
@@ -116,14 +115,14 @@ void * top_binarystack(binarystack_t * stack) ;
  * Use <top_binarystack> to get the new address of a partially shrinked object.
  * If size is bigger than <size_binarystack> the the error EINVAL is returned and nothing is done.
  * This function calls <pop2_binarystack> if one or more memory blocks have to be freed. */
-static inline int pop_binarystack(binarystack_t * stack, size_t size);
+static inline int pop_binarystack(binarystack_t *stack, size_t size);
 
 /* function: push_binarystack
  * Allocates memory for new object and returns pointer to its start address.
  * The returned address is the lowest address of the allocated memory space.
  * This function is implemented as generic macro and the size of the newly
  * pushed object is calculated as
- * > size = sizeof(**lastpushed) ;
+ * > size = sizeof(**lastpushed);
  *
  * If not enough preallocated memory is available a call to <push2_binarystack> is made
  * which allocates a new block of memory. In case of an error ENOMEM is returned.
@@ -137,7 +136,7 @@ static inline int pop_binarystack(binarystack_t * stack, size_t size);
  *              The allocated memory space contains random data.
  *              The size of the object is determined from its type (see above).
  * */
-int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed);
+int push_binarystack(binarystack_t *stack, /*out*/void ** lastpushed);
 
 /* function: pop2_binarystack
  * Same functionality as <pop_binarystack>.
@@ -148,13 +147,13 @@ int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed);
  * But it continues the work until size bytes are popped off the stack.
  * The reason is that the error can occur any time after some blocks have already been freed.
  * So doing nothing in case of an error does not work here. */
-int pop2_binarystack(binarystack_t * stack, size_t size);
+int pop2_binarystack(binarystack_t *stack, size_t size);
 
 /* function: push2_binarystack
  * Does same as <push_binarystack> but allocates a new block if necessary.
  * This function is called from <push_binarystack> in case a new memory must be allocated.
  * Do not call this function - always use <push_binarystack>. */
-int push2_binarystack(binarystack_t * stack, size_t size, /*out*/uint8_t ** lastpushed);
+int push2_binarystack(binarystack_t *stack, size_t size, /*out*/uint8_t ** lastpushed);
 
 
 
@@ -162,11 +161,12 @@ int push2_binarystack(binarystack_t * stack, size_t size, /*out*/uint8_t ** last
 
 /* define: isempty_binarystack
  * Implements <binarystack_t.isempty_binarystack>. */
-#define isempty_binarystack(stack)                    ((stack)->freeblocksize == (stack)->blocksize)
+#define isempty_binarystack(stack) \
+         ((stack)->freeblocksize == (stack)->blocksize)
 
 /* define: pop_binarystack
  * Implements <binarystack_t.pop_binarystack>. */
-static inline int pop_binarystack(binarystack_t * stack, size_t size)
+static inline int pop_binarystack(binarystack_t *stack, size_t size)
 {
             int err;
             if (stack->blocksize - stack->freeblocksize > size) {
@@ -195,7 +195,7 @@ static inline int pop_binarystack(binarystack_t * stack, size_t size)
                _err = push2_binarystack(_stack, _size, &_lp2);          \
                if (!_err) *(lastpushed) = (void*)_lp2;                  \
             }                                                           \
-            _err ;                                                      \
+            _err;                                                       \
          }))
 
 /* define: top_binarystack

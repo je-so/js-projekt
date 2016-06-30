@@ -109,7 +109,8 @@ typedef struct state_t {
    union {
       struct {
          uint8_t        isused; // used to mark a state as inserted or used
-         uint8_t        nrdfa;  // used to inidicate to which automaton state belongs
+         uint8_t        nrdfa;  // used to inidicate to which automaton state belongs (1 or 2)
+         uint8_t        nrendstate; // 0: no endstate; nrendstate == nrdfa: is endstate
       };
       size_t            nr;     // used to assign numbers to states for printing
       struct state_t*   dest;   // used in copy operations
@@ -1442,28 +1443,6 @@ static inline getkey_adapter_t keyadapter_statevector(void)
    return (getkey_adapter_t) getkey_adapter_INIT(offsetof(statevector_t, index), &getkey_statevector);
 }
 
-static inline bool iscontained_statevector(statevector_t *svec, state_t *state)
-{
-   foreach (_stateblocklist, block, &svec->blocklist) {
-      if (block->state[block->nrstate-1] >= state) {
-         size_t high = block->nrstate; // > 0
-         size_t low  = 0;
-         do {
-            size_t mid = (low + high)/2;
-            if (block->state[mid] < state) {
-               low = mid+1;
-            } else {
-               high = mid;
-            }
-         } while (low < high);
-         // (block->state[block->nrstate-1] >= state) ==> (low < block->nrstate)
-         return (state == block->state[low]);
-      }
-   }
-
-   return false;
-}
-
 static inline bool isnrdfa12_statevector(statevector_t *svec, bool isNeedDFA2)
 {
    statevector_block_t *block = last_stateblocklist(&svec->blocklist);
@@ -2319,6 +2298,13 @@ static int follow_empty_transition(multistate_t *multistate, automat_mman_t *mma
    state_t          *next;
    statearray_t      stateemptylist = statearray_FREE;
 
+   // OPTIMIZATION:  add follow sets to states with only empty transitions
+   //                use follow sets of target states in computation instead of
+   //                following empty states in this function
+   //                ==> ensure that follow sets do not contain empty states
+   //                ==> multistate and statevector do not contain empty states
+   //                ==> speed up of 2
+
    err = init_statearray(&stateemptylist);
    if (err) goto ONERR;
 
@@ -2361,9 +2347,10 @@ ONERR:
    return err;
 }
 
-static int build_rangemap_from_statevector(/*out*/rangemap_t *rmap, automat_mman_t *mman, statevector_t *svec)
+static int build_rangemap_from_statevector(/*out*/rangemap_t *rmap, /*out*/uint8_t* nrendstate, automat_mman_t *mman, statevector_t *svec)
 {
    int err;
+   unsigned endflags = 0;
 
    *rmap = (rangemap_t) rangemap_INIT;
 
@@ -2371,6 +2358,7 @@ static int build_rangemap_from_statevector(/*out*/rangemap_t *rmap, automat_mman
    foreach (_stateblocklist, block, &svec->blocklist) {
       for (size_t i = 0; i < block->nrstate; ++i) {
          state_t *state = block->state[i];
+         endflags |= state->nrendstate;
          if (state->nrrangetrans) {
             foreach (_rangelist, range_trans, &state->rangelist) {
                for (size_t s = 0; s < range_trans->size; ++s) {
@@ -2396,6 +2384,8 @@ static int build_rangemap_from_statevector(/*out*/rangemap_t *rmap, automat_mman
          }
       }
    }
+
+   *nrendstate = (uint8_t) endflags;
 
    return 0;
 ONERR:
@@ -2499,6 +2489,13 @@ int makedfa_automat(automat_t* ndfa)
       if (err) goto ONERR;
    }
 
+   // init flags of states
+   foreach (_statelist, s, &ndfa->states) {
+      s->nrdfa = 1;
+      s->nrendstate = 0;
+   }
+   endstate->nrendstate = 1;
+
    // generate start state of type statevector_t
    err = add_multistate(&multistate, mman[MULTISTATE], startstate);
    if (err) goto ONERR;
@@ -2535,10 +2532,11 @@ int makedfa_automat(automat_t* ndfa)
       //  add r as transition to new dfa-state with pointer to converted statevector
 
       rangemap_t rmap;
-      err = build_rangemap_from_statevector(&rmap, mman[RANGEMAP], statevec);
+      uint8_t    nrendstate;
+      err = build_rangemap_from_statevector(&rmap, &nrendstate, mman[RANGEMAP], statevec);
       if (err) goto ONERR;
 
-      const bool isendstate = iscontained_statevector(statevec, endstate);
+      const bool isendstate = (nrendstate != 0);
 
       if (isendstate && rmap.size == 0 && nrstate != 1/*not start state*/) {
          // optimization if state is only an end state (except for start state)
@@ -2721,13 +2719,17 @@ static int makedfa2_automat(automat_t* ndfa, op_e op, automat_t* ndfa2)
       if (err) goto ONERR;
    }
 
-   // flag used to discriminate between the owner automaton of the state
+   // init flags of states
    foreach (_statelist, s, &ndfa->states) {
       s->nrdfa = 1;
+      s->nrendstate = 0;
    }
+   endstate->nrendstate = 1;
    foreach (_statelist, s, &ndfa2->states) {
       s->nrdfa = 2;
+      s->nrendstate = 0;
    }
+   endstate2->nrendstate = 2;
 
    // generate start state of type statevector_t
    err = add_multistate(&multistate, mman[MULTISTATE], startstate);
@@ -2767,12 +2769,13 @@ static int makedfa2_automat(automat_t* ndfa, op_e op, automat_t* ndfa2)
       //  add r as transition to new dfa-state with pointer to converted statevector
 
       rangemap_t rmap;
-      err = build_rangemap_from_statevector(&rmap, mman[RANGEMAP], statevec);
+      uint8_t    nrendstate;
+      err = build_rangemap_from_statevector(&rmap, &nrendstate, mman[RANGEMAP], statevec);
       if (err) goto ONERR;
 
-      const bool isendstate = iscontained_statevector(statevec, endstate)
-                              && ((op == OP_AND && iscontained_statevector(statevec, endstate2))
-                                  || (op == OP_AND_NOT && ! iscontained_statevector(statevec, endstate2)));
+      const bool isendstate = ((nrendstate&1) != 0)
+                              && ( (op == OP_AND && ((nrendstate&2) != 0))
+                                   || (op == OP_AND_NOT && ((nrendstate&2) == 0)));
 
       if (isendstate && rmap.size == 0 && nrstate != 1/*not start state*/) {
          // optimization if state is only an end state (except for start state)
@@ -5346,9 +5349,6 @@ static int test_statevector(void)
    // prepare
    TEST(0 == init_statevector(&svec, 1, mman, &(multistate_t) multistate_INIT));
 
-   // TEST iscontained_statevector: nrstate == 0
-   TEST( 0 == iscontained_statevector(svec, 0));
-
    // TEST isnrdfa12_statevector: nrstate == 0
    TEST( 0 == isnrdfa12_statevector(svec, 0));
    TEST( 0 == isnrdfa12_statevector(svec, 1));
@@ -5389,12 +5389,6 @@ static int test_statevector(void)
             blocks[i] = next_stateblocklist(blocks[i-1]); // ignore tc == 0; always fill array
          }
          TEST(blocks[(nrstate+2)/3-1] == last_stateblocklist(&svec->blocklist));
-
-         // TEST iscontained_statevector: nrstate != 0
-         for (unsigned i = 0; i < nrstate; ++i) {
-            TEST( 1 == iscontained_statevector(svec, &states[i]));
-            TEST( 0 == iscontained_statevector(svec, (void*)(1+(uint8_t*)&states[i])));
-         }
 
          // TEST isnrdfa12_statevector
          for (unsigned nr = 1; nr <= 2; ++nr) {

@@ -22,8 +22,8 @@
 #include "C-kern/api/ds/inmem/node/arraystf_node.h"
 
 // forward
-struct binarystack_t ;
-struct typeadapt_member_t ;
+struct binarystack_t;
+struct typeadapt_member_t;
 
 // === exported types
 struct arraystf_t;
@@ -37,7 +37,7 @@ struct arraystf_iterator_t;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_arraystf
  * Unittest for <arraystf_t>. */
-int unittest_ds_inmem_arraystf(void) ;
+int unittest_ds_inmem_arraystf(void);
 #endif
 
 
@@ -90,12 +90,12 @@ typedef struct arraystf_t {
 /* function: new_arraystf
  * Allocates a new array object.
  * Parameter *toplevelsize* determines the number of childs of root node. */
-int new_arraystf(/*out*/arraystf_t ** array, uint32_t toplevelsize) ;
+int new_arraystf(/*out*/arraystf_t **array, uint32_t toplevelsize);
 
 /* function: delete_arraystf
  * Frees allocated memory.
  * If nodeadp is set to 0 no free function is called for contained nodes. */
-int delete_arraystf(arraystf_t ** array, struct typeadapt_member_t * nodeadp) ;
+int delete_arraystf(arraystf_t **array, struct typeadapt_member_t *nodeadp);
 
 // group: foreach-support
 
@@ -113,12 +113,12 @@ typedef struct arraystf_node_t * iteratedtype_arraystf;
 
 /* function: length_arraystf
  * Returns the number of elements stored in the array. */
-size_t length_arraystf(arraystf_t * array) ;
+size_t length_arraystf(arraystf_t *array);
 
 /* function: at_arraystf
  * Returns node with same key as *keydata*[*size*].
  * If no element exists with this key value 0 is returned. */
-struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, const uint8_t keydata[size]) ;
+struct arraystf_node_t * at_arraystf(const arraystf_t *array, size_t size, const uint8_t keydata[size]);
 
 // group: change
 
@@ -128,23 +128,23 @@ struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, cons
  * If you have set nodeadp to a value != 0 then a copy of node is made before it is inserted.
  * The copied node is returned in *inserted_node*. If nodeadp is 0 and no copy is made inserted_node
  * is set to node. */
-int insert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out*/struct arraystf_node_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) ;
+int insert_arraystf(arraystf_t *array, struct arraystf_node_t *node, /*out*/struct arraystf_node_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t *nodeadp/*0=>no copy is made*/);
 
 /* function: tryinsert_arraystf
  * Same as <insert_arraystf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;err*/struct arraystf_node_t ** inserted_or_existing_node, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) ;
+int tryinsert_arraystf(arraystf_t *array, struct arraystf_node_t *node, /*out;err*/struct arraystf_node_t ** inserted_or_existing_node, struct typeadapt_member_t *nodeadp/*0=>no copy is made*/);
 
 /* function: remove_arraystf
  * Removes node with key *keydata*.
  * If no node exists with this key ESRCH is returned.
  * In case of success the removed node is returned in *removed_node*. */
-int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node) ;
+int remove_arraystf(arraystf_t *array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node);
 
 /* function: tryremove_arraystf
  * Same as <remove_arraystf> but no error log in case of ESRCH. */
-int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node) ;
+int tryremove_arraystf(arraystf_t *array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node);
 
 // group: generic
 
@@ -161,7 +161,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
  *            member name of the embedded <arraystf_node_t>.
  *            Or the same value as the first parameter used in <arraystf_node_EMBED> to embed the node.
  * */
-void arraystf_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
+void arraystf_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename);
 
 
 /* struct: arraystf_iterator_t
@@ -186,11 +186,11 @@ typedef struct arraystf_iterator_t {
 
 /* function: initfirst_arraystfiterator
  * Initializes an iterator for an <arraystf_t>. */
-int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) ;
+int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, struct arraystf_t *array);
 
 /* function: free_arraystfiterator
  * Frees an iterator for an <arraystf_t>. */
-int free_arraystfiterator(arraystf_iterator_t * iter) ;
+int free_arraystfiterator(arraystf_iterator_t * iter);
 
 // group: iterate
 
@@ -202,7 +202,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter) ;
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the array is empty. */
-bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_node_t ** node) ;
+bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_node_t **node);
 
 
 // section: inline implementation
@@ -213,73 +213,62 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_no
 
 /* define: arraystf_IMPLEMENT
  * Implements <arraystf_t.arraystf_IMPLEMENT>. */
-#define arraystf_IMPLEMENT(_fsuffix, object_t, nodename)    \
-   typedef arraystf_iterator_t   iteratortype##_fsuffix ;   \
-   typedef object_t           *  iteratedtype##_fsuffix ;   \
-   static inline int  new##_fsuffix(/*out*/arraystf_t ** array, uint32_t toplevelsize) __attribute__ ((always_inline)) ; \
-   static inline int  delete##_fsuffix(arraystf_t ** array, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline size_t length##_fsuffix(arraystf_t * array) __attribute__ ((always_inline)) ; \
-   static inline object_t * at##_fsuffix(const arraystf_t * array, size_t size, const uint8_t keydata[size]) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(arraystf_t * array, object_t * node, /*out*/object_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
-   static inline int  tryinsert##_fsuffix(arraystf_t * array, object_t * node, /*out;err*/object_t ** inserted_or_existing_node, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
-   static inline int  tryremove##_fsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
-   static inline int  initfirst##_fsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix##iterator(arraystf_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, /*out*/object_t ** node) __attribute__ ((always_inline)) ; \
+#define arraystf_IMPLEMENT(_fsuffix, object_t, nodename) \
+   typedef arraystf_iterator_t   iteratortype##_fsuffix; \
+   typedef object_t           *  iteratedtype##_fsuffix; \
    static inline arraystf_node_t * cast2node##_fsuffix(object_t * object) { \
-      static_assert(&((object_t*)0)->nodename == (void*)offsetof(object_t, nodename), "correct type") ; \
-      return (arraystf_node_t*) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      static_assert(&((object_t*)0)->nodename == (void*)offsetof(object_t, nodename), "correct type"); \
+      return (arraystf_node_t*) ((uintptr_t)object + offsetof(object_t, nodename)); \
    } \
-   static inline object_t * cast2object##_fsuffix(arraystf_node_t * node) { \
-      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
+   static inline object_t * cast2object##_fsuffix(arraystf_node_t *node) { \
+      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)); \
    } \
-   static inline object_t * castnull2object##_fsuffix(arraystf_node_t * node) { \
-      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
+   static inline object_t * castnull2object##_fsuffix(arraystf_node_t *node) { \
+      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0; \
    } \
-   static inline int new##_fsuffix(/*out*/arraystf_t ** array, uint32_t toplevelsize) { \
-      return new_arraystf(array, toplevelsize) ; \
+   static inline int new##_fsuffix(/*out*/arraystf_t **array, uint32_t toplevelsize) { \
+      return new_arraystf(array, toplevelsize); \
    } \
-   static inline int delete##_fsuffix(arraystf_t ** array, struct typeadapt_member_t * nodeadp) { \
-      return delete_arraystf(array, nodeadp) ; \
+   static inline int delete##_fsuffix(arraystf_t **array, struct typeadapt_member_t *nodeadp) { \
+      return delete_arraystf(array, nodeadp); \
    } \
-   static inline size_t length##_fsuffix(arraystf_t * array) { \
-      return length_arraystf(array) ; \
+   static inline size_t length##_fsuffix(arraystf_t *array) { \
+      return length_arraystf(array); \
    } \
-   static inline object_t * at##_fsuffix(const arraystf_t * array, size_t size, const uint8_t keydata[size]) { \
-      arraystf_node_t * node = at_arraystf(array, size, keydata) ; \
-      return castnull2object##_fsuffix(node) ; \
+   static inline object_t * at##_fsuffix(const arraystf_t *array, size_t size, const uint8_t keydata[size]) { \
+      arraystf_node_t *node = at_arraystf(array, size, keydata); \
+      return castnull2object##_fsuffix(node); \
    } \
-   static inline int insert##_fsuffix(arraystf_t * array, object_t * node, /*out*/object_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) { \
-      int err = insert_arraystf(array, cast2node##_fsuffix(node), (struct arraystf_node_t**)inserted_node, nodeadp) ; \
-      if (!err && inserted_node) *inserted_node = cast2object##_fsuffix(*(struct arraystf_node_t**)inserted_node) ; \
-      return err ; \
+   static inline int insert##_fsuffix(arraystf_t *array, object_t *node, /*out*/object_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t *nodeadp/*0=>no copy is made*/) { \
+      int err = insert_arraystf(array, cast2node##_fsuffix(node), (struct arraystf_node_t**)inserted_node, nodeadp); \
+      if (!err && inserted_node) *inserted_node = cast2object##_fsuffix(*(struct arraystf_node_t**)inserted_node); \
+      return err; \
    } \
-   static inline int tryinsert##_fsuffix(arraystf_t * array, object_t * node, /*out;err*/object_t ** inserted_or_existing_node, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/) { \
-      int err = tryinsert_arraystf(array, cast2node##_fsuffix(node), (struct arraystf_node_t**)inserted_or_existing_node, nodeadp) ; \
-      *inserted_or_existing_node = castnull2object##_fsuffix(*(struct arraystf_node_t**)inserted_or_existing_node) ; \
-      return err ; \
+   static inline int tryinsert##_fsuffix(arraystf_t *array, object_t *node, /*out;err*/object_t ** inserted_or_existing_node, struct typeadapt_member_t *nodeadp/*0=>no copy is made*/) { \
+      int err = tryinsert_arraystf(array, cast2node##_fsuffix(node), (struct arraystf_node_t**)inserted_or_existing_node, nodeadp); \
+      *inserted_or_existing_node = castnull2object##_fsuffix(*(struct arraystf_node_t**)inserted_or_existing_node); \
+      return err; \
    } \
-   static inline int remove##_fsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) { \
-      int err = remove_arraystf(array, size, keydata, (struct arraystf_node_t**)removed_node) ; \
-      if (!err) *removed_node = cast2object##_fsuffix(*(struct arraystf_node_t**)removed_node) ; \
-      return err ; \
+   static inline int remove##_fsuffix(arraystf_t *array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) { \
+      int err = remove_arraystf(array, size, keydata, (struct arraystf_node_t**)removed_node); \
+      if (!err) *removed_node = cast2object##_fsuffix(*(struct arraystf_node_t**)removed_node); \
+      return err; \
    } \
-   static inline int tryremove##_fsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) { \
-      int err = tryremove_arraystf(array, size, keydata, (struct arraystf_node_t**)removed_node) ; \
-      if (!err) *removed_node = cast2object##_fsuffix(*(struct arraystf_node_t**)removed_node) ; \
-      return err ; \
+   static inline int tryremove##_fsuffix(arraystf_t *array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) { \
+      int err = tryremove_arraystf(array, size, keydata, (struct arraystf_node_t**)removed_node); \
+      if (!err) *removed_node = cast2object##_fsuffix(*(struct arraystf_node_t**)removed_node); \
+      return err; \
    } \
-   static inline int initfirst##_fsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) { \
-      return initfirst_arraystfiterator(iter, array) ; \
+   static inline int initfirst##_fsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t *array) { \
+      return initfirst_arraystfiterator(iter, array); \
    } \
    static inline int free##_fsuffix##iterator(arraystf_iterator_t * iter) { \
-      return free_arraystfiterator(iter) ; \
+      return free_arraystfiterator(iter); \
    } \
-   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, /*out*/object_t ** node) { \
-      bool isNext = next_arraystfiterator(iter, (struct arraystf_node_t**)node) ; \
-      if (isNext) *node = cast2object##_fsuffix(*(struct arraystf_node_t**)node) ; \
-      return isNext ; \
+   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, /*out*/object_t **node) { \
+      bool isNext = next_arraystfiterator(iter, (struct arraystf_node_t**)node); \
+      if (isNext) *node = cast2object##_fsuffix(*(struct arraystf_node_t**)node); \
+      return isNext; \
    }
 
 #endif

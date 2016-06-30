@@ -433,19 +433,6 @@ static inline void init_patriciatrie(/*out*/patriciatrie_t *tree, getkey_adapter
 #define patriciatrie_IMPLEMENT(_fsuffix, object_t, nodename, getkey_f)   \
    typedef patriciatrie_iterator_t  iteratortype##_fsuffix;    \
    typedef object_t              *  iteratedtype##_fsuffix;    \
-   static inline int  initfirst##_fsuffix##iterator(patriciatrie_iterator_t *iter, patriciatrie_t *tree) __attribute__ ((always_inline)); \
-   static inline int  initlast##_fsuffix##iterator(patriciatrie_iterator_t *iter, patriciatrie_t *tree) __attribute__ ((always_inline)); \
-   static inline int  free##_fsuffix##iterator(patriciatrie_iterator_t *iter) __attribute__ ((always_inline)); \
-   static inline bool next##_fsuffix##iterator(patriciatrie_iterator_t *iter, object_t ** node) __attribute__ ((always_inline)); \
-   static inline bool prev##_fsuffix##iterator(patriciatrie_iterator_t *iter, object_t ** node) __attribute__ ((always_inline)); \
-   static inline void init##_fsuffix(/*out*/patriciatrie_t *tree) __attribute__ ((always_inline)); \
-   static inline int  free##_fsuffix(patriciatrie_t *tree, delete_adapter_f delete_f) __attribute__ ((always_inline)); \
-   static inline void getinistate##_fsuffix(const patriciatrie_t *tree, /*out*/patriciatrie_node_t ** root, /*out*/getkey_adapter_t * keyadapt) __attribute__ ((always_inline)); \
-   static inline bool isempty##_fsuffix(const patriciatrie_t *tree) __attribute__ ((always_inline)); \
-   static inline int  find##_fsuffix(patriciatrie_t *tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** found_node) __attribute__ ((always_inline)); \
-   static inline int  insert##_fsuffix(patriciatrie_t *tree, object_t * new_node, object_t ** existing_node) __attribute__ ((always_inline)); \
-   static inline int  remove##_fsuffix(patriciatrie_t *tree, size_t keylength, const uint8_t searchkey[keylength], /*out*/object_t ** removed_node) __attribute__ ((always_inline)); \
-   static inline int  removenodes##_fsuffix(patriciatrie_t *tree, delete_adapter_f delete_f) __attribute__ ((always_inline)); \
    static inline size_t nodeoffset##_fsuffix(void) { \
       static_assert(&((object_t*)0)->nodename == (patriciatrie_node_t*)offsetof(object_t, nodename), "correct type"); \
       return offsetof(object_t, nodename); \
