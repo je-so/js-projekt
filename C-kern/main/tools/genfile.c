@@ -84,11 +84,11 @@ typedef struct @TYPENAME {\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
  * TO""DO: Describe Initializes object. */\n\
-int init_@FCTSUFFIX(/*out*/@TYPENAME* obj);\n\
+int init_@FCTSUFFIX(/*out*/@TYPENAME *obj);\n\
 \n\
 /* function: free_@FCTSUFFIX\n\
  * TO""DO: Describe Frees all associated resources. */\n\
-int free_@FCTSUFFIX(@TYPENAME* obj);\n\
+int free_@FCTSUFFIX(@TYPENAME *obj);\n\
 \n\
 // group: query\n\
 \n\

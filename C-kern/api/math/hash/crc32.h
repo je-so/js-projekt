@@ -21,9 +21,8 @@
 #ifndef CKERN_MATH_HASH_CRC32_HEADER
 #define CKERN_MATH_HASH_CRC32_HEADER
 
-/* typedef: struct crc32_t
- * Export <crc32_t> into global namespace. */
-typedef struct crc32_t                 crc32_t ;
+// === exported types
+struct crc32_t;
 
 
 // section: Functions
@@ -33,14 +32,14 @@ typedef struct crc32_t                 crc32_t ;
 /* function: calculate_crc32
  * Calculates the CRC-32 checkusm of a data block.
  * Use type <crc32_t> if data bytes are not stored in consecutive memory addresses. */
-uint32_t calculate_crc32(size_t blocksize, const void * datablock/*[blocksize]*/) ;
+uint32_t calculate_crc32(size_t blocksize, const void * datablock/*[blocksize]*/);
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_hash_crc32
  * Test <crc32_t> functionality. */
-int unittest_math_hash_crc32(void) ;
+int unittest_math_hash_crc32(void);
 #endif
 
 
@@ -51,12 +50,13 @@ int unittest_math_hash_crc32(void) ;
  * Use <init_crc32> to initialize it.
  * Call <update_crc32> either once or if your data is splitted over several blocks for every block once.
  * Call <value_crc32> to get the computed CRC-32 checksum value. */
-struct crc32_t {
+typedef struct crc32_t {
+   // group: private
    /* variable: value
     * The crc32 value calculated from a sequence of bytes.
     * The value will be updated every time <update_crc32> is called. */
-   uint32_t value ;
-} ;
+   uint32_t value;
+} crc32_t;
 
 // group: lifetime
 
@@ -66,17 +66,17 @@ struct crc32_t {
 
 /* function: init_crc32
  * Initializes object of type <crc32_t>. */
-void init_crc32(/*out*/crc32_t * crc) ;
+void init_crc32(/*out*/crc32_t * crc);
 
 // group: calculate
 
 /* function: update_crc32
  * Udates the CRC-32 checksum with the next chunk of data. */
-void update_crc32(crc32_t * crc, size_t blocksize, const void * datablock/*[blocksize]*/) ;
+void update_crc32(crc32_t * crc, size_t blocksize, const void * datablock/*[blocksize]*/);
 
 /* function: update2_crc32
  * Internally used function from <update_crc32> and <calculate_crc32>. */
-uint32_t update2_crc32(uint32_t crcvalue, size_t blocksize, const void * datablock/*[blocksize]*/) ;
+uint32_t update2_crc32(uint32_t crcvalue, size_t blocksize, const void * datablock/*[blocksize]*/);
 
 // group: query
 
@@ -85,7 +85,7 @@ uint32_t update2_crc32(uint32_t crcvalue, size_t blocksize, const void * datablo
  * The calculated value is the checksum of the concatenated byte sequence of successive calls to <update_crc32>.
  * To start a new computation call <init_crc32> before calling <update_crc32>.
  * But calling <init_crc32> also sets the CRC value to 0 which is returned by this function. */
-uint32_t value_crc32(const crc32_t * crc) ;
+uint32_t value_crc32(const crc32_t * crc);
 
 
 // section: inline implementation

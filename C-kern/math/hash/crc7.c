@@ -1,0 +1,200 @@
+/* title: CRC-7 impl
+
+   Implements <CRC-7>.
+
+   Copyright:
+   This program is free software. See accompanying LICENSE file.
+
+   Author:
+   (C) 2016 Jörg Seebohn
+
+   file: C-kern/api/math/hash/crc7.h
+    Header file <CRC-7>.
+
+   file: C-kern/math/hash/crc7.c
+    Implementation file <CRC-7 impl>.
+*/
+
+#include "C-kern/konfig.h"
+#include "C-kern/api/math/hash/crc7.h"
+#include "C-kern/api/err.h"
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/unittest.h"
+#endif
+
+// === private types
+// TODO: struct helper_crc7_t;
+
+
+// section: crc7_t
+
+// group: static variables
+
+/* variable: s_crc7_precomputed
+ * Vorberechnete Restwert für jeden möglichen Bytewert dividiert durch Polynom 0x89. */
+static const uint8_t s_crc7_precomputed[256] = {
+   2*0x00,2*0x09,2*0x12,2*0x1b,2*0x24,2*0x2d,2*0x36,2*0x3f,
+   2*0x48,2*0x41,2*0x5a,2*0x53,2*0x6c,2*0x65,2*0x7e,2*0x77,
+   2*0x19,2*0x10,2*0x0b,2*0x02,2*0x3d,2*0x34,2*0x2f,2*0x26,
+   2*0x51,2*0x58,2*0x43,2*0x4a,2*0x75,2*0x7c,2*0x67,2*0x6e,
+   2*0x32,2*0x3b,2*0x20,2*0x29,2*0x16,2*0x1f,2*0x04,2*0x0d,
+   2*0x7a,2*0x73,2*0x68,2*0x61,2*0x5e,2*0x57,2*0x4c,2*0x45,
+   2*0x2b,2*0x22,2*0x39,2*0x30,2*0x0f,2*0x06,2*0x1d,2*0x14,
+   2*0x63,2*0x6a,2*0x71,2*0x78,2*0x47,2*0x4e,2*0x55,2*0x5c,
+   2*0x64,2*0x6d,2*0x76,2*0x7f,2*0x40,2*0x49,2*0x52,2*0x5b,
+   2*0x2c,2*0x25,2*0x3e,2*0x37,2*0x08,2*0x01,2*0x1a,2*0x13,
+   2*0x7d,2*0x74,2*0x6f,2*0x66,2*0x59,2*0x50,2*0x4b,2*0x42,
+   2*0x35,2*0x3c,2*0x27,2*0x2e,2*0x11,2*0x18,2*0x03,2*0x0a,
+   2*0x56,2*0x5f,2*0x44,2*0x4d,2*0x72,2*0x7b,2*0x60,2*0x69,
+   2*0x1e,2*0x17,2*0x0c,2*0x05,2*0x3a,2*0x33,2*0x28,2*0x21,
+   2*0x4f,2*0x46,2*0x5d,2*0x54,2*0x6b,2*0x62,2*0x79,2*0x70,
+   2*0x07,2*0x0e,2*0x15,2*0x1c,2*0x23,2*0x2a,2*0x31,2*0x38,
+   2*0x41,2*0x48,2*0x53,2*0x5a,2*0x65,2*0x6c,2*0x77,2*0x7e,
+   2*0x09,2*0x00,2*0x1b,2*0x12,2*0x2d,2*0x24,2*0x3f,2*0x36,
+   2*0x58,2*0x51,2*0x4a,2*0x43,2*0x7c,2*0x75,2*0x6e,2*0x67,
+   2*0x10,2*0x19,2*0x02,2*0x0b,2*0x34,2*0x3d,2*0x26,2*0x2f,
+   2*0x73,2*0x7a,2*0x61,2*0x68,2*0x57,2*0x5e,2*0x45,2*0x4c,
+   2*0x3b,2*0x32,2*0x29,2*0x20,2*0x1f,2*0x16,2*0x0d,2*0x04,
+   2*0x6a,2*0x63,2*0x78,2*0x71,2*0x4e,2*0x47,2*0x5c,2*0x55,
+   2*0x22,2*0x2b,2*0x30,2*0x39,2*0x06,2*0x0f,2*0x14,2*0x1d,
+   2*0x25,2*0x2c,2*0x37,2*0x3e,2*0x01,2*0x08,2*0x13,2*0x1a,
+   2*0x6d,2*0x64,2*0x7f,2*0x76,2*0x49,2*0x40,2*0x5b,2*0x52,
+   2*0x3c,2*0x35,2*0x2e,2*0x27,2*0x18,2*0x11,2*0x0a,2*0x03,
+   2*0x74,2*0x7d,2*0x66,2*0x6f,2*0x50,2*0x59,2*0x42,2*0x4b,
+   2*0x17,2*0x1e,2*0x05,2*0x0c,2*0x33,2*0x3a,2*0x21,2*0x28,
+   2*0x5f,2*0x56,2*0x4d,2*0x44,2*0x7b,2*0x72,2*0x69,2*0x60,
+   2*0x0e,2*0x07,2*0x1c,2*0x15,2*0x2a,2*0x23,2*0x38,2*0x31,
+   2*0x46,2*0x4f,2*0x54,2*0x5d,2*0x62,2*0x6b,2*0x70,2*0x79
+};
+
+// group: update
+
+uint8_t update2_crc7(uint8_t crcvalue, size_t blocksize, const void *datablock/*[blocksize]*/)
+{
+   uint8_t        crc  = crcvalue;
+   const uint8_t *next = datablock;
+
+   for (size_t i = blocksize; i; --i, ++next) {
+      crc = s_crc7_precomputed[(uint8_t)(next[0] ^ crc)];
+   }
+
+   return crc;
+}
+
+
+
+// section: Functions
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+
+static uint8_t slow_crc7(size_t n, const uint8_t data[n])
+{
+   uint8_t crc = 0;
+
+   for (size_t i = 0; i < n; i++) {
+      crc ^= data[i];
+      for (uint8_t bit = 0; bit < 8; ++bit) {
+         if ((crc & 0x80)) {
+            crc ^= 0x09;
+         }
+         crc = (uint8_t) (crc << 1);
+      }
+   }
+
+   return (uint8_t) (crc >> 1);
+}
+
+static int test_crctable(void)
+{
+   for (unsigned i = 0; i < lengthof(s_crc7_precomputed); ++i) {
+      uint8_t data[1] = { (uint8_t) i };
+      uint8_t crc = slow_crc7(1, data);
+      TEST( s_crc7_precomputed[i] == (crc << 1));
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int test_initfree(void)
+{
+   crc7_t crc = crc7_INIT;
+
+   // TEST crc7_INIT
+   TEST(0 == crc.value);
+
+   // TEST init_crc7
+   crc.value = (uint8_t)-1;
+   init_crc7(&crc);
+   TEST(0 == crc.value);
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int test_query(void)
+{
+   crc7_t crc = crc7_INIT;
+
+   // TEST value_crc7: (crc = crc7_INIT)
+   TEST( 0 == value_crc7(&crc));
+
+   // TEST value_crc7: beliebige Werte
+   for (unsigned i = 0; i < 256; ++i) {
+      crc.value = (uint8_t) i;
+      TEST( (i >> 1) == value_crc7(&crc));
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int test_update(void)
+{
+   crc7_t   crc;
+   uint8_t  buffer[256];
+
+   // prepare
+   for (unsigned i = 0; i < lengthof(buffer); ++i) {
+      buffer[i] = (uint8_t)i;
+   }
+
+   // TEST update_crc32: alle Byte-Werte
+   for (size_t i = 0; i < lengthof(buffer); ++i) {
+      const uint8_t C = slow_crc7(i+1, buffer);
+      init_crc7(&crc);
+      update_crc7(&crc, i, buffer);
+      update_crc7(&crc, 1, buffer+i);
+      // test
+      TEST( C == value_crc7(&crc));
+
+      init_crc7(&crc);
+      update_crc7(&crc, i/2, buffer);
+      update_crc7(&crc, (i+1)-i/2, buffer+i/2);
+      // test
+      TEST( C == value_crc7(&crc));
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+int unittest_math_hash_crc7()
+{
+   if (test_crctable())    goto ONERR;
+   if (test_initfree())    goto ONERR;
+   if (test_query())       goto ONERR;
+   if (test_update())      goto ONERR;
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+#endif

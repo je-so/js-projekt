@@ -106,6 +106,7 @@
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
         <File Name="../../C-kern/api/math/hash/crc32.h"/>
+        <File Name="../../C-kern/api/math/hash/crc7.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/math/fpu.h"/>
       <VirtualDirectory Name="float">
@@ -472,6 +473,7 @@
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>
       <File Name="../../C-kern/math/hash/crc32.c"/>
+      <File Name="../../C-kern/math/hash/crc7.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/math/fpu.c"/>
     <VirtualDirectory Name="float">

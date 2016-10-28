@@ -93,7 +93,7 @@
  * The resulting remainder is theirefore already reversed so we do not need to reverse it before returning it as the final
  * value.
  *
- * The next thing is to precompute the remainder of every possible input byte and store it in the tabe <s_precomputed_crc32>.
+ * The next thing is to precompute the remainder of every possible input byte and store it in the table <s_crc32_precomputed>.
  *
  * As a last note. The CRC-32 computation uses the value 0xffffffff as initialization value for the first remainder.
  *
@@ -101,9 +101,9 @@
 
 // group: static variables
 
-/* variable: s_precomputed_crc32
+/* variable: s_crc32_precomputed
  * Precomputed remainder for every possible input byte divided by bit reversed polynomial 0x104C11DB7. */
-static uint32_t   s_precomputed_crc32[256] = {
+static uint32_t   s_crc32_precomputed[256] = {
    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
    0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,
    0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172, 0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c, 0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
@@ -120,20 +120,20 @@ static uint32_t   s_precomputed_crc32[256] = {
    0x86d3d2d4, 0xf1d4e242, 0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777, 0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69, 0x616bffd3, 0x166ccf45,
    0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2, 0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
    0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
-} ;
+};
 
 // group: calculation
 
 uint32_t update2_crc32(uint32_t crcvalue, size_t blocksize, const void * datablock/*[blocksize]*/)
 {
-   uint32_t       value  = crcvalue ;
-   const uint8_t  * next = datablock ;
+   uint32_t       value  = crcvalue;
+   const uint8_t  * next = datablock;
 
    for (size_t i = blocksize; i; --i, ++next) {
-      value = (value >> 8) ^ s_precomputed_crc32[(uint8_t)(*next ^ value)] ;
+      value = (value >> 8) ^ s_crc32_precomputed[(uint8_t)(*next ^ value)];
    }
 
-   return value ;
+   return value;
 }
 
 
@@ -145,72 +145,72 @@ static int test_checktable(void)
 {
    // POLY == 0x104C11DB7, top bit is not stored cause it is not stored in the result of the subtraction
 
-   const uint32_t divisor = reversebits_int((uint32_t)0x04C11DB7) ;
+   const uint32_t divisor = reversebits_int((uint32_t)0x04C11DB7);
 
    for (unsigned databyte = 0; databyte <= 255; ++databyte) {
-      uint32_t dividend = databyte ;
+      uint32_t dividend = databyte;
       for (unsigned i = 0; i < 8; ++i) {
-         bool issubtract = (dividend & 0x01) ;
-         dividend >>= 1 ;
+         bool issubtract = (dividend & 0x01);
+         dividend >>= 1;
          if (issubtract) {
-            dividend ^= divisor ;
+            dividend ^= divisor;
          }
       }
-      TEST(s_precomputed_crc32[databyte] == dividend) ;
+      TEST(s_crc32_precomputed[databyte] == dividend);
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_initfree(void)
 {
-   crc32_t crc = crc32_INIT ;
+   crc32_t crc = crc32_INIT;
 
    // TEST crc32_INIT
-   TEST(crc.value == UINT32_MAX) ;
+   TEST(crc.value == UINT32_MAX);
 
    // TEST init_crc32
-   crc.value = 5 ;
-   init_crc32(&crc) ;
-   TEST(crc.value == UINT32_MAX) ;
+   crc.value = 5;
+   init_crc32(&crc);
+   TEST(crc.value == UINT32_MAX);
 
    // TEST crc32_value
-   TEST(0 == value_crc32(&crc)) ;
+   TEST(0 == value_crc32(&crc));
    for (uint32_t i = 1; i; i <<= 1) {
-      crc.value = i ;
-      TEST(value_crc32(&crc) == (i ^ UINT32_MAX)) ;
-      TEST(crc.value == i/*not changed*/) ;
+      crc.value = i;
+      TEST(value_crc32(&crc) == (i ^ UINT32_MAX));
+      TEST(crc.value == i/*not changed*/);
    }
 
    // == no free ==
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_calculation(void)
 {
-   crc32_t  crc = crc32_INIT ;
-   uint8_t  buffer[256] ;
+   crc32_t  crc = crc32_INIT;
+   uint8_t  buffer[256];
    struct {
-      const char  * data ;
-      uint32_t    value ;
+      const char  * data;
+      uint32_t    value;
    }        testdata[] =   {
       { "123456789", 0xCBF43926 },
       { "abcdefghijklmnopqrstuvwxyz", 0x4C2750BD }
-   } ;
+   };
 
    // TEST calculate_crc32, update_crc32
    for (unsigned i = 0; i < lengthof(testdata); ++i) {
-      size_t len = strlen(testdata[i].data) ;
-      init_crc32(&crc) ;
-      update_crc32(&crc, len/2, testdata[i].data) ;
-      update_crc32(&crc, len-len/2, testdata[i].data + len/2) ;
-      TEST(testdata[i].value == value_crc32(&crc)) ;
-      TEST(testdata[i].value == calculate_crc32(len, testdata[i].data)) ;
+      size_t len = strlen(testdata[i].data);
+      init_crc32(&crc);
+      update_crc32(&crc, len/2, testdata[i].data);
+      update_crc32(&crc, len-len/2, testdata[i].data + len/2);
+      TEST(testdata[i].value == value_crc32(&crc));
+      TEST(testdata[i].value == calculate_crc32(len, testdata[i].data));
    }
 
    // TEST calculate_crc32, update_crc32: all byte values
@@ -231,19 +231,19 @@ static int test_calculation(void)
       0x89deb01f, 0xae57de8a, 0xb71c6195, 0x4d0a1749, 0x5cf10a63, 0xf05c083e, 0x7c23d9cf, 0xc1125402, 0xb4c5c613, 0xa90701e5, 0x64cdc5b1, 0x7f01aa0e, 0xbaa05ddf, 0x3cb62efc, 0x075e1847, 0x2cd1aae3,
       0x4b276f9d, 0x8bfaf5f5, 0x515a90bf, 0xb08ea8c2, 0x00bfe4d8, 0x8a6a1c78, 0xc53f3bd2, 0x84741495, 0xfc329618, 0x18441f91, 0x15cd0326, 0x37c29c83, 0x0f3851d8, 0x84be13ff, 0xb836716c, 0xa60b0b66,
       0xcbc8d2f7, 0x3baa826a, 0x2ced5e79, 0xdf4368ed, 0xb6b60425, 0x54678b5d, 0x9352f266, 0x55991ead, 0xc956d3e8, 0xb87b99ac, 0x50b260d5, 0x0e845022, 0xb367940e, 0xf6052bbf, 0xd32f9ba0, 0x29058c73
-   } ;
+   };
    for (unsigned i = 0; i < lengthof(buffer); ++i) {
-      buffer[i] = (uint8_t)i ;
-      init_crc32(&crc) ;
-      update_crc32(&crc, i, buffer) ;
-      update_crc32(&crc, 1, buffer+i) ;
-      TEST(testresult[i] == value_crc32(&crc)) ;
-      TEST(testresult[i] == calculate_crc32(i+1, buffer)) ;
+      buffer[i] = (uint8_t)i;
+      init_crc32(&crc);
+      update_crc32(&crc, i, buffer);
+      update_crc32(&crc, 1, buffer+i);
+      TEST(testresult[i] == value_crc32(&crc));
+      TEST(testresult[i] == calculate_crc32(i+1, buffer));
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_math_hash_crc32()
@@ -252,9 +252,9 @@ int unittest_math_hash_crc32()
    if (test_initfree())       goto ONERR;
    if (test_calculation())    goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif
