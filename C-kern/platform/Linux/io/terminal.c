@@ -1003,7 +1003,7 @@ static int test_enodata_typeterminal(void)
    uint8_t buffer[100] = {0};
 
    // TEST type_terminal: ENODATA
-   unsetenv(ENVIRON_TERM);
+   TEST(0 == unsetenv(ENVIRON_TERM));
    TEST(ENODATA == type_terminal(sizeof(buffer), buffer));
    TEST(0 == buffer[0]);
 

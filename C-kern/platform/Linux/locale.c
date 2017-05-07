@@ -189,11 +189,11 @@ static int test_initerror(void)
    return 0 ;
 ONERR:
    if (old_lcall[0]) {
-      setenv("LC_ALL", old_lcall, 0) ;
+      setenv("LC_ALL", old_lcall, 0);
    } else {
-      unsetenv("LC_ALL") ;
+      unsetenv("LC_ALL");
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_initlocale(void)

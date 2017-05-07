@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Mai.07  16:44:38
+GenerationDate  := 2017.Mai.07  16:54:38
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -85,10 +85,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!serial.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
@@ -210,10 +210,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!serial.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
@@ -362,6 +362,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!serial.c.o: C-kern/platform/Linux/io/serial.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Debug)
 
@@ -369,9 +372,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
@@ -731,6 +731,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!io!serial.c.o: C-kern/platform/Linux/io/serial.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Release)
 
@@ -738,9 +741,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linu
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c

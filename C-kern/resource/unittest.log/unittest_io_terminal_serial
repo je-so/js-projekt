@@ -1,0 +1,56 @@
+[1: 1485869614.874778s]
+reconfig_serial() C-kern/platform/Linux/io/serial.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874786s]
+init_serial() C-kern/platform/Linux/io/serial.c:110
+Function call 'reconfig_serial' failed with error 22
+devicepath=X
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874799s]
+reconfig_serial() C-kern/platform/Linux/io/serial.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874803s]
+init_serial() C-kern/platform/Linux/io/serial.c:110
+Function call 'reconfig_serial' failed with error 22
+devicepath=X
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874814s]
+reconfig_serial() C-kern/platform/Linux/io/serial.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874817s]
+init_serial() C-kern/platform/Linux/io/serial.c:110
+Function call 'reconfig_serial' failed with error 22
+devicepath=X
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874829s]
+reconfig_serial() C-kern/platform/Linux/io/serial.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874832s]
+init_serial() C-kern/platform/Linux/io/serial.c:110
+Function call 'reconfig_serial' failed with error 22
+devicepath=X
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874843s]
+reconfig_serial() C-kern/platform/Linux/io/serial.c:244
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874845s]
+init_serial() C-kern/platform/Linux/io/serial.c:110
+Function call 'reconfig_serial' failed with error 22
+devicepath=X
+Exit function with
+Error 22 - Invalid argument
+[1: 1485869614.874857s]
+init_serial() C-kern/platform/Linux/io/serial.c:87
+System call 'isatty' failed with error 25
+devicepath=/dev/zero
+Exit function with
+Error 25 - Inappropriate ioctl for device

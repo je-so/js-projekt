@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="unittest" InternalType="Console">
+<CodeLite_Project Name="unittest" InternalType="Console" Version="10.0.0">
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="api">
@@ -212,7 +212,7 @@
         <File Name="../../C-kern/api/io/terminal/terminal.h"/>
         <File Name="../../C-kern/api/io/terminal/termadapt.h"/>
         <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
-        <File Name="../../C-kern/api/io/terminal/sercom.h"/>
+        <File Name="../../C-kern/api/io/terminal/serial.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="subsys">
         <File Name="../../C-kern/api/io/subsys/iobuffer.h"/>
@@ -414,7 +414,7 @@
         <File Name="../../C-kern/platform/Linux/io/terminal.c"/>
         <File Name="../../C-kern/platform/Linux/io/pseudoterm.c"/>
         <File Name="../../C-kern/platform/Linux/io/pipe.c"/>
-        <File Name="../../C-kern/platform/Linux/io/sercom.c"/>
+        <File Name="../../C-kern/platform/Linux/io/serial.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

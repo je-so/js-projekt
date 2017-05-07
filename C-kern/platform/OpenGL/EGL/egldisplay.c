@@ -245,11 +245,13 @@ static int childprocess_unittest(void)
    uint8_t * logbuffer;
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
 
+   eglReleaseThread();
    TEST(0 == init_resourceusage(&usage));
 
    // if (test_initfree_default()) goto ONERR; // does some additional memory mapping
    if (test_initfree(sysdisp, freesysdisp)) goto ONERR;
 
+   eglReleaseThread();
    // eglInitialize followed by eglTerminate has a resource leak
    TEST(0 != same_resourceusage(&usage));
    acceptmallocleak_resourceusage(&usage, 600);
