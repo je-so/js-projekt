@@ -142,7 +142,7 @@ static inline uint8_t peek_next(buffer_t* buffer)
 
 static inline int parse_utf8(buffer_t* buffer, uint8_t next, char32_t* chr)
 {
-   unsigned nrbytes = sizePfirst_utf8(next);
+   size_t nrbytes = sizePfirst_utf8(next);
    if (  nrbytes > size_memstream(&buffer->input)+1
          || nrbytes != decodechar_utf8(&next_memstream(&buffer->input)[-1], chr)) {
       buffer->err.type = 3;

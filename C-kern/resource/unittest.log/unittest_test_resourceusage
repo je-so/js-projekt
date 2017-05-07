@@ -1,113 +1,113 @@
-[1: 1444216713.596679s]
+[1: 1494173291.225487s]
 same_resourceusage() C-kern/test/resourceusage.c:138
 The number of used resources is different
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.600811s]
+[1: 1494173291.226530s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
-leaked_malloc_bytes=24
+leaked_malloc_bytes=32
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.603406s]
+[1: 1494173291.227560s]
 same_resourceusage() C-kern/test/resourceusage.c:156
 The number of used resources is different
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.605406s]
+[1: 1494173291.228316s]
 same_resourceusage() C-kern/test/resourceusage.c:161
 The number of used resources is different
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.607417s]
+[1: 1494173291.229062s]
 same_resourceusage() C-kern/test/resourceusage.c:166
 The number of used resources is different
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.610139s]
+[1: 1494173291.230059s]
 same_resourceusage() C-kern/test/resourceusage.c:171
 The number of used resources is different
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.612220s]
+[1: 1494173291.230979s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
-leaked_malloc_bytes=24
+leaked_malloc_bytes=32
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.612898s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=1
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.615488s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=40
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.616151s]
+[1: 1494173291.231270s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
 leaked_malloc_bytes=1
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.618753s]
+[1: 1494173291.232292s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
-leaked_malloc_bytes=72
+leaked_malloc_bytes=48
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.619417s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=1
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.622015s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=136
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.622676s]
+[1: 1494173291.232544s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
 leaked_malloc_bytes=1
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.625453s]
+[1: 1494173291.233560s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
-leaked_malloc_bytes=264
+leaked_malloc_bytes=80
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.626127s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=1
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.628896s]
-same_resourceusage() C-kern/test/resourceusage.c:148
-The number of used resources is different
-leaked_malloc_bytes=520
-Exit function with
-Error 260 - Resource(s) leaked
-[1: 1444216713.629578s]
+[1: 1494173291.233801s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
 leaked_malloc_bytes=1
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.632335s]
+[1: 1494173291.235180s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
-leaked_malloc_bytes=1032
+leaked_malloc_bytes=144
 Exit function with
 Error 260 - Resource(s) leaked
-[1: 1444216713.633003s]
+[1: 1494173291.235441s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=1
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.237035s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=272
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.237287s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=1
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.240287s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=528
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.240543s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=1
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.241593s]
+same_resourceusage() C-kern/test/resourceusage.c:148
+The number of used resources is different
+leaked_malloc_bytes=1040
+Exit function with
+Error 260 - Resource(s) leaked
+[1: 1494173291.241864s]
 same_resourceusage() C-kern/test/resourceusage.c:148
 The number of used resources is different
 leaked_malloc_bytes=1

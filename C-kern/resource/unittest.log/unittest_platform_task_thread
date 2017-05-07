@@ -1,43 +1,43 @@
-[1: 1457438577.351150s]
+[1: 1494173371.706331s]
 exit_thread() C-kern/platform/Linux/task/thread.c:400
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error
-[1: 1457438577.355735s]
+[1: 1494173371.707945s]
 new_thread() C-kern/platform/Linux/task/thread.c:227
 Exit function with
 Error 1 - Operation not permitted
-[1: 1457438577.355759s]
+[1: 1494173371.707973s]
 new_thread() C-kern/platform/Linux/task/thread.c:186
 System call 'pthread_attr_init' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1457438577.355779s]
+[1: 1494173371.707981s]
 new_thread() C-kern/platform/Linux/task/thread.c:194
 System call 'pthread_attr_setstack' failed with error 3
-stack.addr=0xXXXXXXXX
+stack.addr=0xXXXXXXXXXXXX
 stack.size=262144
 Exit function with
 Error 3 - No such process
-[1: 1457438577.355801s]
+[1: 1494173371.707988s]
 new_thread() C-kern/platform/Linux/task/thread.c:206
 System call 'pthread_create' failed with error 4
 Exit function with
 Error 4 - Interrupted system call
-[1: 1457438577.357142s]
+[1: 1494173371.708520s]
 delete_thread() C-kern/platform/Linux/task/thread.c:154
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1457438577.390733s]
+[1: 1494173371.727037s]
 join_thread() C-kern/platform/Linux/task/thread.c:249
 Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1457438577.391642s]
+[1: 1494173371.727387s]
 join_thread() C-kern/platform/Linux/task/thread.c:249
 Exit function with
 Error 3 - No such process
-[1: 1457438578.234955s]
+[1: 1494173372.382261s]
 exit_thread() C-kern/platform/Linux/task/thread.c:400
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with

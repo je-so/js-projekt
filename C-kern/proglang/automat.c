@@ -629,8 +629,8 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
          {
             err = malloc_automatmman(mman, SIZE, &node2);
             if (err) goto ONERR;
-            const unsigned NODE2_SIZE = ((multistate_NROFSTATE+1) / 2);
-            const unsigned NODE_SIZE  = ((multistate_NROFSTATE+1) - NODE2_SIZE);
+            const size_t NODE2_SIZE = ((multistate_NROFSTATE+1) / 2);
+            const size_t NODE_SIZE  = ((multistate_NROFSTATE+1) - NODE2_SIZE);
             ((multistate_node_t*)node2)->level = 0;
             ((multistate_node_t*)node2)->size  = (uint8_t) NODE2_SIZE;
             ((multistate_node_t*)node2)->next  = ((multistate_node_t*)node)->next;
@@ -643,21 +643,21 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
             if (low < NODE_SIZE) {
                state_t ** node_state  = &((multistate_node_t*)node)->state[multistate_NROFSTATE];
                state_t ** node2_state = &((multistate_node_t*)node2)->state[NODE2_SIZE];
-               for (unsigned i = NODE2_SIZE; i; --i) {
+               for (size_t i = NODE2_SIZE; i; --i) {
                   *(--node2_state) = *(--node_state);
                }
-               for (unsigned i = NODE_SIZE-1-low; i > 0; --i, --node_state) {
+               for (size_t i = NODE_SIZE-1-low; i > 0; --i, --node_state) {
                   *node_state = node_state[-1];
                }
                *node_state = state;
             } else {
                state_t ** node_state  = &((multistate_node_t*)node)->state[NODE_SIZE];
                state_t ** node2_state = &((multistate_node_t*)node2)->state[0];
-               for (unsigned i = low-NODE_SIZE; i; --i, ++node_state, ++node2_state) {
+               for (size_t i = low-NODE_SIZE; i; --i, ++node_state, ++node2_state) {
                   *node2_state = *node_state;
                }
                *node2_state++ = state;
-               for (unsigned i = multistate_NROFSTATE-low; i; --i, ++node_state, ++node2_state) {
+               for (size_t i = multistate_NROFSTATE-low; i; --i, ++node_state, ++node2_state) {
                   *node2_state = *node_state;
                }
             }
@@ -687,8 +687,8 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
                // ENOMEM ==> information in child(former node2) is lost !! (corrupt data structure)
                err = malloc_automatmman(mman, SIZE, &node2);
                if (err) goto ONERR;
-               const unsigned NODE2_SIZE = ((multistate_NROFCHILD+1) / 2);
-               const unsigned NODE_SIZE  = ((multistate_NROFCHILD+1) - NODE2_SIZE);
+               const size_t NODE2_SIZE = ((multistate_NROFCHILD+1) / 2);
+               const size_t NODE_SIZE  = ((multistate_NROFCHILD+1) - NODE2_SIZE);
                ((multistate_node_t*)node2)->level = ((multistate_node_t*)node)->level;
                ((multistate_node_t*)node2)->size  = (uint8_t) NODE2_SIZE;
                ((multistate_node_t*)node)->size   = (uint8_t) NODE_SIZE;
@@ -697,13 +697,13 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
                   state_t ** node2_key = &((multistate_node_t*)node2)->key[NODE2_SIZE-1];
                   multistate_node_t ** node2_child = &((multistate_node_t*)node2)->child[NODE2_SIZE];
                   multistate_node_t ** node_child  = &((multistate_node_t*)node)->child[multistate_NROFCHILD];
-                  for (unsigned i = NODE2_SIZE-1; i; --i) {
+                  for (size_t i = NODE2_SIZE-1; i; --i) {
                      *(--node2_key) = *(--node_key);
                      *(--node2_child) = *(--node_child);
                   }
                   key2 = *(--node_key);
                   *(--node2_child) = *(--node_child);
-                  for (unsigned i = NODE_SIZE-2-low; i; --i, --node_key, --node_child) {
+                  for (size_t i = NODE_SIZE-2-low; i; --i, --node_key, --node_child) {
                      *node_key  = node_key[-1];
                      *node_child  = node_child[-1];
                   }
@@ -714,11 +714,11 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
                   state_t ** node2_key = &((multistate_node_t*)node2)->key[0];
                   multistate_node_t ** node_child  = &((multistate_node_t*)node)->child[NODE_SIZE];
                   multistate_node_t ** node2_child = &((multistate_node_t*)node2)->child[0];
-                  unsigned I = low-(NODE_SIZE-1);
+                  size_t I = low-(NODE_SIZE-1);
                   if (I) {
                      key2 = *node_key++;
                      *node2_child++ = *node_child++;
-                     for (unsigned i = I-1; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
+                     for (size_t i = I-1; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
                         *node2_key = *node_key;
                         *node2_child = *node_child;
                      }
@@ -727,7 +727,7 @@ static int add_multistate(multistate_t * mst, struct automat_mman_t * mman, /*in
                      // key2 = child_key; // already equal
                   }
                   *node2_child++ = child;
-                  for (unsigned i = (multistate_NROFCHILD-1)-low; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
+                  for (size_t i = (multistate_NROFCHILD-1)-low; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
                      *node2_key = *node_key;
                      *node2_child = *node_child;
                   }
@@ -1080,8 +1080,8 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
             err = malloc_automatmman(mman, SIZE, &memblock);
             if (err) goto ONERR;
             node2 = memblock;
-            const unsigned NODE2_SIZE = ((rangemap_NROFRANGE+1) / 2);
-            const unsigned NODE_SIZE  = ((rangemap_NROFRANGE+1) - NODE2_SIZE);
+            const size_t NODE2_SIZE = ((rangemap_NROFRANGE+1) / 2);
+            const size_t NODE_SIZE  = ((rangemap_NROFRANGE+1) - NODE2_SIZE);
             node2->level = 0;
             node2->size  = (uint8_t) NODE2_SIZE;
             node2->next  = node->next;
@@ -1094,21 +1094,21 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
             if (low < NODE_SIZE) {
                range_t * node_range  = &node->range[rangemap_NROFRANGE];
                range_t * node2_range = &node2->range[NODE2_SIZE];
-               for (unsigned i = NODE2_SIZE; i; --i) {
+               for (size_t i = NODE2_SIZE; i; --i) {
                   *(--node2_range) = *(--node_range);
                }
-               for (unsigned i = NODE_SIZE-1-low; i > 0; --i, --node_range) {
+               for (size_t i = NODE_SIZE-1-low; i > 0; --i, --node_range) {
                   *node_range = node_range[-1];
                }
                *node_range = (range_t) range_INIT(from, to);
             } else {
                range_t * node_range  = &node->range[NODE_SIZE];
                range_t * node2_range = &node2->range[0];
-               for (unsigned i = low-NODE_SIZE; i; --i, ++node_range, ++node2_range) {
+               for (size_t i = low-NODE_SIZE; i; --i, ++node_range, ++node2_range) {
                   *node2_range = *node_range;
                }
                *node2_range++ = (range_t) range_INIT(from, to);
-               for (unsigned i = rangemap_NROFRANGE-low; i; --i, ++node_range, ++node2_range) {
+               for (size_t i = rangemap_NROFRANGE-low; i; --i, ++node_range, ++node2_range) {
                   *node2_range = *node_range;
                }
             }
@@ -1139,8 +1139,8 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
                err = malloc_automatmman(mman, SIZE, &memblock);
                if (err) goto ONERR;
                node2 = memblock;
-               const unsigned NODE2_SIZE = ((rangemap_NROFCHILD+1) / 2);
-               const unsigned NODE_SIZE  = ((rangemap_NROFCHILD+1) - NODE2_SIZE);
+               const size_t NODE2_SIZE = ((rangemap_NROFCHILD+1) / 2);
+               const size_t NODE_SIZE  = ((rangemap_NROFCHILD+1) - NODE2_SIZE);
                node2->level = node->level;
                node2->size  = (uint8_t) NODE2_SIZE;
                node->size   = (uint8_t) NODE_SIZE;
@@ -1149,13 +1149,13 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
                   char32_t * node2_key = &node2->key[NODE2_SIZE-1];
                   rangemap_node_t ** node2_child = &node2->child[NODE2_SIZE];
                   rangemap_node_t ** node_child  = &node->child[rangemap_NROFCHILD];
-                  for (unsigned i = NODE2_SIZE-1; i; --i) {
+                  for (size_t i = NODE2_SIZE-1; i; --i) {
                      *(--node2_key) = *(--node_key);
                      *(--node2_child) = *(--node_child);
                   }
                   key2 = *(--node_key);
                   *(--node2_child) = *(--node_child);
-                  for (unsigned i = NODE_SIZE-2-low; i; --i, --node_key, --node_child) {
+                  for (size_t i = NODE_SIZE-2-low; i; --i, --node_key, --node_child) {
                      *node_key  = node_key[-1];
                      *node_child  = node_child[-1];
                   }
@@ -1166,11 +1166,11 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
                   char32_t * node2_key = &node2->key[0];
                   rangemap_node_t ** node_child  = &node->child[NODE_SIZE];
                   rangemap_node_t ** node2_child = &node2->child[0];
-                  unsigned I = low-(NODE_SIZE-1);
+                  size_t I = low-(NODE_SIZE-1);
                   if (I) {
                      key2 = *node_key++;
                      *node2_child++ = *node_child++;
-                     for (unsigned i = I-1; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
+                     for (size_t i = I-1; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
                         *node2_key = *node_key;
                         *node2_child = *node_child;
                      }
@@ -1179,7 +1179,7 @@ static int addrange2_rangemap(rangemap_t * rmap, automat_mman_t * mman, char32_t
                      // key2 = child_key; // already equal
                   }
                   *node2_child++ = child;
-                  for (unsigned i = (rangemap_NROFCHILD-1)-low; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
+                  for (size_t i = (rangemap_NROFCHILD-1)-low; i; --i, ++node_key, ++node2_key, ++node_child, ++node2_child) {
                      *node2_key = *node_key;
                      *node2_child = *node_child;
                   }
@@ -4099,7 +4099,7 @@ static int test_multistate(void)
             // check: leaf content
             for (unsigned i = 0, istate=desc?NROFSTATE-SIZE:0; i < nrchild; ++i) {
                const unsigned isLast = desc?i==0:i==nrchild-1;
-               const unsigned S = (multistate_NROFSTATE/2+(desc?isLast:(unsigned)!isLast)) + nrstate*isLast*(!isSplit);
+               const size_t S = (multistate_NROFSTATE/2+(desc?isLast:(unsigned)!isLast)) + nrstate*isLast*(!isSplit);
                TEST( 0 == ((multistate_node_t*)child[i])->level);
                TEST( S == ((multistate_node_t*)child[i])->size);
                TEST( (i==nrchild-1?0:child[i+1]) == ((multistate_node_t*)child[i])->next);
@@ -4124,8 +4124,8 @@ static int test_multistate(void)
          void * addr[multistate_NROFCHILD+1] = { 0 };
          // addr[0] root addr[1] child[0] addr[2] child[1] addr[3] ... splitchild
          TEST(0 == build1_multistate(&mst, mman, state, 2/*every 2nd*/, ENDMARKER, nrchild, addr, child));
-         void *   const root = mst.root;
-         unsigned const SIZE = nrchild * multistate_NROFSTATE + 1;
+         void * const root = mst.root;
+         size_t const SIZE = nrchild * multistate_NROFSTATE + 1;
          // test add single state ==> split check split
          TEST( 0 == add_multistate(&mst, mman, &state[1+pos*(2*multistate_NROFSTATE)]));
          // check: mman
@@ -4199,10 +4199,10 @@ static int test_multistate(void)
       TEST( splitroot == ((multistate_node_t*)mst.root)->child[1]);
       // check oldroot / splitroot content
       for (unsigned i = 0, ichild = 0; i < 2; ++i) {
-         const unsigned S = multistate_NROFCHILD/2+1-i;
+         const size_t S = multistate_NROFCHILD/2+1-i;
          TEST( 1 == ((multistate_node_t*)mst.root)->child[i]->level);
          TEST( S == ((multistate_node_t*)mst.root)->child[i]->size);
-         for (unsigned s = 0; s < S; ++s, ++ichild) {
+         for (size_t s = 0; s < S; ++s, ++ichild) {
             TEST( child[ichild] == ((multistate_node_t*)mst.root)->child[i]->child[s]);
             if (s) {
                state_t * key = ((multistate_node_t*)child[ichild])->state[0];
@@ -4800,11 +4800,11 @@ static int test_rangemap(void)
       TEST( rmap.root->child[1] == splitroot);
       // check oldroot / splitroot content
       for (unsigned i = 0, ichild = 0; i < 2; ++i) {
-         const unsigned S = rangemap_NROFCHILD/2+1-i;
+         const size_t S = rangemap_NROFCHILD/2+1-i;
          TEST( rmap.root->child[i]->level == 1);
          TEST( rmap.root->child[i]->size  == S);
          TEST( rmap.root->child[i]->child[0] == child[ichild++]);
-         for (unsigned s = 1; s < S; ++s) {
+         for (size_t s = 1; s < S; ++s) {
             TEST( rmap.root->child[i]->key[s-1] == child[ichild]->range[0].from);
             TEST( rmap.root->child[i]->child[s] == child[ichild++]);
          }
@@ -4966,7 +4966,7 @@ static int test_rangemap(void)
       rangemap_t old;
       // test
       memcpy(&old, &rmap, sizeof(old));
-      TEST( 0 == addstate_rangemap(&rmap, mman, 0, 2*NRRANGE-1, (state_t*)i));
+      TEST( 0 == addstate_rangemap(&rmap, mman, 0, (char32_t) (2*NRRANGE-1), (state_t*)i));
       // check rmap not changed
       TEST( 0 == memcmp(&old, &rmap, sizeof(old)));
       // check rmap leaves content
@@ -5123,7 +5123,7 @@ static int test_rangemap(void)
    for (size_t i=2; i <= NRRANGE; ++i) {
       // TEST init_multistateiter: one or more pages
       // prepare
-      TEST(0 == addrange_rangemap(&rmap, mman, i, i));
+      TEST(0 == addrange_rangemap(&rmap, mman, (char32_t)i, (char32_t)i));
       memset(&iter, 255, sizeof(iter));
       // test
       init_rangemapiter(&iter, &rmap);
@@ -5514,7 +5514,7 @@ static int helper_compare_states(automat_t * ndfa, size_t nrstate, const helper_
       empty_transition_t* empty_trans = first_emptylist(&ndfa_state[i]->emptylist);
       range_transition_t* range_trans = first_rangelist(&ndfa_state[i]->rangelist);
       if (helperstate[i].type == state_RANGE_ENDSTATE) {
-         TESTP(ndfa_state[nrstate-1] == empty_trans->state, "expected endstate i:%d", i);
+         TESTP(ndfa_state[nrstate-1] == empty_trans->state, "expected endstate i:%zd", i);
          TEST(empty_trans == next_emptylist(empty_trans));
       }
       size_t s = 0;
@@ -5522,7 +5522,7 @@ static int helper_compare_states(automat_t * ndfa, size_t nrstate, const helper_
          const size_t state_idx = helperstate[i].target_state[t];
          TEST(state_idx < nrstate);
          if (helperstate[i].type == state_EMPTY) {
-            TESTP(ndfa_state[state_idx] == empty_trans->state, "i:%d", i);
+            TESTP(ndfa_state[state_idx] == empty_trans->state, "i:%zu", i);
             empty_trans = next_emptylist(empty_trans);
          } else {
             TEST(s < range_trans->size);
@@ -5718,8 +5718,8 @@ static int test_initfree(void)
       target_state[i] = 1;
    }
    for (size_t i = 0; i < lengthof(from); ++i) {
-      from[i] = i;
-      to[i]   = 3*i;
+      from[i] = (char32_t) i;
+      to[i]   = (char32_t) (3*i);
    }
 
    // TEST automat_FREE
@@ -6057,8 +6057,8 @@ static int test_operations(void)
       target_state[i] = 0;
    }
    for (size_t i = 0; i < lengthof(from); ++i) {
-      from[i] = i;
-      to[i]   = 3*i;
+      from[i] = (char32_t) i;
+      to[i]   = (char32_t) (3*i);
    }
 
    // TEST opsequence_automat
@@ -6650,7 +6650,7 @@ static int test_query(void)
    // TEST matchchar32_automat: follow very long empty states
    // prepare
    TEST(0 == initmatch_automat(&ndfa, 0, 1, (char32_t[]){ 0 }, (char32_t[]){ 0 }));
-   for (size_t i = 1; i < 2*minchainlen; ++i) {
+   for (char32_t i = 1; i < 2*(char32_t)minchainlen; ++i) {
       TEST(0 == initmatch_automat(&ndfa2[0], &ndfa, 1, (char32_t[]){ 2*i }, (char32_t[]){ 2*i }));
       TEST(0 == opor_automat(&ndfa, &ndfa2[0]));
    }
@@ -6674,7 +6674,7 @@ static int test_query(void)
 
    // TEST matchchar32_automat: state_RANGE_CONTINUE
    TEST(0 == initmatch_automat(&ndfa, 0, 2, (char32_t[]){ 0, 1 }, (char32_t[]){ 0, 1 }));
-   for (size_t i = 2; i < 2*minchainlen; i += 2) {
+   for (char32_t i = 2; i < 2*(char32_t)minchainlen; i += 2) {
       TEST(0 == extendmatch_automat(&ndfa, 2, (char32_t[]){ 2*i, 2*i+1 }, (char32_t[]){ 2*i, 2*i+1 }));
    }
    for (unsigned tc = 0; tc <= 1; ++tc) {
@@ -6752,8 +6752,8 @@ static int test_extend(void)
       target[i] = 1;
    }
    for (size_t i = 0; i < lengthof(from); ++i) {
-      from[i] = 1 + i;
-      to[i]   = 1 + 2*i;
+      from[i] = (char32_t) (1 + i);
+      to[i]   = (char32_t) (1 + 2*i);
    }
    TEST(0 == initmatch_automat(&ndfa, 0, 15, from, to));
    helperstate[0] = (helper_state_t) { state_RANGE, 15, target, from, to };
@@ -6795,7 +6795,7 @@ static int test_extend(void)
       TEST( 0    == ndfa.isDFA);
       // check ndfa.states
       helperstate[0] = (helper_state_t) { state_RANGE, (uint8_t)(off+i), target, from, to };
-      TESTP( 0 == helper_compare_states(&ndfa, ndfa.nrstate, helperstate), "i:%d", i);
+      TESTP( 0 == helper_compare_states(&ndfa, ndfa.nrstate, helperstate), "i:%zu", i);
    }
 
    // reset

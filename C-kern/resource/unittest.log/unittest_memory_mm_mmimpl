@@ -1,49 +1,49 @@
-[1: 1443695043.528274s]
+[1: 1494173341.182838s]
 malloc_mmimpl() C-kern/memory/mm/mm_impl.c:92
-Could not allocate 4294967295 bytes of memory - error 12
+Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695043.528339s]
+[1: 1494173341.182864s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:119
 Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695043.528345s]
+[1: 1494173341.182865s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:119
 Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695043.528350s]
+[1: 1494173341.182866s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:127
-Could not allocate 4294967295 bytes of memory - error 12
+Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695043.528355s]
+[1: 1494173341.182866s]
 mfree_mmimpl() C-kern/memory/mm/mm_impl.c:149
 Function input violates condition (isvalid_memblock(memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695043.530304s]
+[1: 1494173341.183057s]
 malloc_mmimpl() C-kern/memory/mm/mm_impl.c:92
-Could not allocate 4294967295 bytes of memory - error 12
+Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695043.530314s]
+[1: 1494173341.183060s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:119
 Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695043.530319s]
+[1: 1494173341.183061s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:119
 Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695043.530324s]
+[1: 1494173341.183062s]
 mresize_mmimpl() C-kern/memory/mm/mm_impl.c:127
-Could not allocate 4294967295 bytes of memory - error 12
+Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1443695043.530328s]
+[1: 1494173341.183063s]
 mfree_mmimpl() C-kern/memory/mm/mm_impl.c:149
 Function input violates condition (isvalid_memblock(memblock))
 Exit function with

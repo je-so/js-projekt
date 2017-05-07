@@ -1,58 +1,58 @@
-[1: 1483804207.990040s]
+[1: 1494173341.182139s]
 shrink_cstring_wbuffer() C-kern/memory/wbuffer.c:85
 Exit function with
 Error 22 - Invalid argument
-[1: 1483804207.990049s]
+[1: 1494173341.182142s]
 alloc_cstring_wbuffer() C-kern/memory/wbuffer.c:68
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990054s]
+[1: 1494173341.182143s]
 shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:139
 Exit function with
 Error 22 - Invalid argument
-[1: 1483804207.990057s]
+[1: 1494173341.182144s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990060s]
+[1: 1494173341.182145s]
 shrink_static_wbuffer() C-kern/memory/wbuffer.c:169
 Exit function with
 Error 22 - Invalid argument
-[1: 1483804207.990079s]
+[1: 1494173341.182150s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990083s]
+[1: 1494173341.182151s]
 shrink_memblock_wbuffer() C-kern/memory/wbuffer.c:139
 Exit function with
 Error 22 - Invalid argument
-[1: 1483804207.990088s]
+[1: 1494173341.182153s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:112
-Could not allocate 4294967295 bytes of memory - error 12
+Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990092s]
+[1: 1494173341.182153s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990098s]
+[1: 1494173341.182155s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:112
-Could not allocate 4294967279 bytes of memory - error 12
+Could not allocate 18446744073709551599 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990101s]
+[1: 1494173341.182156s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:216
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990104s]
+[1: 1494173341.182157s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990106s]
+[1: 1494173341.182157s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:216
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1483804207.990117s]
+[1: 1494173341.182161s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:216
 Exit function with
 Error 12 - Cannot allocate memory
