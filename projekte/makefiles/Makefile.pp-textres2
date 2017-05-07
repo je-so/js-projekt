@@ -6,8 +6,8 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textres2.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Apr.01  14:59:24
-GeneratedBy     := je-so
+GenerationDate  := 2017.Mai.07  16:44:36
+GeneratedBy     := Jörg Seebohn
 
 ## Release
 DefineFlag_Release    := ?

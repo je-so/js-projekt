@@ -90,7 +90,7 @@ static void drawline(const coordinates_t * line, const coordinates_t * viewport,
    static uint32_t pixels[PIXELBUFFER_SIZE][PIXELBUFFER_SIZE];
    glReadPixels(0, 0, PIXELBUFFER_SIZE, PIXELBUFFER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-   int sx, sy, ex, ey;
+   unsigned sx, sy, ex, ey;
    for (sy = 0; sy < PIXELBUFFER_SIZE; ++sy)
       for (sx = 0; sx < PIXELBUFFER_SIZE; ++sx)
          if (pixels[sy][sx] == 0) {

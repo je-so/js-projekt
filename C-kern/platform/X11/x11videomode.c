@@ -376,28 +376,28 @@ ONERR:
 
 static int test_setvideomode(x11screen_t * x11screen)
 {
-   x11videomode_iterator_t xvidit  = x11videomode_iterator_FREE ;
-   x11videomode_t          setmode = x11videomode_FREE ;
-   bool                    isWrongVideoMode = false ;
-   x11videomode_t          current_xvidmode ;
+   x11videomode_iterator_t xvidit  = x11videomode_iterator_FREE;
+   x11videomode_t          setmode = x11videomode_FREE;
+   bool                    isWrongVideoMode = false;
+   x11videomode_t          current_xvidmode;
 
    // prepare
-   TEST(0 == initcurrent_x11videomode(&current_xvidmode, x11screen)) ;
+   TEST(0 == initcurrent_x11videomode(&current_xvidmode, x11screen));
 
    // TEST set_x11videomode
-   TEST(0 == init_x11videomodeiterator(&xvidit, x11screen)) ;
+   TEST(0 == init_x11videomodeiterator(&xvidit, x11screen));
    while (next_x11videomodeiterator(&xvidit, &setmode)) {
       if (  (  setmode.height_in_pixel   != current_xvidmode.height_in_pixel
                || setmode.width_in_pixel != current_xvidmode.width_in_pixel)
-            && setmode.width_in_pixel  >= setmode.width_in_pixel
-            && setmode.height_in_pixel >= setmode.height_in_pixel) {
+            && setmode.width_in_pixel  <= current_xvidmode.width_in_pixel
+            && setmode.height_in_pixel <= current_xvidmode.height_in_pixel) {
          break ;
       }
    }
-   TEST(0 == free_x11videomodeiterator(&xvidit)) ;
+   TEST(0 == free_x11videomodeiterator(&xvidit));
 
-   TEST(0 == set_x11videomode(&setmode, x11screen)) ;
-   isWrongVideoMode = true ;
+   TEST(0 == set_x11videomode(&setmode, x11screen));
+   isWrongVideoMode = true;
    TEST(0 == waitXRRScreenChangeNotify(x11screen, &setmode)) ;
 
    // TEST set_x11videomode: reset video mode

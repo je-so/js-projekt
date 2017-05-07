@@ -321,8 +321,8 @@ static int test_initfree(native_types_t * native)
 
    return 0;
 ONERR:
-   free_eglconfig(&eglconf);
-   free_eglwindow(&eglwin, gl_display(&native->display));
+   (void) free_eglconfig(&eglconf);
+   (void) free_eglwindow(&eglwin, gl_display(&native->display));
    return EINVAL;
 }
 

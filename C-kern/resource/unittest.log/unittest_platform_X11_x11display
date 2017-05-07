@@ -1,17 +1,17 @@
-[1: 1443695060.350092s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:375
+[1: 1483707503.080271s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:372
 Exit function with
 Error 3 - No such process
-[1: 1443695060.350111s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:391
+[1: 1483707503.080304s]
+replaceobject_x11display() C-kern/platform/X11/x11display.c:388
 Exit function with
 Error 3 - No such process
-[1: 1443695060.350113s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:355
+[1: 1483707503.080308s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:352
 Function input violates condition (object != 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695060.350116s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:362
+[1: 1483707503.080313s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:359
 Exit function with
 Error 17 - File exists

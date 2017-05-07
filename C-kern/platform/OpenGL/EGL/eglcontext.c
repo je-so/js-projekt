@@ -259,7 +259,8 @@ static int test_initfree(egldisplay_t disp)
                            EGL_CONFORMANT, apibit[i],
                            EGL_NONE };
       TEST(0 != eglChooseConfig(disp, attr, conflist, lengthof(conflist), &listsize));
-      TEST(0 <  listsize);
+      if (0 == listsize && apibit[i] == EGL_OPENVG_BIT) continue; // OpenVG not supported
+      TESTP(0 <  listsize, "i:%d", i);
 
       EGLenum oldapi = api[! i];
       TEST(EGL_FALSE != eglBindAPI(oldapi));
@@ -332,6 +333,8 @@ static int test_query(egldisplay_t disp)
                            EGL_CONFORMANT, apibit[i],
                            EGL_NONE };
       TEST(0 != eglChooseConfig(disp, attr, conflist, lengthof(conflist), &listsize));
+      if (0 == listsize && apibit[i] == EGL_OPENVG_BIT) continue; // OpenVG not supported
+      TESTP(0 <  listsize, "i:%d", i);
       TEST(0 <  listsize);
 
       for (int ci = 0; ci < listsize; ++ci) {
@@ -382,7 +385,8 @@ static int test_current(egldisplay_t disp)
                            EGL_CONFORMANT, apibit[i],
                            EGL_NONE };
       TEST(0 != eglChooseConfig(disp, attr, conflist, lengthof(conflist), &listsize));
-      TEST(1 == listsize);
+      if (0 == listsize && apibit[i] == EGL_OPENVG_BIT) continue; // OpenVG not supported
+      TESTP(1 == listsize, "i:%d", i);
 
       // create 2 pixel buffer and 2 context with correct configuration
       TEST(0 == init_eglpbuffer(&pbuf[0/*draw*/], disp, conflist[0], 16, 16));

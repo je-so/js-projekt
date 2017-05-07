@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/generrtab.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Feb.27  08:25:14
-GeneratedBy     := je-so
+GenerationDate  := 2017.Mai.07  16:44:36
+GeneratedBy     := Jörg Seebohn
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -32,7 +32,7 @@ DefineFlag_Release    := -D
 IncludeFlag_Release   := -I
 LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
-CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+CFlags_Release        := -O2 -fno-strict-aliasing -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=NONE
 Includes_Release      := $(IncludeFlag_Release).

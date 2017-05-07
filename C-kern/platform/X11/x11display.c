@@ -122,20 +122,20 @@ static int remove_x11windowmap(x11windowmap_t * map, uint32_t objectid)
  * Initializes extension variables of <x11display_t>.
  * It is expected that memory of all extension variables is set to zero
  * before you call this function. */
-static int queryextensions_x11display(x11display_t * x11disp)
+static void queryextensions_x11display(x11display_t * x11disp)
 {
-   int   major ;
-   int   minor ;
-   int   dummy ;
-   Bool  isSupported ;
+   int major;
+   int minor;
+   int dummy;
+   int isSupported;
 
-   isSupported = XQueryExtension(x11disp->sys_display, "DOUBLE-BUFFER", &dummy, &x11disp->xdbe.eventbase, &x11disp->xdbe.errorbase) ;
+   isSupported = XQueryExtension(x11disp->sys_display, "DOUBLE-BUFFER", &dummy, &x11disp->xdbe.eventbase, &x11disp->xdbe.errorbase);
    if (isSupported) {
-      isSupported = XdbeQueryExtension(x11disp->sys_display, &major, &minor) ;
+      isSupported = XdbeQueryExtension(x11disp->sys_display, &major, &minor);
       if (isSupported) {
-         x11disp->xdbe.isSupported   = true ;
-         x11disp->xdbe.version_major = (uint16_t) major ;
-         x11disp->xdbe.version_minor = (uint16_t) minor ;
+         x11disp->xdbe.isSupported   = true;
+         x11disp->xdbe.version_major = (uint16_t) major;
+         x11disp->xdbe.version_minor = (uint16_t) minor;
       }
    }
 
@@ -148,8 +148,8 @@ static int queryextensions_x11display(x11display_t * x11disp)
          x11disp->xrandr.version_minor = (uint16_t) minor ;
 
          // prepare receiving events
-         for (int i = ScreenCount(x11disp->sys_display); (--i) >= 0 ;) {
-            XRRSelectInput(x11disp->sys_display, RootWindow(x11disp->sys_display,i), RRScreenChangeNotifyMask) ;
+         for (unsigned i = (unsigned) ScreenCount(x11disp->sys_display); (i--); ) {
+            XRRSelectInput(x11disp->sys_display, RootWindow(x11disp->sys_display, (int)i), RRScreenChangeNotifyMask) ;
          }
       }
    }
@@ -163,8 +163,6 @@ static int queryextensions_x11display(x11display_t * x11disp)
          x11disp->xrender.version_minor = (uint16_t) minor ;
       }
    }
-
-   return 0 ;
 }
 
 // group: lifetime
@@ -197,7 +195,7 @@ ONERR:
 
 static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
 {
-   int  err ;
+   int  err;
    x11display_t   newdisp = x11display_FREE;
    memblock_t     mblock;
 
@@ -233,8 +231,7 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
 #undef  SETATOM
 
    if (isInitExtension) {
-      err = queryextensions_x11display(&newdisp);
-      if (err) goto ONERR;
+      queryextensions_x11display(&newdisp);
    }
 
    *x11disp = newdisp;
@@ -378,18 +375,18 @@ ONERR:
 
 int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid)
 {
-   int err ;
+   int err;
    x11windowmap_entry_t * found_node;
 
-   err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
+   err = find_x11windowmap(x11disp->idmap, objectid, &found_node);
    if (err) goto ONERR;
 
    found_node->object = object;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 

@@ -1037,8 +1037,8 @@ static int test_searchhelper(void)
    init1_getkeydata(&node[1].keydata, &impl_getdiffbitkey, &node[1]);
    for (unsigned pos = 0; pos < sizeof(node[0].key)-1; ++pos) {
       for (unsigned bit = 0; bit < 8; ++bit) {
-         node[0].key[pos]   ^= (uint8_t) (0xff >> bit);
-         node[0].key[pos+1] ^= (uint8_t) 0xff;
+         node[0].key[pos]   = (uint8_t) (node[0].key[pos]   ^ (0xff >> bit));
+         node[0].key[pos+1] = (uint8_t) (node[0].key[pos+1] ^ 0xff);
          for (unsigned tc = 0; tc < 2; ++tc) {
             // test
             TEST( 0 == get_first_different_bit(&tree, &node[tc].keydata, &node[!tc].keydata, &bitoff, &bitval));

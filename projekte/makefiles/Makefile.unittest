@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2016.Okt.28  17:01:25
-GeneratedBy     := je-so
+GenerationDate  := 2017.Mai.07  16:44:38
+GeneratedBy     := Jörg Seebohn
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -32,7 +32,7 @@ DefineFlag_Release    := -D
 IncludeFlag_Release   := -I
 LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
-CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+CFlags_Release        := -O2 -fno-strict-aliasing -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
 Includes_Release      := $(IncludeFlag_Release).
@@ -75,250 +75,252 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Debug)/C-kern!ds!link.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!nodeoffset.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!gethash.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!nodeoffset.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!gethash.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o \
- $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Debug)/C-kern!err!errornr.c.o \
- $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
+ $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o \
+ $(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Debug)/C-kern!math!hash!crc7.c.o \
- $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o \
+ $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
+ $(ObjectDir_Debug)/C-kern!math!hash!crc16.c.o \
+ $(ObjectDir_Debug)/C-kern!math!hash!crc7.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!factorise.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!findzerobyte.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
- $(ObjectDir_Debug)/C-kern!memory!memvec.c.o \
- $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
- $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
- $(ObjectDir_Debug)/C-kern!memory!ptr.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!memvec.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o \
- $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
- $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Debug)/C-kern!memory!atomic.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!ptr.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Debug)/C-kern!proglang!automat_mman.c.o \
  $(ObjectDir_Debug)/C-kern!proglang!regexpr.c.o \
  $(ObjectDir_Debug)/C-kern!proglang!automat.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o \
- $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
- $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
- $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
- $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
- $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
+ $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
+ $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
+ $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
- $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
- $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
+ $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Debug)/C-kern!task!module.c.o \
- $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
- $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
+ $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
+ $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
- $(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o \
+ $(ObjectDir_Debug)/C-kern!test!perftest.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o \
+ $(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Release)/C-kern!ds!link.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o \
+ $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!nodeoffset.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!gethash.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!nodeoffset.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!gethash.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o \
- $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Release)/C-kern!err!errornr.c.o \
- $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!err!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
+ $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o \
+ $(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Release)/C-kern!math!hash!crc7.c.o \
- $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
- $(ObjectDir_Release)/C-kern!math!int!bitorder.c.o \
+ $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
+ $(ObjectDir_Release)/C-kern!math!hash!crc16.c.o \
+ $(ObjectDir_Release)/C-kern!math!hash!crc7.c.o \
  $(ObjectDir_Release)/C-kern!math!int!factorise.c.o \
- $(ObjectDir_Release)/C-kern!math!int!sqroot.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
- $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
- $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
- $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
- $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
- $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Release)/C-kern!math!int!findzerobyte.c.o \
  $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!sqroot.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
- $(ObjectDir_Release)/C-kern!memory!memvec.c.o \
- $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
- $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
- $(ObjectDir_Release)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
- $(ObjectDir_Release)/C-kern!memory!ptr.c.o \
+ $(ObjectDir_Release)/C-kern!memory!memvec.c.o \
+ $(ObjectDir_Release)/C-kern!memory!memstream.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o \
- $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
- $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Release)/C-kern!memory!atomic.c.o \
+ $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
+ $(ObjectDir_Release)/C-kern!memory!ptr.c.o \
+ $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Release)/C-kern!proglang!automat_mman.c.o \
  $(ObjectDir_Release)/C-kern!proglang!regexpr.c.o \
  $(ObjectDir_Release)/C-kern!proglang!automat.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o \
- $(ObjectDir_Release)/C-kern!string!textpos.c.o \
- $(ObjectDir_Release)/C-kern!string!cstring.c.o \
- $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
- $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
- $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
+ $(ObjectDir_Release)/C-kern!string!textpos.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
+ $(ObjectDir_Release)/C-kern!string!utf8.c.o \
+ $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
- $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
- $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
- $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
+ $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
- $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!task!synccond.c.o \
- $(ObjectDir_Release)/C-kern!test!perftest.c.o \
+ $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
+ $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!test!unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Release)/C-kern!test!unittest.c.o \
- $(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o \
+ $(ObjectDir_Release)/C-kern!test!perftest.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o \
+ $(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o \
  $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o
 
 $(Target_Debug): $(Objects_Debug)
@@ -330,52 +332,58 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
@@ -384,31 +392,25 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
@@ -423,31 +425,31 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
 $(ObjectDir_Debug)/C-kern!ds!link.c.o: C-kern/ds/link.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
+$(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o: C-kern/ds/inmem/exthash.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
@@ -456,10 +458,10 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+$(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+$(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c
@@ -468,61 +470,61 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatri
 $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!nodeoffset.c.o: C-kern/ds/typeadapt/nodeoffset.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!gethash.c.o: C-kern/ds/typeadapt/gethash.c
+$(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!nodeoffset.c.o: C-kern/ds/typeadapt/nodeoffset.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!gethash.c.o: C-kern/ds/typeadapt/gethash.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!err!errornr.c.o: C-kern/err/errornr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
+$(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
+$(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+$(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
+$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
@@ -534,40 +536,25 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logw
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!hash!crc7.c.o: C-kern/math/hash/crc7.c
+$(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
+$(ObjectDir_Debug)/C-kern!math!hash!crc16.c.o: C-kern/math/hash/crc16.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
+$(ObjectDir_Debug)/C-kern!math!hash!crc7.c.o: C-kern/math/hash/crc7.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!factorise.c.o: C-kern/math/int/factorise.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o: C-kern/math/int/sqroot.c
+$(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerobyte.c
@@ -576,40 +563,58 @@ $(ObjectDir_Debug)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerobyt
 $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o: C-kern/math/int/sqroot.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!fpu.c.o: C-kern/math/fpu.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o: C-kern/math/float/decimal.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!memory!memvec.c.o: C-kern/memory/memvec.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!memstream.c.o: C-kern/memory/memstream.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
+$(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
@@ -630,49 +635,49 @@ $(ObjectDir_Debug)/C-kern!proglang!automat.c.o: C-kern/proglang/automat.c
 $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
+$(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
+$(ObjectDir_Debug)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+$(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+$(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
@@ -681,13 +686,13 @@ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
+$(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c
@@ -696,52 +701,58 @@ $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittes
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
+$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
+$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o: C-kern/platform/Linux/io/pseudoterm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!pipe.c.o: C-kern/platform/Linux/io/pipe.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o: C-kern/platform/Linux/io/filepath.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!sercom.c.o: C-kern/platform/Linux/io/sercom.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
@@ -750,31 +761,25 @@ $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+$(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
@@ -789,31 +794,31 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
 $(ObjectDir_Release)/C-kern!ds!link.c.o: C-kern/ds/link.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
+$(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!heap.c.o: C-kern/ds/inmem/heap.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o: C-kern/ds/inmem/exthash.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
@@ -822,10 +827,10 @@ $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+$(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+$(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c
@@ -834,61 +839,61 @@ $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciat
 $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!typeadapt!nodeoffset.c.o: C-kern/ds/typeadapt/nodeoffset.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!typeadapt!gethash.c.o: C-kern/ds/typeadapt/gethash.c
+$(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+$(ObjectDir_Release)/C-kern!ds!typeadapt!nodeoffset.c.o: C-kern/ds/typeadapt/nodeoffset.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!gethash.c.o: C-kern/ds/typeadapt/gethash.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
+$(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!err!errornr.c.o: C-kern/err/errornr.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
+$(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
+$(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+$(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
+$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
@@ -900,40 +905,25 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/lo
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!hash!crc7.c.o: C-kern/math/hash/crc7.c
+$(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
+$(ObjectDir_Release)/C-kern!math!hash!crc16.c.o: C-kern/math/hash/crc16.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
+$(ObjectDir_Release)/C-kern!math!hash!crc7.c.o: C-kern/math/hash/crc7.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!factorise.c.o: C-kern/math/int/factorise.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!sqroot.c.o: C-kern/math/int/sqroot.c
+$(ObjectDir_Release)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerobyte.c
@@ -942,40 +932,58 @@ $(ObjectDir_Release)/C-kern!math!int!findzerobyte.c.o: C-kern/math/int/findzerob
 $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!math!int!sqroot.c.o: C-kern/math/int/sqroot.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!fpu.c.o: C-kern/math/fpu.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!float!decimal.c.o: C-kern/math/float/decimal.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!memory!memvec.c.o: C-kern/memory/memvec.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!memstream.c.o: C-kern/memory/memstream.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!memory!atomic.c.o: C-kern/memory/atomic.c
+$(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
@@ -996,49 +1004,49 @@ $(ObjectDir_Release)/C-kern!proglang!automat.c.o: C-kern/proglang/automat.c
 $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
+$(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!strsearch.c.o: C-kern/string/strsearch.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
+$(ObjectDir_Release)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+$(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
+$(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
@@ -1047,13 +1055,13 @@ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
+$(ObjectDir_Release)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!mm!err_macros.c.o: C-kern/test/mm/err_macros.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c

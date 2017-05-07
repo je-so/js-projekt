@@ -1201,10 +1201,10 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
    TEST(x11win->state == x11window_state_SHOWN);
 
    // TEST setpos_x11window, frame_x11window, geometry_x11window, pos_x11window, size_x11window
-   for (int i = 0; i < 3; ++i) {
+   for (unsigned i = 0; i < 3; ++i) {
       WAITFOR(x11win->display, 1, false) ;
-      int posx = 150 + 10*i ;
-      int posy = 200 + 5*i ;
+      int posx = (int) (150u + 10u*i);
+      int posy = (int) (200u + 5u*i);
       TEST(0 == setpos_x11window(x11win, posx, posy)) ;
       for (unsigned wi = 0; wi < 10; ++wi) {
          // wait until all ConfigureNotify messages has been processed

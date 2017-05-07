@@ -13,7 +13,7 @@ CFlags        = -MMD -std=gnu1x $(warnings_on)
 LFlags        = 
 CFlags_Debug  = -g -fstack-protector-all $(cflags)
 LFlags_Debug  = -g $(lflags)
-CFlags_Release= -O2 -fno-stack-protector $(cflags)
+CFlags_Release= -O2 -fno-strict-aliasing -fno-stack-protector $(cflags)
 LFlags_Release= -O2 $(lflags)
 Libs          =
 Libpath       =

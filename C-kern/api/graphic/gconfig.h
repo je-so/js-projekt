@@ -105,7 +105,7 @@ typedef enum gconfig_e {
  * gconfig_value_CONFORMANT_ES2_BIT    - Config supports creating OpenGL ES 2.0 graphic contexts.
  * gconfig_value_CONFORMANT_OPENGL_BIT - Config supports creating OpenGL graphic contexts.
  * */
-enum gconfig_value_e {
+typedef enum gconfig_value_e {
    gconfig_value_TYPE_PBUFFER_BIT = 1,
    gconfig_value_TYPE_PIXMAP_BIT  = 2,
    gconfig_value_TYPE_WINDOW_BIT  = 4,
@@ -113,9 +113,7 @@ enum gconfig_value_e {
    gconfig_value_CONFORMANT_OPENVG_BIT = 2,
    gconfig_value_CONFORMANT_ES2_BIT    = 4,
    gconfig_value_CONFORMANT_OPENGL_BIT = 8,
-};
-
-typedef enum gconfig_value_e gconfig_value_e;
+} gconfig_value_e;
 
 
 // section: Functions

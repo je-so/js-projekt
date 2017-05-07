@@ -22,6 +22,7 @@
 #define CKERN_GRAPHIC_GCONTEXT_HEADER
 
 // forward
+struct opengl_context_t;
 struct display_t;
 struct gconfig_t;
 struct surface_t;

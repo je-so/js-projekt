@@ -233,15 +233,13 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_FREE;
    osdisplay_t       osdisp = osdisplay_FREE;
-   struct sys_display_t * sysdisp = sysdisplay_osdisplay(&osdisp);
    struct sys_display_t * freesysdisp = sysdisplay_osdisplay(&osdisp);
 
    TEST(0 == init_osdisplay(&osdisp, 0));
-   sysdisp = sysdisplay_osdisplay(&osdisp);
+   struct sys_display_t * sysdisp = sysdisplay_osdisplay(&osdisp);
 
-   // eglInitialize followed by eglTerminate has a resource leak
-   if (test_initfree_default())     goto ONERR;
-   if (test_initfree(sysdisp, freesysdisp))  goto ONERR;
+   if (test_initfree_default()) goto ONERR;
+   if (test_initfree(sysdisp, freesysdisp)) goto ONERR;
 
    size_t    logsize;
    uint8_t * logbuffer;
@@ -249,11 +247,16 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(sysdisp, freesysdisp))  goto ONERR;
-   TRUNCATEBUFFER_ERRLOG(logsize);
+   // if (test_initfree_default()) goto ONERR; // does some additional memory mapping
+   if (test_initfree(sysdisp, freesysdisp)) goto ONERR;
 
+   // eglInitialize followed by eglTerminate has a resource leak
+   TEST(0 != same_resourceusage(&usage));
+   acceptmallocleak_resourceusage(&usage, 600);
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
+
+   TRUNCATEBUFFER_ERRLOG(logsize);
 
    TEST(0 == free_osdisplay(&osdisp));
 

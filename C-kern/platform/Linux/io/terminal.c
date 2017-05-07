@@ -1202,8 +1202,11 @@ static int test_query(void)
    TEST(0 == type_terminal(sizeof(type), type));
    size_t len = strlen((char*)type);
    TEST(0 < len && len < sizeof(type));
-   if (strcmp("xterm", (char*)type) && strcmp("linux", (char*)type)) {
-      logwarning_unittest("unknown terminal type (not xterm, linux)");
+   if (  strcmp("xterm", (char*)type) && strcmp("linux", (char*)type)
+         && strncmp("xterm-", (char*)type, 6)) {
+      char buffer[64];
+      snprintf(buffer, sizeof(buffer), "unknown terminal type '%s' (not xterm, linux)", (char*)type);
+      logwarning_unittest(buffer);
    }
 
    // TEST type_terminal: ENOBUFS

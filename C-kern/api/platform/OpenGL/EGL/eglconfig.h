@@ -20,10 +20,7 @@
 
 // forward
 struct opengl_display_t;
-
-/* typedef: struct opengl_config_t
- * Export <opengl_config_t > into global namespace. */
-typedef struct opengl_config_t * opengl_config_t ;
+struct opengl_config_t;
 
 /* typedef: struct eglconfig_t
  * Export <eglconfig_t> into global namespace. */
@@ -49,7 +46,7 @@ int unittest_platform_opengl_egl_eglconfig(void);
 
 
 /* struct: eglconfig_t
- * Contains an EGL frame buffer configuration. */
+ * Opaque type which contains an EGL frame buffer configuration. */
 typedef struct opengl_config_t * eglconfig_t;
 
 // group: lifetime

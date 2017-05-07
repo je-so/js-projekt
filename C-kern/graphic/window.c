@@ -267,9 +267,9 @@ static int test_transparentalpha(display_t * disp)
 ONERR:
    eglMakeCurrent(gl_display(disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
    if (eglcontext != EGL_NO_CONTEXT) eglDestroyContext(gl_display(disp), eglcontext);
-   free_gconfig(&gconf);
-   free_window(&top);
-   free_window(&bottom);
+   (void) free_gconfig(&gconf);
+   (void) free_window(&top);
+   (void) free_window(&bottom);
    return EINVAL;
 }
 
@@ -308,7 +308,7 @@ static int init_test_window(/*out*/window_t * win, /*out*/EGLContext * eglcontex
 
    return 0;
 ONERR:
-   free_gconfig(&gconf);
+   (void) free_gconfig(&gconf);
    return EINVAL;
 }
 
@@ -389,8 +389,8 @@ static int test_initfree(display_t * disp)
 
    return 0;
 ONERR:
-   free_gconfig(&gconf);
-   free_window(&win);
+   (void) free_gconfig(&gconf);
+   (void) free_window(&win);
    return EINVAL;
 }
 

@@ -46,8 +46,8 @@ int unittest_graphic_display(void);
 
 
 /* struct: display_t
-   Wraps the OS specific graphics display.
-   Support OpenGL / GLES. */
+ * Wraps the OS specific graphics display.
+ * Support OpenGL / GLES. */
 struct display_t {
 #if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
    x11display_t   osdisplay;
@@ -99,10 +99,7 @@ struct opengl_display_t * gl_display(const display_t * disp);
 /* function: os_display
  * Returns a pointer to a native display.
  * This function is implemented as a macro and therefore
- * returns a pointer to the real native type and not void.
- * It is possible that gl_display returns the same pointer
- * except for the type. In case of EGL as OpenGL adaption layer
- * both pointers differ. */
+ * returns a pointer to the real native type and not void. */
 void * os_display(const display_t * disp);
 
 /* function: castPos_display

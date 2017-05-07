@@ -21,7 +21,7 @@
 #define CKERN_MEMORY_WBUFFER_HEADER
 
 // forward
-struct memstream_t ;
+struct memstream_t;
 
 /* typedef: struct wbuffer_t
  * Export <wbuffer_t>. */
@@ -30,10 +30,6 @@ typedef struct wbuffer_t wbuffer_t;
 /* typedef: struct wbuffer_it
  * Export interface <wbuffer_it>.*/
 typedef struct wbuffer_it wbuffer_it;
-
-/* typedef: struct memstream_t
- * Export <memstream_t>. */
-typedef struct memstream_t memstream_t;
 
 /* variable: g_wbuffer_cstring
  * Adapt <wbuffer_t> to use <cstring_t> as buffer. */

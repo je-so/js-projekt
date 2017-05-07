@@ -93,7 +93,6 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
 {
    int err;
    int         dfd    = io_directory(dir);
-   int         dfd2   = -1;
    DIR *       sysdir = 0;
    struct stat filestat;
    size_t      rpath_offset = sys_path_MAXSIZE-1;
@@ -130,18 +129,17 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
       }
       if (PROCESS_testerrortimer(&s_directory_errtimer, &err)) {
          errno = err;
-         dfd2 = -1;
+         dfd = -1;
       } else {
-         dfd2 = openat(dfd, "..", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC);
+         dfd = openat(dfd, "..", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC);
       }
-      if (-1 == dfd2) {
+      if (-1 == dfd) {
          err = errno;
          TRACESYSCALL_ERRLOG("openat('..')", err);
          goto ONERR;
       }
-      if (sysdir && closedir(sysdir)/*closes dfd*/) {
-         close(dfd);
-         sysdir = 0;   // (sysdir == 0) ==> dfd2 will be closed
+      if (sysdir != 0 && 0 != closedir(sysdir)/*closes dfd*/) {
+         sysdir = 0;
          err = errno;
          TRACESYSCALL_ERRLOG("closedir", err);
          goto ONERR;
@@ -150,20 +148,17 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
          errno = err;
          sysdir = 0;
       } else {
-         sysdir = fdopendir(dfd2);
+         sysdir = fdopendir(dfd);
       }
       if (!sysdir) {
-         // (sysdir == 0) ==> dfd2 will be closed
          err = errno;
          TRACESYSCALL_ERRLOG("fdopendir", err);
          goto ONERR;
       }
-      dfd = dfd2;
+      struct dirent * direntry = 0;
       for (;;) {
-         struct dirent * direntry;
-         if (PROCESS_testerrortimer(&s_directory_errtimer, &err)) {
+         if (direntry == 0 && PROCESS_testerrortimer(&s_directory_errtimer, &err)) {
             errno = err;
-            direntry = 0;
          } else {
             errno = 0;
             direntry = readdir(sysdir);
@@ -206,8 +201,9 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
 ONERR:
    if (sysdir) {
       closedir(sysdir);
-   } else if (-1 != dfd2) {
-      close(dfd2);
+   }
+   if (-1 != dfd && io_directory(dir) != dfd) {
+      close(dfd);
    }
    TRACEEXIT_ERRLOG(err);
    return err;
@@ -1057,7 +1053,7 @@ static int test_query_path(void)
       GETBUFFER_ERRLOG(&logbuffer, &logsize2);
       if (!err) {
          TEST(logsize == logsize2);
-         TESTP(20 < i, "i=%d", i);
+         TESTP(15 < i, "i=%d tmp='%s'", i, tmppath);
          // reset
          free_testerrortimer(&s_directory_errtimer);
          TEST(0 == removedirectory_directory(tempdir, "1"));

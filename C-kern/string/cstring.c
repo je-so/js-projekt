@@ -367,10 +367,10 @@ static int test_changeandquery(void)
 
    // TEST printfappend_cstring: ENOMEM (does not change content in case of error)
    {  uint8_t buffer[4] = "123";
-      cstring_t cstr3 = { .size = (size_t)-2, .capacity = 1 + (size_t)-2, .chars = (&buffer[3] - (size_t)-2) };
+      cstring_t cstr3 = { .size = (size_t)-2, .capacity = 1 + (size_t)-2, .chars = (uint8_t*) ((uintptr_t)&buffer[3] - (size_t)-2) };
       TEST(&buffer[3] == (cstr3.chars + cstr3.size));
       TEST(ENOMEM == printfappend_cstring(&cstr3, "XX"));
-      TEST(cstr3.size           == (size_t)-2);
+      TEST(cstr3.size     == (size_t)-2);
       TEST(cstr3.capacity == 1 + (size_t)-2);
       TEST(0 == strcmp((char*)buffer, "123"));
    }

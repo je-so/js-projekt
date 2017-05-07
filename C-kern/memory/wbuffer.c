@@ -91,7 +91,8 @@ ONERR:
 static size_t size_cstring_wbuffer(void* impl, const memstream_t* memstr)
 {
    cstring_t* cstr = impl;
-   return (size_t) (memstr->next - addr_cstring(cstr));
+   size_t size = (size_t) (memstr->next - addr_cstring(cstr));
+   return size;
 }
 
 /* function: alloc_memblock_wbuffer

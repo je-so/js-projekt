@@ -1,80 +1,80 @@
-[1: 1457363976.585368s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:289
+[1: 1483710575.680844s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:285
 System call 'mkdtemp' failed with error 36
 Exit function with
 Error 36 - File name too long
-[1: 1457363976.585401s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:308
+[1: 1483710575.680894s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:304
 Exit function with
 Error 36 - File name too long
-[1: 1457363976.585422s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:308
+[1: 1483710575.680934s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:304
 Exit function with
 Error 2 - No such file or directory
-[1: 1457363976.585446s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:308
+[1: 1483710575.680972s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:304
 Exit function with
 Error 3 - No such process
-[1: 1457363976.585466s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:289
+[1: 1483710575.681010s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:285
 System call 'mkdtemp' failed with error 4
 Exit function with
 Error 4 - Interrupted system call
-[1: 1457363976.585491s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:289
+[1: 1483710575.681048s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:285
 System call 'mkdtemp' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1457363976.585560s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:308
+[1: 1483710575.681136s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:304
 Exit function with
 Error 6 - No such device or address
-[1: 1457363976.585624s]
-newtemp_directory() C-kern/platform/Linux/io/directory.c:308
+[1: 1483710575.681223s]
+newtemp_directory() C-kern/platform/Linux/io/directory.c:304
 Exit function with
 Error 7 - Argument list too long
-[1: 1457363976.591179s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:447
+[1: 1483710575.688497s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:443
 System call 'ftruncate(file_path, file_length)' failed with error 22
 file_path=123
 file_length=18446744073709551615
 Exit function with
 Error 22 - Invalid argument
-[1: 1457363976.591222s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:447
+[1: 1483710575.688557s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:443
 System call 'ftruncate(file_path, file_length)' failed with error 27
 file_path=123
 file_length=9223372036854775807
 Exit function with
 Error 27 - File too large
-[1: 1457363976.591245s]
-new_directory() C-kern/platform/Linux/io/directory.c:235
+[1: 1483710575.688588s]
+new_directory() C-kern/platform/Linux/io/directory.c:231
 System call 'openat' failed with error 2
 path=.....
 Exit function with
 Error 2 - No such file or directory
-[1: 1457363976.591250s]
-new_directory() C-kern/platform/Linux/io/directory.c:235
+[1: 1483710575.688597s]
+new_directory() C-kern/platform/Linux/io/directory.c:231
 System call 'openat' failed with error 20
 path=/tmp/test1.123456/file_000000
 Exit function with
 Error 20 - Not a directory
-[1: 1457363976.591258s]
-makedirectory_directory() C-kern/platform/Linux/io/directory.c:413
+[1: 1483710575.688610s]
+makedirectory_directory() C-kern/platform/Linux/io/directory.c:409
 System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed with error 13
 mkdiratfd=10
 directory_path=XXXXXXXX.test
 Exit function with
 Error 13 - Permission denied
-[1: 1457363976.591264s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:438
+[1: 1483710575.688619s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:434
 System call 'openat(openatfd, file_path)' failed with error 13
 openatfd=10
 file_path=XXXXXXXX.test
 Exit function with
 Error 13 - Permission denied
-[1: 1457363976.591271s]
-removedirectory_directory() C-kern/platform/Linux/io/directory.c:477
+[1: 1483710575.688634s]
+removedirectory_directory() C-kern/platform/Linux/io/directory.c:473
 System call 'unlinkat(unlinkatfd, directory_path)' failed with error 39
 unlinkatfd=10
 directory_path=..

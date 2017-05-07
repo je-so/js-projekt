@@ -138,8 +138,8 @@ static int test_initfree(display_t * disp)
 
    return 0;
 ONERR:
-   free_gconfig(&conf);
-   free_gcontext(&cont, disp);
+   (void) free_gconfig(&conf);
+   (void) free_gcontext(&cont, disp);
    return EINVAL;
 }
 
@@ -184,8 +184,8 @@ static int test_query(display_t * disp)
 
    return 0;
 ONERR:
-   free_gconfig(&conf);
-   free_gcontext(&cont, disp);
+   (void) free_gconfig(&conf);
+   (void) free_gcontext(&cont, disp);
    return EINVAL;
 }
 
