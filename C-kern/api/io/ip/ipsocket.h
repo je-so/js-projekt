@@ -58,7 +58,7 @@ int unittest_io_ip_ipsocket(void);
 /* function: init_ipsocket
  * Creates a new unconnected UDP network communication endpoint.
  * If localaddr does not describe an <ipprotocol_UDP> address EPROTONOSUPPORT is returned.
- * Unconnected sockets can be used to send and receive to/from a many network peers. */
+ * Unconnected sockets can be used to send and receive to/from many network peers. */
 int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr);
 
 /* function: initconnect_ipsocket

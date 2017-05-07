@@ -166,6 +166,7 @@ static int run_all_test(maincontext_t * maincontext)
 //{ math unittest
       RUN(unittest_math_fpu);
       RUN(unittest_math_float_decimal);
+      RUN(unittest_math_hash_crc16);
       RUN(unittest_math_hash_crc32);
       RUN(unittest_math_hash_crc7);
       RUN(unittest_math_hash_sha1);

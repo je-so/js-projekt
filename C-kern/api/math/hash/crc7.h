@@ -34,12 +34,12 @@
    > Ergebnis:        0110011
 
    Diese Art der Berechnung kann für jedes Bit einzeln berechnet werden, da
-   nachfolgende Bits zuerst als 0 angenommen werdem und bei bekanntwerden ihres
-   Wertes dieser mittels xor-dazuaddiert wird.
+   nachfolgende Bits zuerst als 0 angenommen werdem und bei Bekanntwerden ihres
+   Wertes dieser mittels Xor dazuaddiert wird.
 
    Dies kann man sich zunutze machen und für alle Bytes die Ergebnisse der Division
-   in einer Tabelle ablegen. Jedes weitere Eingabebyte wird dann einfach hinzuaddiert
-   mittels xor.
+   in einer Tabelle ablegen. Jedes weitere Eingabebyte wird dann einfach mittels Xor
+   hinzuaddiert.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -77,14 +77,14 @@ int unittest_math_hash_crc7(void);
  * Usage:
  * Mit <init_crc7> wird der Typ initialisiert.
  * Mit <update_crc7> wird die Prüfsumme komplett berechnet oder für den nächsten Datenblock weitergeführt.
- * Mit <value_crc37> lest man die bislang berechnete CRC-7 Prüfsumme.
+ * Mit <value_crc7> liest man die bislang berechnete CRC-7 Prüfsumme.
  *
  * */
 typedef struct crc7_t {
    // group: private
    /* variable: value
-    * The crc32 value calculated from a sequence of bytes.
-    * The value will be updated every time <update_crc32> is called. */
+    * Der über einen Datenstrom berechnete CRC-7 Wert multipliziert mit 2.
+    * Der Wert wird mit Aufruf der Funktion <update_crc7> angepasst. */
    uint8_t value;
 } crc7_t;
 

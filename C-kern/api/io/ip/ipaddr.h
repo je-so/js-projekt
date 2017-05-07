@@ -163,7 +163,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
 /* function: newany_ipaddr
  * Create a new internet address suitable to listen on any network interface.
  * Same as <new_ipaddr> except that numeric_addr is set to "0.0.0.0" or "::" depending on the protocol version.
- * If you do not longer need it do not forget to free it with <delete_ipaddr>. */
+ * If you do no longer need it do not forget to free it with <delete_ipaddr>. */
 int newany_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_t port, ipversion_e version);
 
 /* function: newloopback_ipaddr

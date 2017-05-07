@@ -95,7 +95,7 @@ static uint8_t slow_crc7(size_t n, const uint8_t data[n])
 
    for (size_t i = 0; i < n; i++) {
       crc ^= data[i];
-      for (uint8_t bit = 0; bit < 8; ++bit) {
+      for (unsigned bit = 0; bit < 8; ++bit) {
          if ((crc & 0x80)) {
             crc ^= 0x09;
          }
@@ -164,7 +164,7 @@ static int test_update(void)
       buffer[i] = (uint8_t)i;
    }
 
-   // TEST update_crc32: alle Byte-Werte
+   // TEST update_crc7: alle Byte-Werte
    for (size_t i = 0; i < lengthof(buffer); ++i) {
       const uint8_t C = slow_crc7(i+1, buffer);
       init_crc7(&crc);
