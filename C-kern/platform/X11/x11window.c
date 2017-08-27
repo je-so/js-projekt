@@ -146,7 +146,7 @@ int initvid_x11window(
       struct x11display_t *         x11disp,
       uint32_t                      screennr,
       const struct x11window_evh_t* eventhandler,
-      /*(X11) VisualID*/uint32_t    config_visualid,
+      /*(X11) VisualID*/xid_t       config_visualid,
       const struct windowconfig_t*  winconf_attrib
       )
 {
@@ -296,13 +296,13 @@ int init_x11window(/*out*/x11window_t * x11win, x11display_t * x11disp, uint32_t
       if (err) goto ONERR;
    }
 
-   err = initvid_x11window(x11win, x11disp, screennr, eventhandler, visualid, winconf_attrib) ;
+   err = initvid_x11window(x11win, x11disp, screennr, eventhandler, visualid, winconf_attrib);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -818,7 +818,7 @@ static int test_initfree(x11display_t * x11disp)
    testwindow_evh_t  evhimpl = x11window_evh_INIT(_testwindow);
    x11window_t *     x11win  = &testwin.x11win ;
    uint32_t          snr     = defaultscreennr_x11display(x11disp);
-   uint32_t          syswin ;
+   xid_t             syswin ;
    x11window_t  *    object ;
 
    static_assert(x11window_state_DESTROYED == 0, "x11window_FREE and free_x11window sets x11window_t.state to x11window_state_DESTROYED") ;
@@ -921,7 +921,7 @@ ONERR:
    return EINVAL ;
 }
 
-static int compare_visual(x11display_t * x11disp, uint32_t screennr, uint32_t visualid, int minrgbbits, int minalphabits, bool isDouble)
+static int compare_visual(x11display_t * x11disp, uint32_t screennr, xid_t visualid, int minrgbbits, int minalphabits, bool isDouble)
 {
    XVisualInfo             vinfo_pattern = { .visualid = visualid, .screen = (int32_t) screennr };
    int                     vinfo_length  = 0 ;

@@ -19,6 +19,7 @@
 #include "C-kern/api/test/perftest.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/pipe.h"
+#include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/platform/task/thread.h"
@@ -31,6 +32,31 @@
 #include "C-kern/api/memory/atomic.h"
 #endif
 
+// section: perftest_instance_t
+
+static void init_perftestinstance(perftest_instance_t* pinst, perftest_t* ptest, perftest_process_t* proc, uint32_t tid)
+{
+   pinst->thread= 0;
+   pinst->proc= proc;
+   pinst->ptest= ptest;
+   pinst->tid= tid;
+   pinst->err= 0;
+   pinst->usec= 0;
+   pinst->nrops= 1;
+   pinst->addr= 0;
+   pinst->size= 0;
+}
+
+// section: perftest_process_t
+
+static void init_perftestprocess(perftest_process_t* proc, uint16_t pid, uint16_t nrthread_per_process, perftest_instance_t* pinst)
+{
+   proc->process=  sys_process_FREE;
+   proc->pid=      pid;
+   proc->nrthread= nrthread_per_process;
+   proc->err=      0;
+   proc->tinst =   pinst;
+}
 
 // section: perftest_t
 
@@ -52,71 +78,33 @@ static test_errortimer_t s_perftest_errtimer = test_errortimer_FREE;
 static test_errortimer_t s_perftest_errtimer2 = test_errortimer_FREE;
 #endif
 
-// group: communication-helper
-
-static int readsignal_perftest(perftest_t* ptest, bool isprepare)
-{
-   uint8_t isabort;
-   int err = readall_pipe(cast_pipe(&ptest->pipe[2*isprepare], &ptest->pipe[2*isprepare+1]), 1, &isabort, TIMEOUT_PERFTEST);
-   return err ? err : isabort ? ECANCELED : 0;
-}
-
-static int writesignal_perftest(perftest_t* ptest, bool isprepare, size_t nrsignal, uint8_t isabort)
-{
-   int err;
-   uint8_t buffer[256];
-   memset(buffer, isabort, sizeof(buffer));
-
-   for (; nrsignal > sizeof(buffer); nrsignal -= sizeof(buffer)) {
-      err = writeall_pipe(cast_pipe(&ptest->pipe[2*isprepare], &ptest->pipe[2*isprepare+1]), sizeof(buffer), buffer, TIMEOUT_PERFTEST);
-      if (err) return err;
-   }
-
-   err = writeall_pipe(cast_pipe(&ptest->pipe[2*isprepare], &ptest->pipe[2*isprepare+1]), nrsignal, buffer, TIMEOUT_PERFTEST);
-   return err;
-}
-
-static int readready_perftest(perftest_t* ptest)
-{
-   uint8_t iserror;
-   int err = readall_pipe(cast_pipe(&ptest->pipe[4], &ptest->pipe[5]), 1, &iserror, TIMEOUT_PERFTEST);
-   return err ? err : iserror ? ECANCELED : 0;
-}
-
-static int writeready_perftest(perftest_t* ptest, uint8_t iserror)
-{
-   return writeall_pipe(cast_pipe(&ptest->pipe[4], &ptest->pipe[5]), 1, &iserror, TIMEOUT_PERFTEST);
-}
-
 // group: instance-helper
 
 static int threadmain_perftest(void * arg)
 {
+   int err= 0;
    perftest_instance_t * tinst = arg;
    perftest_t *          ptest = tinst->ptest;
    bool             isprepared = false;
 
-   if (0 != writeready_perftest(ptest, 0/*OK*/)) goto ONERR;
-
    // prepare test
-
-   // continue or abort ?
-   if (0 != readsignal_perftest(ptest, true)) goto ONERR;
-
    if (ptest->iimpl->prepare) {
-      if (ptest->iimpl->prepare(tinst)) goto ONERR;
+      err= ptest->iimpl->prepare(tinst);
+      if (err) goto ONERR;
    }
    isprepared = true;
 
-   if (0 != writeready_perftest(ptest, 0/*OK*/)) goto ONERR;
+   // wait for start or abort
+   add_atomicint(&ptest->nrprepared_thread, 1);
+   while (!ptest->startsignal && !ptest->aborterr) {
+      pthread_yield();
+   }
+   if (ptest->aborterr) goto ONERR;
 
    // run test
-
-   // continue or abort ?
-   if (0 != readsignal_perftest(ptest, false)) goto ONERR;
-
    if (ptest->iimpl->run) {
-      if (ptest->iimpl->run(tinst)) goto ONERR;
+      err= ptest->iimpl->run(tinst);
+      if (err) goto ONERR;
    }
 
    timevalue_t tv;
@@ -126,68 +114,73 @@ static int threadmain_perftest(void * arg)
 
    if (ptest->iimpl->unprepare) {
       isprepared = false;
-      if (ptest->iimpl->unprepare(tinst)) goto ONERR;
+      err= ptest->iimpl->unprepare(tinst);
    }
 
-   return 0;
 ONERR:
    if (isprepared && ptest->iimpl->unprepare) {
       ptest->iimpl->unprepare(tinst);
    }
-   writeready_perftest(ptest, 1/*iserror*/);
    FLUSHBUFFER_ERRLOG();
-   return EINVAL;
+   if (err) {
+      tinst->err= err;
+      cmpxchg_atomicint(&ptest->aborterr, 0, err);
+   }
+   return err;
 }
 
 static int processmain_perftest(void * arg)
 {
    int err;
+   int iserr=0;
    perftest_process_t *  proc = arg;
    perftest_instance_t * tinst = proc->tinst;
    perftest_t *          ptest = tinst->ptest;
-   uint16_t               ti = 0;
-
-   // continue or abort ?
-   if (0 != readsignal_perftest(ptest, false)) goto ONERR;
+   uint16_t              ti;
 
    // start instances
 
-   for (; ti < proc->nrthread; ++ti) {
+   for (ti= 0; ti< proc->nrthread && !ptest->aborterr; ++ti) {
       if (! PROCESS_testerrortimer(&s_perftest_errtimer2, &err)) {
-         err = new_thread(&tinst[ti].thread, &threadmain_perftest, &tinst[ti]);
+         err= new_thread(&tinst[ti].thread, &threadmain_perftest, &tinst[ti]);
       }
-      if (err) goto ONERR;
+      if (err) {
+         iserr= err;
+         cmpxchg_atomicint(&ptest->aborterr, 0, err);
+         break;
+      }
    }
 
-   int iserr = 0;
-   for (; ti > 0; --ti) {
-      if (join_thread(tinst[ti-1].thread)) goto ONERR;
-      if (returncode_thread(tinst[ti-1].thread)) iserr = 1;
-      if (delete_thread(&tinst[ti-1].thread)) goto ONERR;
+   add_atomicint(&ptest->nrprepared_process, 1);
+
+   for (; ti> 0; --ti) {
+      err= join_thread(tinst[ti-1].thread);
+      iserr=  iserr?iserr:err;
+      err= returncode_thread(tinst[ti-1].thread);
+      iserr=  iserr?iserr:err;
+      err= delete_thread(&tinst[ti-1].thread);
+      iserr=  iserr?iserr:err;
    }
 
-   if (iserr) goto ONERR;
+   err= iserr;
 
-   return 0;
-ONERR:
-   writeready_perftest(ptest, 1/*iserror*/);
-   writesignal_perftest(ptest, true, ti, 1/*isabort*/);
-   while (ti > 0) {
-      delete_thread(&tinst[--ti].thread);
+   if (err) {
+      proc->err= err;
+      cmpxchg_atomicint(&ptest->aborterr, 0, err);
    }
-   return EINVAL;
+   return err;
 }
 
 // group: lifetime
 
-int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref stored*/, uint16_t nrprocess/*>0*/, uint16_t nrthread_per_process/*>0*/)
+int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref stored*/, uint16_t nrprocess/*>0*/, uint16_t nrthread_per_process/*>0*/, void* shared_addr, size_t shared_size)
 {
    int err;
-   vmpage_t vmpage;
-   uint16_t initstate = 0;
-   uint16_t pid_started = 0;
+   vmpage_t vmpage= vmpage_FREE;
+   perftest_t* newptest = 0;
+   uint16_t nrprocess_started = 0;
    uint32_t nrinstance = (uint32_t)nrprocess * nrthread_per_process;
-   size_t   size = sizeof(perftest_t) + nrinstance * (sizeof(perftest_process_t) + sizeof(perftest_instance_t));
+   size_t   size = sizeof(perftest_t) + (size_t)nrprocess * sizeof(perftest_process_t) + nrinstance * sizeof(perftest_instance_t);
 
    if (0 == nrprocess || 0 == nrthread_per_process || MAX_NRINSTANCE < nrinstance) {
       err = EINVAL;
@@ -198,67 +191,59 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
       err = init2_vmpage(&vmpage, size, accessmode_RDWR_SHARED);
    }
    if (err) goto ONERR;
-   ++ initstate; // 1
 
    // init newptest
-   perftest_t* newptest = (perftest_t*) vmpage.addr;
+   newptest = (perftest_t*) vmpage.addr;
    perftest_process_t* proc = (perftest_process_t*) (vmpage.addr + sizeof(perftest_t) + nrinstance * sizeof(perftest_instance_t));
-   memset(newptest, 0, size);
-   newptest->pagesize = vmpage.size;
+   newptest->pagesize= vmpage.size;
    newptest->iimpl = iimpl;
-   newptest->nrinstance = nrinstance;
-   newptest->nrprocess  = nrprocess;
-   newptest->nrthread_per_process = nrthread_per_process;
-   newptest->proc = proc;
-   // init array tinst
-   for (uint32_t tid = 0, throffset=(uint16_t)(nrthread_per_process-1); tid < nrinstance; ++tid, --throffset) {
-      newptest->tinst[tid].proc  = proc;
-      newptest->tinst[tid].ptest = newptest;
-      newptest->tinst[tid].tid   = tid;
-      newptest->tinst[tid].nrops = 1;
-      if (0 == throffset) {
-         throffset = nrthread_per_process;
-         ++ proc;
-      }
-   }
-   // init array proc
-   proc = newptest->proc;
+   newptest->nrinstance= nrinstance;
+   newptest->nrprocess= nrprocess;
+   newptest->nrthread_per_process= nrthread_per_process;
+   newptest->aborterr= 0;
+   newptest->nrprepared_process= 0;
+   newptest->nrprepared_thread= 0;
+   newptest->startsignal= 0;
+   // newptest->start_time // set before start
+   newptest->shared_addr= shared_addr;
+   newptest->shared_size= shared_size;
+   newptest->proc= proc;
+
+   // init every process
+   uint32_t tid = 0;
    for (uint16_t pid = 0; pid < nrprocess; ++pid, ++proc) {
-      proc->pid = pid;
-      proc->nrthread = nrthread_per_process;
-      proc->tinst = &newptest->tinst[pid * nrthread_per_process];
-   }
-
-   // init pipes
-
-   for (unsigned i = 0; i < lengthof(newptest->pipe); i += 2) {
-      if (! PROCESS_testerrortimer(&s_perftest_errtimer, &err)) {
-         err = init_pipe(cast_pipe(&newptest->pipe[i], &newptest->pipe[i+1]));
+      init_perftestprocess(proc, pid, nrthread_per_process, &newptest->tinst[tid]);
+      // init every instance
+      for (uint16_t nrthread=0; nrthread<nrthread_per_process; ++nrthread, ++tid) {
+         init_perftestinstance(&newptest->tinst[tid], newptest, proc, tid);
       }
-      if (err) goto ONERR;
-      ++ initstate; // 2,3,4
    }
 
-   // start process (which call prepare for every tinstance)
+   // start processes (which call prepare for every tinstance)
 
    proc = newptest->proc;
-   for (; pid_started < nrprocess; ++pid_started, ++proc) {
+   for (; nrprocess_started < nrprocess; ++nrprocess_started, ++proc) {
       if (! PROCESS_testerrortimer(&s_perftest_errtimer, &err)) {
          process_stdio_t stdfd = process_stdio_INIT_INHERIT;
          err = init_process(&proc->process, &processmain_perftest, proc, &stdfd);
       }
       if (err) goto ONERR;
    }
-   err = writesignal_perftest(newptest, false, nrprocess, 0/*OK*/);
-   if (err) goto ONERR;
-   ++ initstate; // 5
 
    // wait for signal of started threads (perftest_instance_t)
 
-   for (uint16_t tid = 0; tid < nrinstance; ++tid) {
-      err = readready_perftest(newptest);
-      (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err);
-      if (err) goto ONERR;
+   while (newptest->nrprepared_process< nrprocess || newptest->nrprepared_thread< nrinstance) {
+      if (newptest->aborterr) goto ONERR;
+      sleepms_thread(5);
+      for (uint16_t pid = 0; pid < nrprocess; ++pid, ++proc) {
+         process_state_e state;
+         err= state_process(&newptest->proc[pid].process, &state);
+         if (err) goto ONERR;
+         if (state!= process_state_RUNNABLE) {
+            err= ECANCELED;
+            goto ONERR;
+         }
+      }
    }
 
    // set out param
@@ -266,26 +251,16 @@ int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref s
 
    return 0;
 ONERR:
-   switch (initstate) {
-   case 5:  // abort threads (started processes wait for completion)
-            writesignal_perftest(newptest, true, nrinstance, 1/*isabort*/);
-
-   case 4:  // abort pid_started processes
-            writesignal_perftest(newptest, false, nrprocess, 1/*isabort*/);
-            proc = newptest->proc;
-            for (uint16_t pid = 0; pid < pid_started; ++pid, ++proc) {
-               (void) free_process(&proc->process);
-            }
-            static_assert(lengthof(newptest->pipe) == 6, "free alle pipes");
-            free_pipe(cast_pipe(&newptest->pipe[4], &newptest->pipe[5]));
-            /*continue at following case*/
-   case 3:  free_pipe(cast_pipe(&newptest->pipe[2], &newptest->pipe[3]));
-            /*continue at following case*/
-   case 2:  free_pipe(cast_pipe(&newptest->pipe[0], &newptest->pipe[1]));
-            /*continue at following case*/
-   case 1:  free_vmpage(&vmpage);
-            /*continue at following case*/
-   default: break;
+   if (! isfree_vmpage(&vmpage)) {
+      cmpxchg_atomicint(&newptest->aborterr, 0, err);
+      err= newptest->aborterr;
+      proc = newptest->proc;
+      for (uint16_t pid = 0; pid < nrprocess_started; ++pid, ++proc) {
+         process_result_t result;
+         (void) wait_process(&proc->process, &result);
+         (void) free_process(&proc->process);
+      }
+      free_vmpage(&vmpage);
    }
    TRACEEXIT_ERRLOG(err);
    return err;
@@ -304,12 +279,6 @@ int delete_perftest(perftest_t** ptest)
 
       for (unsigned i = 0; i < delobj->nrprocess; ++i) {
          err2 = free_process(&delobj->proc[i].process);
-         (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err2);
-         if (err2) err = err2;
-      }
-
-      for (unsigned i = 0; i < lengthof(delobj->pipe); i += 2) {
-         err2 = free_pipe(cast_pipe(&delobj->pipe[i], &delobj->pipe[i+1]));
          (void) PROCESS_testerrortimer(&s_perftest_errtimer, &err2);
          if (err2) err = err2;
       }
@@ -338,36 +307,27 @@ int measure_perftest(perftest_t* ptest, /*out*/uint64_t* nrops, /*out*/uint64_t*
       return EALREADY;
    }
 
-   // prepare test
-
-   err = writesignal_perftest(ptest, true, ptest->nrinstance, 0/*OK*/);
-   if (err) goto ONERR;
-
-   // wait for OK of prepare operation
-
-   for (uint16_t tid = 0; tid < ptest->nrinstance; ++tid) {
-      err = readready_perftest(ptest);
-      if (err) goto ONERR;
-   }
-
    // start test
 
    err = time_sysclock(sysclock_MONOTONIC, cast_timevalue(&ptest->start_time));
    if (err) goto ONERR;
 
-   err = writesignal_perftest(ptest, false, ptest->nrinstance, 0/*OK*/);
-   if (err) goto ONERR;
+   write_atomicint(&ptest->startsignal, 1);
 
    // wait for end of instances
 
+   int err2= 0;
    for (unsigned i = 0; i < ptest->nrprocess; ++i) {
       process_result_t result;
       err = wait_process(&ptest->proc[i].process, &result);
-      if (err) goto ONERR;
+      err2= err2?err2:err;
       if (process_state_TERMINATED != result.state || 0 != result.returncode) {
-         err = ECANCELED;
-         goto ONERR;
+         err2= err2?err2:ECANCELED;
       }
+   }
+   if (err2) {
+      err= err2;
+      goto ONERR;
    }
 
    // calculate time
@@ -387,7 +347,6 @@ int measure_perftest(perftest_t* ptest, /*out*/uint64_t* nrops, /*out*/uint64_t*
 
    return 0;
 ONERR:
-   writesignal_perftest(ptest, false, ptest->nrinstance, 1/*isabort*/);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -397,10 +356,8 @@ int exec_perftest(perftest_it* iimpl, void* shared_addr, size_t shared_size, uin
    int err;
    perftest_t* ptest;
 
-   err = new_perftest(&ptest, iimpl, nrprocess, nrthread_per_process);
+   err = new_perftest(&ptest, iimpl, nrprocess, nrthread_per_process, shared_addr, shared_size);
    if (err) goto ONERR;
-
-   setshared_perftest(ptest, shared_addr, shared_size);
 
    err = measure_perftest(ptest, nrops, usec);
 
@@ -441,21 +398,45 @@ ONERR:
    return EINVAL;
 }
 
+static int prepare_count(perftest_instance_t* tinst)
+{
+   uint32_t* counter= sharedaddr_perftest(tinst->ptest);
+   add_atomicint(counter, 1);
+   return 0;
+}
+
+static int prepare_busfault(perftest_instance_t* tinst)
+{
+   uint32_t* tid= sharedaddr_perftest(tinst->ptest);
+   if (tinst->tid== *tid) {
+      tid=0;
+      *tid=0;
+   }
+   return 0;
+}
+
+
 static int test_initfree(void)
 {
    perftest_t * ptest = 0;
    perftest_it  iimpl = perftest_INIT(0,0,0);
+   uint32_t   * counter= 0;
+   vmpage_t     vmpage = vmpage_FREE;
+
+   // prepare
+   TEST(0 == init2_vmpage(&vmpage, sizeof(uint32_t), accessmode_RDWR_SHARED));
+   counter= (uint32_t*) vmpage.addr;
 
    // TEST new_perftest: EINVAL
-   TEST(EINVAL == new_perftest(&ptest, &iimpl, 0, 1));
-   TEST(EINVAL == new_perftest(&ptest, &iimpl, 1, 0));
-   TEST(EINVAL == new_perftest(&ptest, &iimpl, 40000, 1 + (MAX_NRINSTANCE / 40000)));
+   TEST(EINVAL == new_perftest(&ptest, &iimpl, 0, 1, 0, 0));
+   TEST(EINVAL == new_perftest(&ptest, &iimpl, 1, 0, 0, 0));
+   TEST(EINVAL == new_perftest(&ptest, &iimpl, 40000, 1 + (MAX_NRINSTANCE / 40000), 0, 0));
 
    for (unsigned p = 1; p <= 5; p += 2) {
       for (unsigned t = 1; t <= 10; t += 3) {
 
          // TEST new_perftest: 1<=nrprocess,nrthread_per_process<=5
-         TESTP(0 == new_perftest(&ptest, &iimpl, (uint16_t)p, (uint16_t)t), "p=%d t=%d", p, t);
+         TESTP(0 == new_perftest(&ptest, &iimpl, (uint16_t)p, (uint16_t)t, (void*)(uintptr_t)(p+1), (size_t)t+1), "p=%d t=%d", p, t);
          // prüfe ptest in shared Memory
          TEST(0 != ptest);
          {
@@ -463,21 +444,16 @@ static int test_initfree(void)
             TEST(ismapped_vm(&page, accessmode_RDWR_SHARED));
          }
          // prüfe Inhalt ptest
-         size_t minsize = sizeof(perftest_t)+ p*t*(sizeof(perftest_process_t) + sizeof(perftest_instance_t));
+         size_t minsize = sizeof(perftest_t)+ p*sizeof(perftest_process_t) + p*t*sizeof(perftest_instance_t);
          size_t maxsize = minsize + pagesize_vm();
          TEST(minsize <= ptest->pagesize);
          TEST(maxsize > ptest->pagesize);
          TEST(&iimpl == ptest->iimpl);
-         for (unsigned i = 0; i < lengthof(ptest->pipe); ++i) {
-            TEST(isvalid_iochannel(ptest->pipe[i]));
-         }
          TEST(p*t == ptest->nrinstance);
          TEST(p == ptest->nrprocess);
          TEST(t == ptest->nrthread_per_process);
-         TEST(0 == ptest->start_time.seconds);  // default
-         TEST(0 == ptest->start_time.nanosec); // default
-         TEST(0 == ptest->shared_addr); // default
-         TEST(0 == ptest->shared_size); // default
+         TEST(p+1 == (uintptr_t)ptest->shared_addr);
+         TEST(t+1 == ptest->shared_size);
          // prüfe Inhalt perftest_process_t
          TEST((void*)ptest->proc == (void*)&ptest->tinst[ptest->nrinstance]);
          TEST((uint8_t*)&ptest->proc[p] <= ((uint8_t*)ptest + ptest->pagesize));
@@ -507,36 +483,55 @@ static int test_initfree(void)
       }
    }
 
+   // TEST new_perftest: prepare is run
+   *counter= 0;
+   iimpl= (perftest_it)perftest_INIT(&prepare_count,0,0);
+   TEST(0 == new_perftest(&ptest, &iimpl, 5, 7, counter, 0));
+   TESTP(35 == read_atomicint(counter), "counter: %u", read_atomicint(counter));
+   TEST(0 == delete_perftest(&ptest));
+
+   // TEST new_perftest: prepare does cause a hw signal
+   for (uint32_t tid=0; tid<7*3; tid+= 4) {
+      iimpl= (perftest_it)perftest_INIT(&prepare_busfault,0,0);
+      *counter= tid;
+      TEST(ECANCELED == new_perftest(&ptest, &iimpl, 7, 3, counter, 0));
+      TEST(0 == delete_perftest(&ptest));
+   }
+
    // TEST new_perftest: Fehler in new_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
-   for (unsigned tc = 1; tc < 10; ++tc) {
+   for (unsigned tc = 1; tc < 4; ++tc) {
       const int E = (int)tc;
       init_testerrortimer(&s_perftest_errtimer, tc, E);
-      TEST(E == new_perftest(&ptest, &iimpl, 3, 1));
+      TEST(E == new_perftest(&ptest, &iimpl, 3, 1, 0, 0));
       TEST(0 == ptest);
    }
 
    // TEST new_perftest: Fehler in processmain_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
    for (unsigned tc = 1; tc <= 3; ++tc) {
-      init_testerrortimer(&s_perftest_errtimer2, tc, (int)tc);
-      TEST(ECANCELED == new_perftest(&ptest, &iimpl, 5, 3));
+      init_testerrortimer(&s_perftest_errtimer2, tc, ECANCELED);
+      TEST(ECANCELED == new_perftest(&ptest, &iimpl, 5, 3, 0, 0));
       TEST(0 == ptest);
    }
    free_testerrortimer(&s_perftest_errtimer2);
 
    // TEST delete_perftest: Fehler in delete_perftest
    iimpl = (perftest_it) perftest_INIT(0,0,0);
-   for (unsigned tc = 1; tc < 8; ++tc) {
+   for (unsigned tc = 1; tc < 5; ++tc) {
       const int E = (int)tc;
-      TEST(0 == new_perftest(&ptest, &iimpl, 3, 1));
+      TEST(0 == new_perftest(&ptest, &iimpl, 3, 1, 0, 0));
       init_testerrortimer(&s_perftest_errtimer, tc, E);
       TEST(E == delete_perftest(&ptest));
       TEST(0 == ptest);
    }
 
+   // reset
+   TEST(0 == free_vmpage(&vmpage));
+
    return 0;
 ONERR:
+   free_vmpage(&vmpage);
    delete_perftest(&ptest);
    return EINVAL;
 }
@@ -547,7 +542,7 @@ static int test_queryupdate(void)
    perftest_it  iimpl = perftest_INIT(0,0,0);
 
    // prepare
-   TEST(0 == new_perftest(&ptest, &iimpl, 1, 1));
+   TEST(0 == new_perftest(&ptest, &iimpl, 1, 1, 0, 0));
 
    // TEST sharedaddr_perftest
    for (uintptr_t i = 1; i; i <<= 1) {
@@ -586,9 +581,9 @@ ONERR:
 }
 
 typedef struct test_stats_t {
-   int count_prepare;
-   int count_run;
-   int count_unprepare;
+   volatile int count_prepare;
+   volatile int count_run;
+   volatile int count_unprepare;
    int prepare_err;
    int run_err;
    int unprepare_err;
@@ -638,14 +633,13 @@ static int test_measure(void)
    uint64_t     usec;
 
    // prepare
-   TEST(0 == init2_vmpage(&vmpage, sizeof(test_stats_t ), accessmode_RDWR_SHARED));
+   TEST(0 == init2_vmpage(&vmpage, sizeof(test_stats_t), accessmode_RDWR_SHARED));
    stats = (test_stats_t*) vmpage.addr;
 
    // TEST measure_perftest: prepare / run / unprepare werden aufgerufen
    // prepare
-   TEST(0 == new_perftest(&ptest, &iimpl, 5, 4));
    memset(stats, 0, sizeof(*stats));
-   ptest->shared_addr = stats;
+   TEST(0 == new_perftest(&ptest, &iimpl, 5, 4, stats, 0));
    // test
    TEST(0 == measure_perftest(ptest, &nrops, &usec));
    // prüfe out param
@@ -662,27 +656,24 @@ static int test_measure(void)
       TEST(ptest->tinst[i].addr  == (void*)i);
       TEST(ptest->tinst[i].size  == i);
    }
-
    // TEST measure_perftest: EALREADY (mehr al einmal aufrufen)
    TEST(EALREADY == measure_perftest(ptest, &nrops, &usec));
    // reset
    TEST(0 == delete_perftest(&ptest));
 
-   // TEST measure_perftest: Fehler in prepare
+   // TEST new_perftest: Fehler in prepare
    for (unsigned i = 0; i < 4; ++i) {
       // prepare
-      TEST(0 == new_perftest(&ptest, &iimpl, 2, 2));
       memset(stats, 0, sizeof(*stats));
       stats->prepare_err = ENOMEM;
       stats->errtid      = i;
-      ptest->shared_addr = stats;
       // test
-      TEST(ECANCELED == measure_perftest(ptest, &nrops, &usec));
+      TEST(ENOMEM == new_perftest(&ptest, &iimpl, 2, 2, stats, 0));
       // prüfe stats
-      TEST(stats->count_prepare   <= (int) ptest->nrinstance);
+      TEST(stats->count_prepare   <= 4);
       TEST(stats->count_prepare   >= 1);
       TEST(stats->count_run       == 0);
-      TEST(stats->count_unprepare <= stats->count_prepare);
+      TEST(stats->count_unprepare <  stats->count_prepare);
       // reset
       TEST(0 == delete_perftest(&ptest));
    }
@@ -690,16 +681,15 @@ static int test_measure(void)
    // TEST measure_perftest: Fehler in run
    for (unsigned i = 0; i < 4; ++i) {
       // prepare
-      TEST(0 == new_perftest(&ptest, &iimpl, 2, 2));
       memset(stats, 0, sizeof(*stats));
+      TEST(0 == new_perftest(&ptest, &iimpl, 2, 2, stats, 0));
       stats->run_err = ENOMEM;
       stats->errtid  = i;
-      ptest->shared_addr = stats;
       // test
       TEST(ECANCELED == measure_perftest(ptest, &nrops, &usec));
       // prüfe stats
       TEST(stats->count_prepare   == (int) ptest->nrinstance);
-      TEST(stats->count_run       == (int) ptest->nrinstance);
+      TESTP(1<= stats->count_run && stats->count_run<= (int) ptest->nrinstance, "i:%d run:%d unprep:%d nrinst:%d", i, stats->count_run, stats->count_unprepare, (int) ptest->nrinstance);
       TEST(stats->count_unprepare == (int) ptest->nrinstance);
       // reset
       TEST(0 == delete_perftest(&ptest));
@@ -708,16 +698,15 @@ static int test_measure(void)
    // TEST measure_perftest: Fehler in unprepare
    for (unsigned i = 0; i < 4; ++i) {
       // prepare
-      TEST(0 == new_perftest(&ptest, &iimpl, 2, 2));
       memset(stats, 0, sizeof(*stats));
+      TEST(0 == new_perftest(&ptest, &iimpl, 2, 2, stats, 0));
       stats->unprepare_err = ENOMEM;
       stats->errtid        = i;
-      ptest->shared_addr   = stats;
       // test
       TEST(ECANCELED == measure_perftest(ptest, &nrops, &usec));
       // prüfe stats
       TEST(stats->count_prepare   == (int) ptest->nrinstance);
-      TEST(stats->count_run       == (int) ptest->nrinstance);
+      TESTP(stats->count_run      <= (int) ptest->nrinstance, "i:%d run:%d unprep:%d nrinst:%d", i, stats->count_run, stats->count_unprepare, (int) ptest->nrinstance);
       TEST(stats->count_unprepare == (int) ptest->nrinstance);
       // reset
       TEST(0 == delete_perftest(&ptest));
@@ -727,16 +716,15 @@ static int test_measure(void)
    iimpl = (perftest_it) perftest_INIT(0, &run_usleep, 0);
    for (unsigned i = 1; i <= 4; ++i) {
       // prepare
-      TEST(0 == new_perftest(&ptest, &iimpl, (uint16_t)(1+(i>2)), (uint16_t)(2-i%2)));
       memset(stats, 0, sizeof(*stats));
+      TEST(0 == new_perftest(&ptest, &iimpl, (uint16_t)(1+(i>2)), (uint16_t)(2-i%2), stats, 0));
       stats->usec = 10000 + i * 1000;
-      ptest->shared_addr = stats;
       // test
       TEST(0 == measure_perftest(ptest, &nrops, &usec));
       // prüfe out param
       TEST(nrops == ptest->nrinstance);
       TEST(usec >= stats->usec);
-      TEST(usec <  stats->usec+2000);
+      TESTP(usec <  stats->usec+2000, "usec:%"PRIu64" stats:%"PRIu32, usec, stats->usec);
       // prüfe stats
       TEST(stats->count_run == (int)ptest->nrinstance);
       // reset
@@ -752,22 +740,6 @@ ONERR:
    delete_perftest(&ptest);
    free_vmpage(&vmpage);
    return EINVAL;
-}
-
-static int prepare_loop(perftest_instance_t* tinst)
-{
-   tinst->nrops = 10000000;
-   return 0;
-}
-
-static int run_loop(perftest_instance_t* tinst)
-{
-   size_t sum = 0;
-   for (size_t i = (size_t)tinst->nrops; i; ) {
-      sum += --i;
-   }
-   tinst->size = sum;
-   return 0;
 }
 
 static int test_exec(void)
@@ -809,14 +781,6 @@ static int test_exec(void)
       // prüfe stats
       TEST(stats->count_run == (int) nrinst);
    }
-
-   // TEST exec_perftest: Wiederhole 10_000_000
-   iimpl = (perftest_it) perftest_INIT(prepare_loop, &run_loop, 0);
-   TEST(0 == exec_perftest(&iimpl, stats, 0, 1, 1, &nrops, &usec));
-   uint64_t ops_per_usec1 = nrops / usec;
-   TEST(0 == exec_perftest(&iimpl, stats, 0, 1, 2, &nrops, &usec));
-   uint64_t ops_per_usec2 = nrops / usec;
-   TEST(ops_per_usec1 < ops_per_usec2); // ! multi core !
 
    // reset
    TEST(0 == free_vmpage(&vmpage));

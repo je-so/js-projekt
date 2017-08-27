@@ -18,7 +18,8 @@
 #define CKERN_PLATFORM_X11_X11DBLBUFFER_HEADER
 
 // forward
-struct x11window_t ;
+typedef uintptr_t xid_t;
+struct x11window_t;
 
 /* typedef: struct x11dblbuffer_t
  * Export <x11dblbuffer_t> into global namespace. */
@@ -45,12 +46,12 @@ struct x11dblbuffer_t {
    struct x11display_t* display;
    /* variable: sys_drawable
     * X window ID. The ID describes a drawable either of type window, backbuffer or pixmap. */
-   uint32_t             sys_drawable;
+   xid_t                sys_drawable;
    /* variable: sys_colormap
     * X window ID. The ID describes a colormap which is associated with the drawable.
     * A colormap is used to map the pixel depth of drawable to screen's pixel depth. */
-   uint32_t             sys_colormap;
-} ;
+   xid_t                sys_colormap;
+};
 
 // group: lifetime
 

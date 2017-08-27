@@ -132,6 +132,14 @@ int allocate_cstring(cstring_t* cstr, size_t capacity);
  * Cause during a possible reallocation of the buffer these arguments become invalid. */
 int append_cstring(cstring_t* cstr, size_t str_len, const char str[str_len]);
 
+/* function: set_cstring
+ * Sets content of cstr to be equal to str[0..str_len-1].
+ *
+ * Attention:
+ * It is not allowed to use parts of the buffer of cstr as arguments for this function.
+ * Cause during a possible reallocation of the buffer these arguments become invalid. */
+ int set_cstring(cstring_t* cstr, size_t str_len, const char str[str_len]);
+
 /* function: clear_cstring
  * Sets size of string to 0.
  * This function has the same result as calling <truncate_cstring> with parameter 0.

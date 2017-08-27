@@ -203,13 +203,14 @@ ONERR:
    return err ;
 }
 
-int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * hostname, ipport_t port, ipversion_e version)
+int newdnsquery2_ipaddr(/*out*/ipaddr_t ** addr/*0 supported*/, cstring_t * canonical_name/*0 supported*/, const char * hostname, ipprotocol_e protocol,ipport_t port, ipversion_e version)
 {
    int err ;
    struct addrinfo * addrinfo_list = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == (*addr), ONERR, ) ;
-   VALIDATE_INPARAM_TEST(hostname, ONERR, ) ;
+   VALIDATE_INPARAM_TEST(0== addr || 0== (*addr), ONERR, );
+   VALIDATE_INPARAM_TEST(0!= addr || 0!= canonical_name, ONERR, );
+   VALIDATE_INPARAM_TEST(hostname, ONERR, );
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
@@ -221,24 +222,41 @@ int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const cha
       goto ONERR;
    }
 
-   err = new_addrinfo(&addrinfo_list, hostname, AI_IDN|AI_IDN_ALLOW_UNASSIGNED, protocol, port, version) ;
+   err = new_addrinfo(&addrinfo_list, hostname, AI_IDN|AI_IDN_ALLOW_UNASSIGNED|(canonical_name?AI_CANONNAME:0), protocol, port, version) ;
    if (err) goto ONERR;
 
    if (addrinfo_list->ai_addrlen >= (uint16_t)-1) {
-      err = EAFNOSUPPORT ;
+      err = EAFNOSUPPORT;
       goto ONERR;
    }
 
-   err = newaddr_ipaddr(addr, (ipprotocol_e)addrinfo_list->ai_protocol, (uint16_t)addrinfo_list->ai_addrlen, addrinfo_list->ai_addr) ;
-   if (err) goto ONERR;
+   if (canonical_name) {
+      size_t len= strlen(addrinfo_list->ai_canonname?addrinfo_list->ai_canonname:"");
+      if (0== len) {
+         err= EINVAL;
+         goto ONERR;
+      }
+      err= set_cstring(canonical_name, len, addrinfo_list->ai_canonname);
+      if (err) goto ONERR;
+   }
 
-   delete_addrinfo(&addrinfo_list) ;
+   if (addr) {
+      err = newaddr_ipaddr(addr, (ipprotocol_e)addrinfo_list->ai_protocol, (uint16_t)addrinfo_list->ai_addrlen, addrinfo_list->ai_addr);
+      if (err) goto ONERR;
+   }
 
-   return 0 ;
+   delete_addrinfo(&addrinfo_list);
+
+   return 0;
 ONERR:
-   delete_addrinfo(&addrinfo_list) ;
+   delete_addrinfo(&addrinfo_list);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
+}
+
+int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * hostname, ipport_t port, ipversion_e version)
+{
+   return newdnsquery2_ipaddr(addr, 0, hostname, protocol, port, version);
 }
 
 int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr)
@@ -837,7 +855,7 @@ static int test_ipaddr(void)
    TEST(0 == ipaddr) ;
 
    // TEST newdnsquery_ipaddr
-   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "www.golem.de", 50, ipversion_4 )) ;
+   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "golem.de", 50, ipversion_4 )) ;
    TEST(0 == newdnsquery_ipaddr(&ipaddr2, ipprotocol_UDP, "::23", 50, ipversion_6 )) ;
    TEST(ipaddr) ;
    TEST(port_ipaddr(ipaddr)    == 50) ;
@@ -848,8 +866,8 @@ static int test_ipaddr(void)
    TEST( size_cstring(&name) == strlen(IP_WWW_GOLEM));
    TEST( strcmp( str_cstring(&name), IP_WWW_GOLEM) == 0);
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.golem.de"));
-   TEST(12== size_cstring(&name)) ;
+   TEST(0 == strcmp( str_cstring(&name), "golem.de"));
+   TEST(8 == size_cstring(&name)) ;
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 50) ;
    TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
@@ -1064,9 +1082,9 @@ ONERR:
 
 static int test_ipaddrlist(void)
 {
-   cstring_t         name       = cstring_INIT ;
-   ipaddr_t        * copiedaddr = 0 ;
-   ipaddr_list_t   * addrlist   = 0 ;
+   cstring_t         name       = cstring_INIT;
+   ipaddr_t        * ipaddr2    = 0;
+   ipaddr_list_t   * addrlist   = 0;
    struct addrinfo * first ;
    const ipaddr_t  * ipaddr ;
 
@@ -1198,60 +1216,44 @@ static int test_ipaddrlist(void)
    // ipversion_6 does not work with my provider
    TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.golem.de", ipprotocol_UDP, 0, ipversion_4)) ;
    // check result (UDP protocol)
-   ipaddr = next_ipaddrlist(addrlist) ;
-   TEST(0 != ipaddr) ;
+   ipaddr = next_ipaddrlist(addrlist);
+   TEST(0 != ipaddr);
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
-   TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP) ;
-   TEST(port_ipaddr(ipaddr)     == 0) ;
-   TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
+   TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP);
+   TEST(port_ipaddr(ipaddr)     == 0);
+   TEST(0 == numericname_ipaddr(ipaddr, &name));
    TEST( size_cstring(&name) == strlen(IP_WWW_GOLEM));
    TEST( strcmp(str_cstring(&name), IP_WWW_GOLEM) == 0);
-   TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp(str_cstring(&name), "www.golem.de"));
-   TEST(12== size_cstring(&name)) ;
-   TEST(0 == next_ipaddrlist(addrlist)) ;
-   TEST(0 == delete_ipaddrlist(&addrlist)) ;
-   TEST(0 == addrlist) ;
+   TEST(0 == dnsname_ipaddr(ipaddr, &name));
+   TEST(0 == strcmp(str_cstring(&name), "golem.de"));
+   TEST(8 == size_cstring(&name));
+   TEST(0 == next_ipaddrlist(addrlist));
+   TEST(0 == delete_ipaddrlist(&addrlist));
+   TEST(0 == addrlist);
 
    // Test IDN
-   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.wörterbuch.de", ipprotocol_TCP, 3, ipversion_4)) ;
+   TEST(0 == newdnsquery2_ipaddr(&ipaddr2, &name, "wörterbuch.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
-   ipaddr = next_ipaddrlist(addrlist) ;
-   TEST(0 != ipaddr) ;
-   TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
-   TEST(protocol_ipaddr(ipaddr) == ipprotocol_TCP) ;
-   TEST(port_ipaddr(ipaddr)     == 3) ;
-   TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
-   TEST(strlen("www.wörterbuch.de") == size_cstring(&name)) ;
-   TEST(0 == newcopy_ipaddr(&copiedaddr, ipaddr)) ;
-   TEST(copiedaddr) ;
-   TEST(0 == next_ipaddrlist(addrlist)) ;
-   TEST(0 == delete_ipaddrlist(&addrlist)) ;
-   TEST(0 == addrlist) ;
+   TEST(version_ipaddr(ipaddr2)  == ipversion_4) ;
+   TEST(protocol_ipaddr(ipaddr2) == ipprotocol_TCP) ;
+   TEST(port_ipaddr(ipaddr2)     == 3) ;
+   TESTP(0 == strcmp( str_cstring(&name), "xn--wrterbuch-07a.de"), "name:%s", str_cstring(&name));
 
       // compare same result as ACE encoded
-   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.xn--wrterbuch-07a.de", ipprotocol_TCP, 3, ipversion_4)) ;
+   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "xn--wrterbuch-07a.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
-   ipaddr = next_ipaddrlist(addrlist) ;
+   ipaddr = next_ipaddrlist(addrlist);
    TEST(0 != ipaddr) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_TCP) ;
    TEST(port_ipaddr(ipaddr)     == 3) ;
    TEST(ipaddr->addrlen         == sizeof(struct sockaddr_in)) ;
-   TEST(ipaddr->addrlen         == copiedaddr->addrlen) ;
-   TEST(0 == memcmp(ipaddr->addr, copiedaddr->addr, copiedaddr->addrlen)) ;
-   TEST(0 == delete_ipaddr(&copiedaddr)) ;
-   TEST(0 == copiedaddr) ;
-   TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
-   TEST(strlen("www.wörterbuch.de") == size_cstring(&name)) ;
-   TEST(0 == dnsnameace_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.xn--wrterbuch-07a.de")) ;
-   TEST(strlen("www.xn--wrterbuch-07a.de") == size_cstring(&name)) ;
-   TEST(0 == next_ipaddrlist(addrlist)) ;
+   TEST(ipaddr->addrlen         == ipaddr2->addrlen) ;
+   TEST(0 == memcmp(ipaddr->addr, ipaddr2->addr, ipaddr2->addrlen)) ;
+   TEST(0 == delete_ipaddr(&ipaddr2));
+   TEST(0 == ipaddr2);
    TEST(0 == delete_ipaddrlist(&addrlist)) ;
-   TEST(0 == addrlist) ;
+   TEST(0 == addrlist);
 
    // TEST ERROR "wrong protocol type"
    TEST(EPROTONOSUPPORT == newdnsquery_ipaddrlist(&addrlist, "127.0.0.1", (ipprotocol_e)10000, 0, ipversion_4)) ;
@@ -1285,7 +1287,7 @@ static int test_ipaddrlist(void)
    return 0 ;
 ONERR:
    (void) free_cstring(&name) ;
-   (void) delete_ipaddr(&copiedaddr) ;
+   (void) delete_ipaddr(&ipaddr2) ;
    (void) delete_ipaddrlist(&addrlist) ;
    return EINVAL ;
 }

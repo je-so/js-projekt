@@ -1596,6 +1596,7 @@ ONERR:
 static uint32_t s_countyield_counter   = 0;
 static uint32_t s_countnoyield_counter = 0;
 static int      s_countyield_exit      = 0;
+const  uint32_t s_countyield_max       = 1000000;
 
 static int thread_countyield(void * dummy)
 {
@@ -1603,7 +1604,7 @@ static int thread_countyield(void * dummy)
 
    write_atomicint(&s_countyield_counter, 0);
 
-   while (  s_countyield_counter < 10000000
+   while (  s_countyield_counter < s_countyield_max
             && ! read_atomicint(&s_countyield_exit)) {
       yield_thread();
       add_atomicint(&s_countyield_counter, 1);
@@ -1622,14 +1623,12 @@ static int thread_countnoyield(void * dummy)
 
    write_atomicint(&s_countnoyield_counter, 0);
 
-   while (  s_countnoyield_counter < 10000000
+   while (  s_countnoyield_counter < s_countyield_max
             && ! read_atomicint(&s_countyield_exit)) {
       // give other thread a chance to run
       if (s_countnoyield_counter < 3) yield_thread();
-      add_atomicint(&s_countnoyield_counter , 1);
+      add_atomicint(&s_countnoyield_counter, 1);
    }
-
-   write_atomicint(&s_countnoyield_counter, 0);
 
    return 0;
 }
@@ -1646,11 +1645,11 @@ static int test_yield(void)
    TEST(0 == join_thread(thread_noyield));
    write_atomicint(&s_countyield_exit, 1);
    TEST(0 == join_thread(thread_yield));
-   // no yield ready
-   TEST(0 == read_atomicint(&s_countnoyield_counter));
-   // yield not ready
+   // test that noyield is ready
+   TEST(s_countyield_max == read_atomicint(&s_countnoyield_counter));
+   // test that yield is not ready
    TEST(0 != read_atomicint(&s_countyield_counter));
-   TEST(s_countyield_counter < 1000000);
+   TEST(s_countyield_max/2 > s_countyield_counter);
    TEST(0 == delete_thread(&thread_noyield));
    TEST(0 == delete_thread(&thread_yield));
 

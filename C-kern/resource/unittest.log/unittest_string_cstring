@@ -1,49 +1,59 @@
-[1: 1494173341.212058s]
-printfappend_cstring() C-kern/string/cstring.c:181
+[1: 1503832555.703710s]
+printfappend_cstring() C-kern/string/cstring.c:206
 Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212060s]
+[1: 1503832555.703716s]
 append_cstring() C-kern/string/cstring.c:141
 Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212061s]
+[1: 1503832555.703717s]
 append_cstring() C-kern/string/cstring.c:141
 Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212066s]
+[1: 1503832555.703719s]
+set_cstring() C-kern/string/cstring.c:162
+Could not allocate 18446744073709551615 bytes of memory - error 12
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1503832555.703719s]
+set_cstring() C-kern/string/cstring.c:162
+Could not allocate 18446744073709551615 bytes of memory - error 12
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1503832555.703725s]
 new_testmmpage() C-kern/test/mm/testmm.c:213
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212067s]
+[1: 1503832555.703727s]
 mresize_testmm() C-kern/test/mm/testmm.c:728
 Could not allocate 18446744073709551615 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212068s]
+[1: 1503832555.703728s]
 allocate_cstring() C-kern/string/cstring.c:116
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212068s]
+[1: 1503832555.703728s]
 new_testmmpage() C-kern/test/mm/testmm.c:213
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212069s]
+[1: 1503832555.703729s]
 mresize_testmm() C-kern/test/mm/testmm.c:728
 Could not allocate 18446744073709551614 bytes of memory - error 12
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212070s]
+[1: 1503832555.703729s]
 allocate_cstring() C-kern/string/cstring.c:116
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1494173341.212138s]
-setsize_cstring() C-kern/string/cstring.c:209
+[1: 1503832555.703806s]
+setsize_cstring() C-kern/string/cstring.c:233
 Exit function with
 Error 22 - Invalid argument
-[1: 1494173341.212138s]
-setsize_cstring() C-kern/string/cstring.c:209
+[1: 1503832555.703807s]
+setsize_cstring() C-kern/string/cstring.c:233
 Exit function with
 Error 22 - Invalid argument

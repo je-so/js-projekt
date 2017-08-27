@@ -446,7 +446,7 @@ static int test_initfree(void)
    TEST(1 <= expcount && expcount < 3) ;
    TEST(0 == remainingtime_systimer(systimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
-   TEST(10000 < timeval.nanosec) ;
+   TESTP(10000 <= timeval.nanosec, "nanosec:%"PRIi32, timeval.nanosec);
    TEST(100000 > timeval.nanosec) ;
    TEST(0 == wait_systimer(systimer)) ;
    TEST(0 == expirationcount_systimer(systimer, &expcount)) ;

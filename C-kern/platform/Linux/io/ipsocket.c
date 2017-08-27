@@ -1041,11 +1041,11 @@ static int test_buffersize(void)
    size_t      logsize2;
 
    // prepare
-   TEST(0 == ALLOC_MM(3 * 65536u, &buffer));
+   TEST(0 == ALLOC_MM(16 * 65536u, &buffer));
 
-   for (unsigned i = 0; i < 3; ++i) {
-      const unsigned  buffer_size  = 3 * 65536u/4 * (i+1);
-      const unsigned  sockbuf_size = 65536u/2 * (i+1) ;
+   for (unsigned i = 1; i <= 2; ++i) {
+      const size_t sockbuf_size = 65536u * i;
+      const size_t buffer_size  = 2*sockbuf_size;
       TEST(buffer.size >= buffer_size);
 
          // connect TCP
@@ -1069,7 +1069,7 @@ static int test_buffersize(void)
       // TEST setqueuesize_ipsocket: sockbuf_size
       TEST(0 == setqueuesize_ipsocket( &ipsockCL, sockbuf_size*2, sockbuf_size));
       TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
-      TEST(rwsize[0] == sockbuf_size*2) ;
+      TESTP(rwsize[0] == sockbuf_size*2, "i:%u rwsize[0]:%zu sockbuf_size*2:%zu", i, rwsize[0], sockbuf_size*2);
       TEST(rwsize[1] == sockbuf_size) ;
       TEST(0 == setqueuesize_ipsocket( &ipsockCL, sockbuf_size, sockbuf_size));
       TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1]));
@@ -1092,60 +1092,53 @@ static int test_buffersize(void)
       TEST(0 == size) ;
 
       // TEST write transfers less than buffer_size cause of size of write queue
+      size_t size_written;
       {
          TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer.addr, &size)) ;
-         TEST(0 < size && size < buffer_size);
-         size_t writecount = size ;
+         TESTP(0 < size && size < buffer_size, "i:%u size:%zu", i, size);
+         TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
+         TEST(1 <= unsend_bytes);
+         size_written = size;
          for (int si = 0; si < 100; ++si) {
             TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
-            if (! unsend_bytes) break ;
-            sleepms_thread(1) ;
+            TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
+            if (unread_bytes == size_written && unsend_bytes == 0) break;
+            sleepms_thread(1);
          }
-         // second write transfers all (cause send queue is empty)
-         TEST(0 == write_ipsocket(&ipsockSV, buffer_size-writecount, writecount + buffer.addr, &size)) ;
-         TEST(size == buffer_size - writecount) ;
+         // second write transfers more bytes
+         TEST(0 == write_ipsocket(&ipsockSV, buffer_size-size_written, size_written + buffer.addr, &size)) ;
+         TEST(1 <= size);
+         size_written+= size;
       }
 
       // TEST after 2nd/3rd read write queue is empty
       {
-         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes)) ;
-         TEST(0 <  unread_bytes) ;
+         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
+         TEST(0 <  unread_bytes);
          TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
          TEST(0 <  unsend_bytes);
          TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
          TEST(unread_bytes == size);
-         size_t readcount = size;
+         size_t size_read = size;
          for (int si = 0; si < 1000; ++si) {
-            TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
-            if (0 < unread_bytes) break;
+            if (size_read == size_written) break;
+            TEST(0 == read_ipsocket(&ipsockCL, buffer_size, buffer.addr, &size));
+            TEST(1 <= size && size+size_read<=size_written);
+            size_read+= size;
             sleepms_thread(1);
          }
-         TEST(0 <  unread_bytes);
-         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
-         TEST(unread_bytes == size) ;
-         readcount += size ;  // 2nd
-         for (int si = 0; si < 1000; ++si) {
-            TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
-            if (! unsend_bytes) break ;
-            sleepms_thread(1) ;
+         // check read+write queue are empty
+         for (int si = 0; unsend_bytes && si < 1000; ++si) { // need to wait until value gets down
+            TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
+            sleepms_thread(1);
          }
-         // check write queue is empty
-         TEST(0 == unsend_bytes);
-         // check 3rd read transfers all data
-         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes));
-         if (unread_bytes) {
-            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
-            TEST(unread_bytes == size);
-            readcount += size;
-         }
-         TEST(buffer_size == readcount);
-         // check read queue empty
          TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
-         TEST(0 == unread_bytes) ;
+         TEST(0 == unread_bytes);
+         TEST(0 == unsend_bytes);
       }
 
       // TEST read on empty queue does not block
-      if (0 == i) {
+      if (1 == i) {
          GETBUFFER_ERRLOG(&logbuffer, &logsize);
          TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer.addr, &size)) ;
          TEST(EAGAIN == read_ipsocket(&ipsockSV, 1, buffer.addr, &size)) ;

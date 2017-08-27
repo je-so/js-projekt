@@ -150,6 +150,31 @@ ONERR:
    return err;
 }
 
+int set_cstring(cstring_t* cstr, size_t str_len, const char str[str_len])
+{
+   int err;
+
+   if (!str_len) {
+      setsize_cstring(cstr, 0);
+   } else {
+      if (SIZE_MAX== str_len) {
+         err = ENOMEM;
+         TRACEOUTOFMEM_ERRLOG(SIZE_MAX, err);
+         goto ONERR;
+      }
+      err= allocate_cstring(cstr, str_len+1);
+      if (err) goto ONERR;
+      memcpy(cstr->chars, str, str_len);
+      cstr->size= str_len;
+      cstr->chars[str_len]= 0;
+   }
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
 int printfappend_cstring(cstring_t* cstr, const char* format, ...)
 {
    int err;
@@ -188,7 +213,6 @@ ONERR:
    return err;
 }
 
-// TODO: set unallocate case !!
 int setsize_cstring(cstring_t* cstr, size_t new_size)
 {
    int err;
@@ -412,6 +436,53 @@ static int test_changeandquery(void)
       TEST(ENOMEM == append_cstring(&cstr3, 2, "XX"));
       TEST(cstr3.size     == (size_t)-2);
       TEST(cstr3.capacity == 1 + (size_t)-2);
+      TEST(0 == strcmp((char*)buffer, "123"));
+   }
+
+   // TEST set_cstring: cstr.capacity == 0 && parameter("str_len") == 0
+   TEST(0 == cstr.capacity);
+   TEST(0 == set_cstring(&cstr, 0, ""));
+   TEST(0 == cstr.size);
+   TEST(0 == cstr.capacity);
+   TEST(0 == cstr.chars);
+
+   // TEST set_cstring: empty string
+   TEST(0 == set_cstring(&cstr, 6, "123456"));
+   TEST(6 == size_cstring(&cstr));
+   TEST(7 == cstr.capacity);
+   TEST(0 == strcmp(str_cstring(&cstr), "123456"));
+
+   // TEST set_cstring: sizes doubles
+   TEST(0 == set_cstring(&cstr, 7, "1234567"));
+   TEST(7 == size_cstring(&cstr));
+   TEST(14 == cstr.capacity); // size doubled
+   TEST(0 == strcmp(str_cstring(&cstr), "1234567"));
+
+   // TEST set_cstring: exact size
+   TEST(0 == free_cstring(&cstr));
+   TEST(0 == init_cstring(&cstr, 4));
+   TEST(4 == cstr.capacity);
+   str = "123456789012345";
+   TEST(0 == set_cstring(&cstr, 15, str));
+   TEST(15 == size_cstring(&cstr));
+   TEST(16 == cstr.capacity); // exact size
+   TEST(0 == strcmp(str_cstring(&cstr), str));
+   TEST(0 == free_cstring(&cstr));
+
+   // TEST set_cstring: ENOMEM
+   TEST(0 == init_cstring(&cstr, 0));
+   TEST(ENOMEM == set_cstring(&cstr, (size_t)-1, ""));
+   TEST(0 == cstr.size);
+   TEST(0 == cstr.capacity);
+   TEST(0 == cstr.chars);
+
+   // TEST set_cstring: ENOMEM (does not change content in case of error)
+   {  uint8_t buffer[10] = "123";
+      cstring_t cstr3 = { .size = 3, .capacity = 10, .chars = buffer };
+      TEST(ENOMEM == set_cstring(&cstr3, (size_t)-1, ""));
+      TEST(cstr3.size     == 3);
+      TEST(cstr3.capacity == 10);
+      TEST(cstr3.chars    == buffer);
       TEST(0 == strcmp((char*)buffer, "123"));
    }
 

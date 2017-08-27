@@ -154,6 +154,12 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
  * Resolves a hostname into its first queried ip address. */
 int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * hostname, ipport_t port, ipversion_e version);
 
+/* function: newdnsquery_ipaddr
+ * Resolves a hostname into its first queried ip address and/or its canonical name representation.
+ * IF hostname is a name with unicode characters (IDN) then the ACE representation is returned in canonical name.
+ * Either addr or canonical_name could be set to 0. */
+int newdnsquery2_ipaddr(/*out*/ipaddr_t ** addr/*0 supported*/, cstring_t * canonical_name/*0 supported*/, const char * hostname, ipprotocol_e protocol, ipport_t port, ipversion_e version);
+
 /* function: newaddr_ipaddr
  * Create a new internet address and init it a system specific socket address value.
  * Same as <new_ipaddr> except that *port*, *numeric_address* and *version* are represented by system specific

@@ -30,7 +30,7 @@
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
 
 
-typedef struct x11windowmap_entry_t x11windowmap_entry_t  ;
+typedef struct x11windowmap_entry_t x11windowmap_entry_t;
 
 typedef struct x11windowmap_t       x11windowmap_t;
 
@@ -45,11 +45,11 @@ typedef struct x11windowmap_t       x11windowmap_t;
 struct x11windowmap_entry_t {
    /* variable: id
     * The identification of an object. */
-   uint32_t             id ;
+   xid_t                id;
    /* variable: object
     * The pointer to the identified object. */
-   struct x11window_t * object ;
-} ;
+   struct x11window_t*  object;
+};
 
 
 /* struct: x11windowmap_t
@@ -59,14 +59,14 @@ struct x11windowmap_t {
    x11windowmap_entry_t   entries[16];
 };
 
-static int find_x11windowmap(x11windowmap_t * map, uint32_t objectid, /*out*/x11windowmap_entry_t ** object)
+static int find_x11windowmap(x11windowmap_t * map, xid_t xid, /*out*/x11windowmap_entry_t ** object)
 {
-   if (objectid == 0) {
+   if (xid == 0) {
       return EINVAL;
    }
 
    for (unsigned i = 0; i < lengthof(map->entries); ++i) {
-      if (map->entries[i].id == objectid) {
+      if (map->entries[i].id == xid) {
          *object = &map->entries[i];
          return 0;
       }
@@ -75,12 +75,12 @@ static int find_x11windowmap(x11windowmap_t * map, uint32_t objectid, /*out*/x11
    return ESRCH;
 }
 
-static int insert_x11windowmap(x11windowmap_t * map, uint32_t objectid, struct x11window_t * object)
+static int insert_x11windowmap(x11windowmap_t * map, xid_t xid, struct x11window_t * object)
 {
    unsigned ii = lengthof(map->entries);
 
    for (unsigned i = 0; i < lengthof(map->entries); ++i) {
-      if (map->entries[i].id == objectid) {
+      if (map->entries[i].id == xid) {
          return EEXIST;
       } else if (i < ii && ! map->entries[i].id) {
          ii = i;
@@ -91,19 +91,19 @@ static int insert_x11windowmap(x11windowmap_t * map, uint32_t objectid, struct x
       return ENOMEM;
    }
 
-   map->entries[ii].id     = objectid;
+   map->entries[ii].id     = xid;
    map->entries[ii].object = object;
    return 0;
 }
 
-static int remove_x11windowmap(x11windowmap_t * map, uint32_t objectid)
+static int remove_x11windowmap(x11windowmap_t * map, xid_t xid)
 {
-   if (objectid == 0) {
+   if (xid == 0) {
       return EINVAL;
    }
 
    for (unsigned i = 0; i < lengthof(map->entries); ++i) {
-      if (map->entries[i].id == objectid) {
+      if (map->entries[i].id == xid) {
          map->entries[i].id     = 0;
          map->entries[i].object = 0;
          return 0;
@@ -223,7 +223,7 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
    }
 
 #define SETATOM(NAME)   newdisp.atoms.NAME = XInternAtom(newdisp.sys_display, #NAME, False); \
-                        static_assert(sizeof(newdisp.atoms.NAME) == sizeof(uint32_t), "same type")
+                        static_assert(sizeof(newdisp.atoms.NAME) == sizeof(Atom), "same type")
    SETATOM(WM_PROTOCOLS);
    SETATOM(WM_DELETE_WINDOW);
    SETATOM(_NET_FRAME_EXTENTS);
@@ -325,12 +325,12 @@ uint32_t nrofscreens_x11display(const x11display_t * x11disp)
 
 // ID-manager
 
-int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object, uint32_t objectid)
+int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object, xid_t xid)
 {
    int err ;
    x11windowmap_entry_t * found_node ;
 
-   err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
+   err = find_x11windowmap(x11disp->idmap, xid, &found_node) ;
    if (err) goto ONERR;
 
    if (object) {
@@ -345,13 +345,13 @@ ONERR:
    return err ;
 }
 
-int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid)
+int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, xid_t xid)
 {
    int err ;
 
    VALIDATE_INPARAM_TEST(object != 0, ONERR, );
 
-   err = insert_x11windowmap(x11disp->idmap, objectid, object);
+   err = insert_x11windowmap(x11disp->idmap, xid, object);
    if (err) goto ONERR;
 
    return 0 ;
@@ -360,11 +360,11 @@ ONERR:
    return err ;
 }
 
-int removeobject_x11display(x11display_t * x11disp, uint32_t objectid)
+int removeobject_x11display(x11display_t * x11disp, xid_t xid)
 {
    int err ;
 
-   err = remove_x11windowmap(x11disp->idmap, objectid) ;
+   err = remove_x11windowmap(x11disp->idmap, xid) ;
    if (err) goto ONERR;
 
    return 0 ;
@@ -373,12 +373,12 @@ ONERR:
    return err ;
 }
 
-int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid)
+int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, xid_t xid)
 {
    int err;
    x11windowmap_entry_t * found_node;
 
-   err = find_x11windowmap(x11disp->idmap, objectid, &found_node);
+   err = find_x11windowmap(x11disp->idmap, xid, &found_node);
    if (err) goto ONERR;
 
    found_node->object = object;
@@ -649,27 +649,27 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
    struct x11window_t * object2 = 0;
 
    // TEST insertobject_x11display
-   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+   for (uintptr_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
       TEST(0 == insertobject_x11display(x11disp1, (struct x11window_t*) (1000 + i), i)) ;
       TEST(0 == insertobject_x11display(x11disp2, (struct x11window_t*) (2000 + i), i)) ;
    }
 
    // TEST tryfindobject_x11display
-   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
-      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i)) ;
-      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i)) ;
-      TEST(object1 == (struct x11window_t*) (1000 + i)) ;
-      TEST(object2 == (struct x11window_t*) (2000 + i)) ;
+   for (uintptr_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i));
+      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i));
+      TEST(object1 == (struct x11window_t*) (1000 + i));
+      TEST(object2 == (struct x11window_t*) (2000 + i));
    }
 
    // TEST replaceobject_x11display
-   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
-      TEST(0 == replaceobject_x11display(x11disp1, (struct x11window_t*) (1001 + i), i)) ;
-      TEST(0 == replaceobject_x11display(x11disp2, (struct x11window_t*) (2001 + i), i)) ;
-      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i)) ;
-      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i)) ;
-      TEST(object1 == (struct x11window_t*) (1001 + i)) ;
-      TEST(object2 == (struct x11window_t*) (2001 + i)) ;
+   for (xid_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+      TEST(0 == replaceobject_x11display(x11disp1, (struct x11window_t*) (1001 + i), i));
+      TEST(0 == replaceobject_x11display(x11disp2, (struct x11window_t*) (2001 + i), i));
+      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i));
+      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i));
+      TEST(object1 == (struct x11window_t*) (1001 + i));
+      TEST(object2 == (struct x11window_t*) (2001 + i));
    }
 
    // TEST removeobject_x11display

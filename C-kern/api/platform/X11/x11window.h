@@ -22,6 +22,7 @@
 // forward
 struct cstring_t;
 // x11
+typedef uintptr_t xid_t;
 struct x11display_t;
 // graphic
 struct gconfig_filter_t;
@@ -147,14 +148,14 @@ struct x11window_t {
    struct x11display_t* display;
    /* variable: sys_drawable
     * X window ID. The ID describes a drawable of type window. */
-   uint32_t             sys_drawable;
+   xid_t                sys_drawable;
    /* variable: sys_colormap
     * X window ID. The ID describes a colormap which is associated with the window.
     * A colormap is used to map the window pixel depth to the screen pixel depth. */
-   uint32_t             sys_colormap;
+   xid_t                sys_colormap;
    /* variable: evhimpl
     * Reference to <x11window_evh_t> which handles events. */
-   const x11window_evh_t * evhimpl;
+   const x11window_evh_t* evhimpl;
    /* variable: state
     * Current state of window (shown, hidden, destroyed). See <x11window_state_e>. */
    uint8_t              state;
@@ -185,7 +186,7 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, u
  * with parameter config_visualid which holds the ID of the X11 visual.
  * The visual of a window determines its capabilities like nr of bits
  * per color channel, double buffering and other OpenGL related stuff. */
-int initvid_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
+int initvid_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler,/*(X11) VisualID*/xid_t config_visualid, const struct windowconfig_t * winconf_attrib);
 
 /* function: initmove_x11window
  * Must be called if address of <x11window_t> changes.

@@ -76,12 +76,12 @@ int clear_atomicint(int* i);
 /* function: add_atomicint
  * Add increment to i and return old value atomically.
  * This operation ensures also a full memory barrier. */
-int add_atomicint(int* i, uint32_t increment);
+int add_atomicint(int* i, int increment);
 
 /* function: sub_atomicint
  * Sub decrement from i and return old value atomically.
  * This operation ensures also a full memory barrier. */
-int sub_atomicint(int* i, uint32_t decrement);
+int sub_atomicint(int* i, int decrement);
 
 /* function: cmpxchg_atomicint
  * If *i is equal to oldval change it into newval atomically else do nothing.

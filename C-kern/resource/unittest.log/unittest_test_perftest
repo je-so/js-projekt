@@ -1,143 +1,128 @@
-[1: 1450414093.303578s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837258.250109s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414093.303582s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837258.250111s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414093.303584s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837258.250111s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414093.500992s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837259.260087s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837259.452961s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837259.728776s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837259.901371s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837260.121293s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837260.316653s]
+new_perftest() C-kern/test/perftest.c:265
+Exit function with
+Error 125 - Operation canceled
+[1: 1503837260.316660s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450414093.501028s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837260.316671s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414093.501046s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837260.316964s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 3 - No such process
-[1: 1450414093.501066s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 4 - Interrupted system call
-[1: 1450414093.501095s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 5 - Input/output error
-[1: 1450414093.501915s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 6 - No such device or address
-[1: 1450414093.503530s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 7 - Argument list too long
-[1: 1450414093.507444s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 8 - Exec format error
-[1: 1450414093.511155s]
-new_perftest() C-kern/test/perftest.c:290
-Exit function with
-Error 9 - Bad file descriptor
-[1: 1450414093.514331s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837260.322512s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.519662s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837260.328159s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.525089s]
-new_perftest() C-kern/test/perftest.c:290
+[1: 1503837260.333790s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.529934s]
-delete_perftest() C-kern/test/perftest.c:327
+[1: 1503837260.339904s]
+delete_perftest() C-kern/test/perftest.c:296
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450414093.534129s]
-delete_perftest() C-kern/test/perftest.c:327
+[1: 1503837260.346021s]
+delete_perftest() C-kern/test/perftest.c:296
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414093.538598s]
-delete_perftest() C-kern/test/perftest.c:327
+[1: 1503837260.352080s]
+delete_perftest() C-kern/test/perftest.c:296
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[1: 1450414093.543502s]
-delete_perftest() C-kern/test/perftest.c:327
+[1: 1503837260.367775s]
+delete_perftest() C-kern/test/perftest.c:296
 One or more resources could not be freed
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450414093.548300s]
-delete_perftest() C-kern/test/perftest.c:327
-One or more resources could not be freed
+[1: 1503837260.443260s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
-Error 5 - Input/output error
-[1: 1450414093.553131s]
-delete_perftest() C-kern/test/perftest.c:327
-One or more resources could not be freed
+Error 12 - Cannot allocate memory
+[1: 1503837260.453718s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
-Error 6 - No such device or address
-[1: 1450414093.559251s]
-delete_perftest() C-kern/test/perftest.c:327
-One or more resources could not be freed
+Error 12 - Cannot allocate memory
+[1: 1503837260.459038s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
-Error 7 - Argument list too long
-[1: 1450414093.580040s]
-measure_perftest() C-kern/test/perftest.c:391
+Error 12 - Cannot allocate memory
+[1: 1503837260.464399s]
+new_perftest() C-kern/test/perftest.c:265
 Exit function with
-Error 125 - Operation canceled
-[1: 1450414093.585419s]
-measure_perftest() C-kern/test/perftest.c:391
+Error 12 - Cannot allocate memory
+[1: 1503837260.470516s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.590470s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.476749s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.595095s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.483169s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.600992s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.501151s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.606545s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.513155s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.612112s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.525178s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.617313s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.533494s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled
-[1: 1450414093.622131s]
-measure_perftest() C-kern/test/perftest.c:391
-Exit function with
-Error 125 - Operation canceled
-[1: 1450414093.628022s]
-measure_perftest() C-kern/test/perftest.c:391
-Exit function with
-Error 125 - Operation canceled
-[1: 1450414093.632698s]
-measure_perftest() C-kern/test/perftest.c:391
-Exit function with
-Error 125 - Operation canceled
-[1: 1450414093.639062s]
-measure_perftest() C-kern/test/perftest.c:391
+[1: 1503837260.553242s]
+measure_perftest() C-kern/test/perftest.c:350
 Exit function with
 Error 125 - Operation canceled

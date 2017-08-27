@@ -36,6 +36,9 @@ typedef struct x11display_t   x11display_t ;
  * Describes an X11 server extension. */
 typedef struct x11extension_t x11extension_t ;
 
+/* typedef: xid_t
+ * Defines <xid_t> as ID of created X11 objects like windows, pixmaps and so on. */
+ typedef uintptr_t xid_t;
 
 // section: Functions
 
@@ -44,7 +47,7 @@ typedef struct x11extension_t x11extension_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_X11_x11display
  * Tests connection to local X11 display. */
-int unittest_platform_X11_x11display(void) ;
+int unittest_platform_X11_x11display(void);
 #endif
 
 
@@ -80,10 +83,10 @@ struct x11display_t {
     * global namespace with X11 type names. */
    void               * sys_display;
    struct {
-         uint32_t    WM_PROTOCOLS;
-         uint32_t    WM_DELETE_WINDOW;
-         uint32_t    _NET_FRAME_EXTENTS;
-         uint32_t    _NET_WM_WINDOW_OPACITY;
+         xid_t    WM_PROTOCOLS;
+         xid_t    WM_DELETE_WINDOW;
+         xid_t    _NET_FRAME_EXTENTS;
+         xid_t    _NET_WM_WINDOW_OPACITY;
    }                    atoms;
    /* variable: xdbe
     * Check isSupported whether »Double Buffer extension« is supported.
@@ -187,25 +190,25 @@ uint32_t nrofscreens_x11display(const x11display_t * x11disp);
 // group: ID-manager
 
 /* function: tryfindobject_x11display
- * Maps an objectid to its associated object pointer.
- * Returns ESRCH if no object is registered with objectid.
+ * Maps an xid to its associated object pointer.
+ * Returns ESRCH if no object is registered with xid.
  * On success the returned object contains either a pointer to an object which
  * could be 0. No error logging is done in case of error ESRCH. */
-int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object/*could be NULL*/, uint32_t objectid) ;
+int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object/*could be NULL*/, xid_t xid);
 
 /* function: insertobject_x11display
- * Registers an object under an objectid. */
-int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid) ;
+ * Registers an object under an xid. */
+int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, xid_t xid);
 
 /* function: removeobject_x11display
- * Removes objectid and its associated pointer from the registration.
+ * Removes xid and its associated pointer from the registration.
  * This function is called from <free_x11window> or from <dispatchevent_X11>
  * in case a DestroyNotify for a registerd window was received. */
-int removeobject_x11display(x11display_t * x11disp, uint32_t objectid);
+int removeobject_x11display(x11display_t * x11disp, xid_t xid);
 
 /* function: replaceobject_x11display
- * Replaces the object for an already registered objectid. */
-int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid) ;
+ * Replaces the object for an already registered X11-id. */
+int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, xid_t xid);
 
 
 // section: inline implementation

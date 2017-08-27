@@ -134,6 +134,9 @@ struct perftest_process_t  {
    /* variable: nrthreads
     * Anzahl Threads in diesem Prozess. */
    uint16_t      nrthread;
+   /* variable: err
+    * Falls != 0, dann wurde dieser Prozess oder eine seiner Instanzen mit einem Fehler beendet. */
+    int          err;
    /* variable: tinst
     * Zeigt auf ersten zugeörige Threadinstanz <perftest_instance_t>.
     * Alle zugehörigen Instanzen sind tinst[0..nrthread-1]. */
@@ -160,6 +163,9 @@ struct perftest_instance_t {
     *
     * tid == proc->pid * <perftest_t.nrthreads_per_process> + [0..<perftest_t.nrthreads_per_process>-1] */
    uint32_t tid;
+   /* variable: err
+    * Falls != 0, dann wurde diese Instanz mit einem Fehler beendet. */
+   int      err;
    /* variable: usec
     * Benötigte Zeit in Mikrosekunden. */
    int64_t  usec;
@@ -197,7 +203,6 @@ struct perftest_t {
     * Interface des implementierenden Objektes. */
    const
    perftest_it*   iimpl;
-   sys_iochannel_t pipe[6];
    /* variable: nrinstance
     * Anzahl Testinstanzen, korrespondiert mit Anzahl an gestarteten Threads über alle gestarteten Prozesse. */
    uint32_t       nrinstance;
@@ -207,11 +212,30 @@ struct perftest_t {
    /* variable: nrthread_per_process
     * Anzahl Threads per <proc>. */
    uint16_t       nrthread_per_process;
+   /* variable: aborterr
+    * Fehlercode, der zum Abbruch eines Testthreads oder Prozesses geführt hat.
+    * Sollte in jeder Testinstanz abgefragt werden, dass diese sich selbsttätig vorzeitig beendet. */
+   volatile
+   int            aborterr;
+   /* variable: nrprepared_process
+    * Anzahl Testinstanzen (Prozesse), welche ihre Threads erzeugt haben. */
+   volatile
+   uint32_t       nrprepared_process;
+   /* variable: nrprepared_thread
+    * Anzahl Testinstanzen (Threads), welche iimpl->prepare aufgerufen haben. */
+   volatile
+   uint32_t       nrprepared_thread;
+    /* variable: startsignal
+    * Wert != 0 signalisiert Start der auszuführenden Testinstanzen. */
+   volatile
+   int            startsignal;
+
    /* variable: start_time
     * Startzeitpunkt der Messung. */
    struct { int64_t seconds; int32_t nanosec; }
                   start_time;
-   /* variable: sshared_addr
+
+   /* variable: shared_addr
     * Siehe <sharedaddr_perftest>. */
    void*          shared_addr;
    /* variable: shared_size
@@ -227,12 +251,13 @@ struct perftest_t {
  * Erzeugt eine Perfomanz-Testumgebung von nrprocess Prozessen mit jeweils nrthread_per_process Threads.
  * Diese dienen der Ausführung eines Testobjektes/Testfunktion beschrieben durch das Interface iimpl.
  *
- * Die Ausführung selbst wird mittels <measure_perftest> gestartet.
+ * Jeder Thread ruft iimpl->prepare auf und wartet auf das Statsignal.
+ * Die Ausführung selbst (iimpl->run) wird mittels <measure_perftest> gestartet.
  *
  * Geborgte Werte:
  * Das durch iimpl referenzierte Interface muss gleich lang wie ptest gültig bleiben.
  */
-int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref stored*/, uint16_t nrprocess/*>0*/, uint16_t nrthread_per_process/*>0*/);
+int new_perftest(/*out*/perftest_t** ptest, const perftest_it* iimpl/*only ref stored*/, uint16_t nrprocess/*>0*/, uint16_t nrthread_per_process/*>0*/, void* shared_addr, size_t shared_size);
 
 /* function: delete_perftest
  * Gibt alle durch die Prozesse belegten Ressourcen frei. */
