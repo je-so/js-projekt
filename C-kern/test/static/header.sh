@@ -37,16 +37,15 @@ function set_error()
 
 function check_line()
 {
-   if [ "$#" != "3" ]; then
+   local line # read from file
+   if [ "$#" != "3" ]
+   then
       echo "$0: check_line(): wrong number of paramters"
       exit 1 ;
    fi
-   if [ "$2" != "$3" ] && [ "${2/(C) 2010/(C) 2011}" != "$3" ] \
-      && [ "${2/(C) 2010/(C) 2012}" != "$3" ] \
-      && [ "${2/(C) 2010/(C) 2013}" != "$3" ] \
-      && [ "${2/(C) 2010/(C) 2014}" != "$3" ] \
-      && [ "${2/(C) 2010/(C) 2015}" != "$3" ] \
-      && [ "${2/(C) 2010/(C) 2016}" != "$3" ]; then
+   line=${3/(C) 20[0-9][0-9]/(C) 2010}
+   if [ "$line" != "$2" ]
+   then
       set_error "$1" "$2" "$3"
       return 1
    fi

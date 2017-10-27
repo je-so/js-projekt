@@ -87,10 +87,10 @@ uint32_t commonfactors_int32(uint32_t a, uint32_t b)
                                  // cause if not (x is factor common to (rf0 - rf1) and rf1)
                                  // (rf0 - rf1) == (rf0 - x*rfx1) == x*D ==> rf0 == x*(rfx1+D)
                                  // ==> rf0 would be not coprime with rf1 (common factor x).
+      // r2 < r1 (violated only in first iteration if a < b)
       r0 = r1; // r0 == f * rf1
       r1 = r2; // r1 == f * rf2
-      // r2 < r1 && "before assignment" ==> r0 >= r2 && "after assignment"
-      // rf1 coprime with rf2 ==> product of common prime factors is f
+      // r0 > r1 && (rf1 coprime with rf2 ==> product of common prime factors is f)
    }
 
    return r0;

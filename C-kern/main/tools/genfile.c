@@ -53,7 +53,7 @@ static const char* s_templateheader =
    Copyright:\n\
    This program is free software. See accompanying LICENSE file.\n\n\
    Author:\n\
-   (C) 2016 Jörg Seebohn\n\n\
+   (C) 2017 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\
     Header file <@TITLE>.\n\n\
    file: @SOURCEPATH\n\
@@ -109,7 +109,7 @@ static const char* s_templatesource =
    Copyright:\n\
    This program is free software. See accompanying LICENSE file.\n\n\
    Author:\n\
-   (C) 2016 Jörg Seebohn\n\n\
+   (C) 2017 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\
     Header file <@TITLE>.\n\n\
    file: @SOURCEPATH\n\

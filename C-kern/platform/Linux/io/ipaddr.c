@@ -780,7 +780,7 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
-#define IP_WWW_GOLEM "109.68.230.138"
+#define IP_WWW_HEISE "193.99.144.85"
 
 static int test_ipport(void)
 {
@@ -855,7 +855,7 @@ static int test_ipaddr(void)
    TEST(0 == ipaddr) ;
 
    // TEST newdnsquery_ipaddr
-   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "golem.de", 50, ipversion_4 )) ;
+   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "www.heise.de", 50, ipversion_4 )) ;
    TEST(0 == newdnsquery_ipaddr(&ipaddr2, ipprotocol_UDP, "::23", 50, ipversion_6 )) ;
    TEST(ipaddr) ;
    TEST(port_ipaddr(ipaddr)    == 50) ;
@@ -863,11 +863,10 @@ static int test_ipaddr(void)
    TEST(version_ipaddr(ipaddr) == ipversion_4) ;
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST( size_cstring(&name) == strlen(IP_WWW_GOLEM));
-   TEST( strcmp( str_cstring(&name), IP_WWW_GOLEM) == 0);
+   TEST( size_cstring(&name) == strlen(IP_WWW_HEISE));
+   TEST( strcmp( str_cstring(&name), IP_WWW_HEISE) == 0);
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "golem.de"));
-   TEST(8 == size_cstring(&name)) ;
+   TEST(0 == strcmp( str_cstring(&name), "www.heise.de"));
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 50) ;
    TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
@@ -1214,7 +1213,7 @@ static int test_ipaddrlist(void)
 
    // TEST resolve dns name
    // ipversion_6 does not work with my provider
-   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.golem.de", ipprotocol_UDP, 0, ipversion_4)) ;
+   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.heise.de", ipprotocol_UDP, 0, ipversion_4)) ;
    // check result (UDP protocol)
    ipaddr = next_ipaddrlist(addrlist);
    TEST(0 != ipaddr);
@@ -1222,11 +1221,10 @@ static int test_ipaddrlist(void)
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP);
    TEST(port_ipaddr(ipaddr)     == 0);
    TEST(0 == numericname_ipaddr(ipaddr, &name));
-   TEST( size_cstring(&name) == strlen(IP_WWW_GOLEM));
-   TEST( strcmp(str_cstring(&name), IP_WWW_GOLEM) == 0);
+   TEST( size_cstring(&name) == strlen(IP_WWW_HEISE));
+   TEST( strcmp(str_cstring(&name), IP_WWW_HEISE) == 0);
    TEST(0 == dnsname_ipaddr(ipaddr, &name));
-   TEST(0 == strcmp(str_cstring(&name), "golem.de"));
-   TEST(8 == size_cstring(&name));
+   TEST(0 == strcmp(str_cstring(&name), "www.heise.de"));
    TEST(0 == next_ipaddrlist(addrlist));
    TEST(0 == delete_ipaddrlist(&addrlist));
    TEST(0 == addrlist);

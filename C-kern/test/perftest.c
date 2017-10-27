@@ -34,7 +34,7 @@
 
 // section: perftest_instance_t
 
-static void init_perftestinstance(perftest_instance_t* pinst, perftest_t* ptest, perftest_process_t* proc, uint32_t tid)
+static void init_perftestinstance(/*out*/perftest_instance_t* pinst, perftest_t* ptest, perftest_process_t* proc, uint32_t tid)
 {
    pinst->thread= 0;
    pinst->proc= proc;
@@ -49,7 +49,7 @@ static void init_perftestinstance(perftest_instance_t* pinst, perftest_t* ptest,
 
 // section: perftest_process_t
 
-static void init_perftestprocess(perftest_process_t* proc, uint16_t pid, uint16_t nrthread_per_process, perftest_instance_t* pinst)
+static void init_perftestprocess(/*out*/perftest_process_t* proc, uint16_t pid, uint16_t nrthread_per_process, perftest_instance_t* pinst)
 {
    proc->process=  sys_process_FREE;
    proc->pid=      pid;

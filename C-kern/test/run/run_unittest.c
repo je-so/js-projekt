@@ -171,6 +171,7 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_math_hash_crc7);
       RUN(unittest_math_hash_sha1);
       RUN(unittest_math_int_abs);
+      RUN(unittest_math_int_bcd);
       RUN(unittest_math_int_biginteger);
       RUN(unittest_math_int_bitorder);
       RUN(unittest_math_int_byteorder);

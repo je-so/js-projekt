@@ -157,6 +157,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!bcd.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
@@ -282,6 +283,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!bcd.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
@@ -576,6 +578,9 @@ $(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!bcd.c.o: C-kern/math/int/bcd.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
@@ -945,6 +950,9 @@ $(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!bcd.c.o: C-kern/math/int/bcd.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
