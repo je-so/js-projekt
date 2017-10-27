@@ -1,0 +1,10 @@
+{
+   "files.associations": {
+      "atomic.h": "c",
+      "array": "c",
+      "initializer_list": "c",
+      "utility": "c",
+      "functional": "c",
+      "typeinfo": "c"
+   }
+}
