@@ -92,14 +92,20 @@
 // group: function-declaration
 
 /* define: IDNAME
- * Use it to declare a parameter as (part of) a name which is a valid C identifier.
+ * Use it to declare a parameter of type name which serves as a valid C identifier.
  * See <dlist_IMPLEMENT> for an example. */
 #define IDNAME                         void*
 
 /* define: LABEL
- * Use it to declare a parameter as a name of a C label.
- * The label serves a target of a goto statement.
- * See <execmd_syncthread> for an example. */
+ * Use it to declare a parameter of type code block.
+ * The code block { statement1; statement2; ...;} is
+ * embedded inside a macro expression.
+ * See <end_syncfunc> for an example. */
+#define CODEBLOCK                      void*
+
+/* define: LABEL
+ * Use it to declare a parameter of type C label.
+ * The label serves a target of a goto statement. */
 #define LABEL                          void*
 
 /* define: TYPENAME

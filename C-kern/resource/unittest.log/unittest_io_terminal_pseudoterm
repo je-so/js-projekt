@@ -1,56 +1,56 @@
-[1: 1450425517.772287s]
+[1: 1510587168.439815s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:68
-The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour.
+The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour in this module.
 Error will be ignored
-[1: 1450425517.772440s]
+[1: 1510587168.440075s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:68
-The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour.
+The signal handler installed for signal «SIGCHLD» possibly produces undefined behaviour in this module.
 Error will be ignored
-[1: 1450425517.772528s]
+[1: 1510587168.440093s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:78
 System call 'grantpt(fd)' failed with error 9
 fd=-1
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1450425517.772746s]
+[1: 1510587168.440194s]
 init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:128
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450425517.772805s]
+[1: 1510587168.440206s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:60
 System call 'sigaction(SIGCHLD,...)' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1450425517.772841s]
+[1: 1510587168.440211s]
 init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:128
 Exit function with
 Error 2 - No such file or directory
-[1: 1450425517.772913s]
+[1: 1510587168.440223s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:78
 System call 'grantpt(fd)' failed with error 3
 fd=3
 Exit function with
 Error 3 - No such process
-[1: 1450425517.772957s]
+[1: 1510587168.440227s]
 init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:128
 Exit function with
 Error 3 - No such process
-[1: 1450425517.773025s]
+[1: 1510587168.440239s]
 prepare_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:89
 System call 'unlockpt(fd)' failed with error 4
 fd=3
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450425517.773061s]
+[1: 1510587168.440243s]
 init_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:128
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450425517.773258s]
+[1: 1510587168.440272s]
 free_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:142
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450425517.773265s]
+[1: 1510587168.440273s]
 pathname_pseudoterm() C-kern/platform/Linux/io/pseudoterm.c:184
 Exit function with
 Error 25 - Inappropriate ioctl for device

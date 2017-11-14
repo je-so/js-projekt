@@ -181,6 +181,10 @@ void initnext_linkd(/*out*/linkd_t * next, linkd_t * link);
  * verlinkt werden. */
 void initself_linkd(/*out*/linkd_t * link);
 
+/* function: initinvalid_linkd
+ * Initialisiert link, so dass isvalid_linkd(link)==false. */
+void initinvalid_linkd(/*out*/linkd_t * link);
+
 /* function: free_linkd
  * Trennt link aus einer Link-Kette heraus.
  * link wird auf den Wert <linkd_FREE> gesetzt.
@@ -337,6 +341,11 @@ static inline void splice_linkd(linkd_t* list1, linkd_t* list2);
             _l2->next = _l1;         \
             _l2->prev = _l1;         \
          } while (0)
+
+/* define: initinvalid_linkd
+ * Implementiert <linkd_t.initinvalid_linkd>. */
+#define initinvalid_linkd(link) \
+         ((void)((link)->prev = 0))
 
 /* define: initnext_linkd
  * Implementiert <linkd_t.initnext_linkd>. */

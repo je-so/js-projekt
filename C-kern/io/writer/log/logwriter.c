@@ -230,7 +230,7 @@ bool isfree_logwriter(const logwriter_t * lgwrt)
    if (! (channel < log_channel__NROF)) { \
       err = EINVAL;                       \
       TRACE_LOG(AUTO,                     \
-         log_channel_ERR, log_flags_NONE, TEST_INPARAM_FALSE_ERRLOG, "channel < log_channel__NROF"); \
+         log_channel_ERR, log_flags_NONE, VALIDATE_INPARAM_FAILED_ERRLOG, "channel < log_channel__NROF"); \
       goto ONERR;                         \
    }
 

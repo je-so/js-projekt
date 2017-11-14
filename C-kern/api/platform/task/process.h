@@ -71,7 +71,7 @@ struct process_result_t
 {
    /* variable: returncode
     * Either the exit number or signal number.
-    * If hasTerminatedAbnormal is true returncode carries
+    * If state==process_state_ABORTED returncode carries
     * the signal number which lead to abnormal process termination. */
    int               returncode;
    /* variable: state

@@ -18,15 +18,7 @@
 
 // forward
 struct logbuffer_t;
-
-/* typedef: struct log_it
- * Export interface <log_it>.
- * See <log_it_DECLARE> for a description of the functional interface. */
-typedef struct log_it log_it;
-
-/* typedef: struct log_header_t
- * Export <log_header_t>. */
-typedef struct log_header_t log_header_t;
+struct log_header_t;
 
 /* typedef: log_text_f
  * Declare function pointer which writes a text resource into <logbuffer_t>. */
@@ -141,7 +133,7 @@ typedef iobj_T(log) log_t;
 
 /* struct: log_it
  * The function table which describes the log service. */
-struct log_it {
+typedef struct log_it {
    /* variable: printf
     * Writes a new log entry to in internal buffer.
     * Parameter channel must be set to a value from <log_channel_e>.
@@ -152,12 +144,12 @@ struct log_it {
     * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation.
     * If format == 0 only the header is written. */
-   void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6)));
+   void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6)));
    /* variable: printtext
     * Writes text resource as new log entry to in internal buffer.
     * See <printf> for a description of the parameter. The variable parameter list must match the resource.
     * If textf == 0 only the header is written. */
-   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, log_text_f textf, void * params);
+   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
@@ -190,7 +182,7 @@ struct log_it {
     * Sets <log_state_e> logstate for a specific <log_channel_e> channel.
     * You can query the current <log_state_e> by calling <getstate>. */
    void  (*setstate)    (void * log, uint8_t channel, uint8_t logstate);
-};
+} log_it;
 
 // group: generic
 
@@ -219,7 +211,7 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t);
  * Contains information for a log header.
  * It describes the function name, file name and line number
  * of the log statement. */
-struct log_header_t {
+typedef struct log_header_t {
    /* variable: funcname
     * The name of the function which writes the log. */
    const char *   funcname;
@@ -231,7 +223,7 @@ struct log_header_t {
     * to write a log entry. With linenr one can discriminate between the different calls
     * even if they would write the same log text. */
    int            linenr;
-};
+} log_header_t;
 
 // group: lifetime
 

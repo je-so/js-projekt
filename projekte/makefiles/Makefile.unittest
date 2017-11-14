@@ -187,10 +187,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Debug)/C-kern!task!module.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
- $(ObjectDir_Debug)/C-kern!task!synccond.c.o \
  $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
@@ -313,10 +313,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
- $(ObjectDir_Release)/C-kern!task!synccond.c.o \
  $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Release)/C-kern!test!unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
@@ -670,9 +670,6 @@ $(ObjectDir_Debug)/C-kern!task!module.c.o: C-kern/task/module.c
 $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
 	@$(CC_Debug)
 
@@ -680,6 +677,9 @@ $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncwait.c.o: C-kern/task/syncwait.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
@@ -1042,9 +1042,6 @@ $(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
 $(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!task!synccond.c.o: C-kern/task/synccond.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
 	@$(CC_Release)
 
@@ -1052,6 +1049,9 @@ $(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncwait.c.o: C-kern/task/syncwait.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!unittest.c.o: C-kern/test/unittest.c

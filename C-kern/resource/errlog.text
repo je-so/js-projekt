@@ -202,24 +202,24 @@ RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"
 en: "The number of used resources is different\n"
 
-STATE_WRONG_SIGHANDLER_DEFINED(const char* signame)
-de: "Ein für Signal »" signame "« installierter Signalhandler erzeugt möglicherweise undefiniertes Verhalten.\n"
-en: "The signal handler installed for signal «" signame "» possibly produces undefined behaviour.\n"
 
-# // TODO: rename TEST into STATE
-TEST_INPARAM_FALSE(const char * violated_condition)
+OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR(const char* signame)
+de: "Ein für Signal »" signame "« installierter Signalhandler erzeugt möglicherweise undefiniertes Verhalten in diesem Modul.\n"
+en: "The signal handler installed for signal «" signame "» possibly produces undefined behaviour in this module.\n"
+
+VALIDATE_INPARAM_FAILED(const char * violated_condition)
 de: "Eingabewert verletzt Bedingung ("violated_condition")\n"
 en: "Function input violates condition ("violated_condition")\n"
 
-TEST_INVARIANT_FALSE(const char * violated_condition)
+VALIDATE_INVARIANT_FAILED(const char * violated_condition)
 de: "Interne Zustandsvariablen verletzen Bedingung ("violated_condition")\n"
 en: "Internal state variables violate condition ("violated_condition")\n"
 
-TEST_OUTPARAM_FALSE(const char * violated_condition)
+VALIDATE_OUTPARAM_FAILED(const char * violated_condition)
 de: "Ausgabewert verletzt Bedingung ("violated_condition")\n"
 en: "Function output violates condition ("violated_condition")\n"
 
-TEST_STATE_FALSE(const char * violated_condition)
+VALIDATE_STATE_FAILED(const char * violated_condition)
 de: "Operation nur erlaubt im Zustand ("violated_condition")\n"
 en: "Operation allowed only in state ("violated_condition")\n"
 

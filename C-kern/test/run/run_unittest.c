@@ -217,7 +217,7 @@ static int run_all_test(maincontext_t * maincontext)
 //}
 
 //{ task unittest
-      RUN(unittest_task_synccond);
+      RUN(unittest_task_syncwait);
       RUN(unittest_task_syncfunc);
       RUN(unittest_task_syncrunner);
       RUN(unittest_task_itc_itccounter);

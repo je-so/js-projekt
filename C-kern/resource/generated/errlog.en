@@ -201,37 +201,37 @@ void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
    PRINTF("The number of used resources is different\n");
 }
 
-void STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_STATE_WRONG_SIGHANDLER_DEFINED_ERRLOG * p = _p;
+   struct p_OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR_ERRLOG * p = _p;
 
-   PRINTF("The signal handler installed for signal «%s» possibly produces undefined behaviour.\n", p->signame);
+   PRINTF("The signal handler installed for signal «%s» possibly produces undefined behaviour in this module.\n", p->signame);
 }
 
-void TEST_INPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_INPARAM_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_TEST_INPARAM_FALSE_ERRLOG * p = _p;
+   struct p_VALIDATE_INPARAM_FAILED_ERRLOG * p = _p;
 
    PRINTF("Function input violates condition (%s)\n", p->violated_condition);
 }
 
-void TEST_INVARIANT_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_INVARIANT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_TEST_INVARIANT_FALSE_ERRLOG * p = _p;
+   struct p_VALIDATE_INVARIANT_FAILED_ERRLOG * p = _p;
 
    PRINTF("Internal state variables violate condition (%s)\n", p->violated_condition);
 }
 
-void TEST_OUTPARAM_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_OUTPARAM_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_TEST_OUTPARAM_FALSE_ERRLOG * p = _p;
+   struct p_VALIDATE_OUTPARAM_FAILED_ERRLOG * p = _p;
 
    PRINTF("Function output violates condition (%s)\n", p->violated_condition);
 }
 
-void TEST_STATE_FALSE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_STATE_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
 {
-   struct p_TEST_STATE_FALSE_ERRLOG * p = _p;
+   struct p_VALIDATE_STATE_FAILED_ERRLOG * p = _p;
 
    PRINTF("Operation allowed only in state (%s)\n", p->violated_condition);
 }

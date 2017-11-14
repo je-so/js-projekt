@@ -303,8 +303,6 @@ int insertfirst_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeadd
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, );
-
    queue_page_t* first = first_pagelist(cast_dlist(queue));
 
    if (!first || 0 != pushfirst_queuepage(first, nodeaddr, nodesize)) {
@@ -326,8 +324,6 @@ ONERR:
 int insertlast_queue(queue_t * queue, uint16_t nodesize, /*out*/void ** nodeaddr)
 {
    int err;
-
-   VALIDATE_INPARAM_TEST(nodesize <= 512, ONERR, );
 
    queue_page_t* last = last_pagelist(cast_dlist(queue));
    uint16_t  pagesize = pagesize_queue(queue);
@@ -481,9 +477,13 @@ static int test_queuepage(void)
    TEST(! issupported(32768));
    for (size_t ps = 256; ps <= 16384; ps *= 2) {
 
+      // TEST pagesize_queue
       TEST(issupported(ps));
       queue.pagesize = pagesizefrombytes_pagecache(ps);
       TEST(ps == pagesize_queue(&queue));
+
+      // TEST maxelemsize_queue
+      TEST(ps == maxelemsize_queue((uint16_t)ps) + sizeof(queue_page_t));
 
       // TEST new_queuepage
       size_t oldsize = SIZEALLOCATED_PAGECACHE();
@@ -564,6 +564,15 @@ static int test_queuepage(void)
       }
    }
 
+   // TEST pushfirst_queuepage: maxelemsize_queue
+   qpage->end_offset = defaultpagesize_queue();
+   qpage->start_offset = defaultpagesize_queue();
+   TEST(0 == pushfirst_queuepage(qpage, &nodeaddr, maxelemsize_queue(defaultpagesize_queue())));
+   TEST(defaultpagesize_queue() == qpage->end_offset);
+   TEST(sizeof(queue_page_t) == qpage->start_offset);
+   TEST((uint8_t*)qpage + qpage->start_offset == (uint8_t*)nodeaddr);
+   TEST(ENOMEM == pushfirst_queuepage(qpage, &nodeaddr, 1));
+
    // TEST pushlast_queuepage
    qpage->start_offset = 0;
    for (unsigned size = 0; size < defaultpagesize_queue(); ++size) {
@@ -585,6 +594,15 @@ static int test_queuepage(void)
          TEST(0 == qpage->start_offset);
       }
    }
+
+   // TEST pushlast_queuepage: maxelemsize_queue
+   qpage->end_offset = sizeof(queue_page_t);
+   qpage->start_offset = sizeof(queue_page_t);
+   TEST(0 == pushlast_queuepage(qpage, defaultpagesize_queue(), &nodeaddr, maxelemsize_queue(defaultpagesize_queue())));
+   TEST(sizeof(queue_page_t) == qpage->start_offset);
+   TEST(defaultpagesize_queue() == qpage->end_offset);
+   TEST((uint8_t*)qpage + qpage->start_offset == (uint8_t*)nodeaddr);
+   TEST(ENOMEM == pushlast_queuepage(qpage, defaultpagesize_queue(), &nodeaddr, 1));
 
    // TEST removefirst_queuepage
    qpage->end_offset = defaultpagesize_queue();
@@ -1327,13 +1345,13 @@ static int test_update(void)
    TEST(0 == queue.last);
    TEST(0 == insertlast_queue(&queue, 0, &node));
    TEST(0 != queue.last);
-   for (uint16_t nodesize = 0; nodesize <= 512; ++nodesize) {
+   for (unsigned nodesize = 0; nodesize <= maxelemsize_queue(defaultpagesize_queue()); nodesize = nodesize < 512 ? nodesize+1 : 2*nodesize) {
       queue_page_t* last  = last_pagelist(cast_dlist(&queue));
       queue_page_t* first = first_pagelist(cast_dlist(&queue));
       queue_page_t* old   = (void*)last->prev;
-      bool           isNew = (defaultpagesize_queue() - last->end_offset) < nodesize;
+      bool           isNew = ((size_t)defaultpagesize_queue() - last->end_offset) < nodesize;
       uint32_t       off   = isNew ? sizeof(queue_page_t) : last->end_offset;
-      TEST(0 == insertlast_queue(&queue, nodesize, &node));
+      TEST(0 == insertlast_queue(&queue, (uint16_t)nodesize, &node));
       if (isNew) {
          TEST(queue.last == last->next);
          old  = last;
@@ -1357,14 +1375,6 @@ static int test_update(void)
    init_testerrortimer(&s_queuepage_errtimer, 1, ENOMEM);
    TEST(ENOMEM == insertlast_queue(&queue, 1, &node));
    TEST(0 == queue.last); // nothing added
-
-   // TEST insertfirst_queue: EINVAL
-   TEST(EINVAL == insertfirst_queue(&queue, 513, &node));
-   TEST(EINVAL == insertfirst_queue(&queue, 65535, &node));
-
-   // TEST insertlast_queue: EINVAL
-   TEST(EINVAL == insertlast_queue(&queue, 513, &node));
-   TEST(EINVAL == insertlast_queue(&queue, 65535, &node));
 
    // TEST removefirst_queue: empty queue
    TEST(0 == queue.last);

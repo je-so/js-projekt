@@ -1,298 +1,220 @@
-[1: 1450414041.723683s]
-free_syncrunner() C-kern/task/syncrunner.c:124
+[1: 1510683113.944053s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944055s]
+free_sq() C-kern/task/syncrunner.c:100
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.723689s]
-free_syncrunner() C-kern/task/syncrunner.c:124
+[1: 1510683113.944056s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944056s]
+free_sq() C-kern/task/syncrunner.c:100
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733130s]
-removefunc_syncrunner() C-kern/task/syncrunner.c:225
+[1: 1510683113.944057s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
-Error 61 - No data available
-[1: 1450414041.733134s]
-removefunc_syncrunner() C-kern/task/syncrunner.c:225
+Error 22 - Invalid argument
+[1: 1510683113.944057s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
 Exit function with
-Error 61 - No data available
-[1: 1450414041.733198s]
-addfunc_syncrunner() C-kern/task/syncrunner.c:278
+Error 22 - Invalid argument
+[1: 1510683113.944058s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944059s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944059s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944060s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944060s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944061s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944062s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944062s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944063s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944063s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944064s]
+shrink_sq() C-kern/task/syncrunner.c:165
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944065s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1510683113.944066s]
+grow_sq() C-kern/task/syncrunner.c:136
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1450414041.733237s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683113.944103s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733240s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683113.944104s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733242s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683113.944104s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733245s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683113.944105s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733248s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683113.944105s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733250s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041381s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733253s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041388s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733256s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041389s]
+free_syncrunner() C-kern/task/syncrunner.c:297
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733258s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041390s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733261s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041390s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733263s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.041391s]
+free_syncrunner() C-kern/task/syncrunner.c:297
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733266s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.276547s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:436
+Function input violates condition (mainfct != 0)
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733269s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.276556s]
+grow_sq() C-kern/task/syncrunner.c:136
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733271s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733274s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733276s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733279s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733282s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733284s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733287s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733289s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 115 - Operation now in progress
-[1: 1450414041.733318s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733320s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733323s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733325s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733328s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733330s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733332s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733334s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733336s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733338s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733341s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733342s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733345s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733347s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733349s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733352s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733355s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733357s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733360s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733361s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733364s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733365s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733368s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733370s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733372s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733374s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733377s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733378s]
-run_syncrunner() C-kern/task/syncrunner.c:532
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733381s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
-Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733383s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+Error 12 - Cannot allocate memory
+[1: 1510683114.276557s]
+growqueues_syncrunner() C-kern/task/syncrunner.c:394
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733386s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+Error 12 - Cannot allocate memory
+[1: 1510683114.276557s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:449
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733387s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+Error 12 - Cannot allocate memory
+[1: 1510683114.276558s]
+grow_sq() C-kern/task/syncrunner.c:136
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733390s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+Error 12 - Cannot allocate memory
+[1: 1510683114.276558s]
+growqueues_syncrunner() C-kern/task/syncrunner.c:394
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733392s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+Error 12 - Cannot allocate memory
+[1: 1510683114.276559s]
+addfunc_syncrunner() C-kern/task/syncrunner.c:449
 Exit function with
-Error 22 - Invalid argument
-[1: 1450414041.733394s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+Error 12 - Cannot allocate memory
+[1: 1510683114.372024s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733396s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+[1: 1510683114.372029s]
+shrinkqueues_syncrunner() C-kern/task/syncrunner.c:358
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733399s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+[1: 1510683114.372030s]
+exec_syncrunner() C-kern/task/syncrunner.c:636
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733401s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+[1: 1510683114.372032s]
+run_syncrunner() C-kern/task/syncrunner.c:658
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733404s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+[1: 1510683114.372035s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733405s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+[1: 1510683114.372035s]
+shrinkqueues_syncrunner() C-kern/task/syncrunner.c:358
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733408s]
-process_runq_syncrunner() C-kern/task/syncrunner.c:516
+[1: 1510683114.372036s]
+exec_syncrunner() C-kern/task/syncrunner.c:636
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733409s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+[1: 1510683114.372036s]
+run_syncrunner() C-kern/task/syncrunner.c:658
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733411s]
-process_waitq_syncrunner() C-kern/task/syncrunner.c:450
+[1: 1510683114.372072s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.733413s]
-run_syncrunner() C-kern/task/syncrunner.c:532
+[1: 1510683114.372072s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.734228s]
-terminate_syncrunner() C-kern/task/syncrunner.c:581
+[1: 1510683114.372073s]
+terminate_syncrunner() C-kern/task/syncrunner.c:705
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.734549s]
-terminate_syncrunner() C-kern/task/syncrunner.c:581
+[1: 1510683114.372077s]
+shrink_sq() C-kern/task/syncrunner.c:165
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.734969s]
-terminate_syncrunner() C-kern/task/syncrunner.c:581
+[1: 1510683114.372078s]
+free_sq() C-kern/task/syncrunner.c:100
+One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1450414041.735388s]
-terminate_syncrunner() C-kern/task/syncrunner.c:581
+[1: 1510683114.372078s]
+terminate_syncrunner() C-kern/task/syncrunner.c:705
 Exit function with
 Error 22 - Invalid argument

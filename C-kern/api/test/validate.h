@@ -31,7 +31,7 @@
 #define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                  \
             err = EINVAL;                                      \
-            TRACE_ERRLOG(  log_flags_NONE, TEST_INPARAM_FALSE, \
+            TRACE_ERRLOG(  log_flags_NONE, VALIDATE_INPARAM_FAILED, \
                            #_CONDITION);                       \
             _LOG_VALUE;                                        \
             goto _ONERROR_LABEL;                               \
@@ -50,7 +50,7 @@
 #define VALIDATE_OUTPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                     \
             err = EINVAL;                                         \
-            TRACE_ERRLOG(  log_flags_NONE, TEST_OUTPARAM_FALSE,   \
+            TRACE_ERRLOG(  log_flags_NONE, VALIDATE_OUTPARAM_FAILED,   \
                            #_CONDITION);                          \
             _LOG_VALUE;                                           \
             goto _ONERROR_LABEL;                                  \
@@ -75,7 +75,7 @@
 #define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                     \
             err = EINVARIANT;                                     \
-            TRACE_ERRLOG(  log_flags_NONE, TEST_INVARIANT_FALSE,  \
+            TRACE_ERRLOG(  log_flags_NONE, VALIDATE_INVARIANT_FAILED,  \
                            #_CONDITION);                          \
             _LOG_VALUE;                                           \
             goto _ONERROR_LABEL;                                  \
@@ -98,7 +98,7 @@
 #define VALIDATE_STATE_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
          if (!(_CONDITION)) {                                  \
             err = EPROTO;                                      \
-            TRACE_ERRLOG(  log_flags_NONE, TEST_STATE_FALSE,   \
+            TRACE_ERRLOG(  log_flags_NONE, VALIDATE_STATE_FAILED,   \
                            #_CONDITION) ;                      \
             _LOG_VALUE;                                        \
             goto _ONERROR_LABEL;                               \

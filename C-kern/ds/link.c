@@ -138,14 +138,22 @@ static int test_initfree(void)
 
    // TEST initself_linkd
    initself_linkd(&linkd);
-   TEST(&linkd == linkd.prev);
-   TEST(&linkd == linkd.next);
+   TEST( &linkd == linkd.prev);
+   TEST( &linkd == linkd.next);
+   TEST( isvalid_linkd(&linkd));
    // initself_linkd can be used to add elements without checking for valid links
    initprev_linkd(&linkd2, &linkd);
    TEST(&linkd2 == linkd.prev);
    TEST(&linkd2 == linkd.next);
    TEST(&linkd  == linkd2.prev);
    TEST(&linkd  == linkd2.next);
+
+   // TEST initinvalid_linkd
+   initself_linkd(&linkd);
+   initinvalid_linkd(&linkd);
+   TEST( 0       == isvalid_linkd(&linkd));
+   TEST( 0       == linkd.prev);
+   TEST( &linkd  == linkd.next);
 
    // TEST free_linkd: link is already free
    linkd = (linkd_t) linkd_FREE;
