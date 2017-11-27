@@ -1437,7 +1437,7 @@ int test_udpIO(void)
          TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
          TEST(buffer_size == size) ;
          TEST(0 == readPaddr_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
-         TEST(buffer_size == size) ;
+         TESTP(buffer_size == size, "bufsz:%zd size:%zd", buffer_size, size);
          for (unsigned b = 0; b < buffer_size; ++b) {
             TEST(buffer[b] == i) ;
          }

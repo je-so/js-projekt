@@ -485,27 +485,28 @@ int wakeupall_syncrunner(syncrunner_t *srun, struct syncwait_t *swait)
 // group: execute
 
 /* define: RUN_SYNCFUNC
- * <syncfunc_t.mainfct> wird mit Kommando <synccmd_RUN> aufgerufen.
+ * <syncfunc_t.mainfct> wird aufgerufen.
  *
  * Parameter:
  * param - Name von lokalem <syncfunc_param_t>. Wird mehrfach ausgewertet !!
  *
  * Unchecked Precondition:
  * o param.srun points to a valid <syncrunner_t>.
- * o param.sfunc points to a valid <syncfunc_t>. */
+ * o param.sfunc points to a valid <syncfunc_t>.
+ * o param.iimpl points to a valid <syncfunc_it>. */
 #define RUN_SYNCFUNC(param) \
             (param.sfunc->mainfct(&param))
 
 /* define: END_SYNCFUNC
- * <syncfunc_t.mainfct> wird mit Kommando <synccmd_RUN> aufgerufen,
- * vorher wird aber <syncfunc_t.contoffset> auf Ende-Marke gesetzt,
+ * <syncfunc_t.mainfct> wird mit aufgerufen,
+ * vorher wird aber <syncfunc_t.contoffset> auf die Ende-Marke gesetzt,
  * so daß die Funktion korrekt beendet wird.
  *
  * Nach Ausführen wird die Funktion aus allen verlinkten Listen entfernt.
  *
  * Sollte die Funktion noch niemals aktiviert worden sein, wird
  * sie einmalig aktiviert, damit <syncfunc_t.endoffset> korrekt
- * initialisiert wurde.
+ * initialisiert wird.
  *
  * Der Fehlercode wird vor Aufruf auf ECANCELED gesetzt (siehe <syncfunc_t.seterr_syncfunc>).
  *
@@ -516,58 +517,69 @@ int wakeupall_syncrunner(syncrunner_t *srun, struct syncwait_t *swait)
  * o param.srun points to a valid <syncrunner_t>.
  * o param.sfunc points to a valid <syncfunc_t>. */
 #define END_SYNCFUNC(param) \
-         do {                                               \
-            if (0 != (param).sfunc->endoffset               \
-               /* run at least once ! */                    \
-               /* => (param).sfunc->endoffset != 0 */       \
-                || synccmd_EXIT != RUN_SYNCFUNC(param)) {   \
-                  (param).sfunc->contoffset =               \
-                     (param).sfunc->endoffset;              \
-                     (param).sfunc->err = ECANCELED;        \
-                     RUN_SYNCFUNC(param);                   \
-            }                                               \
-            unlink_syncfunc(param.sfunc);                   \
+         do {                                                     \
+            if (0 == param.sfunc->endoffset) {                    \
+               /* not run at least once ! */                      \
+               RUN_SYNCFUNC(param);                               \
+               /* => param.sfunc->endoffset != 0 */               \
+            }                                                     \
+            if (param.sfunc->mainfct != 0/*exit already?*/) {     \
+               param.sfunc->contoffset = param.sfunc->endoffset;  \
+               param.sfunc->err = ECANCELED;                      \
+               RUN_SYNCFUNC(param);                               \
+            }                                                     \
+            unlink_syncfunc(param.sfunc);                         \
          } while(0)
 
-static inline void process_cmd(syncfunc_param_t *param, int cmd, const unsigned qid)
+static void waitsf_runimpl(syncfunc_param_t *param, syncwait_t *waitlist)
 {
-   syncfunc_t *sf = param->sfunc;
+   syncfunc_t *old = param->sfunc; // move from run to wait queue
+   allocfunc_syncrunner(param->srun, WAIT_QID, &param->sfunc);
+   initcopy_syncfunc(param->sfunc, old);
+   linkwaitnode_syncfunc(param->sfunc, waitlist);
+   removefunc_syncrunner(param->srun, RUN_QID, old);
+}
 
-   if (synccmd_RUN == cmd) {
-      if (WAIT_QID == qid) { // move from wait to run queue ?
-         allocfunc_syncrunner(param->srun, RUN_QID, &param->sfunc);
-         initcopy_syncfunc(param->sfunc, sf);
-         removefunc_syncrunner(param->srun, WAIT_QID, sf);
-      }
+static void waitsf_waitimpl(syncfunc_param_t *param, syncwait_t *waitlist)
+{
+   linkwaitnode_syncfunc(param->sfunc, waitlist);
+}
 
-   } else if (synccmd_WAIT == cmd) {
-      if (RUN_QID == qid) { // move from run to wait queue ?
-         allocfunc_syncrunner(param->srun, WAIT_QID, &param->sfunc);
-         initcopy_syncfunc(param->sfunc, sf);
-         removefunc_syncrunner(param->srun, RUN_QID, sf);
-      }
-      linkwaitnode_syncfunc(param->sfunc, param->waitlist);
+static void waitsf_terminateimpl(syncfunc_param_t *param, syncwait_t *waitlist)
+{
+   (void) param; (void) waitlist; // ignore
+}
 
-   } else { // synccmd_EXIT or "invalid value"
-      removefunc_syncrunner(param->srun, qid, sf);
-   }
+static void exitsf_runimpl(syncfunc_param_t *param)
+{
+   removefunc_syncrunner(param->srun, RUN_QID, param->sfunc);
+}
+
+static void exitsf_waitimpl(syncfunc_param_t *param)
+{
+   removefunc_syncrunner(param->srun, WAIT_QID, param->sfunc);
+}
+
+static void exitsf_terminateimpl(syncfunc_param_t *param)
+{
+   param->sfunc->mainfct = 0;
 }
 
 /* function: process_wakeuplist
  * Starte alle in <syncrunner_t.wakeup> gelisteten <syncfunc_t>.
- * Der Rückgabewert vom Typ <synccmd_e> entscheidet, ob die Funktion weiterhin
- * in der Wartequeue verbleibt oder in die Runqueue verschoben wird.
+ * Der Art der Beendigung entscheidet, ob die Funktion weiterhin
+ * in der Wartequeue verbleibt (waitsf), in die Runqueue verschoben wird
+ * oder ganz gelöscht wird (exitsf).
  *
- * <syncfunc_param_t.err> = <syncfunc_t.waitresult>.
+ * Der Fehlercode <syncfunc_t.err> wird als Result der Warteoperation übergeben.
  *
  * Unchecked Precondition:
  * !isself_linkd(&srun->wakeup)
  * */
 static inline void process_wakeuplist(syncrunner_t *srun)
 {
-   int cmd;
-
-   syncfunc_param_t param = syncfunc_param_INIT(srun);
+   static syncfunc_it iimpl = syncfunc_it_INIT(&exitsf_waitimpl, &waitsf_waitimpl);
+   syncfunc_param_t   param = syncfunc_param_INIT(srun, &iimpl);
 
    // build shadow wakeup list
    // ensure that newly woken up syncfunc_t are not executed this time
@@ -579,20 +591,25 @@ static inline void process_wakeuplist(syncrunner_t *srun)
    // loop over all entries in shadow wakeup list
 
    while (wakeup.next != &wakeup) {
-      param.sfunc = castPwaitnode_syncfunc(wakeup.next);
-      unlink_linkd(wakeup.next);
-
-      cmd = RUN_SYNCFUNC(param);
-
-      process_cmd(&param, cmd, WAIT_QID);
+      linkd_t *waitnode = wakeup.next;
+      param.sfunc = castPwaitnode_syncfunc(waitnode);
+      unlink_linkd(waitnode);
+      initinvalid_linkd(waitnode);
+      RUN_SYNCFUNC(param);
+      if (!isvalid_linkd(waitnode)) {  // move from wait to run queue ?
+         syncfunc_t *copy;
+         allocfunc_syncrunner(param.srun, RUN_QID, &copy);
+         initcopy_syncfunc(copy, param.sfunc);
+         removefunc_syncrunner(param.srun, WAIT_QID, param.sfunc);
+      }
    }
 }
 
 static inline int exec_syncrunner(syncrunner_t *srun)
 {
    int err;
-   int cmd;
-   syncfunc_param_t param = syncfunc_param_INIT(srun);
+   static syncfunc_it iimpl = syncfunc_it_INIT(&exitsf_runimpl, &waitsf_runimpl);
+   syncfunc_param_t   param = syncfunc_param_INIT(srun, &iimpl);
 
    // run every entry in run queue once
 
@@ -603,14 +620,12 @@ static inline int exec_syncrunner(syncrunner_t *srun)
    for (; page != lastpage; page = (syncrunner_page_t*)page->otherpages.next) {
       for (size_t i=0; i<NRELEMPERPAGE; ++i) {
          param.sfunc = &page->sfunc[i];
-         cmd = RUN_SYNCFUNC(param);
-         process_cmd(&param, cmd, RUN_QID);
+         RUN_SYNCFUNC(param);
       }
    }
    for (size_t i=0; i<lastsize; ++i) {
       param.sfunc = &page->sfunc[i];
-      cmd = RUN_SYNCFUNC(param);
-      process_cmd(&param, cmd, RUN_QID);
+      RUN_SYNCFUNC(param);
    }
 
    // removes every hole in array
@@ -662,7 +677,8 @@ ONERR:
 int terminate_syncrunner(syncrunner_t *srun)
 {
    int err = 0;
-   syncfunc_param_t param = syncfunc_param_INIT(srun);
+   static syncfunc_it iimpl = syncfunc_it_INIT(&exitsf_terminateimpl, &waitsf_terminateimpl);
+   syncfunc_param_t   param = syncfunc_param_INIT(srun, &iimpl);
 
    if (srun->isrun) return EINPROGRESS;
 
@@ -713,32 +729,30 @@ ONERR:
 
 #ifdef KONFIG_PERFTEST
 
-static int syncfunc_client(syncfunc_param_t* param) __attribute__((noinline));
-static int syncfunc_server(syncfunc_param_t* param) __attribute__((noinline));
+static void syncfunc_client(syncfunc_param_t* param) __attribute__((noinline));
+static void syncfunc_server(syncfunc_param_t* param) __attribute__((noinline));
 
 typedef struct state_t {
    uintptr_t count;
    void*     msg;
 } state_t;
 
-static int syncfunc_client(syncfunc_param_t* param)
+static void syncfunc_client(syncfunc_param_t* param)
 {
    state_t* state = state_syncfunc(param);
    if (state->msg) {
       // printf("client: %d\n",(int)state->msg);
       state->msg = 0; // processed !
    }
-   return synccmd_RUN;
 }
 
-static int syncfunc_server(syncfunc_param_t* param)
+static void syncfunc_server(syncfunc_param_t* param)
 {
    state_t* state = state_syncfunc(param);
    if (!state->msg) {
       state->msg = (void*) (++state->count); // generate new msg
       // printf("server: %d\n",state->count);
    }
-   return synccmd_RUN;
 }
 
 static int pt_prepare(perftest_instance_t* tinst)
@@ -850,10 +864,9 @@ static int childprocess_allocfunc(void *_srun)
    return 0;
 }
 
-static int dummy_sf(syncfunc_param_t* sfparam)
+static void dummy_sf(syncfunc_param_t* sfparam)
 {
    (void) sfparam;
-   return synccmd_EXIT;
 }
 
 /* Allokierte x Seiten, wobei x == (allocated+nrfree+freelist_size)/NRELEMPERPAGE.
@@ -2009,25 +2022,23 @@ static struct {
    void             *sfunc_range_end;
 } s_in;
 
-static void init_s_in(syncrunner_t *srun)
+static void init_s_in(syncrunner_t *srun, syncfunc_it *iimpl)
 {
    memset(&s_in, 0, sizeof(s_in));
-   s_in.sfparam.srun = srun;
+   memcpy(&s_in.sfparam, &(syncfunc_param_t)syncfunc_param_INIT(srun, iimpl), sizeof(s_in.sfparam));
 }
 
 // == out params ==
 
 static struct {
-   syncfunc_f        sfunc;
-   size_t            runcount;
-   size_t            errcount;
+   syncfunc_f  sfunc;
+   size_t      runcount;
 } s_out;
 
 static void clear_s_out(void)
 {
    s_out.sfunc    = 0;
    s_out.runcount = 0;
-   s_out.errcount = 0;
 }
 
 static void touch_s_out(syncfunc_f sfunc)
@@ -2037,31 +2048,33 @@ static void touch_s_out(syncfunc_f sfunc)
    ++ s_out.runcount;
 }
 
-static void testok_s_out(int ok_condition)
-{
-   s_out.errcount += (ok_condition == 0);
-}
-
 
 static int check_s_out(syncfunc_f sfunc, size_t runcount)
 {
    TEST( s_out.sfunc == sfunc);
    TEST( s_out.runcount == runcount);
-   TEST( s_out.errcount == 0);
    return 0;
 ONERR:
    return EINVAL;
 }
 
 static struct {
-   int               retval;
    int               exiterr;
    int16_t           contoffset;
    syncwait_t       *waitlist;
    void             *state;
+   // == action
+   bool              doExit; // doExit ==> ! doWait
+   bool              doWait; // doWait ==> ! doExit
+   // doRun == !doExit && !doWait
 } s_set;
 
-static int test_in_sf(syncfunc_param_t *sfparam)
+void reset_s_set(void)
+{
+   memset(&s_set, 0, sizeof(s_set));
+}
+
+static void test_in_sf(syncfunc_param_t *sfparam)
 {
    assert(s_in.sfparam_ptr   == sfparam);
    assert(s_in.sfparam.srun  == sfparam->srun);
@@ -2069,10 +2082,14 @@ static int test_in_sf(syncfunc_param_t *sfparam)
    assert(sfparam->sfunc->contoffset == s_in.contoffset);
    assert(sfparam->sfunc->err        == s_in.err);
    touch_s_out(&test_in_sf);
-   return s_set.retval;
+   if (s_set.doExit) {
+      exit_syncfunc(sfparam, s_in.err);
+   }
+   return; // do not exit
+   end_syncfunc(sfparam, { });
 }
 
-static int test_cancel_sf(syncfunc_param_t *sfparam)
+static void test_cancel_sf(syncfunc_param_t *sfparam)
 {
    assert(sfparam          == s_in.sfparam_ptr);
    assert(sfparam->srun    == s_in.sfparam.srun);
@@ -2082,26 +2099,25 @@ static int test_cancel_sf(syncfunc_param_t *sfparam)
    assert(sfparam->sfunc->err        == (s_out.runcount == 0 ? 0 : ECANCELED));
    if (!s_out.runcount) { sfparam->sfunc->endoffset = 15; }
    touch_s_out(&test_cancel_sf);
-   return synccmd_RUN;
 }
 
 static int test_exec_helper(void)
 {
    syncrunner_t      srun  = syncrunner_FREE;
-   syncfunc_param_t  param = syncfunc_param_INIT(&srun);
+   syncfunc_it       iimpl = syncfunc_it_INIT(&exitsf_terminateimpl, 0);
+   syncfunc_param_t  param = syncfunc_param_INIT(&srun, &iimpl);
    syncfunc_t        sfunc = syncfunc_FREE;
 
    // prepare
-   init_s_in(&srun);
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    s_in.sfparam_ptr   = &param;
    s_in.sfparam.sfunc = &sfunc;
    param.sfunc = &sfunc;
 
    // TEST RUN_SYNCFUNC
-   for (unsigned retcode = 0; retcode <= 4; ++retcode) {
-      const int R = (int)retcode -2;
-      s_set.retval = R;
-      s_in.err = 12345 + (int)retcode;
+   for (unsigned errcode = 12345; errcode <= 12345+4; ++errcode) {
+      s_in.err = (int)errcode;
       for (unsigned contoffset = 0; contoffset <= 3; ++contoffset) {
          void* state = (void*)((uintptr_t)10 + contoffset);
          init_syncfunc(&sfunc, &test_in_sf, state);
@@ -2110,7 +2126,7 @@ static int test_exec_helper(void)
          sfunc.err = s_in.err;
          // test
          clear_s_out();
-         TEST( R == RUN_SYNCFUNC(param));
+         RUN_SYNCFUNC(param);
          // check sfunc
          TEST( sfunc.mainfct    == &test_in_sf);
          TEST( sfunc.state      == state);
@@ -2146,9 +2162,9 @@ static int test_exec_helper(void)
       TEST( isself_linkd(&waitlist));           // removed from waitlist
    }
 
-   // TEST END_SYNCFUNC: endoffset == 0 && fct. returns synccmd_EXIT
-   s_set.retval = synccmd_EXIT;
+   // TEST END_SYNCFUNC: endoffset == 0 && fct. calls exit
    s_in.err = 0;
+   s_set.doExit = true;
    for (unsigned contoffset = 1; contoffset <= 3; ++contoffset) {
       // prepare
       linkd_t waitlist;
@@ -2163,6 +2179,7 @@ static int test_exec_helper(void)
       // check function called
       TEST( 0 == check_s_out(&test_in_sf, 1));
       // check sfunc
+      TEST( sfunc.mainfct    == 0);             // exitf called
       TEST( sfunc.state      == state);
       TEST( sfunc.contoffset == (int16_t) contoffset);
       TEST( sfunc.endoffset  == 0);
@@ -2171,7 +2188,8 @@ static int test_exec_helper(void)
       TEST( isself_linkd(&waitlist));           // removed from waitlist
    }
 
-   // TEST END_SYNCFUNC: endoffset == 0 && fct. returns synccmd_RUN ==> called 2nd time with ECANCELED
+   // TEST END_SYNCFUNC: endoffset == 0 && fct. continues ==> called 2nd time with ECANCELED
+   reset_s_set();
    for (unsigned contoffset = 1; contoffset <= 3; ++contoffset) {
       // prepare
       linkd_t waitlist;
@@ -2186,6 +2204,7 @@ static int test_exec_helper(void)
       // check function called
       TEST( 0 == check_s_out(&test_cancel_sf, 2/*called two times!*/));
       // check sfunc
+      TEST( sfunc.mainfct    == &test_cancel_sf);
       TEST( sfunc.state      == state);
       TEST( sfunc.contoffset == 15);
       TEST( sfunc.endoffset  == 15);
@@ -2201,31 +2220,33 @@ ONERR:
    return EINVAL;
 }
 
-static int test_wakeup_sf(syncfunc_param_t* sfparam)
+static void test_wakeup_sf(syncfunc_param_t *sfparam)
 {
    assert(sfparam->srun    == s_in.sfparam.srun);
-   testok_s_out(sfparam->srun->isrun == 0);
-   testok_s_out(sfparam->srun->isterminate == 0);
-   testok_s_out(state_syncfunc(sfparam) == s_in.state);
-   testok_s_out(contoffset_syncfunc(sfparam->sfunc) == s_in.contoffset);
+   assert(sfparam->srun->isrun == 0);
+   assert(sfparam->srun->isterminate == 0);
+   assert(sfparam->iimpl->exitsf == s_in.sfparam.iimpl->exitsf);
+   assert(sfparam->iimpl->waitsf == s_in.sfparam.iimpl->waitsf);
+   assert(state_syncfunc(sfparam) == s_in.state);
+   assert(contoffset_syncfunc(sfparam->sfunc) == s_in.contoffset);
+   assert(sfparam->sfunc->err == s_in.err);
    if (s_in.sfunc_range_start) {
       assert(s_in.sfunc_range_start <= (void*)sfparam->sfunc);
       assert(s_in.sfunc_range_end   >  (void*)sfparam->sfunc);
    }
-   assert(sfparam->sfunc->err == s_in.err);
+
+   if (s_set.doWait) {
+      sfparam->iimpl->waitsf(sfparam, s_set.waitlist);
+
+   } else if (s_set.doExit) {
+      sfparam->sfunc->err = s_set.exiterr;
+      sfparam->iimpl->exitsf(sfparam);
+   }
 
    setcontoffset_syncfunc(sfparam->sfunc, s_set.contoffset);
    setstate_syncfunc(sfparam, s_set.state);
 
-   if (s_set.retval == synccmd_WAIT) {
-      sfparam->waitlist = s_set.waitlist;
-
-   } else if (s_set.retval == synccmd_EXIT) {
-      sfparam->sfunc->err = s_set.exiterr;
-   }
-
    touch_s_out(&test_wakeup_sf);
-   return s_set.retval;
 }
 
 static int child_proces_wakeuplist(void *_srun)
@@ -2241,13 +2262,15 @@ ONERR:
 static int test_exec_wakeup(void)
 {
    syncrunner_t srun;
+   syncfunc_it  iimpl = syncfunc_it_INIT(&exitsf_waitimpl, &waitsf_waitimpl);
    syncfunc_t*  sfunc[10];
    syncwait_t   swait;
    process_t    process = process_FREE;
    process_result_t process_result;
 
    // prepare
-   init_s_in(&srun);
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    init_syncwait(&swait);
    TEST(0 == init_syncrunner(&srun));
 
@@ -2259,11 +2282,11 @@ static int test_exec_wakeup(void)
    TEST( process_result.state      == process_state_ABORTED);
    TEST( process_result.returncode == SIGSEGV);
 
-   // TEST process_wakeuplist: synccmd_EXIT
+   // TEST process_wakeuplist: exitsf
+   s_set.doExit = true;
    TEST(0 == free_process(&process));
    TEST(0 == init_syncrunner(&srun));
    TEST(0 == growqueues_syncrunner(&srun));
-   s_set.retval = synccmd_EXIT;
    s_in.sfunc_range_start = srun.sq[WAIT_QID].first->sfunc;
    s_in.sfunc_range_end   = srun.sq[WAIT_QID].first->sfunc+lengthof(sfunc);
    for (uintptr_t state = 0; state <= 0x123; state+=0x123) {
@@ -2293,9 +2316,9 @@ static int test_exec_wakeup(void)
    }
    s_in.sfunc_range_start = 0;
 
-   // TEST process_wakeuplist: synccmd_RUN
-   s_set.retval = synccmd_RUN;
-   init_s_in(&srun);
+   // TEST process_wakeuplist: continue running
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    for (unsigned contoffset = 0; contoffset <= 32; contoffset+=32) {
       s_set.contoffset = (int16_t) contoffset;
       for (uintptr_t state = 0; state <= 3; state+=3) {
@@ -2332,9 +2355,9 @@ static int test_exec_wakeup(void)
    }
    s_in.sfunc_range_start = 0;
 
-   // TEST process_wakeuplist: synccmd_WAIT
-   s_set.retval = synccmd_WAIT;
+   // TEST process_wakeuplist: waitsf
    s_set.waitlist = &swait;
+   s_set.doWait = true;
    s_in.err = 123;
    s_in.state = 0;
    s_in.contoffset = 0;
@@ -2389,37 +2412,46 @@ ONERR:
    return EINVAL;
 }
 
-static int test_run_sf(syncfunc_param_t * sfparam)
+static void test_run_sf(syncfunc_param_t *sfparam)
 {
    assert(sfparam->srun == s_in.sfparam.srun);
-   testok_s_out(sfparam->srun->isrun == 1);
-   testok_s_out(sfparam->srun->isterminate == 0);
-   testok_s_out(state_syncfunc(sfparam) == s_in.state);
-   testok_s_out(contoffset_syncfunc(sfparam->sfunc) == s_in.contoffset);
-   testok_s_out(sfparam->sfunc->err == s_in.err);
-
+   assert(sfparam->srun->isrun == 1);
+   assert(sfparam->srun->isterminate == 0);
+   assert(sfparam->iimpl->exitsf == s_in.sfparam.iimpl->exitsf);
+   assert(sfparam->iimpl->waitsf == s_in.sfparam.iimpl->waitsf);
+   assert(state_syncfunc(sfparam) == s_in.state);
+   assert(contoffset_syncfunc(sfparam->sfunc) == s_in.contoffset);
+   assert(sfparam->sfunc->err == s_in.err);
    if (s_in.sfunc_range_start) {
       assert(s_in.sfunc_range_start <= (void*)sfparam->sfunc);
       assert(s_in.sfunc_range_end   >  (void*)sfparam->sfunc);
    }
 
+   if (s_set.doWait) {
+      sfparam->iimpl->waitsf(sfparam, s_set.waitlist);
+
+   } else if (s_set.doExit) {
+      sfparam->sfunc->err = s_set.exiterr;
+      sfparam->iimpl->exitsf(sfparam);
+   }
+
    setcontoffset_syncfunc(sfparam->sfunc, s_set.contoffset);
    setstate_syncfunc(sfparam, s_set.state);
-   sfparam->waitlist   = s_set.waitlist;
-   sfparam->sfunc->err = s_set.exiterr;
 
    touch_s_out(&test_run_sf);
-   return s_set.retval;
 }
 
 static int test_exec_run(void)
 {
    syncrunner_t   srun;
+   syncfunc_it    iimpl  = syncfunc_it_INIT(&exitsf_runimpl, &waitsf_runimpl);
+   syncfunc_it    iimplw = syncfunc_it_INIT(&exitsf_waitimpl, &waitsf_waitimpl);
    syncfunc_t    *sf[NRELEMPERPAGE];
    syncwait_t     swait;
 
    // prepare
-   init_s_in(&srun);
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    init_syncwait(&swait);
    TEST(0 == init_syncrunner(&srun));
 
@@ -2437,13 +2469,9 @@ static int test_exec_run(void)
    TEST( 0 == srun.isrun);
    TEST( isself_linkd(&srun.wakeup));
 
-   // TEST run_syncrunner: synccmd_EXIT
+   // TEST run_syncrunner: exitsf
    TEST(0 == growqueues_syncrunner(&srun));
-   s_set.retval = synccmd_EXIT;
-   s_set.waitlist = 0;
-   s_set.contoffset = 0;
-   s_set.exiterr = 0;
-   s_set.state = 0;
+   s_set.doExit = true;
    s_in.sfunc_range_start = srun.sq[RUN_QID].first->sfunc;
    s_in.sfunc_range_end   = srun.sq[RUN_QID].first->sfunc+lengthof(sf);
    for (uintptr_t state = 0; state <= 0x234; state+=0x234) {
@@ -2479,15 +2507,15 @@ static int test_exec_run(void)
    }
    s_in.sfunc_range_start = 0;
 
-   // TEST run_syncrunner: synccmd_RUN
-   s_set.retval = synccmd_RUN;
-   init_s_in(&srun);
+   // TEST run_syncrunner: continue running
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    for (unsigned contoffset = 0; contoffset <= 256; contoffset+=256) {
       s_set.contoffset = (int16_t) contoffset;
       for (uintptr_t state = 0; state <= 0x9; state+=0x9) {
          s_set.state = (void*) state;
          for (unsigned sferr = 0; sferr <= 3; sferr += 3) {
-            s_set.exiterr = (int)sferr;
+            s_in.err = (int)sferr;
             TEST(0 == free_syncrunner(&srun));
             TEST(0 == init_syncrunner(&srun));
             TEST(0 == growqueues_syncrunner(&srun));
@@ -2496,6 +2524,7 @@ static int test_exec_run(void)
             for (unsigned i=0; i<lengthof(sf); ++i) {
                allocfunc_syncrunner(&srun, RUN_QID, &sf[i]);
                init_syncfunc(sf[i], &test_run_sf, 0);
+               sf[i]->err = (int)sferr;
             }
             // test
             clear_s_out();
@@ -2512,17 +2541,18 @@ static int test_exec_run(void)
                TEST( sf[i]->mainfct    == &test_run_sf);
                TEST( sf[i]->state      == s_set.state);
                TEST( sf[i]->contoffset == s_set.contoffset);
-               TEST( sf[i]->err        == s_set.exiterr);
+               TEST( sf[i]->err        == (int)sferr);
             }
          }
       }
    }
    s_in.sfunc_range_start = 0;
 
-   // TEST run_syncrunner: synccmd_WAIT
-   s_set.retval = synccmd_WAIT;
-   init_s_in(&srun);
+   // TEST run_syncrunner: waitsf
+   reset_s_set();
+   s_set.doWait = true;
    s_set.waitlist = &swait;
+   init_s_in(&srun, &iimpl);
    for (unsigned contoffset = 0; contoffset <= 256; contoffset+=128) {
       s_set.contoffset = (int16_t) contoffset;
       for (uintptr_t state = 0; state <= 0x4; state+=0x4) {
@@ -2558,7 +2588,7 @@ static int test_exec_run(void)
             TEST( sf2[i].mainfct    == &test_run_sf);
             TEST( sf2[i].state      == s_set.state);
             TEST( sf2[i].contoffset == s_set.contoffset);
-            TEST( sf2[i].err        == s_set.exiterr);
+            TEST( sf2[i].err        == 0);
             TEST( sf2[i].waitnode.prev == waitprev);
             TEST( &sf2[i].waitnode     == waitprev->next);
             waitprev = &sf2[i].waitnode;
@@ -2575,11 +2605,10 @@ static int test_exec_run(void)
    TEST(0 == free_syncrunner(&srun));
    TEST(0 == init_syncrunner(&srun));
    removelist_syncwait(&swait);
-   s_set.retval = synccmd_WAIT;
-   init_s_in(&srun);
+   reset_s_set();
+   s_set.doWait = true;
    s_set.waitlist = &swait;
-   s_set.state = 0;
-   s_set.contoffset = 0;
+   init_s_in(&srun, &iimpl);
    for (unsigned i=0; i<lengthof(sf); ++i) {
       TEST(0 == addfunc_syncrunner(&srun, &test_run_sf, 0));
    }
@@ -2590,13 +2619,15 @@ static int test_exec_run(void)
    TEST(lengthof(sf) == size_syncrunner(&srun));
    TEST(iswaiting_syncwait(&swait));
    // test do nothing (nothing woken up)
-   s_set.retval = synccmd_EXIT;
+   reset_s_set();
+   s_set.doExit = true;
    TEST( 0 == run_syncrunner(&srun));
    // check
    TEST( 0 == check_s_out(&test_run_sf, lengthof(sf)));
    TEST( lengthof(sf) == size_syncrunner(&srun));
    TEST( iswaiting_syncwait(&swait));
    // test run woken up functions
+   init_s_in(&srun, &iimplw);
    TEST( 0 == wakeupall_syncrunner(&srun, &swait));
    TEST( 0 == run_syncrunner(&srun));
    // check
@@ -2610,8 +2641,9 @@ static int test_exec_run(void)
    TEST(0 == growqueues_syncrunner(&srun));
    TEST(0 == grow_sq(&srun.sq[RUN_QID]));
    TEST(2*NRELEMPERPAGE == srun.sq[RUN_QID].size);
-   s_set.retval = synccmd_EXIT;
-   init_s_in(&srun);
+   reset_s_set();
+   s_set.doExit = true;
+   init_s_in(&srun, &iimpl);
    TEST(0 == addfunc_syncrunner(&srun, &test_run_sf, 0));
    allocfunc_syncrunner(&srun, WAIT_QID, &sf[0]);
    init_syncfunc(sf[0], &test_wakeup_sf, 0);
@@ -2636,9 +2668,9 @@ static int test_exec_run(void)
    TEST(0 == growqueues_syncrunner(&srun));
    TEST(0 == grow_sq(&srun.sq[WAIT_QID]));
    TEST(2*NRELEMPERPAGE == srun.sq[WAIT_QID].size);
-   s_set.retval = synccmd_EXIT;
-   init_s_in(&srun);
-   TEST(0 == addfunc_syncrunner(&srun, &test_run_sf, 0));
+   reset_s_set();
+   s_set.doExit = true;
+   init_s_in(&srun, &iimplw);
    for (unsigned i=0; i<1+NRELEMPERPAGE; ++i) {
       allocfunc_syncrunner(&srun, WAIT_QID, &sf[0]);
       init_syncfunc(sf[0], &test_run_sf, 0);
@@ -2649,7 +2681,7 @@ static int test_exec_run(void)
    init_testerrortimer(&s_sq_errtimer, 1, EINVAL);
    TEST( EINVAL == run_syncrunner(&srun));
    // check result
-   TEST( 0 == check_s_out(&test_run_sf, 2+NRELEMPERPAGE));
+   TEST( 0 == check_s_out(&test_run_sf, 1+NRELEMPERPAGE));
    TEST( isself_linkd(&srun.wakeup)); // wakeup run
    TEST( 0 == size_syncrunner(&srun));
    TEST( NRELEMPERPAGE == srun.sq[RUN_QID].size);
@@ -2667,38 +2699,48 @@ ONERR:
    return EINVAL;
 }
 
-static int test_terminate_sf(syncfunc_param_t * sfparam)
+static void test_terminate_sf(syncfunc_param_t * sfparam)
 {
    assert(sfparam->srun == s_in.sfparam.srun);
-   testok_s_out(sfparam->srun->isrun == 1);
-   testok_s_out(sfparam->srun->isterminate == 1);
-   testok_s_out(contoffset_syncfunc(sfparam->sfunc) == (int16_t)(intptr_t)sfparam->sfunc);
+   assert(sfparam->srun->isrun == 1);
+   assert(sfparam->srun->isterminate == 1);
+   assert(sfparam->iimpl->exitsf == s_in.sfparam.iimpl->exitsf);
+   assert(sfparam->iimpl->waitsf == s_in.sfparam.iimpl->waitsf);
+   assert(contoffset_syncfunc(sfparam->sfunc) == (int16_t)(intptr_t)sfparam->sfunc);
    if (sfparam->sfunc->endoffset == 0) {
-      testok_s_out(state_syncfunc(sfparam) == sfparam->sfunc);
-      testok_s_out(sfparam->sfunc->err == s_in.err);
+      assert(state_syncfunc(sfparam) == sfparam->sfunc);
+      assert(sfparam->sfunc->err == s_in.err);
       sfparam->sfunc->endoffset  = contoffset_syncfunc(sfparam->sfunc);
       sfparam->sfunc->contoffset = 0;
       setstate_syncfunc(sfparam, (void*)((uintptr_t)sfparam->sfunc+1));
    } else {
-      testok_s_out(state_syncfunc(sfparam) == (void*)((uintptr_t)sfparam->sfunc+1));
-      testok_s_out(sfparam->sfunc->err == ECANCELED);
-      testok_s_out(sfparam->sfunc->endoffset == (int16_t)(intptr_t)sfparam->sfunc);
+      assert(state_syncfunc(sfparam) == (void*)((uintptr_t)sfparam->sfunc+1));
+      assert(sfparam->sfunc->err == ECANCELED);
+      assert(sfparam->sfunc->endoffset == (int16_t)(intptr_t)sfparam->sfunc);
       setstate_syncfunc(sfparam, 0); // mark as run
    }
 
-   sfparam->waitlist = 0; /* segmentation fault if linked to waitlist during terminate */
+   if (s_set.doWait) {
+      sfparam->iimpl->waitsf(sfparam, 0/*fault in case of waiting*/);
+
+   } else if (s_set.doExit) {
+      sfparam->sfunc->err = s_set.exiterr;
+      sfparam->iimpl->exitsf(sfparam);
+   }
+
    touch_s_out(&test_terminate_sf);
-   return s_set.retval;
 }
 
 static int test_exec_terminate(void)
 {
    syncrunner_t srun  = syncrunner_FREE;
+   syncfunc_it  iimpl = syncfunc_it_INIT(&exitsf_terminateimpl, &waitsf_terminateimpl);
    syncwait_t   swait = syncwait_FREE;
    syncfunc_t*  sfunc[lengthof(srun.sq)][NRELEMPERPAGE];
 
    // prepare
-   init_s_in(&srun);
+   reset_s_set();
+   init_s_in(&srun, &iimpl);
    init_syncwait(&swait);
    TEST(0 == init_syncrunner(&srun));
 
@@ -2717,13 +2759,14 @@ static int test_exec_terminate(void)
    TEST( 0 == srun.isterminate);
    TEST( isself_linkd(&srun.wakeup));
 
-   // TEST terminate_syncrunner: synccmd_RUN  / synccmd_WAIT / synccmd_EXIT
+   // TEST terminate_syncrunner: running / waitsf / exitsf
    for (unsigned isEndoffset = 0; isEndoffset <= 1; ++isEndoffset) {
-      static_assert(synccmd__NROF==3 && synccmd_RUN==0 && synccmd_EXIT==1 && synccmd_WAIT==2,"simple loop is enough");
-      for (unsigned retval=0; retval<=2; ++retval) {
-         s_set.retval = (synccmd_e) retval;
-         // synccmd_EXIT ==> (run once despite of endoffset == 0)
-         unsigned const isRunTwice = (retval != synccmd_EXIT) && (isEndoffset == 0);
+      for (unsigned action=0; action<=2; ++action) {
+         reset_s_set();
+         s_set.doWait = (1==action);
+         s_set.doExit = (2==action);
+         // doExit ==> (run once despite of endoffset == 0)
+         unsigned const isRunTwice = (s_set.doExit == false) && (isEndoffset == 0);
          // error is only checked if isEndoffset == 0 else overwritten to ECANCELED
          for (unsigned sferr = 0; sferr <= 33; sferr+=33+isEndoffset) {
             s_in.err = (int)sferr;
@@ -2772,7 +2815,8 @@ static int test_exec_terminate(void)
    }
 
    // TEST terminate_syncrunner: EINVAL (clearqueue_syncrunner)
-   s_set.retval = (synccmd_e) synccmd_WAIT;
+   reset_s_set();
+   s_set.doWait = true;
    s_in.err = -1;
    for (unsigned qid = 0; qid < lengthof(srun.sq); ++qid) {
       TEST(0 == free_syncrunner(&srun));
@@ -2835,7 +2879,7 @@ typedef struct example_state_t {
 
 static example_state_t s_example_state[NRELEMPERPAGE&~(size_t)1] = { {0,0,0,0,0} };
 
-static int yield_example_sf(syncfunc_param_t *sfparam)
+static void yield_example_sf(syncfunc_param_t *sfparam)
 {
    uintptr_t id = (uintptr_t) state_syncfunc(sfparam);
    assert(id < lengthof(s_example_state));
@@ -2860,7 +2904,7 @@ static int yield_example_sf(syncfunc_param_t *sfparam)
    });
 }
 
-static int wait_example_sf(syncfunc_param_t *sfparam)
+static void wait_example_sf(syncfunc_param_t *sfparam)
 {
    uintptr_t id = (uintptr_t) state_syncfunc(sfparam);
    assert(id < lengthof(s_example_state));
@@ -2882,7 +2926,7 @@ static int wait_example_sf(syncfunc_param_t *sfparam)
    });
 }
 
-static int sync_example_sf(syncfunc_param_t *sfparam)
+static void sync_example_sf(syncfunc_param_t *sfparam)
 {
    uintptr_t id = (uintptr_t) state_syncfunc(sfparam);
    assert(id < lengthof(s_example_state));

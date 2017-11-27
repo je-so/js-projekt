@@ -1,6 +1,7 @@
 /bin
 /html
-TODO.d/test
+/TODO/private
+/TODO/test
 projekte/naturaldocs/Data/
 projekte/codelite/.codelite/jsprojekt.tags
 projekte/codelite/.codelite/refactoring.db

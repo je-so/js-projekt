@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Aug.27  18:54:50
+GenerationDate  := 2017.Nov.19  16:15:11
 GeneratedBy     := Jörg Seebohn
 
 ## Debug

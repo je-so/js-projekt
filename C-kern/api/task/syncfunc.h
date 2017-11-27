@@ -29,6 +29,7 @@ struct syncwait_t;
 
 // === exported types
 struct syncfunc_t;
+struct syncfunc_it;
 struct syncfunc_param_t;
 
 /* TODO: IDEA implement producer_queue for producer/generator function
@@ -40,47 +41,15 @@ struct syncfunc_param_t;
 
 /* typedef: syncfunc_f
  * Definiert Signatur einer wiederholt auszuführenden Funktion.
- * Diese Funktionen werden *nicht* präemptiv unterbrochen und basieren
- * auf Kooperation mit anderen Funktionen.
+ * Diese Funktionen werden müssen kooperativ ihre Rechenzeit abgeben bezüglich
+ * einer Gruppe von <syncfunc_t> die von einem <syncrunner_t> veraltet werden.
  *
  * Parameter:
- * sfparam  - Ein- Ausgabe Parameter.
- *            Einige Eingabe (in) Felder sind nur bei einem bestimmten Wert in sfcmd gültig.
+ * sfparam  - Eingabe- Parameter. Alle (in) Felder sind gültig.
  *            Siehe <syncfunc_param_t> für eine ausführliche Beschreibung.
  *
- * Return:
- * Der Rückgabewert ist das vom Aufrufer auszuführende Kommando – auch aus <synccmd_e>. */
-typedef int (* syncfunc_f) (struct syncfunc_param_t * sfparam);
-
-/* enums: synccmd_e
- * Das Kommando, welches als »return« Wert erwartet wird.
- *
- * synccmd_RUN         - Verlangt, die nächste Ausführung genau an der Stelle zu starten, die
- *                       in <syncfunc_t.contlabel> abgelegt wurde.
- *                       Wurde 0 in <syncfunc_t.contlabel> abgelegt, wird die nächste Ausführung
- *                       am Anfang der Funktion gestartet (restart).
- * synccmd_EXIT        - Verlangt, die Funktion nicht mehr aufzurufen, da die Berechnung beendet wurde.
- *                       Der Rückgabewert muss vorher in <syncfunc_param_t.err> abgelegt werden.
- *                       Die Funktion <syncfunc_t.exit_syncfunc> übernimmt diese Aufgabe. Wert 0 wird als Erfolg und ein Wert > 0
- *                       als Fehlercode interpretiert.
- * synccmd_WAIT       -  Als Rückgabewert bedeutet es, daß vor der nächsten Ausführung die durch die Variable
- *                       <syncfunc_param_t.waitlist> referenzierte Bedingung erfüllt sein muss.
- *                       Die Ausführung pausiert und wird bei Erfüllung der Bedingung wieder aufgenommen.
- *                       Also genau an der Stelle wieder gestartet, die vor Return in <syncfunc_t.contlabel> abgelegt wurde.
- *                       Der abgelegte Wert in <syncfunc_t.contlabel> darf dabei nicht 0 sein!
- *                       Falls die Warteoperation mangels Ressourcen nicht durchgeführt werden konnte,
- *                       oder <syncfunc_param_t.waitlist> 0 ist, wird in <syncfunc_param_t.err> anstatt 0 ein Fehlercode != 0 abgelegt.
- *                       Die Funktionen <syncfunc_t.wait_syncfunc> implementiert dieses Protokoll.
- * Invalid Value      -  Als Rückgabewert bedeutet es, daß es als <synccmd_EXIT> interpretiert wird.
- * */
-typedef enum synccmd_e {
-   synccmd_RUN,
-   synccmd_EXIT,
-   synccmd_WAIT,
-} synccmd_e;
-
-#define synccmd__NROF 3
-
+ */
+typedef void (* syncfunc_f) (struct syncfunc_param_t *sfparam);
 
 
 // section: Functions
@@ -93,21 +62,37 @@ typedef enum synccmd_e {
 int unittest_task_syncfunc(void);
 #endif
 
+/* struct: syncfunc_it
+ * Definiert das Interface zum Syncfunc-Service-Provider (siehe <syncrunner_t>). */
+typedef struct syncfunc_it {
+   void  (*exitsf) (struct syncfunc_param_t *sfparam);
+   void  (*waitsf) (struct syncfunc_param_t *sfparam, struct syncwait_t *waitlist);
+} syncfunc_it;
+
+// group: lifetime
+
+/* define: syncfunc_it_INIT
+ * Static initializer.
+ * Parameter:
+ * exisf  - Must be called before <syncfunc_t> returns to remove it from the run queue.
+ * waitsf - Must be called before <syncfunc_t> returns to add it to a waitlist.
+ *          Next time syncfunc is called after it is removed from waitlist,
+ *          i.e. woken up by some met condition. */
+#define syncfunc_it_INIT(exitsf, waitsf) \
+         { exitsf, waitsf }
 
 /* struct: syncfunc_param_t
  * Definiert Ein- Ausgabeparameter von <syncfunc_f> Funktionen. */
 typedef struct syncfunc_param_t {
    /* variable: srun
     * In-Param: Der Verwalter-Kontext von <syncfunc_t>. */
-   struct syncrunner_t*       srun;
+   struct syncrunner_t* const srun;
    /* variable: sfunc
     * In-Param: Zeigt auf aktuell ausgeführte Funktion. */
    struct syncfunc_t*         sfunc;
-   /* variable: waitlist
-    * Out-Param: Referenziert die Warteliste(Bedingung), in welche fie Funktion verlinkt werden soll.
-    * Der Wert wird genau dann verwendet, wenn die Funktion den Wert <synccmd_WAIT> zurückgibt.
-    * Der Wert ist undefiniert beim Betreten der Funktion. */
-   struct syncwait_t*         waitlist;
+   /* variable: iimpl;
+    * In-Param: Die von <srun> exportierte Service-Schnittstelle für eine <syncfunc_t>. */
+   struct syncfunc_it*  const iimpl;
 } syncfunc_param_t;
 
 // group: lifetime
@@ -122,9 +107,10 @@ typedef struct syncfunc_param_t {
  *
  * Parameter:
  * syncrun - zeigt auf gültigen <syncrunner_t>.
- * isterminate - true: Funktion wird aus dem Kontext von <syncrunner_t.terminate_syncrunner> ausgeführt. */
-#define syncfunc_param_INIT(syncrun) \
-         { syncrun, 0, 0 }
+ * iimpl   - zeigt auf ein von syncrun exportiertes Interface vom Typ <syncfunc_it>.
+ */
+#define syncfunc_param_INIT(syncrun, iimpl) \
+         { syncrun, 0, iimpl }
 
 
 /* struct: syncfunc_t
@@ -203,7 +189,7 @@ typedef struct syncfunc_t {
     * >       __label__ continue_after_wait;
     * >       sfparam->contoffset = &&continue_after_wait - &&syncfunc_START;
     * >       // yield processor to other functions
-    * >       return synccmd_RUN;
+    * >       return 0;
     * >       // execution continues here
     * >       continue_after_wait: ;
     * >    }
@@ -215,7 +201,7 @@ typedef struct syncfunc_t {
    int16_t     endoffset;
    /* variable: err
     * in:  Der Fehlercode, der vom Warten zurückgegeben wird.
-    * out: Beendet sich die Funktion mit »return <synccmd_EXIT>«, dann steht in diesem Wert
+    * out: Beendet sich die Funktion mit <exit_syncfunc>, dann steht in diesem Wert
     * der Erfolgswert drin (0 für erfolgreich, != 0 Fehlercode). */
    int         err;
    /* variable: waitnode
@@ -315,11 +301,20 @@ static inline void setcontoffset_syncfunc(syncfunc_t *sfunc, int16_t contoffset)
 int16_t getoffset_syncfunc(LABEL label);
 
 /* function: return_syncfunc
- * Kehrt zu aufrufendem <syncrunner_t> zurück mit Kommando synccmd (siehe <synccmd_e>.)
+ * Kehrt zu aufrufendem <syncrunner_t> zurück.
  * Die nächste Ausführung beginnt direkt nach dem Makro return_syncfunc.
  * Dieses Makro funktioniert nur, wenn es zwischen <begin_syncfunc> und
  * <end_syncfunc> eingebettet wurde. */
-void return_syncfunc(syncfunc_param_t *sfparam, synccmd_e synccmd/*use -1 to set only contoffset without returning*/);
+void return_syncfunc(syncfunc_param_t *sfparam);
+
+/* function: setrestart_syncfunc
+ * Merkt sich Position für die nächste Ausführung direkt nach diesem Makro.
+ * Die Ausführung wird nicht unterbrochen. Ein simples return beendet die Ausführung
+ * und beim nächsten Start wird die Funktion an dem durch <setrestart_syncfunc> zuletzt gesetzten
+ * Wiedereintrittspunkt fortgeführt.
+ * Dieses Makro funktioniert nur, wenn es zwischen <begin_syncfunc> und
+ * <end_syncfunc> eingebettet wurde. */
+void setrestart_syncfunc(syncfunc_param_t *sfparam);
 
 // group: implementation-macros
 // Macros which makes implementing a <syncfunc_f> possible.
@@ -357,7 +352,8 @@ static inline void setstate_syncfunc(syncfunc_param_t* sfparam, void* new_state)
 void begin_syncfunc(const syncfunc_param_t *sfparam);
 
 /* function: end_syncfunc
- * Kehrt zum aufrufenden <syncrunner_t> mittels return <synccmd_EXIT>.
+ * Kehrt zum aufrufenden <syncrunner_t> mittels return zurück, nachdem sfparam->iiimpl->exitsf
+ * aufgerufen wurde.
  * Setzt zuvor den Fehlercode (siehe <seterr_syncfunc>) auf 0 und führt dann
  * { free_resources } aus.
  * Es wird auch das Label synfunc_END definiert, das direkt am Anfang von { free_resources }
@@ -394,10 +390,10 @@ void exit_syncfunc(const syncfunc_param_t * sfparam, int err);
 int wait_syncfunc(const syncfunc_param_t *sfparam, struct syncwait_t * waitlist);
 
 /* function: spinwait_syncfunc
- * Testet mit jeder Ausführung die condition.
- * Ist diese wahr wird die Schleife beendet und mit dem darauffolgenden
+ * Testet mit jeder Ausführung die Bedingung condition.
+ * Ist diese wahr, wird die Schleife beendet und mit dem darauffolgenden
  * Befehl fortgefahren. Ist condition falsch, wird an den Aufrufer zurückgegeben
- * mit dem Returncode <synccmd_RUN>. Die darauffolgende nächste Ausführen testet
+ * mittels return. Die darauffolgende nächste Ausführen testet
  * dann wieder die Bedingung condition. */
 void spinwait_syncfunc(const syncfunc_param_t *sfparam, CODEBLOCK condition);
 
@@ -436,10 +432,12 @@ static inline int16_t contoffset_syncfunc(const syncfunc_t *sfunc)
 /* define: end_syncfunc
  * Implementiert <syncfunc_t.end_syncfunc>. */
 #define end_syncfunc(sfparam, free_resources) \
-         seterr_syncfunc(sfparam->sfunc, 0); \
-         syncfunc_END:                       \
-         { free_resources }                  \
-         return synccmd_EXIT
+         seterr_syncfunc((sfparam)->sfunc, 0);  \
+         syncfunc_END:                          \
+         { free_resources }                     \
+         (sfparam)->iimpl->exitsf((sfparam));   \
+         return
+
 
 /* define: err_syncfunc
  * Implementiert <syncfunc_t.err_syncfunc>. */
@@ -529,13 +527,23 @@ static inline int iswaiting_syncfunc(const syncfunc_t *sfunc)
 
 /* define: return_syncfunc
  * Implementiert <syncfunc_t.return_syncfunc>. */
-#define return_syncfunc(sfparam, synccmd) \
-         ( (void) __extension__ ({                          \
-            __label__ syncfunc_CONTINUE;                    \
-            (sfparam)->sfunc->contoffset =                  \
-               getoffset_syncfunc(syncfunc_CONTINUE);       \
-            if ((synccmd)!=-1) return (synccmd);            \
-            syncfunc_CONTINUE: ;                            \
+#define return_syncfunc(sfparam) \
+         ( (void) __extension__ ({                    \
+            __label__ syncfunc_CONTINUE;              \
+            (sfparam)->sfunc->contoffset =            \
+               getoffset_syncfunc(syncfunc_CONTINUE); \
+            return;                                   \
+            syncfunc_CONTINUE: ;                      \
+         }))
+
+/* define: setrestart_syncfunc
+ * Implementiert <syncfunc_t.setrestart_syncfunc>. */
+#define setrestart_syncfunc(sfparam) \
+         ( (void) __extension__ ({                    \
+            __label__ syncfunc_CONTINUE;              \
+            (sfparam)->sfunc->contoffset =            \
+               getoffset_syncfunc(syncfunc_CONTINUE); \
+            syncfunc_CONTINUE: ;                      \
          }))
 
 /* define: setcontoffset_syncfunc
@@ -567,20 +575,20 @@ static inline void setstate_syncfunc(syncfunc_param_t *sfparam, void *new_state)
 /* define: spinwait_syncfunc
  * Implementiert <syncfunc_t.spinwait_syncfunc>. */
 #define spinwait_syncfunc(sfparam, condition) \
-         do {                                         \
-            return_syncfunc((sfparam), -1);           \
-            if (!(__extension__(condition))) {        \
-               return synccmd_RUN;                    \
-            }                                         \
+         do {                                   \
+            setrestart_syncfunc((sfparam));     \
+            if (!(__extension__(condition))) {  \
+               return;                          \
+            }                                   \
          } while(0)
 
 /* define: wait_syncfunc
  * Implementiert <syncfunc_t.wait_syncfunc>. */
-#define wait_syncfunc(sfparam, _waitlist) \
-         ( __extension__ ({                           \
-            (sfparam)->waitlist = _waitlist;          \
-            return_syncfunc((sfparam), synccmd_WAIT); \
-            err_syncfunc((sfparam)->sfunc);           \
+#define wait_syncfunc(sfparam, waitlist) \
+         ( __extension__ ({                                    \
+            (sfparam)->iimpl->waitsf((sfparam), (waitlist));   \
+            return_syncfunc(sfparam);                          \
+            err_syncfunc((sfparam)->sfunc);                    \
          }))
 
 /* define: waitnode_syncfunc
@@ -591,6 +599,6 @@ static inline void setstate_syncfunc(syncfunc_param_t *sfparam, void *new_state)
 /* define: yield_syncfunc
  * Implementiert <syncfunc_t.yield_syncfunc>. */
 #define yield_syncfunc(sfparam) \
-         return_syncfunc(sfparam, synccmd_RUN)
+         return_syncfunc(sfparam)
 
 #endif

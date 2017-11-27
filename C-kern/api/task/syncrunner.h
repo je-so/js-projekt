@@ -225,11 +225,15 @@ int run_syncrunner(syncrunner_t *srun);
 
 /* function: terminate_syncrunner
  * Führt alle Funktionen, auch die wartenden, genau einmal aus.
- * Als Kommando wird <synccmd_EXIT> übergeben, was so viel wie
- * alle Ressourcen freizugeben bedeutet. Danach werden alle
- * Funktionen gelöscht und aller Speicher freigegeben. */
+ * Als Fehlercode wird ECANCELED übergeben. Der contoffset wird
+ * vor Ausführeung auf endoffset, so dass die Funktion alle
+ * alle Ressourcen freigibt.
+ * Wurde eine Funktion noch niemals aufgerufen,
+ * so wird sie wenigstens einmal ausgeführt, was endoffset korrekt setzt,
+ * und sollte sie sich nicht selbst nach einmaliger Ausführung beenden,
+ * wird sie nochmals mit dem Fehlercode ECANCELED ausfgerufen wie oben beschrieben.
+ * Anschließend werden alle Funktionen gelöscht und der belegte Speicher freigegeben. */
 int terminate_syncrunner(syncrunner_t *srun);
-
 
 
 // section: inline implementation

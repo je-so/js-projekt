@@ -42,6 +42,22 @@ void unlink_syncfunc(syncfunc_t* sfunc)
 
 #ifdef KONFIG_UNITTEST
 
+static int test_syncfunc_it(void)
+{
+   syncfunc_it isrun = syncfunc_it_INIT(0,0);
+
+   // TEST syncfunc_it_INIT
+   for (uintptr_t i=0; i<2; ++i) {
+      isrun = (syncfunc_it) syncfunc_it_INIT( (void(*)(syncfunc_param_t*))(i+1), (void(*)(syncfunc_param_t*,syncwait_t*))(i+2));
+      TEST( isrun.exitsf == (void(*)(syncfunc_param_t*))(i+1));
+      TEST( isrun.waitsf == (void(*)(syncfunc_param_t*,syncwait_t*))(i+2));
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
 static int test_sfparam(void)
 {
 
@@ -50,16 +66,17 @@ static int test_sfparam(void)
       syncfunc_param_t sfparam  = syncfunc_param_FREE;
       TEST(0 == sfparam.srun);
       TEST(0 == sfparam.sfunc);
-      TEST(0 == sfparam.waitlist);
+      TEST(0 == sfparam.iimpl);
    }
 
    // TEST syncfunc_param_INIT
    for (uint8_t i =0; i <= 1; ++i) {
-      struct syncrunner_t * R  = (struct syncrunner_t*)((intptr_t)1 + i);
-      syncfunc_param_t sfparam = (syncfunc_param_t) syncfunc_param_INIT(R);
+      struct syncrunner_t *R  = (struct syncrunner_t*)((intptr_t)1 + i);
+      struct syncfunc_it  *I  = (struct syncfunc_it*) ((intptr_t)2 + i);
+      syncfunc_param_t sfparam = (syncfunc_param_t) syncfunc_param_INIT(R,I);
       TEST(R == sfparam.srun);
       TEST(0 == sfparam.sfunc);
-      TEST(0 == sfparam.waitlist);
+      TEST(I == sfparam.iimpl);
    }
 
    return 0;
@@ -68,10 +85,9 @@ ONERR:
 
 }
 
-static int test_dummy(syncfunc_param_t* sfparam)
+static void test_dummy(syncfunc_param_t* sfparam)
 {
    (void) sfparam;
-   return 0;
 }
 
 static int test_initfree(void)
@@ -306,19 +322,22 @@ ONERR:
    return EINVAL;
 }
 
-static int test_return_sf(syncfunc_param_t * sfparam)
+static void test_return_sf(syncfunc_param_t * sfparam)
 {
    syncfunc_START: ; // needed by return_syncfunc && getoffset
    __extension__ ({
       if (sfparam->sfunc->contoffset) goto  * (void*)((intptr_t)&&syncfunc_START + sfparam->sfunc->contoffset);
    });
 
-   return_syncfunc(sfparam, 10);
-   return_syncfunc(sfparam, 20);
-   return_syncfunc(sfparam, 30);
+   sfparam->sfunc->err = 10;
+   return_syncfunc(sfparam);
+   sfparam->sfunc->err = 20;
+   return_syncfunc(sfparam);
+   sfparam->sfunc->err = 30;
+   return_syncfunc(sfparam);
 
    sfparam->sfunc->contoffset = 0;
-   return 40;
+   sfparam->sfunc->err = 40;
 }
 
 static int test_helper(void)
@@ -343,12 +362,14 @@ static int test_helper(void)
       TEST( o1 < o2);
    }
 
-   // TEST return_syncfunc: returns value + sets contoffset to end of macro
+   // TEST return_syncfunc: returns + sets contoffset to end of macro
    sfunc.contoffset = 0;
+   sfunc.err = 0;
    for (unsigned i = 1; i <= 4; ++i) {
       int16_t oldoffset = sfunc.contoffset;
-      TEST( 10*(int)i == test_return_sf(&sfparam));
+      test_return_sf(&sfparam);
       TESTP( oldoffset != sfunc.contoffset, "oldoffset:%d contoffset:%d", oldoffset, sfunc.contoffset);
+      TEST(  10*(int)i == sfunc.err);
    }
 
    return 0;
@@ -356,7 +377,65 @@ ONERR:
    return EINVAL;
 }
 
-static int test_end1_sf(syncfunc_param_t *sfparam)
+typedef struct syncfunc_helper_t {
+   syncfunc_it    sfit;
+   unsigned       exitcount;
+   unsigned       waitcount;
+   syncwait_t    *waitlist;
+   syncfunc_t     sfunc;
+} syncfunc_helper_t;
+
+static void exitsf_helper(syncfunc_param_t *sfparam)
+{
+   syncfunc_it       *sfit   = sfparam->iimpl;
+   syncfunc_helper_t *helper = (syncfunc_helper_t*) sfit;
+   ++ helper->exitcount;
+   helper->sfunc  = *sfparam->sfunc;
+}
+
+static void waitsf_helper(syncfunc_param_t *sfparam, syncwait_t *waitlist)
+{
+   syncfunc_it       *sfit   = sfparam->iimpl;
+   syncfunc_helper_t *helper = (syncfunc_helper_t*) sfit;
+   ++ helper->waitcount;
+   helper->waitlist = waitlist;
+   helper->sfunc  = *sfparam->sfunc;
+}
+
+static void reset_helper(syncfunc_helper_t *helper)
+{
+   helper->sfit = (syncfunc_it) syncfunc_it_INIT(&exitsf_helper, &waitsf_helper);
+   helper->exitcount = 0;
+   helper->waitcount = 0;
+   helper->waitlist  = 0;
+   helper->sfunc  = (syncfunc_t) syncfunc_FREE;
+}
+
+static int testexec_helper(const syncfunc_helper_t *helper, unsigned nrexit, syncfunc_t sfunc)
+{
+   TEST(nrexit == helper->exitcount);
+   TEST(0      == helper->waitcount);
+   TEST(0      == helper->waitlist);
+   if (nrexit) {
+      TEST(0 == memcmp(&helper->sfunc, &sfunc, sizeof(sfunc)));
+   }
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static int testwait_helper(const syncfunc_helper_t *helper, unsigned nrwait, syncfunc_t sfunc, syncwait_t *waitlist)
+{
+   TEST(0      == helper->exitcount);
+   TEST(nrwait == helper->waitcount);
+   TEST(waitlist == helper->waitlist);
+   TEST(0      == memcmp(&helper->sfunc, &sfunc, sizeof(sfunc)));
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+static void test_end1_sf(syncfunc_param_t *sfparam)
 {
    assert(sfparam->sfunc->err == EINVAL);
    end_syncfunc(sfparam, {
@@ -368,7 +447,7 @@ static int test_end1_sf(syncfunc_param_t *sfparam)
    goto syncfunc_END;
 }
 
-static int test_end2_sf(syncfunc_param_t * sfparam)
+static void test_end2_sf(syncfunc_param_t * sfparam)
 {
    sfparam->sfunc->err = EINVAL;
    goto syncfunc_END;
@@ -380,26 +459,24 @@ static int test_end2_sf(syncfunc_param_t * sfparam)
    });
 }
 
-static int test_start_sf(syncfunc_param_t* sfparam)
+static void test_start_sf(syncfunc_param_t* sfparam)
 {
    begin_syncfunc(sfparam);
 
-// init
-
    sfparam->sfunc->contoffset = getoffset_syncfunc(ONCONTINUE);
    seterr_syncfunc(sfparam->sfunc, 10);
-   return synccmd_RUN;
+   return;
 
 ONCONTINUE:
    seterr_syncfunc(sfparam->sfunc, 11);
-   return synccmd_RUN;
+   return;
 
    end_syncfunc(sfparam, {
       seterr_syncfunc(sfparam->sfunc, 12);
    });
 }
 
-static int test_exit_sf(syncfunc_param_t * sfparam)
+static void test_exit_sf(syncfunc_param_t * sfparam)
 {
    int iserr = 0;
    exit_syncfunc(sfparam, (int)(intptr_t)(sfparam->sfunc->state));
@@ -409,7 +486,7 @@ static int test_exit_sf(syncfunc_param_t * sfparam)
    });
 }
 
-static int test_spinwait_sf(syncfunc_param_t *sfparam)
+static void test_spinwait_sf(syncfunc_param_t *sfparam)
 {
    begin_syncfunc(sfparam);
 
@@ -422,7 +499,7 @@ static int test_spinwait_sf(syncfunc_param_t *sfparam)
    });
 }
 
-static int test_wait_sf(syncfunc_param_t * sfparam)
+static void test_wait_sf(syncfunc_param_t * sfparam)
 {
    begin_syncfunc(sfparam);
 
@@ -439,7 +516,7 @@ static int test_wait_sf(syncfunc_param_t * sfparam)
    end_syncfunc(sfparam, {});
 }
 
-static int test_waiterr_sf(syncfunc_param_t *sfparam)
+static void test_waiterr_sf(syncfunc_param_t *sfparam)
 {
    begin_syncfunc(sfparam);
 
@@ -448,14 +525,13 @@ static int test_waiterr_sf(syncfunc_param_t *sfparam)
    err = wait_syncfunc(sfparam, (void*)err);
    err = wait_syncfunc(sfparam, (void*)err);
    err = wait_syncfunc(sfparam, (void*)err);
-   sfparam->waitlist = (void*)err;
 
    end_syncfunc(sfparam, {
       setcontoffset_syncfunc(sfparam->sfunc, 0);
    });
 }
 
-static int test_yield_sf(syncfunc_param_t * sfparam)
+static void test_yield_sf(syncfunc_param_t * sfparam)
 {
    int iserr = 1;
    begin_syncfunc(sfparam);
@@ -476,8 +552,9 @@ static int test_yield_sf(syncfunc_param_t * sfparam)
 
 static int test_implsupport(void)
 {
-   syncfunc_param_t sfparam = syncfunc_param_FREE;
-   syncfunc_t       sfunc;
+   syncfunc_helper_t helper;
+   syncfunc_param_t  sfparam = syncfunc_param_INIT(0, &helper.sfit);
+   syncfunc_t        sfunc;
 
    // prepare
    memset(&sfunc, 0, sizeof(sfunc));
@@ -499,123 +576,153 @@ static int test_implsupport(void)
    setstate_syncfunc(&sfparam, 0);
    TEST(0 == state_syncfunc(&sfparam));
 
-   // TEST end_syncfunc: err set to 0 && free_resource codeblock executed
-   sfunc.contoffset = 0;
-   sfunc.endoffset = 0;
-   sfunc.err   = EINVAL; // expected
-   sfunc.state = 0;
-   TEST( synccmd_EXIT == test_end1_sf(&sfparam));
+   // TEST end_syncfunc: err set to 0 && free_resource codeblock executed && exitsf called
+   reset_helper(&helper);
+   init_syncfunc(&sfunc, 0, 0);
+   sfunc.err = EINVAL; // expected
+   test_end1_sf(&sfparam);
+   // check sfparam,sfunc,helper
    TEST( sfparam.srun     == 0);
-   TEST( sfparam.waitlist == 0);
+   TEST( sfparam.sfunc    == &sfunc);
+   TEST( sfparam.iimpl    == &helper.sfit);
    TEST( sfunc.err        == 0);
    TEST( sfunc.state      == (void*)(intptr_t)-1); // free codeblock called
    TEST( sfunc.contoffset == 0);
    TEST( sfunc.endoffset  == 0);
+   TEST( 0 == testexec_helper(&helper, 1, sfunc));
 
    // TEST end_syncfunc: err set + jump ==> err not cleared && free_resource codeblock executed
-   sfunc.contoffset = 0;
-   sfunc.endoffset = 0;
-   sfunc.err   = 0;
-   sfunc.state = 0;
-   TEST( synccmd_EXIT == test_end2_sf(&sfparam));
+   reset_helper(&helper);
+   init_syncfunc(&sfunc, 0, 0);
+   test_end2_sf(&sfparam);
+   // check sfparam,sfunc,helper
    TEST( sfparam.srun     == 0);
-   TEST( sfparam.waitlist == 0);
+   TEST( sfparam.sfunc    == &sfunc);
+   TEST( sfparam.iimpl    == &helper.sfit);
    TEST( sfunc.err        == EINVAL);
    TEST( sfunc.state      == (void*)(intptr_t)-1); // free codeblock called
    TEST( sfunc.contoffset == 0);
    TEST( sfunc.endoffset  == 0);
+   TEST( 0 == testexec_helper(&helper, 1, sfunc));
 
    // TEST begin_syncfunc: contoffset / endoffset
-   sfunc.contoffset = 0;
-   sfunc.endoffset = 0;
-   sfunc.state = 0;
+   reset_helper(&helper);
+   init_syncfunc(&sfunc, 0, 0);
    for (unsigned r = 10; r < 13; ++r) {
-      int cmd = (r == 12 ? synccmd_EXIT : synccmd_RUN);
+      unsigned isExit = (r == 12);
       sfunc.err = 0;
-      if (r == 12) sfunc.contoffset = sfunc.endoffset; // force terminate
-      TEST( cmd == test_start_sf(&sfparam));
+      if (isExit) sfunc.contoffset = sfunc.endoffset; // force terminate
+      test_start_sf(&sfparam);
+      // check sfparam,sfunc,helper
       TEST( sfparam.srun     == 0);
-      TEST( sfparam.waitlist == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
       TEST( sfunc.err        == (int)r);
       TEST( sfunc.state      == 0);
       TEST( sfunc.contoffset != 0);
       TEST( sfunc.endoffset  != 0);
+      TEST( 0 == testexec_helper(&helper, isExit, sfunc));
    }
 
    // TEST exit_syncfunc
-   sfunc.contoffset = 0;
    for (uintptr_t i = 0; i < 3; ++i) {
-      sfunc.state = (void*)i;
-      TEST(synccmd_EXIT == test_exit_sf(&sfparam));
-      TEST(sfparam.srun     == 0);
-      TEST(sfparam.waitlist == 0);
-      TEST(sfunc.err        == (int) i);
-      TEST(sfunc.state      == (void*)i);
-      TEST(sfunc.contoffset == 0);
+      reset_helper(&helper);
+      init_syncfunc(&sfunc, (syncfunc_f)0, (void*)i);
+      test_exit_sf(&sfparam);
+      // check sfparam,sfunc,helper
+      TEST( sfparam.srun     == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
+      TEST( sfunc.err        == (int)i);
+      TEST( sfunc.state      == (void*)i);
+      TEST( sfunc.contoffset == 0);
+      TEST( sfunc.endoffset  == 0);
+      TEST( 0 == testexec_helper(&helper, 1, sfunc));
    }
 
    // TEST spinwait_syncfunc
-   unsigned condition=137;
-   sfunc.contoffset = 0;
-   sfunc.state      = &condition;
-   sfunc.err        = 0;
-   sfparam.waitlist = 0;
-   for (unsigned i = 136; i <= 136; --i) {
-      int cmd = i ? synccmd_RUN : synccmd_EXIT;
-      TEST(cmd == test_spinwait_sf(&sfparam));
-      TEST(sfparam.srun     == 0);
-      TEST(sfparam.waitlist == 0);
-      TEST(sfunc.err        == 0);
-      TEST(sfunc.state      == &condition);
-      TEST(sfunc.contoffset != 0);
-      TEST(condition        == i);
+   for (unsigned i=136, condition=137; i <= 136; --i) {
+      reset_helper(&helper);
+      init_syncfunc(&sfunc, (syncfunc_f)0, &condition);
+      test_spinwait_sf(&sfparam);
+      // check condition,sfparam,sfunc,helper
+      TEST( condition        == i);
+      TEST( sfparam.srun     == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
+      TEST( sfunc.err        == 0);
+      TEST( sfunc.state      == &condition);
+      TEST( sfunc.contoffset != 0);
+      TEST( sfunc.endoffset  != 0);
+      TEST( 0 == testexec_helper(&helper, (condition == 0), sfunc));
    }
 
    // TEST wait_syncfunc: err == 0
-   seterr_syncfunc(&sfunc, 0);
-   sfunc.state = 0;
-   sfunc.contoffset = 0;
-   sfunc.err = 0;
+   init_syncfunc(&sfunc, (syncfunc_f)0, (void*)0);
    for (uintptr_t i = 1; i <= 4; ++i) {
+      unsigned isExit = (i == 4);
       int16_t oldoff = sfunc.contoffset;
-      int     result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
-      sfparam.waitlist = 0;
-      TEST(result == test_wait_sf(&sfparam));
-      TEST(sfparam.srun     == 0);
-      TEST(sfparam.waitlist == ((i != 4) ? (void*)i : 0));
-      TEST(sfunc.err        == 0);
-      TEST(sfunc.state      == 0);
-      TEST(sfunc.contoffset != oldoff);
+      reset_helper(&helper);
+      test_wait_sf(&sfparam);
+      // check sfparam,sfunc,helper
+      TEST( sfparam.srun     == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
+      TEST( sfunc.err        == 0);
+      TEST( sfunc.state      == 0);
+      TEST( sfunc.contoffset != oldoff);
+      TEST( sfunc.endoffset  != 0);
+      if (isExit) {
+         TEST( 0 == testexec_helper(&helper, 1, sfunc));
+      } else {
+         syncfunc_t sf2 = sfunc;
+         sf2.contoffset = oldoff; // waitsf called before contoffset is set
+         TEST( 0 == testwait_helper(&helper, 1, sf2, (syncwait_t*)i));
+      }
    }
 
    // TEST wait_syncfunc: err != 0
-   sfunc.contoffset = 0;
+   init_syncfunc(&sfunc, (syncfunc_f)0, (void*)0);
    for (uintptr_t i = 1; i <= 4; ++i) {
+      unsigned isExit = (i == 4);
       int16_t oldoff = sfunc.contoffset;
-      int     result = i != 4 ? synccmd_WAIT : synccmd_EXIT;
-      sfparam.waitlist = 0;
       seterr_syncfunc(&sfunc, (int)i);
-      TEST(result == test_waiterr_sf(&sfparam));
-      TEST(sfparam.srun     == 0);
-      TEST(sfparam.waitlist == (void*)i);
-      TEST(sfunc.err        == (i == 4 ? 0 : (int)i)); // cleared at exit
-      TEST(sfunc.state      == 0);
-      TEST(sfunc.contoffset != oldoff);
+      reset_helper(&helper);
+      test_waiterr_sf(&sfparam);
+      // check sfparam,sfunc,helper
+      TEST( sfparam.srun     == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
+      TEST( sfunc.err        == (isExit?0:(int)i)); // cleared at exit
+      TEST( sfunc.state      == 0);
+      TEST( sfunc.contoffset != oldoff);
+      TEST( sfunc.endoffset  != 0);
+      if (isExit) {
+         TEST( 0 == testexec_helper(&helper, 1, sfunc));
+      } else {
+         syncfunc_t sf2 = sfunc;
+         sf2.contoffset = oldoff; // waitsf called before contoffset is set
+         TEST( 0 == testwait_helper(&helper, 1, sf2, (syncwait_t*)i));
+      }
    }
 
    // TEST yield_syncfunc
-   sfunc.contoffset = 0;
-   sfparam.waitlist = 0;
+   init_syncfunc(&sfunc, (syncfunc_f)0, (void*)0);
    for (unsigned i = 19; i <= 21; ++i) {
+      unsigned isExit = (i == 21);
       int16_t oldoff = sfunc.contoffset;
-      int     result = i != 21 ? synccmd_RUN : synccmd_EXIT;
       sfunc.err = 0;
-      TEST(result == test_yield_sf(&sfparam));
-      TEST(0 == sfparam.srun);
-      TEST(0 == sfparam.waitlist);
-      TEST(i == (unsigned) sfunc.err);
-      TEST(0 == sfunc.state);
-      TEST(oldoff != sfunc.contoffset);
+      reset_helper(&helper);
+      test_yield_sf(&sfparam);
+      // check sfparam,sfunc,helper
+      TEST( sfparam.srun     == 0);
+      TEST( sfparam.sfunc    == &sfunc);
+      TEST( sfparam.iimpl    == &helper.sfit);
+      TEST( sfunc.err        == (int)i);
+      TEST( sfunc.state      == 0);
+      TEST( sfunc.contoffset != oldoff);
+      TEST( sfunc.endoffset  != 0);
+      TEST( 0 == testexec_helper(&helper, isExit, sfunc));
    }
 
    return 0;
@@ -625,6 +732,7 @@ ONERR:
 
 int unittest_task_syncfunc()
 {
+   if (test_syncfunc_it())    goto ONERR;
    if (test_sfparam())        goto ONERR;
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;

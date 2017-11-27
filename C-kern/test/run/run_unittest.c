@@ -258,14 +258,14 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_io_reader_csvfilereader);
       RUN(unittest_io_reader_filereader);
       RUN(unittest_io_reader_utf8reader);
-      // writer
-      RUN(unittest_io_writer_log_logbuffer);
-      RUN(unittest_io_writer_log_logwriter);
       // Terminal
       RUN(unittest_io_terminal_pseudoterm);
       RUN(unittest_io_terminal_serial);
       RUN(unittest_io_terminal_termadapt);
       RUN(unittest_io_terminal_terminal);
+      // writer
+      RUN(unittest_io_writer_log_logbuffer);
+      RUN(unittest_io_writer_log_logwriter);
 //}
 
 //{ platform unittest

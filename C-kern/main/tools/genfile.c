@@ -61,7 +61,7 @@ static const char* s_templateheader =
 */\n\
 #ifndef CKERN_@HEADERTAG_HEADER\n\
 #define CKERN_@HEADERTAG_HEADER\n\n\
-// === exported types\n\
+// exported types\n\
 struct @TYPENAME;\n\n\n\
 // section: Functions\n\n\
 // group: test\n\n\
@@ -121,7 +121,7 @@ static const char* s_templatesource =
 #ifdef KONFIG_UNITTEST\n\
 #include \"C-kern/api/test/unittest.h\"\n\
 #endif\n\n\
-// === private types\n\
+// private types\n\
 // TODO: struct helper_@TYPENAME;\n\n\n\
 // section: @TYPENAME\n\n\
 // group: lifetime\n\n\n\
