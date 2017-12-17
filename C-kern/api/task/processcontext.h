@@ -20,9 +20,7 @@
 #define CKERN_TASK_PROCESSCONTEXT_HEADER
 
 // forward
-struct pagecache_blockmap_t;
 struct syslogin_t;
-struct valuecache_t;
 
 /* typedef: struct processcontext_t
  * Export <processcontext_t>. */
@@ -56,10 +54,6 @@ struct processcontext_t {
       uint16_t* stroffset;
       uint8_t*  strdata;
    }                         error;
-   /* variable: error
-    * Shared <pagecache_blockmap_t> used in <pagecache_impl_t>. */
-   struct
-   pagecache_blockmap_t*     blockmap;
    /* variable: staticmemblock
     * Start address of static memory block. */
    void*                     staticmemblock;
@@ -74,7 +68,7 @@ struct processcontext_t {
 
 /* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_STATIC { 0, errorcontext_INIT_STATIC, 0, 0, 0 }
+#define processcontext_INIT_STATIC { 0, errorcontext_INIT_STATIC, 0, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

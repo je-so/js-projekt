@@ -67,14 +67,14 @@ uintptr_t lobits_ptr(const ptr_t ptr, unsigned nrbits);
 
 // group: update
 
-/* function: clearlobits_ptr
+/* function: align_ptr
  * Sets all nrbits least significant bits of ptr to zero.
  *
  * Unchecked Precondition:
  * nrbits < bitsof(void*) */
-ptr_t clearlobits_ptr(const ptr_t ptr, unsigned nrbits);
+ptr_t align_ptr(const ptr_t ptr, unsigned nrbits);
 
-/* function: orlobits_ptr
+/* function: orbits_ptr
  * The value of all nrbits least significant bits of value are ored into ptr.
  * This function assumes that <isaligned_ptr>(ptr, nrbits) returns true.
  *
@@ -83,15 +83,15 @@ ptr_t clearlobits_ptr(const ptr_t ptr, unsigned nrbits);
  * > nrbits < bitsof(void*) && value < (1 << nrbits)
  *
  * */
-ptr_t orlobits_ptr(const ptr_t ptr, unsigned nrbits, uintptr_t value);
+ptr_t orbits_ptr(const ptr_t ptr, unsigned nrbits, uintptr_t value);
 
 
 
 // section: inline implementation
 
-/* define: clearlobits_ptr
- * Implements <ptr_t.clearlobits_ptr>. */
-#define clearlobits_ptr(ptr, nrbits) \
+/* define: align_ptr
+ * Implements <ptr_t.align_ptr>. */
+#define align_ptr(ptr, nrbits) \
          ((typeof(ptr))((uintptr_t)(ptr) & ((uintptr_t)-1 << (nrbits))))
 
 /* define: isaligned_ptr
@@ -104,9 +104,9 @@ ptr_t orlobits_ptr(const ptr_t ptr, unsigned nrbits, uintptr_t value);
 #define lobits_ptr(ptr, nrbits) \
          ((uintptr_t)(ptr) & (((uintptr_t)1 << (nrbits))-1))
 
-/* define: orlobits_ptr
- * Implements <ptr_t.orlobits_ptr>. */
-#define orlobits_ptr(ptr, nrbits, value) \
+/* define: orbits_ptr
+ * Implements <ptr_t.orbits_ptr>. */
+#define orbits_ptr(ptr, nrbits, value) \
          ((typeof(ptr))((uintptr_t)(ptr) | (uintptr_t)(value) ))
 
 

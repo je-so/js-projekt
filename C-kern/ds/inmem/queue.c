@@ -205,9 +205,7 @@ static inline int addfirstpage_queue(queue_t* queue)
 static inline int removefirstpage_queue(queue_t* queue)
 {
    int err;
-   queue_page_t* first;
-
-   removefirst_pagelist(cast_dlist(queue), &first);
+   queue_page_t* first = removefirst_pagelist(cast_dlist(queue));
 
    err = delete_queuepage(&first, pagesize_queue(queue));
    if (err) return err;

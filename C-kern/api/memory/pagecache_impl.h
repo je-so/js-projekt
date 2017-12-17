@@ -4,12 +4,12 @@
 
    Virtual memory pages are allocated in big chunks with help of <init_vmpage>.
    This component makes calling into the operating system unnecessary
-   every time you need a new page or want ot free one.
+   every time you need a new page or want to free one.
 
    It offers pages of size 4096 bytes no matter
    of the page size of the operating system.
 
-   Other page sizes could be added supported if necessary.
+   Other page sizes could be supported if necessary.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -32,20 +32,8 @@
 struct memblock_t;
 struct dlist_node_t;
 
-/* typedef: struct pagecache_impl_t
- * Export <pagecache_impl_t> into global namespace. */
-typedef struct pagecache_impl_t pagecache_impl_t;
-
-/* typedef: struct pagecache_block_t
- * Export opaque type <pagecache_block_t> into global namespace.
- * This type stores information about a large block of memory of at least 1MB. */
-typedef struct pagecache_block_t pagecache_block_t;
-
-/* typedef: struct pagecache_blockmap_t
- * Export type <pagecache_blockmap_t> into global namespace.
- * It serves as hashtable for a set of <pagecache_block_t>.
- * The hashtable is shared between all <pagecache_impl_t>. */
-typedef struct pagecache_blockmap_t pagecache_blockmap_t;
+// export
+struct pagecache_impl_t;
 
 
 // section: Functions
@@ -60,12 +48,12 @@ int unittest_memory_pagecacheimpl(void);
 
 
 /* struct: pagecache_impl_t
- * Allocates and frees virtual memory pages and caches them.
- * The <pagecache_impl_t> allocates always blocks of memory pages <pagecache_block_t>.
- * Every <pagecache_block_t> maintains a list of free pages of the same size.
- * For every pagesize a new <pagecache_block_t> is allocated.
- * If several <pagecache_block_t> are allocated and one of them is not used at all
- * it is returned to the operating system.
+ * Allocates and frees virtual memory pages and caches them exclusively for one thread.
+ * This type is *not* thread safe. So you should use it only in a thread context.
+ * The <pagecache_impl_t> allocates always blocks of memory of size pagecache_impl_BLOCKSIZE.
+ * Every <block_t> is divided into sub-blocks of size pagecache_impl_SUBBLOCKSIZE.
+ * For every allocation of a page with size pagesize either a new unused sub-block is allocated
+ * or one which contains free pages is used.
  *
  * TODO: To prevent fragmentation of large blocks introduce page lifetime (long, short lifetime, ...).
  *       This helps to place longer living pages on one big block and short living pages on another.
@@ -73,30 +61,57 @@ int unittest_memory_pagecacheimpl(void);
  *       -- See also "Region-based memory management"
  *
  */
-struct pagecache_impl_t {
+typedef struct pagecache_impl_t {
    // group: private fields
    /* variable: blocklist
-    * A list of <pagecache_block_t>.
+    * A list of internal <block_t>.
     * This collection is used to free all allocated memory blocks.
-    * Objects of type <pagecache_block_t> are stored on the memory heap
-    * (managed by <pagecache_blockmap_t>) and are not part of the allocated memory blocks. */
+    * Objects of type <block_t> are allocated and managed by the
+    * virtual memory subsystem of the OS. */
    struct {
-      struct dlist_node_t* last;
+      struct dlist_node_t *last;
    }        blocklist;
-   /* variable: freelist
-    * An array of list of allocated blocks which contain free pages.
-    * A single large block contains only pages of one size. Different blocks serve different sizes.
-    * Therefore every page size has its own free list.
-    * This may be changed for example by using the the "buddy memory allocation" technique. */
+   /* variable: unusedblocklist
+    * A list of internal <block_t> which contains unused <subblock_t>.
+    * A subblock manages a set of size aligned memory pages which could be of any <pagesize_e>. */
    struct {
-      struct dlist_node_t* last;
+      struct dlist_node_t *last;
+   }        unusedblocklist;
+   /* variable: freeblocklist
+    * Every list manages a set of <block_t> which contains free pages of a certain <pagesize_e>. */
+   struct {
+      struct dlist_node_t *last;
    }        freeblocklist[13];
    /* variable: sizeallocated
     * Number of allocated bytes.
     * This number is incremented by every call to <allocpage_pagecacheimpl>
     * and decremented by every call to <releasepage_pagecacheimpl>. */
    size_t   sizeallocated;
-};
+} pagecache_impl_t;
+
+// group: config
+
+/* define: pagecache_impl_SUBBLOCKSIZE
+ * Size in bytes of a single sub-block which is contained in a block.
+ * Currently a sub-block has a size of 1MB. Must be a power of two.
+ * A sub-block manages pages of a single size. */
+#define pagecache_impl_SUBBLOCKSIZE \
+         (1024u*1024u)
+
+/* define: pagecache_impl_NRSUBBLOCKS
+ * The number of sub-blocks contained in s asingle block. Must be a power of two. */
+#if (SIZE_MAX <= 0xffffffff)  // 32 bit (or smaller)
+#define pagecache_impl_NRSUBBLOCKS 32u
+#else                         // 64 bit (or bigger)
+#define pagecache_impl_NRSUBBLOCKS 1024u
+#endif
+
+/* define: pagecache_impl_BLOCKSIZE
+ * Size in bytes of a single block which is divided into many sub-blocks.
+ * A block is the unit memory is transfered between OS and this process. */
+#define pagecache_impl_BLOCKSIZE \
+         (pagecache_impl_NRSUBBLOCKS*pagecache_impl_SUBBLOCKSIZE)
+
 
 // group: initthread
 
@@ -110,7 +125,7 @@ struct pagecache_it* interface_pagecacheimpl(void);
 /* define: pagecache_impl_FREE
  * Static initializer. */
 #define pagecache_impl_FREE \
-         { { 0 }, { { 0 } }, 0 }
+         { { 0 }, { 0 }, { { 0 } }, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
@@ -156,47 +171,6 @@ int releasepage_pagecacheimpl(pagecache_impl_t* pgcache, struct memblock_t* page
 /* function: emptycache_pagecacheimpl
  * Releases all unused memory blocks back to the operating system. */
 int emptycache_pagecacheimpl(pagecache_impl_t* pgcache);
-
-
-/* struct: pagecache_blockmap_t
- * A simple shared hash map which maps an index <pagecache_block_t>.
- * The array size (table size) is static which allows for efficient access
- * without <rwlock_t> or any other type of locks.
- * Atomic operations to read and write <pagecache_block_t.threadcontext> ensure
- * that an entry is used by only one thread.
- *
- * Use <pagecache_blockmap_ARRAYSIZE> to configure the static size of the array. */
-struct pagecache_blockmap_t {
-   uint8_t* array_addr;
-   size_t   array_size;
-   size_t   array_len;
-   size_t   indexmask;
-};
-
-// group: config
-
-/* define: pagecache_blockmap_ARRAYSIZE
- * Static configuration of number of bytes used for the hash table.
- * The number of supported <pagecache_block_t> is fixed cause only
- * one entry per hash bucket is supported with no overflow handling.
- * pagecache_blockmap_t is considered to be implemented in hardware. */
-#define pagecache_blockmap_ARRAYSIZE \
-         (2*1024*1024)
-
-// group: lifetime
-
-/* define: pagecache_blockmap_FREE
- * Static initializer. */
-#define pagecache_blockmap_FREE \
-         { 0, 0, 0, 0 }
-
-/* function: init_pagecacheblockmap
- * Allocates a shared hash table of size <pagecache_blockmap_FREE>. */
-int init_pagecacheblockmap(/*out*/pagecache_blockmap_t* blockmap);
-
-/* function: free_pagecacheblockmap
- * Frees allocated hash table. Make sure that no <pagecache_block_t> is in use. */
-int free_pagecacheblockmap(pagecache_blockmap_t* blockmap);
 
 
 #endif

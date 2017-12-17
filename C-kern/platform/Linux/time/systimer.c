@@ -537,10 +537,10 @@ RESTART_TEST:
    TEST(0 == startinterval_systimer(systimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == startinterval_systimer(systimer[1], &(timevalue_t){ .nanosec = 2000000 })) ;
    TEST(0 == startinterval_systimer(systimer[2], &(timevalue_t){ .nanosec = 3000000 })) ;
-   for (int i = 1; i <= 10; ++i) {
+   for (unsigned i = 1; i <= 10; ++i) {
       TEST(0 == wait_systimer(systimer[0])) ;
       TEST(0 == expirationcount_systimer(systimer[0], &expcount)) ;
-      TEST(1 == expcount) ;
+      TESTP( 1==expcount || 2==expcount, "i:%u count: %"PRIu64, i, expcount);
       if (0 == (i % 2)) {
          TEST(0 == wait_systimer(systimer[1])) ;
          TEST(0 == expirationcount_systimer(systimer[1], &expcount)) ;

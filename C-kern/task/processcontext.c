@@ -26,7 +26,6 @@
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/syslogin.h"
-#include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
 #include "C-kern/api/platform/task/thread_localstore.h"
@@ -55,14 +54,13 @@ static inline uint16_t static_memory_size(void)
    uint16_t memorysize = 0
 // TEXTDB:SELECT("         + sizeof("objtype")")FROM(C-kern/resource/config/initprocess)WHERE(inittype=="object")
          + sizeof(syslogin_t)
-         + sizeof(pagecache_blockmap_t)
 // TEXTDB:END
      ;
    return memorysize;
 }
 
 /* function: alloc_static_memory
- * Allokiert statischen Speicher für alle noch für <processcontext_t> zu initialisierten Objekte.
+ * Allokiert statischen Speicher für alle von <processcontext_t> zu initialisierenden Objekte.
  * */
 static inline int alloc_static_memory(processcontext_t* pcontext, thread_localstore_t* tls, /*out*/memblock_t* mblock)
 {
@@ -150,16 +148,6 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    ++ pcontext->initcount;
 
    if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
-      assert( sizeof(pagecache_blockmap_t) <= mblock.size);
-      err = init_pagecacheblockmap((pagecache_blockmap_t*) mblock.addr);
-   }
-   if (err) goto ONERR;
-   pcontext->blockmap = (pagecache_blockmap_t*) mblock.addr;
-   mblock.addr += sizeof(pagecache_blockmap_t);
-   mblock.size -= sizeof(pagecache_blockmap_t);
-   ++ pcontext->initcount;
-
-   if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
       err = initonce_X11();
    }
    if (err) goto ONERR;
@@ -187,16 +175,10 @@ int free_processcontext(processcontext_t* pcontext)
             break;
 // TEXTDB:SELECT(\n"   case ("row-id"+1):"\n(if (inittype=='initonce') ("            err2 = freeonce_"module"("(if (parameter!="") ("&pcontext->"parameter))");"\n"            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;")) (if (inittype=='object') ("            err2 = free_"module"( pcontext->"parameter");"\n"            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);"\n"            if (err2) err = err2;"\n"            pcontext->"parameter" = 0;")) )FROM(C-kern/resource/config/initprocess)DESCENDING
 
-   case (6+1):
+   case (5+1):
             err2 = freeonce_X11();
             (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
             if (err2) err = err2;
-
-   case (5+1):
-            err2 = free_pagecacheblockmap( pcontext->blockmap);
-            (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err2);
-            if (err2) err = err2;
-            pcontext->blockmap = 0;
 
    case (4+1):
             err2 = free_syslogin( pcontext->syslogin);
@@ -241,7 +223,6 @@ bool isstatic_processcontext(const processcontext_t * pcontext)
 {
    return   0 == pcontext->syslogin
             && g_errorcontext_stroffset == pcontext->error.stroffset && g_errorcontext_strdata == pcontext->error.strdata
-            && 0 == pcontext->blockmap
             && 0 == pcontext->staticmemblock
             && 0 == pcontext->initcount;
 }
@@ -320,7 +301,7 @@ ONERR:
 static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_STATIC;
-   const uint16_t    I        = 7;
+   const uint16_t    I        = 6;
    const size_t      S        = sizestatic_threadlocalstore(self_threadlocalstore());
 
    // TEST processcontext_INIT_STATIC
@@ -331,7 +312,6 @@ static int test_initfree(void)
    TEST(0 != pcontext.syslogin);
    TEST(0 != pcontext.error.stroffset);
    TEST(0 != pcontext.error.strdata);
-   TEST(0 != pcontext.blockmap);
    TEST(0 != pcontext.staticmemblock);
    TEST(I == pcontext.initcount);
    TEST(S == sizestatic_threadlocalstore(self_threadlocalstore()) - static_memory_size());
@@ -388,7 +368,6 @@ static int test_initfree(void)
    TEST(I == pcontext.initcount);
    TEST(S == sizestatic_threadlocalstore(self_threadlocalstore()) - static_memory_size());
    TEST(0 == free_syslogin(pcontext.syslogin));
-   TEST(0 == free_pagecacheblockmap(pcontext.blockmap));
    // restore (if setuid)
    switchtorealuser_syslogin(syslogin_maincontext());
    TEST(0 == free_static_memory(&pcontext, self_threadlocalstore()));
@@ -415,9 +394,6 @@ static int test_query(void)
    pcontext.error.strdata = 0;
    TEST(0 == isstatic_processcontext(&pcontext));
    pcontext.error.strdata = g_errorcontext_strdata;
-   pcontext.blockmap = (void*)1;
-   TEST(0 == isstatic_processcontext(&pcontext));
-   pcontext.blockmap = 0;
    pcontext.staticmemblock = (void*)1;
    TEST(0 == isstatic_processcontext(&pcontext));
    pcontext.staticmemblock = 0;
@@ -466,7 +442,5 @@ int unittest_task_processcontext()
 ONERR:
    return EINVAL;
 }
-
-
 
 #endif

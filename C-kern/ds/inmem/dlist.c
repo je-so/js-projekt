@@ -130,13 +130,11 @@ static inline void removehelper_dlist(dlist_t * list, dlist_node_t * node)
    node->prev = 0;
 }
 
-void removefirst_dlist(dlist_t * list, dlist_node_t ** removed_node)
+dlist_node_t* removefirst_dlist(dlist_t * list)
 {
    dlist_node_t * const first = list->last->next;
-
    removehelper_dlist(list, first);
-
-   *removed_node = first;
+   return first;
 }
 
 void removelast_dlist(dlist_t * list, dlist_node_t ** removed_node)
@@ -575,7 +573,7 @@ static int test_iterator(void)
          TEST(next_dlistiterator(&iter, &next));
          TEST(next == &nodes[i].node);
          if (i) {
-            removefirst_dlist(&list, &next);
+            next = removefirst_dlist(&list);
             TEST(next == &nodes[i-1].node);
          }
       }
@@ -844,7 +842,7 @@ static int test_remove(void)
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       // test
-      removefirst_dlist(&list, &node);
+      node = removefirst_dlist(&list);
       // check
       TEST(node == &nodes[i].node)
       TEST(0 == node->next);
@@ -1338,9 +1336,9 @@ static int test_generic(void)
          }
          // test
          switch (tc) {
-         case 1: removefirst_glist1(&list, &node); break;
-         case 2: removefirst_glist2(&list, &node); break;
-         case 3: removefirst_glist3(&list, &node); break;
+         case 1: node = removefirst_glist1(&list); break;
+         case 2: node = removefirst_glist2(&list); break;
+         case 3: node = removefirst_glist3(&list); break;
          }
          // check node
          TEST(&nodes[i] == node);

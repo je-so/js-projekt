@@ -21,14 +21,9 @@
 #ifndef CKERN_STDTYPES_IOBJ_HEADER
 #define CKERN_STDTYPES_IOBJ_HEADER
 
-/* typedef: struct iobj_t
- * Export <iobj_t> into global namespace. */
-typedef struct iobj_t iobj_t;
-
-/* typedef: struct iobj_it
- * Define generic type <iobj_it> which is only
- * used in the declaration of <iobj_t>. */
-typedef struct iobj_it iobj_it;
+// export
+struct iobj_t;
+struct iobj_it;
 
 
 // section: Functions
@@ -41,6 +36,9 @@ typedef struct iobj_it iobj_it;
 int unittest_stdtypes_iobj(void);
 #endif
 
+/* struct: iobj_it
+ * Private opaque type. Never used only used as placeholder. */
+typedef struct iobj_it iobj_it;
 
 /* struct: iobj_t
  * This type has only template character.
@@ -79,19 +77,19 @@ int unittest_stdtypes_iobj(void);
  * The macro <cast_iobj> checks that anon_example is compatible with example_t.
  *
  * */
-struct iobj_t {
+typedef struct iobj_t {
    /* variable: object
     * A pointer to the object data.
     * The object data is accessed through interface <iobj_it>.
     * The pointer to type <iobj_t> is casted into a custom type in the
     * implementation of the interface <iobj_it>. */
-   iobj_t*  object;
+   struct iobj_t*  object;
    /* variable: iimpl
     * A pointer to the implementation of the interface <iobj_it>.
     * This pointer to a function table is used to access the functionality
     * of the object. */
-   iobj_it* iimpl;
-};
+   struct iobj_it* iimpl;
+} iobj_t;
 
 // group: lifetime
 
@@ -116,8 +114,19 @@ void init_iobj(/*out*/iobj_t* iobj, void* object, void* iimpl);
 
 /* function: initcopy_iobj
  * Generic initialization. Same as assigning <iobj_INIT>(srciobj->object, srciobj->iimpl).
- * Can be used for any declared interfaceable object (see <iobj_T>). */
-void initcopy_iobj(/*out*/iobj_t* destiobj, const iobj_t* srciobj);
+ * Can be used for any declared interfaceable object (see <iobj_T>).
+ *
+ * Optimizing compiler sometimes removes copy operations if destiobj is located
+ * on the stack which is the case for (anonymous typed) iobjects in main-
+ * and thread-context. Therefore this macro calls initcopySAFE_iobj. */
+void initcopy_iobj(/*out*/iobj_t* dest, const iobj_t* src);
+
+/* function: initcopySAFE_iobj
+ * This copy function is *not* removed by optimizing Compilers.
+ *
+ * Unchecked Precondition:
+ * - dest != src && is_memory_overlap(dest, src, sizeof(iobj_t)) == false */
+void initcopySAFE_iobj(/*out*/iobj_t* restrict dest, const iobj_t* restrict src);
 
 /* function: free_iobj
  * Generic free operation. Same as assigning <iobj_FREE>.
@@ -160,16 +169,14 @@ void* cast_iobj(void* iobj, IDNAME typenameprefix);
 /* define: cast_iobj
  * Implements <iobj_t.cast_iobj>. */
 #define cast_iobj(iobj, typenameprefix) \
-         ( __extension__ ({                              \
-            typeof(iobj) _o;                             \
-            _o = (iobj);                                 \
-            static_assert(                               \
-               &(_o->object)                             \
-               == &((typenameprefix##_t*) _o)->object    \
-               && &(_o->iimpl)                           \
-                  == &((typenameprefix##_t*) _o)->iimpl, \
-               "compatible structure");                  \
-            (typenameprefix##_t*) _o;                    \
+         ( __extension__ ({                                             \
+            typeof(iobj) _o;                                            \
+            _o = (iobj);                                                \
+            static_assert(                                              \
+               &(_o->object) == &((typenameprefix##_t*) _o)->object     \
+               && &(_o->iimpl) == &((typenameprefix##_t*) _o)->iimpl,   \
+               "compatible structure");                                 \
+            (typenameprefix##_t*) _o;                                   \
          }))
 
 /* define: init_iobj
@@ -183,12 +190,21 @@ void* cast_iobj(void* iobj, IDNAME typenameprefix);
 
 /* define: initcopy_iobj
  * Implements <iobj_t.initcopy_iobj>. */
-#define initcopy_iobj(destiobj, srciobj) \
-         do {                                    \
-            typeof(srciobj)  _src  = (srciobj);  \
-            typeof(destiobj) _dest = (destiobj); \
-            _dest->object = _src->object;        \
-            _dest->iimpl  = _src->iimpl;         \
+#define initcopy_iobj(dest, src) \
+         do {                                                                 \
+            static_assert(                                                    \
+               offsetof(typeof(*(src)),object) == offsetof(iobj_t,object)     \
+               && offsetof(typeof(*(src)),iimpl) == offsetof(iobj_t,iimpl)    \
+               && sizeof((src)->iimpl) == sizeof(((iobj_t*)0)->iimpl)         \
+               && offsetof(typeof(*(dest)),object) == offsetof(iobj_t,object) \
+               && offsetof(typeof(*(dest)),iimpl) == offsetof(iobj_t,iimpl)   \
+               && sizeof((dest)->iimpl) == sizeof(((iobj_t*)0)->iimpl),       \
+               "compatible with iobj_t");                                     \
+            static_assert(                                                    \
+               &((typeof(src))0)->object == &((typeof(dest))0)->object        \
+               && &((typeof(src))0)->iimpl == &((typeof(dest))0)->iimpl,      \
+               "compatible with each other");                                 \
+            initcopySAFE_iobj( (iobj_t*)dest, (const iobj_t*)src);            \
          } while (0)
 
 #endif

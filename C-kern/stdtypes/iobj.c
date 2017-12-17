@@ -25,6 +25,14 @@
 
 // section: iobj_t
 
+// group: lifetime
+
+void initcopySAFE_iobj(/*out*/iobj_t* restrict dest, const iobj_t* restrict src)
+{
+   memcpy(dest, src, sizeof(iobj_t));
+}
+
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
@@ -72,6 +80,9 @@ static int test_generic(void)
    // TEST iobj_T
    typedef iobj_T(testiobj) testiobj_t;
    testiobj_t testiobj1;
+   static_assert(sizeof(testiobj_t) == sizeof(iobj_t), "check iobj_T");
+   static_assert(offsetof(testiobj_t, object) == 0, "check iobj_T");
+   static_assert(offsetof(testiobj_t, iimpl)  == sizeof(void*), "check iobj_T");
 
    // TEST cast_iobj
    TEST(cast_iobj(&testiobj1, testiobj) == &testiobj1);

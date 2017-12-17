@@ -112,40 +112,35 @@ ONERR:
 #ifdef KONFIG_UNITTEST
 
 static ucontext_t    s_thread_usercontext ;
-static volatile int  s_shared_count = 0 ;
-static volatile int  s_shared_wrong = 0 ;
+static volatile int  s_shared_count = 0;
+static volatile int  s_shared_wrong = 0;
 
 static int thread_loop(mutex_t * mutex)
 {
-   int err = 0 ;
+   int err = 0;
 
-   for (int i = 0 ; i < 1000000; ++i) {
-      int v = s_shared_wrong + 1 ;
-      err = lock_mutex(mutex) ;
-      if (err) break ;
-      ++ s_shared_count ;
-      err = unlock_mutex(mutex) ;
-      if (err) break ;
-      s_shared_wrong = v ;
+   for (unsigned i = 0 ; i < 1000000; ++i) {
+      int v = s_shared_wrong + 1;
+      err = lock_mutex(mutex);
+      if (err) break;
+      ++ s_shared_count;
+      err = unlock_mutex(mutex);
+      if (err) break;
+      s_shared_wrong = v;
    }
 
-   return err ;
+   return err;
 }
 
 static int thread_sloop(mutex_t * mutex)
 {
-   int err = 0 ;
-
-   for (int i = 0 ; i < 100000; ++i) {
-      int v = s_shared_wrong + 1 ;
-      slock_mutex(mutex) ;
-      ++ s_shared_count ;
-      sunlock_mutex(mutex) ;
-      if (err) break ;
-      s_shared_wrong = v ;
+   for (unsigned i = 0 ; i < 100000; ++i) {
+      slock_mutex(mutex);
+      ++ s_shared_count;
+      sunlock_mutex(mutex);
    }
 
-   return err ;
+   return 0;
 }
 
 static volatile int s_lockmutex_signal = 0;
@@ -397,8 +392,9 @@ static void sigabort(int sig)
 static int test_slock(void)
 {
    mutex_t           mutex     = mutex_INIT_DEFAULT ;
-   thread_t          * thread1 = 0 ;
-   thread_t          * thread2 = 0 ;
+   thread_t          * thread1 = 0;
+   thread_t          * thread2 = 0;
+   thread_t          * thread3 = 0;
    volatile bool     isoldprocmask = false;
    volatile bool     isoldact  = false;
    volatile bool     isAbort;
@@ -423,20 +419,22 @@ static int test_slock(void)
    TEST(0 == sigaction(SIGABRT, &newact, &oldact)) ;
    isoldact = true ;
 
-   // TEST 2 threads parallel counting: lock, unlock
-   TEST(0 == init_mutex(&mutex)) ;
-   s_shared_count = 0 ;
-   s_shared_wrong = 0 ;
-   TEST(0 == newgeneric_thread(&thread1, &thread_sloop, &mutex)) ;
-   TEST(0 == newgeneric_thread(&thread2, &thread_sloop, &mutex)) ;
-   TEST(0 == join_thread(thread1)) ;
-   TEST(0 == join_thread(thread2)) ;
-   TEST(0 == returncode_thread(thread1)) ;
-   TEST(0 == returncode_thread(thread2)) ;
-   TEST(0 == delete_thread(&thread1)) ;
-   TEST(0 == delete_thread(&thread2)) ;
-   TEST(200000 == s_shared_count) ;
-   TEST(200000 != s_shared_wrong) ;
+   // TEST 3 threads parallel counting: lock, unlock
+   TEST(0 == init_mutex(&mutex));
+   s_shared_count = 0;
+   TEST(0 == newgeneric_thread(&thread1, &thread_sloop, &mutex));
+   TEST(0 == newgeneric_thread(&thread2, &thread_sloop, &mutex));
+   TEST(0 == newgeneric_thread(&thread3, &thread_sloop, &mutex));
+   TEST(0 == join_thread(thread1));
+   TEST(0 == join_thread(thread2));
+   TEST(0 == join_thread(thread3));
+   TEST(0 == returncode_thread(thread1));
+   TEST(0 == returncode_thread(thread2));
+   TEST(0 == returncode_thread(thread3));
+   TEST(0 == delete_thread(&thread1));
+   TEST(0 == delete_thread(&thread2));
+   TEST(0 == delete_thread(&thread3));
+   TEST(300000 == s_shared_count);
 
    // TEST EDEADLK: calling lock twice is prevented
    slock_mutex(&mutex) ;
@@ -523,17 +521,18 @@ static int test_slock(void)
    return 0 ;
 ONERR:
    if (-1 != oldstderr) {
-      dup2(oldstderr, STDERR_FILENO) ;
+      dup2(oldstderr, STDERR_FILENO);
    }
-   free_iochannel(&oldstderr) ;
-   free_iochannel(&pipefd[0]) ;
-   free_iochannel(&pipefd[1]) ;
-   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
-   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
-   free_mutex(&mutex) ;
-   delete_thread(&thread1) ;
-   delete_thread(&thread2) ;
-   return EINVAL ;
+   free_iochannel(&oldstderr);
+   free_iochannel(&pipefd[0]);
+   free_iochannel(&pipefd[1]);
+   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0);
+   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0);
+   free_mutex(&mutex);
+   delete_thread(&thread1);
+   delete_thread(&thread2);
+   delete_thread(&thread3);
+   return EINVAL;
 }
 
 typedef struct processparam_t    processparam_t;

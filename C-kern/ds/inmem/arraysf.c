@@ -776,7 +776,7 @@ static int test_initfree(void)
 
    // TEST insert_arraysf (1 level)
    TEST(0 == new_arraysf(&array, 16, 8)) ;
-   nodes[4].node = (arraysf_node_t) arraysf_node_INIT(4) ;
+   nodes[4] = (testnode_t) { .node = arraysf_node_INIT(4) };
    TEST(0 == tryinsert_arraysf(array, &nodes[4].node, &inserted_node, &nodeadp))
    TEST(&nodes[4].node == cast2node_arraysfunode(array->root[0])) ;
    for (size_t pos = 5; pos <= 7; ++pos) {

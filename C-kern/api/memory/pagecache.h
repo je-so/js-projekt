@@ -26,13 +26,9 @@
 // forward
 struct memblock_t;
 
-/* typedef: struct pagecache_t
- * Export <pagecache_t> into global namespace. */
+// exported types
 struct pagecache_t;
-
-/* typedef: struct pagecache_it
- * Export <pagecache_it> into global namespace. */
-typedef struct pagecache_it pagecache_it;
+struct pagecache_it;
 
 /* enums: pagesize_e
  * List of supported page sizes.
@@ -114,6 +110,13 @@ bool isobject_pagecache(const pagecache_t* pgcache);
  * o pagesize < <pagesize__NROF> */
 static inline size_t pagesizeinbytes_pagecache(pagesize_e pagesize);
 
+/* function: log2pagesizeinbytes_pagecache
+ * Translates enum <pagesize_e> into log2_int(pagesizeinbytes_pagecache(pagesize))
+ *
+ * Unchecked Precondition:
+ * o pagesize < <pagesize__NROF> */
+static inline uint8_t log2pagesizeinbytes_pagecache(pagesize_e pagesize);
+
 /* function: pagesizefrombytes_pagecache
  * Translates size in bytes into enum <pagesize_e>.
  *
@@ -143,7 +146,7 @@ int emptycache_pagecache(const pagecache_t pgcache);
 
 /* struct: pagecache_it
  * Interface which allows to allocate and relase pages of memory. */
-struct pagecache_it {
+typedef struct pagecache_it {
    // group: private fields
    /* function: allocpage
     * Allocates a single memory page of size pgsize.
@@ -161,7 +164,7 @@ struct pagecache_it {
    /* function: emptycache
     * Releases all unused memory blocks back to the operating system. */
    int    (*emptycache)    (struct pagecache_t* pgcache);
-};
+} pagecache_it;
 
 // group: lifetime
 
@@ -247,6 +250,13 @@ pagecache_it* cast_pagecacheit(void* pgcacheif, TYPENAME pagecache_t);
 static inline size_t pagesizeinbytes_pagecache(pagesize_e pagesize)
 {
          return (size_t)256 << pagesize;
+}
+
+/* define: log2pagesizeinbytes_pagecache
+ * Implements <pagecache_t.log2pagesizeinbytes_pagecache>. */
+static inline uint8_t log2pagesizeinbytes_pagecache(pagesize_e pagesize)
+{
+         return (uint8_t) (8u + pagesize);
 }
 
 /* define: releasepage_pagecache

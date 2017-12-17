@@ -213,8 +213,8 @@ void insertbefore_dlist(dlist_node_t * next_node, dlist_node_t * new_node);
  * removed_node points to the formerly first element of the list.
  *
  * Ungeprüfte Precondition:
- * o ! isempty_dlist2(list) */
-void removefirst_dlist(dlist_t *list, dlist_node_t ** removed_node);
+ * o ! isempty_dlist(list) */
+dlist_node_t* removefirst_dlist(dlist_t *list);
 
 /* function: removelast_dlist
  * Removes the last node from the list.
@@ -222,7 +222,7 @@ void removefirst_dlist(dlist_t *list, dlist_node_t ** removed_node);
  * removed_node points to the formerly last element of the list.
  *
  * Ungeprüfte Precondition:
- * o ! isempty_dlist2(list) */
+ * o ! isempty_dlist(list) */
 void removelast_dlist(dlist_t *list, dlist_node_t ** removed_node);
 
 /* function: remove_dlist
@@ -230,7 +230,7 @@ void removelast_dlist(dlist_t *list, dlist_node_t ** removed_node);
  * Ownership is transfered from <dlist_t> to caller.
  *
  * Ungeprüfte Precondition:
- * o node ist Teil von list && ! isempty_dlist2(list) */
+ * o node ist Teil von list && ! isempty_dlist(list) */
 void remove_dlist(dlist_t *list, dlist_node_t * node);
 
 /* function: replacenode_dlist
@@ -489,10 +489,8 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix);
    static inline void insertbefore##_fsuffix(object_t * next_node, object_t * new_node) { \
       insertbefore_dlist(cast2node##_fsuffix(next_node), cast2node##_fsuffix(new_node)); \
    } \
-   static inline void removefirst##_fsuffix(dlist_t *list, object_t ** removed_node) { \
-      dlist_node_t* _n = 0; \
-      removefirst_dlist(list, &_n); \
-      *removed_node = cast2object##_fsuffix(_n); \
+   static inline object_t* removefirst##_fsuffix(dlist_t *list) { \
+      return cast2object##_fsuffix(removefirst_dlist(list)); \
    } \
    static inline void removelast##_fsuffix(dlist_t *list, object_t ** removed_node) { \
       dlist_node_t* _n = 0; \

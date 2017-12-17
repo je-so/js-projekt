@@ -141,7 +141,7 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_ds_inmem_binarystack);
       RUN(unittest_ds_inmem_blockarray);
       RUN(unittest_ds_inmem_dlist);
-      RUN(unittest_ds_inmem_dlist2);
+      RUN(unittest_ds_inmem_olist);
       RUN(unittest_ds_inmem_exthash);
       RUN(unittest_ds_inmem_heap);
       RUN(unittest_ds_inmem_patriciatrie);

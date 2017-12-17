@@ -120,6 +120,17 @@ static int test_query(void)
    TEST(bytes == pagesizeinbytes_pagecache(pagesize__NROF));
    TEST(0 == pagesizeinbytes_pagecache((pagesize_e) (sizeof(size_t)*8-1)));
 
+   // TEST log2pagesizeinbytes_pagecache
+   static_assert(0 == pagesize_256, "256 bytes is smallest page size");
+   size_t l2 = 8;
+   for (pagesize_e pgsz = 0; pgsz < pagesize__NROF; ++pgsz, ++l2) {
+      TEST(l2 == log2pagesizeinbytes_pagecache(pgsz));
+   }
+
+   // TEST log2pagesizeinbytes_pagecache: invalid value
+   TEST(l2 == log2pagesizeinbytes_pagecache(pagesize__NROF));
+   TEST(0 == log2pagesizeinbytes_pagecache((pagesize_e) (256-8)));
+
    // TEST pagesizefrombytes_pagecache: less than 256 mapped to 256 bytes
    for (bytes = 0; bytes < 256; ++bytes) {
       TEST(pagesize_256 == pagesizefrombytes_pagecache(bytes));

@@ -480,7 +480,7 @@ static int installold_testmm(/*out*/threadcontext_mm_t* testmm)
    initcopy_iobj(testmm, &mm_maincontext());
    // install old mm
    threadcontext_t * tcontext = tcontext_maincontext();
-   setmm_threadcontext(tcontext, (threadcontext_mm_t*)previous_mm.addr);
+   initcopy_iobj(&tcontext->mm, (threadcontext_mm_t*)previous_mm.addr);
 
    return 0;
 }
@@ -502,7 +502,7 @@ static int installnew_testmm(const threadcontext_mm_t* testmm)
    initcopy_iobj((mm_t*)previous_mm.addr, &mm_maincontext());
    // install new
    threadcontext_t * tcontext = tcontext_maincontext();
-   setmm_threadcontext(tcontext, testmm);
+   initcopy_iobj(&tcontext->mm, testmm);
 
    return 0;
 }

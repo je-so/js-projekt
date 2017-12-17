@@ -87,18 +87,17 @@ static int test_cache(void)
    memblock_t  page;
 
    // prepare
-   TEST(0 == init_pagecacheimpl(&pgimpl));
    initcopy_iobj(&oldpagecache, &pagecache_maincontext());
+   TEST(0 == init_pagecacheimpl(&pgimpl));
    initcopy_iobj(&pagecache_maincontext(), &testpagecache);
 
    // TEST EMPTYCACHE_PAGECACHE
-   pagecache_impl_t* pagecache = (pagecache_impl_t*) testpagecache.object;
-   TEST(0 == pagecache->freeblocklist[pagesize_256].last);
+   TEST(1 == isfree_pagecacheimpl(&pgimpl));
    TEST(0 == ALLOC_PAGECACHE(pagesize_256, &page));
    TEST(0 == RELEASE_PAGECACHE(&page));
-   TEST(0 != pagecache->freeblocklist[pagesize_256].last);
+   TEST(0 == isfree_pagecacheimpl(&pgimpl));
    TEST(0 == EMPTYCACHE_PAGECACHE());
-   TEST(0 == pagecache->freeblocklist[pagesize_256].last);
+   TEST(1 == isfree_pagecacheimpl(&pgimpl));
 
    // unprepare
    initcopy_iobj(&pagecache_maincontext(), &oldpagecache);
@@ -106,9 +105,7 @@ static int test_cache(void)
 
    return 0;
 ONERR:
-   if (oldpagecache.object) {
-      initcopy_iobj(&pagecache_maincontext(), &oldpagecache);
-   }
+   initcopy_iobj(&pagecache_maincontext(), &oldpagecache);
    free_pagecacheimpl(&pgimpl);
    return EINVAL;
 }

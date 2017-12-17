@@ -83,7 +83,7 @@
 // group: integer
 
 /* typedef: ramsize_t
- * Ramsize could be bigger than size_t to match 32 bit machines with more than 4GTB of ram. */
+ * Ramsize could be bigger than size_t to match 32 bit machines with more than 4GB of ram. */
 typedef uint64_t     ramsize_t;
 
 /* typedef: uintptrf_t

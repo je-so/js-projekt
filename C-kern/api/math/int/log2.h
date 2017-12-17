@@ -55,7 +55,7 @@ uint8_t log2_int(unsigned i);
  * Implements <int_t.log2_int> as a generic function. */
 #define log2_int(i)                                               \
          ( __extension__ ({                                       \
-            int _result ;                                         \
+            int _result;                                          \
             /* unsigned ! */                                      \
             static_assert( ((typeof(i))-1) > 0, ) ;               \
             /* long long maximum support */                       \

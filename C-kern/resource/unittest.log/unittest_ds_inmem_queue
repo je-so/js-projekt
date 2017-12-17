@@ -1,59 +1,59 @@
-[1: 1509282226.491033s]
-insertfirst_queue() C-kern/ds/inmem/queue.c:320
+[1: 1512657439.616578s]
+insertfirst_queue() C-kern/ds/inmem/queue.c:318
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1509282226.491039s]
-insertlast_queue() C-kern/ds/inmem/queue.c:343
+[1: 1512657439.616582s]
+insertlast_queue() C-kern/ds/inmem/queue.c:341
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1509282226.491040s]
-removefirst_queue() C-kern/ds/inmem/queue.c:367
+[1: 1512657439.616583s]
+removefirst_queue() C-kern/ds/inmem/queue.c:365
 Exit function with
 Error 61 - No data available
-[1: 1509282226.491040s]
-removelast_queue() C-kern/ds/inmem/queue.c:391
+[1: 1512657439.616584s]
+removelast_queue() C-kern/ds/inmem/queue.c:389
 Exit function with
 Error 61 - No data available
-[1: 1509282226.491041s]
-resizelast_queue() C-kern/ds/inmem/queue.c:460
+[1: 1512657439.616585s]
+resizelast_queue() C-kern/ds/inmem/queue.c:458
 Exit function with
 Error 61 - No data available
-[1: 1509282226.491139s]
-removefirst_queue() C-kern/ds/inmem/queue.c:367
+[1: 1512657439.616662s]
+removefirst_queue() C-kern/ds/inmem/queue.c:365
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1509282226.491140s]
-removelast_queue() C-kern/ds/inmem/queue.c:391
+[1: 1512657439.616663s]
+removelast_queue() C-kern/ds/inmem/queue.c:389
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1509282226.491140s]
-resizelast_queue() C-kern/ds/inmem/queue.c:460
+[1: 1512657439.616664s]
+resizelast_queue() C-kern/ds/inmem/queue.c:458
 Exit function with
 Error 75 - Value too large for defined data type
-[1: 1509282226.491144s]
-resizelast_queue() C-kern/ds/inmem/queue.c:428
+[1: 1512657439.616664s]
+resizelast_queue() C-kern/ds/inmem/queue.c:426
 Function input violates condition (newsize <= 512)
 Exit function with
 Error 22 - Invalid argument
-[1: 1509282226.491145s]
-removefirst_queue() C-kern/ds/inmem/queue.c:367
+[1: 1512657439.616667s]
+removefirst_queue() C-kern/ds/inmem/queue.c:365
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1509282226.491145s]
-removelast_queue() C-kern/ds/inmem/queue.c:391
+[1: 1512657439.616667s]
+removelast_queue() C-kern/ds/inmem/queue.c:389
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1509282226.491320s]
-removeall_queue() C-kern/ds/inmem/queue.c:418
+[1: 1512657439.616848s]
+removeall_queue() C-kern/ds/inmem/queue.c:416
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1509282226.491321s]
-removeall_queue() C-kern/ds/inmem/queue.c:418
+[1: 1512657439.616849s]
+removeall_queue() C-kern/ds/inmem/queue.c:416
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1509282226.491369s]
-resizelast_queue() C-kern/ds/inmem/queue.c:460
+[1: 1512657439.616901s]
+resizelast_queue() C-kern/ds/inmem/queue.c:458
 Exit function with
 Error 12 - Cannot allocate memory

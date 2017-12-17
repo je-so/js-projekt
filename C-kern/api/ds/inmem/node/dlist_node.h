@@ -1,6 +1,6 @@
 /* title: DoubleLinkedList-Node
 
-   Definiert von <dlist_t> und <dlist2_t> verwalteten Knotentyp <dlist_node_t>
+   Definiert von <dlist_t> verwalteten Knotentyp <dlist_node_t>
    Objekte, die in einer doppelt verketteten Liste gepsiehcert werden wollen,
    müssen diesen Knotentyp als Feld importieren.
 

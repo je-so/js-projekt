@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Nov.19  16:15:11
+GenerationDate  := 2017.Dez.17  12:11:35
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -107,7 +107,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Debug)/C-kern!ds!link.c.o \
  $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o \
- $(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
@@ -119,6 +118,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!olist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
@@ -233,7 +233,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Release)/C-kern!ds!link.c.o \
  $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o \
- $(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
@@ -245,6 +244,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!olist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
@@ -430,9 +430,6 @@ $(ObjectDir_Debug)/C-kern!ds!link.c.o: C-kern/ds/link.c
 $(ObjectDir_Debug)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
 	@$(CC_Debug)
 
@@ -464,6 +461,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!olist.c.o: C-kern/ds/inmem/olist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c
@@ -802,9 +802,6 @@ $(ObjectDir_Release)/C-kern!ds!link.c.o: C-kern/ds/link.c
 $(ObjectDir_Release)/C-kern!ds!sort!mergesort.c.o: C-kern/ds/sort/mergesort.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!inmem!dlist2.c.o: C-kern/ds/inmem/dlist2.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
 	@$(CC_Release)
 
@@ -836,6 +833,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!trie.c.o: C-kern/ds/inmem/trie.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!olist.c.o: C-kern/ds/inmem/olist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c

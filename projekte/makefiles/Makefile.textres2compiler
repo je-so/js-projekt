@@ -86,6 +86,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
@@ -120,6 +121,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
@@ -181,6 +183,9 @@ $(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
@@ -277,6 +282,9 @@ $(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o: C-kern/stdtypes/iobj.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c

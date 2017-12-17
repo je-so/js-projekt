@@ -217,10 +217,6 @@ size_t threadid_maincontext(void);
 
 // group: query-service
 
-/* function: blockmap_maincontext
- * Returns shared blockmap used by <pagecache_impl_t> (see <pagecache_blockmap_t >). */
-struct pagecache_blockmap_t * blockmap_maincontext(void);
-
 /* function: error_maincontext
  * Returns error string table (see <errorcontext_t>). */
 /*ref*/typeof(((processcontext_t*)0)->error) error_maincontext(void);
@@ -260,10 +256,6 @@ struct syncrunner_t* syncrunner_maincontext(void);
 
 
 // section: inline implementation
-
-/* define: blockmap_maincontext
- * Implementation of <maincontext_t.blockmap_maincontext>. */
-#define blockmap_maincontext()            (pcontext_maincontext()->blockmap)
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */

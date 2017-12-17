@@ -1,131 +1,88 @@
-[1: 1452102198.309108s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
+[1: 1513415505.620018s]
+new_block() C-kern/memory/pagecache_impl.c:394
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.309133s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.310517s]
-free_pagecacheblock() C-kern/memory/pagecache_impl.c:300
+[1: 1513415505.620195s]
+delete_block() C-kern/memory/pagecache_impl.c:430
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.327914s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.327927s]
-init_pagecacheimpl() C-kern/memory/pagecache_impl.c:441
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.327939s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.327941s]
-init_pagecacheimpl() C-kern/memory/pagecache_impl.c:441
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.328721s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
+[1: 1513415505.668391s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:571
 One or more resources could not be freed
 Exit function with
 Error 39 - Directory not empty
-[1: 1452102198.329389s]
-free_pagecacheblock() C-kern/memory/pagecache_impl.c:300
+[1: 1513415505.668715s]
+delete_block() C-kern/memory/pagecache_impl.c:430
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.329397s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
+[1: 1513415505.668732s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:571
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.330062s]
-free_pagecacheimpl() C-kern/memory/pagecache_impl.c:468
+[1: 1513415505.669104s]
+delete_block() C-kern/memory/pagecache_impl.c:430
 One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.429523s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
+[1: 1513415505.669114s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:571
+One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.429535s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
+[1: 1513415505.669474s]
+delete_block() C-kern/memory/pagecache_impl.c:430
+One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.429537s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
+[1: 1513415505.669477s]
+free_pagecacheimpl() C-kern/memory/pagecache_impl.c:571
+One or more resources could not be freed
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1452102198.429539s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429540s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429542s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429544s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429545s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429547s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429548s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429550s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429552s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.429553s]
-new_pagecacheblock() C-kern/memory/pagecache_impl.c:275
-Exit function with
-Error 12 - Cannot allocate memory
-[1: 1452102198.492337s]
-allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:498
-Function input violates condition (pgsize < pagesize__NROF)
+[1: 1513415505.669584s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:656
 Exit function with
 Error 22 - Invalid argument
-[1: 1452102198.492350s]
-allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:498
-Function input violates condition (pgsize < pagesize__NROF)
-Exit function with
-Error 22 - Invalid argument
-[1: 1452102198.505469s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
+[1: 1513415505.670312s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:656
 Exit function with
 Error 114 - Operation already in progress
-[1: 1452102198.506188s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
+[1: 1513415505.670349s]
+allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:595
+Function input violates condition (pgsize < pagesize__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1452102198.506196s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
+[1: 1513415505.670351s]
+allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:595
+Function input violates condition (pgsize < pagesize__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1452102198.506198s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
+[1: 1513415505.670519s]
+new_block() C-kern/memory/pagecache_impl.c:394
 Exit function with
-Error 22 - Invalid argument
-[1: 1452102198.506298s]
-releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:565
+Error 12 - Cannot allocate memory
+[1: 1513415505.670520s]
+allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:620
 Exit function with
-Error 22 - Invalid argument
+Error 12 - Cannot allocate memory
+[1: 1513415505.670718s]
+delete_block() C-kern/memory/pagecache_impl.c:430
+One or more resources could not be freed
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1513415505.670721s]
+releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:656
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1513415505.670746s]
+delete_block() C-kern/memory/pagecache_impl.c:430
+One or more resources could not be freed
+Exit function with
+Error 12 - Cannot allocate memory
+[1: 1513415505.670746s]
+emptycache_pagecacheimpl() C-kern/memory/pagecache_impl.c:678
+Exit function with
+Error 12 - Cannot allocate memory

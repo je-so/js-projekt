@@ -48,7 +48,7 @@ int ispowerof2_int(unsigned i);
 // group: compute
 
 /* function: makepowerof2_int
- * Returns power of 2 value of the argument or 0. The returned value is bigger or equal to the given argument.
+ * Returns value >= i which is a power of 2 or the value 0.
  * This function is implemented as a generic function for all integer types.
  *
  * Parameter:

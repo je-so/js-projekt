@@ -223,8 +223,9 @@ int free_threadcontext(threadcontext_t* tcontext)
       s_threadcontext_nextid = 0;
    }
 
-   // keep tcontext->pcontext
    tcontext->thread_id = staticcontext.thread_id;
+
+   // keep tcontext->maincontext
 
    if (err) goto ONERR;
 
@@ -363,11 +364,6 @@ void resetthreadid_threadcontext()
    write_atomicint(&s_threadcontext_nextid, 0);
 }
 
-void setmm_threadcontext(threadcontext_t* tcontext, const threadcontext_mm_t* new_mm)
-{
-   initcopy_iobj(&tcontext->mm, new_mm);
-}
-
 
 // group: test
 
@@ -386,7 +382,7 @@ static int test_lifehelper(void)
    // TEST static_memory_size
    TEST(staticsize == static_memory_size());
    TEST(0   < staticsize);
-   TEST(512 > staticsize);
+   TEST(640 > staticsize);
    TEST(0  == staticsize % sizeof(size_t));
 
    // TEST alloc_static_memory
@@ -702,21 +698,11 @@ ONERR:
 
 static int test_change(void)
 {
-   threadcontext_t tcontext = threadcontext_FREE;
-
    // TEST resetthreadid_threadcontext
    s_threadcontext_nextid = 10;
    TEST(0 != s_threadcontext_nextid);
    resetthreadid_threadcontext();
    TEST(0 == s_threadcontext_nextid);
-
-   // TEST setmm_threadcontext
-   setmm_threadcontext(&tcontext, &(threadcontext_mm_t) iobj_INIT((void*)1, (void*)2));
-   TEST(tcontext.mm.object == (struct mm_t*)1);
-   TEST(tcontext.mm.iimpl  == (struct mm_it*)2);
-   setmm_threadcontext(&tcontext, &(threadcontext_mm_t) iobj_INIT(0, 0));
-   TEST(tcontext.mm.object == 0);
-   TEST(tcontext.mm.iimpl  == 0);
 
    return 0;
 ONERR:

@@ -298,9 +298,6 @@ ONERR:
 
 static int test_querymacros(void)
 {
-   // TEST blockmap_maincontext
-   TEST(&blockmap_maincontext()    == &pcontext_maincontext()->blockmap);
-
    // TEST error_maincontext
    TEST(&error_maincontext()       == &pcontext_maincontext()->error);
 
