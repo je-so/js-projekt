@@ -101,15 +101,17 @@ slist_IMPLEMENT(_emptylist, empty_transition_t, next)
  * Ein Zustand besitzt nremptytrans leere Übergänge, verwaltet in emptylist
  * und nrrangetrans Zeichen erwartende Übergange, verwaltet in rangelist. */
 typedef struct state_t {
-   slist_node_t*  next; // used in link to next state_t in _statelist
-   size_t   nremptytrans; // number of empty transitions
-   size_t   nrrangetrans; // number of range transitions
-   slist_t  emptylist;    // list of empty transitions
-   slist_t  rangelist;    // list of range transitions (every node contains multiple rangestate_t)
+   slist_node_t*  next;    // used in link to next state_t in _statelist
+   size_t   nremptytrans;  // number of empty transitions
+   size_t   nrrangetrans;  // number of range transitions
+   slist_t  emptylist;     // list of empty transitions
+   slist_t  rangelist;     // list of range transitions (every node contains multiple rangestate_t)
    union {
       struct {
          uint8_t        isused; // used to mark a state as inserted or used
+         // TODO: adapt description of nrdfa
          uint8_t        nrdfa;  // used to indicate to which automaton state belongs (1 or 2)
+         // TODO: adapt description of nrendstate
          uint8_t        nrendstate; // 0: no endstate; nrendstate == nrdfa: is endstate
       };
       size_t            nr;     // used to assign numbers to states for printing
@@ -132,7 +134,7 @@ slist_IMPLEMENT(_statelist, state_t, next)
 // group: lifetime
 
 /* function: initempty_state
- * Initialisiert state mit nrtrans Übergangen zu target.
+ * Initialisiert state mit einem leeren Übergang zu target.
  * Ein leerer Übergang wird immer verwendet und liest bzw. verbraucht keinen Buchstaben. */
 static void initempty_state(/*out*/state_t* state, state_t* target)
 {
@@ -145,7 +147,7 @@ static void initempty_state(/*out*/state_t* state, state_t* target)
 }
 
 /* function: initempty_state
- * Initialisiert state mit nrtrans Übergangen zu target.
+ * Initialisiert state mit zwei leeren Übergang zu target1 und zusätzlich target2.
  * Ein leerer Übergang wird immer verwendet und liest bzw. verbraucht keinen Buchstaben. */
 static void initempty2_state(/*out*/state_t* state, state_t* target1, state_t* target2)
 {
@@ -160,10 +162,7 @@ static void initempty2_state(/*out*/state_t* state, state_t* target1, state_t* t
 }
 
 /* function: init_state
- * Initialisiert state mit nrmatch Übergangen zu target.
- * Diese testen den nächsten zu lesenden Character, ob er innerhalb
- * der nrmatch Bereiche [match_from..match_to] liegt. Wenn ja, wird der Character verbraucht
- * und der Übergang nach target ausgeführt. */
+ * Initialisiert einen Zustand state mit keinerlei Übergängen. */
 static void init_state(/*out*/state_t* state)
 {
    state->nremptytrans = 0;
@@ -241,7 +240,7 @@ typedef struct statearray_t {
 
 // group: type support
 
-/* define: YYY_blocklist
+/* define: slist_IMPLEMENT_blocklist
  * Defines interface of type <slist_t> for <statearray_block_t>. */
 slist_IMPLEMENT(_blocklist, statearray_block_t, next)
 
@@ -1219,11 +1218,11 @@ static int addrange_rangemap(rangemap_t* rmap, automat_mman_t* mman, char32_t fr
 
    VALIDATE_INPARAM_TEST(from <= to, ONERR, );
 
-   for (;;) {
+   do {
       err = addrange2_rangemap(rmap, mman, next_from, to, &next_from);
-      if (! err) break;
-      if (err != EAGAIN) goto ONERR;
-   }
+   } while (err == EAGAIN);
+
+   if (err) goto ONERR;
 
    return 0;
 ONERR:
@@ -2444,7 +2443,7 @@ static void remove_single_empty_transitions(automat_t *ndfa)
  * Für jeden unbearbeiteten Multi-Zustand wird Folgendes gemacht:
  *   1. Alle Zeichen, die einen Übergang in einen anderen Zustand bewirken,
  *      werden in einer rangemap_t (siehe build_rangemap_from_statevector) gespeichert.
- *      Die rangemap_t wird wieder durch leere Transition erreichbare Zustände erweitert.
+ *      Die rangemap_t wird wieder durch leere Transitionen erreichbare Zustände erweitert.
  *   2. Der Multi-Zustand bekommt einen DEA Zustand zugewiesen. Falls der Endzustand
  *      im Multi-Zustand vorhanden ist, wird eine leere Transition zum DEA Endzustand
  *      hinzugefügt.
@@ -2452,11 +2451,11 @@ static void remove_single_empty_transitions(automat_t *ndfa)
  *      Folgendes gemacht:
  *      3.1 Wurde ein Ziel-Multi-Zustand schon bearbeitet (wird durch einen Index festgestellt),
  *      so wird eine Referenz auf diesen verarbeitet, ansonsten wird ein neuer Multi-Zustand
- *      angelegt und im Inde vermerkt.
+ *      angelegt und im Index vermerkt.
  *      3.2 Der DFA Zustand wird um eine range_transition_t erweitert, die diesen
  *          Multi-Zustand als Ziel hat
  *
- * Für alle Transitionen des DFA ist jetzt anstatt des Ziel-Multizustandes der eigentliche
+ * Für alle Transitionen des DEA ist jetzt anstatt des Ziel-Multizustandes der eigentliche
  * zugeordnete DEA Zustand einzutragen und die Umwandlung ist fertig.
  * */
 int makedfa_automat(automat_t* ndfa)

@@ -1,0 +1,14 @@
+[1: 1514973665.289183s]
+initparse_uriencoded() C-kern/io/www/uri.c:690
+Exit function with
+Error 75 - Value too large for defined data type
+[1: 1514973665.429168s]
+resolve_uriencoded() C-kern/io/www/uri.c:721
+Function input violates condition (base && (isabsolute_uriencoded(base) || 0==get_part_size(base,uri_part_PATH)))
+Exit function with
+Error 22 - Invalid argument
+[1: 1514973665.429173s]
+resolve_uriencoded() C-kern/io/www/uri.c:721
+Function input violates condition (base && (isabsolute_uriencoded(base) || 0==get_part_size(base,uri_part_PATH)))
+Exit function with
+Error 22 - Invalid argument

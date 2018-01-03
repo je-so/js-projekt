@@ -78,7 +78,7 @@ size_t sizeallocated_mmimpl(mm_impl_t * mman)
 
 // group: allocate
 
-int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+int malloc_mmimpl(mm_impl_t * mman, size_t size, /*eout*/struct memblock_t* memblock)
 {
    (void) mman ;
    int err ;
@@ -100,6 +100,7 @@ int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memb
 
    return 0 ;
 ONERR:
+   *memblock = (memblock_t) memblock_FREE;
    TRACEEXIT_ERRLOG(err);
    return err ;
 }
@@ -284,7 +285,11 @@ static int test_allocate(void)
    }
 
    // TEST malloc_mmimpl: ENOMEM
-   TEST(ENOMEM == malloc_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
+   memset(&mblocks[0], -1, sizeof(mblocks[0]));
+   TEST( ENOMEM == malloc_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
+   // check eout
+   TEST( mblocks[0].addr == 0);
+   TEST( mblocks[0].size == 0);
 
    // TEST mresize_mmimpl: EINVAL
    mblocks[0] = (memblock_t)memblock_FREE;
@@ -339,6 +344,13 @@ static int test_mm_macros(void)
       TEST(0 == mblocks[i].size) ;
       TEST(size == SIZEALLOCATED_MM()) ;
    }
+
+   // TEST ALLOC_MM: ENOMEM
+   memset(&mblocks[0], 255, sizeof(mblocks[0]));
+   TEST( ENOMEM == ALLOC_MM((size_t)-1, &mblocks[0]));
+   // check eout
+   TEST( mblocks[0].addr == 0);
+   TEST( mblocks[0].size == 0);
 
    // TEST RESIZE_MM, SIZEALLOCATED_MM: empty block
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {

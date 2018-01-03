@@ -302,7 +302,7 @@ ONERR:
    return err;
 }
 
-static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
+static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, /*eout*/struct memblock_t* memblock)
 {
    int err;
    testmm_block_t * block;
@@ -311,12 +311,15 @@ static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct 
    const size_t alignsize   =  alignsize_testmmblock(newsize);
    const size_t blocksize   =  headersize + trailersize + alignsize;
 
-   if (alignsize < newsize) return ENOMEM;
+   if (alignsize < newsize) {
+      err = ENOMEM;
+      goto ONERR;
+   }
 
    block = (testmm_block_t*) mmpage->freeblock.addr;
 
    err = shrinkleft_memblock(&mmpage->freeblock, blocksize);
-   if (err) return err;
+   if (err) goto ONERR;
 
    init_testmmblock(block, newsize, alignsize);
 
@@ -324,6 +327,9 @@ static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct 
    memblock->size = newsize;
 
    return 0;
+ONERR:
+   *memblock = (memblock_t) memblock_FREE;
+   return err;
 }
 
 static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
@@ -654,7 +660,7 @@ size_t sizeallocated_testmm(testmm_t * mman)
 
 // group: allocate
 
-int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+int malloc_testmm(testmm_t * mman, size_t size, /*eout*/struct memblock_t* memblock)
 {
    int err;
 
@@ -841,7 +847,10 @@ static int test_testmmpage(void)
       memblock = (memblock_t) memblock_FREE;
       TEST(0      == allocblock_testmmpage(mmpage, i, &memblock));
       TEST(true   == isblockvalid_testmmpage(mmpage, &memblock));
-      TEST(ENOMEM == allocblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock));
+      memblock_t mberr = memblock;
+      TEST(ENOMEM == allocblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &mberr));
+      TEST( mberr.addr == 0);
+      TEST( mberr.size == 0);
       nextfree.addr += headersize;
       TEST(memblock.addr == nextfree.addr);
       TEST(memblock.size == i);
@@ -854,13 +863,13 @@ static int test_testmmpage(void)
 
    // TEST allocblock_testmmpage: ENOMEM
    TEST(0 == new_testmmpage(&mmpage, 0, 0));
-   memblock = (memblock_t) memblock_FREE;
    for (size_t i = (size_t)-1; i > alignsize_testmmblock(i); --i) {
       testmm_page_t old = *mmpage;
       memcpy(&old, mmpage, sizeof(old));
-      TEST(ENOMEM == allocblock_testmmpage(mmpage, i, &memblock));
+      memset(&memblock, 255, sizeof(memblock));
+      TEST( ENOMEM == allocblock_testmmpage(mmpage, i, &memblock));
       TEST( isfree_memblock(&memblock));
-      TEST(0 == memcmp(&old, mmpage, sizeof(old)));
+      TEST( 0 == memcmp(&old, mmpage, sizeof(old)));
    }
    TEST(0 == delete_testmmpage(&mmpage));
 
@@ -993,15 +1002,19 @@ static int test_initfree(void)
    TEST(0 == testmm.mmpage);
    TEST(0 == testmm.sizeallocated);
 
-   // TEST initiot, double freeiot
+   // TEST initPiobj_testmm
    TEST(0 == mmobj.object);
    TEST(0 == mmobj.iimpl);
-   TEST(0 == initPiobj_testmm(&mmobj));
-   TEST(mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize));
-   TEST(mmobj.iimpl  == cast_mmit(&s_testmm_interface, testmm_t));
-   TEST(0 == freePiobj_testmm(&mmobj));
-   TEST(0 == mmobj.object);
-   TEST(0 == mmobj.iimpl);
+   TEST( 0 == initPiobj_testmm(&mmobj));
+   TEST( mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize));
+   TEST( mmobj.iimpl  == cast_mmit(&s_testmm_interface, testmm_t));
+
+   // TEST freePiobj_testmm
+   for (unsigned i=0; i<2; ++i) {
+      TEST( 0 == freePiobj_testmm(&mmobj));
+      TEST( 0 == mmobj.object);
+      TEST( 0 == mmobj.iimpl);
+   }
 
    return 0;
 ONERR:
@@ -1166,6 +1179,13 @@ static int test_allocate(void)
    TEST(0 == sizeallocated_testmm(&testmm));
    TEST(0 == testmm.mmpage->next);
    TEST(1 == ispagefree_testmmpage(testmm.mmpage));
+
+   // TEST malloc_testmm: ENOMEM
+   memset(&memblocks[0], 255, sizeof(memblocks[0]));
+   TEST( ENOMEM == malloc_testmm(&testmm, (size_t)-1, &memblocks[0]));
+   // check eout
+   TEST( memblocks[0].addr == 0);
+   TEST( memblocks[0].size == 0);
 
    // unprepare
    TEST(0 == free_testmm(&testmm));

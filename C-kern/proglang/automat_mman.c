@@ -260,7 +260,7 @@ size_t decruse_automatmman(automat_mman_t *mman)
 
 void incrwasted_automatmman(struct automat_mman_t *mman, size_t wasted)
 {
-   // should never overflow cause wasted is the amount of already allocated memory at max
+   // should never overflow cause wasted could not exceed the size of already allocated memory
    // ==> mman->wasted <= mman->allocated !
    mman->wasted += wasted;
 }

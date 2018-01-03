@@ -29,6 +29,10 @@ Function parameters are distinguished according to their direction of informatio
             carry out its operation only on the original out parameter it is allowed to operate on the out
             parameter directly. In case of an error the complex init function
             must ensure that the out parameter is reset to a FREE state (free can be called without error).
+/*eout*/  - The parameter is only written to. It carries the result value of a function call and is only valid
+            if the function returns success. In case of an error it is set to value *type_FREE* which
+            indicates that the value is in a not initialized (freed) state. Calling free_type on the value
+            is always safe even in case of an error.
 /*ret*/   - The parameter contains the result or return value in case of success.
             In case of error it is either left unchanged or reset or cleared.
             The parameter must be initialized by the caller of the function before the function is called.

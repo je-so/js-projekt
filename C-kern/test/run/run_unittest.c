@@ -212,7 +212,6 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_string_base64encode);
       RUN(unittest_string_strsearch);
       RUN(unittest_string_textpos);
-      RUN(unittest_string_urlencode);
       RUN(unittest_string_utf8);
 //}
 
@@ -253,7 +252,6 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_io_iochannel);
       RUN(unittest_io_iopoll);
       RUN(unittest_io_pipe);
-      RUN(unittest_io_url);
       // reader
       RUN(unittest_io_reader_csvfilereader);
       RUN(unittest_io_reader_filereader);
@@ -266,6 +264,8 @@ static int run_all_test(maincontext_t * maincontext)
       // writer
       RUN(unittest_io_writer_log_logbuffer);
       RUN(unittest_io_writer_log_logwriter);
+      // www
+      RUN(unittest_io_www_uri);
 //}
 
 //{ platform unittest

@@ -7,6 +7,13 @@
 
    See also <nondeterministic_finite_automaton at https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton>.
 
+   Struktur eines internen Zustands (state_t):
+
+   Atomare Automaten:
+
+   Kombinierte Automaten:
+   TODO: describe
+
    Copyright:
    This program is free software. See accompanying LICENSE file.
 

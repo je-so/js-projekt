@@ -83,7 +83,7 @@ size_t sizeallocated_mmimpl(mm_impl_t * mman);
  * It is allowed to set <memblock_t.size> to the same value as provided in argument size.
  *
  * */
-int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock);
+int malloc_mmimpl(mm_impl_t * mman, size_t size, /*eout*/struct memblock_t * memblock);
 
 /* function: mresize_mmimpl
  * Allocates new memory or resizes already allocated memory.

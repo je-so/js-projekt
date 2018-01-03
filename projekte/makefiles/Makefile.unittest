@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Dez.17  12:11:35
+GenerationDate  := 2018.Jan.03  11:48:46
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -131,7 +131,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!err!errornr.c.o \
  $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
- $(ObjectDir_Debug)/C-kern!io!url.c.o \
+ $(ObjectDir_Debug)/C-kern!io!www!uri.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
@@ -184,7 +184,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
- $(ObjectDir_Debug)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Debug)/C-kern!task!module.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
@@ -257,7 +256,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!err!errornr.c.o \
  $(ObjectDir_Release)/C-kern!err!errlog.c.o \
  $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
- $(ObjectDir_Release)/C-kern!io!url.c.o \
+ $(ObjectDir_Release)/C-kern!io!www!uri.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
@@ -310,7 +309,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
- $(ObjectDir_Release)/C-kern!string!urlencode.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
@@ -502,7 +500,7 @@ $(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
+$(ObjectDir_Debug)/C-kern!io!www!uri.c.o: C-kern/io/www/uri.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
@@ -659,9 +657,6 @@ $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!module.c.o: C-kern/task/module.c
@@ -874,7 +869,7 @@ $(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
 $(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
+$(ObjectDir_Release)/C-kern!io!www!uri.c.o: C-kern/io/www/uri.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
@@ -1031,9 +1026,6 @@ $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!string!urlencode.c.o: C-kern/string/urlencode.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
