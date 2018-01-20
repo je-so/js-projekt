@@ -1,18 +1,18 @@
 [1: 1457934050.301730s]
-init_iothread() C-kern/io/subsys/iothread.c:201
+init_iothread() C-kern/io/iosys/iothread.c:201
 Exit function with
 Error 1 - Operation not permitted
 [1: 1457934050.303651s]
-free_iothread() C-kern/io/subsys/iothread.c:222
+free_iothread() C-kern/io/iosys/iothread.c:222
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
 [1: 1457934050.309217s]
-init_iothread() C-kern/io/subsys/iothread.c:201
+init_iothread() C-kern/io/iosys/iothread.c:201
 Exit function with
 Error 1 - Operation not permitted
 [1: 1457934050.311107s]
-free_iothread() C-kern/io/subsys/iothread.c:222
+free_iothread() C-kern/io/iosys/iothread.c:222
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted

@@ -238,9 +238,9 @@ static int run_all_test(maincontext_t * maincontext)
 
 //{ io unittest
       // filesystem
-      RUN(unittest_io_subsys_iobuffer);
-      RUN(unittest_io_subsys_iolist);
-      RUN(unittest_io_subsys_iothread);
+      RUN(unittest_io_iosys_iobuffer);
+      RUN(unittest_io_iosys_iolist);
+      RUN(unittest_io_iosys_iothread);
       RUN(unittest_io_directory);
       RUN(unittest_io_file);
       RUN(unittest_io_filepath);

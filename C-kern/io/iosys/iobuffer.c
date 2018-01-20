@@ -8,15 +8,15 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iobuffer.h
+   file: C-kern/api/io/iosys/iobuffer.h
     Header file <IOBuffer>.
 
-   file: C-kern/io/subsys/iobuffer.c
+   file: C-kern/io/iosys/iobuffer.c
     Implementation file <IOBuffer impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/subsys/iobuffer.h"
+#include "C-kern/api/io/iosys/iobuffer.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -629,7 +629,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_io_subsys_iobuffer()
+int unittest_io_iosys_iobuffer()
 {
    directory_t* dir = 0;
    uint8_t      dirpath[256];

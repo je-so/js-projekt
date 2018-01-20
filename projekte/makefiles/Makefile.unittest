@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2018.Jan.03  11:48:46
+GenerationDate  := 2018.Jan.20  09:11:15
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -137,9 +137,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o \
- $(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o \
+ $(ObjectDir_Debug)/C-kern!io!iosys!iobuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!iosys!iothread.c.o \
+ $(ObjectDir_Debug)/C-kern!io!iosys!iolist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
@@ -262,9 +262,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o \
- $(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o \
+ $(ObjectDir_Release)/C-kern!io!iosys!iobuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!iosys!iothread.c.o \
+ $(ObjectDir_Release)/C-kern!io!iosys!iolist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
@@ -518,13 +518,13 @@ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.
 $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+$(ObjectDir_Debug)/C-kern!io!iosys!iobuffer.c.o: C-kern/io/iosys/iobuffer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+$(ObjectDir_Debug)/C-kern!io!iosys!iothread.c.o: C-kern/io/iosys/iothread.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
+$(ObjectDir_Debug)/C-kern!io!iosys!iolist.c.o: C-kern/io/iosys/iolist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
@@ -887,13 +887,13 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!subsys!iobuffer.c.o: C-kern/io/subsys/iobuffer.c
+$(ObjectDir_Release)/C-kern!io!iosys!iobuffer.c.o: C-kern/io/iosys/iobuffer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!subsys!iothread.c.o: C-kern/io/subsys/iothread.c
+$(ObjectDir_Release)/C-kern!io!iosys!iothread.c.o: C-kern/io/iosys/iothread.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!subsys!iolist.c.o: C-kern/io/subsys/iolist.c
+$(ObjectDir_Release)/C-kern!io!iosys!iolist.c.o: C-kern/io/iosys/iolist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c

@@ -8,15 +8,15 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iothread.h
+   file: C-kern/api/io/iosys/iothread.h
     Header file <IOThread>.
 
-   file: C-kern/io/subsys/iothread.c
+   file: C-kern/io/iosys/iothread.c
     Implementation file <IOThread impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/subsys/iothread.h"
+#include "C-kern/api/io/iosys/iothread.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/platform/task/thread.h"
@@ -1013,7 +1013,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_io_subsys_iothread()
+int unittest_io_iosys_iothread()
 {
    int err;
 

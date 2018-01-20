@@ -8,18 +8,18 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iolist.h
+   file: C-kern/api/io/iosys/iolist.h
     Header file <IOList>.
 
-   file: C-kern/io/subsys/iolist.c
+   file: C-kern/io/iosys/iolist.c
     Implementation file <IOList impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/subsys/iolist.h"
+#include "C-kern/api/io/iosys/iolist.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/atomic.h"
-#include "C-kern/api/io/subsys/iothread.h"
+#include "C-kern/api/io/iosys/iothread.h"
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -675,7 +675,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_io_subsys_iolist()
+int unittest_io_iosys_iolist()
 {
    if (test_enums())    goto ONERR; // iostate_e + ioop_e
    if (test_iotask())   goto ONERR; // iotask_t

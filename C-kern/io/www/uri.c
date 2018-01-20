@@ -1415,6 +1415,85 @@ static int test_initfree(void)
       }
    }
 
+   const char* tp_invalid_scheme[][3]   = { { "http_", "http_", "http_" }, { "http_:", "http_:", "http_:"}, { "h123:", "h123:", "h123:" } };
+   const char* tp_invalid_authority[][3]= { { "","","" }, { "//www", "/www", "/www" }, { "//www.server.de", "/www.server.de", "/www.server.de" } };
+   const char* tp_invalid_path[][3]     = { { "","","" }, { "/","/","/" }, { "/a/b/c/","/a/b/c/","/a/b/c/" }, { "a/b/c.html", "a/b/c.html", "a/b/c.html" } };
+   const char* tp_invalid_parameter[][3]= { { "","","" }, { "?","?","", }, { "?a=b","?a=b","ab" }, { "?a=b&c=d","?a=b&c=d","abcd" } };
+   const char* tp_invalid_fragment[][3] = { { "","","" }, { "#","#","" },  { "#123","#123","123" } };
+   const char*(* tp_invalid_parts[])[3] = { tp_invalid_scheme, tp_invalid_authority, tp_invalid_path, tp_invalid_parameter, tp_invalid_fragment };
+   unsigned tp_invalid_i[uri_part__NROF];
+   for (tp_invalid_i[0]=0; tp_invalid_i[0]<lengthof(tp_invalid_scheme); ++tp_invalid_i[0]) {
+      for (tp_invalid_i[1]=0; tp_invalid_i[1]<lengthof(tp_invalid_authority); ++tp_invalid_i[1]) {
+         for (tp_invalid_i[2]=0; tp_invalid_i[2]<lengthof(tp_invalid_path); ++tp_invalid_i[2]) {
+            for (tp_invalid_i[3]=0; tp_invalid_i[3]<lengthof(tp_invalid_parameter); ++tp_invalid_i[3]) {
+               for (tp_invalid_i[4]=0; tp_invalid_i[4]<lengthof(tp_invalid_fragment); ++tp_invalid_i[4]) {
+                  size_t S=0;
+                  for (unsigned i=0; i<uri_part__NROF; ++i) {
+                     size_t partlen= strlen(tp_invalid_parts[i][tp_invalid_i[i]][0]);
+                     memcpy(value+S,tp_invalid_parts[i][tp_invalid_i[i]][0], partlen);
+                     S+= partlen;
+                  }
+
+                  // TEST initparse_uriencoded: invalid uri_part_SCHEME used as path
+                  // TEST initparse_uridecoded: invalid uri_part_SCHEME used as path
+                  TEST( 0 == initparse_uriencoded(&uri, (uint16_t)S, value));
+                  TEST( 0 == initparse_uridecoded(&uri3, (uint16_t)S, value));
+                  // check uri
+                  for (unsigned i=0; i<uri_part_PATH; ++i) {
+                     uri_part_t up= getpart_uriencoded(&uri,i);
+                     TEST( 0 == up.size);
+                  }
+                  {
+                     size_t PL=0;
+                     for (unsigned i=0; i<=uri_part_PATH; ++i) {
+                        size_t partlen= strlen(tp_invalid_parts[i][tp_invalid_i[i]][1]);
+                        memcpy(value+PL,tp_invalid_parts[i][tp_invalid_i[i]][1], partlen);
+                        PL+= partlen;
+                     }
+                     uri_part_t up= getpart_uriencoded(&uri,uri_part_PATH);
+                     TEST( PL == up.size);
+                     TEST( 0  == memcmp(value, up.addr, PL));
+                  }
+                  for (unsigned i=uri_part_PATH+1; i<uri_part__NROF; ++i) {
+                     uri_part_t up= getpart_uriencoded(&uri,i);
+                     size_t     PL= strlen(tp_invalid_parts[i][tp_invalid_i[i]][1]);
+                     TEST( PL == up.size);
+                     TEST( 0  == memcmp(tp_invalid_parts[i][tp_invalid_i[i]][1], up.addr, PL));
+                  }
+
+                  // check uri3
+                  for (unsigned i=0; i<uri_part_PATH; ++i) {
+                     uri_part_t up= getpart_uridecoded(&uri3,i);
+                     TEST( 0 == up.size);
+                  }
+                  {
+                     size_t PL=0;
+                     for (unsigned i=0; i<=uri_part_PATH; ++i) {
+                        size_t partlen= strlen(tp_invalid_parts[i][tp_invalid_i[i]][2]);
+                        memcpy(value+PL,tp_invalid_parts[i][tp_invalid_i[i]][2], partlen);
+                        PL+= partlen;
+                     }
+                     uri_part_t up= getpart_uridecoded(&uri3,uri_part_PATH);
+                     TEST( PL == up.size);
+                     TEST( 0  == memcmp(value, up.addr, PL));
+                  }
+                  for (unsigned i=uri_part_PATH+1; i<uri_part__NROF; ++i) {
+                     uri_part_t up= getpart_uridecoded(&uri3,i);
+                     size_t     PL= strlen(tp_invalid_parts[i][tp_invalid_i[i]][2]);
+                     TEST( PL == up.size);
+                     TEST( 0  == memcmp(tp_invalid_parts[i][tp_invalid_i[i]][2], up.addr, PL));
+                  }
+
+                  // reset
+                  TEST(0 == do_free(lengthof(freeuri), freeuri));
+               }
+            }
+         }
+      }
+   }
+
+
+
    // == SINGLE PART ===
 
    for (uri_part_e part=0; part<uri_part__NROF; ++part) {

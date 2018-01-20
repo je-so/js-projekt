@@ -215,10 +215,10 @@
         <File Name="../../C-kern/api/io/terminal/pseudoterm.h"/>
         <File Name="../../C-kern/api/io/terminal/serial.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="subsys">
-        <File Name="../../C-kern/api/io/subsys/iobuffer.h"/>
-        <File Name="../../C-kern/api/io/subsys/iothread.h"/>
-        <File Name="../../C-kern/api/io/subsys/iolist.h"/>
+      <VirtualDirectory Name="iosys">
+        <File Name="../../C-kern/api/io/iosys/iothread.h"/>
+        <File Name="../../C-kern/api/io/iosys/iolist.h"/>
+        <File Name="../../C-kern/api/io/iosys/iobuffer.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/iochannel.h"/>
@@ -291,10 +291,10 @@
     <VirtualDirectory Name="terminal">
       <File Name="../../C-kern/io/terminal/termadapt.c"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="subsys">
-      <File Name="../../C-kern/io/subsys/iobuffer.c"/>
-      <File Name="../../C-kern/io/subsys/iothread.c"/>
-      <File Name="../../C-kern/io/subsys/iolist.c"/>
+    <VirtualDirectory Name="iosys">
+      <File Name="../../C-kern/io/iosys/iothread.c"/>
+      <File Name="../../C-kern/io/iosys/iolist.c"/>
+      <File Name="../../C-kern/io/iosys/iobuffer.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">

@@ -12,16 +12,16 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iothread.h
+   file: C-kern/api/io/iosys/iothread.h
     Header file <IOThread>.
 
-   file: C-kern/io/subsys/iothread.c
+   file: C-kern/io/iosys/iothread.c
     Implementation file <IOThread impl>.
 */
-#ifndef CKERN_IO_SUBSYS_IOTHREAD_HEADER
-#define CKERN_IO_SUBSYS_IOTHREAD_HEADER
+#ifndef CKERN_IO_IOSYS_IOTHREAD_HEADER
+#define CKERN_IO_IOSYS_IOTHREAD_HEADER
 
-#include "C-kern/api/io/subsys/iolist.h"
+#include "C-kern/api/io/iosys/iolist.h"
 
 // forward
 struct thread_t;
@@ -36,9 +36,9 @@ typedef struct iothread_t iothread_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_subsys_iothread
+/* function: unittest_io_iosys_iothread
  * Test <iothread_t> functionality. */
-int unittest_io_subsys_iothread(void);
+int unittest_io_iosys_iothread(void);
 #endif
 
 

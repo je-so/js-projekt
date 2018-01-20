@@ -11,14 +11,14 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iolist.h
+   file: C-kern/api/io/iosys/iolist.h
     Header file <IOList>.
 
-   file: C-kern/io/subsys/iolist.c
+   file: C-kern/io/iosys/iolist.c
     Implementation file <IOList impl>.
 */
-#ifndef CKERN_IO_SUBSYS_IOLIST_HEADER
-#define CKERN_IO_SUBSYS_IOLIST_HEADER
+#ifndef CKERN_IO_IOSYS_IOLIST_HEADER
+#define CKERN_IO_IOSYS_IOLIST_HEADER
 
 // forward
 struct thread_t;
@@ -77,9 +77,9 @@ typedef enum iostate_e {
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_subsys_iolist
+/* function: unittest_io_iosys_iolist
  * Test <iolist_t> functionality. */
-int unittest_io_subsys_iolist(void);
+int unittest_io_iosys_iolist(void);
 #endif
 
 

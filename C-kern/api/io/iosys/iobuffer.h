@@ -11,16 +11,16 @@
    Author:
    (C) 2015 Jörg Seebohn
 
-   file: C-kern/api/io/subsys/iobuffer.h
+   file: C-kern/api/io/iosys/iobuffer.h
     Header file <IOBuffer>.
 
-   file: C-kern/io/subsys/iobuffer.c
+   file: C-kern/io/iosys/iobuffer.c
     Implementation file <IOBuffer impl>.
 */
-#ifndef CKERN_IO_SUBSYS_IOBUFFER_HEADER
-#define CKERN_IO_SUBSYS_IOBUFFER_HEADER
+#ifndef CKERN_IO_IOSYS_IOBUFFER_HEADER
+#define CKERN_IO_IOSYS_IOBUFFER_HEADER
 
-#include "C-kern/api/io/subsys/iothread.h"
+#include "C-kern/api/io/iosys/iothread.h"
 #include "C-kern/api/task/itc/itccounter.h"
 
 // forward
@@ -42,9 +42,9 @@ typedef struct iobuffer_stream_t iobuffer_stream_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_subsys_iobuffer
+/* function: unittest_io_iosys_iobuffer
  * Test <iobuffer_t> functionality. */
-int unittest_io_subsys_iobuffer(void);
+int unittest_io_iosys_iobuffer(void);
 #endif
 
 

@@ -63,7 +63,7 @@ struct itccounter_t {
     * Der vom System bereitgestellte I/O Mechanismus, der zum Warten dient. */
    sys_iochannel_t sysio;
    /* variable: count
-    * Die Anzahl gezählter Ereignisse, die seit dem letzten Lesen gezählt wurden. */
+    * Die Anzahl an Ereignissen, die seit dem letzten Lesen gezählt wurden. */
    uint32_t        count;
 };
 
