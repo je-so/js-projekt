@@ -90,10 +90,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!eventcount.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
@@ -215,10 +215,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!eventcount.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
@@ -377,9 +377,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
 	@$(CC_Debug)
 
@@ -387,6 +384,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Lin
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!eventcount.c.o: C-kern/platform/Linux/sync/eventcount.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c
@@ -746,9 +746,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!sync!itccounter.c.o: C-kern/platform/Linux/sync/itccounter.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
 	@$(CC_Release)
 
@@ -756,6 +753,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/L
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!eventcount.c.o: C-kern/platform/Linux/sync/eventcount.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o: C-kern/platform/Linux/sync/thrmutex.c

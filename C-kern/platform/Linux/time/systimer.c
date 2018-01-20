@@ -485,7 +485,7 @@ RESTART_TEST:
    }
 
    // TEST 3 one shot timers running at different speed
-   sleepms_thread(1) ;
+   sleepms_thread(5) ;
    TEST(0 == time_sysclock(clock_type, &starttime)) ;
    TEST(0 == start_systimer(systimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == start_systimer(systimer[1], &(timevalue_t){ .nanosec = 5000000 })) ;
@@ -501,7 +501,7 @@ RESTART_TEST:
    TEST(1 == expcount) ;
    TEST(0 == remainingtime_systimer(systimer[1], &timeval)) ;
    TEST(0 == timeval.seconds) ;
-   TEST(3900000 < timeval.nanosec) ;
+   TEST(3500000 < timeval.nanosec) ;
    TEST(4000000 > timeval.nanosec) ;
    TEST(0 == remainingtime_systimer(systimer[2], &timeval)) ;
    TEST(0 == timeval.seconds) ;
@@ -532,7 +532,7 @@ RESTART_TEST:
    TESTP(9500000 > elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
 
    // TEST 3 interval timers running at different speed
-   sleepms_thread(1) ;
+   sleepms_thread(5) ;
    TEST(0 == time_sysclock(clock_type, &starttime)) ;
    TEST(0 == startinterval_systimer(systimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == startinterval_systimer(systimer[1], &(timevalue_t){ .nanosec = 2000000 })) ;
@@ -556,7 +556,7 @@ RESTART_TEST:
    elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
                    + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
    TESTP(10000000 < elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
-   TESTP(10300000 > elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
+   TESTP(10500000 > elapsed_nanosec, "ns:%" PRIu64, elapsed_nanosec);
 
    // unprepare
    for (unsigned i = 0; i < lengthof(systimer); ++i) {

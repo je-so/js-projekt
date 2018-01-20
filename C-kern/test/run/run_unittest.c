@@ -219,7 +219,6 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_task_syncwait);
       RUN(unittest_task_syncfunc);
       RUN(unittest_task_syncrunner);
-      RUN(unittest_task_itc_itccounter);
 //}
 
 //{ test unittest
@@ -270,6 +269,7 @@ static int run_all_test(maincontext_t * maincontext)
 
 //{ platform unittest
       // sync unittest
+      RUN(unittest_platform_sync_eventcount);
       RUN(unittest_platform_sync_mutex);
       RUN(unittest_platform_sync_rwlock);
       RUN(unittest_platform_sync_semaphore);

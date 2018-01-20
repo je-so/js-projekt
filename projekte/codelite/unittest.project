@@ -61,6 +61,7 @@
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
         <File Name="../../C-kern/api/platform/sync/rwlock.h"/>
         <File Name="../../C-kern/api/platform/sync/thrmutex.h"/>
+        <File Name="../../C-kern/api/platform/sync/eventcount.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="X11">
         <File Name="../../C-kern/api/platform/X11/x11.h"/>
@@ -434,6 +435,7 @@
         <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
         <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
         <File Name="../../C-kern/platform/Linux/sync/itccounter.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/eventcount.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/init.c"/>
       <File Name="../../C-kern/platform/Linux/syslogin.c"/>

@@ -2,6 +2,7 @@
 /html
 /TODO/private
 /TODO/test
+.vscode/
 projekte/naturaldocs/Data/
 projekte/codelite/.codelite/jsprojekt.tags
 projekte/codelite/.codelite/refactoring.db

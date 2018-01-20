@@ -755,8 +755,14 @@ static int test_generic(void)
    // TEST cast_slist
    struct {
       slist_node_t * last ;
+      uint8_t dummy;
    }  xlist ;
-   TEST((slist_t*)&xlist == cast_slist(&xlist)) ;
+   struct {
+      uint8_t dummy;
+      slist_node_t * last ;
+   }  xlist2 ;
+   TEST((slist_t*)&xlist == cast_slist(&xlist));
+   TEST((slist_t*)&xlist2.last == cast_slist(&xlist2));
 
    // TEST empty list
    TEST(0 == first_slist1(&slist1)) ;

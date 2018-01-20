@@ -368,10 +368,10 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr);
             typeof(list) _l;                   \
             _l = (list);                       \
             static_assert(                     \
-               &(_l->last)                     \
-               == &((slist_t*) _l)->last,      \
+               &(_l->last) ==                  \
+               &(((slist_t*)&_l->last)->last), \
                "ensure compatible structure"); \
-            (slist_t*) _l;                     \
+            (slist_t*) &_l->last;              \
          }))
 
 /* define: isinlist_slist

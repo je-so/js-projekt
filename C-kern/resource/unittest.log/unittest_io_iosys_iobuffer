@@ -1,80 +1,76 @@
-[1: 1450414043.478218s]
+[1: 1516384100.742137s]
 init_file() C-kern/platform/Linux/io/file.c:110
 System call 'openat' failed with error 2
 File name '/tmp/iobuffer.XXXXXX/__UNKNOWN__'
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414043.478338s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742207s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414043.478358s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742211s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450414043.478367s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742219s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414043.478380s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742221s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 3 - No such process
-[1: 1450414043.478393s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742226s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450414043.478415s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742232s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 5 - Input/output error
-[1: 1450414043.478438s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
+[1: 1516384100.742237s]
+init_iobufferstream() C-kern/io/iosys/iobuffer.c:184
 Exit function with
 Error 6 - No such device or address
-[1: 1450414043.478465s]
-init_iobufferstream() C-kern/io/iosys/iobuffer.c:190
-Exit function with
-Error 7 - Argument list too long
-[1: 1450414043.479418s]
+[1: 1516384100.742548s]
 free_file() C-kern/platform/Linux/io/file.c:259
 System call 'close' failed with error 9
-close_fd=5
+close_fd=4
 One or more resources could not be freed
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1450414043.479429s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.742550s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1450414043.480379s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.742684s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1450414043.481327s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.742828s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1450414043.482292s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.742957s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[1: 1450414043.483247s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.743087s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 4 - Interrupted system call
-[1: 1450414043.484190s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.743213s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 5 - Input/output error
-[1: 1450414043.485145s]
-free_iobufferstream() C-kern/io/iosys/iobuffer.c:221
+[1: 1516384100.743338s]
+free_iobufferstream() C-kern/io/iosys/iobuffer.c:215
 One or more resources could not be freed
 Exit function with
 Error 6 - No such device or address

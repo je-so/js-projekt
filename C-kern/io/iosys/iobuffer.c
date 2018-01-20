@@ -135,13 +135,8 @@ int init_iobufferstream(/*out*/iobuffer_stream_t* iostream, const char* path, st
    file_t   file = file_FREE;
    unsigned ib   = 0;
    iobuffer_t buffer[lengthof(iostream->buffer)];
-   itccounter_t ready;
+   eventcount_t ready = eventcount_INIT;
    off_t    filesize;
-
-   if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
-      err = init_itccounter(&ready);
-   }
-   if (err) goto ONERR_NOFREE;
 
    if (! PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err)) {
       err = init_file(&file, path, accessmode_READ, relative_to);
@@ -184,8 +179,7 @@ ONERR:
    while (ib > 0) {
       free_iobuffer(&buffer[--ib]);
    }
-   free_itccounter(&ready);
-ONERR_NOFREE:
+   free_eventcount(&ready);
    if (err != ENODATA) {
       TRACEEXIT_ERRLOG(err);
    }
@@ -200,7 +194,7 @@ int free_iobufferstream(iobuffer_stream_t* iostream)
    err = free_iothread(&iostream->iothread);
    (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err);
 
-   err2 = free_itccounter(&iostream->ready);
+   err2 = free_eventcount(&iostream->ready);
    (void) PROCESS_testerrortimer(&s_iobufferstream_errtimer, &err2);
    if (err2) err = err2;
 
@@ -231,9 +225,7 @@ int readnext_iobufferstream(iobuffer_stream_t* iostream, /*out*/struct memblock_
    }
 
    while (iostate_QUEUED == iostream->iotask[iostream->nextbuffer].state) {
-      err = wait_itccounter(&iostream->ready, -1);
-      if (err) goto ONERR;
-      (void) reset_itccounter(&iostream->ready);
+      wait_eventcount(&iostream->ready);
    }
 
    if (iostate_OK != iostream->iotask[iostream->nextbuffer].state) {
@@ -365,7 +357,7 @@ static int test_initfree_stream(directory_t* tmpdir)
 
    // TEST iobuffer_stream_FREE
    TEST(0 == iostream.iothread.thread);
-   TEST( isfree_itccounter(&iostream.ready));
+   TEST( isfree_eventcount(&iostream.ready));
    for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
       TEST(0 == iostream.buffer[i].addr);
       TEST(0 == iostream.buffer[i].size);
@@ -388,7 +380,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       TEST(0 == init_iobufferstream(&iostream, "stream", tmpdir));
       // check iostream fields which are not arrays
       TEST(0 != iostream.iothread.thread);
-      TEST(! isfree_itccounter(&iostream.ready));
+      TEST(  isfree_eventcount(&iostream.ready)); // INIT same as FREE
       TEST(! isfree_iochannel(iostream.ioc));
       TEST(iostream.nextbuffer == 0);
       TEST(iostream.filesize   == (off_t) filesize);
@@ -404,8 +396,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       // check iostream.iotask[]
       for (unsigned i = 0; i < lengthof(iostream.iotask); ++i) {
          while (iostream.iotask[i].state == iostate_QUEUED) {
-            TEST(0 == wait_itccounter(&iostream.ready, -1));
-            reset_itccounter(&iostream.ready);
+            wait_eventcount(&iostream.ready);
          }
          TEST(iostream.iotask[i].iolist_next == 0);
          TEST(iostream.iotask[i].op      == ioop_READ);
@@ -430,7 +421,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       // TEST free_iobufferstream
       TEST(0 == free_iobufferstream(&iostream));
       TEST(0 == iostream.iothread.thread);
-      TEST( isfree_itccounter(&iostream.ready));
+      TEST( isfree_eventcount(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
          TEST(0 == iostream.buffer[i].addr);
          TEST(0 == iostream.buffer[i].size);
@@ -445,7 +436,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       TEST(0 == init_iobufferstream(&iostream, "stream", tmpdir));
       TEST(0 == free_iobufferstream(&iostream));
       TEST(0 == iostream.iothread.thread);
-      TEST( isfree_itccounter(&iostream.ready));
+      TEST( isfree_eventcount(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
          TEST(0 == iostream.buffer[i].addr);
          TEST(0 == iostream.buffer[i].size);
@@ -460,7 +451,7 @@ static int test_initfree_stream(directory_t* tmpdir)
    // TEST free_iobufferstream: already freed
    TEST(0 == free_iobufferstream(&iostream));
    TEST(0 == iostream.iothread.thread);
-   TEST( isfree_itccounter(&iostream.ready));
+   TEST( isfree_eventcount(&iostream.ready));
    for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
       TEST(0 == iostream.buffer[i].addr);
       TEST(0 == iostream.buffer[i].size);
@@ -470,7 +461,7 @@ static int test_initfree_stream(directory_t* tmpdir)
    // TEST init_iobufferstream: ENOENT
    TEST(ENOENT == init_iobufferstream(&iostream, "__UNKNOWN__", tmpdir));
    TEST(0 == iostream.iothread.thread);
-   TEST( isfree_itccounter(&iostream.ready));
+   TEST( isfree_eventcount(&iostream.ready));
    for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
       TEST(0 == iostream.buffer[i].addr);
       TEST(0 == iostream.buffer[i].size);
@@ -480,7 +471,7 @@ static int test_initfree_stream(directory_t* tmpdir)
    // TEST init_iobufferstream: ENODATA
    TEST(ENODATA == init_iobufferstream(&iostream, "empty", tmpdir));
    TEST(0 == iostream.iothread.thread);
-   TEST( isfree_itccounter(&iostream.ready));
+   TEST( isfree_eventcount(&iostream.ready));
    for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
       TEST(0 == iostream.buffer[i].addr);
       TEST(0 == iostream.buffer[i].size);
@@ -488,12 +479,12 @@ static int test_initfree_stream(directory_t* tmpdir)
    TEST(isfree_iochannel(iostream.ioc));
 
    // TEST init_iobufferstream: simulated ERROR
-   for (unsigned e = 1; e <= 7; ++e) {
+   for (unsigned e = 1; e <= 6; ++e) {
       const int E = (int) e;
       init_testerrortimer(&s_iobufferstream_errtimer, e, E);
       TEST(E == init_iobufferstream(&iostream, "stream", tmpdir));
       TEST(0 == iostream.iothread.thread);
-      TEST( isfree_itccounter(&iostream.ready));
+      TEST( isfree_eventcount(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
          TEST(0 == iostream.buffer[i].addr);
          TEST(0 == iostream.buffer[i].size);
@@ -514,7 +505,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       init_testerrortimer(&s_iobufferstream_errtimer, e, E);
       TEST(E == free_iobufferstream(&iostream));
       TEST(0 == iostream.iothread.thread);
-      TEST( isfree_itccounter(&iostream.ready));
+      TEST( isfree_eventcount(&iostream.ready));
       for (unsigned i = 0; i < lengthof(iostream.buffer); ++i) {
          TEST(0 == iostream.buffer[i].addr);
          TEST(0 == iostream.buffer[i].size);

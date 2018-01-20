@@ -19,8 +19,8 @@
 #include "C-kern/api/io/iosys/iothread.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/atomic.h"
+#include "C-kern/api/platform/sync/eventcount.h"
 #include "C-kern/api/platform/task/thread.h"
-#include "C-kern/api/task/itc/itccounter.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -161,7 +161,7 @@ static int ioop_worker_thread(iothread_t* iothr)
       }
 
       write_atomicint(&iot->state, state); // assume release or write memory barrier
-      if (iot->readycount) increment_itccounter(iot->readycount);
+      if (iot->readycount) count_eventcount(iot->readycount);
    }
 
    return 0;
@@ -241,7 +241,7 @@ void requeststop_iothread(iothread_t* iothr)
 static int compare_iotask( volatile iotask_t* iotask,
    int err, size_t bytesrw, iostate_e state,
    ioop_e op, iochannel_t ioc, off_t off,
-   void* bufaddr, size_t bufsize, itccounter_t* counter)
+   void* bufaddr, size_t bufsize, eventcount_t* counter)
 {
    TEST(iotask->iolist_next == 0);
    if (err) {
@@ -397,12 +397,12 @@ static int test_noop(void)
    iothread_t  iothr = iothread_FREE;
    iotask_t    iotask_buffer[255];
    iotask_t*   iotask[lengthof(iotask_buffer)];
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_FREE;
    uint8_t     buffer[1];
 
    // prepare0
    TEST(0 == init_iothread(&iothr));
-   TEST(0 == init_itccounter(&counter));
+   init_eventcount(&counter);
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       iotask[i] = &iotask_buffer[i];
@@ -419,13 +419,9 @@ static int test_noop(void)
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
       // check
-      for (size_t i = 0, count = 0; i < nrio; ++i, --count) {
+      for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         if (count == 0) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            count = reset_itccounter(&counter);
-            TEST(0 < count);
-         }
+         wait_eventcount(&counter);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, 0, iostate_OK, ioop_NOOP, file_STDERR, -1, buffer, 1, &counter));
       }
@@ -433,13 +429,13 @@ static int test_noop(void)
 
    // reset0
    TEST(0 == free_iothread(&iothr));
-   TEST(0 == free_itccounter(&counter));
+   TEST(0 == free_eventcount(&counter));
 
 
    return 0;
 ONERR:
    free_iothread(&iothr);
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    return EINVAL;
 }
 
@@ -450,11 +446,10 @@ static int test_read(directory_t* tmpdir)
    memblock_t  mblock[10] = { memblock_FREE };
    iotask_t    iotask_buffer[lengthof(mblock)];
    iotask_t*   iotask[lengthof(mblock)];
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_INIT;
 
    // prepare0
    TEST(0 == init_iothread(&iothr));
-   TEST(0 == init_itccounter(&counter));
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       iotask[i] = &iotask_buffer[i];
@@ -488,8 +483,7 @@ static int test_read(directory_t* tmpdir)
       for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            reset_itccounter(&counter);
+            wait_eventcount(&counter);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_READ, io_file(file),
@@ -506,7 +500,7 @@ static int test_read(directory_t* tmpdir)
       TEST(0 == lseek(io_file(file), 0, SEEK_CUR));
       // reset
       TEST(0 == free_iochannel(&file));
-      reset_itccounter(&counter);
+      counter.nrevents = 0;
    }
 
    // TEST insertiotask_iothread: readp (backward)
@@ -523,8 +517,7 @@ static int test_read(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            reset_itccounter(&counter);
+            wait_eventcount(&counter);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_READ, io_file(file),
@@ -541,7 +534,7 @@ static int test_read(directory_t* tmpdir)
       TEST(0 == lseek(io_file(file), 0, SEEK_CUR));
       // reset
       TEST(0 == free_iochannel(&file));
-      reset_itccounter(&counter);
+      counter.nrevents = 0;
    }
 
    // TEST insertiotask_iothread: read
@@ -577,7 +570,7 @@ static int test_read(directory_t* tmpdir)
 
    // reset0
    TEST(0 == free_iothread(&iothr));
-   TEST(0 == free_itccounter(&counter));
+   TEST(0 == free_eventcount(&counter));
    TEST(0 == free_iochannel(&file));
    TEST(0 == removefile_directory(tmpdir, "testread"));
    for (unsigned i = 0; i < lengthof(mblock); ++i) {
@@ -587,7 +580,7 @@ static int test_read(directory_t* tmpdir)
    return 0;
 ONERR:
    free_iothread(&iothr);
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    free_iochannel(&file);
    for (unsigned i = 0; i < lengthof(mblock); ++i) {
       RELEASE_PAGECACHE(&mblock[i]);
@@ -604,11 +597,10 @@ static int test_write(directory_t* tmpdir)
    memblock_t  readbuf = memblock_FREE;
    iotask_t    iotask_buffer[lengthof(mblock)];
    iotask_t*   iotask[lengthof(mblock)];
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_INIT;
 
    // prepare0
    TEST(0 == init_iothread(&iothr));
-   TEST(0 == init_itccounter(&counter));
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       iotask[i] = &iotask_buffer[i];
@@ -638,8 +630,7 @@ static int test_write(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            reset_itccounter(&counter);
+            wait_eventcount(&counter);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_WRITE, io_file(file),
@@ -657,7 +648,7 @@ static int test_write(directory_t* tmpdir)
       // reset
       TEST(0 == free_iochannel(&file));
       TEST(0 == removefile_directory(tmpdir, "testwrite"));
-      reset_itccounter(&counter);
+      counter.nrevents = 0;
    }
 
    // TEST insertiotask_iothread: writep (backward)
@@ -674,8 +665,7 @@ static int test_write(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            reset_itccounter(&counter);
+            wait_eventcount(&counter);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_WRITE, io_file(file),
@@ -693,7 +683,7 @@ static int test_write(directory_t* tmpdir)
       // reset
       TEST(0 == free_iochannel(&file));
       TEST(0 == removefile_directory(tmpdir, "testwrite"));
-      reset_itccounter(&counter);
+      counter.nrevents = 0;
    }
 
    // TEST insertiotask_iothread: write
@@ -731,7 +721,7 @@ static int test_write(directory_t* tmpdir)
 
    // reset0
    TEST(0 == free_iothread(&iothr));
-   TEST(0 == free_itccounter(&counter));
+   TEST(0 == free_eventcount(&counter));
    for (unsigned i = 0; i < lengthof(mblock); ++i) {
       TEST(0 == RELEASE_PAGECACHE(&mblock[i]));
    }
@@ -740,7 +730,7 @@ static int test_write(directory_t* tmpdir)
    return 0;
 ONERR:
    free_iothread(&iothr);
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    free_iochannel(&file);
    for (unsigned i = 0; i < lengthof(mblock); ++i) {
       RELEASE_PAGECACHE(&mblock[i]);
@@ -756,11 +746,10 @@ static int test_rwerror(void)
    uint8_t     buffer[10];
    iotask_t    iotask_buffer[18];
    iotask_t*   iotask[lengthof(iotask_buffer)];
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_INIT;
 
    // prepare
    TEST(0 == init_iothread(&iothr));
-   TEST(0 == init_itccounter(&counter));
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       iotask[i] = &iotask_buffer[i];
@@ -778,13 +767,9 @@ static int test_rwerror(void)
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
       // check
-      for (size_t i = 0, count = 0; i < nrio; ++i, --count) {
+      for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         if (count == 0) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            count = reset_itccounter(&counter);
-            TEST(0 < count);
-         }
+         wait_eventcount(&counter);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], EBADF, 0, iostate_ERROR, (i%2) ? ioop_READ : ioop_WRITE, -1,
                      -1, buffer, sizeof(buffer), &counter));
@@ -810,13 +795,9 @@ static int test_rwerror(void)
       // test
       insertiotask_iothread(&iothr, (uint8_t) nrio, &iotask[0]);
       // check
-      for (size_t i = 0, count = 0; i < nrio; ++i, --count) {
+      for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         if (count == 0) {
-            TEST(0 == wait_itccounter(&counter, -1));
-            count = reset_itccounter(&counter);
-            TEST(0 < count);
-         }
+         wait_eventcount(&counter);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], EINVAL, 0, iostate_ERROR, (i%3) == 2 ? ioop__NROF : (i%3) == 1 ? ioop_READ : ioop_WRITE, file_STDOUT,
                      -1, (i%3) == 0 ? 0 : buffer, (i%3) == 1 ? 0 : sizeof(buffer), &counter));
@@ -834,8 +815,7 @@ static int test_rwerror(void)
    init_testerrortimer(&s_iothread_errtimer, 1, 1);
    // test
    insertiotask_iothread(&iothr, lengthof(iotask), &iotask[0]);
-   TEST(0 == wait_itccounter(&counter, -1));
-   TEST(1 == reset_itccounter(&counter));
+   wait_eventcount(&counter);
    // check iolist
    TEST(iothr.iolist.last != 0);
    TEST(iothr.iolist.size == lengthof(iotask)-1);
@@ -858,12 +838,12 @@ static int test_rwerror(void)
 
    // reset
    TEST(0 == free_iothread(&iothr));
-   TEST(0 == free_itccounter(&counter));
+   TEST(0 == free_eventcount(&counter));
 
    return 0;
 ONERR:
    free_iothread(&iothr);
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    return EINVAL;
 }
 
@@ -875,11 +855,10 @@ static int test_rwpartial(directory_t* tmpdir)
    memblock_t  readbuf  = memblock_FREE;
    iotask_t    iotask_buffer;
    iotask_t*   iotask = &iotask_buffer;
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_INIT;
 
    // prepare0
    TEST(0 == init_iothread(&iothr));
-   TEST(0 == init_itccounter(&counter));
    // alloc buffer
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &readbuf));
    TEST(0 == ALLOC_PAGECACHE(pagesize_1MB, &writebuf));
@@ -902,8 +881,7 @@ static int test_rwpartial(directory_t* tmpdir)
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for writer ready
-      TEST(0 == wait_itccounter(&counter, -1));
-      TEST(1 == reset_itccounter(&counter));
+      wait_eventcount(&counter);
       // check iotask
       TEST(iotask->iolist_next == 0);
       TEST(iotask->bytesrw    == writebuf.size);
@@ -932,8 +910,7 @@ static int test_rwpartial(directory_t* tmpdir)
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for reader ready
-      TEST(0 == wait_itccounter(&counter, -1));
-      TEST(1 == reset_itccounter(&counter));
+      wait_eventcount(&counter);
       // check iotask.ioop[0]
       TEST(iotask->iolist_next == 0);
       TEST(iotask->bytesrw    == writebuf.size);
@@ -957,9 +934,9 @@ static int test_rwpartial(directory_t* tmpdir)
       free_testerrortimer(&s_iothread_errtimer);
    }
 
-   // reset0
+   // reset
    TEST(0 == free_iothread(&iothr));
-   TEST(0 == free_itccounter(&counter));
+   TEST(0 == free_eventcount(&counter));
    TEST(0 == free_iochannel(&file));
    TEST(0 == RELEASE_PAGECACHE(&writebuf));
    TEST(0 == RELEASE_PAGECACHE(&readbuf));
@@ -967,7 +944,7 @@ static int test_rwpartial(directory_t* tmpdir)
    return 0;
 ONERR:
    free_iothread(&iothr);
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    free_iochannel(&file);
    RELEASE_PAGECACHE(&writebuf);
    RELEASE_PAGECACHE(&readbuf);

@@ -125,14 +125,15 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), vo
       return EAGAIN;
    }
 
-   thread_t* thread = removefirst_wlist(cast_slist(wlist));
+   thread_t* thread = first_wlist(cast_slist(wlist));
    lockflag_thread(thread);
+   removefirst_wlist(cast_slist(wlist));
    -- wlist->nr_waiting;
    unlockflag_waitlist(wlist);
 
    settask_thread(thread, main_task, main_arg);
-   resume_thread(thread);
    unlockflag_thread(thread);
+   resume_thread(thread);
 
    return 0;
 }

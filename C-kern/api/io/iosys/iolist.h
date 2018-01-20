@@ -23,7 +23,7 @@
 // forward
 struct thread_t;
 struct iothread_t;
-struct itccounter_t;
+struct eventcount_t;
 
 // === exported typees
 struct iolist_t;
@@ -90,10 +90,9 @@ int unittest_io_iosys_iolist(void);
  * Siehe <iolist_t>.
  *
  * Init-Operationen:
- * Das Nutzungsrecht an <itccounter_t> – übergebn durch Parameter readycount - geht temporär an iotask über.
- * Erst wenn dieser iotask nicht mehr benötigt wird, z.B. weil er vollständig
- * bearbeitet wurde, darf readycount freigegeben werden.
- * Ein Counter darf auch zwischen mehreren <iotask_t> geteilt werden,
+ * Das Nutzungsrecht an <eventcount_t> – übergeben durch Parameter readycount - geht temporär an iotask über.
+ * Erst wenn dieser readycount nicht mehr benötigt, z.B. weil alle IOs vollständig abgearbeitet wurden, darf
+ * readycount freigegeben werden. Ein Counter darf auch zwischen mehreren <iotask_t> geteilt werden,
  * da er das Schreiben durch mehr als einen <iothread_t> unterstützt. */
 typedef struct iotask_t {
    // group: set by iothread; read by owner
@@ -141,7 +140,7 @@ typedef struct iotask_t {
    /* variable: readycount
     * Pro fertig bearbeitetem <iotask_t> wird der counter um eins inkrementiert.
     * Der Wert kann 0 sein. */
-   struct itccounter_t* readycount;
+   struct eventcount_t* readycount;
 } iotask_t;
 
 // group: lifetime
@@ -155,24 +154,24 @@ typedef struct iotask_t {
  * Initialisiert ioop zum positionierten Lesen. Die aktuelle Fileposition wird dabei nicht verändert.
  * Das Nutzungsrecht an readycount geht temporär an iotask über.
  * */
-static inline void initreadp_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, off_t off/*>= 0*/, /*own*/struct itccounter_t* readycount/*could be 0*/);
+static inline void initreadp_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, off_t off/*>= 0*/, /*own*/struct eventcount_t* readycount/*could be 0*/);
 
 /* function: initread_iotask
  * Initialisiert ioop zum Lesen ab der aktuellen Fileposition. Lese und Schreiboperationen
  * teilen sich dieselbe Fileposition.
  * Das Nutzungsrecht an readycount geht temporär an iotask über. */
-static inline void initread_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, /*own*/struct itccounter_t* readycount/*could be 0*/);
+static inline void initread_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, /*own*/struct eventcount_t* readycount/*could be 0*/);
 
 /* function: initwritep_iotask
  * Initialisiert ioop zum positionierten Schreiben. Die aktuelle Fileposition wird dabei nicht verändert.
  * Das Nutzungsrecht an readycount geht temporär an iotask über. */
-static inline void initwritep_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct itccounter_t* readycount/*could be 0*/);
+static inline void initwritep_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct eventcount_t* readycount/*could be 0*/);
 
 /* function: initwrite_iotask
  * Initialisiert ioop zum Schreiben ab der aktuellen Fileposition. Lese und Schreiboperationen
  * teilen sich dieselbe Fileposition.
  * Das Nutzungsrecht an readycount geht temporär an iotask über. */
-static inline void initwrite_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*own*/struct itccounter_t* readycount/*could be 0*/);
+static inline void initwrite_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*own*/struct eventcount_t* readycount/*could be 0*/);
 
 // group: query
 
@@ -302,7 +301,7 @@ void cancelall_iolist(iolist_t* iolist);
 
 /* define: initreadp_iotask
  * Implements <iotask_t.initreadp_iotask>. */
-static inline void initreadp_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct itccounter_t* readycount/*could be 0*/)
+static inline void initreadp_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct eventcount_t* readycount/*could be 0*/)
 {
          iotask->iolist_next = 0;
          iotask->state = iostate_NULL;
@@ -316,7 +315,7 @@ static inline void initreadp_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc
 
 /* define: initread_iotask
  * Implements <iotask_t.initread_iotask>. */
-static inline void initread_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, /*own*/struct itccounter_t* readycount/*could be 0*/)
+static inline void initread_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, void* buffer/*[size]*/, /*own*/struct eventcount_t* readycount/*could be 0*/)
 {
          iotask->iolist_next = 0;
          iotask->state = iostate_NULL;
@@ -329,7 +328,7 @@ static inline void initread_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc,
 }
 /* define: initwritep_iotask
  * Implements <iotask_t.initwritep_iotask>. */
-static inline void initwritep_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct itccounter_t* readycount/*could be 0*/)
+static inline void initwritep_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, off_t offset/*>= 0*/, /*own*/struct eventcount_t* readycount/*could be 0*/)
 {
          iotask->iolist_next = 0;
          iotask->state = iostate_NULL;
@@ -343,7 +342,7 @@ static inline void initwritep_iotask(/*out*/iotask_t* iotask, sys_iochannel_t io
 
 /* define: initwrite_iotask
  * Implements <iotask_t.initwrite_iotask>. */
-static inline void initwrite_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*own*/struct itccounter_t* readycount/*could be 0*/)
+static inline void initwrite_iotask(/*out*/iotask_t* iotask, sys_iochannel_t ioc, size_t size, const void* buffer/*[size]*/, /*own*/struct eventcount_t* readycount/*could be 0*/)
 {
          iotask->iolist_next = 0;
          iotask->state = iostate_NULL;

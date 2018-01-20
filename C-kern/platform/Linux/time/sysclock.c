@@ -265,6 +265,7 @@ static int test_clockquery(void)
    TEST(timeval.nanosec == timeval2.nanosec);
 
    // TEST time_sysclock: (works only if scheduling is in bounds !)
+   sleepms_thread(5);
    static_assert(sysclock_REAL == 0 && sysclock_MONOTONIC == 1, );
    for (int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
       pthread_yield();
@@ -274,7 +275,7 @@ static int test_clockquery(void)
       TEST(0 == time_sysclock(clock_type, &timeval2));
       int64_t nanosec = (timeval2.seconds - timeval.seconds) * 1000000000
                       + timeval2.nanosec - timeval.nanosec;
-      TEST(llabs(10000000 /*10msec*/- nanosec) < 1000000/*1msec*/);
+      TESTP(llabs(10000000 /*10msec*/- nanosec) < 1000000/*1msec*/, "nanosec:%"PRIu64, nanosec);
       pthread_yield();
       TEST(0 == time_sysclock(clock_type, &timeval));
       sleepms_thread(1);

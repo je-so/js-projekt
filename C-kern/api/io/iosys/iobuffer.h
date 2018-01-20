@@ -21,7 +21,7 @@
 #define CKERN_IO_IOSYS_IOBUFFER_HEADER
 
 #include "C-kern/api/io/iosys/iothread.h"
-#include "C-kern/api/task/itc/itccounter.h"
+#include "C-kern/api/platform/sync/eventcount.h"
 
 // forward
 struct directory_t;
@@ -104,7 +104,7 @@ struct iobuffer_stream_t {
    iothread_t      iothread;
    /* variable: ready
     * Signalisiert, daß ein weiterer <iotask> fertig bearbeitet ist. */
-   itccounter_t    ready;
+   eventcount_t    ready;
    /* variable: buffer
     * 3 I/O Buffer zum Halten der gelesenen Daten. */
    iobuffer_t      buffer[3];
@@ -135,7 +135,7 @@ struct iobuffer_stream_t {
 /* define: iobuffer_stream_FREE
  * Static initializer. */
 #define iobuffer_stream_FREE \
-         {  iothread_FREE, itccounter_FREE, { iobuffer_FREE, iobuffer_FREE, iobuffer_FREE }, \
+         {  iothread_FREE, eventcount_FREE, { iobuffer_FREE, iobuffer_FREE, iobuffer_FREE }, \
             { iotask_FREE, iotask_FREE, iotask_FREE }, sys_iochannel_FREE, 0, 0, 0 }
 
 /* function: init_iobufferstream

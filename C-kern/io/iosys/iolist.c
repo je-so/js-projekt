@@ -20,11 +20,11 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/io/iosys/iothread.h"
+#include "C-kern/api/platform/sync/eventcount.h"
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
-#include "C-kern/api/task/itc/itccounter.h"
 #endif
 
 
@@ -121,7 +121,7 @@ void cancelall_iolist(iolist_t* iolist)
          node->err = ECANCELED;
          write_atomicint(&node->state, iostate_CANCELED);
          if (node->readycount) {
-            add_itccounter(node->readycount, 1);
+            count_eventcount(node->readycount);
          }
          node = next;
       } while (last != node);
@@ -163,7 +163,7 @@ static int test_enums(void)
 static int test_iotask(void)
 {
    iotask_t     iotask = iotask_FREE;
-   itccounter_t counter;
+   eventcount_t counter;
    iotask_t     iotask0;
    iotask_t     iotask255;
 
@@ -190,7 +190,7 @@ static int test_iotask(void)
          for (uint64_t off = 1; off; off <<= 1) {
             for (int ioc = 1; ioc <= 256; ioc <<= 1) {
                for (int iscounter = 0; iscounter <= 1; ++iscounter) {
-                  itccounter_t* c = iscounter ? &counter : 0;
+                  eventcount_t* c = iscounter ? &counter : 0;
 
                   // TEST initreadp_iotask
                   memset(&iotask, 255, sizeof(iotask));
@@ -316,10 +316,10 @@ static int test_initfree(void)
    iolist_t  iolist = iolist_INIT;
    iotask_t  iotask_buffer[4];
    iotask_t* iotask[lengthof(iotask_buffer)];
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_FREE;
 
    // prepare0
-   TEST(0 == init_itccounter(&counter));
+   init_eventcount(&counter);
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       iotask[i] = &iotask_buffer[i];
@@ -348,7 +348,7 @@ static int test_initfree(void)
    TEST(0 == iolist.size);
    TEST(0 == iolist.last);
    // check counter
-   TEST(lengthof(iotask)/2 == reset_itccounter(&counter));
+   TEST(lengthof(iotask)/2 == nrevents_eventcount(&counter));
    // check iotask are canceled
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       TEST(iotask[i]->iolist_next == 0);
@@ -357,12 +357,12 @@ static int test_initfree(void)
       TEST(iotask[i]->readycount  == ((i&1) ? 0 : &counter));
    }
 
-   // reset0
-   TEST(0 == free_itccounter(&counter));
+   // reset
+   TEST(0 == free_eventcount(&counter));
 
    return 0;
 ONERR:
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    return EINVAL;
 }
 
@@ -431,10 +431,10 @@ static int test_update(void)
    iotask_t  zero;
    thread_t* thread = 0;
    thread_param_t param = { .iolist = &iolist, .iot = 0, .thread = self_thread(), .state = 0 };
-   itccounter_t counter = itccounter_FREE;
+   eventcount_t counter = eventcount_FREE;
 
-   // prepare0
-   TEST(0 == init_itccounter(&counter));
+   // prepare
+   init_eventcount(&counter);
    memset(iotask_buffer, 0, sizeof(iotask_buffer));
    memset(&zero, 0, sizeof(zero));
    zero.state = iostate_QUEUED;
@@ -613,7 +613,7 @@ static int test_update(void)
    TEST(0 == iolist.size);
    TEST(0 == iolist.last);
    // check counter (only half of iotask have counter != 0)
-   TEST((lengthof(iotask)+1)/2 == reset_itccounter(&counter));
+   TEST((lengthof(iotask)+1)/2 == nrevents_eventcount(&counter));
    // check iotask / state and err changed
    zero.iolist_next = 0;
    zero.state = 0;
@@ -627,6 +627,8 @@ static int test_update(void)
       zero.readycount = (i&1) ? 0 : &counter;
       TEST(0 == memcmp(iotask[i], &zero, sizeof(zero)));
    }
+   // reset
+   counter.nrevents = 0;
 
    // TEST cancelall_iolist: lock is acquired
    // prepare
@@ -648,7 +650,7 @@ static int test_update(void)
    TEST(0 == iolist.size);
    TEST(0 == iolist.last);
    // check counter
-   TEST((lengthof(iotask)+1)/2 == reset_itccounter(&counter));
+   TEST((lengthof(iotask)+1)/2 == nrevents_eventcount(&counter));
    // check iotask / state and err changed
    for (unsigned i = 0; i < lengthof(iotask); ++i) {
       TEST(iotask[i]->iolist_next == 0);
@@ -661,15 +663,16 @@ static int test_update(void)
       TEST(0 == memcmp(iotask[i], &zero, sizeof(zero)));
    }
    // reset
+   counter.nrevents = 0;
    param.state = 0;
    TEST(0 == delete_thread(&thread));
 
-   // reset0
-   TEST(0 == free_itccounter(&counter));
+   // reset
+   TEST(0 == free_eventcount(&counter));
 
    return 0;
 ONERR:
-   free_itccounter(&counter);
+   free_eventcount(&counter);
    clear_atomicflag(&iolist.lock);
    delete_thread(&thread);
    return EINVAL;
