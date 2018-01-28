@@ -20,13 +20,13 @@
 #ifndef CKERN_PLATFORM_TASK_THREAD_LOCALSTORE_HEADER
 #define CKERN_PLATFORM_TASK_THREAD_LOCALSTORE_HEADER
 
-// forward
+// import
 struct memblock_t;
 struct thread_t;
 struct threadcontext_t;
 struct logwriter_t;
 
-// === exported (opaque) types
+// === exported types
 struct thread_localstore_t;
 
 

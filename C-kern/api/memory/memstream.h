@@ -22,7 +22,7 @@
 // forward
 struct string_t;
 
-// == exported types
+// === exported types
 struct memstream_t;
 struct memstream_ro_t;
 

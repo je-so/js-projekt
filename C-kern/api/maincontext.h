@@ -22,19 +22,17 @@
 #ifndef CKERN_API_MAINCONTEXT_HEADER
 #define CKERN_API_MAINCONTEXT_HEADER
 
+// import
 #include "C-kern/api/task/threadcontext.h"
 #include "C-kern/api/task/processcontext.h"
-
-// forward
 struct logwriter_t;
 
-/* typedef: struct maincontext_t
- * Export <maincontext_t>. */
-typedef struct maincontext_t  maincontext_t;
+// === exported types
+struct maincontext_t;
 
 /* typedef: mainthread_f
  * Signature of of new main function. It is stored in <maincontext_t>. */
-typedef int (* mainthread_f) (maincontext_t * maincontext);
+typedef int (* mainthread_f) (struct maincontext_t * maincontext);
 
 
 /* enums: maincontext_e
@@ -99,7 +97,7 @@ int unittest_main_maincontext(void);
  *       (=> abort handler ? => abort handler calls free_maincontext ?)
  *
  * */
-struct maincontext_t {
+typedef struct maincontext_t {
    // group: public fields
    /* variable: pcontext
     * Shared <processcontext_t> which contains shared services. */
@@ -139,7 +137,7 @@ struct maincontext_t {
    /* variable: initlog
     * Log used until <syscontext_t.initrun_syscontext> has completed its setup procedure. */
    struct logwriter_t * initlog;
-};
+} maincontext_t;
 
 // group: lifetime
 
@@ -178,7 +176,7 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * mai
  * Tries to free as many external resources as possible and
  * aborts all transactions. i
  * Before exit TRACE_NOARG_ERRLOG(PROGRAM_ABORT, err) is called. */
-void abort_maincontext(int err);
+void abort_maincontext(int err) __attribute__((noreturn));
 
 /* function: assertfail_maincontext
  * Exits the whole process in a controlled manner.

@@ -26,7 +26,7 @@
 // forward
 struct memblock_t;
 
-// exported types
+// === exported types
 struct pagecache_t;
 struct pagecache_it;
 

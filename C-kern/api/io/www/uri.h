@@ -54,7 +54,7 @@
 // forward
 struct wbuffer_t;
 
-// exported types
+// === exported types
 struct uri_encoded_t;
 struct uri_decoded_t;
 

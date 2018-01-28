@@ -233,6 +233,7 @@ static int run_all_test(maincontext_t * maincontext)
 //{ time unittest
       RUN(unittest_time_sysclock);
       RUN(unittest_time_systimer);
+      RUN(unittest_time_timevalue);
 //}
 
 //{ io unittest

@@ -26,13 +26,13 @@
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/platform/task/process.h"
-#include "C-kern/api/time/timevalue.h"
 #include "C-kern/api/time/sysclock.h"
 #endif
 
@@ -268,7 +268,7 @@ int tryjoin_thread(thread_t* thread)
 
 // group: change-run-state
 
-void suspend_thread()
+int suspend1_thread(struct timevalue_t* timeout)
 {
    int err;
    sigset_t signalmask;
@@ -287,17 +287,23 @@ void suspend_thread()
       goto ONERR;
    }
 
-   do {
-      err = sigwaitinfo(&signalmask, 0);
-   } while (-1 == err && EINTR == errno);
+   if (0 == timeout) {
+      do {
+         err = sigwaitinfo(&signalmask, 0);
+      } while (-1 == err && EINTR == errno);
+   } else {
+      struct timespec ts = { .tv_sec=timeout->seconds, .tv_nsec=timeout->nanosec };
+      err = sigtimedwait(&signalmask, 0, &ts);
+      if (-1 == err && (EAGAIN==errno || EINTR==errno)) return EAGAIN;
+   }
 
    if (-1 == err) {
       err = errno;
-      TRACESYSCALL_ERRLOG("sigwaitinfo", err);
+      TRACESYSCALL_ERRLOG(timeout?"sigtimedwait":"sigwaitinfo", err);
       goto ONERR;
    }
 
-   return;
+   return 0;
 ONERR:
    abort_maincontext(err);
 }
@@ -321,14 +327,13 @@ int trysuspend_thread(void)
       goto ONERR;
    }
 
-   struct timespec   ts = { 0, 0 };
+   struct timespec ts = { 0, 0 };
    err = sigtimedwait(&signalmask, 0, &ts);
    if (-1 == err) return EAGAIN;
 
    return 0;
 ONERR:
    abort_maincontext(err);
-   return err;
 }
 
 void resume_thread(thread_t* thread)
@@ -461,7 +466,8 @@ static int test_initfree(void)
 
    // TEST thread_FREE
    TEST( 0 == memcmp(&tcfree, &sthread.threadcontext, sizeof(tcfree)));
-   TEST( 0 == sthread.nextwait);
+   TEST( 0 == sthread.wait.next);
+   TEST( 0 == sthread.wait.prev);
    TEST( 0 == sthread.main_task);
    TEST( 0 == sthread.main_arg);
    TEST( 0 == sthread.returncode);
@@ -472,7 +478,8 @@ static int test_initfree(void)
    // TEST thread_INIT_STATIC
    sthread = (thread_t) thread_INIT_STATIC((thread_localstore_t*)&sthread);
    TEST( 0 == memcmp(&tcinit, &sthread.threadcontext, sizeof(tcinit)));
-   TEST( 0 == sthread.nextwait);
+   TEST( 0 == sthread.wait.next);
+   TEST( 0 == sthread.wait.prev);
    TEST( 0 == sthread.main_task);
    TEST( 0 == sthread.main_arg);
    TEST( 0 == sthread.returncode);
@@ -483,7 +490,8 @@ static int test_initfree(void)
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3));
    TEST(thread);
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(sthread.ismain     == 0);
    TEST(thread->main_task  == &thread_donothing);
@@ -500,7 +508,8 @@ static int test_initfree(void)
    // TEST newgeneric_thread: thread is run
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)14));
    TEST(thread);
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(sthread.ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -513,7 +522,8 @@ static int test_initfree(void)
       yield_thread();
    }
    TEST(s_thread_id        == T);
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(sthread.ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
    TEST(thread->main_arg   == (void*)14);
@@ -528,7 +538,8 @@ static int test_initfree(void)
    // TEST delete_thread: join_thread called from delete_thread
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)11));
    TEST(thread);
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(sthread.ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
    TEST(thread->main_arg   == (void*)11);
@@ -582,7 +593,8 @@ static int test_mainthread(void)
 
    // TEST initmain_thread
    initmain_thread(&thread, &thread_donothing, (void*)2);
-   TEST(thread.nextwait   == 0);
+   TEST(thread.wait.next  == 0);
+   TEST(thread.wait.prev  == 0);
    TEST(thread.lockflag   == 0);
    TEST(thread.ismain     == 1);
    TEST(thread.main_task  == &thread_donothing);
@@ -592,7 +604,8 @@ static int test_mainthread(void)
 
    // TEST initmain_thread: calling twice does no harm
    initmain_thread(&thread, 0, 0);
-   TEST(thread.nextwait   == 0);
+   TEST(thread.wait.next == 0);
+   TEST(thread.wait.prev == 0);
    TEST(thread.lockflag   == 0);
    TEST(thread.ismain     == 1);
    TEST(thread.main_task  == 0);
@@ -661,7 +674,8 @@ static int test_join(void)
    write_atomicint(&s_thread_signal, 1);
    TEST(0 == join_thread(thread));
    TEST(0 == read_atomicint(&s_thread_signal));
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -671,7 +685,8 @@ static int test_join(void)
 
    // TEST join_thread: calling on already joined thread
    TEST(0 == join_thread(thread));
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -697,7 +712,8 @@ static int test_join(void)
       TEST(EBUSY == err);
       TEST(sys_thread_FREE != thread->sys_thread);
    }
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -707,7 +723,8 @@ static int test_join(void)
 
    // TEST tryjoin_thread: calling on already joined thread
    TEST(0 == tryjoin_thread(thread));
-   TEST(thread->nextwait   == 0);
+   TEST(thread->wait.next  == 0);
+   TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
    TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -725,7 +742,8 @@ static int test_join(void)
       for (int t = 0; t < 2; ++t) {
          TEST(0 == join_thread(thread));
          TEST(0 == read_atomicint(&s_thread_signal));
-         TEST(thread->nextwait   == 0);
+         TEST(thread->wait.next  == 0);
+         TEST(thread->wait.prev  == 0);
          TEST(thread->lockflag   == 0);
          TEST(thread->ismain     == 0);
          TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -751,7 +769,8 @@ static int test_join(void)
          sleepms_thread(1);
       }
       for (int t = 0; t < 2; ++t) {
-         TEST(thread->nextwait   == 0);
+         TEST(thread->wait.next  == 0);
+         TEST(thread->wait.prev  == 0);
          TEST(thread->lockflag   == 0);
          TEST(thread->ismain     == 0);
          TEST(thread->main_task  == (thread_f)&thread_returncode);
@@ -1322,14 +1341,22 @@ ONERR:
 
 // == test_suspendresume ==
 
-static int thread_suspend(thread_t* caller)
+static int thread_suspend0(thread_t* caller)
 {
    resume_thread(caller);
    suspend_thread();
    return 0;
 }
 
-static int thread_flagsuspend(int* flag)
+static int thread_suspend1(thread_t* caller)
+{
+   resume_thread(caller);
+   timevalue_t timeout=timevalue_INIT(100,0);
+   suspend_thread(&timeout);
+   return 0;
+}
+
+static int thread_flagsuspend0(int* flag)
 {
    // signal caller
    write_atomicint(flag, 1);
@@ -1349,7 +1376,7 @@ static int thread_resume(thread_t* caller)
    return 0;
 }
 
-static int thread_waitsuspend(intptr_t signr)
+static int thread_waitsuspend0(intptr_t signr)
 {
    int err;
    err = wait_signalrt((signalrt_t)signr, 0);
@@ -1363,6 +1390,10 @@ static int test_suspendresume(void)
 {
    thread_t * thread1 = 0;
    thread_t * thread2 = 0;
+   timevalue_t starttime;
+   timevalue_t endtime;
+   timevalue_t timeout;
+   int64_t     msec;
 
    // TEST resume_thread: uses SIGINT (not queued, only single instance)
    TEST(EAGAIN == poll_for_signal(SIGINT));
@@ -1378,9 +1409,18 @@ static int test_suspendresume(void)
       TEST(EAGAIN == trysuspend_thread());
    }
 
-   // TEST suspend_thread: thread suspends
+   // TEST suspend1_thread: measure timeout time
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttime));
+   timeout = (timevalue_t) {0,40000000};
+   TEST(EAGAIN == suspend_thread(&timeout));
+   TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtime));
+   // check
+   msec = diffms_timevalue(&endtime, &starttime);
+   TESTP(30 < msec && msec < 50, "msec:%"PRId64, msec);
+
+   // TEST suspend0_thread: thread suspends
    trysuspend_thread();
-   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, self_thread()));
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend0, self_thread()));
    // wait for thread
    while (EAGAIN == poll_for_signal(SIGINT)) {
       yield_thread();
@@ -1391,7 +1431,7 @@ static int test_suspendresume(void)
       TEST(EBUSY == tryjoin_thread(thread1));
    }
 
-   // TEST suspend_thread: EINTR does not wakeup thread
+   // TEST suspend0_thread: EINTR does not wakeup thread
    for (int i = 0; i < 5; ++i) {
       interrupt_thread(thread1);
       sleepms_thread(1);
@@ -1408,10 +1448,33 @@ static int test_suspendresume(void)
    resume_thread(thread1);
    TEST(0 == delete_thread(&thread1));
 
-   // TEST suspend_thread: EINTR does not clear already queued resume
+   // TEST suspend1_thread: thread suspends
+   trysuspend_thread();
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend1, self_thread()));
+   // wait for thread
+   while (EAGAIN == poll_for_signal(SIGINT)) {
+      yield_thread();
+   }
+   // check thread suspended
+   for (int i = 0; i < 5; ++i) {
+      sleepms_thread(1);
+      TEST(EBUSY == tryjoin_thread(thread1));
+   }
+
+   // TEST suspend1_thread: EINTR wakes up thread
+   interrupt_thread(thread1);
+   // check thread is in suspend
+   TEST(0 == join_thread(thread1));
+   TEST(0 == returncode_thread(thread1));
+
+   // TEST resume_thread: already joined thread is ignored
+   resume_thread(thread1);
+   TEST(0 == delete_thread(&thread1));
+
+   // TEST suspend0_thread: EINTR does not clear already queued resume
    trysuspend_thread();
    int flag = 0;
-   TEST(0 == newgeneric_thread(&thread1, &thread_flagsuspend, &flag));
+   TEST(0 == newgeneric_thread(&thread1, &thread_flagsuspend0, &flag));
    // wait for start of thread
    while (0 == read_atomicint(&flag)) {
       yield_thread();
@@ -1442,7 +1505,7 @@ static int test_suspendresume(void)
 
    // TEST resume_thread: other threads resume suspended thread
    trysuspend_thread();
-   TEST(0 == newgeneric_thread(&thread1, &thread_suspend, self_thread()));
+   TEST(0 == newgeneric_thread(&thread1, &thread_suspend0, self_thread()));
    // wait for thread
    suspend_thread();
    TEST(0 == newgeneric_thread(&thread2, &thread_resume, thread1));
@@ -1457,8 +1520,8 @@ static int test_suspendresume(void)
    //                     test that resume_thread is preserved !
    TEST(EAGAIN == trywait_signalrt(0, 0));
    TEST(EAGAIN == trywait_signalrt(1, 0));
-   TEST(0 == newgeneric_thread(&thread1, &thread_waitsuspend, (intptr_t)0));
-   TEST(0 == newgeneric_thread(&thread2, &thread_waitsuspend, (intptr_t)0));
+   TEST(0 == newgeneric_thread(&thread1, &thread_waitsuspend0, (intptr_t)0));
+   TEST(0 == newgeneric_thread(&thread2, &thread_waitsuspend0, (intptr_t)0));
    resume_thread(thread1);
    resume_thread(thread2);
    TEST(0 == send_signalrt(0, 0)); // start threads
@@ -1793,7 +1856,7 @@ ONERR:
    return EINVAL;
 }
 
-static int test_outofres(void)
+static int test_outofmem(void)
 {
    process_t        child = process_FREE;
    process_result_t result;
@@ -1832,7 +1895,7 @@ static int childprocess_unittest(void)
    if (test_yield())          goto ONERR;
    if (test_exit())           goto ONERR;
    if (test_update())         goto ONERR;
-   if (test_outofres())       goto ONERR;
+   if (test_outofmem())       goto ONERR;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));

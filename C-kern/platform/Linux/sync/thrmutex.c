@@ -18,7 +18,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/sync/thrmutex.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/ds/inmem/dlist.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
@@ -32,8 +32,8 @@
 // group: helper
 
 /* define: INTERFACE_thrmutexlist
- * Use macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t> to <thread_t>. */
-slist_IMPLEMENT(_thrmutexlist, thread_t, nextwait)
+ * Use macro <dlist_IMPLEMENT> to generate an adapted interface of <dlist_t> to <thread_t>. */
+dlist_IMPLEMENT(_thrmutexlist, thread_t, wait.)
 
 // group: lifetime
 
@@ -123,14 +123,14 @@ int lock_thrmutex(thrmutex_t * mutex)
          err = EDEADLK ;
          goto ONERR;
       }
-      insertlast_thrmutexlist(cast_slist(mutex), self) ;
+      insertlast_thrmutexlist(cast_dlist(mutex), self) ;
       unlockflag_thrmutex(mutex) ;
 
       // suspend
       for (;;) {
-         suspend_thread() ;
+         suspend_thread();
          lockflag_thrmutex(mutex) ;
-         bool isWakeup = (0 == self->nextwait) ;
+         bool isWakeup = (0 == self->wait.next);
          unlockflag_thrmutex(mutex) ;
          if (isWakeup) break ;
          // spurious resume
@@ -158,9 +158,9 @@ int unlock_thrmutex(thrmutex_t * mutex)
 
    thread_t * nextwait = 0 ;
 
-   if (! isempty_thrmutexlist(cast_slist(mutex))) {
+   if (! isempty_thrmutexlist(cast_dlist(mutex))) {
       // resume waiting thread
-      nextwait = removefirst_thrmutexlist(cast_slist(mutex));
+      nextwait = removefirst_thrmutexlist(cast_dlist(mutex));
       resume_thread(nextwait) ;
    }
 
@@ -356,8 +356,8 @@ static int test_synchronize(void)
       TEST(mutex.last       == cast2node_thrmutexlist(threads[i])) ;
       TEST(mutex.lockholder == self_thread()) ;
       TEST(mutex.lockflag   == 0) ;
-      TEST(threads[i]->nextwait       == cast2node_thrmutexlist(threads[0])) ;
-      TEST(threads[i-(i>0)]->nextwait == cast2node_thrmutexlist(threads[i])) ;
+      TEST(threads[i]->wait.next       == cast2node_thrmutexlist(threads[0]));
+      TEST(threads[i-(i>0)]->wait.next == cast2node_thrmutexlist(threads[i]));
    }
    mutex.lockholder = 0 ;
 
@@ -370,10 +370,11 @@ static int test_synchronize(void)
       }
       lockflag_thrmutex(&mutex) ;   // acquired during wakeup
       thread_t * firstthread = 0 ;
-      TEST( !isempty_thrmutexlist(cast_slist(&mutex)));
-      firstthread = removefirst_thrmutexlist(cast_slist(&mutex));
-      TEST(threads[i]           == firstthread);
-      TEST(threads[i]->nextwait == 0);
+      TEST( !isempty_thrmutexlist(cast_dlist(&mutex)));
+      firstthread = removefirst_thrmutexlist(cast_dlist(&mutex));
+      TEST(threads[i]            == firstthread);
+      TEST(threads[i]->wait.next == 0);
+      TEST(threads[i]->wait.prev == 0);
       resume_thread(threads[i]) ;   // real wakeup
       for (int i2 = 0; i2 < 10; ++i2) {
          yield_thread() ;

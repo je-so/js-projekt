@@ -20,9 +20,10 @@
 #ifndef CKERN_PROGLANG_REGEXPR_HEADER
 #define CKERN_PROGLANG_REGEXPR_HEADER
 
+// import
 #include "C-kern/api/proglang/automat.h"
 
-// == exported types
+// === exported types
 struct regexpr_t;
 struct regexpr_err_t;
 

@@ -18,7 +18,7 @@
 #ifndef CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER
 #define CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER
 
-// forward
+// import
 struct threadcontext_t;
 
 // === exported types

@@ -6,7 +6,7 @@
    This program is free software. See accompanying LICENSE file.
 
    Author:
-   (C) 2017 Jörg Seebohn
+   (C) 2018 Jörg Seebohn
 
    file: C-kern/api/platform/sync/eventcount.h
     Header file <EventCounter>.
@@ -17,14 +17,16 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/sync/eventcount.h"
-#include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/ds/inmem/dlist.h"
 #include "C-kern/api/ds/foreach.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/platform/task/thread.h"
-#include "C-kern/api/err.h"
+#include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/process.h"
+#include "C-kern/api/time/sysclock.h"
 #endif
 
 
@@ -33,8 +35,8 @@
 // group: helper
 
 /* define: INTERFACE_threadlist
- * Use macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t> to <thread_t>. */
-slist_IMPLEMENT(_threadlist, thread_t, nextwait)
+ * Use macro <dlist_IMPLEMENT> to generate an adapted interface of <dlist_t> to <thread_t>. */
+dlist_IMPLEMENT(_threadlist, thread_t, wait.)
 
 // group: synchronize
 
@@ -63,11 +65,13 @@ static inline void unlock_counter(eventcount_t* counter)
  * */
 static inline void wakeup_thread(eventcount_t* counter)
 {
-   thread_t* thread = first_threadlist(cast_slist(counter));
-   lockflag_thread(thread);
-   removefirst_threadlist(cast_slist(counter));
-   unlockflag_thread(thread);
-   resume_thread(thread);
+   thread_t* thread = first_threadlist(cast_dlist(counter));
+   if (thread) {  // timeout could remove waiting threads
+      lockflag_thread(thread);
+      removefirst_threadlist(cast_dlist(counter));
+      unlockflag_thread(thread);
+      resume_thread(thread);
+   }
 }
 
 // group: lifetime
@@ -76,7 +80,7 @@ int free_eventcount(eventcount_t* counter)
 {
    lock_counter(counter);
    counter->nrevents = 0;
-   while (!isempty_slist(cast_slist(counter))) {
+   while (!isempty_dlist(cast_dlist(counter))) {
       wakeup_thread(counter);
    }
    unlock_counter(counter);
@@ -125,7 +129,7 @@ int trywait_eventcount(eventcount_t* counter)
    return EAGAIN;
 }
 
-static void wait2_eventcount(eventcount_t* counter)
+static int wait2_eventcount(eventcount_t* counter, timevalue_t* timeout)
 {
    thread_t *self = self_thread();
    lock_counter(counter);
@@ -135,28 +139,45 @@ static void wait2_eventcount(eventcount_t* counter)
    if (isEvent) {
       unlock_counter(counter);
    } else {
-      insertlast_threadlist(cast_slist(counter), self);
+      insertlast_threadlist(cast_dlist(counter), self);
       unlock_counter(counter);
 
       // waiting loop
       bool isNoWakeup;
       do {
-         suspend_thread();
+         int err = suspend_thread(timeout);
+
+         if (err == EAGAIN) { // timeout ?
+            lock_counter(counter);
+
+            if (0 == self->wait.next) { // is already woken up ?
+               unlock_counter(counter);
+               return 0;
+            }
+            remove_threadlist(cast_dlist(counter), self);
+            add_atomicint(&counter->nrevents, 1);
+
+            unlock_counter(counter);
+            return EAGAIN;
+         }
 
          // spurious resume ?
          lockflag_thread(self);
-         isNoWakeup = (0 != self->nextwait);
+         isNoWakeup = (0 != self->wait.next);
          unlockflag_thread(self);
 
       } while (isNoWakeup);
    }
+
+   return 0;
 }
 
-void wait_eventcount(eventcount_t* counter)
+int wait_eventcount(eventcount_t* counter,timevalue_t* timeout)
 {
    if (trywait_eventcount(counter) /*is_error?*/) {
-      wait2_eventcount(counter);
+      return wait2_eventcount(counter,timeout);
    }
+   return 0;
 }
 
 
@@ -184,7 +205,7 @@ static int testthread_wait(void* _counter)
 {
    eventcount_t* counter = _counter;
    add_atomicint(&s_nrthreads_started, 1);
-   wait_eventcount(counter);
+   wait_eventcount(counter,0);
    add_atomicint(&s_nrthreads_stopped, 1);
    return 0;
 }
@@ -193,9 +214,19 @@ static int testthread_wait2(void* _counter)
 {
    eventcount_t* counter = _counter;
    add_atomicint(&s_nrthreads_started, 1);
-   wait2_eventcount(counter);
+   wait2_eventcount(counter,0);
    add_atomicint(&s_nrthreads_stopped, 1);
    return 0;
+}
+
+static int testthread_wait2_timeout(void* _counter)
+{
+   eventcount_t* counter = _counter;
+   add_atomicint(&s_nrthreads_started, 1);
+   timevalue_t timeout = timevalue_INIT(100,0);
+   int err = wait2_eventcount(counter, &timeout);
+   add_atomicint(&s_nrthreads_stopped, 1);
+   return err;
 }
 
 static int testthread_count(void* _counter)
@@ -398,13 +429,13 @@ static int test_helper(void)
    TEST(0 == start_threads(1, &thread, &testthread_wait, &counter));
    TEST(0 == start_threads(1, &thread2, &testthread_wait, &counter));
    sleepms_thread(5);
-   slist_node_t* F = (slist_node_t*) &thread->nextwait;
-   slist_node_t* L = (slist_node_t*) &thread2->nextwait;
+   dlist_node_t* F = (dlist_node_t*) &thread->wait.next;
+   dlist_node_t* L = (dlist_node_t*) &thread2->wait.next;
    TEST(-2 == counter.nrevents);
    TEST(L == counter.last);
    TEST(0 == counter.lockflag);
-   TEST(F == thread2->nextwait);
-   TEST(L == thread->nextwait);
+   TEST(F == thread2->wait.next);
+   TEST(L == thread->wait.next);
    TEST(0 == check_nrstopped(0));
    for (unsigned tnr=0; tnr<2; ++tnr) {
       // test
@@ -413,8 +444,8 @@ static int test_helper(void)
       TEST( -2 == counter.nrevents);   // unchanged
       TEST( (tnr?0:L) == counter.last);
       TEST( 0 == counter.lockflag);    // unchanged
-      TEST( (tnr?0:L) == thread2->nextwait);
-      TEST( 0 == thread->nextwait);
+      TEST( (tnr?0:L) == thread2->wait.next);
+      TEST( 0 == thread->wait.next);
       TEST( 0 == join_thread(tnr?thread2:thread)); // check resumed
       TEST( 0 == check_nrstopped(tnr+1));          // check resumed
    }
@@ -425,11 +456,11 @@ static int test_helper(void)
 
    // TEST wakeup_thread: acquires thread lock / counter not locked
    TEST(0 == start_threads(1, &thread, &testthread_wait, &counter));
-   L = (slist_node_t*) &thread->nextwait;
+   L = (dlist_node_t*) &thread->wait;
    TEST(-1 == counter.nrevents);
    TEST(L == counter.last);
    TEST(0 == counter.lockflag);
-   TEST(L == thread->nextwait);
+   TEST(L == thread->wait.next);
    TEST(0 == check_nrstopped(0));
    // test
    lock_counter(&counter);
@@ -445,7 +476,7 @@ static int test_helper(void)
       TEST( -1 == counter.nrevents);   // unchanged
       TEST( (cnr?0:L) == counter.last);
       TEST( 0 != counter.lockflag);    // unchanged
-      TEST( (cnr?0:L) == thread->nextwait);
+      TEST( (cnr?0:L) == thread->wait.next);
       TEST( 0 == check_nrstopped(2*cnr)); // 0:unchanged 1:check resumed
    }
    // reset
@@ -493,7 +524,7 @@ static int test_update(void)
    TEST(0 == start_threads(lengthof(threads), threads, &testthread_wait, &counter));
    for (unsigned i=1; i<=lengthof(threads); ++i) {
       // test
-      thread_t* thr = first_threadlist(cast_slist(&counter));
+      thread_t* thr = first_threadlist(cast_dlist(&counter));
       count_eventcount(&counter);
       // check
       TEST( lengthof(threads)-i == nrwaiting_eventcount(&counter));
@@ -508,7 +539,7 @@ static int test_update(void)
       unsigned N=3;
       TEST(0 == start_threads(N-1, threads+1, &testthread_wait, &counter));
       for (unsigned i=1; i<N; ++i) {
-         thread_t* thr = first_threadlist(cast_slist(&counter));
+         thread_t* thr = first_threadlist(cast_dlist(&counter));
          // test
          if (0==locknr) {
             lock_counter(&counter);
@@ -521,7 +552,7 @@ static int test_update(void)
          sleepms_thread(5);
          TEST( 0 == check_nrstopped(2*i-2));
          TEST( N-1-i == nrwaiting_eventcount(&counter)); // changed (event incremented)
-         TEST( 0 != thr->nextwait); // unchanged (hangs in lock)
+         TEST( 0 != thr->wait.next); // unchanged (hangs in lock)
          // remove lock
          if (0==locknr) {
             unlock_counter(&counter);
@@ -530,7 +561,7 @@ static int test_update(void)
          }
          // check after
          TEST( 0 == join_thread(threads[0]));
-         TEST( 0 == thr->nextwait); // changed
+         TEST( 0 == thr->wait.next); // changed
          TEST( 0 == join_thread(thr));
          TEST( 0 == check_nrstopped(2*i));
          // reset
@@ -547,8 +578,8 @@ static int test_update(void)
       for (unsigned i=40; i>0; --i) {
          switch (tc) {
             case 0: TEST( 0 == trywait_eventcount(&counter)); break;
-            case 1: wait2_eventcount(&counter); break;
-            case 2: wait_eventcount(&counter); break;
+            case 1: wait2_eventcount(&counter,0); break;
+            case 2: wait_eventcount(&counter,0); break;
          }
          TEST( i-1 == (uint32_t) counter.nrevents);
          TEST( 0 == counter.last);
@@ -563,7 +594,7 @@ static int test_update(void)
       counter.nrevents = INT32_MAX;
       switch (tc) {
          case 0: TEST( 0 == trywait_eventcount(&counter)); break;
-         case 1: wait_eventcount(&counter); break;
+         case 1: wait_eventcount(&counter,0); break;
       }
       TEST( INT32_MAX-1 == counter.nrevents);
       TEST( 0 == counter.last);
@@ -627,18 +658,24 @@ static int test_update(void)
             case 1: start_threads(1, threads+i, &testthread_wait, &counter); break;
          }
          // check
-         slist_node_t* L = (slist_node_t*) &threads[i]->nextwait;
+         dlist_node_t* L = (dlist_node_t*) &threads[i]->wait;
          TEST( i+1 == -(uint32_t)counter.nrevents);
          TEST( L == counter.last);
          TEST( 0 == counter.lockflag);
          unsigned i2=0;
-         foreach (_threadlist, node, cast_slist(&counter)) {
+         foreach (_threadlist, node, cast_dlist(&counter)) {
             TEST( i2<=i);
             TEST( node == threads[i2++]);
          }
          TEST( i2==i+1);
          TEST( 0 == check_nrstopped(0));
       }
+      // test *NOT INTERRUPTIBLE*
+      for (unsigned i=0; i<lengthof(threads); ++i) {
+         interrupt_thread(threads[i]);
+      }
+      sleepms_thread(20);
+      TEST( 0 == check_nrstopped(0));
       // reset
       for (unsigned i=0; i<lengthof(threads); ++i) {
          count_eventcount(&counter);
@@ -656,11 +693,11 @@ static int test_update(void)
    for (unsigned tc=0; tc<2; ++tc) {
       lock_counter(&counter);
       switch (tc) {
-         case 0: start_threads(1, threads, &testthread_wait2, &counter); break;
-         case 1: start_threads(1, threads, &testthread_wait, &counter); break;
+         case 0: TEST(0 == start_threads(1, threads, &testthread_wait2, &counter)); break;
+         case 1: TEST(0 == start_threads(1, threads, &testthread_wait, &counter)); break;
       }
       // check
-      slist_node_t* L = (slist_node_t*) &threads[0]->nextwait;
+      dlist_node_t* L = (dlist_node_t*) &threads[0]->wait;
       TEST( 0 == read_atomicint(&counter.nrevents));
       TEST( 0 == read_atomicint(&counter.last));
       TEST( 0 != counter.lockflag);
@@ -676,6 +713,81 @@ static int test_update(void)
       TEST(0 == delete_thread(&threads[0]));
       TEST(0 == check_nrstopped(1));
    }
+
+   timevalue_t starttime;
+   timevalue_t endtime;
+
+   // TEST wait2_eventcount: measure timeout time
+   // TEST wait_eventcount: measure timeout time
+   counter.nrevents = 0;
+   for (unsigned tc=0; tc<2; ++tc) {
+      timevalue_t timeout = (timevalue_t) {0,40000000};
+      TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttime));
+      switch (tc) {
+         case 0: TEST( EAGAIN == wait2_eventcount(&counter, &timeout)); break;
+         case 1: TEST( EAGAIN == wait_eventcount(&counter, &timeout)); break;
+      }
+      TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtime));
+      // check timeout
+      int64_t msec = diffms_timevalue(&endtime, &starttime);
+      TESTP(30 < msec && msec < 50, "msec:%"PRId64, msec);
+      // check counter
+      lock_counter(&counter);
+      TEST( 0 == counter.nrevents);
+      TEST( 0 == counter.last);
+      unlock_counter(&counter);
+   }
+
+   // TEST wait2_eventcount: TIMEOUT + removed from list + counter incremented + counter lock acquired
+   counter.nrevents = 0;
+   for (unsigned i=0; i<lengthof(threads); ++i) {
+      start_threads(1, threads+i, &testthread_wait2_timeout, &counter);
+   }
+   for (unsigned i=0; i<lengthof(threads); ++i) {
+      // check lock
+      lock_counter(&counter);
+      interrupt_thread(threads[i]);    // simulate timeout
+      sleepms_thread(1);
+      TEST( 0 == check_nrstopped(i));  // acquired lock
+      unlock_counter(&counter);        // unlock
+      TEST( 0 == check_nrstopped(i+1));// thread has stopped
+      // check counter
+      TEST( i == (unsigned)((int)lengthof(threads) + counter.nrevents) - 1);
+      TEST( (i<lengthof(threads)-1?threads[i+1]:0) == first_threadlist(cast_dlist(&counter)));
+      TEST( 0 == counter.lockflag)
+   }
+   // reset
+   TEST(0 == delete_threads(lengthof(threads), threads));
+
+   // TEST wait2_eventcount: simulate TIMEOUT + (task switch) + wakeup from other task
+   TEST(0 == start_threads(1, threads, &testthread_wait2_timeout, &counter));
+   sleepms_thread(3);
+   // wakeup without resume
+   lock_counter(&counter);
+   removefirst_threadlist(cast_dlist(&counter));
+   TEST( -1 == counter.nrevents);
+   TEST( 0  == counter.last);
+   ++ counter.nrevents;
+   unlock_counter(&counter);
+   // simulate timeout
+   interrupt_thread(threads[0]);
+   // check
+   TEST( 0 == join_thread(threads[0]));
+   TEST( 0 == returncode_thread(threads[0]));
+   TEST( 0 == counter.nrevents);
+   TEST( 0 == counter.last);
+   TEST( 0 == counter.lockflag);
+   TEST( 0 == delete_threads(1, threads));
+
+   // TEST wait2_eventcount: simulate TIMEOUT + lock_counter + removed from list (task switch) + count called with empty list + unlock
+   // simulate TIMEOUT + lock_counter + removed from list + unlock after task switch
+   counter.nrevents = -1;
+   TEST( 0 == counter.last);
+   TEST( 0 == counter.lockflag);
+   // check
+   count_eventcount(&counter); // empty list => ignore wakeup
+   TEST( 0 == counter.last);
+   TEST( 0 == counter.lockflag);
 
    return 0;
 ONERR:

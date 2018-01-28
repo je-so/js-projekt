@@ -62,9 +62,9 @@ static sigset_t            s_signalhandler_oldmask;
 
 // group: callback
 
-/* function: interrupt_signalhandler
+/* function: dummy_signalhandler
  * Do nothing callback. Only used to return from blocking system call. */
-static void interrupt_signalhandler(unsigned signr, uintptr_t value)
+static void dummy_signalhandler(unsigned signr, uintptr_t value)
 {
    (void) signr;
    (void) value;
@@ -221,7 +221,7 @@ int initonce_signalhandler()
 
 // TEXTDB:SELECT("   // "description\n"   set("signal", &"handler");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='set')
    // used to interrupt a blocking system call
-   set(SIGQUIT, &interrupt_signalhandler);
+   set(SIGQUIT, &dummy_signalhandler);
 // TEXTDB:END
 #undef set
 

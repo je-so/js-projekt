@@ -18,6 +18,7 @@
 #define CKERN_TEST_COMPILETIME_HEADER
 
 #include "C-kern/test/compiletime/konfig_value.h"
+#include "C-kern/test/compiletime/stdmacros.h"
 #include "C-kern/test/compiletime/stdtypes.h"
 #include "C-kern/test/compiletime/system.h"
 #include "C-kern/test/compiletime/systypes.h"

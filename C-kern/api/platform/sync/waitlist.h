@@ -22,12 +22,11 @@
 #ifndef CKERN_PLATFORM_SYNC_WAITLIST_HEADER
 #define CKERN_PLATFORM_SYNC_WAITLIST_HEADER
 
-// forward
-struct slist_node_t ;
+// import
+struct dlist_node_t;
 
-/* typedef: struct waitlist_t
- * Exports <waitlist_t>. */
-typedef struct waitlist_t                 waitlist_t ;
+// === exported types
+ struct waitlist_t;
 
 
 // section: Functions
@@ -48,18 +47,18 @@ int unittest_platform_sync_waitlist(void) ;
  * thread knows what to do next.
  *
  * This object is thread safe. */
-struct waitlist_t {
+typedef struct waitlist_t {
    /* variable: last
     * The root pointer of the list of waiting threads. */
-   struct slist_node_t  *  last ;
+   struct dlist_node_t *last;
    /* variable: nr_waiting
     * The number of threads waiting. */
-   size_t                  nr_waiting ;
+   size_t               nr_waiting;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
-   uint8_t                 lockflag ;
-} ;
+   uint8_t              lockflag;
+} waitlist_t;
 
 // group: lifetime
 

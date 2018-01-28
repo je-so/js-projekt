@@ -20,12 +20,12 @@
 #ifndef CKERN_PLATFORM_TASK_THREAD_HEADER
 #define CKERN_PLATFORM_TASK_THREAD_HEADER
 
-// forward
-struct slist_node_t;
+// import
+struct timevalue_t;
+struct dlist_node_t;
 
-/* typedef: struct thread_t
- * Export <thread_t>. */
-typedef struct thread_t thread_t;
+// === exported types
+struct thread_t;
 
 /* typedef: thread_f
  * Defines function type executed by <thread_t>. */
@@ -53,7 +53,7 @@ int unittest_platform_task_thread(void);
  * architectures proper read and write barriers are executed.
  *
  * Use <lock_thread> and <unlock_thread> for that matter. */
-struct thread_t {
+typedef struct thread_t {
    /* variable: threadcontext
     * Adds thread context to thread variable.
     * Add cpuling of higher level to low level module.
@@ -62,12 +62,14 @@ struct thread_t {
     * (and makes <thread_t>,<threadcontext_t>, and <thread_localstore_t> having the same
     * start address in memory). */
    threadcontext_t   threadcontext;
-   /* variable: nextwait
-    * Points to next thread which waits on the same <thrmutex_t> or <waitlist_t>.
-    * This ensures that waiting does not need to allocate list nodes and therefore never
-    * generates error ENOMEM. */
-   struct
-   slist_node_t*  nextwait;
+   /* variable: wait
+    * Points to next/prev thread which waits on the same synchronization structure like <thrmutex_t> or <waitlist_t>.
+    * This ensures that waiting does not need to allocate list nodes and therefore never generates error ENOMEM.
+    * Supports double linked lists. See wait_next for a description. */
+   struct {
+      struct dlist_node_t*  next;
+      struct dlist_node_t*  prev;
+   }              wait;
    /* variable: main_task
     * Function executed after thread has been created. */
    thread_f       main_task;
@@ -94,7 +96,7 @@ struct thread_t {
     * The aborthandler should call <abort_thread> which sets returncode to value ENOTRECOVERABLE
     * and calls setcontext (see: man 2 setcontext) with <continuecontext> as argument. */
    ucontext_t     continuecontext;
-};
+} thread_t;
 
 // group: lifetime
 
@@ -107,13 +109,13 @@ struct thread_t {
  * Parameter:
  * tls - Pointer to thread_localstore_t <thread_t> and <threadcontext_t> are located. */
 #define thread_INIT_STATIC(tls) \
-         { threadcontext_INIT_STATIC(tls), 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
+         { threadcontext_INIT_STATIC(tls), {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
 /* define: thread_FREE
  * Static initializer.
  * Used to initialize thread in <thread_localstore_t>. */
 #define thread_FREE \
-         { threadcontext_FREE, 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
+         { threadcontext_FREE, {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
 /* function: initmain_thread
  * Initializes main thread. Called from <syscontext_t.initrun_syscontext>.
@@ -208,7 +210,12 @@ int tryjoin_thread(thread_t* thread);
 // group: change-run-state
 
 /* function: suspend_thread
- * The calling thread will sleep until <resume_thread> is called.
+ * Macro which expects 0 or 1 argument.
+ * Calls either <suspend0_thread> or <suspend1_thread> according to the number of arguments. */
+int suspend_thread(struct timevalue_t* timeout/*optional*/);
+
+/* function: suspend1_thread
+ * The calling thread will sleep until <resume_thread> is called or timeout expires.
  * <resume_thread> must be called from another thread.
  *
  * Linux specific:
@@ -217,14 +224,22 @@ int tryjoin_thread(thread_t* thread);
  * Attention !:
  * It is possible that signals are received which are generated from outside this process
  * therefore make sure with some other mechanism that returning
- * from <suspend_thread> emanates from a corresponding call to <resume_thread>. */
-void suspend_thread(void);
+ * from <suspend_thread> emanates from a corresponding call to <resume_thread>.
+ *
+ * Returns:
+ * 0      - Woken up from resume_thread.
+ * EAGAIN - Timeout timer expired. No resume_thread was called during time defined by timeout. */
+int suspend1_thread(struct timevalue_t* timeout/*null: NO TIMEOUT*/);
+
+/* function: suspend_thread
+ * Calls suspend_thread with timeout disabled. This function waits infinitely. Interrupts (signals) are ignored. */
+void suspend0_thread(void);
 
 /* function: trysuspend_thread
  * The function returns 0 if the calling thread has been resumed.
  * IF the functions returns 0 this is the same as calling <suspend_thread>
  * and returning immediately. The resume event is consumed.
- * It returns EAGAIN if no there is no pending resume. Nothing is done in
+ * It returns EAGAIN if there is no pending resume. Nothing is done in
  * this case. Use this function to poll for any pending <resume_thread>
  * without sleeping.  */
 int trysuspend_thread(void);
@@ -416,5 +431,15 @@ static inline void setreturncode_thread(volatile thread_t * thread, int retcode)
  * Implements <thread_t.yield_thread>. */
 #define yield_thread() \
          (pthread_yield())
+
+/* define: suspend_thread
+ * Implements <thread_t.suspend_thread>. */
+#define suspend_thread(...) \
+         fctname_nrargsof(suspend,_thread,__VA_ARGS__) (__VA_ARGS__)
+
+/* define: suspend0_thread
+ * Implements <thread_t.suspend0_thread>. */
+#define suspend0_thread() \
+         ((void) suspend1_thread(0))
 
 #endif

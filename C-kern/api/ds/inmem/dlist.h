@@ -366,29 +366,25 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix);
 /* define: cast_dlist
  * Implements <dlist_t.cast_dlist>. */
 #define cast_dlist(list) \
-         ( __extension__ ({                \
-            typeof(list) _l2 = (list);     \
-            static_assert(                 \
-               &(_l2->last)                \
-               == &((dlist_t*) (uintptr_t) \
-                     _l2)->last,           \
-                  "compatible structure"   \
-            );                             \
-            (dlist_t*) _l2;                \
+         ( __extension__ ({                     \
+            typeof(list) _l = (list);           \
+            static_assert(                      \
+               &(_l->last) ==                   \
+               &(((dlist_t*)&_l->last)->last),  \
+               "ensure compatible structure");  \
+            (dlist_t*) &_l->last;               \
          }))
 
 /* define: castconst_dlist
  * Implements <dlist_t.castconst_dlist>. */
 #define castconst_dlist(list) \
-         ( __extension__ ({                \
-            typeof(list) _l2 = (list);     \
-            static_assert(                 \
-               &(_l2->last)                \
-               == &((dlist_t*) (uintptr_t) \
-                     _l2)->last,           \
-                  "compatible structure"   \
-            );                             \
-            (const dlist_t*) _l2;          \
+         ( __extension__ ({                           \
+            typeof(list) _l = (list);                 \
+            static_assert(                            \
+               &(_l->last) ==                         \
+               &(((const dlist_t*)&_l->last)->last),  \
+               "ensure compatible structure");        \
+            (const dlist_t*) &_l->last;               \
          }))
 
 /* define: first_dlist

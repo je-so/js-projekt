@@ -20,6 +20,18 @@
 
 // section: Macros
 
+// group: helper-macros
+
+/* define: MACRO
+ * Allows the preprocessor to replace any macro arguments with their value before calling another macro.
+ * This macro helps to implement helper macros for which two implementations needs to be provided normally.
+ * See CONCAT and CONCAT2 for example.
+ *
+ * Parameter:
+ * _M   - Name of the macro function.
+ * ...  - Any parameters, possible macros itself, the function is called with. */
+#define MACRO(_M,...)                  _M(__VA_ARGS__)
+
 // group: string
 
 /* define: CONCAT
@@ -121,6 +133,42 @@
  * Set it to either an empty value ,, or to ,const,.
  * See <memblock_t.cast_memblock> for an example. */
 #define TYPEQUALIFIER                  void*
+
+// group: function-call
+
+/* define: nrargsof_get11th
+ * Returns the 11th argument of the parameter list.
+ * Use MACRO to call this helper to replace macro argument before this macro is called. */
+#define nrargsof_get11th(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,...) _11
+
+/* define: nrargsof_helper0
+ * Helper function supporting functions up to 9 arguments.
+ *
+ * Used in nrargsof as:
+ * > nrargsof_helper0 __VA_ARGS__ ()
+ * This token sequence resolves to nrargsof_helper0() in case __VA_ARGS__ is an empty parameter list.
+ * In case __VA_ARGS__ contains one parameter it resolves to a single argument "nrargsof_helper0 ARG1 ()" .
+ * In case of two parameters it resolves to two arguments "nrargsof_helper0 ARG1,ARG2 ()" and so on. */
+#define nrargsof_helper0()             1,2,3,4,5,6,7,8,9,10
+
+/* define: nrargsof
+ * Determines the number of arguments in the given parameter list (...).
+ * A maximum number of 9 parameters is supported. */
+#define nrargsof(...)                  MACRO(nrargsof_get11th, nrargsof_helper0 __VA_ARGS__ (),0,9,8,7,6,5,4,3,2,1,-1)
+
+/* define: fctname_nrargsof(fctname, _suffix, ...)
+ * Rturns function name out of fctname0_suffix,...,fctname9_suffix depending on the number of arguments.
+ * The number of arguments supported are between 0 and 9 inclusive.
+ *
+ * Parameter:
+ * fctname   - The name of function
+ * _suffix   - The suffix of the function.
+ * ...       - The number of parameters the function should be called with.
+ *
+ * Returns:
+ * fctnameNR_suffix where NR is replaced with a single digit from [0..9] depending on the number of parameters. */
+#define fctname_nrargsof(fctname, _suffix, ...) \
+         CONCAT( fctname, CONCAT(nrargsof(__VA_ARGS__), _suffix))
 
 // group: size-calculations
 

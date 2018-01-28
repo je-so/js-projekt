@@ -133,15 +133,6 @@ int init_logwriter(/*out*/logwriter_t * lgwrt);
  * No error log is written cause function is called during system initialization. */
 int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= log_config_MINSIZE*/, uint8_t logbuf[bufsize]);
 
-/* function: initshared_logwriter
- * Initializes a <logwriter_t> singleton with static memory.
- * Every initialized instance shares the same memory. Therefore using
- * more than one instance produces wrong log results
- * (memory is overwritten by other instance).
- *
- * Is used by <maincontext_t.initrun_maincontext> to initialize field initlog. */
-void initshared_logwriter(/*out*/logwriter_t * lgwrt);
-
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
  * In case the function is called more than it does nothing. */
@@ -150,10 +141,6 @@ int free_logwriter(logwriter_t * lgwrt);
 /* function: freestatic_logwriter
  * Does nothing at the moment except for setting lgwrt to a freed state. */
 void freestatic_logwriter(/*out*/logwriter_t * lgwrt);
-
-/* function: freeshared_logwriter
- * Does nothing at the moment except for setting lgwrt to a freed state. */
-void freeshared_logwriter(/*out*/logwriter_t * lgwrt);
 
 // group: query
 
@@ -227,10 +214,5 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
  * Inline implementation of <logwriter_t.minbufsize_logwriter>. */
 #define minbufsize_logwriter() \
          (log_channel__NROF * log_config_MINSIZE)
-
-/* define: freeshared_logwriter
- * Inline implementation of <logwriter_t.freeshared_logwriter>. */
-#define freeshared_logwriter(lgwrt) \
-         freestatic_logwriter(lgwrt)
 
 #endif

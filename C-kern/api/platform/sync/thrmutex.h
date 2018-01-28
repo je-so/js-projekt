@@ -17,13 +17,12 @@
 #ifndef CKERN_PLATFORM_SYNC_THRMUTEX_HEADER
 #define CKERN_PLATFORM_SYNC_THRMUTEX_HEADER
 
-// forward
-struct thread_t ;
-struct slist_node_t ;
+// import
+struct thread_t;
+struct dlist_node_t;
 
-/* typedef: struct thrmutex_t
- * Export <thrmutex_t> into global namespace. */
-typedef struct thrmutex_t                 thrmutex_t ;
+// === exported types
+struct thrmutex_t;
 
 
 // section: Functions
@@ -42,20 +41,20 @@ int unittest_platform_sync_thrmutex(void) ;
  * shared between multiple threads. If you want to share data between processes
  * use <mutex_t>. Call <lock_threamutex> before you want to use the data
  * structure. Call <unlock_threadmutex> after you no longer need access to it. */
-struct thrmutex_t {
+typedef struct thrmutex_t {
    /* variable: last
     * Points to last entry in list of waiting threads.
     * Threads trying to lock the mutex are appended to the end of the list. */
-   struct slist_node_t *   last ;
+   struct dlist_node_t *last ;
    /* variable: lockholder
     * The threads which acquired the lock and is allowed to run.
     * If this value is 0 <last> is also 0 and the no one has locked the mutex. */
-   struct thread_t *       lockholder ;
+   struct thread_t     *lockholder;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
-   uint8_t                 lockflag ;
-} ;
+   uint8_t              lockflag;
+} thrmutex_t;
 
 // group: lifetime
 

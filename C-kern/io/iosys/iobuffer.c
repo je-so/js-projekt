@@ -225,7 +225,7 @@ int readnext_iobufferstream(iobuffer_stream_t* iostream, /*out*/struct memblock_
    }
 
    while (iostate_QUEUED == iostream->iotask[iostream->nextbuffer].state) {
-      wait_eventcount(&iostream->ready);
+      wait_eventcount(&iostream->ready,0);
    }
 
    if (iostate_OK != iostream->iotask[iostream->nextbuffer].state) {
@@ -396,7 +396,7 @@ static int test_initfree_stream(directory_t* tmpdir)
       // check iostream.iotask[]
       for (unsigned i = 0; i < lengthof(iostream.iotask); ++i) {
          while (iostream.iotask[i].state == iostate_QUEUED) {
-            wait_eventcount(&iostream.ready);
+            wait_eventcount(&iostream.ready,0);
          }
          TEST(iostream.iotask[i].iolist_next == 0);
          TEST(iostream.iotask[i].op      == ioop_READ);

@@ -421,7 +421,7 @@ static int test_noop(void)
       // check
       for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         wait_eventcount(&counter);
+         wait_eventcount(&counter,0);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, 0, iostate_OK, ioop_NOOP, file_STDERR, -1, buffer, 1, &counter));
       }
@@ -430,7 +430,6 @@ static int test_noop(void)
    // reset0
    TEST(0 == free_iothread(&iothr));
    TEST(0 == free_eventcount(&counter));
-
 
    return 0;
 ONERR:
@@ -483,7 +482,7 @@ static int test_read(directory_t* tmpdir)
       for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            wait_eventcount(&counter);
+            wait_eventcount(&counter,0);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_READ, io_file(file),
@@ -517,7 +516,7 @@ static int test_read(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            wait_eventcount(&counter);
+            wait_eventcount(&counter,0);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_READ, io_file(file),
@@ -630,7 +629,7 @@ static int test_write(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            wait_eventcount(&counter);
+            wait_eventcount(&counter,0);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_WRITE, io_file(file),
@@ -665,7 +664,7 @@ static int test_write(directory_t* tmpdir)
       for (unsigned i = 0; i < nrio; ++i) {
          // wait for ready counter
          while (iostate_QUEUED == read_atomicint(&iotask[i]->state)) {
-            wait_eventcount(&counter);
+            wait_eventcount(&counter,0);
          }
          // check iotask
          TEST(0 == compare_iotask(iotask[i], 0, mblock[i].size, iostate_OK, ioop_WRITE, io_file(file),
@@ -769,7 +768,7 @@ static int test_rwerror(void)
       // check
       for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         wait_eventcount(&counter);
+         wait_eventcount(&counter,0);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], EBADF, 0, iostate_ERROR, (i%2) ? ioop_READ : ioop_WRITE, -1,
                      -1, buffer, sizeof(buffer), &counter));
@@ -797,7 +796,7 @@ static int test_rwerror(void)
       // check
       for (size_t i = 0; i < nrio; ++i) {
          // wait for ready counter
-         wait_eventcount(&counter);
+         wait_eventcount(&counter,0);
          // check iotask
          TEST(0 == compare_iotask(iotask[i], EINVAL, 0, iostate_ERROR, (i%3) == 2 ? ioop__NROF : (i%3) == 1 ? ioop_READ : ioop_WRITE, file_STDOUT,
                      -1, (i%3) == 0 ? 0 : buffer, (i%3) == 1 ? 0 : sizeof(buffer), &counter));
@@ -815,7 +814,7 @@ static int test_rwerror(void)
    init_testerrortimer(&s_iothread_errtimer, 1, 1);
    // test
    insertiotask_iothread(&iothr, lengthof(iotask), &iotask[0]);
-   wait_eventcount(&counter);
+   wait_eventcount(&counter,0);
    // check iolist
    TEST(iothr.iolist.last != 0);
    TEST(iothr.iolist.size == lengthof(iotask)-1);
@@ -881,7 +880,7 @@ static int test_rwpartial(directory_t* tmpdir)
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for writer ready
-      wait_eventcount(&counter);
+      wait_eventcount(&counter,0);
       // check iotask
       TEST(iotask->iolist_next == 0);
       TEST(iotask->bytesrw    == writebuf.size);
@@ -910,7 +909,7 @@ static int test_rwpartial(directory_t* tmpdir)
       init_testerrortimer(&s_iothread_errtimer, 2/*trigger partial io*/, 1);
       insertiotask_iothread(&iothr, 1, &iotask);
       // wait for reader ready
-      wait_eventcount(&counter);
+      wait_eventcount(&counter,0);
       // check iotask.ioop[0]
       TEST(iotask->iolist_next == 0);
       TEST(iotask->bytesrw    == writebuf.size);

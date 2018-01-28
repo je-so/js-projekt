@@ -17,6 +17,8 @@
 #ifndef CKERN_PLATFORM_INIT_HEADER
 #define CKERN_PLATFORM_INIT_HEADER
 
+// === exported types
+
 /* typedef: thread_f
  * Signature of main thread. */
 typedef int (* thread_f) (void * thread_arg);

@@ -38,7 +38,7 @@
 #ifndef CKERN_DS_INMEM_OLIST_HEADER
 #define CKERN_DS_INMEM_OLIST_HEADER
 
-// exported types
+// === exported types
 struct olist_t;
 struct olist_node_t;
 

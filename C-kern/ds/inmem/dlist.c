@@ -1126,17 +1126,17 @@ static int test_generic(void)
 
    // TEST cast_dlist
    struct {
+      uint8_t        dummy;
       dlist_node_t * last;
-      dlist_node_t * first;
    }  xlist;
-   TEST((dlist_t*)&xlist == cast_dlist(&xlist));
+   TEST((dlist_t*)&xlist.last == cast_dlist(&xlist));
 
    // TEST castconst_dlist
    const struct {
+      uint8_t        dummy;
       dlist_node_t * last;
-      dlist_node_t * first;
    } xlist2;
-   TEST((const dlist_t*)&xlist2 == castconst_dlist(&xlist2));
+   TEST((const dlist_t*)&xlist2.last == castconst_dlist(&xlist2));
 
    // == initfree ==
 

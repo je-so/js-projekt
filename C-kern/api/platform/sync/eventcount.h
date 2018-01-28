@@ -14,7 +14,7 @@
    This program is free software. See accompanying LICENSE file.
 
    Author:
-   (C) 2017 Jörg Seebohn
+   (C) 2018 Jörg Seebohn
 
    file: C-kern/api/platform/sync/eventcount.h
     Header file <EventCounter>.
@@ -26,9 +26,10 @@
 #define CKERN_PLATFORM_SYNC_EVENTCOUNT_HEADER
 
 // imported types
-struct slist_node_t;
+struct dlist_node_t;
+struct timevalue_t;
 
-// exported types
+// === exported types
 struct eventcount_t;
 
 
@@ -71,7 +72,7 @@ typedef struct eventcount_t {
    int32_t                 nrevents;
    /* variable: last
     * Points to the last thread of a list of waiting threads. */
-   struct slist_node_t  *  last;
+   struct dlist_node_t  *  last;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
@@ -138,8 +139,13 @@ int trywait_eventcount(eventcount_t* counter);
  *
  * Checked Precondition:
  * assert(nrwaiting_eventcount(counter) != -INT32_MIN);
- * Program is aborted if otherwise */
-void wait_eventcount(eventcount_t* counter);
+ * Program is aborted if otherwise
+ *
+ * Returns:
+ * 0      - Decremented counter successfully by one.
+ * EAGAIN - Timeout expired or was interrupted.
+ *          Removed thread wait list and did not change counter value. */
+int wait_eventcount(eventcount_t* counter, struct timevalue_t* timeout/*null: NO TIMEOUT*/);
 
 
 // section: inline implementation

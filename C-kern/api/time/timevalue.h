@@ -12,14 +12,27 @@
 
    file: C-kern/api/time/timevalue.h
     Header file <TimeValue>.
+
+   file: C-kern/time/timevalue.c
+    Implementation file <TimeValue impl>.
 */
 #ifndef CKERN_TIME_TIMEVALUE_HEADER
 #define CKERN_TIME_TIMEVALUE_HEADER
 
 
-/* typedef: struct timevalue_t
- * Exports <timevalue_t>. */
-typedef struct timevalue_t timevalue_t;
+// === exported types
+struct timevalue_t;
+
+
+// section: Functions
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_time_timevalue
+ * Test <timevalue_t> functionality. */
+int unittest_time_timevalue(void);
+#endif
 
 
 /* struct: timevalue_t
@@ -27,7 +40,7 @@ typedef struct timevalue_t timevalue_t;
  * An absolute time value is normally measured in seconds since Epoch,
  * 1970-01-01 00:00:00 +0000 (UTC).
  * But this can differ between different clock types. */
-struct timevalue_t {
+typedef struct timevalue_t {
    /* variable: seconds
     * The seconds counted from some point in time.
     * The value is of signed type to allow computing the difference. */
@@ -37,7 +50,7 @@ struct timevalue_t {
     * This value is between 0 and 999999999.
     * The value is of signed type to allow computing the difference. */
    int32_t  nanosec;
-};
+} timevalue_t;
 
 // group: lifetime
 
@@ -50,17 +63,17 @@ struct timevalue_t {
 
 /* function: isvalid_timevalue
  * Returns true if tv contains a valid value. */
-bool isvalid_timevalue(timevalue_t* tv);
+static inline int isvalid_timevalue(const timevalue_t* tv);
 
 /* function: diffms_timevalue
  * Returns time difference of (endtv - starttv) in milliseconds.
  * The computed value is not checked for overflow ! */
-int64_t diffms_timevalue(timevalue_t* endtv, timevalue_t* starttv);
+static inline int64_t diffms_timevalue(timevalue_t* endtv, timevalue_t* starttv);
 
 /* function: diffus_timevalue
  * Returns time difference of (endtv - starttv) in microseconds.
  * The computed value is not checked for overflow ! */
-int64_t diffus_timevalue(timevalue_t* endtv, timevalue_t* starttv);
+static inline int64_t diffus_timevalue(timevalue_t* endtv, timevalue_t* starttv);
 
 // group: generic
 
@@ -93,27 +106,25 @@ timevalue_t* cast_timevalue(void* obj);
 
 /* define: diffms_timevalue
  * Implements <timevalue_t.diffms_timevalue>. */
-#define diffms_timevalue(endtv, starttv) \
-         ( __extension__ ({                              \
-            timevalue_t * _etv = (endtv);                \
-            timevalue_t * _stv = (starttv);              \
-            (_etv->seconds - _stv->seconds) * 1000       \
-            + (_etv->nanosec - _stv->nanosec) / 1000000; \
-         }))
+static inline int64_t diffms_timevalue(timevalue_t* endtv, timevalue_t* starttv)
+{
+            return (endtv->seconds - starttv->seconds) * 1000
+                  + (endtv->nanosec - starttv->nanosec) / 1000000;
+}
 
 /* define: diffus_timevalue
  * Implements <timevalue_t.diffus_timevalue>. */
-#define diffus_timevalue(endtv, starttv) \
-         ( __extension__ ({                           \
-            typeof(endtv)   _etv = (endtv);           \
-            typeof(starttv) _stv = (starttv);         \
-            (_etv->seconds - _stv->seconds) * 1000000 \
-            + (_etv->nanosec - _stv->nanosec) / 1000; \
-         }))
+static inline int64_t diffus_timevalue(timevalue_t* endtv, timevalue_t* starttv)
+{
+            return (endtv->seconds - starttv->seconds) * 1000000
+                  + (endtv->nanosec - starttv->nanosec) / 1000;
+}
 
 /* define: isvalid_timevalue
  * Implements <timevalue_t.isvalid_timevalue>. */
-#define isvalid_timevalue(tv) \
-         (((uint32_t)(tv)->nanosec) <= 999999999)
+static inline int isvalid_timevalue(const timevalue_t* tv)
+{
+         return tv->seconds >= 0 && (uint32_t)tv->nanosec <= 999999999;
+}
 
 #endif

@@ -1,48 +1,48 @@
-[1: 1443695045.263157s]
+[1: 1516518910.888486s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:137
 Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.263171s]
+[1: 1516518910.888493s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:112
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.263177s]
-startinterval_systimer() C-kern/platform/Linux/time/systimer.c:137
-Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695045.263182s]
-start_systimer() C-kern/platform/Linux/time/systimer.c:112
-Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-Exit function with
-Error 22 - Invalid argument
-[1: 1443695045.263186s]
+[1: 1516518910.888495s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:136
 Function input violates condition (isvalid_timevalue(interval_time))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.263194s]
+[1: 1516518910.888496s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:111
 Function input violates condition (isvalid_timevalue(relative_time))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.263198s]
+[1: 1516518910.888497s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:136
 Function input violates condition (isvalid_timevalue(interval_time))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.263202s]
+[1: 1516518910.888503s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:111
 Function input violates condition (isvalid_timevalue(relative_time))
 Exit function with
 Error 22 - Invalid argument
-[1: 1443695045.264398s]
+[1: 1516518910.888504s]
+startinterval_systimer() C-kern/platform/Linux/time/systimer.c:136
+Function input violates condition (isvalid_timevalue(interval_time))
+Exit function with
+Error 22 - Invalid argument
+[1: 1516518910.888505s]
+start_systimer() C-kern/platform/Linux/time/systimer.c:111
+Function input violates condition (isvalid_timevalue(relative_time))
+Exit function with
+Error 22 - Invalid argument
+[1: 1516518910.889741s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:204
 Exit function with
 Error 62 - Timer expired
-[1: 1443695045.265478s]
+[1: 1516518910.890873s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:204
 Exit function with
 Error 62 - Timer expired

@@ -19,12 +19,11 @@
 #ifndef CKERN_PLATFORM_SYNC_SIGNAL_HEADER
 #define CKERN_PLATFORM_SYNC_SIGNAL_HEADER
 
-// forward
-struct thread_t ;
+// import
+struct thread_t;
 
-
-// ==== exported types
-typedef struct signalhandler_t signalhandler_t;
+// === exported types
+struct signalhandler_t;
 struct signalstate_t;
 // signalwait_t;
 
@@ -61,7 +60,7 @@ int unittest_platform_sync_signal(void);
 
 /* struct: signalhandler_t
  * Stores signal handler for the whole process. */
-struct signalhandler_t ;
+typedef struct signalhandler_t signalhandler_t;
 
 // group: init
 
@@ -159,7 +158,7 @@ int send_signalrt(signalrt_t nr, uintptr_t value) ;
  * If more than one thread waits (<wait_signalrt>) for the signal
  * only the specified thread receives the signal.
  * If the receiving queue is full EAGAIN is returned and no signal is sent. */
-int send2_signalrt(signalrt_t nr, uintptr_t value, const struct thread_t * thread) ;
+int send2_signalrt(signalrt_t nr, uintptr_t value, const struct thread_t* thread) ;
 
 /* function: wait_signalrt
  * Waits for a realtime signal with number nr.

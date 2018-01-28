@@ -157,99 +157,6 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_timevalue(void)
-{
-   timevalue_t timeval;
-   timevalue_t timeval2;
-
-   // TEST timevalue_INIT
-   timeval = (timevalue_t) timevalue_INIT(10, 1000);
-   TEST(timeval.seconds == 10);
-   TEST(timeval.nanosec == 1000);
-   timeval = (timevalue_t) timevalue_INIT(0, 1);
-   TEST(timeval.seconds == 0);
-   TEST(timeval.nanosec == 1);
-
-   // TEST isvalid_timevalue
-   timeval = (timevalue_t) timevalue_INIT(0, 0);
-   TEST(true == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(0, 999999999u);
-   TEST(true == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(INT64_MAX, 999999999u);
-   TEST(true == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(INT64_MIN, 999999999u);
-   TEST(true == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(0, 1 + 999999999u);
-   TEST(false == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(INT64_MIN, 1 + 999999999u);
-   TEST(false == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(INT64_MAX, 1 + 999999999u);
-   TEST(false == isvalid_timevalue(&timeval));
-   timeval = (timevalue_t) timevalue_INIT(0, -1);
-   TEST(false == isvalid_timevalue(&timeval));
-
-   // TEST diffms_timevalue
-   timeval  = (timevalue_t) timevalue_INIT(0, 0);
-   timeval2 = (timevalue_t) timevalue_INIT(0, 0);
-   TEST(0 == diffms_timevalue(&timeval2, &timeval));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 0);
-   TEST(3000 == diffms_timevalue(&timeval2, &timeval));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 999999);
-   TEST(3000 == diffms_timevalue(&timeval2, &timeval));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 1000000);
-   TEST(3001 == diffms_timevalue(&timeval2, &timeval));
-   timeval  = (timevalue_t) timevalue_INIT(1, 0);
-   TEST(2001 == diffms_timevalue(&timeval2, &timeval));
-   timeval  = (timevalue_t) timevalue_INIT(1, 4000000);
-   TEST(1997 == diffms_timevalue(&timeval2, &timeval));
-   timeval  = (timevalue_t) timevalue_INIT(2, 999999999);
-   timeval2 = (timevalue_t) timevalue_INIT(1, 1000000);
-   TEST(-1998 == diffms_timevalue(&timeval2, &timeval));
-
-   // TEST diffus_timevalue
-   timeval  = (timevalue_t) timevalue_INIT(0, 0);
-   timeval2 = (timevalue_t) timevalue_INIT(0, 0);
-   TEST(0 == diffus_timevalue(&timeval2, &timeval));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 0);
-   TEST(3000000 == diffus_timevalue(&timeval2, &timeval));
-   TEST(-3000000 == diffus_timevalue(&timeval, &timeval2));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 999999999);
-   TEST(3999999 == diffus_timevalue(&timeval2, &timeval));
-   TEST(-3999999 == diffus_timevalue(&timeval, &timeval2));
-   timeval2 = (timevalue_t) timevalue_INIT(3, 1000);
-   TEST(3000001 == diffus_timevalue(&timeval2, &timeval));
-   TEST(-3000001 == diffus_timevalue(&timeval, &timeval2));
-   timeval  = (timevalue_t) timevalue_INIT(1, 0);
-   TEST(2000001 == diffus_timevalue(&timeval2, &timeval));
-   TEST(-2000001 == diffus_timevalue(&timeval, &timeval2));
-   timeval  = (timevalue_t) timevalue_INIT(1, 4000000);
-   TEST(1996001 == diffus_timevalue(&timeval2, &timeval));
-   TEST(-1996001 == diffus_timevalue(&timeval, &timeval2));
-
-   // TEST cast_timevalue: from same type
-   TEST(&timeval == cast_timevalue(&timeval));
-   TEST(&timeval2 == cast_timevalue(&timeval2));
-
-   // TEST cast_timevalue: from compatible type
-   struct {
-      int64_t seconds;
-      int32_t nanosec;
-   } tv3;
-   TEST((timevalue_t*)&tv3 == cast_timevalue(&tv3));
-
-   // TEST cast_timevalue: from compatible type + offset
-   struct {
-      double  dummy;
-      int64_t seconds;
-      int32_t nanosec;
-   } tv4;
-   TEST((timevalue_t*)&tv4.seconds == cast_timevalue(&tv4));
-
-   return 0;
-ONERR:
-   return EINVAL;
-}
-
 static int test_clockquery(void)
 {
    timevalue_t timeval;
@@ -353,7 +260,6 @@ ONERR:
 
 int unittest_time_sysclock()
 {
-   if (test_timevalue())   goto ONERR;
    if (test_clockquery())  goto ONERR;
    if (test_clockwait())   goto ONERR;
 

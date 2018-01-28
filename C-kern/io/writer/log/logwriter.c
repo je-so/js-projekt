@@ -80,8 +80,6 @@ static logwriter_it  s_logwriter_interface = {
                         &setstate_logwriter
                      };
 
-static uint8_t       s_logwriter_sharedbuffer[log_config_MINSIZE];
-
 
 // group: initthread
 
@@ -176,11 +174,6 @@ int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= minbufsi
 ONERR:
    TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, EINVAL);
    return EINVAL;
-}
-
-void initshared_logwriter(/*out*/logwriter_t * lgwrt)
-{
-   (void) initstatic_logwriter(lgwrt, sizeof(s_logwriter_sharedbuffer), s_logwriter_sharedbuffer);
 }
 
 int free_logwriter(logwriter_t * lgwrt)
@@ -482,26 +475,6 @@ static int test_initfree(void)
    }
    freestatic_logwriter(&lgwrt);
    TEST(1 == isfree_logwriter(&lgwrt));
-
-   // TEST initshared_logwriter
-   initshared_logwriter(&lgwrt);
-   TEST(lgwrt.addr == s_logwriter_sharedbuffer);
-   TEST(lgwrt.size == sizeof(s_logwriter_sharedbuffer));
-   for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
-      int isErr = (i == log_channel_ERR);
-      TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
-      TEST(lgwrt.chan[i].logbuf.size == (isErr ? lgwrt.size : 0));
-      TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR);
-      TEST(lgwrt.chan[i].logbuf.logsize == 0);
-      TEST(lgwrt.chan[i].logstate    == (isErr ? log_state_BUFFERED : log_state_IGNORED));
-      offset += lgwrt.chan[i].logbuf.size;
-   }
-
-   // TEST freeshared_logwriter
-   for (int tc = 0; tc < 2; ++tc) {
-      freeshared_logwriter(&lgwrt);
-      TEST(1 == isfree_logwriter(&lgwrt));
-   }
 
    // TEST initstatic_logwriter: EINVAL (maincontext valid)
    uint8_t * logbuffer;

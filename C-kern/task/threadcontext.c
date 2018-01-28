@@ -223,8 +223,7 @@ int free_threadcontext(threadcontext_t* tcontext)
       s_threadcontext_nextid = 0;
    }
 
-   tcontext->thread_id = staticcontext.thread_id;
-
+   // keep tcontext->thread_id
    // keep tcontext->maincontext
 
    if (err) goto ONERR;
@@ -347,7 +346,6 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext)
             && 0 == tcontext->syncrunner
             && 0 == tcontext->objectcache.object && 0 == tcontext->objectcache.iimpl
             && (struct log_t*) log == tcontext->log.object && interface_logwriter() == tcontext->log.iimpl
-            && 0 == tcontext->thread_id
             && 0 == tcontext->initcount
             && 0 == tcontext->staticmemblock;
 }
@@ -675,8 +673,8 @@ static int test_query(void)
    tcontext.log.iimpl = 0;
    TEST(0 == isstatic_threadcontext(&tcontext));
    tcontext.log.iimpl = interface_logwriter();
-   tcontext.thread_id = 1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
+   tcontext.thread_id = 1; // does not matter !
+   TEST(1 == isstatic_threadcontext(&tcontext));
    tcontext.thread_id = 0;
    tcontext.initcount = 1;
    TEST(0 == isstatic_threadcontext(&tcontext));

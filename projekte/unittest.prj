@@ -28,6 +28,7 @@ Src           += C-kern/stdtypes/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/task/*.c
 Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/run_unittest.c
+Src           += C-kern/time/*.c
 
 
 ifdef KONFIG_GRAPHICS

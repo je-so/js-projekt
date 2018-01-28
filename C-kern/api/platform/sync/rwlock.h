@@ -17,12 +17,11 @@
 #ifndef CKERN_PLATFORM_SYNC_RWLOCK_HEADER
 #define CKERN_PLATFORM_SYNC_RWLOCK_HEADER
 
-// forward
-struct slist_node_t ;
+// import
+struct dlist_node_t;
 
-/* typedef: struct rwlock_t
- * Export <rwlock_t> into global namespace. */
-typedef struct rwlock_t                   rwlock_t ;
+// === exported types
+ struct rwlock_t;
 
 
 // section: Functions
@@ -67,32 +66,32 @@ int unittest_platform_sync_rwlock(void) ;
  * or <unlockwriter_rwlock> are known to the woken up thread.
  *
  */
-struct rwlock_t {
+typedef struct rwlock_t {
    /* variable: readers
     * Points to last entry in list of waiting readers.
     * Threads which can not lock rwlock for reading are appended to the end of the list. */
    struct {
-      struct slist_node_t *   last ;
-   }                       readers ;
+      struct dlist_node_t *last;
+   }                       readers;
    /* variable: writers
     * Points to last entry in list of waiting writers.
     * Threads which can not lock rwlock for writing are appended to the end of the list. */
    struct {
-      struct slist_node_t *   last ;
-   }                       writers ;
+      struct dlist_node_t *last;
+   }                       writers;
    /* variable: writer
     * The thread which holds <entrylock>. If <nrofreader> is greater 0
     * it is in suspended state. */
-   struct thread_t *       writer  ;
+   struct thread_t        *writer;
    /* variable: nrofreader
     * The number of readers currently reading the protected data structure.
     * If this value is no reader has acquired this lock. */
-   uint32_t                nrofreader ;
+   uint32_t                nrofreader;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
-   uint8_t                 lockflag ;
-} ;
+   uint8_t                 lockflag;
+} rwlock_t;
 
 // group: lifetime
 

@@ -109,7 +109,7 @@ static int threadmain_perftest(void * arg)
 
    timevalue_t tv;
    if (0 == time_sysclock(sysclock_MONOTONIC, &tv)) {
-      tinst->usec = diffus_timevalue(&tv, &ptest->start_time);
+      tinst->usec = diffus_timevalue(&tv, cast_timevalue(&ptest->start_time));
    }
 
    if (ptest->iimpl->unprepare) {
