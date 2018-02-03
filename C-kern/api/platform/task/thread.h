@@ -117,6 +117,33 @@ typedef struct thread_t {
 #define thread_FREE \
          { threadcontext_FREE, {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
+/* function: initrun_thread
+ * Calls thread_main on a new stack with a new thread context.
+ * If an error occurs during initialization only an error code (> 0) is returned and
+ * thread_main is not called. In this case thread_retcode is set to -1.
+ * If thread_main has been called its return value is stored in thread_retcode if this pointer is not null.
+ * If an error occurs during freeing of resources this error code is returned but
+ * thread_retcode is not changed and keeps its value returned from thread_main.
+ *
+ * The main thread usually calls this function cause no new system is created.
+ * The thread of the caller is reused.
+ *
+ * Before thread_main is called a new (<thread_localstore_t>) is initialized and also a
+ * new <threadcontext_t> which is initialized to <threadcontext_t.threadcontext_INIT_STATIC>.
+ * So only a minimalistic statically initialized <logwriter_t> is available during
+ * execution of thread_main. thread_main has to initialize <threadcontext_t> for itself.
+ *
+ * It is assumed that <maincontext_t> has not been initialized except for the initlog.
+ * In case of an error yyy_LOG(INIT,...) is called.
+ *
+ * This function is called during execution of <maincontext_t.initrun_maincontext>
+ * to set up the thread environment of the main thread.
+ * */
+int runmain_thread(/*out;err*/int* thread_retcode, thread_f thread_main, void* main_arg);
+
+// TODO: implement initrun_thread
+// TODO: remove initmain_thread
+
 /* function: initmain_thread
  * Initializes main thread. Called from <syscontext_t.initrun_syscontext>.
  * */
@@ -127,7 +154,9 @@ void initmain_thread(/*out*/thread_t* thread, thread_f thread_main, void* main_a
  * On success the parameter thread points to the new thread object.
  * The thread has to do some internal initialization after running the first time
  * and before thread_main is called.
- * If the internal preparation goes wrong <maincontext_t.abort_maincontext> is called.
+ * Especially <init_threadcontext> is called to initialized a new thread context.
+ * If this operation fails the new thread exits immediately with an error code (ENOMEM for example.)
+ * If any other internal preparation goes wrong (which should never occur) <maincontext_t.abort_maincontext> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
 int new_thread(/*out*/thread_t** thread, thread_f thread_main, void* main_arg);
@@ -380,6 +409,8 @@ static int returncode_thread(const volatile thread_t* thread)
 #define self_thread() \
          ((thread_t*) sys_tcontext_syscontext())
 
+// TODO: remove is_abort,
+//       move setreturncode_thread and returncode_thread into module to guarantee execution (remove volatile)
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */
 #define setcontinue_thread(is_abort) \

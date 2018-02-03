@@ -77,6 +77,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filepath.c.o \
@@ -112,6 +113,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filepath.c.o \
@@ -156,6 +158,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
@@ -255,6 +260,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c

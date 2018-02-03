@@ -34,12 +34,7 @@ typedef int (* thread_f) (void * thread_arg);
 int unittest_platform_init(void);
 #endif
 
-
-/* struct: syscontext_t
- * Defined in module <LinuxSystemContext> for Linux platforms. */
-struct syscontext_t;
-
-// group: lifetime
+// TODO: remove init.h/init.c, reimplement initrun_syscontext as initrun_thread in module thread !!
 
 /* function: initrun_syscontext
  * Initialize platform and os specific parts of <maincontext_t> and then calls main_thread.
@@ -60,7 +55,7 @@ struct syscontext_t;
  * initialized system context. During execuion of main_thread scontext is initialized to a valid value.
  *
  * */
-int initrun_syscontext(/*out;err*/struct syscontext_t * scontext, thread_f main_thread, void * main_arg);
+int initrun_syscontext(thread_f main_thread, void * main_arg);
 
 
 #endif

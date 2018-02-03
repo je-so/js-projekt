@@ -18,9 +18,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/task/thread_localstore.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/log.h"
-#include "C-kern/api/io/writer/log/logbuffer.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/io/writer/log/logbuffer.h" // needed for _LOG(INIT,
+#include "C-kern/api/io/writer/log/logwriter.h" // needed for _LOG(INIT,
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/thread.h"

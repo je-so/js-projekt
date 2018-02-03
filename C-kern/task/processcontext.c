@@ -1,6 +1,6 @@
 /* title: ProcessContext impl
-   Implements the global context of the running system process.
-   See <ProcessContext>.
+
+   Implements <ProcessContext>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.

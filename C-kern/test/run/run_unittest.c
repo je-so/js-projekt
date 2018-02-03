@@ -286,6 +286,7 @@ static int run_all_test(maincontext_t * maincontext)
       RUN(unittest_platform_malloc);
       RUN(unittest_platform_init);
       RUN(unittest_platform_syslogin);
+      RUN(unittest_platform_syscontext);
       RUN(unittest_platform_vm);
       // user interface subsystem
 #if defined(KONFIG_USERINTERFACE_X11)

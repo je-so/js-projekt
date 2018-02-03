@@ -332,10 +332,10 @@ static inline void beginwrite_logwriter(
 
 static inline void endwrite_logwriter(logwriter_chan_t * chan, uint8_t flags)
 {
-   if (  (  chan->logstate != log_state_BUFFERED
-            || sizefree_logbuffer(&chan->logbuf) < log_config_MINSIZE)
-         && (  chan->logstate == log_state_IMMEDIATE
-               || 0 != (flags&log_flags_LAST))) {
+   if (  chan->logstate == log_state_IMMEDIATE
+         || (  (flags&log_flags_LAST)
+               && (  chan->logstate != log_state_BUFFERED
+                     || sizefree_logbuffer(&chan->logbuf) < log_config_MINSIZE))) {
       flush_logwriterchan(chan);
    }
 }

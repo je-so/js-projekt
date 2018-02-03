@@ -230,9 +230,9 @@ ONERR:
 
 int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * main_arg, int argc, const char** argv)
 {
-   int err;
-
+   int err,err2;
    int is_already_initialized = (maincontext_STATIC != g_maincontext.type);
+
    if (is_already_initialized) {
       TRACEEXIT_ERRLOG(EALREADY);
       return EALREADY;
@@ -254,15 +254,17 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * mai
       goto ONERR;
    }
 
-   // g_maincontext.type will be set after syscontext_t was set up
+   if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
+      err = init_syscontext(&g_maincontext.sysinfo);
+   }
+   if (err) goto ONERR;
 
    set_args_maincontext(&g_maincontext, main_thread, main_arg, argc, argv);
-
-   err = initrun_syscontext(&g_maincontext.sysinfo, &mainthread_maincontext, (void*) type);
-
+   err = initrun_syscontext(&mainthread_maincontext, (void*) type);
+   err2 = free_syscontext(&g_maincontext.sysinfo);
    clear_args_maincontext(&g_maincontext);
-
-   return err;
+// TODO: add test that syscontet is initialized and freed check init in test_thread !!
+   return err ? err : err2;
 ONERR:
    TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
@@ -437,6 +439,8 @@ ONERR:
 static int test_init(void)
 {
    // prepare
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   TEST(0 == init_syscontext(&g_maincontext.sysinfo));
    TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
 
    // TEST maincontext_INIT_STATIC
@@ -530,6 +534,7 @@ static int test_init(void)
    }
 
    // unprepare
+   TEST(0 == free_syscontext(&g_maincontext.sysinfo));
 
    return 0;
 ONERR:
@@ -552,6 +557,7 @@ static int test_init_param(maincontext_t * maincontext)
    if (maincontext->argc != (int) (1 + s_i)) return EINVAL;
    if (maincontext->argv != &s_argv[s_i]) return EINVAL;
    if (isfree_syscontext(&maincontext->sysinfo)) return EINVAL;
+   if (! isvalid_syscontext(&maincontext->sysinfo)) return EINVAL;
 
    s_is_called = 1;
 
@@ -580,12 +586,8 @@ static int test_ealready(maincontext_t * maincontext)
 
 static int test_initrun(void)
 {
-   syscontext_t oldinfo;
-
    // prepare
-   memcpy(&oldinfo, &g_maincontext.sysinfo, sizeof(oldinfo));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
-   g_maincontext.sysinfo = (syscontext_t) syscontext_FREE;
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
 
    // TEST initrun_maincontext: function called with initialized maincontext
    for (uintptr_t i = 0; i < lengthof(s_mainmode); ++i) {
@@ -596,11 +598,8 @@ static int test_initrun(void)
       TEST(0 == initrun_maincontext(s_mainmode[i], &test_init_param, (void*)(i+2), (int) (1+i), &s_argv[i]));
       TEST(1 == s_is_called);
 
-      // check free_maincontext called
+      // check free_syscontext, free_maincontext called
       TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-
-      // check syscontext is free
-      TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
    }
 
    // TEST initrun_maincontext: return value
@@ -610,11 +609,8 @@ static int test_initrun(void)
       TEST(i == (unsigned) initrun_maincontext(s_mainmode[i%lengthof(s_mainmode)], &test_init_returncode, (void*)i, 0, 0));
       TEST(1 == s_is_called);
 
-      // check free_maincontext called
+      // check free_syscontext, free_maincontext called
       TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-
-      // check syscontext is free
-      TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
    }
 
    // TEST initrun_maincontext: initlog is set up
@@ -634,11 +630,8 @@ static int test_initrun(void)
       TEST(s_maincontext_initlog.addr == s_maincontext_logbuffer);
       TEST(s_maincontext_initlog.size == sizeof(s_maincontext_logbuffer));
 
-      // check free_maincontext called
+      // check free_syscontext, free_maincontext called
       TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-
-      // check syscontext is free
-      TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
    }
 
    // TEST initrun_maincontext: EINVAL (but initlog setup ==> error log is written)
@@ -659,39 +652,34 @@ static int test_initrun(void)
    TEST(EALREADY == initrun_maincontext(maincontext_DEFAULT, &test_ealready, 0, 0, 0));
 
    // TEST initrun_maincontext: simulated error
-   for (int i = 1; i; ++i) {
+   for (unsigned i=1; ; ++i) {
       s_is_called = 0;
+      init_testerrortimer(&s_maincontext_errtimer, i, (int)i);
       // test
-      init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, i);
       int err = initrun_maincontext(s_mainmode[0], &test_init_returncode, 0, 0, 0);
-      TESTP((i >= 4) == s_is_called, "i=%d", i);
-
-      // check free_maincontext + clear_args_maincontext called
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-
-      // check syscontext is free
-      TEST(1 == isfree_syscontext(&g_maincontext.sysinfo));
-
+      TEST( i==8 || (unsigned)err == i);
+      // check calling of test_init_returncode
+      TESTP( (i >= 5) == s_is_called, "i=%d", i);
+      // check free_syscontext, free_maincontext, and clear_args_maincontext called
+      TEST( 0 == check_isstatic_maincontext(&g_maincontext, 0));
       if (!err) {
          free_testerrortimer(&s_maincontext_errtimer);
-         TEST(i == 7);
+         TEST(i == 8);
          break;
       }
    }
 
    // unprepare
-   g_maincontext.sysinfo = oldinfo;
 
    return 0;
 ONERR:
    free_testerrortimer(&s_maincontext_errtimer);
-   g_maincontext.sysinfo = oldinfo;
    return EINVAL;
 }
 
 static volatile int test_static_result;
 
-static int test_static(void * dummy)
+static int test_static(void* dummy)
 {
    TEST(0 == dummy);
    TEST(maincontext_STATIC == type_maincontext());
@@ -737,7 +725,7 @@ static int childprocess_unittest(void)
    TEST(0 == init_resourceusage(&usage));
    memcpy(&oldmc, &g_maincontext, sizeof(oldmc));
    g_maincontext = (maincontext_t) maincontext_INIT_STATIC;
-   TEST( 0 == initrun_syscontext(&g_maincontext.sysinfo, &test_static, (void*) 0));
+   TEST( 0 == initrun_syscontext(&test_static, (void*) 0));
    memcpy(&g_maincontext, &oldmc, sizeof(oldmc));
    TEST( 0 == test_static_result);
    TEST( 0 == same_resourceusage(&usage));
