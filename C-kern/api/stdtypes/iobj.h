@@ -133,6 +133,12 @@ void initcopySAFE_iobj(/*out*/iobj_t* restrict dest, const iobj_t* restrict src)
  * Can be used for any declared interfaceable object (see <iobj_T>). */
 void free_iobj(iobj_t* iobj);
 
+// group: query
+
+/* function: isfree_iobj
+ * Returns true if iobj is not initialized. Only data field object is tested! */
+int isfree_iobj(iobj_t* iobj);
+
 // group: generic
 
 /* function: cast_iobj
@@ -206,5 +212,10 @@ void* cast_iobj(void* iobj, IDNAME typenameprefix);
                "compatible with each other");                                 \
             initcopySAFE_iobj( (iobj_t*)dest, (const iobj_t*)src);            \
          } while (0)
+
+/* define: isfree_iobj
+ * Implements <iobj_t.isfree_iobj>. */
+#define isfree_iobj(iobj) \
+         (0==(iobj)->object)
 
 #endif

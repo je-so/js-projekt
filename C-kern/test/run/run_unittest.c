@@ -47,7 +47,7 @@ static void prepare_test(void)
 
    if (type_maincontext() != maincontext_DEFAULT) {
       // this makes created threads compatible with expected behaviour
-      log_t * ilog = cast_log(&log_maincontext());
+      ilog_t* ilog = &log_maincontext();
       ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_IGNORED);
       ilog->iimpl->setstate(ilog->object, log_channel_ERR,     log_state_BUFFERED);
       g_maincontext.type = maincontext_DEFAULT;

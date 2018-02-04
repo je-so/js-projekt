@@ -28,31 +28,33 @@
 // INIT for CALLFUNCTION_LOGINIT, AUTO for CALLFUNCTION_LOGAUTO and
 // leave it empty for CALLFUNCTION_LOG.
 
-/* define: CALLFUNCTION_LOG
- * Calls the function fname on the default log object.
- * The default log object is obtained with <maincontext_t.log_maincontext>. */
-#define CALLFUNCTION_LOG(fname, ...) \
-         ( __extension__ ({                                    \
-            threadcontext_log_t _iobj = log_maincontext();     \
-            _iobj.iimpl-> fname (_iobj.object, __VA_ARGS__);   \
-         }))
 
-/* define: CALLFUNCTION_LOGINIT
- * Calls the function fname on the init log object.
+/* define: GETOBJECT_LOG
+ * Returns the default log object used during and after setup of <threadcontext_t>.
+ * The default log object is obtained with <maincontext_t.log_maincontext>. */
+#define GETOBJECT_LOG() \
+         log_maincontext()
+
+/* define: GETOBJECT_LOGINIT
+ * Returns the log object used during initialization of <maincontext_t>.
  * The init log object is obtained with g_maincontext.initlog.
  * This binding does not work in a module environment. */
-#define CALLFUNCTION_LOGINIT(fname, ...) \
-         fname ## _logwriter(g_maincontext.initlog, __VA_ARGS__)
+#define GETOBJECT_LOGINIT() \
+         g_maincontext.initlog
 
-/* define: CALLFUNCTION_LOGAUTO
- * Calls the function fname on either the init log object or defaukt log object.
+/* define: GETOBJECT_LOGAUTO
+ * Returns the init log object or default log object depending on the state of <maincontext_t>.
  * This binding does not work in a module environment. */
-#define CALLFUNCTION_LOGAUTO(fname, ...) \
-         if (maincontext_STATIC != g_maincontext.type) { \
-            CALLFUNCTION_LOG(fname, __VA_ARGS__);        \
-         } else {                                        \
-            CALLFUNCTION_LOGINIT(fname, __VA_ARGS__);    \
-         }
+#define GETOBJECT_LOGAUTO() \
+         ((maincontext_STATIC != g_maincontext.type)?GETOBJECT_LOG():GETOBJECT_LOGINIT())
+
+/* define: CALLFUNCTION_LOG
+ * Calls the function fname on the log object obtained by GETOBJECT_LOG ## BIND. See <ilog_t> and <log_it>. */
+#define CALLFUNCTION_LOG(BIND, fname, ...) \
+         ( __extension__ ({                                    \
+            ilog_t _iobj = CONCAT(GETOBJECT_LOG,BIND)();       \
+            _iobj.iimpl-> fname (_iobj.object, __VA_ARGS__);   \
+         }))
 
 // group: query
 
@@ -67,7 +69,7 @@
  *              The string is terminated with a 0 byte.
  * size       - Contains size of of C string after return. It does does not include the 0 byte. */
 #define GETBUFFER_LOG(BIND, LOGCHANNEL, /*out uint8_t ** */buffer, /*out size_t * */size) \
-         CALLFUNCTION_LOG ## BIND(getbuffer, LOGCHANNEL, buffer, size)
+         CALLFUNCTION_LOG(BIND, getbuffer, LOGCHANNEL, buffer, size)
 
 /* define: COMPARE_LOG
  * Compare logbuffer[size] to buffered log entries.
@@ -75,12 +77,12 @@
  * See also <compare_logwriter>.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log. Use AUTO if the function is used during initialization and normal operation.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * logsize    - Contains size of logbuffer.
  * buffer     - Contains pointer to the logbuffer in memory which is compared to the internal buffer. */
 #define COMPARE_LOG(BIND, LOGCHANNEL, /*size_t*/size, /*const char[size]*/logbuffer) \
-         CALLFUNCTION_LOG ## BIND(compare, LOGCHANNEL, size, logbuffer)
+         CALLFUNCTION_LOG(BIND, compare, LOGCHANNEL, size, logbuffer)
 
 /* define: GETSTATE_LOG
  * Returns <log_state_e> for LOGCHANNEL.
@@ -89,19 +91,19 @@
  * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>. */
 #define GETSTATE_LOG(BIND, LOGCHANNEL) \
-         CALLFUNCTION_LOG ## BIND(getstate, LOGCHANNEL)
+         CALLFUNCTION_LOG(BIND, getstate, LOGCHANNEL)
 
 // group: change
 
 /* define: TRUNCATEBUFFER_LOG
  * Sets length of logbuffer to a smaller size. See also <truncatebuffer_logwriter>. */
 #define TRUNCATEBUFFER_LOG(BIND, LOGCHANNEL, /*size_t*/size)  \
-         CALLFUNCTION_LOG ## BIND(truncatebuffer, LOGCHANNEL, size)
+         CALLFUNCTION_LOG(BIND, truncatebuffer, LOGCHANNEL, size)
 
 /* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
 #define FLUSHBUFFER_LOG(BIND, LOGCHANNEL)  \
-         CALLFUNCTION_LOG ## BIND(flushbuffer, LOGCHANNEL)
+         CALLFUNCTION_LOG(BIND, flushbuffer, LOGCHANNEL)
 
 /* define: SETSTATE_LOG
  * Sets LOGSTATE for LOGCHANNEL.
@@ -111,7 +113,7 @@
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * LOGSTATE   - The state of the LOGCHANNEL which will be set - see <log_state_e>. */
 #define SETSTATE_LOG(BIND, LOGCHANNEL, LOGSTATE) \
-         CALLFUNCTION_LOG ## BIND(setstate, LOGCHANNEL, LOGSTATE)
+         CALLFUNCTION_LOG(BIND, setstate, LOGCHANNEL, LOGSTATE)
 
 // group: log-text
 
@@ -131,7 +133,7 @@
  * > int i ; PRINTF_LOG(log_channel_ERR, log_flags_NONE, 0, "%d", i) */
 #define PRINTF_LOG(BIND, LOGCHANNEL, FLAGS, HEADER, ... )  \
          do {                                \
-            CALLFUNCTION_LOG ## BIND(        \
+            CALLFUNCTION_LOG( BIND,          \
                printf,                       \
                LOGCHANNEL, FLAGS, HEADER,    \
                __VA_ARGS__ );                \
@@ -154,7 +156,7 @@
          do {                                   \
             struct p_ ## TEXTID                 \
                _p = { __VA_ARGS__ };            \
-            CALLFUNCTION_LOG ## BIND(           \
+            CALLFUNCTION_LOG( BIND,             \
                printtext,                       \
                LOGCHANNEL, FLAGS, HEADER,       \
                & TEXTID, &_p);                  \
@@ -176,7 +178,7 @@
          do {                                   \
             /* test for no parameter */         \
             ( p_noarg_ ## TEXTID) 0;            \
-            CALLFUNCTION_LOG ## BIND(           \
+            CALLFUNCTION_LOG( BIND,             \
                printtext,                       \
                LOGCHANNEL, FLAGS, HEADER,       \
                & TEXTID, 0);                    \

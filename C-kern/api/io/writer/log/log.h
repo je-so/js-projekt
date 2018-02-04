@@ -117,20 +117,6 @@ typedef enum log_state_e {
 #define log_state__NROF (log_state_IMMEDIATE + 1)
 
 
-/* struct: log_t
- * Defined as <iobj_t.iobj_T>(log).
- * See also <logwriter_t> which is the default implementation. */
-typedef iobj_T(log) log_t;
-
-// group: generic
-
-/* function: cast_log
- * Casts parameter iobj to pointer to <log_t>.
- * iobj must be a pointer to an anonymous interfaceable log object. */
-#define cast_log(iobj) \
-         cast_iobj(iobj, log)
-
-
 /* struct: log_it
  * The function table which describes the log service. */
 typedef struct log_it {
@@ -189,7 +175,7 @@ typedef struct log_it {
 /* function: cast_logit
  * Casts pointer logif into pointer to interface <log_it>.
  * Parameter *logif* must point to a type declared with <log_it_DECLARE>.
- * The other parameters must be the same as in <log_it_DECLARE> without the first. */
+ * The second parameter must be the same as the second one in <log_it_DECLARE>. */
 log_it * cast_logit(void * logif, TYPENAME log_t);
 
 /* function: log_it_DECLARE

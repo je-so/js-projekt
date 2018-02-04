@@ -136,7 +136,8 @@ typedef struct maincontext_t {
 
    /* variable: initlog
     * Log used until <syscontext_t.initrun_syscontext> has completed its setup procedure. */
-   struct logwriter_t * initlog;
+   ilog_t            initlog;
+
 } maincontext_t;
 
 // group: lifetime
@@ -144,7 +145,7 @@ typedef struct maincontext_t {
 /* define: maincontext_INIT_STATIC
  * Static initializer for <maincontext_t>. */
 #define maincontext_INIT_STATIC \
-         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, &s_maincontext_initlog }
+         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, iobj_FREE }
 
 /* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.

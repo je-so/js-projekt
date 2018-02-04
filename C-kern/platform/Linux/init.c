@@ -20,8 +20,6 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/writer/log/logbuffer.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/memblock.h"

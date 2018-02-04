@@ -176,6 +176,7 @@
 #include "C-kern/api/test/assert.h"
 #include "C-kern/api/stdtypes/stdtypes.h"
 #include "C-kern/api/stdtypes/iobj.h"
+#include "C-kern/api/interface/ilog.h"
 #include "C-kern/api/maincontext.h"
 //}
 

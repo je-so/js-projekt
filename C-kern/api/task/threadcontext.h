@@ -22,8 +22,6 @@
 #define CKERN_TASK_THREADCONTEXT_HEADER
 
 // forward
-struct logwriter_t;
-struct processcontext_t;
 struct syncrunner_t;
 
 // === exported types
@@ -40,10 +38,6 @@ typedef iobj_T(pagecache) threadcontext_pagecache_t;
 /* typedef: threadcontext_objectcache_t
  * Definiert als <iobj_T>(objectcache). */
 typedef iobj_T(objectcache) threadcontext_objectcache_t;
-
-/* typedef: threadcontext_log_t
- * Definiert als <iobj_T>(log). */
-typedef iobj_T(log) threadcontext_log_t;
 
 
 // section: Functions
@@ -78,7 +72,7 @@ typedef struct threadcontext_t {
    threadcontext_objectcache_t objectcache;
    /* variable: log
     * Thread local erorr log. */
-   threadcontext_log_t        log;
+   ilog_t                     log;
    /* variable: thread_id
     * Identification number which is incremented every time a thread is created.
     * The main thread has id 1. If SIZE_MAX is reached the value is wrapped around

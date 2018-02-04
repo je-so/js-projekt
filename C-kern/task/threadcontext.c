@@ -123,7 +123,7 @@ ONERR:
  * Adapts tcontext to chosen <maincontext_e> type. */
 static inline int config_threadcontext(threadcontext_t * tcontext, maincontext_e context_type)
 {
-   log_t * ilog;
+   ilog_t* ilog;
 
    switch (context_type) {
    case maincontext_STATIC:
@@ -131,7 +131,7 @@ static inline int config_threadcontext(threadcontext_t * tcontext, maincontext_e
    case maincontext_DEFAULT:
       return 0;
    case maincontext_CONSOLE:
-      ilog = cast_log(&tcontext->log);
+      ilog = &tcontext->log;
       ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_UNBUFFERED);
       ilog->iimpl->setstate(ilog->object, log_channel_ERR, log_state_IGNORED);
       return 0;

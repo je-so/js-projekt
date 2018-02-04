@@ -116,20 +116,24 @@ static inline void clear_args_maincontext(/*out*/maincontext_t * maincontext)
    maincontext->argv = 0;
 }
 
-static inline void initlog_maincontext(/*out*/logwriter_t* initlog)
+static inline void initlog_maincontext(/*out*/ilog_t* initlog, logwriter_t* logwriter)
 {
-   if (initstatic_logwriter(initlog, sizeof(s_maincontext_logbuffer), s_maincontext_logbuffer)) {
+   if (initstatic_logwriter(logwriter, sizeof(s_maincontext_logbuffer), s_maincontext_logbuffer)) {
       #define ERRSTR "FATAL ERROR: initlog_maincontext(): call to initstatic_logwriter failed\n"
       ssize_t ignore = write(sys_iochannel_STDERR, ERRSTR, sizeof(ERRSTR)-1);
       (void) ignore;
       #undef ERRSTR
       abort();
    }
+   *initlog = (ilog_t) iobj_INIT((struct log_t*)logwriter, interface_logwriter());
 }
 
-static inline void freelog_maincontext(/*out*/logwriter_t* initlog)
+static inline void freelog_maincontext(ilog_t* initlog)
 {
-   freestatic_logwriter(initlog);
+   if (!isfree_iobj(initlog)) {
+      freestatic_logwriter((logwriter_t*)initlog->object);
+      *initlog = (ilog_t) iobj_FREE;
+   }
 }
 
 // group: lifetime
@@ -239,8 +243,8 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * mai
    }
 
    // setup initlog which is used for error logging during initialization
-   if (isfree_logwriter(&s_maincontext_initlog)) {
-      initlog_maincontext(&s_maincontext_initlog);
+   if (isfree_iobj(&g_maincontext.initlog)) {
+      initlog_maincontext(&g_maincontext.initlog, &s_maincontext_initlog);
    }
 
    if (  type <= maincontext_STATIC
@@ -309,7 +313,7 @@ ONERR:
    return EINVAL;
 }
 
-static int check_isstatic_maincontext(maincontext_t* maincontext, int issyscontext)
+static int check_isstatic_maincontext(maincontext_t* maincontext, int issyscontext, int isinitlog)
 {
    // check env
    TEST(pcontext_maincontext() == &g_maincontext.pcontext);
@@ -322,7 +326,12 @@ static int check_isstatic_maincontext(maincontext_t* maincontext, int issysconte
 
    TEST(1 == isstatic_threadcontext(tcontext_maincontext()));
    TEST(0 == check_isfree_args(maincontext));
-   TEST(&s_maincontext_initlog == maincontext->initlog);
+   if (isinitlog) {
+      TEST(&s_maincontext_initlog == (logwriter_t*) maincontext->initlog.object);
+      TEST(interface_logwriter()  == maincontext->initlog.iimpl);
+   } else {
+      TEST(1 == isfree_iobj(&maincontext->initlog));
+   }
 
    return 0;
 ONERR:
@@ -419,17 +428,19 @@ static int test_helper(void)
    // check maincontext
    TEST(0 == check_isfree_args(&maincontext));
 
-   {
-      // TEST initlog_maincontext
-      logwriter_t initlog = logwriter_FREE;
-      initlog_maincontext(&initlog);
-      TEST(initlog.addr == s_maincontext_logbuffer);
-      TEST(initlog.size == log_config_MINSIZE);
+   // TEST initlog_maincontext
+   ilog_t initlog = iobj_FREE;
+   logwriter_t lw = logwriter_FREE;
+   initlog_maincontext(&initlog, &lw);
+   TEST(initlog.object == (struct log_t*)&lw);
+   TEST(initlog.iimpl  == interface_logwriter());
+   TEST(lw.addr == s_maincontext_logbuffer);
+   TEST(lw.size == log_config_MINSIZE);
 
-      // TEST freelog_maincontext
-      freelog_maincontext(&initlog);
-      TEST(isfree_logwriter(&initlog));
-   }
+   // TEST freelog_maincontext
+   freelog_maincontext(&initlog);
+   TEST(isfree_iobj(&initlog));
+   TEST(isfree_logwriter(&lw));
 
    return 0;
 ONERR:
@@ -439,14 +450,14 @@ ONERR:
 static int test_init(void)
 {
    // prepare
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 0));
    TEST(0 == init_syscontext(&g_maincontext.sysinfo));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 1, 0));
 
    // TEST maincontext_INIT_STATIC
    {
       maincontext_t maincontext = maincontext_INIT_STATIC;
-      TEST(0 == check_isstatic_maincontext(&maincontext, 0));
+      TEST(0 == check_isstatic_maincontext(&maincontext, 0, 0));
    }
 
    maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE };
@@ -488,7 +499,7 @@ static int test_init(void)
       // TEST free_maincontext: free / double free
       for (int tc = 0; tc < 2; ++tc) {
          TEST(0 == free_maincontext());
-         TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
+         TEST(0 == check_isstatic_maincontext(&g_maincontext, 1, 0));
       }
    }
 
@@ -503,7 +514,7 @@ static int test_init(void)
    TEST(0 == memfree_threadlocalstore(self_threadlocalstore(), &mblock));
    TEST(0 == sizestatic_threadlocalstore(self_threadlocalstore()));
    // check g_maincontext
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 1, 0));
 
    // TEST init_maincontext: simulated error
    for (int i = 1; i; ++i) {
@@ -515,7 +526,7 @@ static int test_init(void)
          break;
       }
       TEST(3+i == err);
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
+      TEST(0 == check_isstatic_maincontext(&g_maincontext, 1, 0));
    }
    TEST(0 == free_maincontext());
 
@@ -530,7 +541,7 @@ static int test_init(void)
          break;
       }
       TEST(1+i == err);
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 1));
+      TEST(0 == check_isstatic_maincontext(&g_maincontext, 1, 0));
    }
 
    // unprepare
@@ -587,7 +598,7 @@ static int test_ealready(maincontext_t * maincontext)
 static int test_initrun(void)
 {
    // prepare
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 0));
 
    // TEST initrun_maincontext: function called with initialized maincontext
    for (uintptr_t i = 0; i < lengthof(s_mainmode); ++i) {
@@ -599,7 +610,7 @@ static int test_initrun(void)
       TEST(1 == s_is_called);
 
       // check free_syscontext, free_maincontext called
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
    }
 
    // TEST initrun_maincontext: return value
@@ -610,15 +621,17 @@ static int test_initrun(void)
       TEST(1 == s_is_called);
 
       // check free_syscontext, free_maincontext called
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
    }
 
    // TEST initrun_maincontext: initlog is set up
    for (uintptr_t i = 0; i < lengthof(s_mainmode); ++i) {
       TEST(0 == isfree_logwriter(&s_maincontext_initlog));
       flushbuffer_logwriter(&s_maincontext_initlog, log_channel_ERR);
-      freelog_maincontext(&s_maincontext_initlog);
+      freelog_maincontext(&g_maincontext.initlog);
+      TEST(1 == isfree_iobj(&g_maincontext.initlog));
       TEST(1 == isfree_logwriter(&s_maincontext_initlog));
+      g_maincontext.initlog = (ilog_t) iobj_FREE;
       s_i = i;
       s_argv[i] = "./.";
       s_is_called = 0;
@@ -627,26 +640,29 @@ static int test_initrun(void)
       TEST(1 == s_is_called);
 
       // check initlog
+      TEST( g_maincontext.initlog.object == (struct log_t*)&s_maincontext_initlog);
+      TEST( g_maincontext.initlog.iimpl  == interface_logwriter());
+      // check s_maincontext_initlog
       TEST(s_maincontext_initlog.addr == s_maincontext_logbuffer);
       TEST(s_maincontext_initlog.size == sizeof(s_maincontext_logbuffer));
 
       // check free_syscontext, free_maincontext called
-      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+      TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
    }
 
    // TEST initrun_maincontext: EINVAL (but initlog setup ==> error log is written)
-   freelog_maincontext(&s_maincontext_initlog);
+   freelog_maincontext(&g_maincontext.initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_STATIC, &test_init_returncode, 0, 0, 0));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   freelog_maincontext(&s_maincontext_initlog);
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
+   freelog_maincontext(&g_maincontext.initlog);
    TEST(EINVAL == initrun_maincontext(maincontext__NROF, &test_init_returncode, 0, 0, 0));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   freelog_maincontext(&s_maincontext_initlog);
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
+   freelog_maincontext(&g_maincontext.initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, -1, 0));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
-   freelog_maincontext(&s_maincontext_initlog);
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
+   freelog_maincontext(&g_maincontext.initlog);
    TEST(EINVAL == initrun_maincontext(maincontext_DEFAULT, &test_init_returncode, 0, 1, 0));
-   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0));
+   TEST(0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
 
    // TEST initrun_maincontext: EALREADY
    TEST(EALREADY == initrun_maincontext(maincontext_DEFAULT, &test_ealready, 0, 0, 0));
@@ -661,7 +677,7 @@ static int test_initrun(void)
       // check calling of test_init_returncode
       TESTP( (i >= 5) == s_is_called, "i=%d", i);
       // check free_syscontext, free_maincontext, and clear_args_maincontext called
-      TEST( 0 == check_isstatic_maincontext(&g_maincontext, 0));
+      TEST( 0 == check_isstatic_maincontext(&g_maincontext, 0, 1));
       if (!err) {
          free_testerrortimer(&s_maincontext_errtimer);
          TEST(i == 8);

@@ -68,6 +68,26 @@ ONERR:
 }
 
 /* function: test_generic
+ * Tests query functions of <iobj_t>. */
+static int test_query(void)
+{
+   iobj_t iobj = iobj_FREE;
+
+   // TEST isfree_iobj: free obj
+   TEST(1 == isfree_iobj(&iobj));
+   iobj.object = (void*)1;
+   TEST(0 == isfree_iobj(&iobj));
+   iobj.object = (void*)0;
+   iobj.iimpl  = (void*)1; // not used in function
+   TEST(1 == isfree_iobj(&iobj));
+   iobj.iimpl  = (void*)0;
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
+/* function: test_generic
  * Tests generic functions of <iobj_t>. */
 static int test_generic(void)
 {
@@ -75,7 +95,10 @@ static int test_generic(void)
       struct testiobj_t*  object;
       struct testiobj_it* iimpl;
       int _extra_field; // extra fields at end do not harm
-   } testiobj2;
+   } testiobj2 = {0,0,0};
+
+   // TEST isfree_iobj:
+   TEST(1 == isfree_iobj(&testiobj2));
 
    // TEST iobj_T
    typedef iobj_T(testiobj) testiobj_t;
@@ -121,6 +144,7 @@ ONERR:
 int unittest_stdtypes_iobj()
 {
    if (test_initfree())       goto ONERR;
+   if (test_query())          goto ONERR;
    if (test_generic())        goto ONERR;
 
    return 0;

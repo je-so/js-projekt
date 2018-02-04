@@ -1345,7 +1345,7 @@ ONERR:
 
 static int test_initlogmacros(void)
 {
-   logwriter_t *  lgwrt = self_maincontext()->initlog;
+   logwriter_t *  lgwrt = (logwriter_t*) self_maincontext()->initlog.object;
    int            oldfd = -1;
    int            pipefd[2] = { -1, -1 };
    uint8_t        buffer[128];
@@ -1354,6 +1354,7 @@ static int test_initlogmacros(void)
    log_header_t   header = log_header_INIT(__func__, __FILE__, __LINE__);
 
    // prepare
+   TEST(interface_logwriter() == self_maincontext()->initlog.iimpl);
    TEST(interface_logwriter() == log_maincontext().iimpl);
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK));
    oldfd = dup(STDERR_FILENO);
@@ -1478,7 +1479,7 @@ ONERR:
 static int test_autologmacros(void)
 {
    logwriter_t *  default_lgwrt = (void*) log_maincontext().object;
-   logwriter_t *  init_lgwrt = self_maincontext()->initlog;
+   logwriter_t *  init_lgwrt = (logwriter_t*) self_maincontext()->initlog.object;
    maincontext_e  oldtype = g_maincontext.type;
    int            oldfd = -1;
    pipe_t         pipe = pipe_FREE;
@@ -1488,6 +1489,7 @@ static int test_autologmacros(void)
    size_t         logsize;
 
    // prepare0
+   TEST(interface_logwriter() == self_maincontext()->initlog.iimpl);
    TEST(interface_logwriter() == log_maincontext().iimpl);
    TEST(0 == init_pipe(&pipe));
    oldfd = dup(STDERR_FILENO);
