@@ -70,7 +70,7 @@ static inline int alloc_static_memory(processcontext_t* pcontext, thread_stack_t
    const uint16_t size = static_memory_size();
 
    if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
-      err = allocstatic_threadstack(tst, size, GETWRITER0_LOG(), mblock);
+      err = allocstatic_threadstack(tst, GETWRITER0_LOG(), size, mblock);
    }
    if (err) goto ONERR;
 
@@ -94,7 +94,7 @@ static inline int free_static_memory(processcontext_t* pcontext, thread_stack_t*
 
       pcontext->staticmemblock = 0;
 
-      err = freestatic_threadstack(tst, &mblock, GETWRITER0_LOG());
+      err = freestatic_threadstack(tst, GETWRITER0_LOG(), &mblock);
       (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err);
 
       if (err) goto ONERR;
@@ -250,7 +250,7 @@ static int test_helper(void)
 
    // prepare0
    TEST(0 == initstatic_logwriter(&lgwrt, sizeof(logbuf), logbuf));
-   TEST(0 == new_threadstack(&tls, S, &initlog, 0, 0));
+   TEST(0 == new_threadstack(&tls, &initlog, S, 0, 0));
 
    // TEST static_memory_size
    TEST(S == static_memory_size());

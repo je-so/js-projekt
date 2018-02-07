@@ -8,5 +8,5 @@ include        projekte/subsys/X11
 Src           += demo/opengl/*.c
 Src           += C-kern/ds/inmem/binarystack.c C-kern/ds/inmem/splaytree.c
 Includes       = .
-Libs           = m X11 Xrandr Xrender Xext EGL GLESv2
+Libs           = m pthread X11 Xrandr Xrender Xext EGL GLESv2
 Defines        = KONFIG_SUBSYS=NONE KONFIG_USERINTERFACE="(X11|EGL)"

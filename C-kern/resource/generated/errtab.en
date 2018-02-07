@@ -260,8 +260,8 @@ uint16_t g_errorcontext_stroffset[] = {
    [ERESET] = 3254,
    [EALLOC] = 3305,
    [ELEAK] = 3346,
-   [ESYNTAX] = 3365,
-   [0x106] = 3147 /*same as 0xff*/,
+   [EMEMLEAK] = 3365,
+   [ESYNTAX] = 3386,
    [0x107] = 3147 /*same as 0xff*/,
    [0x108] = 3147 /*same as 0xff*/,
    [0x109] = 3147 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 3147 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[3393] = {
+uint8_t g_errorcontext_strdata[3414] = {
    "Success\0"
    "Operation not permitted\0"
    "No such file or directory\0"
@@ -654,5 +654,6 @@ uint8_t g_errorcontext_strdata[3393] = {
    "Lost context state cause of power management event\0"
    "Failed to allocate one or more resources\0"
    "Resource(s) leaked\0"
+   "Not all memory freed\0"
    "Syntax error during parsing\0"
 } ;

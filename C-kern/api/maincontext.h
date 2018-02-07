@@ -16,7 +16,7 @@
    file: C-kern/api/platform/Linux/syscontext.h
     Linux specific configuration file <LinuxSystemContext>.
 
-  file: C-kern/api/platform/init.h
+  file: C-kern/api/platform/task/thread.h
     Platform specific initialization used by this module.
 */
 #ifndef CKERN_API_MAINCONTEXT_HEADER
@@ -142,6 +142,11 @@ typedef struct maincontext_t {
 #define maincontext_INIT_STATIC \
          { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, 0 }
 
+/* function: init_maincontext
+ * TODO: add description of init_maincontext after g_maincontext was removed !!
+ * */
+int init_maincontext(const maincontext_e context_type, int argc, const char* argv[]);
+
 /* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
  *
@@ -166,6 +171,11 @@ typedef struct maincontext_t {
  *
  * */
 int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, const char** argv);
+
+/* function: free_maincontext
+ * TODO: add description of free_maincontext after g_maincontext was removed !!
+ * */
+int free_maincontext(void);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.

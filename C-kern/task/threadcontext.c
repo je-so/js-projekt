@@ -90,7 +90,7 @@ static inline int alloc_static_memory(threadcontext_t* tcontext, ilog_t* initlog
    const size_t size = static_memory_size();
 
    if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
-      err = allocstatic_threadstack(castPcontext_threadstack(tcontext), size, initlog, &mblock);
+      err = allocstatic_threadstack(castPcontext_threadstack(tcontext), initlog, size, &mblock);
    }
    if (err) goto ONERR;
 
@@ -118,7 +118,7 @@ static inline int free_static_memory(threadcontext_t* tcontext, ilog_t* initlog)
 
       tcontext->staticdata = 0;
 
-      err = freestatic_threadstack(castPcontext_threadstack(tcontext), &mblock, initlog);
+      err = freestatic_threadstack(castPcontext_threadstack(tcontext), initlog, &mblock);
       (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err);
       if (err) goto ONERR;
    }
@@ -436,7 +436,7 @@ static int test_lifehelper(void)
 
    // prepare0
    TEST(0 == initstatic_logwriter(&lgwrt, sizeof(slogbuf), slogbuf));
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), &initlog, 0, 0));
+   TEST(0 == new_threadstack(&st, &initlog, extsize_threadcontext(), 0, 0));
    tcontext = context_threadstack(st);
 
    // TEST static_data_t
@@ -513,7 +513,7 @@ static int test_initfree_static(void)
    ilog_t        *defaultlog = GETWRITER0_LOG();
 
    // prepare0
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), defaultlog, 0, 0));
+   TEST(0 == new_threadstack(&st, defaultlog, extsize_threadcontext(), 0, 0));
    tcontext = context_threadstack(st);
    TEST(0 == init_pipe(&pipe))
    olderr = dup(STDERR_FILENO);
@@ -564,6 +564,20 @@ static int test_initfree_static(void)
       TEST( 0 == memcmp(tcontext, &(threadcontext_t)threadcontext_FREE, sizeof(threadcontext_t)));
       TEST( 0 == sizestatic_threadstack(st));
    }
+   TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
+
+   // TEST freestatic_threadcontext: simulated error: not all memory freed
+   TEST(0 == initstatic_threadcontext(tcontext, defaultlog));
+   memblock_t extramem;
+   TEST(0 == allocstatic_threadstack(castPcontext_threadstack(tcontext), defaultlog, 1, &extramem));
+   // test
+   uint8_t* staticdata = tcontext->staticdata;
+   TEST( EMEMLEAK == freestatic_threadcontext(tcontext, defaultlog));
+   // check
+   TEST( 0 == tcontext->staticdata);
+   // reset
+   TEST( 0 == freestatic_threadstack(castPcontext_threadstack(tcontext), defaultlog, &extramem));
+   tcontext->staticdata = staticdata;
    TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
 
    // reset0
@@ -619,8 +633,8 @@ static int test_initfree(void)
    ilog_t           *defaultlog = GETWRITER0_LOG();
 
    // prepare
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), defaultlog, 0, 0));
-   TEST(0 == allocstatic_threadstack(st, 0, defaultlog, &SM));
+   TEST(0 == new_threadstack(&st, defaultlog, extsize_threadcontext(), 0, 0));
+   TEST(0 == allocstatic_threadstack(st, defaultlog, 0, &SM));
    tc = context_threadstack(st);
    TEST(0 != tc);
    TEST(0 != M);

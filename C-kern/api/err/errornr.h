@@ -33,6 +33,7 @@ typedef enum errornr_e {
    errornr_STATE_RESET,
    errornr_RESOURCE_ALLOCATE,
    errornr_RESOURCE_LEAK,
+   errornr_RESOURCE_LEAK_MEMORY,
    errornr_PARSER_SYNTAX,
    errornr_NEXTERRORCODE
 } errornr_e;
@@ -42,6 +43,7 @@ typedef enum errornr_e {
 #define ERESET       errornr_STATE_RESET
 #define EALLOC       errornr_RESOURCE_ALLOCATE
 #define ELEAK        errornr_RESOURCE_LEAK
+#define EMEMLEAK     errornr_RESOURCE_LEAK_MEMORY
 #define ESYNTAX      errornr_PARSER_SYNTAX
 
 

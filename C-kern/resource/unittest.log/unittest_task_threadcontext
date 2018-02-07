@@ -1,74 +1,89 @@
-[1: 1517588116.834425s]
+[1: 1517906281.665439s]
 alloc_static_memory() C-kern/task/threadcontext.c:102
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517588116.834428s]
+[1: 1517906281.665442s]
 initstatic_threadcontext() C-kern/task/threadcontext.c:191
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517588116.834429s]
+[1: 1517906281.665446s]
 initstatic_threadcontext() C-kern/task/threadcontext.c:191
 Exit function with
 Error 2 - No such file or directory
-[1: 1517588116.834451s]
+[1: 1517906281.665447s]
+freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:351
+One or more resources could not be freed
+Exit function with
+Error 261 - Not all memory freed
+[1: 1517906281.665447s]
+free_static_memory() C-kern/task/threadcontext.c:128
+One or more resources could not be freed
+Exit function with
+Error 261 - Not all memory freed
+[1: 1517906281.665448s]
+freestatic_threadcontext() C-kern/task/threadcontext.c:209
+One or more resources could not be freed
+Exit function with
+Error 261 - Not all memory freed
+[1: 1517906281.665467s]
 init_threadcontext() C-kern/task/threadcontext.c:300
 Operation allowed only in state (maincontext_STATIC != type_maincontext())
 Exit function with
 Error 71 - Protocol error
-[1: 1517588116.834452s]
+[1: 1517906281.665469s]
 init_threadcontext() C-kern/task/threadcontext.c:298
 Function input violates condition (context_type < maincontext__NROF)
 Exit function with
 Error 22 - Invalid argument
-[1: 1517588116.834453s]
+[1: 1517906281.665470s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517588116.834454s]
+[1: 1517906281.665471s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 2 - No such file or directory
-[1: 1517588116.834456s]
+[1: 1517906281.665471s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 3 - No such process
-[1: 1517588116.834457s]
+[1: 1517906281.665472s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517588116.834457s]
+[1: 1517906281.665472s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 5 - Input/output error
-[1: 1517588116.834458s]
+[1: 1517906281.665473s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 6 - No such device or address
-[1: 1517588116.834459s]
+[1: 1517906281.665474s]
 init_threadcontext() C-kern/task/threadcontext.c:388
 Exit function with
 Error 7 - Argument list too long
-[1: 1517588116.834460s]
+[1: 1517906281.665474s]
 free_threadcontext() C-kern/task/threadcontext.c:290
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517588116.834461s]
+[1: 1517906281.665475s]
 free_threadcontext() C-kern/task/threadcontext.c:290
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1517588116.834461s]
+[1: 1517906281.665476s]
 free_threadcontext() C-kern/task/threadcontext.c:290
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[1: 1517588116.834462s]
+[1: 1517906281.665476s]
 free_threadcontext() C-kern/task/threadcontext.c:290
 One or more resources could not be freed
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517588116.834463s]
+[1: 1517906281.665477s]
 free_threadcontext() C-kern/task/threadcontext.c:290
 One or more resources could not be freed
 Exit function with

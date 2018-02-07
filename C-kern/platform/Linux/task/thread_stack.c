@@ -119,7 +119,7 @@ static void free_threadstack(thread_stack_t* st)
    (void)st; // do nothing
 }
 
-int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, ilog_t* initlog, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack)
+int new_threadstack(/*out*/thread_stack_t** st, ilog_t* initlog, const size_t static_size, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack)
 {
    int err;
    void * addr = MAP_FAILED;
@@ -304,7 +304,7 @@ struct memblock_t threadstack_threadstack(thread_stack_t* st)
 
 // group: static-memory
 
-int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, ilog_t* initlog, /*out*/struct memblock_t* memblock)
+int allocstatic_threadstack(thread_stack_t* st, ilog_t* initlog, size_t bytesize, /*out*/struct memblock_t* memblock)
 {
    int err;
    size_t alignedsize = (bytesize + KONFIG_MEMALIGN-1u) & (~(KONFIG_MEMALIGN-1u));
@@ -326,7 +326,7 @@ ONERR:
    return err;
 }
 
-int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock, ilog_t* initlog)
+int freestatic_threadstack(thread_stack_t* st, ilog_t* initlog, struct memblock_t* memblock)
 {
    int err;
 
@@ -335,8 +335,11 @@ int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock, ilog
       uint8_t*    memend = (st->mem + st->memused);
 
       VALIDATE_INPARAM_TEST(  alignedsize >= memblock->size
-                              && alignedsize <= st->memused
-                              && memblock->addr == memend - alignedsize, ONERR, );
+                              && alignedsize <= st->memused, ONERR, );
+      if (memblock->addr != memend - alignedsize) {
+         err = EMEMLEAK;
+         goto ONERR;
+      }
 
       st->memused -= alignedsize;
 
@@ -378,7 +381,7 @@ static int test_initfree(void)
       GETBUFFER_ERRLOG(&logbuffer, &oldlogsize);
 
       // TEST new_threadstack
-      TEST(0 == new_threadstack(&st, static_size, defaultlog, 0, 0));
+      TEST(0 == new_threadstack(&st, defaultlog, static_size, 0, 0));
       // check st aligned
       TEST(0 != st);
       TEST(0 == (uintptr_t)st % size_threadstack());
@@ -395,7 +398,7 @@ static int test_initfree(void)
       TEST(0 == st);
 
       // TEST new_threadstack: correct protection
-      TEST(0 == new_threadstack(&st, static_size, defaultlog, &threadstack, &signalstack));
+      TEST(0 == new_threadstack(&st, defaultlog, static_size, &threadstack, &signalstack));
       // variables
       vmpage = (vmpage_t) vmpage_INIT(sizevars, (uint8_t*)st);
       TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
@@ -432,7 +435,7 @@ static int test_initfree(void)
       signalstack = (memblock_t) memblock_FREE;
       for (int i = 1; i; ++i) {
          init_testerrortimer(&s_threadstack_errtimer, (unsigned)i, i);
-         int err = new_threadstack(&st, static_size, defaultlog, &threadstack, &signalstack);
+         int err = new_threadstack(&st, defaultlog, static_size, &threadstack, &signalstack);
          if (!err) {
             TEST(8 == i);
             break;
@@ -559,7 +562,7 @@ static int test_memory(void)
    ilog_t  *  defaultlog = GETWRITER0_LOG();
 
    // prepare0
-   TEST(0 == new_threadstack(&st, 2012, defaultlog, 0, 0));
+   TEST(0 == new_threadstack(&st, defaultlog, 2012, 0, 0));
    const size_t memsize = st->memsize;
 
    // TEST allocstatic_threadstack
@@ -568,7 +571,7 @@ static int test_memory(void)
          size_t a = s % KONFIG_MEMALIGN ? s - s % KONFIG_MEMALIGN + KONFIG_MEMALIGN : s;
          if (a > memsize - u) continue;
          st->memused = u;
-         TEST(0 == allocstatic_threadstack(st, s, defaultlog, &mblock));
+         TEST(0 == allocstatic_threadstack(st, defaultlog, s, &mblock));
          // check parameter
          TEST(mblock.addr == st->mem + u);
          TEST(mblock.size == a);
@@ -583,7 +586,7 @@ static int test_memory(void)
    mblock = (memblock_t) memblock_FREE;
    for (size_t i = 0; i <= memsize; ++i) {
       st->memused = i;
-      TEST(ENOMEM == allocstatic_threadstack(st, memsize-i+1, defaultlog, &mblock));
+      TEST(ENOMEM == allocstatic_threadstack(st, defaultlog, memsize-i+1, &mblock));
       // check parameter
       TEST( isfree_memblock(&mblock));
       // check st
@@ -598,7 +601,7 @@ static int test_memory(void)
 
    // TEST allocstatic_threadstack: ENOMEM (alignedsize < bytesize)
    st->memused = 0;
-   TEST(ENOMEM == allocstatic_threadstack(st, (size_t)-1, defaultlog, &mblock));
+   TEST(ENOMEM == allocstatic_threadstack(st, defaultlog, (size_t)-1, &mblock));
    // check parameter
    TEST( isfree_memblock(&mblock));
    // check st
@@ -613,7 +616,7 @@ static int test_memory(void)
          st->memused = u;
          mblock = (memblock_t) memblock_INIT(s, st->mem + u - a);
          for (int r = 0; r < 2; ++r) {
-            TEST(0 == freestatic_threadstack(st, &mblock, defaultlog));
+            TEST(0 == freestatic_threadstack(st, defaultlog, &mblock));
             // check parameter
             TEST( isfree_memblock(&mblock));
             // check st
@@ -627,22 +630,22 @@ static int test_memory(void)
    st->memused = memsize;
    mblock.addr = st->mem + memsize + 1;
    mblock.size = (size_t) -1;
-   TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
+   TEST(EINVAL == freestatic_threadstack(st, defaultlog, &mblock));
    TEST(! isfree_memblock(&mblock));
 
    // TEST freestatic_threadstack: EINVAL (alignedsize > memused)
    st->memused = 31;
    mblock.addr = st->mem;
    mblock.size = 32;
-   TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
+   TEST(EINVAL == freestatic_threadstack(st, defaultlog, &mblock));
    TEST(! isfree_memblock(&mblock));
 
-   // TEST freestatic_threadstack: EINVAL (addr wrong)
+   // TEST freestatic_threadstack: EMEMLEAK (addr wrong)
    for (unsigned i = 0; i <= 2; i +=2) {
       st->memused = 128;
       mblock.addr = st->mem + 128 - 32 -1 + i;
       mblock.size = 32;
-      TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
+      TEST(EMEMLEAK == freestatic_threadstack(st, defaultlog, &mblock));
       TEST(! isfree_memblock(&mblock));
    }
 

@@ -80,6 +80,10 @@ typedef struct thread_t {
     * Contains the return value of <task>.
     * This value is only valid after <task> has returned. */
    volatile int   returncode;
+   /* variable: syserr
+    * Contains the error code produced by init or free operations of thread context.
+    * This value is only valid after thread has stopped running. */
+   volatile int   syserr; // TODO: add test for this value
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
@@ -104,7 +108,7 @@ typedef struct thread_t {
  * Static initializer.
  * Used to initialize thread in <thread_stack_t>. */
 #define thread_FREE \
-         { threadcontext_FREE, {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
+         { threadcontext_FREE, {0, 0}, 0, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
 /* function: runmain_thread
  * Calls task on a new stack with a new thread context.
@@ -128,15 +132,7 @@ typedef struct thread_t {
  * This function is called during execution of <maincontext_t.initrun_maincontext>
  * to set up the thread environment of the main thread.
  * */
-int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg);
-
-// TODO: implement runmain_thread
-// TODO: remove initmain_thread
-
-/* function: initmain_thread
- * Initializes main thread. Called from <syscontext_t.initrun_syscontext>.
- * */
-void initmain_thread(/*out*/thread_t* thread, thread_f task, void* task_arg);
+int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_t* initlog, maincontext_e type, int argc, const char* argv[]);
 
 /* function: new_thread
  * Creates and starts a new system thread.
@@ -356,18 +352,6 @@ int setcontinue_thread(thread_t* thread);
             _thr = (thread);  \
             _thr->ismain;     \
          }))
-
-/* define: initmain_thread
- * Implements <thread_t.initmain_thread>. */
-#define initmain_thread(thread, _task, _task_arg) \
-         do {                                   \
-            volatile thread_t* _thr;            \
-            _thr = (thread);                    \
-            _thr->ismain     = 1;               \
-            _thr->task       = _task;           \
-            _thr->task_arg   = _task_arg;       \
-            _thr->sys_thread = pthread_self();  \
-         } while(0)
 
 /* define: lock_thread
  * Implements <thread_t.lock_thread>. */

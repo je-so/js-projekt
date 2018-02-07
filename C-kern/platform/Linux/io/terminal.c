@@ -25,8 +25,10 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/io/pipe.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
@@ -639,6 +641,52 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
+struct do_exec_test_t
+{
+   pipe_t pipe;
+   int (*test_f)(void);
+};
+
+static int do_exec_test(void* _param)
+{
+   struct do_exec_test_t* param = _param;
+   TRUNCATEBUFFER_ERRLOG(0);
+   int err = param->test_f();
+   size_t   logsize;
+   uint8_t* logbuffer;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(logsize == (size_t)write(param->pipe.write, logbuffer, logsize));
+   return err;
+ONERR:
+   return EINVAL;
+}
+
+static int exec_child_process(int (*test_f)(void))
+{
+   process_t child=process_FREE;
+   process_result_t result;
+   struct do_exec_test_t param = { .pipe = pipe_FREE, .test_f = test_f };
+
+   TEST(0 == init_pipe(&param.pipe));
+   TEST(0 == init_process(&child, do_exec_test, &param, &(process_stdio_t)process_stdio_INIT_INHERIT))
+   TEST(0 == wait_process(&child, &result))
+   TEST(result.state      == process_state_TERMINATED);
+   TEST(result.returncode == 0);
+   for (ssize_t size=1; size>0;) {
+      uint8_t buffer[64];
+      size = read(param.pipe.read, buffer, sizeof(buffer));
+      if (size > 0) { PRINTF_ERRLOG("%.*s", (int)size, buffer); }
+   }
+   TEST(0 == free_process(&child));
+   TEST(0 == free_pipe(&param.pipe));
+
+   return 0;
+ONERR:
+   free_process(&child);
+   free_pipe(&param.pipe);
+   return EINVAL;
+}
+
 static int test_helper(void)
 {
    struct termios tconf;
@@ -1215,9 +1263,7 @@ static int test_query(void)
    TEST(0 == type[0]);
 
    // TEST type_terminal: ENODATA
-   int err;
-   TEST(0 == execasprocess_unittest(&test_enodata_typeterminal, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&test_enodata_typeterminal));
 
    // TEST ctrllnext_terminal
    TEST(ctrllnext_terminal(&term) == term.ctrl_lnext);
@@ -1476,7 +1522,6 @@ ONERR:
 
 static int test_update(void)
 {
-   int err;
    terminal_t term = terminal_FREE;
    uint16_t   x, y;
    uint16_t   x2, y2;
@@ -1512,16 +1557,14 @@ static int test_update(void)
 
    // TEST setstdio_terminal: set iochannel_STDIN iochannel_STDOUT
    s_param_iochannel = -1;
-   TEST(0 == execasprocess_unittest(&process_setstdio, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&process_setstdio));
 
    // TEST setstdio_terminal: one of iochannel_STDIN ...
    static_assert( iochannel_STDIN+1 == iochannel_STDOUT
                   && iochannel_STDOUT+1 == iochannel_STDERR, "used in for loop");
    for (int i = iochannel_STDIN; i <= iochannel_STDERR; ++i) {
       s_param_iochannel = i;
-      TEST(0 == execasprocess_unittest(&process_setstdio, &err));
-      TEST(0 == err);
+      TEST(0 == exec_child_process(&process_setstdio));
    }
 
    // TEST setstdio_terminal: other fd
@@ -1533,8 +1576,7 @@ static int test_update(void)
    TEST(0 == initPpath_terminal(&term, (const uint8_t*)name));
    s_param_iochannel = term.sysio;
    TEST(term.sysio > iochannel_STDERR);
-   TEST(0 == execasprocess_unittest(&process_setstdio, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&process_setstdio));
    TEST(0 == free_terminal(&term));
    TEST(0 == free_file(&file));
 
@@ -1548,8 +1590,7 @@ static int test_update(void)
    TEST(0 == unlockpt(file));
    TEST(0 != ptsname(file));
    s_param_iochannel = file;
-   TEST(0 == execasprocess_unittest(&process_switchcontrolling, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&process_switchcontrolling));
    TEST(0 == free_file(&file));
 
    // TEST switchcontrolling_terminal: ENOTTY
@@ -1903,13 +1944,11 @@ ONERR:
 
 static int test_controlterm(void)
 {
-   int err;
-   file_t   oldstdin = file_FREE;
+   file_t oldstdin = file_FREE;
 
    // TEST hascontrolling_terminal, removecontrolling_terminal: sys_iochannel_STDIN
-   TEST(0 == execasprocess_unittest(&test_doremove1, &err));
-   TEST(0 == execasprocess_unittest(&test_doremove3, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&test_doremove1));
+   TEST(0 == exec_child_process(&test_doremove3));
 
    // prepare
    oldstdin = dup(sys_iochannel_STDIN);
@@ -1917,9 +1956,8 @@ static int test_controlterm(void)
    close(sys_iochannel_STDIN);
 
    // TEST hascontrolling_terminal, removecontrolling_terminal: open /dev/tty
-   TEST(0 == execasprocess_unittest(&test_doremove2, &err));
-   TEST(0 == execasprocess_unittest(&test_doremove3, &err));
-   TEST(0 == err);
+   TEST(0 == exec_child_process(&test_doremove2));
+   TEST(0 == exec_child_process(&test_doremove3));
 
    // unprepare
    TEST(sys_iochannel_STDIN == dup2(oldstdin, sys_iochannel_STDIN));
@@ -1938,8 +1976,8 @@ ONERR:
 
 int unittest_io_terminal_terminal()
 {
-   uint8_t    termpath1[128];
-   uint8_t    termpath2[128];
+   uint8_t     termpath1[128];
+   uint8_t     termpath2[128];
 
    // get path to controlling terminal
    TEST(0 == ttyname_r(sys_iochannel_STDIN, (char*) termpath1, sizeof(termpath1)));

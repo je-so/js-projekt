@@ -36,8 +36,9 @@ static inline void test_errornr(void)
    static_assert(258 == errornr_STATE_RESET, "");
    static_assert(259 == errornr_RESOURCE_ALLOCATE, "");
    static_assert(260 == errornr_RESOURCE_LEAK, "");
-   static_assert(261 == errornr_PARSER_SYNTAX, "");
-   static_assert(262 == errornr_NEXTERRORCODE, "");
+   static_assert(261 == errornr_RESOURCE_LEAK_MEMORY, "");
+   static_assert(262 == errornr_PARSER_SYNTAX, "");
+   static_assert(263 == errornr_NEXTERRORCODE, "");
 }
 
 static inline void test_defines(void)
@@ -47,6 +48,8 @@ static inline void test_defines(void)
    static_assert(ERESET     == errornr_STATE_RESET, "");
    static_assert(EALLOC     == errornr_RESOURCE_ALLOCATE, "");
    static_assert(ELEAK      == errornr_RESOURCE_LEAK, "");
+   static_assert(EMEMLEAK   == errornr_RESOURCE_LEAK_MEMORY, "");
+   static_assert(ESYNTAX    == errornr_PARSER_SYNTAX, "");
 }
 
 static int test_errorstr(void)
@@ -59,6 +62,7 @@ static int test_errorstr(void)
    CHECK(ERESET,     "Lost context state cause of power management event");
    CHECK(EALLOC,     "Failed to allocate one or more resources");
    CHECK(ELEAK,      "Resource(s) leaked");
+   CHECK(EMEMLEAK,   "Not all memory freed");
    CHECK(ESYNTAX,    "Syntax error during parsing");
 
 #undef CHECK

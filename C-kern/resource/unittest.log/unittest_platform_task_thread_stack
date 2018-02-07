@@ -1,180 +1,178 @@
-[1: 1517593781.989821s]
+[1: 1517907199.126466s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 28 - No space left on device
-[1: 1517593781.989826s]
+[1: 1517907199.126472s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:163
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1517593781.989829s]
+[1: 1517907199.126475s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 3 - No such process
-[1: 1517593781.989832s]
+[1: 1517907199.126478s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517593781.989835s]
+[1: 1517907199.126481s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:203
 System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1517593781.989840s]
+[1: 1517907199.126485s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:215
 System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1517593781.989846s]
+[1: 1517907199.126490s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:227
 System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1517593781.989856s]
+[1: 1517907199.126500s]
 delete_threadstack() C-kern/platform/Linux/task/thread_stack.c:273
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593781.990275s]
+[1: 1517907199.126899s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 28 - No space left on device
-[1: 1517593781.990278s]
+[1: 1517907199.126902s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:163
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1517593781.990280s]
+[1: 1517907199.126904s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 3 - No such process
-[1: 1517593781.990282s]
+[1: 1517907199.126906s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517593781.990285s]
+[1: 1517907199.126909s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:203
 System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1517593781.990289s]
+[1: 1517907199.126912s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:215
 System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1517593781.990294s]
+[1: 1517907199.126917s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:227
 System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1517593781.990304s]
+[1: 1517907199.126925s]
 delete_threadstack() C-kern/platform/Linux/task/thread_stack.c:273
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593781.990709s]
+[1: 1517907199.127328s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 28 - No space left on device
-[1: 1517593781.990712s]
+[1: 1517907199.127330s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:163
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1517593781.990714s]
+[1: 1517907199.127332s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 3 - No such process
-[1: 1517593781.990716s]
+[1: 1517907199.127334s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517593781.990719s]
+[1: 1517907199.127336s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:203
 System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1517593781.990722s]
+[1: 1517907199.127340s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:215
 System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1517593781.990727s]
+[1: 1517907199.127345s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:227
 System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1517593781.990737s]
+[1: 1517907199.127353s]
 delete_threadstack() C-kern/platform/Linux/task/thread_stack.c:273
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593781.991140s]
+[1: 1517907199.127751s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 28 - No space left on device
-[1: 1517593781.991143s]
+[1: 1517907199.127753s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:163
 System call 'mmap' failed with error 2
 Exit function with
 Error 2 - No such file or directory
-[1: 1517593781.991145s]
+[1: 1517907199.127755s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 3 - No such process
-[1: 1517593781.991147s]
+[1: 1517907199.127757s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:255
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517593781.991150s]
+[1: 1517907199.127760s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:203
 System call 'mprotect' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1517593781.991153s]
+[1: 1517907199.127763s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:215
 System call 'mprotect' failed with error 6
 Exit function with
 Error 6 - No such device or address
-[1: 1517593781.991158s]
+[1: 1517907199.127768s]
 new_threadstack() C-kern/platform/Linux/task/thread_stack.c:227
 System call 'mprotect' failed with error 7
 Exit function with
 Error 7 - Argument list too long
-[1: 1517593781.991169s]
+[1: 1517907199.127777s]
 delete_threadstack() C-kern/platform/Linux/task/thread_stack.c:273
 System call 'munmap' failed with error 22
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593782.002050s]
+[1: 1517907199.135874s]
 allocstatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:325
 Exit function with
 Error 12 - Cannot allocate memory
-[1: 1517593782.018154s]
-freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:339
-Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused && memblock->addr == memend - alignedsize)
+[1: 1517907199.149032s]
+freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:338
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593782.018160s]
-freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:339
-Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused && memblock->addr == memend - alignedsize)
+[1: 1517907199.149034s]
+freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:338
+Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused)
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517593782.018161s]
-freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:339
-Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused && memblock->addr == memend - alignedsize)
+[1: 1517907199.149035s]
+freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:351
 One or more resources could not be freed
 Exit function with
-Error 22 - Invalid argument
-[1: 1517593782.018162s]
-freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:339
-Function input violates condition (alignedsize >= memblock->size && alignedsize <= st->memused && memblock->addr == memend - alignedsize)
+Error 261 - Not all memory freed
+[1: 1517907199.149036s]
+freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:351
 One or more resources could not be freed
 Exit function with
-Error 22 - Invalid argument
+Error 261 - Not all memory freed

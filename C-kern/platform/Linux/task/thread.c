@@ -30,20 +30,27 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/io/pipe.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/time/sysclock.h"
 #endif
 
 
-/* struct: thread_startargument_t
+/* struct: startarg_t
  * Startargument of the started system thread.
  * The start function <start_thread> then calls the task stored in thread. */
-typedef struct thread_startargument_t {
+typedef struct startarg_t {
    thread_t  * self;
    stack_t     signalstack;
-} thread_startargument_t;
+   maincontext_e     type;
+   // == only used for main thread ==
+   int               argc;
+   const char **     argv;
+} startarg_t;
 
 
 // section: thread_t
@@ -54,86 +61,185 @@ typedef struct thread_startargument_t {
 /* variable: s_thread_errtimer
  * Simulates an error in <new_thread>. */
 static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
+
+/* variable: s_thread_errtimer
+ * Simulates an error in <start_thread>. */
+static test_errortimer_t   s_start_errtimer = test_errortimer_FREE; // TODO: add tests
 #endif
 
 // group: helper
+
+/* function: init_start_context
+ * The pre start init needed before running the task. */
+static int init_start_context(thread_t* thread)
+{
+   int err;
+
+   thread->sys_thread = pthread_self(); // !! also assigned in new_thread
+   memblock_t  signalstack = signalstack_threadstack(castPthread_threadstack(thread));
+   startarg_t* startarg = (startarg_t*) signalstack.addr; // coupled with init_helper
+
+   assert(startarg->self == thread);
+   assert(pthread_self() != sys_thread_FREE);
+
+   if (maincontext_STATIC != startarg->type) {
+      if (PROCESS_testerrortimer(&s_start_errtimer, &err)) { return err; }
+      if (thread->ismain) {
+         err = init_maincontext(startarg->type, startarg->argc, startarg->argv);
+         (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
+         if (err) return err;
+      }
+      err = init_threadcontext(&thread->threadcontext, startarg->type);
+      (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
+      if (err) return err;
+   }
+
+   // do not access startarg after sigaltstack (startarg is stored on this stack)
+   err = sigaltstack(&startarg->signalstack, (stack_t*)0);
+   if (PROCESS_testerrortimer(&s_start_errtimer, &err)) { errno = err; }
+   if (err) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("sigaltstack", err);
+      return err;
+   }
+
+   return 0;
+}
+
+/* function: free_start_context
+ * Free resources after runnning the task. */
+static int free_start_context(thread_t* thread)
+{
+   int err;
+
+   err = free_threadcontext(&thread->threadcontext);
+   (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
+
+   if (thread->ismain) {
+      int err2 = free_maincontext();
+      (void) PROCESS_testerrortimer(&s_start_errtimer, &err2);
+      if (err2) err = err2;
+   }
+
+   stack_t altstack = { .ss_flags = SS_DISABLE };
+   (void) sigaltstack(&altstack, 0);
+
+   return err;
+}
 
 /* function: start_thread
  * The start function of the thread.
  * This is the same for all threads.
  * It initializes signalstack, <threadcontext_t>, and
  * executes the user supplied function. */
-static void* start_thread(thread_startargument_t* startarg)
-{
+static void* start_thread(void* _dummy)
+{  (void) _dummy;
    int err;
-
    thread_t* thread = self_thread();
-   assert(startarg->self == thread);
-   // variable is set after creation ==> set it in both threads: calling new_thread + newly created
-   thread->sys_thread = pthread_self();
 
-   if (sys_thread_FREE == pthread_self()) {
-      err = EINVAL;
-      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, "pthread_self", STR(sys_thread_FREE));
-      goto ONERR;
-   }
+   err = init_start_context(thread);
+   if (err) goto ONERR;
 
-   // do not access startarg after sigaltstack (startarg is stored on this stack)
-   err = sigaltstack(&startarg->signalstack, (stack_t*)0);
+   if (0 != getcontext(&thread->continuecontext)) { err = errno; }
+   (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
+   thread = self_thread();
    if (err) {
-      err = errno;
-      TRACESYSCALL_ERRLOG("sigaltstack", err);
-      goto ONERR;
-   }
-   startarg = 0;
-
-   err = init_threadcontext(&thread->threadcontext, maincontext_threadcontext(&thread->threadcontext)->type);
-   if (err) {
-      TRACECALL_ERRLOG("init_threadcontext", err);
-      goto ONERR_NOABORT;
-   }
-
-   if (0 != getcontext(&thread->continuecontext)) {
-      err = errno;
       TRACESYSCALL_ERRLOG("getcontext", err);
       goto ONERR;
    }
-
-   thread = self_thread();
 
    // abort_thread sets thread->returncode to ENOTRECOVERABLE
    if (0 == thread->returncode && thread->task) {
       thread->returncode = thread->task(thread->task_arg);
    }
 
-   err = free_threadcontext(&thread->threadcontext);
-   if (err) {
-      TRACECALL_ERRLOG("free_threadcontext",err);
-      goto ONERR;
-   }
+   err = free_start_context(thread);
+   if (err) goto ONERR;
 
-   goto ONFREE;
-
+   return 0;
 ONERR:
-   abort_maincontext(err);
-ONERR_NOABORT:
-   setreturncode_thread(self_thread(), err);
+   thread->returncode = err;
+   thread->syserr = err;
    TRACEEXIT_ERRLOG(err);
-ONFREE:
-   {
-      stack_t altstack = { .ss_flags = SS_DISABLE };
-      (void) sigaltstack(&altstack, 0);
-   }
+   (void) free_start_context(thread);
    return (void*)(intptr_t)err;
 }
+
+static inline int init_helper(
+      /*out*/thread_t** thread,
+      /*out*/memblock_t* stack,
+      ilog_t*              log,
+      thread_f            task,
+      void*           task_arg,
+      uint8_t     isMainThread,
+      maincontext_e       type,
+      int                 argc,
+      const char*       argv[])
+{
+   int err;
+   thread_stack_t* threadstack = 0;
+   const size_t    static_size = extsize_threadcontext() + (isMainThread ?  extsize_processcontext() : 0);
+   memblock_t      signalstack;
+
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = new_threadstack(&threadstack, log, static_size, stack, &signalstack);
+   }
+   if (err) goto ONERR;
+
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = initstatic_threadcontext(context_threadstack(threadstack), log);
+   }
+   if (err) goto ONERR;
+
+   thread_t* newthread = thread_threadstack(threadstack);
+   newthread->task     = task;
+   newthread->task_arg = task_arg;
+   newthread->ismain   = isMainThread;
+
+   startarg_t* startarg   = (startarg_t*) signalstack.addr; // coupled with init_start_context
+
+   startarg->self         = newthread;
+   startarg->signalstack  = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
+   startarg->type         = type;
+   startarg->argc         = argc;
+   startarg->argv         = argv;
+
+   // set out (stack already set)
+   *thread = newthread;
+
+   return 0;
+ONERR:
+   (void) delete_threadstack(&threadstack, log);
+   return err;
+}
+
+static inline int free_helper(thread_t** thread, ilog_t* log)
+{
+   thread_t* delobj = *thread;
+   if (!delobj) return 0;
+
+   *thread = 0;
+
+   int err = freestatic_threadcontext(&delobj->threadcontext, log);
+   (void) PROCESS_testerrortimer(&s_thread_errtimer, &err);
+
+   thread_stack_t* threadstack = castPthread_threadstack(delobj);
+
+   int err2 = delete_threadstack(&threadstack, log);
+   (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
+   if (err2) err = err2;
+
+   return err;
+}
+
 
 // group: lifetime
 
 int delete_thread(thread_t ** thread)
 {
    int err;
-   int err2;
    thread_t* delobj = *thread;
+   ilog_t*   defaultlog = GETWRITER0_LOG();
 
    if (delobj) {
       if (ismain_thread(delobj)) {
@@ -146,16 +252,7 @@ int delete_thread(thread_t ** thread)
       err = join_thread(delobj);
       (void) PROCESS_testerrortimer(&s_thread_errtimer, &err);
 
-      ilog_t *defaultlog = GETWRITER0_LOG();
-
-      err2 = freestatic_threadcontext(&delobj->threadcontext, defaultlog);
-      (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
-      if (err2) err = err2;
-
-      thread_stack_t* tst = castPthread_threadstack(delobj);
-
-      err2 = delete_threadstack(&tst, defaultlog);
-      (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
+      int err2 = free_helper(&delobj,defaultlog);
       if (err2) err = err2;
 
       if (err) goto ONERR;
@@ -172,30 +269,13 @@ int new_thread(/*out*/thread_t** thread, thread_f task, void * task_arg)
    int err;
    pthread_attr_t    thread_attr;
    thread_t *        newthread = 0;
-   thread_stack_t  * tst = 0;
    bool              isThreadAttrValid = false;
    memblock_t        stack;
-   memblock_t        signalstack;
    ilog_t          * defaultlog = GETWRITER0_LOG();
+   const uint8_t     normalThread = 0;
 
-   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = new_threadstack(&tst, extsize_threadcontext(), defaultlog, &stack, &signalstack);
-   }
+   err = init_helper(&newthread, &stack, defaultlog, task, task_arg, normalThread, type_maincontext(), 0, 0);
    if (err) goto ONERR;
-
-   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = initstatic_threadcontext(context_threadstack(tst), defaultlog);
-   }
-   if (err) goto ONERR;
-
-   newthread = thread_threadstack(tst);
-   newthread->task     = task;
-   newthread->task_arg = task_arg;
-
-   thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr;
-
-   startarg->self         = newthread;
-   startarg->signalstack  = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
       err = pthread_attr_init(&thread_attr);
@@ -216,22 +296,20 @@ int new_thread(/*out*/thread_t** thread, thread_f task, void * task_arg)
    }
 
    sys_thread_t sys_thread;
-   static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&start_thread))0, "argument has type startarg");
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&start_thread, startarg);
+      err = pthread_create(&sys_thread, &thread_attr, &start_thread, 0);
    }
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_create",err);
       goto ONERR;
    }
-   // variable is set after creation ==> set it in both threads: calling new_thread + newly created
-   newthread->sys_thread = sys_thread;
+   newthread->sys_thread = sys_thread; // !! also assigned in start_thread
 
-   err = pthread_attr_destroy(&thread_attr);
    isThreadAttrValid = false;
+   err = pthread_attr_destroy(&thread_attr);
    if (err) {
+      // ignore error
       TRACESYSCALL_ERRLOG("pthread_attr_destroy",err);
-      abort_maincontext(err);
    }
 
    *thread = newthread;
@@ -241,10 +319,64 @@ ONERR:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr);
    }
-   (void) delete_threadstack(&tst, defaultlog);
+   (void) free_helper(&newthread, defaultlog);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
+
+// TODO: add test for runmain_thread
+int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_t* initlog, maincontext_e type, int argc, const char* argv[])
+{
+   int err;
+   thread_t*  thread=0;
+   memblock_t stack;
+   ucontext_t context_old;
+   ucontext_t context_mainthread;
+   const uint8_t mainThread  = 1;
+
+   err = init_helper(&thread,&stack,initlog,task,task_arg,mainThread,type,argc,argv);
+   if (err) goto ONERR;
+
+   err = getcontext(&context_mainthread);
+   if (PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      errno = err;
+   }
+   if (err) {
+      err = errno;
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "getcontext", err);
+      goto ONERR;
+   }
+
+   context_mainthread.uc_link  = &context_old; // ensures activation of context_old after exit of start_thread
+   context_mainthread.uc_stack = (stack_t) { .ss_sp = stack.addr, .ss_flags = 0, .ss_size = stack.size };
+   static_assert((void*(*)(void*))0 == (typeof(&start_thread))0, "start_thread compatible with void fct(void)");
+   makecontext(&context_mainthread, (void(*)(void))&start_thread, 0, 0);
+
+   // calls start_thread and returns after exit of this function (current context is saved in context_old)
+   err = swapcontext(&context_old, &context_mainthread);
+   if (PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      errno = err;
+   }
+   if (err) {
+      err = errno;
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "swapcontext", err);
+      goto ONERR;
+   }
+
+
+   err = returncode_thread(thread);
+   if (retcode) *retcode = err;
+
+   err = free_helper(&thread,initlog);
+   if (err) goto ONERR;
+
+   return 0;
+ONERR:
+   (void) free_helper(&thread,initlog);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   return err;
+}
+
 
 // group: synchronize
 
@@ -453,9 +585,14 @@ void abort_thread(void)
 
 #ifdef KONFIG_UNITTEST
 
+static void*         s_thread_param    = 0;
 static unsigned      s_thread_runcount = 0;
 static unsigned      s_thread_signal   = 0;
+static int           s_thread_retcode  = 0;
 static sys_thread_t  s_thread_id       = 0;
+static unsigned      s_thread_type     = 0;
+static int           s_thread_argc     = 0;
+static const char**  s_thread_argv     = 0;
 
 static int thread_donothing(void* dummy)
 {
@@ -475,6 +612,28 @@ static int thread_returncode(intptr_t retcode)
    return (int) retcode;
 }
 
+static int thread_param(void* param)
+{
+   s_thread_id = pthread_self();
+   s_thread_param = param;
+   return s_thread_retcode;
+}
+
+static int thread_context(void* param)
+{  (void) param;
+   s_thread_id = pthread_self();
+   s_thread_type = type_maincontext();
+   s_thread_argc = self_maincontext()->argc;
+   s_thread_argv = self_maincontext()->argv;
+   return 0;
+}
+
+static int thread_printferrlog(void* text)
+{
+   PRINTF_ERRLOG("%s",(char*)text);
+   return 0;
+}
+
 static int test_initfree(void)
 {
    thread_t * thread = 0;
@@ -491,7 +650,6 @@ static int test_initfree(void)
    TEST( 0 == sthread.lockflag);
    TEST( 0 == sthread.ismain);
    TEST( sys_thread_FREE == sthread.sys_thread);
-
 
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3));
@@ -608,42 +766,158 @@ ONERR:
    return EINVAL;
 }
 
-static int test_mainthread(void)
+static int check_error_logged(pipe_t* errpipe, int oldstderr)
 {
-   thread_t thread = thread_FREE;
+   uint8_t buffer[64];
+   ssize_t len;
 
-   // TEST initmain_thread
-   initmain_thread(&thread, &thread_donothing, (void*)2);
-   TEST(thread.wait.next  == 0);
-   TEST(thread.wait.prev  == 0);
-   TEST(thread.lockflag   == 0);
-   TEST(thread.ismain     == 1);
-   TEST(thread.task       == &thread_donothing);
-   TEST(thread.task_arg   == (void*)2);
-   TEST(thread.returncode == 0);
-   TEST(thread.sys_thread == pthread_self());
+   len = read(errpipe->read, buffer,sizeof(buffer));
+   TEST( len == sizeof(buffer));
 
-   // TEST initmain_thread: calling twice does no harm
-   initmain_thread(&thread, 0, 0);
-   TEST(thread.wait.next == 0);
-   TEST(thread.wait.prev == 0);
-   TEST(thread.lockflag   == 0);
-   TEST(thread.ismain     == 1);
-   TEST(thread.task       == 0);
-   TEST(thread.task_arg   == 0);
-   TEST(thread.returncode == 0);
-   TEST(thread.sys_thread == pthread_self());
-
-   // TEST delete_thread: EINVAL in case of main thread
-   thread = *self_thread();
-   thread.ismain = 1;
-   thread_t* pthread = &thread;
-   TEST(ismain_thread(&thread));
-   TEST(EINVAL == delete_thread(&pthread));
-   TEST(&thread == pthread);
+   do {
+      TEST(len == write(oldstderr, buffer, (size_t)len));
+      len = read(errpipe->read, buffer,sizeof(buffer));
+   } while (len > 0);
+   TEST( -1 == len);
+   TEST( EAGAIN == errno);
 
    return 0;
 ONERR:
+   return EINVAL;
+}
+
+static int test_mainthread(void)
+{
+   thread_t*   mainthread = self_thread();
+   iochannel_t olderr = iochannel_FREE;
+   pipe_t      pipe = pipe_FREE;
+   size_t      logsize1,logsize2;
+   uint8_t*    logbuffer;
+   const char* argv[3] = { "1", "2", "3" };
+
+   // prepare
+   TEST( 1 == mainthread->ismain);
+   TEST( 0 == switchoff_testmm());
+   TEST( 0 == free_start_context(mainthread));
+   TEST( maincontext_STATIC == type_maincontext());
+
+   // TODO: ? TEST(0 == init_pipe(&pfd));
+
+   // TEST runmain_thread: maincontext is setup and freed
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+   maincontext_e test_type[3] = { maincontext_STATIC, maincontext_DEFAULT, maincontext_CONSOLE };
+   for (uintptr_t i = 0; i <= 10; ++i) {
+      maincontext_e T = test_type[i%3];
+      int retcode = -1;
+      int C=(int)(1+(i%3));
+      const char** V=&argv[2-(i%3)];
+      TEST(0 == runmain_thread(&retcode, &thread_context, (void*)(i+1), GETWRITER0_LOG(), T, C, V));
+      // check context type and params
+      TEST(0 == retcode);
+      TEST(T == s_thread_type);
+      if (maincontext_STATIC==T) { C=0; V=0; } // maincontext not initialized !!
+      TEST(C == s_thread_argc);
+      TEST(V == s_thread_argv);
+      // check no new thread created
+      TEST(pthread_self() == s_thread_id);
+      s_thread_id = sys_thread_FREE;
+      // check no log written
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize2 == logsize1);
+      // check maincontext freed
+      TEST(maincontext_STATIC == type_maincontext());
+   }
+
+   // TEST runmain_thread: argument && return code
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
+   for (uintptr_t i = 0; i <= 10; ++i) {
+      int retcode = -1;
+      s_thread_retcode = (int)i;
+      TEST(0 == runmain_thread(&retcode, &thread_param, (void*)(i+1), GETWRITER0_LOG(), maincontext_STATIC, 0, 0));
+      // check param and return code
+      TEST(i == (uintptr_t) retcode);
+      TEST(i == ((uintptr_t)s_thread_param) -1);
+      // check no new thread created
+      TEST(pthread_self() == s_thread_id);
+      s_thread_id = sys_thread_FREE;
+      // check no log written
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize2 == logsize1);
+   }
+
+   // prepare
+   TEST(0 == init_pipe(&pipe));
+   TEST(0 <  (olderr = dup(iochannel_STDERR)));
+   TEST(iochannel_STDERR == dup2(pipe.write, iochannel_STDERR));
+
+   // TEST runmain_thread: use log
+   {
+      int retcode = -1;
+      char text[] = { "123456789\n" };
+      char buffer[sizeof(text)] = {0};
+      TEST(0 == runmain_thread(&retcode, &thread_printferrlog, text, GETWRITER0_LOG(), maincontext_STATIC, 0, 0));
+      TEST(0 == retcode);
+      size_t len = (size_t) read(pipe.read, buffer, sizeof(buffer));
+      TEST(len == strlen(text));
+      TEST(0 == strcmp(text, buffer));
+   }
+
+   // TEST runmain_thread: simulated error conditions in runmain_thread
+   s_thread_retcode = 0;
+   s_thread_param = 0;
+   for (unsigned i=1; ;++i) {
+      init_testerrortimer(&s_thread_errtimer, i, (int)i);
+      int err = runmain_thread(0, &thread_param, (void*)(uintptr_t)i, GETWRITER0_LOG(), maincontext_STATIC, 0, 0);
+      if (i <= 3) {
+         TEST( 0 == s_thread_param); // error before call
+      } else {
+         TEST( i == (uintptr_t)s_thread_param); // err in free resources
+      }
+      if (!err) {
+         TEST( 7 == i);
+         free_testerrortimer(&s_thread_errtimer);
+         break;
+      }
+      TEST(err == (int)i);
+      TEST(0 == check_error_logged(&pipe, olderr));
+   }
+
+   // TEST runmain_thread: simulated error conditions in start_thread
+   s_thread_retcode = 0;
+   s_thread_param = 0;
+   for (unsigned i=1; ;++i) {
+      init_testerrortimer(&s_start_errtimer, i, (int)i);
+      int retcode=0;
+      TEST(0 == runmain_thread(&retcode, &thread_param, (void*)(uintptr_t)i, GETWRITER0_LOG(), maincontext_DEFAULT, 0, 0));
+      if (i <= 5) {
+         TESTP( 0 == s_thread_param, "i:%d", i); // error before call
+      } else {
+         TESTP( i == (uintptr_t)s_thread_param, "i:%d", i); // err in free resources
+      }
+      if (!retcode) {
+         TESTP( 8 == i, "i:%d", i);
+         free_testerrortimer(&s_start_errtimer);
+         break;
+      }
+      TEST(retcode == (int)i);
+      TEST(0 == check_error_logged(&pipe, olderr));
+   }
+
+   // unprepare
+   TEST(0 == free_pipe(&pipe));
+   TEST(iochannel_STDERR == dup2(olderr, iochannel_STDERR));
+   TEST(0 == free_iochannel(&olderr));
+
+   // TEST delete_thread: EINVAL in case of main thread
+   TEST(EINVAL == delete_thread(&mainthread));
+
+   return 0;
+ONERR:
+   if (!isfree_iochannel(olderr)) {
+      dup2(olderr, iochannel_STDERR);
+      free_iochannel(&olderr);
+   }
+   free_pipe(&pipe);
    return EINVAL;
 }
 
@@ -1909,7 +2183,6 @@ static int childprocess_unittest(void)
    TEST(0 == init_resourceusage(&usage));
 
    if (test_initfree())       goto ONERR;
-   if (test_mainthread())     goto ONERR;
    if (test_query())          goto ONERR;
    if (test_join())           goto ONERR;
    if (test_sigaltstack())    goto ONERR;
@@ -1938,9 +2211,12 @@ int unittest_platform_task_thread()
 {
    int err;
 
+   TEST(0 == execasprocess_unittest(&test_mainthread, &err));
+   TEST(0 == err);
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+   TEST(0 == err);
 
-   return err;
+   return 0;
 ONERR:
    return EINVAL;
 }

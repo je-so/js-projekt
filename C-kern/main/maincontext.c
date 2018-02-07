@@ -20,11 +20,10 @@
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/memory/pagecache_impl.h"
-#include "C-kern/api/platform/init.h"
 #include "C-kern/api/platform/syslogin.h"
 #include "C-kern/api/platform/sync/mutex.h"
-#include "C-kern/api/platform/task/thread.h"          // TODO: try removing after integration init into thread
-#include "C-kern/api/platform/task/thread_stack.h"    // TODO: try removing after integration init into thread
+#include "C-kern/api/platform/task/thread.h"
+
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -38,6 +37,7 @@
 #include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/platform/locale.h"
+#include "C-kern/api/platform/task/thread_stack.h"
 #endif
 
 
@@ -49,20 +49,6 @@
 /* variable: g_maincontext
  * Reserve space for the global main context. */
 maincontext_t g_maincontext = maincontext_INIT_STATIC;
-
-// TODO: 1 merge processcontext_t with maincontext_t
-// TODO: 2 use (implement it) main static memory manage instead of thread static memory
-// TODO: 4 rewrite log_macros, remove errlog, use XXX_LOG(ERR, ... instead
-//       add support for giving logwriter_t as argument to support log during init
-//       threadstack uses init log ... (given as parameter)
-//       Implement TRACE_LOG which selects TRACE0_LOG, TRACE1_LOG, ... on number of parameter !!
-//       Use nrargsof to implement this feature
-// TODO: 5 integrate thread_stack functionality into thread module ?
-//         better to use thread_stack_t !
-//       - init static logwriter in new_thread
-//       - use initlog from maincontext in initmain_thread
-//       6. implement init_syscontext and call it during init in maincontext_t (former processcontext_t)
-//       7. rename Linux init.c into sysinit.c (or remove it of functionality could be moved into initmain_thread)
 
 // group: static variables
 
@@ -135,7 +121,7 @@ static inline void freelog_maincontext(ilog_t* initlog)
  * "C-kern/resource/config/initthread" and "C-kern/resource/config/initprocess".
  * This init database files are checked against the whole project
  * with "C-kern/test/static/check_textdb.sh". */
-static int free_maincontext(void)
+int free_maincontext(void)
 {
    int err;
    int is_initialized = (maincontext_STATIC != g_maincontext.type);
@@ -147,12 +133,6 @@ static int free_maincontext(void)
       int err2 = free_syscontext(&g_maincontext.sysinfo);
       (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err2);
       if (err2) err = err2;
-
-      // TODO: remove check ? (freestatic_threadstack also checks this value)
-      if (!err && extsize_threadcontext() != sizestatic_threadstack(self_threadstack())) {
-         err = ENOTEMPTY;
-      }
-      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err);
 
       clear_args_maincontext(&g_maincontext);
 
@@ -168,7 +148,7 @@ ONERR:
 }
 
 /* function: init_maincontext
- * Initializes <processcontext_t> of <g_maincontext> and the current <threadcontext_t>.
+ * Initializes <maincontext_t> with its contained <processcontext_t>.
  *
  * Background:
  * Functions init_processcontext and init_threadcontext call every
@@ -176,7 +156,7 @@ ONERR:
  * "C-kern/resource/config/initprocess" and "C-kern/resource/config/initthread".
  * This init database files are checked against the whole project with
  * "C-kern/test/static/check_textdb.sh". */
-static int init_maincontext(const maincontext_e context_type, int argc, const char* argv[])
+int init_maincontext(const maincontext_e context_type, int argc, const char* argv[])
 {
    int err;
 
@@ -200,44 +180,6 @@ ONERR:
    free_maincontext();
    TRACEEXIT_ERRLOG(err);
    return err;
-}
-
-// TODO: remove this function
-void start_mainthread(void)
-{
-   int err;
-   thread_t* thread = self_thread();
-   const maincontext_e context_type = g_maincontext.startarg_type;
-
-   // TODO: set_args_maincontext(&g_maincontext, arg);
-
-   if (maincontext_STATIC != context_type) {
-      err = init_maincontext(context_type, g_maincontext.startarg_argc, g_maincontext.startarg_argv);
-      if (err) goto ONERR;
-
-      if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
-         err = init_threadcontext(tcontext_maincontext(), context_type);
-      }
-      if (err) goto ONERR;
-   }
-
-   err = thread->task(thread->task_arg);
-   setreturncode_thread(thread, err);
-
-   if (maincontext_STATIC != context_type) {
-      err = free_threadcontext(tcontext_maincontext());
-      (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err);
-      if (err) goto ONERR;
-
-      err = free_maincontext();
-      if (err) goto ONERR;
-   }
-
-   return;
-ONERR:
-   TRACE_LOG(, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
-   (void) free_maincontext();
-   setreturncode_thread(thread, err);
 }
 
 int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, const char** argv)
@@ -270,7 +212,10 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, 
    g_maincontext.startarg_type = type;
    g_maincontext.startarg_argc = argc;
    g_maincontext.startarg_argv = argv;
-   err = initrun_syscontext((thread_f)main_thread, &g_maincontext, &initlog);
+
+   int retcode;
+   err = runmain_thread(&retcode, (thread_f)main_thread, &g_maincontext, &initlog, type, argc, argv);
+   if (!err) err = retcode;
 
    freelog_maincontext(&initlog);
 
@@ -520,18 +465,20 @@ static int test_init(void)
       }
    }
 
-   // TEST free_maincontext: ENOTEMPTY
-   // prealloc static mem to generate ENOTEMPTY
-   memblock_t mblock;
-   const size_t oldsize=sizestatic_threadstack(self_threadstack());
-   TEST(0 == allocstatic_threadstack(self_threadstack(), 1, &initlog, &mblock));
+   // TEST free_maincontext: EMEMLEAK
    TEST(0 == init_maincontext(maincontext_DEFAULT, 1, argv));
+   memblock_t mblock;
+   TEST(0 == allocstatic_threadstack(self_threadstack(), &initlog, 1, &mblock)); // alloc additional mem
    // test
-   TEST(ENOTEMPTY == free_maincontext());
-   // check memory freed
-   TEST(0 == freestatic_threadstack(self_threadstack(), &mblock, &initlog));
-   TEST(oldsize == sizestatic_threadstack(self_threadstack()));
-   // check g_maincontext
+   uint8_t* staticmemblock = pcontext_maincontext()->staticmemblock;
+   TEST( EMEMLEAK == free_maincontext());
+   // check
+   TEST( 0 == pcontext_maincontext()->staticmemblock); // TODO: !! merge pcontext with maincontext !!
+   // reset
+   TEST(0 == freestatic_threadstack(self_threadstack(), &initlog, &mblock));
+   pcontext_maincontext()->staticmemblock = staticmemblock;
+   pcontext_maincontext()->initcount = 1;
+   TEST(0 == free_processcontext(pcontext_maincontext()));
    TEST(0 == check_isstatic_maincontext(&g_maincontext));
 
    // TEST init_maincontext: simulated error
@@ -555,7 +502,7 @@ static int test_init(void)
       int err = free_maincontext();
       if (!err) {
          free_testerrortimer(&s_maincontext_errtimer);
-         TESTP( 4==i, "i:%d",i);
+         TESTP( 3==i, "i:%d",i);
          break;
       }
       TEST(1+i == (unsigned)err);
@@ -621,12 +568,6 @@ static int test_ealready(maincontext_t* maincontext)
    return err;
 }
 
-static int child_initrun(void* dummy)
-{
-   (void) dummy;
-   return initrun_maincontext(s_mainmode[s_i], &test_init_returncode, 0, 0);
-}
-
 static int test_initrun(void)
 {
    pipe_t  errpipe = pipe_FREE;
@@ -664,7 +605,6 @@ static int test_initrun(void)
       TEST(0 == check_isstatic_maincontext(&g_maincontext));
    }
 
-
    // TEST initrun_maincontext: EINVAL (but initlog setup ==> error log is written)
    TEST(0 == check_noerror_logged(&errpipe));
    TEST(EINVAL == initrun_maincontext(maincontext_STATIC, &test_init_returncode, 0, 0));
@@ -684,36 +624,6 @@ static int test_initrun(void)
    TEST(EALREADY == initrun_maincontext(maincontext_DEFAULT, &test_ealready, 0, 0));
    TEST(0 == check_error_logged(&errpipe, oldstderr));
 
-   // TEST initrun_maincontext: simulated error
-   s_i = 0; // argument to test_init_returncode
-   for (unsigned i=1; ; ++i) {
-      s_is_called = 0;
-      init_testerrortimer(&s_maincontext_errtimer, i, (int)i);
-      // test
-      if (1==i) {
-         // simulate error in initstatic_logwriter
-         process_result_t result;
-         TEST(0 == init_process(&child, &child_initrun, 0, &(process_stdio_t)process_stdio_INIT_INHERIT));
-         // check
-         TEST(0 == wait_process(&child, &result));
-         TEST(0 == free_process(&child));
-         TEST(process_state_ABORTED == result.state);
-      } else {
-         int err = initrun_maincontext(s_mainmode[s_i], &test_init_returncode, 0, 0);
-         // check calling of test_init_returncode
-         TESTP( (i >= 5) == s_is_called, "i=%d", i);
-         // check free_syscontext, free_maincontext, and clear_args_maincontext called
-         TEST( 0 == check_isstatic_maincontext(&g_maincontext));
-         if (!err) {
-            TESTP( 9==i,"i:%d",i);
-            free_testerrortimer(&s_maincontext_errtimer);
-            break;
-         }
-         TEST( i == (unsigned)err);
-      }
-      TESTP(0 == check_error_logged(&errpipe, oldstderr), "i:%d",i);
-   }
-
    // reset
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO));
    TEST(0 == free_pipe(&errpipe));
@@ -731,8 +641,6 @@ ONERR:
    return EINVAL;
 }
 
-static volatile int test_static_result;
-
 static int test_static(void* dummy)
 {
    TEST(0 == dummy);
@@ -743,10 +651,8 @@ static int test_static(void* dummy)
    if (test_init())           goto ONERR;
    if (test_initrun())        goto ONERR;
 
-   test_static_result = 0;
    return 0;
 ONERR:
-   test_static_result = EINVAL;
    return EINVAL;
 }
 
@@ -775,13 +681,13 @@ static int childprocess_unittest(void)
 
    freeonce_locale();
    freeonce_signalhandler();
-   test_static_result = EINVAL;
    TEST(0 == init_resourceusage(&usage));
    memcpy(&oldmc, &g_maincontext, sizeof(oldmc));
    g_maincontext = (maincontext_t) maincontext_INIT_STATIC;
-   TEST( 0 == initrun_syscontext(&test_static, (void*) 0, GETWRITER0_LOG()));
+   int err = EINVAL;
+   TEST( 0 == runmain_thread(&err, &test_static, 0, GETWRITER0_LOG(), maincontext_STATIC, 0, 0));
    memcpy(&g_maincontext, &oldmc, sizeof(oldmc));
-   TEST( 0 == test_static_result);
+   TEST( 0 == err);
    TEST( 0 == same_resourceusage(&usage));
    TEST( 0 == free_resourceusage(&usage));
 
@@ -794,7 +700,7 @@ static int childprocess_unittest(void)
       sum += rsize;
    }
    TEST(-1 == rsize);
-   TEST(3000 < sum);
+   TEST(1000 < sum);
    TEST(EAGAIN == errno);
 
    // reset

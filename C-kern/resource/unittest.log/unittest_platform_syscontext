@@ -1,10 +1,10 @@
 -- init_syscontext: simulated ERROR --
-[1: 1516800971.576246s]
-init_syscontext() C-kern/platform/Linux/syscontext.c:82
+[1: 1517818945.375156s]
+init_syscontext() C-kern/platform/Linux/syscontext.c:81
 Exit function with
 Error 22 - Invalid argument
-[1: 1516800971.576250s]
-init_syscontext() C-kern/platform/Linux/syscontext.c:82
+[1: 1517818945.375157s]
+init_syscontext() C-kern/platform/Linux/syscontext.c:81
 Exit function with
 Error 22 - Invalid argument
 -- "" --

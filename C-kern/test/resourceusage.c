@@ -308,9 +308,9 @@ static int test_query(void)
 
    // TEST same_resourceusage: ELEAK cause of static memory
    TEST(0 == init_resourceusage(&usage));
-   TEST(0 == allocstatic_threadstack(self_threadstack(), 128, initlog, &page));
+   TEST(0 == allocstatic_threadstack(self_threadstack(), initlog, 128, &page));
    TEST(ELEAK == same_resourceusage(&usage));
-   TEST(0 == freestatic_threadstack(self_threadstack(), &page, initlog));
+   TEST(0 == freestatic_threadstack(self_threadstack(), initlog, &page));
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 

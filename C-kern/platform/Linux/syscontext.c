@@ -78,7 +78,6 @@ int init_syscontext(/*out*/syscontext_t* scontext)
 
    return 0;
 ONERR:
-   // TODO: call init_syscontext only within start_mainthread !!!
    TRACEEXIT_ERRLOG(err);
    return err;
 }

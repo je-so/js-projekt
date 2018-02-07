@@ -3,6 +3,7 @@
 include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/context-mini
+include        projekte/subsys/libs
 Src           += C-kern/main/tools/genmemdb.c
 Src           += C-kern/io/filesystem/fileutil.c
 Includes       = .

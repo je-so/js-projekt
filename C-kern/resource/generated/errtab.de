@@ -260,8 +260,8 @@ uint16_t g_errorcontext_stroffset[] = {
    [ERESET] = 4962,
    [EALLOC] = 4993,
    [ELEAK] = 5016,
-   [ESYNTAX] = 5038,
-   [0x106] = 4830 /*same as 0xff*/,
+   [EMEMLEAK] = 5038,
+   [ESYNTAX] = 5075,
    [0x107] = 4830 /*same as 0xff*/,
    [0x108] = 4830 /*same as 0xff*/,
    [0x109] = 4830 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 4830 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[5084] = {
+uint8_t g_errorcontext_strdata[5121] = {
    "Erfolg\0"
    "Vorgang nicht zulässig\0"
    "Datei oder Verzeichnis nicht gefunden\0"
@@ -654,5 +654,6 @@ uint8_t g_errorcontext_strdata[5084] = {
    "Kontextzustand wurde gelöscht\0"
    "Nicht genug Ressourcen\0"
    "Ressource(n) verloren\0"
+   "Speicher wurde vergessen freizugeben\0"
    "Syntaktischer Fehler während Strukturanalyse\0"
 } ;

@@ -77,7 +77,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!pseudoterm.c.o \
@@ -129,7 +128,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!init.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!pseudoterm.c.o \
@@ -190,9 +188,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/s
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c
@@ -340,9 +335,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!init.c.o: C-kern/platform/Linux/init.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o: C-kern/platform/Linux/syslogin.c

@@ -578,6 +578,7 @@ en: "Unknown error"
 ## Application Error Codes
 ##
 
+# 0x100
 ENOTINIT
 de: "Teilsystem wurde noch nicht initialisiert"
 en: "Subsystem not yet initialized"
@@ -593,10 +594,13 @@ en: "Failed to allocate one or more resources"
 ELEAK
 de: "Ressource(n) verloren"
 en: "Resource(s) leaked"
+# 0x105
+EMEMLEAK
+de: "Speicher wurde vergessen freizugeben"
+en: "Not all memory freed"
 ESYNTAX
 de: "Syntaktischer Fehler während Strukturanalyse"
 en: "Syntax error during parsing"
-0x106 -> 0xff
 0x107 -> 0xff
 0x108 -> 0xff
 0x109 -> 0xff

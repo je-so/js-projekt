@@ -95,11 +95,11 @@ struct log_it * interface_logwriter(void)
 static int allocatebuffer_logwriter(/*out*/memblock_t * buffer)
 {
    int err;
-   static_assert(16384 < INT_MAX, "size_t of buffer will be used in vnsprintf and returned as int");
-   static_assert(16384 > minbufsize_logwriter(), "buffer can hold at least 2 entries");
+   static_assert(65536 < INT_MAX, "size_t of buffer will be used in vnsprintf and returned as int");
+   static_assert(65536 > minbufsize_logwriter(), "buffer can hold at least 2 entries");
 
    if (! PROCESS_testerrortimer(&s_logwriter_errtimer, &err)) {
-      err = ALLOC_PAGECACHE(pagesize_16384, buffer);
+      err = ALLOC_PAGECACHE(pagesize_131072, buffer);
    }
    if (err) goto ONERR;
 
@@ -395,6 +395,7 @@ static int test_initfree(void)
 {
    logwriter_t lgwrt = logwriter_FREE;
    uint8_t     logbuf[minbufsize_logwriter()];
+   const size_t PS = pagesizeinbytes_pagecache(pagesize_131072);
 
    // TEST logwriter_FREE
    TEST(1 == isfree_logwriter(&lgwrt));
@@ -402,10 +403,10 @@ static int test_initfree(void)
    // TEST init_logwriter
    TEST(0 == init_logwriter(&lgwrt));
    TEST(lgwrt.addr != 0);
-   TEST(lgwrt.size == 16384);
+   TEST(lgwrt.size == PS);
    for (size_t i = 0, offset = 0; i < log_channel__NROF; ++i) {
       TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset);
-      TEST(lgwrt.chan[i].logbuf.size == (i == log_channel_ERR ? 16384 - (log_channel__NROF-1)*2*log_config_MINSIZE : 2*log_config_MINSIZE));
+      TEST(lgwrt.chan[i].logbuf.size == (i == log_channel_ERR ? PS - (log_channel__NROF-1)*2*log_config_MINSIZE : 2*log_config_MINSIZE));
       TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR);
       TEST(lgwrt.chan[i].logbuf.logsize == 0);
       TEST(lgwrt.chan[i].logstate    == (i ? log_state_BUFFERED : log_state_IGNORED));
@@ -622,16 +623,50 @@ static void textres_noarg_test(logbuffer_t * logbuf, void * _p)
    printf_logbuffer(logbuf, "12345");
 }
 
+typedef struct  {
+   pipe_t*     pipe;
+   size_t      minlen;
+   size_t      readlen;
+   memblock_t  buffer;
+   int         err;
+} thread_readpipe_t;
+
+static int thread_readpipe(void* _param)
+{
+   thread_readpipe_t* param = _param;
+   param->readlen = 0;
+   param->err = 0;
+   for (;;) {
+      ssize_t size = read(param->pipe->read, param->buffer.addr + param->readlen, param->buffer.size - param->readlen);
+      if (size<=0) {
+         if (size<0 && errno != EAGAIN) {
+            param->readlen = 0;
+            param->err = errno;
+            return param->err;
+         }
+         if (param->readlen >= param->minlen) return 0;
+         sleepms_thread(1);
+         continue;
+      }
+      param->readlen += (size_t) size;
+   }
+   return 0;
+}
+
 static int test_write(void)
 {
    logwriter_t    lgwrt  = logwriter_FREE;
    int            logfd  = -1;
    pipe_t         pipefd = pipe_FREE;
    memblock_t     mem    = memblock_FREE;
+   thread_t*      thread = 0;
+   thread_readpipe_t thread_param;
 
    // prepare
-   TEST(0 == ALLOC_PAGECACHE(pagesize_16384, &mem));
+   TEST(0 == ALLOC_PAGECACHE(pagesize_262144, &mem));
    TEST(0 == init_pipe(&pipefd));
+   thread_param.pipe   = &pipefd;
+   thread_param.buffer = mem;
 
    // TEST truncatebuffer_logwriter
    TEST(0 == init_logwriter(&lgwrt));
@@ -664,7 +699,7 @@ static int test_write(void)
       logfd = lgwrt.chan[i].logbuf.io;
       lgwrt.chan[i].logbuf.io = pipefd.write;
       // set log buffer
-      size_t S = lgwrt.chan[i].logbuf.size;
+      size_t S = lgwrt.chan[i].logbuf.size < 32000 ? lgwrt.chan[i].logbuf.size : 32000 ;
       for (unsigned b = 0; b < S; ++b) {
          lgwrt.chan[i].logbuf.addr[b] = (uint8_t) (1+b+i);
       }
@@ -672,7 +707,7 @@ static int test_write(void)
       // test
       flushbuffer_logwriter(&lgwrt, i);
       TEST(0 == lgwrt.chan[i].logbuf.addr[0]);
-      TEST(S == lgwrt.chan[i].logbuf.size);
+      TEST(S <= lgwrt.chan[i].logbuf.size);
       TEST(0 == lgwrt.chan[i].logbuf.logsize);
       // compare flushed content
       ssize_t rs = read(pipefd.read, mem.addr, mem.size);
@@ -800,18 +835,21 @@ static int test_write(void)
          TEST(-1 == read(pipefd.read, mem.addr, mem.size));
 
          // test log_flags_LAST
+         thread_param.minlen = S-log_config_MINSIZE+2;
+         TEST(0 == new_thread(&thread, &thread_readpipe, &thread_param));
          printf_logwriter(&lgwrt, i, log_flags_LAST, 0, "Z");
+         TEST(0 == join_thread(thread));
+         TEST(0 == delete_thread(&thread));
          // check logwrt.chan[i].logbuf was flushed
          TEST(lgwrt.chan[i].logbuf.addr[0] == 0);
          TEST(lgwrt.chan[i].logbuf.size    == S);
          TEST(lgwrt.chan[i].logbuf.logsize == 0);
-         unsigned rs = (unsigned) read(pipefd.read, mem.addr, mem.size);
-         TEST(rs == S-log_config_MINSIZE+2);
-         for (unsigned off = 0; off < rs-2; ++off) {
+         TEST(thread_param.minlen == thread_param.readlen);
+         for (unsigned off = 0; off < thread_param.readlen-2; ++off) {
             TEST(mem.addr[off] == '0');
          }
-         TEST(mem.addr[rs-2] == 'X');
-         TEST(mem.addr[rs-1] == 'Z');
+         TEST(mem.addr[thread_param.readlen-2] == 'X');
+         TEST(mem.addr[thread_param.readlen-1] == 'Z');
       }
       // reset
       lgwrt.chan[i].logbuf.io = logfd;
@@ -1023,6 +1061,7 @@ static int test_write(void)
 
    return 0;
 ONERR:
+   delete_thread(&thread);
    free_pipe(&pipefd);
    free_logwriter(&lgwrt);
    RELEASE_PAGECACHE(&mem);

@@ -323,12 +323,13 @@ static int childprocess_unittest(childprocess_t * param)
    size_t   size = 0;
    size_t   written;
 
+   // transfer flushed error messages
+   TEST(STDERR_FILENO == dup2(param->pipefd,STDERR_FILENO));
+
    CLEARBUFFER_ERRLOG();
    err = param->test_f();
 
-   uint8_t isResult = s_unittest_singleton.isResult != 0;
-   TEST(0 == write_iochannel(param->pipefd, 1, &isResult, 0));
-
+   // transfer cached error messages
    GETBUFFER_ERRLOG(&buffer, &size);
    TEST(0 == write_iochannel(param->pipefd, size, buffer, &written));
    TEST(written == size);
@@ -365,14 +366,6 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
    if (process_state_TERMINATED != result.state) {
       logfailedf_unittest(__FILE__, __LINE__, "Test process aborted (signalnr:%02d)", result.returncode);
       result.returncode = EINTR;
-
-   } else {
-      uint8_t isResult = 0;
-      err = read_iochannel(fd[0], 1, &isResult, 0);
-      if (err && err != EAGAIN) goto ONERR;
-      if (isResult) {
-         setresult_unittest(0 != result.returncode);
-      }
    }
 
    for (;;) {
@@ -935,18 +928,20 @@ static int test_exec(void)
    TEST(6 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
 
-   // TEST execasprocess_unittest: logfailed_unittest called / std-out is inherited
+   // TEST execasprocess_unittest: ignore called logfailed_unittest (std-out is inherited)
    CLEARBUFFER_ERRLOG();
    TEST(0 == execasprocess_unittest(&dummy_unittest_fail2, &retcode));
    TEST(EINVAL == retcode);
+   // check logfailed_unittest has not transfered result
    TEST(0 == s_unittest_singleton.okcount);
-   TEST(1 == s_unittest_singleton.errcount);
+   TEST(0 == s_unittest_singleton.errcount);
    TEST(0 == s_unittest_singleton.isRepeat);
-   TEST(0 != s_unittest_singleton.isResult);
+   TEST(0 == s_unittest_singleton.isResult);
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
    TEST(6 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
    PRINTF_ERRLOG("\n");
+   // check std-out inherited
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(32 == bytes_read);
    TEST(0 == strncmp("FAILED\n_file_:1234: TEST FAILED\n", (const char*)buffer, bytes_read));
@@ -968,7 +963,7 @@ static int test_exec(void)
    // stdout contains info about process failure
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TESTP(110 == bytes_read, "bytes_read:%zd", bytes_read)
-   TEST(0 == strncmp("FAILED\nC-kern/test/unittest.c:366: TEST FAILED\nC-kern/test/unittest.c:366: Test process aborted (signalnr:06)\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("FAILED\nC-kern/test/unittest.c:367: TEST FAILED\nC-kern/test/unittest.c:367: Test process aborted (signalnr:06)\n", (const char*)buffer, bytes_read));
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare
@@ -1055,7 +1050,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(50 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:1007: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:1002: TEST FAILED\nZ", bytes_read));
 
    // TEST TEST: s_unittest_singleton.isResult != 0
    call_test_macro();
@@ -1064,7 +1059,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(43 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:1007: TEST FAILED\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:1002: TEST FAILED\nZ", bytes_read));
 
    // TEST TESTP: s_unittest_singleton.isResult == 0
    s_unittest_singleton.okcount = 0;
@@ -1076,7 +1071,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(83 == bytes_read);
-   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:1023: TEST FAILED\nC-kern/test/unittest.c:1023: 1,2\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:1018: TEST FAILED\nC-kern/test/unittest.c:1018: 1,2\nZ", bytes_read));
 
    // TEST TESTP: s_unittest_singleton.isResult != 0
    call_testp_macro();
@@ -1085,7 +1080,7 @@ static int test_macros(void)
    TEST(1 == s_unittest_singleton.errcount);
    TEST(0 != s_unittest_singleton.isResult);
    TEST(76 == bytes_read);
-   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:1023: TEST FAILED\nC-kern/test/unittest.c:1023: 1,2\nZ", bytes_read));
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:1018: TEST FAILED\nC-kern/test/unittest.c:1018: 1,2\nZ", bytes_read));
 
    // unprepare
    memcpy(&s_unittest_singleton, &old, sizeof(old));
