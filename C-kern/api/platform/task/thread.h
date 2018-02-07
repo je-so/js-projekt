@@ -216,7 +216,11 @@ void unlock_thread(thread_t* thread);
 
 /* function: settask_thread
  * Changes values returned by <task_thread> and <taskarg_thread>. */
-void settask_thread(thread_t* thread, thread_f main, void* task_arg);
+void settask_thread(thread_t* thread, thread_f task, void* task_arg);
+
+/* function: settaskarg_thread
+ * Sets value returned by <taskarg_thread>. */
+void settaskarg_thread(thread_t* thread, void* task_arg);
 
 /* function: setreturncode_thread
  * Changes value returned by <returncode_thread>. */
@@ -428,20 +432,26 @@ int setcontinue_thread(thread_t* thread);
  * Implements <thread_t.settask_thread>. */
 #define settask_thread(thread, _task, _task_arg) \
          do {                                   \
-            volatile typeof(*(thread))* _thr;   \
-            _thr = (thread);                    \
+            volatile thread_t* _thr = (thread); \
             _thr->task     = (_task);           \
             _thr->task_arg = (_task_arg);       \
          } while(0)
 
+/* define: settaskarg_thread
+ * Implements <thread_t.settaskarg_thread>. */
+#define settaskarg_thread(thread, _task_arg) \
+         do {                                   \
+            volatile thread_t* _thr = (thread); \
+            _thr->task_arg = (_task_arg);       \
+         } while(0)
+
+
 /* define: taskarg_thread
  * Implements <thread_t.taskarg_thread>. */
 #define taskarg_thread(thread) \
-         ( __extension__ ({   \
-            volatile const    \
-            thread_t* _thr;   \
-            _thr = (thread);  \
-            _thr->task_arg;   \
+         ( __extension__ ({                           \
+            volatile const thread_t* _thr = (thread); \
+            _thr->task_arg;                           \
          }))
 
 /* define: unlock_thread

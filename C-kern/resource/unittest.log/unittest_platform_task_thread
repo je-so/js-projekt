@@ -1,63 +1,63 @@
-[1: 1517383445.330031s]
-exit_thread() C-kern/platform/Linux/task/thread.c:420
+[1: 1517588130.542529s]
+exit_thread() C-kern/platform/Linux/task/thread.c:423
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error
-[1: 1517383445.330499s]
-new_thread() C-kern/platform/Linux/task/thread.c:242
+[1: 1517588130.542852s]
+new_thread() C-kern/platform/Linux/task/thread.c:245
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517383445.330509s]
-new_thread() C-kern/platform/Linux/task/thread.c:242
+[1: 1517588130.542861s]
+new_thread() C-kern/platform/Linux/task/thread.c:245
 Exit function with
 Error 2 - No such file or directory
-[1: 1517383445.330516s]
-new_thread() C-kern/platform/Linux/task/thread.c:201
+[1: 1517588130.542868s]
+new_thread() C-kern/platform/Linux/task/thread.c:204
 System call 'pthread_attr_init' failed with error 3
 Exit function with
 Error 3 - No such process
-[1: 1517383445.330525s]
-new_thread() C-kern/platform/Linux/task/thread.c:209
+[1: 1517588130.542877s]
+new_thread() C-kern/platform/Linux/task/thread.c:212
 System call 'pthread_attr_setstack' failed with error 4
 stack.addr=0xXXXXXXXXXXXX
 stack.size=262144
 Exit function with
 Error 4 - Interrupted system call
-[1: 1517383445.330534s]
-new_thread() C-kern/platform/Linux/task/thread.c:221
+[1: 1517588130.542886s]
+new_thread() C-kern/platform/Linux/task/thread.c:224
 System call 'pthread_create' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1517383445.330620s]
-delete_thread() C-kern/platform/Linux/task/thread.c:164
+[1: 1517588130.542969s]
+delete_thread() C-kern/platform/Linux/task/thread.c:166
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1517383445.330666s]
-delete_thread() C-kern/platform/Linux/task/thread.c:164
+[1: 1517588130.543012s]
+delete_thread() C-kern/platform/Linux/task/thread.c:166
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1517383445.330708s]
-delete_thread() C-kern/platform/Linux/task/thread.c:164
+[1: 1517588130.543053s]
+delete_thread() C-kern/platform/Linux/task/thread.c:166
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[1: 1517383445.330755s]
-delete_thread() C-kern/platform/Linux/task/thread.c:164
+[1: 1517588130.543098s]
+delete_thread() C-kern/platform/Linux/task/thread.c:166
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1517383445.343540s]
-join_thread() C-kern/platform/Linux/task/thread.c:264
+[1: 1517588130.556315s]
+join_thread() C-kern/platform/Linux/task/thread.c:267
 Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1517383445.343682s]
-join_thread() C-kern/platform/Linux/task/thread.c:264
+[1: 1517588130.556528s]
+join_thread() C-kern/platform/Linux/task/thread.c:267
 Exit function with
 Error 3 - No such process
-[1: 1517383445.919779s]
-exit_thread() C-kern/platform/Linux/task/thread.c:420
+[1: 1517588131.055385s]
+exit_thread() C-kern/platform/Linux/task/thread.c:423
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error

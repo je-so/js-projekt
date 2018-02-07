@@ -121,14 +121,14 @@ int free_threadcontext(threadcontext_t* tcontext);
  *
  * Unchecked Precondition:
  * *tcontext == threadcontext_FREE && _is_initialized_(castPcontext_threadstack(tcontext)) */
-int initstatic_threadcontext(threadcontext_t* tcontext);
+int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog);
 
 /* function: freestatic_threadcontext
  * Gibt Ressourcen von tcontext frei, die während Ausführung von <initstatic_threadcontext> belegt wurden.
  * Diese Funktion wird von <thread_t.delete_thread> aufgerufen.
  * Aber erst nachdem <free_threadcontext> am Ende der Ausführung des zu löschenden Threads aufgerufen wurde.
  * */
-int freestatic_threadcontext(threadcontext_t* tcontext);
+int freestatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog);
 
 // group: query
 

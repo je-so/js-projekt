@@ -119,7 +119,7 @@ static void free_threadstack(thread_stack_t* st)
    (void)st; // do nothing
 }
 
-int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack)
+int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, ilog_t* initlog, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack)
 {
    int err;
    void * addr = MAP_FAILED;
@@ -160,7 +160,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
    }
    if (addr == MAP_FAILED) {
       err = errno;
-      TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mmap", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mmap", err);
       goto ONERR;
    }
 
@@ -174,7 +174,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
          size_t dsize = (size_t) (aligned_addr - (uint8_t*)addr);
          if (munmap(addr, dsize)) {
             err = errno;
-            TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
+            TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
             goto ONERR;
          }
          size -= dsize;
@@ -186,7 +186,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
    if (size > size_threadstack()) {
       if (munmap((uint8_t*)addr + size_threadstack(), size - size_threadstack())) {
          err = errno;
-         TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
+         TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
          goto ONERR;
       }
       size = size_threadstack();
@@ -200,7 +200,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
    }
    if (err) {
       err = errno;
-      TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
    }
 
@@ -212,7 +212,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
    }
    if (err) {
       err = errno;
-      TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
    }
 
@@ -224,7 +224,7 @@ int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*
    }
    if (err) {
       err = errno;
-      TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "mprotect", err);
       goto ONERR;
    }
 
@@ -252,11 +252,11 @@ ONERR:
    if (addr != MAP_FAILED) {
       munmap(addr, size);
    }
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
-int delete_threadstack(thread_stack_t** st)
+int delete_threadstack(thread_stack_t** st, ilog_t* initlog)
 {
    int err;
 
@@ -270,7 +270,7 @@ int delete_threadstack(thread_stack_t** st)
       }
       if (err) {
          err = errno;
-         TRACE_LOG(AUTO, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
+         TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "munmap", err);
       }
 
       *st = 0;
@@ -280,7 +280,7 @@ int delete_threadstack(thread_stack_t** st)
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
    return err;
 }
 
@@ -304,7 +304,7 @@ struct memblock_t threadstack_threadstack(thread_stack_t* st)
 
 // group: static-memory
 
-int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, /*out*/struct memblock_t* memblock)
+int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, ilog_t* initlog, /*out*/struct memblock_t* memblock)
 {
    int err;
    size_t alignedsize = (bytesize + KONFIG_MEMALIGN-1u) & (~(KONFIG_MEMALIGN-1u));
@@ -322,11 +322,11 @@ int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, /*out*/struct m
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
-int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock)
+int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock, ilog_t* initlog)
 {
    int err;
 
@@ -345,7 +345,7 @@ int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock)
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
    return err;
 }
 
@@ -365,141 +365,100 @@ static int test_initfree(void)
    memblock_t     threadstack = memblock_FREE;
    memblock_t     signalstack = memblock_FREE;
    vmpage_t       vmpage;
-   pipe_t         pipe = pipe_FREE;
-   int            olderr = -1;
-   maincontext_e  oldtype = g_maincontext.type;
    uint8_t *      logbuffer;
    size_t         logsize;
    size_t         oldlogsize;
-
-   // prepare0
-   TEST(0 == init_pipe(&pipe))
-   olderr = dup(STDERR_FILENO);
-   TEST(olderr > 0);
-   TEST(STDERR_FILENO == dup2(pipe.write, STDERR_FILENO));
+   ilog_t       * defaultlog = GETWRITER0_LOG();
 
    const size_t test_static_size[] = { 0, extsize_threadcontext() + extsize_processcontext(), 12345, 65535 };
    for (unsigned si=0; si<lengthof(test_static_size); ++si) {
       const size_t static_size = test_static_size[si];
       const size_t sizevars = compute_sizevars(static_size, pagesize_vm());
-      for (int tc = 0; tc < 2; ++tc) {
-         // prepare
-         GETBUFFER_ERRLOG(&logbuffer, &oldlogsize);
-         if (tc == 1) {
-            // simulate not initialized main context ==> ..._LOG(AUTO uses INIT log
-            g_maincontext.type = maincontext_STATIC;
+      // prepare
+      GETBUFFER_ERRLOG(&logbuffer, &oldlogsize);
+
+      // TEST new_threadstack
+      TEST(0 == new_threadstack(&st, static_size, defaultlog, 0, 0));
+      // check st aligned
+      TEST(0 != st);
+      TEST(0 == (uintptr_t)st % size_threadstack());
+      // check *st
+      TEST( st->pagesize == sys_pagesize_vm());
+      TEST( memcmp(&st->thread, &(thread_t)thread_FREE, sizeof(st->thread)) == 0);
+      TEST( st->memsize == compute_memsize(sizevars));
+      TEST( st->memused == 0);
+
+      // TEST delete_threadstack
+      TEST(0 == delete_threadstack(&st, defaultlog));
+      TEST(0 == st);
+      TEST(0 == delete_threadstack(&st, defaultlog));
+      TEST(0 == st);
+
+      // TEST new_threadstack: correct protection
+      TEST(0 == new_threadstack(&st, static_size, defaultlog, &threadstack, &signalstack));
+      // variables
+      vmpage = (vmpage_t) vmpage_INIT(sizevars, (uint8_t*)st);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
+      // protection page
+      vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)st + sizevars);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
+      // signal stack page
+      vmpage = (vmpage_t) vmpage_INIT(compute_signalstacksize(pagesize_vm()), (uint8_t*)st + sizevars + 1 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
+      // check parameter signalstack
+      TEST(vmpage.addr == signalstack.addr);
+      TEST(vmpage.size == signalstack.size);
+      // protection page
+      vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)st + sizevars + compute_signalstacksize(pagesize_vm()) + 1 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
+      // thread stack page
+      vmpage = (vmpage_t) vmpage_INIT(compute_stacksize(pagesize_vm()), (uint8_t*)st + sizevars + compute_signalstacksize(pagesize_vm()) + 2 * pagesize_vm());
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
+      // check parameter threadstack
+      TEST(vmpage.addr == threadstack.addr);
+      TEST(vmpage.size == threadstack.size);
+      // protection page
+      size_t offset = sizevars + compute_signalstacksize(pagesize_vm()) + compute_stacksize(pagesize_vm()) + 2 * pagesize_vm();
+      vmpage = (vmpage_t) vmpage_INIT(size_threadstack() - offset, (uint8_t*)st + offset);
+      TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
+
+      // TEST delete_threadstack: unmap pages
+      vmpage = (vmpage_t) vmpage_INIT(size_threadstack(), (uint8_t*)st);
+      TEST(0 == delete_threadstack(&st, defaultlog));
+      TEST(1 == isunmapped_vm(&vmpage));
+
+      // TEST new_threadstack: ERROR
+      threadstack = (memblock_t) memblock_FREE;
+      signalstack = (memblock_t) memblock_FREE;
+      for (int i = 1; i; ++i) {
+         init_testerrortimer(&s_threadstack_errtimer, (unsigned)i, i);
+         int err = new_threadstack(&st, static_size, defaultlog, &threadstack, &signalstack);
+         if (!err) {
+            TEST(8 == i);
+            break;
          }
-
-         // TEST new_threadstack
-         TEST(0 == new_threadstack(&st, static_size, 0, 0));
-         // check st aligned
-         TEST(0 != st);
-         TEST(0 == (uintptr_t)st % size_threadstack());
-         // check *st
-         TEST( st->pagesize == sys_pagesize_vm());
-         TEST( memcmp(&st->thread, &(thread_t)thread_FREE, sizeof(st->thread)) == 0);
-         TEST( st->memsize == compute_memsize(sizevars));
-         TEST( st->memused == 0);
-
-         // TEST delete_threadstack
-         TEST(0 == delete_threadstack(&st));
+         TEST(err == (i == 1 ? ENOSPC : i));
+         // check parameter
          TEST(0 == st);
-         TEST(0 == delete_threadstack(&st));
-         TEST(0 == st);
-
-         // TEST new_threadstack: correct protection
-         TEST(0 == new_threadstack(&st, static_size, &threadstack, &signalstack));
-         // variables
-         vmpage = (vmpage_t) vmpage_INIT(sizevars, (uint8_t*)st);
-         TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
-         // protection page
-         vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)st + sizevars);
-         TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
-         // signal stack page
-         vmpage = (vmpage_t) vmpage_INIT(compute_signalstacksize(pagesize_vm()), (uint8_t*)st + sizevars + 1 * pagesize_vm());
-         TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
-         // check parameter signalstack
-         TEST(vmpage.addr == signalstack.addr);
-         TEST(vmpage.size == signalstack.size);
-         // protection page
-         vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), (uint8_t*)st + sizevars + compute_signalstacksize(pagesize_vm()) + 1 * pagesize_vm());
-         TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
-         // thread stack page
-         vmpage = (vmpage_t) vmpage_INIT(compute_stacksize(pagesize_vm()), (uint8_t*)st + sizevars + compute_signalstacksize(pagesize_vm()) + 2 * pagesize_vm());
-         TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR));
-         // check parameter threadstack
-         TEST(vmpage.addr == threadstack.addr);
-         TEST(vmpage.size == threadstack.size);
-         // protection page
-         size_t offset = sizevars + compute_signalstacksize(pagesize_vm()) + compute_stacksize(pagesize_vm()) + 2 * pagesize_vm();
-         vmpage = (vmpage_t) vmpage_INIT(size_threadstack() - offset, (uint8_t*)st + offset);
-         TEST(1 == ismapped_vm(&vmpage, accessmode_NONE));
-
-         // TEST delete_threadstack: unmap pages
-         vmpage = (vmpage_t) vmpage_INIT(size_threadstack(), (uint8_t*)st);
-         TEST(0 == delete_threadstack(&st));
-         TEST(1 == isunmapped_vm(&vmpage));
-
-         // TEST new_threadstack: ERROR
-         threadstack = (memblock_t) memblock_FREE;
-         signalstack = (memblock_t) memblock_FREE;
-         for (int i = 1; i; ++i) {
-            init_testerrortimer(&s_threadstack_errtimer, (unsigned)i, i);
-            int err = new_threadstack(&st, static_size, &threadstack, &signalstack);
-            if (!err) {
-               TEST(8 == i);
-               break;
-            }
-            TEST(err == (i == 1 ? ENOSPC : i));
-            // check parameter
-            TEST(0 == st);
-            TEST( isfree_memblock(&threadstack));
-            TEST( isfree_memblock(&signalstack));
-         }
-
-         // TEST delete_threadstack: ERROR
-         TEST(0 != st);
-         init_testerrortimer(&s_threadstack_errtimer, 1, EINVAL);
-         TEST(EINVAL == delete_threadstack(&st));
-         // check param st
-         TEST(0 == st);
-
-         GETBUFFER_ERRLOG(&logbuffer, &logsize);
-
-         uint8_t buffer[1024];
-         if (tc == 0) {
-            TEST(logsize > oldlogsize); // ERRLOG used
-         } else {
-            TEST(logsize == oldlogsize); // INIT log used
-            ssize_t bytes = read(pipe.read, buffer, sizeof(buffer));
-            TEST(bytes > 0); // at least some bytes
-            while (bytes > 0) {
-               PRINTF_ERRLOG("%.*s", (int)bytes, buffer);
-               bytes = read(pipe.read, buffer, sizeof(buffer));
-            }
-            TEST(bytes == -1 && errno == EAGAIN);
-         }
-
-         // reset
-         TEST(-1 == read(pipe.read, buffer, sizeof(buffer)));
-         g_maincontext.type = oldtype;
+         TEST( isfree_memblock(&threadstack));
+         TEST( isfree_memblock(&signalstack));
       }
-   }
 
-   // reset0
-   TEST(STDERR_FILENO == dup2(olderr, STDERR_FILENO));
-   TEST(0 == close(olderr));
-   TEST(0 == free_pipe(&pipe));
+      // TEST delete_threadstack: ERROR
+      TEST(0 != st);
+      init_testerrortimer(&s_threadstack_errtimer, 1, EINVAL);
+      TEST(EINVAL == delete_threadstack(&st, defaultlog));
+      // check param st
+      TEST(0 == st);
+
+      // ERRLOG used
+      GETBUFFER_ERRLOG(&logbuffer, &logsize);
+      TEST(logsize > oldlogsize);
+   }
 
    return 0;
 ONERR:
-   if (st) delete_threadstack(&st);
-   if (olderr > 0) {
-      dup2(olderr, STDERR_FILENO);
-      close(olderr);
-   }
-   free_pipe(&pipe);
-   g_maincontext.type = oldtype;
+   if (st) delete_threadstack(&st, defaultlog);
    return EINVAL;
 }
 
@@ -597,9 +556,10 @@ static int test_memory(void)
    size_t     logsize2;
    uint8_t *  logbuf1;
    uint8_t *  logbuf2;
+   ilog_t  *  defaultlog = GETWRITER0_LOG();
 
    // prepare0
-   TEST(0 == new_threadstack(&st, 2012, 0, 0));
+   TEST(0 == new_threadstack(&st, 2012, defaultlog, 0, 0));
    const size_t memsize = st->memsize;
 
    // TEST allocstatic_threadstack
@@ -608,7 +568,7 @@ static int test_memory(void)
          size_t a = s % KONFIG_MEMALIGN ? s - s % KONFIG_MEMALIGN + KONFIG_MEMALIGN : s;
          if (a > memsize - u) continue;
          st->memused = u;
-         TEST(0 == allocstatic_threadstack(st, s, &mblock));
+         TEST(0 == allocstatic_threadstack(st, s, defaultlog, &mblock));
          // check parameter
          TEST(mblock.addr == st->mem + u);
          TEST(mblock.size == a);
@@ -623,7 +583,7 @@ static int test_memory(void)
    mblock = (memblock_t) memblock_FREE;
    for (size_t i = 0; i <= memsize; ++i) {
       st->memused = i;
-      TEST(ENOMEM == allocstatic_threadstack(st, memsize-i+1, &mblock));
+      TEST(ENOMEM == allocstatic_threadstack(st, memsize-i+1, defaultlog, &mblock));
       // check parameter
       TEST( isfree_memblock(&mblock));
       // check st
@@ -638,7 +598,7 @@ static int test_memory(void)
 
    // TEST allocstatic_threadstack: ENOMEM (alignedsize < bytesize)
    st->memused = 0;
-   TEST(ENOMEM == allocstatic_threadstack(st, (size_t)-1, &mblock));
+   TEST(ENOMEM == allocstatic_threadstack(st, (size_t)-1, defaultlog, &mblock));
    // check parameter
    TEST( isfree_memblock(&mblock));
    // check st
@@ -653,7 +613,7 @@ static int test_memory(void)
          st->memused = u;
          mblock = (memblock_t) memblock_INIT(s, st->mem + u - a);
          for (int r = 0; r < 2; ++r) {
-            TEST(0 == freestatic_threadstack(st, &mblock));
+            TEST(0 == freestatic_threadstack(st, &mblock, defaultlog));
             // check parameter
             TEST( isfree_memblock(&mblock));
             // check st
@@ -667,14 +627,14 @@ static int test_memory(void)
    st->memused = memsize;
    mblock.addr = st->mem + memsize + 1;
    mblock.size = (size_t) -1;
-   TEST(EINVAL == freestatic_threadstack(st, &mblock));
+   TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
    TEST(! isfree_memblock(&mblock));
 
    // TEST freestatic_threadstack: EINVAL (alignedsize > memused)
    st->memused = 31;
    mblock.addr = st->mem;
    mblock.size = 32;
-   TEST(EINVAL == freestatic_threadstack(st, &mblock));
+   TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
    TEST(! isfree_memblock(&mblock));
 
    // TEST freestatic_threadstack: EINVAL (addr wrong)
@@ -682,7 +642,7 @@ static int test_memory(void)
       st->memused = 128;
       mblock.addr = st->mem + 128 - 32 -1 + i;
       mblock.size = 32;
-      TEST(EINVAL == freestatic_threadstack(st, &mblock));
+      TEST(EINVAL == freestatic_threadstack(st, &mblock, defaultlog));
       TEST(! isfree_memblock(&mblock));
    }
 
@@ -693,11 +653,11 @@ static int test_memory(void)
    }
 
    // reset0
-   TEST(0 == delete_threadstack(&st));
+   TEST(0 == delete_threadstack(&st, defaultlog));
 
    return 0;
 ONERR:
-   delete_threadstack(&st);
+   delete_threadstack(&st, defaultlog);
    return EINVAL;
 }
 

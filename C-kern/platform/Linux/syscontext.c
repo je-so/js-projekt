@@ -78,8 +78,8 @@ int init_syscontext(/*out*/syscontext_t* scontext)
 
    return 0;
 ONERR:
-   // TODO: supply init logwriter ! (remove AUTO, use logwriter passing to thread_stack instead ==> allows integration of stack into thred module ??? or not?)
-   TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   // TODO: call init_syscontext only within start_mainthread !!!
+   TRACEEXIT_ERRLOG(err);
    return err;
 }
 
@@ -127,15 +127,12 @@ ONERR:
 
 static int test_initfree(void)
 {
-   file_t      fd  = file_FREE;
-   pipe_t      pfd = pipe_FREE;
-   uint8_t     buffer[220];
-   syscontext_t sc = syscontext_FREE;
+   syscontext_t   sc = syscontext_FREE;
+   uint8_t      * logbuf;
+   size_t         logsize;
+   size_t         logsize2;
 
    // prepare
-   TEST( 0 == init_pipe(&pfd)
-         && -1 != (fd = dup(STDERR_FILENO))
-         && -1 != dup2(pfd.write, STDERR_FILENO));
 
    // TEST syscontext_FREE
    TEST(1 == isfree_syscontext(&sc));
@@ -146,35 +143,25 @@ static int test_initfree(void)
 
    // TEST init_syscontext: simulated ERROR
    PRINTF_ERRLOG("-- init_syscontext: simulated ERROR --\n");
+   GETBUFFER_ERRLOG(&logbuf, &logsize);
    for (unsigned i=1; ; ++i) {
       init_testerrortimer(&s_syscontext_errtimer, i, 333);
       int err = init_syscontext(&sc);
+      GETBUFFER_ERRLOG(&logbuf, &logsize2);
       if (!err) {
          TEST(3  == i);
-         TEST(-1 == read(pfd.read, buffer, sizeof(buffer)));
+         TEST(logsize == logsize2);
          free_testerrortimer(&s_syscontext_errtimer);
          break;
       }
       TESTP(EINVAL == err, "i:%d err:%d", i, err);
-      ssize_t len = read(pfd.read, buffer, sizeof(buffer));
-      TESTP(120 < len && len < 150, "len=%zd", len);
-      buffer[len] = 0;
-      PRINTF_ERRLOG("%s", buffer);
+      TEST(logsize2 > logsize + 120);
+      logsize = logsize2;
    }
    PRINTF_ERRLOG("-- \"\" --\n");
 
-   // reset
-   TEST(STDERR_FILENO == dup2(fd, STDERR_FILENO));
-   TEST(0 == free_file(&fd));
-   TEST(0 == free_pipe(&pfd));
-
    return 0;
 ONERR:
-   if (fd != file_FREE) {
-      dup2(fd, STDERR_FILENO);
-      free_file(&fd);
-   }
-   free_pipe(&pfd);
    return EINVAL;
 }
 

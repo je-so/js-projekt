@@ -132,6 +132,12 @@ static int test_update(void)
    TEST(0 == errtimer.timercount);
    TEST(5 == errtimer.errcode);
 
+   // TEST PROCESS_testerrortimer: NULL instead of &err supported
+   init_testerrortimer(&errtimer, 1, 9);
+   TEST(9 == PROCESS_testerrortimer(&errtimer, 0));
+   TEST(0 == errtimer.timercount);
+   TEST(9 == errtimer.errcode);
+
    return 0;
 ONERR:
    return EINVAL;

@@ -335,14 +335,14 @@ int path_file(const file_t file, /*ret*/struct wbuffer_t* path)
       shrink_wbuffer(path, oldsize);
 
       alloc_size *= 2;
-      (void) PROCESS_testerrortimer(&s_file_errtimer_nametoolong, &alloc_size/*in test: use 1024*1024+1 for err value*/);
+      if (PROCESS_testerrortimer(&s_file_errtimer_nametoolong, 0)) { alloc_size = 1024*1024+1; }
       if (alloc_size > 1024*1024) {
          err = ENAMETOOLONG;
          goto ONERR;
       }
    }
 
-   (void) PROCESS_testerrortimer(&s_file_errtimer, &real_size/*in test: use -1 for err value*/);
+   if (PROCESS_testerrortimer(&s_file_errtimer,0)) { real_size = -1; }
    if (real_size < 0) {
       err = errno;
       TRACESYSCALL_ERRLOG("readlink", err);

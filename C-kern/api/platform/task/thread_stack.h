@@ -57,12 +57,12 @@ typedef struct thread_stack_t thread_stack_t;
  * Parameter static_size must be set to the number of bytes needed during initialization
  * of <threadcontext_t> (size determined by extsize_threadcontext) and <maincontext_t>
  * (size determined by extsize_processcontext). */
-int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
+int new_threadstack(/*out*/thread_stack_t** st, const size_t static_size, ilog_t* initlog, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
 
 /* function: delete_threadstack
  * Changes protection of memory to normal and frees it.
  * Called from <syscontext_t.initrun_syscontext> therefore initlog is used if needed. */
-int delete_threadstack(thread_stack_t** st);
+int delete_threadstack(thread_stack_t** st, ilog_t* initlog);
 
 // group: query
 
@@ -114,7 +114,7 @@ struct memblock_t threadstack_threadstack(thread_stack_t* st);
  * Der allokierte Speicherblock wird in memblock zurückgegeben und ist nicht minder
  * als bytesize Bytes groß. Die Mindestanzahl allokierbarer Bytes wurde durch Parameter static_size
  * bei Aufruf von new_threadstack festgelegt. */
-int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, /*out*/struct memblock_t* memblock);
+int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, ilog_t* initlog, /*out*/struct memblock_t* memblock);
 
 /* function: freestatic_threadstack
  * Gibt den zuletzt allokierten Speicherblock wieder frei.
@@ -126,7 +126,7 @@ int allocstatic_threadstack(thread_stack_t* st, size_t bytesize, /*out*/struct m
  * Returns
  * 0      - OK
  * EINVAL - memblock ist nicht der zuletzt von <allocstatic_threadstack> allokierte Speicherblock. */
-int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock);
+int freestatic_threadstack(thread_stack_t* st, struct memblock_t* memblock, ilog_t* initlog);
 
 /* function: sizestatic_threadstack
  * Gibt die aufgerundete Anzahl allokierter Bytes an statischem Speicher zurück. */

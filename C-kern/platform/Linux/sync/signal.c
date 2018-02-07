@@ -206,6 +206,8 @@ ONERR:
 
 // group: init
 
+// TODO: change initonce into init_signalhandler and store old state into signal handler object !!!
+//       ==> remove static state !!
 int initonce_signalhandler()
 {
    int err;

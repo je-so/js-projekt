@@ -32,6 +32,8 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/io/writer/log/logbuffer.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #endif
 
 
@@ -62,13 +64,13 @@ static inline uint16_t static_memory_size(void)
 /* function: alloc_static_memory
  * Allokiert statischen Speicher für alle von <processcontext_t> zu initialisierenden Objekte.
  * */
-static inline int alloc_static_memory(processcontext_t* pcontext, thread_stack_t* tls, /*out*/memblock_t* mblock)
+static inline int alloc_static_memory(processcontext_t* pcontext, thread_stack_t* tst, /*out*/memblock_t* mblock)
 {
    int err;
    const uint16_t size = static_memory_size();
 
    if (! PROCESS_testerrortimer(&s_processcontext_errtimer, &err)) {
-      err = allocstatic_threadstack(tls, size, mblock);
+      err = allocstatic_threadstack(tst, size, GETWRITER0_LOG(), mblock);
    }
    if (err) goto ONERR;
 
@@ -82,7 +84,7 @@ ONERR:
 /* function: free_static_memory
  * Gibt statischen Speicher für alle im <processcontext_t> initialisierten Objekt frei.
  * */
-static inline int free_static_memory(processcontext_t* pcontext, thread_stack_t* tls)
+static inline int free_static_memory(processcontext_t* pcontext, thread_stack_t* tst)
 {
    int err;
    const uint16_t size = static_memory_size();
@@ -92,7 +94,7 @@ static inline int free_static_memory(processcontext_t* pcontext, thread_stack_t*
 
       pcontext->staticmemblock = 0;
 
-      err = freestatic_threadstack(tls, &mblock);
+      err = freestatic_threadstack(tst, &mblock, GETWRITER0_LOG());
       (void) PROCESS_testerrortimer(&s_processcontext_errtimer, &err);
 
       if (err) goto ONERR;
@@ -242,9 +244,13 @@ static int test_helper(void)
    thread_stack_t * tls = 0;
    const size_t     S        = static_memory_size();
    memblock_t       mblock   = memblock_FREE;
+   uint8_t          logbuf[log_config_MINSIZE];
+   logwriter_t      lgwrt    = logwriter_FREE;
+   ilog_t           initlog  = iobj_INIT((struct log_t*)&lgwrt, interface_logwriter());
 
    // prepare0
-   TEST(0 == new_threadstack(&tls, S, 0, 0));
+   TEST(0 == initstatic_logwriter(&lgwrt, sizeof(logbuf), logbuf));
+   TEST(0 == new_threadstack(&tls, S, &initlog, 0, 0));
 
    // TEST static_memory_size
    TEST(S == static_memory_size());
@@ -289,12 +295,22 @@ static int test_helper(void)
    TEST(0 == pcontext.staticmemblock);
    TEST(0 == sizestatic_threadstack(tls));
 
+   // check no log written
+   {
+      uint8_t *lb;
+      size_t   size;
+      GETBUFFER_LOG(&initlog, log_channel_ERR, &lb, &size);
+      TEST( 0 == size);
+   }
+
    // prepare0
-   TEST(0 == delete_threadstack(&tls));
+   TEST(0 == delete_threadstack(&tls, &initlog));
+   freestatic_logwriter(&lgwrt);
 
    return 0;
 ONERR:
-   delete_threadstack(&tls);
+   delete_threadstack(&tls, &initlog);
+   freestatic_logwriter(&lgwrt);
    return EINVAL;
 }
 

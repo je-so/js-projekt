@@ -83,14 +83,14 @@ static inline size_t static_memory_size(void)
  *
  * Unchecked Precondition:
  * - is_initialized(castPcontext_threadstack(tcontext)) */
-static inline int alloc_static_memory(threadcontext_t* tcontext)
+static inline int alloc_static_memory(threadcontext_t* tcontext, ilog_t* initlog)
 {
    int err;
    memblock_t mblock;
    const size_t size = static_memory_size();
 
    if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
-      err = allocstatic_threadstack(castPcontext_threadstack(tcontext), size, &mblock);
+      err = allocstatic_threadstack(castPcontext_threadstack(tcontext), size, initlog, &mblock);
    }
    if (err) goto ONERR;
 
@@ -99,7 +99,7 @@ static inline int alloc_static_memory(threadcontext_t* tcontext)
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
@@ -108,7 +108,7 @@ ONERR:
  *
  * Unchecked Precondition:
  * - is_initialized(st) */
-static inline int free_static_memory(threadcontext_t* tcontext)
+static inline int free_static_memory(threadcontext_t* tcontext, ilog_t* initlog)
 {
    int err;
 
@@ -118,14 +118,14 @@ static inline int free_static_memory(threadcontext_t* tcontext)
 
       tcontext->staticdata = 0;
 
-      err = freestatic_threadstack(castPcontext_threadstack(tcontext), &mblock);
+      err = freestatic_threadstack(castPcontext_threadstack(tcontext), &mblock, initlog);
       (void) PROCESS_testerrortimer(&s_threadcontext_errtimer, &err);
       if (err) goto ONERR;
    }
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
    return err;
 }
 
@@ -170,11 +170,11 @@ static inline void set_static_data(threadcontext_t* tcontext, maincontext_t* mai
 
 // group: lifetime
 
-int initstatic_threadcontext(threadcontext_t* tcontext)
+int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog)
 {
    int err;
 
-   err = alloc_static_memory(tcontext);
+   err = alloc_static_memory(tcontext, initlog);
    if (err) goto ONERR;
 
    static_data_t *sd = (static_data_t*) tcontext->staticdata;
@@ -187,12 +187,12 @@ int initstatic_threadcontext(threadcontext_t* tcontext)
 
    return 0;
 ONERR:
-   free_static_memory(tcontext);
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   free_static_memory(tcontext, initlog);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
-int freestatic_threadcontext(threadcontext_t* tcontext)
+int freestatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog)
 {
    int err;
 
@@ -200,13 +200,13 @@ int freestatic_threadcontext(threadcontext_t* tcontext)
       static_data_t *sd = (static_data_t*) tcontext->staticdata;
       tcontext->log = (ilog_t) iobj_FREE;
       freestatic_logwriter(&sd->logwriter);
-      err = free_static_memory(tcontext);
+      err = free_static_memory(tcontext, initlog);
       if (err) goto ONERR;
    }
 
    return 0;
 ONERR:
-   TRACE_LOG(AUTO, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_FREE_RESOURCE_ERRLOG, err);
    return err;
 }
 
@@ -428,9 +428,15 @@ static int test_lifehelper(void)
    threadcontext_t *tcontext = 0;
    thread_stack_t  *st       = 0;
    const size_t   staticsize = static_memory_size();
+   uint8_t        slogbuf[2*log_config_MINSIZE];
+   logwriter_t    lgwrt    = logwriter_FREE;
+   ilog_t         initlog  = iobj_INIT((struct log_t*)&lgwrt, interface_logwriter());
+   uint8_t       *logbuf;
+   size_t         logsize;
 
    // prepare0
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), 0, 0));
+   TEST(0 == initstatic_logwriter(&lgwrt, sizeof(slogbuf), slogbuf));
+   TEST(0 == new_threadstack(&st, extsize_threadcontext(), &initlog, 0, 0));
    tcontext = context_threadstack(st);
 
    // TEST static_data_t
@@ -443,44 +449,56 @@ static int test_lifehelper(void)
    TEST(0  == staticsize % sizeof(size_t));
 
    // TEST alloc_static_memory
-   TEST(0 == alloc_static_memory(tcontext))
+   TEST(0 == alloc_static_memory(tcontext, &initlog))
    // check params
    TEST((uint8_t*)st < tcontext->staticdata);
    TEST(staticsize == sizestatic_threadstack(st));
 
    // TEST free_static_memory
-   TEST(0 == free_static_memory(tcontext))
+   TEST(0 == free_static_memory(tcontext, &initlog))
    // check params
    TEST(0 == tcontext->staticdata);
    TEST(0 == sizestatic_threadstack(st));
 
    // TEST free_static_memory: already freed
-   TEST(0 == free_static_memory(tcontext))
+   TEST(0 == free_static_memory(tcontext, &initlog))
    // check params
    TEST(0 == tcontext->staticdata);
    TEST(0 == sizestatic_threadstack(st));
 
    // TEST alloc_static_memory: simulated ERROR
    init_testerrortimer(&s_threadcontext_errtimer, 1, 4);
-   TEST(4 == alloc_static_memory(tcontext))
+   TEST(4 == alloc_static_memory(tcontext, &initlog))
+   GETBUFFER_LOG(&initlog, log_channel_ERR, &logbuf, &logsize);
    // check params
-   TEST(0 == tcontext->staticdata);
-   TEST(0 == sizestatic_threadstack(st));
+   TEST( 0 == tcontext->staticdata);
+   TEST( 0 == sizestatic_threadstack(st));
+   TEST( logsize > 0);
+   // reset
+   PRINTF_ERRLOG("%s", logbuf);
+   TRUNCATEBUFFER_ERRLOG(0);
 
    // TEST free_static_memory: simulated ERROR
-   TEST(0 == alloc_static_memory(tcontext))
+   TEST(0 == alloc_static_memory(tcontext, &initlog))
    init_testerrortimer(&s_threadcontext_errtimer, 1, 4);
-   TEST(4 == free_static_memory(tcontext))
+   TEST(4 == free_static_memory(tcontext, &initlog))
+   GETBUFFER_LOG(&initlog, log_channel_ERR, &logbuf, &logsize);
    // check params
    TEST(0 == tcontext->staticdata);
    TEST(0 == sizestatic_threadstack(st));
+   TEST( logsize > 0);
+   // reset
+   PRINTF_ERRLOG("%s", logbuf);
+   TRUNCATEBUFFER_ERRLOG(0);
 
    // reset0
-   TEST(0 == delete_threadstack(&st));
+   TEST(0 == delete_threadstack(&st, &initlog));
+   freestatic_logwriter(&lgwrt);
 
    return 0;
 ONERR:
-   delete_threadstack(&st);
+   delete_threadstack(&st, &initlog);
+   freestatic_logwriter(&lgwrt);
    return EINVAL;
 }
 
@@ -492,9 +510,10 @@ static int test_initfree_static(void)
    iochannel_t    olderr = iochannel_FREE;
    static_data_t *sd;
    char           buffer[15];
+   ilog_t        *defaultlog = GETWRITER0_LOG();
 
    // prepare0
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), 0, 0));
+   TEST(0 == new_threadstack(&st, extsize_threadcontext(), defaultlog, 0, 0));
    tcontext = context_threadstack(st);
    TEST(0 == init_pipe(&pipe))
    olderr = dup(STDERR_FILENO);
@@ -503,7 +522,7 @@ static int test_initfree_static(void)
 
    // TEST initstatic_threadcontext
    *tcontext = (threadcontext_t) threadcontext_FREE;
-   TEST( 0 == initstatic_threadcontext(tcontext));
+   TEST( 0 == initstatic_threadcontext(tcontext, defaultlog));
    // check tcontext
    TEST( tcontext->maincontext == &g_maincontext);
    TEST( tcontext->staticdata  != 0);
@@ -523,7 +542,7 @@ static int test_initfree_static(void)
    TEST( 1 == isstatic_threadcontext(tcontext));
 
    // TEST freestatic_threadcontext
-   TEST( 0 == freestatic_threadcontext(tcontext));
+   TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
    // check memory
    TEST( 0 == tcontext->staticdata);
    // check tcontext
@@ -534,7 +553,7 @@ static int test_initfree_static(void)
    for (unsigned i=1; ; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, i, (int)i);
       *tcontext = (threadcontext_t) threadcontext_FREE;
-      int err = initstatic_threadcontext(tcontext);
+      int err = initstatic_threadcontext(tcontext, defaultlog);
       if (!err) {
          TEST( 3 == i);
          free_testerrortimer(&s_threadcontext_errtimer);
@@ -545,17 +564,17 @@ static int test_initfree_static(void)
       TEST( 0 == memcmp(tcontext, &(threadcontext_t)threadcontext_FREE, sizeof(threadcontext_t)));
       TEST( 0 == sizestatic_threadstack(st));
    }
-   TEST( 0 == freestatic_threadcontext(tcontext));
+   TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
 
    // reset0
-   TEST(0 == delete_threadstack(&st));
+   TEST(0 == delete_threadstack(&st, defaultlog));
    TEST(STDERR_FILENO == dup2(olderr, STDERR_FILENO));
    TEST(0 == free_iochannel(&olderr));
    TEST(0 == free_pipe(&pipe));
 
    return 0;
 ONERR:
-   delete_threadstack(&st);
+   delete_threadstack(&st, defaultlog);
    if (olderr > 0) {
       dup2(olderr, STDERR_FILENO);
       free_iochannel(&olderr);
@@ -597,10 +616,11 @@ static int test_initfree(void)
    memblock_t        SM = memblock_FREE; // addr of allocated static memory block (staticdata) in threadcontext
    const size_t      nrsvc   = 5;
    maincontext_e     oldtype = maincontext_STATIC;
+   ilog_t           *defaultlog = GETWRITER0_LOG();
 
    // prepare
-   TEST(0 == new_threadstack(&st, extsize_threadcontext(), 0, 0));
-   TEST(0 == allocstatic_threadstack(st, 0, &SM));
+   TEST(0 == new_threadstack(&st, extsize_threadcontext(), defaultlog, 0, 0));
+   TEST(0 == allocstatic_threadstack(st, 0, defaultlog, &SM));
    tc = context_threadstack(st);
    TEST(0 != tc);
    TEST(0 != M);
@@ -623,7 +643,7 @@ static int test_initfree(void)
    TEST(0 == tc->staticdata);
 
    // prepare
-   TEST(0 == initstatic_threadcontext(tc));
+   TEST(0 == initstatic_threadcontext(tc, defaultlog));
    TEST(static_memory_size() == sizestatic_threadstack(st));
 
    maincontext_e contexttype[] = { maincontext_DEFAULT, maincontext_CONSOLE };
@@ -745,8 +765,8 @@ static int test_initfree(void)
    }
 
    // unprepare
-   TEST(0 == freestatic_threadcontext(tc));
-   TEST(0 == delete_threadstack(&st));
+   TEST(0 == freestatic_threadcontext(tc, defaultlog));
+   TEST(0 == delete_threadstack(&st, defaultlog));
 
    return 0;
 ONERR:
@@ -756,7 +776,7 @@ ONERR:
    free_testerrortimer(&s_threadcontext_errtimer);
    delete_thread(&thread);
    free_threadcontext(tc);
-   delete_threadstack(&st);
+   delete_threadstack(&st, defaultlog);
    return EINVAL;
 }
 

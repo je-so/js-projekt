@@ -1,57 +1,100 @@
-[0: 1517423092.592630s]
-free_maincontext() C-kern/main/maincontext.c:170
+[0: 1517679601.103890s]
+free_maincontext() C-kern/main/maincontext.c:166
 One or more resources could not be freed
 Exit function with
 Error 39 - Directory not empty
-[0: 1517423092.592638s]
-init_maincontext() C-kern/main/maincontext.c:197
+[0: 1517679601.103898s]
+init_maincontext() C-kern/main/maincontext.c:201
 Exit function with
 Error 4 - Interrupted system call
-[0: 1517423092.592653s]
-free_maincontext() C-kern/main/maincontext.c:170
+[0: 1517679601.103899s]
+init_maincontext() C-kern/main/maincontext.c:201
+Exit function with
+Error 5 - Input/output error
+[0: 1517679601.103914s]
+free_maincontext() C-kern/main/maincontext.c:166
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[0: 1517423092.592661s]
-free_maincontext() C-kern/main/maincontext.c:170
+[0: 1517679601.103921s]
+free_maincontext() C-kern/main/maincontext.c:166
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[0: 1517423092.593203s]
-initrun_maincontext() C-kern/main/maincontext.c:275
-Exit function with
-Error 22 - Invalid argument
-[0: 1517423092.593206s]
-initrun_maincontext() C-kern/main/maincontext.c:275
-Exit function with
-Error 22 - Invalid argument
-[0: 1517423092.593207s]
-initrun_maincontext() C-kern/main/maincontext.c:275
-Exit function with
-Error 22 - Invalid argument
-[0: 1517423092.593208s]
-initrun_maincontext() C-kern/main/maincontext.c:275
-Exit function with
-Error 22 - Invalid argument
-[1: 1517423092.593235s]
-initrun_maincontext() C-kern/main/maincontext.c:242
-Exit function with
-Error 114 - Operation already in progress
-[0: 1517423092.593247s]
-initrun_maincontext() C-kern/main/maincontext.c:275
-Exit function with
-Error 1 - Operation not permitted
-[0: 1517423092.593256s]
-init_maincontext() C-kern/main/maincontext.c:197
-Exit function with
-Error 2 - No such file or directory
-[1: 1517423092.593346s]
-free_maincontext() C-kern/main/maincontext.c:170
+[0: 1517679601.103928s]
+free_maincontext() C-kern/main/maincontext.c:166
 One or more resources could not be freed
 Exit function with
+Error 4 - Interrupted system call
+[0: 1517679601.104400s]
+initrun_maincontext() C-kern/main/maincontext.c:279
+Exit function with
+Error 22 - Invalid argument
+[0: 1517679601.104408s]
+initrun_maincontext() C-kern/main/maincontext.c:279
+Exit function with
+Error 22 - Invalid argument
+[0: 1517679601.104411s]
+initrun_maincontext() C-kern/main/maincontext.c:279
+Exit function with
+Error 22 - Invalid argument
+[0: 1517679601.104415s]
+initrun_maincontext() C-kern/main/maincontext.c:279
+Exit function with
+Error 22 - Invalid argument
+[1: 1517679601.104444s]
+initrun_maincontext() C-kern/main/maincontext.c:252
+Exit function with
+Error 114 - Operation already in progress
+FATAL ERROR: initlog_maincontext(): call to initstatic_logwriter failed
+[0: 1517679601.201314s]
+init_maincontext() C-kern/main/maincontext.c:201
+Exit function with
+Error 2 - No such file or directory
+[0: 1517679601.201319s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 2 - No such file or directory
+[0: 1517679601.201340s]
+init_maincontext() C-kern/main/maincontext.c:201
+Exit function with
+Error 3 - No such process
+[0: 1517679601.201341s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 3 - No such process
+[0: 1517679601.201376s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 4 - Interrupted system call
+[1: 1517679601.201427s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
 Error 5 - Input/output error
-[1: 1517423092.593384s]
-free_maincontext() C-kern/main/maincontext.c:170
+[1: 1517679601.201473s]
+free_maincontext() C-kern/main/maincontext.c:166
 One or more resources could not be freed
 Exit function with
 Error 6 - No such device or address
+[1: 1517679601.201475s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 6 - No such device or address
+[1: 1517679601.201519s]
+free_maincontext() C-kern/main/maincontext.c:166
+One or more resources could not be freed
+Exit function with
+Error 7 - Argument list too long
+[1: 1517679601.201521s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 7 - Argument list too long
+[1: 1517679601.201564s]
+free_maincontext() C-kern/main/maincontext.c:166
+One or more resources could not be freed
+Exit function with
+Error 8 - Exec format error
+[1: 1517679601.201566s]
+start_mainthread() C-kern/main/maincontext.c:238
+Exit function with
+Error 8 - Exec format error

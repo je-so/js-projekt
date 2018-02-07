@@ -48,7 +48,7 @@ static test_errortimer_t   s_syscontext_errtimer = test_errortimer_FREE;
 
 // group: helper
 
-int initrun_syscontext(thread_f main_thread, void * main_arg)
+int initrun_syscontext(thread_f main_thread, void * main_arg, ilog_t* initlog)
 {
    int err;
    memblock_t threadstack;
@@ -58,17 +58,17 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    thread_stack_t* tst = 0;
    const size_t static_size = extsize_threadcontext() + extsize_processcontext();
 
-   err = new_threadstack(&tst, static_size, &threadstack, &signalstack);
+   err = new_threadstack(&tst, static_size, initlog, &threadstack, &signalstack);
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadstack", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadstack", err);
       goto ONERR;
    }
 
-   err = initstatic_threadcontext(context_threadstack(tst));
+   err = initstatic_threadcontext(context_threadstack(tst), initlog);
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "initstatic_threadcontext", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "initstatic_threadcontext", err);
       goto ONERR;
    }
 
@@ -79,7 +79,7 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    }
    if (err) {
       err = errno;
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
       goto ONERR;
    }
 
@@ -89,7 +89,7 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    }
    if (err) {
       err = errno;
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "getcontext", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "getcontext", err);
       goto ONERR;
    }
 
@@ -108,7 +108,7 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    }
    if (err) {
       err = errno;
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "swapcontext", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "swapcontext", err);
       goto ONERR;
    }
 
@@ -121,21 +121,21 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    }
    if (err) {
       err = errno;
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "sigaltstack", err);
       goto ONERR;
    }
 
-   err = freestatic_threadcontext(context_threadstack(tst));
+   err = freestatic_threadcontext(context_threadstack(tst), initlog);
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "freestatic_threadcontext", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "freestatic_threadcontext", err);
       goto ONERR;
    }
 
-   err = delete_threadstack(&tst);
+   err = delete_threadstack(&tst, initlog);
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadstack", err);
+      TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadstack", err);
       goto ONERR;
    }
 
@@ -144,10 +144,10 @@ ONERR:
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
    (void) sigaltstack(&altstack, 0);
    if (tst) {
-      freestatic_threadcontext(context_threadstack(tst));
+      freestatic_threadcontext(context_threadstack(tst), initlog);
    }
-   (void) delete_threadstack(&tst);
-   TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
+   (void) delete_threadstack(&tst, initlog);
+   TRACE_LOG(initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
 
@@ -184,7 +184,7 @@ static int child_logstring(void* text)
    // make sure: static log of new thread context is used
    // (setup in initrun_syscontext) !!
    s_used_log = 0;
-   int err=initrun_syscontext(&log_testthread, text);
+   int err=initrun_syscontext(&log_testthread, text, GETWRITER0_LOG());
    PRINTF_ERRLOG("%s",5+(char*)text);
    FLUSHBUFFER_ERRLOG();
    return err ? err : s_used_log != log_maincontext().object ? 0 : EINVAL;
@@ -205,7 +205,7 @@ static int test_init(void)
    // TEST initrun_syscontext: argument
    s_retcode = 0;
    for (uintptr_t i = 0; i <= 10; ++i) {
-      TEST(0 == initrun_syscontext(&main_testthread, (void*)i));
+      TEST(0 == initrun_syscontext(&main_testthread, (void*)i, GETWRITER0_LOG()));
       TEST(i == (uintptr_t) s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
@@ -214,7 +214,7 @@ static int test_init(void)
    s_retcode = 0;
    for (unsigned i = 0; i <= 10; ++i, ++s_retcode) {
       s_userarg = (void*) 1;
-      TEST(i == (unsigned) initrun_syscontext(&main_testthread, 0));
+      TEST(i == (unsigned) initrun_syscontext(&main_testthread, 0, GETWRITER0_LOG()));
       TEST(0 == s_userarg);
       TEST(0 != pthread_equal(s_thread, pthread_self()));
    }
@@ -242,7 +242,8 @@ static int test_init(void)
    TEST(iochannel_STDERR == dup2(pfd.write, iochannel_STDERR));
    for (unsigned i=1; ;++i) {
       init_testerrortimer(&s_syscontext_errtimer, i, (int)i);
-      int err = initrun_syscontext(&main_testthread, (void*)(uintptr_t)i);
+      int err = initrun_syscontext(&main_testthread, (void*)(uintptr_t)i, GETWRITER0_LOG());
+      FLUSHBUFFER_ERRLOG();
       if (i <= 4) {
          TEST( 0 == s_userarg); // error before call
       } else {

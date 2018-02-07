@@ -146,13 +146,15 @@ int delete_thread(thread_t ** thread)
       err = join_thread(delobj);
       (void) PROCESS_testerrortimer(&s_thread_errtimer, &err);
 
-      err2 = freestatic_threadcontext(&delobj->threadcontext);
+      ilog_t *defaultlog = GETWRITER0_LOG();
+
+      err2 = freestatic_threadcontext(&delobj->threadcontext, defaultlog);
       (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
       if (err2) err = err2;
 
       thread_stack_t* tst = castPthread_threadstack(delobj);
 
-      err2 = delete_threadstack(&tst);
+      err2 = delete_threadstack(&tst, defaultlog);
       (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
       if (err2) err = err2;
 
@@ -174,14 +176,15 @@ int new_thread(/*out*/thread_t** thread, thread_f task, void * task_arg)
    bool              isThreadAttrValid = false;
    memblock_t        stack;
    memblock_t        signalstack;
+   ilog_t          * defaultlog = GETWRITER0_LOG();
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = new_threadstack(&tst, extsize_threadcontext(), &stack, &signalstack);
+      err = new_threadstack(&tst, extsize_threadcontext(), defaultlog, &stack, &signalstack);
    }
    if (err) goto ONERR;
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = initstatic_threadcontext(context_threadstack(tst));
+      err = initstatic_threadcontext(context_threadstack(tst), defaultlog);
    }
    if (err) goto ONERR;
 
@@ -238,7 +241,7 @@ ONERR:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr);
    }
-   (void) delete_threadstack(&tst);
+   (void) delete_threadstack(&tst, defaultlog);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -1796,11 +1799,20 @@ static int test_update(void)
 
    // TEST settask_thread
    settask_thread(&thread, &thread_donothing, (void*)10);
-   TEST(task_thread(&thread) == &thread_donothing);
-   TEST(taskarg_thread(&thread)  == (void*)10);
+   TEST(task_thread(&thread)    == &thread_donothing);
+   TEST(taskarg_thread(&thread) == (void*)10);
    settask_thread(&thread, 0, 0);
-   TEST(task_thread(&thread) == 0);
-   TEST(taskarg_thread(&thread)  == 0);
+   TEST(task_thread(&thread)    == 0);
+   TEST(taskarg_thread(&thread) == 0);
+
+   // TEST settaskarg_thread
+   settask_thread(&thread, &thread_donothing, 0);
+   settaskarg_thread(&thread, (void*)11);
+   TEST(task_thread(&thread)    == &thread_donothing);
+   TEST(taskarg_thread(&thread) == (void*)11);
+   settaskarg_thread(&thread, 0);
+   TEST(task_thread(&thread)    == &thread_donothing);
+   TEST(taskarg_thread(&thread) == 0);
 
    // TEST setreturncode_thread
    setreturncode_thread(&thread, 1);

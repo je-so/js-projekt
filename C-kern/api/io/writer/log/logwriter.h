@@ -18,14 +18,13 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-// import (include before this module)
+// import
 // #include "C-kern/api/io/writer/log/log.h"
 // #include "C-kern/api/io/writer/log/logbuffer.h"
 
 // === exported types
 struct logwriter_t;
 struct logwriter_chan_t;
-
 
 
 // section: Functions

@@ -82,7 +82,7 @@ int errcode_testerrortimer(const test_errortimer_t* errtimer);
  * else timercount is decremented. If timercount is zero after the decrement
  * <test_errortimer_t.errcode> is returned else 0. The value err is only set to
  * the returned value if the timer has expired. */
-int process_testerrortimer(test_errortimer_t * errtimer, /*err*/int* err);
+static inline int process_testerrortimer(test_errortimer_t* errtimer, /*err*/int* err/*0: not set*/);
 
 /* function: PROCESS_testerrortimer
  * This function calls <process_testerrortimer> and returns its value.
@@ -118,17 +118,15 @@ int NOOP_testerrortimer(test_errortimer_t * errtimer, /*err*/int* err);
 
 /* define: process_testerrortimer
  * Implements <test_errortimer_t.process_testerrortimer>. */
-#define process_testerrortimer(errtimer, err) \
-         ( __extension__ ({                                    \
-            test_errortimer_t* _tm = errtimer;                 \
-            typeof(err) _err = err;                            \
-            int _r = 0;                                        \
-            if (_tm->timercount && 0 == --_tm->timercount) {   \
-               _r = _tm->errcode;                              \
-               *_err = _r;                                     \
-            }                                                  \
-            _r;                                                \
-         }))
+static inline int process_testerrortimer(test_errortimer_t* errtimer, int* err)
+{
+   int r = 0;
+   if (errtimer->timercount && 0 == --errtimer->timercount) {
+      r = errtimer->errcode;
+      if (err) *err = r;
+   }
+   return r;
+}
 
 #define NOOP_testerrortimer(errtimer, err) \
          (0)

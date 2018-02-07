@@ -55,7 +55,7 @@ int unittest_platform_init(void);
  * initialized system context. During execuion of main_thread scontext is initialized to a valid value.
  *
  * */
-int initrun_syscontext(thread_f main_thread, void * main_arg);
+int initrun_syscontext(thread_f main_thread, void * main_arg, ilog_t* initlog);
 
 
 #endif

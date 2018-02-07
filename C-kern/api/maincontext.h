@@ -112,10 +112,6 @@ typedef struct maincontext_t {
 
    // arguments
 
-   /* variable: main_thread
-    * The main thread's main function. It is started if the platform / environment
-    * could be initialized successfully. */
-   mainthread_f      main_thread;
    /* variable: progname
     * The filename of the program without path - it is calculated from argv[0] (Unix convention). */
    const char *      progname;
@@ -134,13 +130,8 @@ typedef struct maincontext_t {
    // helper (parameter passing)
 
    maincontext_e     startarg_type;
-
-
-   // helper (during init)
-
-   /* variable: initlog
-    * Log used until <syscontext_t.initrun_syscontext> has completed its setup procedure. */
-   ilog_t            initlog;
+   int               startarg_argc;
+   const char **     startarg_argv;
 
 } maincontext_t;
 
@@ -149,7 +140,7 @@ typedef struct maincontext_t {
 /* define: maincontext_INIT_STATIC
  * Static initializer for <maincontext_t>. */
 #define maincontext_INIT_STATIC \
-         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, iobj_FREE }
+         { processcontext_INIT_STATIC, syscontext_FREE, maincontext_STATIC, 0, 0, 0, 0, 0, 0 }
 
 /* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.

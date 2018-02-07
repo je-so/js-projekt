@@ -19,41 +19,27 @@
 // section: Functions
 
 // group: log-service-binding
-// Defines macros CALLFUNCTION_LOG... to bind the macro to a log service object
-// The function <CALLFUNCTION_LOG> is the default binding during normal operation.
-// The macro <CALLFUNCTION_LOGINIT> binds the macros to the init log service.
-// The macro <CALLFUNCTION_LOGAUTO> uses <CALLFUNCTION_LOG> if <maincontext_t> is
-// initialized else <CALLFUNCTION_LOGINIT>.
-// To select between the three bindings set parameter BIND to
-// INIT for CALLFUNCTION_LOGINIT, AUTO for CALLFUNCTION_LOGAUTO and
-// leave it empty for CALLFUNCTION_LOG.
+// Defines macros GETWRITER0_LOG and GETWRITER1_LOG to bind the macro to a log service object
+// To select between bindings set parameter WRITER to a ilog_t object or leave it empty.
 
-
-/* define: GETOBJECT_LOG
- * Returns the default log object used during and after setup of <threadcontext_t>.
+/* define: GETWRITER1_LOG
+ * Returns the parameter which should be a pointer to an ilog_t object.
  * The default log object is obtained with <maincontext_t.log_maincontext>. */
-#define GETOBJECT_LOG() \
-         log_maincontext()
+#define GETWRITER1_LOG(logwriter) \
+         (logwriter)
 
-/* define: GETOBJECT_LOGINIT
- * Returns the log object used during initialization of <maincontext_t>.
- * The init log object is obtained with g_maincontext.initlog.
- * This binding does not work in a module environment. */
-#define GETOBJECT_LOGINIT() \
-         g_maincontext.initlog
-
-/* define: GETOBJECT_LOGAUTO
- * Returns the init log object or default log object depending on the state of <maincontext_t>.
- * This binding does not work in a module environment. */
-#define GETOBJECT_LOGAUTO() \
-         ((maincontext_STATIC != g_maincontext.type)?GETOBJECT_LOG():GETOBJECT_LOGINIT())
+/* define: GETWRITER0_LOG
+ * Returns the a pointer to the default ilog_t object.
+ * The default log object is obtained with <maincontext_t.log_maincontext>. */
+#define GETWRITER0_LOG() \
+         (&log_maincontext())
 
 /* define: CALLFUNCTION_LOG
- * Calls the function fname on the log object obtained by GETOBJECT_LOG ## BIND. See <ilog_t> and <log_it>. */
-#define CALLFUNCTION_LOG(BIND, fname, ...) \
-         ( __extension__ ({                                    \
-            ilog_t _iobj = CONCAT(GETOBJECT_LOG,BIND)();       \
-            _iobj.iimpl-> fname (_iobj.object, __VA_ARGS__);   \
+ * Calls the function fname on the log object obtained by GETWRITER?_LOG. See <ilog_t> and <log_it>. */
+#define CALLFUNCTION_LOG(WRITER, fname, ...) \
+         ( __extension__ ({                                                               \
+            ilog_t _iobj = * CONCAT(CONCAT(GETWRITER, nrargsof(WRITER)), _LOG)(WRITER);   \
+            _iobj.iimpl-> fname (_iobj.object, __VA_ARGS__);                              \
          }))
 
 // group: query
@@ -63,13 +49,13 @@
  * See also <getbuffer_logwriter>.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * buffer     - Contains pointer to C string after return. Must have type (uint8_t**).
  *              The string is terminated with a 0 byte.
  * size       - Contains size of of C string after return. It does does not include the 0 byte. */
-#define GETBUFFER_LOG(BIND, LOGCHANNEL, /*out uint8_t ** */buffer, /*out size_t * */size) \
-         CALLFUNCTION_LOG(BIND, getbuffer, LOGCHANNEL, buffer, size)
+#define GETBUFFER_LOG(WRITER, LOGCHANNEL, /*out uint8_t ** */buffer, /*out size_t * */size) \
+         CALLFUNCTION_LOG(WRITER, getbuffer, LOGCHANNEL, buffer, size)
 
 /* define: COMPARE_LOG
  * Compare logbuffer[size] to buffered log entries.
@@ -77,43 +63,43 @@
  * See also <compare_logwriter>.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log. Use AUTO if the function is used during initialization and normal operation.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * logsize    - Contains size of logbuffer.
  * buffer     - Contains pointer to the logbuffer in memory which is compared to the internal buffer. */
-#define COMPARE_LOG(BIND, LOGCHANNEL, /*size_t*/size, /*const char[size]*/logbuffer) \
-         CALLFUNCTION_LOG(BIND, compare, LOGCHANNEL, size, logbuffer)
+#define COMPARE_LOG(WRITER, LOGCHANNEL, /*size_t*/size, /*const char[size]*/logbuffer) \
+         CALLFUNCTION_LOG(WRITER, compare, LOGCHANNEL, size, logbuffer)
 
 /* define: GETSTATE_LOG
  * Returns <log_state_e> for LOGCHANNEL.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>. */
-#define GETSTATE_LOG(BIND, LOGCHANNEL) \
-         CALLFUNCTION_LOG(BIND, getstate, LOGCHANNEL)
+#define GETSTATE_LOG(WRITER, LOGCHANNEL) \
+         CALLFUNCTION_LOG(WRITER, getstate, LOGCHANNEL)
 
 // group: change
 
 /* define: TRUNCATEBUFFER_LOG
  * Sets length of logbuffer to a smaller size. See also <truncatebuffer_logwriter>. */
-#define TRUNCATEBUFFER_LOG(BIND, LOGCHANNEL, /*size_t*/size)  \
-         CALLFUNCTION_LOG(BIND, truncatebuffer, LOGCHANNEL, size)
+#define TRUNCATEBUFFER_LOG(WRITER, LOGCHANNEL, /*size_t*/size)  \
+         CALLFUNCTION_LOG(WRITER, truncatebuffer, LOGCHANNEL, size)
 
 /* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define FLUSHBUFFER_LOG(BIND, LOGCHANNEL)  \
-         CALLFUNCTION_LOG(BIND, flushbuffer, LOGCHANNEL)
+#define FLUSHBUFFER_LOG(WRITER, LOGCHANNEL)  \
+         CALLFUNCTION_LOG(WRITER, flushbuffer, LOGCHANNEL)
 
 /* define: SETSTATE_LOG
  * Sets LOGSTATE for LOGCHANNEL.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * LOGSTATE   - The state of the LOGCHANNEL which will be set - see <log_state_e>. */
-#define SETSTATE_LOG(BIND, LOGCHANNEL, LOGSTATE) \
-         CALLFUNCTION_LOG(BIND, setstate, LOGCHANNEL, LOGSTATE)
+#define SETSTATE_LOG(WRITER, LOGCHANNEL, LOGSTATE) \
+         CALLFUNCTION_LOG(WRITER, setstate, LOGCHANNEL, LOGSTATE)
 
 // group: log-text
 
@@ -121,7 +107,7 @@
  * Logs a generic printf type format string.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * HEADER     - The pointer to a struct of type <log_header_t>. Could be set to 0 if no header should be printed.
@@ -131,9 +117,9 @@
  *
  * Example:
  * > int i ; PRINTF_LOG(log_channel_ERR, log_flags_NONE, 0, "%d", i) */
-#define PRINTF_LOG(BIND, LOGCHANNEL, FLAGS, HEADER, ... )  \
+#define PRINTF_LOG(WRITER, LOGCHANNEL, FLAGS, HEADER, ... )  \
          do {                                \
-            CALLFUNCTION_LOG( BIND,          \
+            CALLFUNCTION_LOG( WRITER,        \
                printf,                       \
                LOGCHANNEL, FLAGS, HEADER,    \
                __VA_ARGS__ );                \
@@ -143,7 +129,7 @@
  * Logs a text resource string.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -152,11 +138,11 @@
  *
  * Example:
  * > int err ; PRINTTEXT_LOG(log_channel_ERR, log_flags_NONE, 0, &vRESOURCE_NAME_ERRLOG, err) */
-#define PRINTTEXT_LOG(BIND, LOGCHANNEL, FLAGS, HEADER, TEXTID, ...) \
+#define PRINTTEXT_LOG(WRITER, LOGCHANNEL, FLAGS, HEADER, TEXTID, ...) \
          do {                                   \
             struct p_ ## TEXTID                 \
                _p = { __VA_ARGS__ };            \
-            CALLFUNCTION_LOG( BIND,             \
+            CALLFUNCTION_LOG( WRITER,           \
                printtext,                       \
                LOGCHANNEL, FLAGS, HEADER,       \
                & TEXTID, &_p);                  \
@@ -166,7 +152,7 @@
  * Logs a text resource string.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -174,11 +160,11 @@
  *
  * Example:
  * > int err ; PRINTTEXT_NOARG_LOG(log_channel_ERR, log_flags_NONE, 0, &vRESOURCE_NAME_ERRLOG) */
-#define PRINTTEXT_NOARG_LOG(BIND, LOGCHANNEL, FLAGS, HEADER, TEXTID)  \
+#define PRINTTEXT_NOARG_LOG(WRITER, LOGCHANNEL, FLAGS, HEADER, TEXTID)  \
          do {                                   \
             /* test for no parameter */         \
             ( p_noarg_ ## TEXTID) 0;            \
-            CALLFUNCTION_LOG( BIND,             \
+            CALLFUNCTION_LOG( WRITER,           \
                printtext,                       \
                LOGCHANNEL, FLAGS, HEADER,       \
                & TEXTID, 0);                    \
@@ -190,19 +176,19 @@
  * set to __func__, __FILE__, and __LINE__ respectively.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
  * ...        - Additional value parameters of correct type as determined by the text resource. */
-#define TRACE_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, ...)   \
-         TRACE2_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, __func__, __FILE__, __LINE__, __VA_ARGS__)
+#define TRACE_LOG(WRITER, LOGCHANNEL, FLAGS, TEXTID, ...)   \
+         TRACE2_LOG(WRITER, LOGCHANNEL, FLAGS, TEXTID, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 /* define: TRACE2_LOG
  * Logs any TEXTID and a header.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -210,12 +196,12 @@
  * filename   - Name of source file - used to describe error position.
  * linenr     - Number of current source line - used to describe error position.
  * ...        - The following parameter are used to parameterize TEXTID. */
-#define TRACE2_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID, funcname, filename, linenr, ...) \
+#define TRACE2_LOG(WRITER, LOGCHANNEL, FLAGS, TEXTID, funcname, filename, linenr, ...) \
          do {                                \
             log_header_t _header =           \
                log_header_INIT(funcname,     \
                   filename, linenr);         \
-            PRINTTEXT_LOG(BIND,              \
+            PRINTTEXT_LOG(WRITER,            \
                LOGCHANNEL, FLAGS,            \
                &_header, TEXTID,             \
                __VA_ARGS__);                 \
@@ -226,16 +212,16 @@
  * Use this macro to log any language specific text which needs no additional parameters.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - Error text ID from C-kern/resource/errlog.text. */
-#define TRACE_NOARG_LOG(BIND, LOGCHANNEL, FLAGS, TEXTID) \
+#define TRACE_NOARG_LOG(WRITER, LOGCHANNEL, FLAGS, TEXTID) \
          do {                             \
             log_header_t _header =        \
                log_header_INIT(__func__,  \
                   __FILE__, __LINE__);    \
-            PRINTTEXT_NOARG_LOG(BIND,     \
+            PRINTTEXT_NOARG_LOG(WRITER,   \
                LOGCHANNEL, FLAGS,         \
                &_header, TEXTID);         \
          }  while(0)
@@ -247,7 +233,7 @@
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * format     - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
  *              Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
@@ -259,15 +245,15 @@
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
  * > PRINTVAR_LOG(log_channel_ERR, PRIuSIZE, memsize, ) ; */
-#define PRINTVAR_LOG(BIND, LOGCHANNEL, format, varname, cast) \
-         PRINTF_LOG(BIND, LOGCHANNEL, log_flags_NONE, 0, #varname "=%" format "\n", cast (varname))
+#define PRINTVAR_LOG(WRITER, LOGCHANNEL, format, varname, cast) \
+         PRINTF_LOG(WRITER, LOGCHANNEL, log_flags_NONE, 0, #varname "=%" format "\n", cast (varname))
 
 /* define: PRINTARRAYFIELD_LOG
  * Log value of variable stored in array at offset i.
  * The logged text is "array[i]=value".
  *
  * Parameter:
- * BIND       - Chooses binding to log service. Leave it empty for default service or use INIT for init log.
+ * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * format     - Type of the variable as string in printf format. Use "s" for C strings.
  *              Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
@@ -278,77 +264,77 @@
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(log_channel_ERR, s,names,i) ; } */
-#define PRINTARRAYFIELD_LOG(BIND, LOGCHANNEL, format, arrname, index)  \
-         PRINTF_LOG(BIND, LOGCHANNEL, log_flags_NONE, 0, #arrname "[%zd]=%" format "\n", (size_t)i, (arrname)[i])
+#define PRINTARRAYFIELD_LOG(WRITER, LOGCHANNEL, format, arrname, index)  \
+         PRINTF_LOG(WRITER, LOGCHANNEL, log_flags_NONE, 0, #arrname "[%zd]=%" format "\n", (size_t)i, (arrname)[i])
 
 /* define: PRINTCSTR_LOG
  * Log "name=value" of string variable.
  * Example:
  * > const char * name = "Jo" ; PRINTCSTR_LOG(log_channel_ERR, name) ; */
-#define PRINTCSTR_LOG(BIND, LOGCHANNEL, varname)  \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, "s", varname, )
+#define PRINTCSTR_LOG(WRITER, LOGCHANNEL, varname)  \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, "s", varname, )
 
 /* define: PRINTINT_LOG
  * Log "name=value" of int variable.
  * Example:
  * > const int max = 100 ; PRINTINT_LOG(log_channel_ERR, max) ; */
-#define PRINTINT_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, "d", varname, )
+#define PRINTINT_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, "d", varname, )
 
 /* define: PRINTINT64_LOG
  * Log "name=value" of int64_t variable.
  * Example:
  * > const int64_t min = -100 ; PRINTINT64_LOG(log_channel_ERR, min) ; */
-#define PRINTINT64_LOG(BIND, LOGCHANNEL, varname) \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRId64, varname, )
+#define PRINTINT64_LOG(WRITER, LOGCHANNEL, varname) \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRId64, varname, )
 
 /* define: PRINTSIZE_LOG
  * Log "name=value" of size_t variable.
  * Example:
  * > const size_t maxsize = 100 ; PRINTSIZE_LOG(log_channel_ERR, maxsize) ; */
-#define PRINTSIZE_LOG(BIND, LOGCHANNEL, varname)  \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRIuSIZE, varname, )
+#define PRINTSIZE_LOG(WRITER, LOGCHANNEL, varname)  \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRIuSIZE, varname, )
 
 /* define: PRINTUINT8_LOG
  * Log "name=value" of uint8_t variable.
  * Example:
  * > const uint8_t limit = 255 ; PRINTUINT8_LOG(log_channel_ERR, limit) ; */
-#define PRINTUINT8_LOG(BIND, LOGCHANNEL, varname) \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRIu8, varname, )
+#define PRINTUINT8_LOG(WRITER, LOGCHANNEL, varname) \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRIu8, varname, )
 
 /* define: PRINTUINT16_LOG
  * Log "name=value" of uint16_t variable.
  * Example:
  * > const uint16_t limit = 65535 ; PRINTUINT16_LOG(log_channel_ERR, limit) ; */
-#define PRINTUINT16_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRIu16, varname, )
+#define PRINTUINT16_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRIu16, varname, )
 
 /* define: PRINTUINT32_LOG
  * Log "name=value" of uint32_t variable.
  * Example:
  * > const uint32_t max = 100 ; PRINTUINT32_LOG(log_channel_ERR, max) ; */
-#define PRINTUINT32_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRIu32, varname, )
+#define PRINTUINT32_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRIu32, varname, )
 
 /* define: PRINTUINT64_LOG
  * Log "name=value" of uint64_t variable.
  * Example:
  * > const uint64_t max = 100 ; PRINTUINT64_LOG(log_channel_ERR, max) ; */
-#define PRINTUINT64_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, PRIu64, varname, )
+#define PRINTUINT64_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, PRIu64, varname, )
 
 /* define: PRINTPTR_LOG
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; PRINTPTR_LOG(log_channel_ERR, ptr) ; */
-#define PRINTPTR_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, "p", varname, (const void*))
+#define PRINTPTR_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, "p", varname, (const void*))
 
 /* define: PRINTDOUBLE_LOG
  * Log "name=value" of double or float variable.
  * Example:
  * > const double d = 1.234 ; PRINTDOUBLE_LOG(log_channel_ERR, d) ; */
-#define PRINTDOUBLE_LOG(BIND, LOGCHANNEL, varname)   \
-         PRINTVAR_LOG(BIND, LOGCHANNEL, "g", varname, )
+#define PRINTDOUBLE_LOG(WRITER, LOGCHANNEL, varname)   \
+         PRINTVAR_LOG(WRITER, LOGCHANNEL, "g", varname, )
 
 #endif
