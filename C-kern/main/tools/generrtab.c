@@ -229,7 +229,7 @@ int main(int argc, const char * argv[])
 {
    int err;
 
-   err = initrun_maincontext(maincontext_DEFAULT, &main_thread, 0, argc, argv);
+   err = initrun_maincontext(maincontext_DEFAULT, &main_thread, argc, argv);
 
    return err;
 }

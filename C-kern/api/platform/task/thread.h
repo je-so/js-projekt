@@ -3,7 +3,7 @@
    Encapsulates os specific threading model.
 
    Includes:
-   If you call <lockflag_thread> or <unlockflag_thread> you need to include <AtomicOps> first.
+   If you call <lock_thread> or <unlock_thread> you need to include <AtomicOps> first.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -59,7 +59,7 @@ typedef struct thread_t {
     * Add cpuling of higher level to low level module.
     * But threadcontext must be initialized during thread initialization
     * so storing it in thread_t feels natural
-    * (and makes <thread_t>,<threadcontext_t>, and <thread_localstore_t> having the same
+    * (and makes <thread_t>,<threadcontext_t>, and <thread_stack_t> having the same
     * start address in memory). */
    threadcontext_t   threadcontext;
    /* variable: wait
@@ -70,16 +70,16 @@ typedef struct thread_t {
       struct dlist_node_t*  next;
       struct dlist_node_t*  prev;
    }              wait;
-   /* variable: main_task
+   /* variable: task
     * Function executed after thread has been created. */
-   thread_f       main_task;
-   /* variable: main_arg
-    * Parameter of executed <main_task> function. */
-   void*          main_arg;
+   thread_f       task;
+   /* variable: task_arg
+    * Parameter of executed <task> function. */
+   void*          task_arg;
    /* variable: returncode
-    * Contains the return value of <main_task>.
-    * This value is only valid after <main_task> has returned. */
-   int            returncode;
+    * Contains the return value of <task>.
+    * This value is only valid after <task> has returned. */
+   volatile int   returncode;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
@@ -91,7 +91,7 @@ typedef struct thread_t {
     * Contains system specific thread type. */
    sys_thread_t   sys_thread;
    /* variable: continuecontext
-    * Contains thread machine context before <main_task> is called.
+    * Contains thread machine context before <task> is called.
     * This context could be used in any aborthandler.
     * The aborthandler should call <abort_thread> which sets returncode to value ENOTRECOVERABLE
     * and calls setcontext (see: man 2 setcontext) with <continuecontext> as argument. */
@@ -100,78 +100,82 @@ typedef struct thread_t {
 
 // group: lifetime
 
-/* define: thread_INIT_STATIC
- * Static initializer.
- * Used to initialize thread in <thread_localstore_t>.
- * This pre-initializer ensures that during initialization the static log service is available
- * even before calling <init_threadcontext> or during call to <free_threadcontext>.
- *
- * Parameter:
- * tls - Pointer to thread_localstore_t <thread_t> and <threadcontext_t> are located. */
-#define thread_INIT_STATIC(tls) \
-         { threadcontext_INIT_STATIC(tls), {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
-
 /* define: thread_FREE
  * Static initializer.
- * Used to initialize thread in <thread_localstore_t>. */
+ * Used to initialize thread in <thread_stack_t>. */
 #define thread_FREE \
          { threadcontext_FREE, {0, 0}, 0, 0, 0, 0, 0, sys_thread_FREE, { .uc_link = 0 } }
 
-/* function: initrun_thread
- * Calls thread_main on a new stack with a new thread context.
+/* function: runmain_thread
+ * Calls task on a new stack with a new thread context.
  * If an error occurs during initialization only an error code (> 0) is returned and
- * thread_main is not called. In this case thread_retcode is set to -1.
- * If thread_main has been called its return value is stored in thread_retcode if this pointer is not null.
+ * task is not called. In this case thread_retcode is set to -1.
+ * If task has been called its return value is stored in retcode if this pointer is not null.
  * If an error occurs during freeing of resources this error code is returned but
- * thread_retcode is not changed and keeps its value returned from thread_main.
+ * retcode is not changed and keeps its value returned from task.
  *
  * The main thread usually calls this function cause no new system is created.
  * The thread of the caller is reused.
  *
- * Before thread_main is called a new (<thread_localstore_t>) is initialized and also a
+ * Before task is called a new (<thread_stack_t>) is initialized and also a
  * new <threadcontext_t> which is initialized to <threadcontext_t.threadcontext_INIT_STATIC>.
  * So only a minimalistic statically initialized <logwriter_t> is available during
- * execution of thread_main. thread_main has to initialize <threadcontext_t> for itself.
+ * execution of task. task has to initialize <threadcontext_t> for itself.
  *
- * It is assumed that <maincontext_t> has not been initialized except for the initlog.
+ * It is assumed that <maincontext_t> has not been initialized except that initlog is working.
  * In case of an error yyy_LOG(INIT,...) is called.
  *
  * This function is called during execution of <maincontext_t.initrun_maincontext>
  * to set up the thread environment of the main thread.
  * */
-int runmain_thread(/*out;err*/int* thread_retcode, thread_f thread_main, void* main_arg);
+int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg);
 
-// TODO: implement initrun_thread
+// TODO: implement runmain_thread
 // TODO: remove initmain_thread
 
 /* function: initmain_thread
  * Initializes main thread. Called from <syscontext_t.initrun_syscontext>.
  * */
-void initmain_thread(/*out*/thread_t* thread, thread_f thread_main, void* main_arg);
+void initmain_thread(/*out*/thread_t* thread, thread_f task, void* task_arg);
 
 /* function: new_thread
  * Creates and starts a new system thread.
  * On success the parameter thread points to the new thread object.
  * The thread has to do some internal initialization after running the first time
- * and before thread_main is called.
+ * and before task is called.
  * Especially <init_threadcontext> is called to initialized a new thread context.
  * If this operation fails the new thread exits immediately with an error code (ENOMEM for example.)
  * If any other internal preparation goes wrong (which should never occur) <maincontext_t.abort_maincontext> is called.
- * It is unspecified if thread_main is called before new_thread returns.
+ * It is unspecified if task is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
-int new_thread(/*out*/thread_t** thread, thread_f thread_main, void* main_arg);
+int new_thread(/*out*/thread_t** thread, thread_f task, void* task_arg);
 
 /* define: newgeneric_thread
  * Same as <new_thread> except that it accepts functions with generic argument type.
  * The function argument must be of size sizeof(void*). */
-int newgeneric_thread(/*out*/thread_t** thread, thread_f thread_main, void* main_arg);
+int newgeneric_thread(/*out*/thread_t** thread, thread_f task, void* task_arg);
 
 /* function: delete_thread
  * Calls <join_thread> (if not already called) and deletes resources.
  * This function waits until the thread has terminated. So be careful ! */
 int delete_thread(thread_t** thread);
 
+/* function: initstatic_thread
+ * */
+int initstatic_thread(/*out*/thread_t* thread);
+
+/* function: freestatic_thread
+ * Gibt Ressourcen von thread frei, die während Ausführung von <initstatic_thread> belegt wurden.
+ * Diese Funktion wird von <thread_stack_t.delete_threadstack> aufgerufen,
+ * sie ruft ihrerseits <threadcontext_t.freestatic_threadcontext> auf.
+ * Aber erst nachdem <free_threadcontext> aufgerufen wurde am Ende der Ausführung eines Threads. */
+int freestatic_thread(/*out*/thread_t* thread);
+
 // group: query
+
+/* function: context_thread
+ * Returns a pointer to context of thread_t. */
+threadcontext_t* context_thread(thread_t* thread);
 
 /* function: self_thread
  * Returns a pointer to own <thread_t>. */
@@ -181,17 +185,17 @@ thread_t* self_thread(void);
  * Returns the returncode of the joined thread.
  * The returncode is only valid if <join_thread> was called before.
  * 0 is returned in case the thread has not already been joined. */
-static inline int returncode_thread(const volatile thread_t* thread);
+int returncode_thread(const thread_t* thread);
 
-/* function: maintask_thread
- * Returns <thread_t.main_task>.
- * This value is set to thread_main given as parameter in <new_thread>. */
-thread_f maintask_thread(const thread_t* thread);
+/* function: task_thread
+ * Returns <thread_t.task>.
+ * This value is set to task given as parameter in <new_thread>. */
+thread_f task_thread(const thread_t* thread);
 
-/* function: mainarg_thread
- * Reads <thread_t.main_arg> field of <thread_t> object.
- * This value is set to main_arg given as parameter in <new_thread>. */
-void* mainarg_thread(const thread_t* thread);
+/* function: taskarg_thread
+ * Reads <thread_t.task_arg> field of <thread_t> object.
+ * This value is set to task_arg given as parameter in <new_thread>. */
+void* taskarg_thread(const thread_t* thread);
 
 /* function: ismain_thread
  * Returns true if the calling thread is the main thread. */
@@ -199,24 +203,24 @@ bool ismain_thread(const thread_t* thread);
 
 // group: update
 
-/* function: lockflag_thread
+/* function: lock_thread
  * Wait until thread->lockflag (<lockflag>) is cleared and set it atomically.
  * Includes an acuire memory barrier (see <AtomicOps>).  */
-void lockflag_thread(thread_t* thread);
+void lock_thread(thread_t* thread);
 
-/* function: unlockflag_thread
+/* function: unlock_thread
  * Clear thread->lockflag (<lockflag>). The function assumes that the flag
- * was previously set by a call to <lockflag_thread>.
+ * was previously set by a call to <lock_thread>.
  * Include a release memory barrier (see <AtomicOps>). */
-void unlockflag_thread(thread_t* thread);
+void unlock_thread(thread_t* thread);
 
 /* function: settask_thread
- * Changes values returned by <maintask_thread> and <mainarg_thread>. */
-void settask_thread(thread_t* thread, thread_f main, void* main_arg);
+ * Changes values returned by <task_thread> and <taskarg_thread>. */
+void settask_thread(thread_t* thread, thread_f main, void* task_arg);
 
 /* function: setreturncode_thread
  * Changes value returned by <returncode_thread>. */
-static inline void setreturncode_thread(volatile thread_t* thread, int retcode);
+void setreturncode_thread(thread_t* thread, int retcode);
 
 // group: synchronize
 
@@ -260,7 +264,7 @@ int suspend_thread(struct timevalue_t* timeout/*optional*/);
  * EAGAIN - Timeout timer expired. No resume_thread was called during time defined by timeout. */
 int suspend1_thread(struct timevalue_t* timeout/*null: NO TIMEOUT*/);
 
-/* function: suspend_thread
+/* function: suspend0_thread
  * Calls suspend_thread with timeout disabled. This function waits infinitely. Interrupts (signals) are ignored. */
 void suspend0_thread(void);
 
@@ -304,7 +308,7 @@ void yield_thread(void);
 /* function: exit_thread
  * Ends the calling thread and sets retcode as its return code.
  * If the caller is the main thread the value EPROTO is returned and
- * nothing is done. The main thread must calle <maincontext_t.free_maincontext> and exit(retcode).
+ * nothing is done. The main thread must call <maincontext_t.free_maincontext> and exit(retcode).
  * No cleanup handlers are executed. */
 int exit_thread(int retcode);
 
@@ -319,19 +323,25 @@ void abort_thread(void);
 
 /* function: setcontinue_thread
  * Stores the current execution context and returns 0 on success.
- * Parameter is_abort is set to false if <setcontinue_thread> stored
- * the execution context where execution should continue if
- * <abort_thread> will be called.
- * Parameter is_abort is set to true if <setcontinue_thread> returns as
- * a reaction to a call to <abort_thread>.
- * For any started thread <setcontinue_thread> is called before thread_main
+ * Set the value returned from <returncode_thread> to 0 before calling this function
+ * the first time to determine if this function returns after storing the current
+ * cpu execution the first time or from a call to <abort_thread>.
+ * For any started thread <setcontinue_thread> is called before task
  * (parameter in <new_thread>) will be called. The main thread which calls <maincontext_t.init_maincontext>
- * must call <setcontinue_thread> explicitly. */
-int setcontinue_thread(bool* is_abort);
+ * must call <setcontinue_thread> explicitly.
+ *
+ * Unchecked Precondition:
+ * thread == self_thread() */
+int setcontinue_thread(thread_t* thread);
 
 
 
 // section: inline implementation
+
+/* define: context_thread
+ * Implements <thread_t.context_thread>. */
+#define context_thread(thread) \
+         (&(thread)->threadcontext)
 
 /* define: ismain_thread
  * Implements <thread_t.ismain_thread>. */
@@ -345,19 +355,19 @@ int setcontinue_thread(bool* is_abort);
 
 /* define: initmain_thread
  * Implements <thread_t.initmain_thread>. */
-#define initmain_thread(thread, _thread_main, _main_arg) \
+#define initmain_thread(thread, _task, _task_arg) \
          do {                                   \
             volatile thread_t* _thr;            \
             _thr = (thread);                    \
             _thr->ismain     = 1;               \
-            _thr->main_task  = _thread_main;    \
-            _thr->main_arg   = _main_arg;       \
+            _thr->task       = _task;           \
+            _thr->task_arg   = _task_arg;       \
             _thr->sys_thread = pthread_self();  \
          } while(0)
 
-/* define: lockflag_thread
- * Implements <thread_t.lockflag_thread>. */
-#define lockflag_thread(thread) \
+/* define: lock_thread
+ * Implements <thread_t.lock_thread>. */
+#define lock_thread(thread) \
          do {                                                 \
             thread_t* const _thread = (thread);               \
             while (0 != set_atomicflag(&_thread->lockflag)) { \
@@ -367,95 +377,76 @@ int setcontinue_thread(bool* is_abort);
 
 /* define: newgeneric_thread
  * Implements <thread_t.newgeneric_thread>. */
-#define newgeneric_thread(thread, thread_main, main_arg) \
-         ( __extension__ ({                                   \
-            int (*_thread_main) (typeof(main_arg));           \
-            _thread_main = (thread_main);                     \
-            static_assert( sizeof(main_arg) == sizeof(void*), \
-                           "same as void*");                  \
-            new_thread( thread, (thread_f)_thread_main,       \
-                        (void*)main_arg);                     \
+#define newgeneric_thread(thread, task, task_arg) \
+         ( __extension__ ({                                    \
+            int (*_task) (typeof(task_arg)) = (task);          \
+            static_assert( sizeof(task_arg) == sizeof(void*),  \
+                           "same as void*");                   \
+            new_thread( thread, (thread_f)_task,               \
+                        (void*)task_arg);                      \
          }))
 
-/* define: maintask_thread
- * Implements <thread_t.maintask_thread>. */
-#define maintask_thread(thread) \
+/* define: task_thread
+ * Implements <thread_t.task_thread>. */
+#define task_thread(thread) \
          ( __extension__ ({   \
             volatile const    \
             thread_t* _thr;   \
             _thr = (thread);  \
-            _thr->main_task;  \
-         }))
-
-/* define: mainarg_thread
- * Implements <thread_t.mainarg_thread>. */
-#define mainarg_thread(thread) \
-         ( __extension__ ({   \
-            volatile const    \
-            thread_t* _thr;   \
-            _thr = (thread);  \
-            _thr->main_arg;   \
+            _thr->task;       \
          }))
 
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>. */
-static int returncode_thread(const volatile thread_t* thread)
-{
-         return thread->returncode;
-}
+#define returncode_thread(thread) \
+         ((thread)->returncode)
 
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
 #define self_thread() \
-         ((thread_t*) sys_tcontext_syscontext())
+         ((thread_t*) context_syscontext())
 
-// TODO: remove is_abort,
-//       move setreturncode_thread and returncode_thread into module to guarantee execution (remove volatile)
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */
-#define setcontinue_thread(is_abort) \
-         ( __extension__ ({              \
-            thread_t* _self;             \
-            _self = self_thread();       \
-            setreturncode_thread(        \
-               _self, 0);                \
-            int _err = getcontext(       \
-               &_self->continuecontext); \
-            if (_err) {                  \
-               _err = errno;             \
-               TRACESYSCALL_ERRLOG(      \
-                  "getcontext", _err);   \
-            }                            \
-            _self = self_thread();       \
-            if (returncode_thread(       \
-                  _self)) {              \
-               *(is_abort) = true;       \
-            } else {                     \
-               *(is_abort) = false;      \
-            }                            \
-            _err;                        \
+#define setcontinue_thread(thread) \
+         ( __extension__ ({                              \
+            int _err = getcontext(                       \
+               &(thread)->continuecontext);              \
+            if (_err) {                                  \
+               _err = errno;                             \
+               TRACESYSCALL_ERRLOG("getcontext", _err);  \
+            }                                            \
+            _err;                                        \
          }))
-
-/* define: settask_thread
- * Implements <thread_t.settask_thread>. */
-#define settask_thread(thread, _main, _main_arg) \
-         do {                                 \
-            volatile typeof(*(thread))* _thr; \
-            _thr = (thread);                  \
-            _thr->main_task = (_main);        \
-            _thr->main_arg  = (_main_arg);    \
-         } while(0)
 
 /* define: setreturncode_thread
  * Implements <thread_t.setreturncode_thread>. */
-static inline void setreturncode_thread(volatile thread_t * thread, int retcode)
-{
-            thread->returncode = retcode;
-}
+#define setreturncode_thread(thread, retcode) \
+         (thread)->returncode = retcode;
 
-/* define: unlockflag_thread
- * Implements <thread_t.unlockflag_thread>. */
-#define unlockflag_thread(thread) \
+/* define: settask_thread
+ * Implements <thread_t.settask_thread>. */
+#define settask_thread(thread, _task, _task_arg) \
+         do {                                   \
+            volatile typeof(*(thread))* _thr;   \
+            _thr = (thread);                    \
+            _thr->task     = (_task);           \
+            _thr->task_arg = (_task_arg);       \
+         } while(0)
+
+/* define: taskarg_thread
+ * Implements <thread_t.taskarg_thread>. */
+#define taskarg_thread(thread) \
+         ( __extension__ ({   \
+            volatile const    \
+            thread_t* _thr;   \
+            _thr = (thread);  \
+            _thr->task_arg;   \
+         }))
+
+/* define: unlock_thread
+ * Implements <thread_t.unlock_thread>. */
+#define unlock_thread(thread) \
          (clear_atomicflag(&(thread)->lockflag))
 
 /* define: yield_thread

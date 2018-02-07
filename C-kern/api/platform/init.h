@@ -44,7 +44,7 @@ int unittest_platform_init(void);
  * If an error occurs during freeing of resources after main_thread has been run, an error
  * code (> 0) is returned.
  *
- * The local store of the main thread (<thread_localstore_t>) is initialized and the
+ * The local store of the main thread (<thread_stack_t>) is initialized and the
  * contained thread context (see <threadcontext_t>) is initialized to <threadcontext_t.threadcontext_INIT_STATIC>.
  *
  * This function is called during execution of <maincontext_t.initrun_maincontext>

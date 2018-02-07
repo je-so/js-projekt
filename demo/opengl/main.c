@@ -96,7 +96,7 @@ int main(int argc, const char* argv[])
       goto ONABORT;
    }
 
-   err = initrun_maincontext( maincontext_CONSOLE, s_demos[demo_index].run, 0, argc, argv);
+   err = initrun_maincontext( maincontext_CONSOLE, s_demos[demo_index].run, argc, argv);
    if (err) goto ONABORT;
 
    return 0;

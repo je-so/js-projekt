@@ -24,11 +24,12 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
-#include "C-kern/api/platform/task/thread_localstore.h"
+#include "C-kern/api/platform/task/thread_stack.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/pipe.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
@@ -47,31 +48,6 @@ static test_errortimer_t   s_syscontext_errtimer = test_errortimer_FREE;
 
 // group: helper
 
-/* function: callmain_platform
- * Calls the main thread's main function.
- * The whole process is aborted if the main thread aborts. */
-static void callmain_platform(void)
-{
-   thread_t * thread = self_thread();
-
-   volatile bool is_abort;
-   if (  setcontinue_thread(&is_abort)
-         || is_abort) {
-      // threadcontext_t is already set up (use default log)
-      int err = returncode_thread(thread);
-      // TODO: remove context_threadlocalstore, implement context_thread !
-      TRACE_ERRLOG(log_flags_NONE, THREAD_MAIN_ABORT, context_threadlocalstore(castPthread_threadlocalstore(thread))->thread_id);
-      TRACEEXIT_ERRLOG(err);
-      abort_maincontext(err);
-   }
-
-   void*    arg     = mainarg_thread(thread);
-   thread_f mainthr = maintask_thread(thread);
-   int      retcode = mainthr(arg);
-
-   setreturncode_thread(thread, retcode);
-}
-
 int initrun_syscontext(thread_f main_thread, void * main_arg)
 {
    int err;
@@ -79,12 +55,20 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
    memblock_t signalstack;
    ucontext_t context_old;
    ucontext_t context_mainthread;
-   thread_localstore_t* tls = 0;
+   thread_stack_t* tst = 0;
+   const size_t static_size = extsize_threadcontext() + extsize_processcontext();
 
-   err = new_threadlocalstore(&tls, &threadstack, &signalstack, sys_pagesize_vm());
+   err = new_threadstack(&tst, static_size, &threadstack, &signalstack);
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadlocalstore", err);
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "new_threadstack", err);
+      goto ONERR;
+   }
+
+   err = initstatic_threadcontext(context_threadstack(tst));
+   (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
+   if (err) {
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "initstatic_threadcontext", err);
       goto ONERR;
    }
 
@@ -111,9 +95,10 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
 
    context_mainthread.uc_link  = &context_old;
    context_mainthread.uc_stack = (stack_t) { .ss_sp = threadstack.addr, .ss_flags = 0, .ss_size = threadstack.size };
-   makecontext(&context_mainthread, &callmain_platform, 0, 0);
+   extern void start_mainthread(void);
+   makecontext(&context_mainthread, &start_mainthread, 0, 0);
 
-   thread_t * thread = thread_threadlocalstore(tls);
+   thread_t * thread = thread_threadstack(tst);
    initmain_thread(thread, main_thread, main_arg);
 
    // start callmain_platform and returns to context_old after exit
@@ -140,10 +125,17 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
       goto ONERR;
    }
 
-   err = delete_threadlocalstore(&tls);
+   err = freestatic_threadcontext(context_threadstack(tst));
    (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
    if (err) {
-      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadlocalstore", err);
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "freestatic_threadcontext", err);
+      goto ONERR;
+   }
+
+   err = delete_threadstack(&tst);
+   (void) PROCESS_testerrortimer(&s_syscontext_errtimer, &err);
+   if (err) {
+      TRACE_LOG(INIT, log_channel_ERR, log_flags_NONE, FUNCTION_CALL_ERRLOG, "delete_threadstack", err);
       goto ONERR;
    }
 
@@ -151,8 +143,10 @@ int initrun_syscontext(thread_f main_thread, void * main_arg)
 ONERR:
    altstack = (stack_t) { .ss_flags = SS_DISABLE };
    (void) sigaltstack(&altstack, 0);
-   (void) delete_threadlocalstore(&tls);
-
+   if (tst) {
+      freestatic_threadcontext(context_threadstack(tst));
+   }
+   (void) delete_threadstack(&tst);
    TRACE_LOG(INIT, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
    return err;
 }
@@ -199,10 +193,12 @@ static int child_logstring(void* text)
 static int test_init(void)
 {
    pipe_t      pfd = pipe_FREE;
+   iochannel_t olderr  = iochannel_FREE;
    process_t   process = process_FREE;
    char        buffer[512];
 
    // prepare
+   g_maincontext.startarg_type = maincontext_STATIC; // ensures no init of environment
    s_userarg = 0;
    TEST(0 == init_pipe(&pfd));
 
@@ -239,29 +235,41 @@ static int test_init(void)
       TEST(0 == strcmp(text, buffer));
    }
 
+   // TEST initrun_syscontext: simulated error
+   s_retcode = 0;
+   s_userarg = 0;
+   TEST(0 < (olderr = dup(iochannel_STDERR)));
+   TEST(iochannel_STDERR == dup2(pfd.write, iochannel_STDERR));
+   for (unsigned i=1; ;++i) {
+      init_testerrortimer(&s_syscontext_errtimer, i, (int)i);
+      int err = initrun_syscontext(&main_testthread, (void*)(uintptr_t)i);
+      if (i <= 4) {
+         TEST( 0 == s_userarg); // error before call
+      } else {
+         TEST( i == (uintptr_t)s_userarg); // err in free resources
+      }
+      if (!err) {
+         TEST( -1 == read(pfd.read, buffer, sizeof(buffer)));
+         TEST( 9 == i);
+         free_testerrortimer(&s_syscontext_errtimer);
+         break;
+      }
+      TEST(0 < read(pfd.read, buffer, sizeof(buffer))); // written error log
+   }
+
    // unprepare
    TEST(0 == free_pipe(&pfd));
+   TEST(iochannel_STDERR == dup2(olderr, iochannel_STDERR));
+   TEST(0 == free_iochannel(&olderr));
 
    return 0;
 ONERR:
+   if (!isfree_iochannel(olderr)) {
+      dup2(olderr, iochannel_STDERR);
+      free_iochannel(&olderr);
+   }
    free_process(&process);
    free_pipe(&pfd);
-   return EINVAL;
-}
-
-static int test_query(void)
-{
-   syscontext_t sc = syscontext_FREE;
-
-   // TEST isfree_syscontext: true
-   TEST(1 == isfree_syscontext(&sc));
-
-   // TEST isfree_syscontext: false
-   TEST(0 == init_syscontext(&sc));
-   TEST(0 == isfree_syscontext(&sc));
-
-   return 0;
-ONERR:
    return EINVAL;
 }
 
@@ -274,7 +282,6 @@ int unittest_platform_init()
    isold = true;
 
    if (test_init())     goto ONERR;
-   if (test_query())    goto ONERR;
 
    TEST(0 == sigaltstack(&oldstack, 0));
 

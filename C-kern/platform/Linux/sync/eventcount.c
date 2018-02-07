@@ -67,9 +67,9 @@ static inline void wakeup_thread(eventcount_t* counter)
 {
    thread_t* thread = first_threadlist(cast_dlist(counter));
    if (thread) {  // timeout could remove waiting threads
-      lockflag_thread(thread);
+      lock_thread(thread);
       removefirst_threadlist(cast_dlist(counter));
-      unlockflag_thread(thread);
+      unlock_thread(thread);
       resume_thread(thread);
    }
 }
@@ -162,9 +162,9 @@ static int wait2_eventcount(eventcount_t* counter, timevalue_t* timeout)
          }
 
          // spurious resume ?
-         lockflag_thread(self);
+         lock_thread(self);
          isNoWakeup = (0 != self->wait.next);
-         unlockflag_thread(self);
+         unlock_thread(self);
 
       } while (isNoWakeup);
    }
@@ -464,11 +464,11 @@ static int test_helper(void)
    TEST(0 == check_nrstopped(0));
    // test
    lock_counter(&counter);
-   lockflag_thread(thread);
+   lock_thread(thread);
    TEST(0 == start_threads(1, &thread2, &testthread_wakeup, &counter));
    for (unsigned cnr=0; cnr<2; ++cnr) {
       if (cnr) {
-         unlockflag_thread(thread);
+         unlock_thread(thread);
          TEST( 0 == join_thread(thread2));  // did wakeup
          TEST( 0 == join_thread(thread));   // resumed
       }
@@ -544,7 +544,7 @@ static int test_update(void)
          if (0==locknr) {
             lock_counter(&counter);
          } else {
-            lockflag_thread(thr);
+            lock_thread(thr);
          }
          TEST( 0 == new_thread(&threads[0], &testthread_count, &counter));
          // check before
@@ -557,7 +557,7 @@ static int test_update(void)
          if (0==locknr) {
             unlock_counter(&counter);
          } else {
-            unlockflag_thread(thr);
+            unlock_thread(thr);
          }
          // check after
          TEST( 0 == join_thread(threads[0]));

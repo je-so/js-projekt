@@ -116,9 +116,6 @@ typedef struct maincontext_t {
     * The main thread's main function. It is started if the platform / environment
     * could be initialized successfully. */
    mainthread_f      main_thread;
-   /* variable: main_arg
-    * User supplied argument can be queried with maincontext->main_arg or <self_maincontext>->main_arg. */
-   void *            main_arg;
    /* variable: progname
     * The filename of the program without path - it is calculated from argv[0] (Unix convention). */
    const char *      progname;
@@ -131,6 +128,13 @@ typedef struct maincontext_t {
     * should be set to 0. Same value as received as 2nd argument by
     * > int main(int argc, const char * argv[]). */
    const char **     argv;
+
+   // TODO: remove helper after integrating init into thread module
+
+   // helper (parameter passing)
+
+   maincontext_e     startarg_type;
+
 
    // helper (during init)
 
@@ -170,7 +174,7 @@ typedef struct maincontext_t {
  * else the return code of main_thread.
  *
  * */
-int initrun_maincontext(maincontext_e type, mainthread_f main_thread, void * main_arg, int argc, const char** argv);
+int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, const char** argv);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.
@@ -307,7 +311,7 @@ struct syncrunner_t* syncrunner_maincontext(void);
 
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */
-#define tcontext_maincontext()            (sys_tcontext_syscontext())
+#define tcontext_maincontext()            (context_syscontext())
 
 /* define: threadid_maincontext
  * Inline implementation of <maincontext_t.threadid_maincontext>. */

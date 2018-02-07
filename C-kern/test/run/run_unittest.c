@@ -95,20 +95,13 @@ static void run_singletest(const char * testname, int (*test_f) (void))
          extern int FCT (void);  \
          run_singletest(#FCT, &FCT)
 
-enum test_run_e {
-   test_run_FIRST = 1,
-   test_run_LAST  = 2
-};
-
-static int run_all_test(maincontext_t * maincontext)
+static int run_all_test(maincontext_t* maincontext)
 {
-      const enum test_run_e trun = (enum test_run_e) maincontext->main_arg;
-
-      if ((test_run_FIRST & trun)) {
-         initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
-      }
-
+      (void) maincontext;
       prepare_test();
+
+      // current development
+      // ...
 
 //{ err
       RUN(unittest_err_errorcontext);
@@ -280,7 +273,7 @@ static int run_all_test(maincontext_t * maincontext)
       // task unittest
       RUN(unittest_platform_task_process);
       RUN(unittest_platform_task_thread);
-      RUN(unittest_platform_task_thread_localstore);
+      RUN(unittest_platform_task_thread_stack);
       // other
       RUN(unittest_platform_locale);
       RUN(unittest_platform_malloc);
@@ -322,11 +315,6 @@ static int run_all_test(maincontext_t * maincontext)
 
       CLEARBUFFER_ERRLOG();
 
-      if ((test_run_LAST & trun)) {
-         logsummary_unittest();
-         freesingleton_unittest();
-      }
-
       return 0;
 }
 
@@ -338,11 +326,11 @@ int run_unittest(int argc, const char* argv[])
       maincontext_CONSOLE
    };
 
+   initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
+
    for (unsigned type_nr = 0; type_nr < lengthof(type); ++type_nr) {
 
-      intptr_t isfirstlast = (type_nr == 0 ? test_run_FIRST : 0) + (type_nr == lengthof(type)-1 ? test_run_LAST : 0);
-
-      err = initrun_maincontext( type[type_nr], &run_all_test, (void*) isfirstlast, argc, argv);
+      err = initrun_maincontext( type[type_nr], &run_all_test, argc, argv);
 
       if (err) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
@@ -351,6 +339,9 @@ int run_unittest(int argc, const char* argv[])
       }
 
    }
+
+   logsummary_unittest();
+   freesingleton_unittest();
 
 ONERR:
 

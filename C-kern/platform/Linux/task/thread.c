@@ -24,7 +24,7 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/platform/task/thread_localstore.h"
+#include "C-kern/api/platform/task/thread_stack.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
@@ -39,10 +39,9 @@
 
 /* struct: thread_startargument_t
  * Startargument of the started system thread.
- * The function <main_thread> then calls the main task of the thread which
- * is stored in <thread_t.main>. */
+ * The start function <start_thread> then calls the task stored in thread. */
 typedef struct thread_startargument_t {
-   thread_t *  self;
+   thread_t  * self;
    stack_t     signalstack;
 } thread_startargument_t;
 
@@ -59,26 +58,19 @@ static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
 
 // group: helper
 
-/* function: main_thread
+/* function: start_thread
  * The start function of the thread.
  * This is the same for all threads.
  * It initializes signalstack, <threadcontext_t>, and
- * calls the user supplied main function. */
-static void* main_thread(thread_startargument_t * startarg)
+ * executes the user supplied function. */
+static void* start_thread(thread_startargument_t* startarg)
 {
    int err;
 
    thread_t* thread = self_thread();
-
    assert(startarg->self == thread);
-
+   // variable is set after creation ==> set it in both threads: calling new_thread + newly created
    thread->sys_thread = pthread_self();
-
-   err = init_threadcontext(&thread->threadcontext, maincontext_threadcontext(&thread->threadcontext)->type);
-   if (err) {
-      TRACECALL_ERRLOG("init_threadcontext", err);
-      goto ONERR_NOABORT;
-   }
 
    if (sys_thread_FREE == pthread_self()) {
       err = EINVAL;
@@ -95,6 +87,12 @@ static void* main_thread(thread_startargument_t * startarg)
    }
    startarg = 0;
 
+   err = init_threadcontext(&thread->threadcontext, maincontext_threadcontext(&thread->threadcontext)->type);
+   if (err) {
+      TRACECALL_ERRLOG("init_threadcontext", err);
+      goto ONERR_NOABORT;
+   }
+
    if (0 != getcontext(&thread->continuecontext)) {
       err = errno;
       TRACESYSCALL_ERRLOG("getcontext", err);
@@ -103,9 +101,9 @@ static void* main_thread(thread_startargument_t * startarg)
 
    thread = self_thread();
 
-   if (  0 == thread->returncode  // abort_thread sets returncode to ENOTRECOVERABLE
-         && thread->main_task) {
-      thread->returncode = thread->main_task(thread->main_arg);
+   // abort_thread sets thread->returncode to ENOTRECOVERABLE
+   if (0 == thread->returncode && thread->task) {
+      thread->returncode = thread->task(thread->task_arg);
    }
 
    err = free_threadcontext(&thread->threadcontext);
@@ -114,12 +112,18 @@ static void* main_thread(thread_startargument_t * startarg)
       goto ONERR;
    }
 
-   return (void*)0;
+   goto ONFREE;
+
 ONERR:
    abort_maincontext(err);
 ONERR_NOABORT:
    setreturncode_thread(self_thread(), err);
    TRACEEXIT_ERRLOG(err);
+ONFREE:
+   {
+      stack_t altstack = { .ss_flags = SS_DISABLE };
+      (void) sigaltstack(&altstack, 0);
+   }
    return (void*)(intptr_t)err;
 }
 
@@ -140,10 +144,16 @@ int delete_thread(thread_t ** thread)
       *thread = 0;
 
       err = join_thread(delobj);
+      (void) PROCESS_testerrortimer(&s_thread_errtimer, &err);
 
-      thread_localstore_t* tls = castPthread_threadlocalstore(delobj);
+      err2 = freestatic_threadcontext(&delobj->threadcontext);
+      (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
+      if (err2) err = err2;
 
-      err2 = delete_threadlocalstore(&tls);
+      thread_stack_t* tst = castPthread_threadstack(delobj);
+
+      err2 = delete_threadstack(&tst);
+      (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
       if (err2) err = err2;
 
       if (err) goto ONERR;
@@ -155,24 +165,29 @@ ONERR:
    return err;
 }
 
-int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
+int new_thread(/*out*/thread_t** thread, thread_f task, void * task_arg)
 {
    int err;
    pthread_attr_t    thread_attr;
    thread_t *        newthread = 0;
-   thread_localstore_t * tls   = 0;
+   thread_stack_t  * tst = 0;
    bool              isThreadAttrValid = false;
    memblock_t        stack;
    memblock_t        signalstack;
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = new_threadlocalstore(&tls, &stack, &signalstack, pagesize_vm());
+      err = new_threadstack(&tst, extsize_threadcontext(), &stack, &signalstack);
    }
    if (err) goto ONERR;
 
-   newthread = thread_threadlocalstore(tls);
-   newthread->main_task  = thread_main;
-   newthread->main_arg   = main_arg;
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = initstatic_threadcontext(context_threadstack(tst));
+   }
+   if (err) goto ONERR;
+
+   newthread = thread_threadstack(tst);
+   newthread->task     = task;
+   newthread->task_arg = task_arg;
 
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr;
 
@@ -198,15 +213,15 @@ int new_thread(/*out*/thread_t** thread, thread_f thread_main, void * main_arg)
    }
 
    sys_thread_t sys_thread;
-   static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&main_thread))0, "main_thread has argument of type startarg");
+   static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&start_thread))0, "argument has type startarg");
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg);
+      err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&start_thread, startarg);
    }
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_create",err);
       goto ONERR;
    }
-   // variable is set after creation ==> set it in main_thread too
+   // variable is set after creation ==> set it in both threads: calling new_thread + newly created
    newthread->sys_thread = sys_thread;
 
    err = pthread_attr_destroy(&thread_attr);
@@ -223,7 +238,7 @@ ONERR:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr);
    }
-   (void) delete_threadlocalstore(&tls);
+   (void) delete_threadstack(&tst);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
@@ -439,7 +454,7 @@ static unsigned      s_thread_runcount = 0;
 static unsigned      s_thread_signal   = 0;
 static sys_thread_t  s_thread_id       = 0;
 
-static int thread_donothing(void * dummy)
+static int thread_donothing(void* dummy)
 {
    (void) dummy;
    return 0;
@@ -462,30 +477,18 @@ static int test_initfree(void)
    thread_t * thread = 0;
    thread_t  sthread = thread_FREE;
    threadcontext_t tcfree = threadcontext_FREE;
-   threadcontext_t tcinit = threadcontext_INIT_STATIC((thread_localstore_t*)&sthread);
 
    // TEST thread_FREE
    TEST( 0 == memcmp(&tcfree, &sthread.threadcontext, sizeof(tcfree)));
    TEST( 0 == sthread.wait.next);
    TEST( 0 == sthread.wait.prev);
-   TEST( 0 == sthread.main_task);
-   TEST( 0 == sthread.main_arg);
+   TEST( 0 == sthread.task);
+   TEST( 0 == sthread.task_arg);
    TEST( 0 == sthread.returncode);
    TEST( 0 == sthread.lockflag);
    TEST( 0 == sthread.ismain);
    TEST( sys_thread_FREE == sthread.sys_thread);
 
-   // TEST thread_INIT_STATIC
-   sthread = (thread_t) thread_INIT_STATIC((thread_localstore_t*)&sthread);
-   TEST( 0 == memcmp(&tcinit, &sthread.threadcontext, sizeof(tcinit)));
-   TEST( 0 == sthread.wait.next);
-   TEST( 0 == sthread.wait.prev);
-   TEST( 0 == sthread.main_task);
-   TEST( 0 == sthread.main_arg);
-   TEST( 0 == sthread.returncode);
-   TEST( 0 == sthread.lockflag);
-   TEST( 0 == sthread.ismain);
-   TEST( sys_thread_FREE == sthread.sys_thread);
 
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3));
@@ -494,8 +497,8 @@ static int test_initfree(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(sthread.ismain     == 0);
-   TEST(thread->main_task  == &thread_donothing);
-   TEST(thread->main_arg   == (void*)3);
+   TEST(thread->task       == &thread_donothing);
+   TEST(thread->task_arg   == (void*)3);
    TEST(thread->returncode == 0);
    TEST(thread->sys_thread != sys_thread_FREE);
 
@@ -512,8 +515,8 @@ static int test_initfree(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(sthread.ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)14);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)14);
    TEST(thread->returncode == 0);
    TEST(thread->sys_thread != sys_thread_FREE);
    sys_thread_t T = thread->sys_thread;
@@ -525,8 +528,8 @@ static int test_initfree(void)
    TEST(thread->wait.next  == 0);
    TEST(thread->wait.prev  == 0);
    TEST(sthread.ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)14);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)14);
    TEST(thread->returncode == 0);
    TEST(thread->sys_thread == T);
    write_atomicint(&s_thread_signal, 1);
@@ -541,8 +544,8 @@ static int test_initfree(void)
    TEST(thread->wait.next  == 0);
    TEST(thread->wait.prev  == 0);
    TEST(sthread.ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)11);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)11);
    TEST(thread->returncode == 0);
    TEST(thread->sys_thread != sys_thread_FREE);
    T = thread->sys_thread;
@@ -557,7 +560,7 @@ static int test_initfree(void)
       int err = newgeneric_thread(&thread, &thread_returncode, (intptr_t)0);
       if (!err) {
          TEST(0 != thread);
-         TEST(i == 5)
+         TEST(6 == i)
          break;
       }
       TEST(0 == thread);
@@ -566,6 +569,21 @@ static int test_initfree(void)
    free_testerrortimer(&s_thread_errtimer);
    write_atomicint(&s_thread_signal, 1);
    TEST(0 == delete_thread(&thread));
+
+   // TEST delete_thread: simulated ERROR
+   for (unsigned i = 1; i; ++i) {
+      TEST(0 == new_thread(&thread, &thread_donothing, 0));
+      init_testerrortimer(&s_thread_errtimer, i, (int)i);
+      int err = delete_thread(&thread);
+      // check
+      TEST( 0 == thread);
+      if (!err) {
+         TESTP(4 == i,"i:%d",i)
+         break;
+      }
+      TEST( (int)i == err);
+   }
+   free_testerrortimer(&s_thread_errtimer);
 
    // adapt LOG (stack-addr could be different in new_thread in case of ERROR)
    uint8_t *logbuffer;
@@ -597,8 +615,8 @@ static int test_mainthread(void)
    TEST(thread.wait.prev  == 0);
    TEST(thread.lockflag   == 0);
    TEST(thread.ismain     == 1);
-   TEST(thread.main_task  == &thread_donothing);
-   TEST(thread.main_arg   == (void*)2);
+   TEST(thread.task       == &thread_donothing);
+   TEST(thread.task_arg   == (void*)2);
    TEST(thread.returncode == 0);
    TEST(thread.sys_thread == pthread_self());
 
@@ -608,8 +626,8 @@ static int test_mainthread(void)
    TEST(thread.wait.prev == 0);
    TEST(thread.lockflag   == 0);
    TEST(thread.ismain     == 1);
-   TEST(thread.main_task  == 0);
-   TEST(thread.main_arg   == 0);
+   TEST(thread.task       == 0);
+   TEST(thread.task_arg   == 0);
    TEST(thread.returncode == 0);
    TEST(thread.sys_thread == pthread_self());
 
@@ -630,9 +648,13 @@ static int test_query(void)
 {
    thread_t    thread;
 
+   // TEST context_thread
+   TEST(&thread.threadcontext == context_thread(&thread));
+   TEST((threadcontext_t*)0   == context_thread((thread_t*)0));
+
    // TEST self_thread
-   TEST(self_thread() == thread_threadlocalstore(self_threadlocalstore()));
-   TEST(&self_thread()->threadcontext == sys_tcontext_syscontext());
+   TEST(self_thread() == thread_threadstack(self_threadstack()));
+   TEST(&self_thread()->threadcontext == context_syscontext());
 
    // TEST returncode_thread
    for (unsigned R = 0; R <= 20; ++R) {
@@ -640,16 +662,16 @@ static int test_query(void)
       TEST( (int)R - 10 == returncode_thread(&thread));
    }
 
-   // TEST maintask_thread
+   // TEST task_thread
    settask_thread(&thread, (thread_f)&thread_returncode, 0);
-   TEST(maintask_thread(&thread) == (thread_f)&thread_returncode);
+   TEST(task_thread(&thread) == (thread_f)&thread_returncode);
    settask_thread(&thread, 0, 0);
-   TEST(maintask_thread(&thread) == 0);
+   TEST(task_thread(&thread) == 0);
 
-   // TEST mainarg_thread
+   // TEST taskarg_thread
    for (uintptr_t A = 0; A <= 10; ++A) {
       settask_thread(&thread, 0, (void*)A);
-      TEST(A == (uintptr_t)mainarg_thread(&thread));
+      TEST(A == (uintptr_t)taskarg_thread(&thread));
    }
 
    // TEST ismain_thread
@@ -678,8 +700,8 @@ static int test_join(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)12);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)12);
    TEST(thread->returncode == 12);
    TEST(thread->sys_thread == sys_thread_FREE);
 
@@ -689,8 +711,8 @@ static int test_join(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)12);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)12);
    TEST(thread->returncode == 12);
    TEST(thread->sys_thread == sys_thread_FREE);
    TEST(0 == delete_thread(&thread));
@@ -716,8 +738,8 @@ static int test_join(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)13);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)13);
    TEST(thread->returncode == 13);
    TEST(thread->sys_thread == sys_thread_FREE);
 
@@ -727,8 +749,8 @@ static int test_join(void)
    TEST(thread->wait.prev  == 0);
    TEST(thread->lockflag   == 0);
    TEST(thread->ismain     == 0);
-   TEST(thread->main_task  == (thread_f)&thread_returncode);
-   TEST(thread->main_arg   == (void*)13);
+   TEST(thread->task       == (thread_f)&thread_returncode);
+   TEST(thread->task_arg   == (void*)13);
    TEST(thread->returncode == 13);
    TEST(thread->sys_thread == sys_thread_FREE);
    TEST(0 == delete_thread(&thread));
@@ -746,8 +768,8 @@ static int test_join(void)
          TEST(thread->wait.prev  == 0);
          TEST(thread->lockflag   == 0);
          TEST(thread->ismain     == 0);
-         TEST(thread->main_task  == (thread_f)&thread_returncode);
-         TEST(thread->main_arg   == (void*)arg);
+         TEST(thread->task       == (thread_f)&thread_returncode);
+         TEST(thread->task_arg   == (void*)arg);
          TEST(thread->returncode == arg);
          TEST(thread->sys_thread == sys_thread_FREE);
       }
@@ -773,8 +795,8 @@ static int test_join(void)
          TEST(thread->wait.prev  == 0);
          TEST(thread->lockflag   == 0);
          TEST(thread->ismain     == 0);
-         TEST(thread->main_task  == (thread_f)&thread_returncode);
-         TEST(thread->main_arg   == (void*)arg);
+         TEST(thread->task       == (thread_f)&thread_returncode);
+         TEST(thread->task_arg   == (void*)arg);
          TEST(thread->returncode == arg);
          TEST(thread->sys_thread == sys_thread_FREE);
          TEST(0 == tryjoin_thread(thread));
@@ -839,7 +861,7 @@ static void handler_sigusr1(int sig)
 static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy;
-   signalstack_threadlocalstore(castPthread_threadlocalstore(self_thread()), &s_sigaltstack_signalstack);
+   s_sigaltstack_signalstack = signalstack_threadstack(castPthread_threadstack(self_thread()));
    s_sigaltstack_threadid    = pthread_self();
    s_sigaltstack_returncode  = EINVAL;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1));
@@ -923,29 +945,25 @@ static int thread_callabort(void * dummy)
 
 static volatile int s_callsetcontinue_isabort = 0;
 
-static int thread_callsetcontinue(void * dummy)
+static int thread_callsetcontinue(void* dummy)
 {
    (void) dummy;
-
-   volatile bool is_abort = false;
+   thread_t* thread = self_thread();
 
    s_callsetcontinue_isabort = 0;
-   setreturncode_thread(self_thread(), 0);
-
-   if (setcontinue_thread(&is_abort)) {
+   setreturncode_thread(thread, 0);
+   if (setcontinue_thread(thread)) {
       return EINVAL;
    }
 
-   if (is_abort != s_callsetcontinue_isabort) {
+   if ((returncode_thread(thread) != 0) != s_callsetcontinue_isabort) {
       return EINVAL;
    }
-
-   if (!is_abort) {
+   if (0 == returncode_thread(thread)) {
       s_callsetcontinue_isabort = 1;
       abort_thread();
    }
-
-   if (ENOTRECOVERABLE != returncode_thread(self_thread())) {
+   if (ENOTRECOVERABLE != returncode_thread(thread)) {
       return EINVAL;
    }
 
@@ -1020,21 +1038,19 @@ static int test_stackoverflow(void)
    TEST(0 == new_thread(&thread, &thread_stackoverflow, 0));
    TEST(0 == join_thread(thread));
    TEST(1 == s_stackoverflow_issignal);
-   TEST(maintask_thread(thread)   == (thread_f)&thread_stackoverflow);
-   TEST(mainarg_thread(thread)    == 0);
+   TEST(task_thread(thread)   == (thread_f)&thread_stackoverflow);
+   TEST(taskarg_thread(thread)    == 0);
    TEST(returncode_thread(thread) == ENOTRECOVERABLE);
    TEST(0 == delete_thread(&thread));
 
    // TEST abort_thread: own thread can do so also
    setreturncode_thread(mainthread, 0);
    s_stackoverflow_issignal = 0;
-   bool is_abort = false;
-   TEST(0 == setcontinue_thread(&is_abort));
-   if (!is_abort) {
+   TEST(0 == setcontinue_thread(mainthread));
+   if (0 == returncode_thread(mainthread)) {
       TEST(0 == pthread_kill(pthread_self(), SIGSEGV));
    }
    TEST(1 == s_stackoverflow_issignal);
-   TEST(1 == is_abort);
    TEST(returncode_thread(mainthread) == ENOTRECOVERABLE);
    setreturncode_thread(mainthread, 0);
 
@@ -1117,8 +1133,8 @@ static int test_manythreads(void)
    // TEST newgeneric_thread: every thread has its own stackframe + self_thread
    for (unsigned i = 0; i < lengthof(startarg.isValid); ++i) {
       TEST(0 == newgeneric_thread(&startarg.thread[i], thread_isvalidstack, &startarg));
-      signalstack_threadlocalstore(castPthread_threadlocalstore(startarg.thread[i]), &startarg.signalstack[i]);
-      threadstack_threadlocalstore(castPthread_threadlocalstore(startarg.thread[i]), &startarg.threadstack[i]);
+      startarg.signalstack[i] = signalstack_threadstack(castPthread_threadstack(startarg.thread[i]));
+      startarg.threadstack[i] = threadstack_threadstack(castPthread_threadstack(startarg.thread[i]));
    }
    // startarg initialized
    startarg.isvalid = true;
@@ -1767,7 +1783,7 @@ static int thread_lockflag(int * runcount)
       yield_thread();
    }
    add_atomicint(runcount, 1);
-   lockflag_thread(self_thread());
+   lock_thread(self_thread());
    sub_atomicint(runcount, 1);
    return 0;
 }
@@ -1780,11 +1796,11 @@ static int test_update(void)
 
    // TEST settask_thread
    settask_thread(&thread, &thread_donothing, (void*)10);
-   TEST(maintask_thread(&thread) == &thread_donothing);
-   TEST(mainarg_thread(&thread)  == (void*)10);
+   TEST(task_thread(&thread) == &thread_donothing);
+   TEST(taskarg_thread(&thread)  == (void*)10);
    settask_thread(&thread, 0, 0);
-   TEST(maintask_thread(&thread) == 0);
-   TEST(mainarg_thread(&thread)  == 0);
+   TEST(task_thread(&thread) == 0);
+   TEST(taskarg_thread(&thread)  == 0);
 
    // TEST setreturncode_thread
    setreturncode_thread(&thread, 1);
@@ -1792,18 +1808,18 @@ static int test_update(void)
    setreturncode_thread(&thread, 0);
    TEST(0 == returncode_thread(&thread));
 
-   // TEST lockflag_thread
-   lockflag_thread(&thread);
+   // TEST lock_thread
+   lock_thread(&thread);
    TEST(0 != thread.lockflag);
 
-   // TEST unlockflag_thread
-   unlockflag_thread(&thread);
+   // TEST unlock_thread
+   unlock_thread(&thread);
    TEST(0 == thread.lockflag);
 
-   // TEST lockflag_thread: waits
+   // TEST lock_thread: waits
    TEST(0 == newgeneric_thread(&thread2, thread_lockflag, &runcount));
    TEST(0 == thread2->lockflag);
-   lockflag_thread(thread2);
+   lock_thread(thread2);
    TEST(0 != thread2->lockflag);
    while (0 == read_atomicint(&runcount)) {
       yield_thread();
@@ -1813,12 +1829,12 @@ static int test_update(void)
       yield_thread();
       TEST(1 == read_atomicint(&runcount));
    }
-   unlockflag_thread(thread2);
+   unlock_thread(thread2);
    TEST(0 == join_thread(thread2));
 
-   // TEST unlockflag_thread: works from another thread
+   // TEST unlock_thread: works from another thread
    TEST(0 != read_atomicint(&thread2->lockflag));
-   unlockflag_thread(thread2);
+   unlock_thread(thread2);
    TEST(0 == thread2->lockflag);
    TEST(0 == delete_thread(&thread2));
 

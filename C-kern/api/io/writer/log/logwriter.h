@@ -18,18 +18,13 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-// Do not forget to include before this module
+// import (include before this module)
 // #include "C-kern/api/io/writer/log/log.h"
 // #include "C-kern/api/io/writer/log/logbuffer.h"
 
-
-/* typedef: struct logwriter_t
- * Exports <logwriter_t>. */
-typedef struct logwriter_t logwriter_t;
-
-/* typedef: struct logwriter_chan_t
- * Exports <logwriter_chan_t>. */
-typedef struct logwriter_chan_t logwriter_chan_t;
+// === exported types
+struct logwriter_t;
+struct logwriter_chan_t;
 
 
 
@@ -48,11 +43,11 @@ int unittest_io_writer_log_logwriter(void);
  * Extends <logbuffer_t> with isappend mode and <log_state_e>.
  * If isappend is true the next write to the buffer will be appended
  * even if the buffer is full. */
-struct logwriter_chan_t {
+typedef struct logwriter_chan_t {
    logbuffer_t logbuf;
    const char* funcname;
    log_state_e logstate;
-};
+} logwriter_chan_t;
 
 // group: lifetime
 
@@ -80,7 +75,7 @@ struct logwriter_chan_t {
  * the buffer is not written out until the last part was appended. In this case messages
  * are truncated if they are bigger than log_config_MINSIZE.
  * */
-struct logwriter_t {
+typedef struct logwriter_t {
    /* variable: addr
     * Address of allocated buffer. */
    uint8_t *         addr;
@@ -91,7 +86,7 @@ struct logwriter_t {
     * Array of <logwriter_chan_t>.
     * A <log_channel_e> is mapped to a <logwriter_chan_t> with help of this array. */
    logwriter_chan_t  chan[log_channel__NROF];
-};
+} logwriter_t;
 
 // group: initthread
 

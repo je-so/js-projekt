@@ -85,9 +85,9 @@ typedef struct threadcontext_t {
    /* variable: initcount
     * Number of correct initialized objects. */
    size_t   initcount;
-   /* variable: staticmemblock
-    * Start address of static memory block. */
-   void*    staticmemblock;
+   /* variable: staticdata
+    * Start address of memory block allocated with <thread_stack_t.allocstatic_threadstack>. */
+   uint8_t *staticdata;
 } threadcontext_t;
 
 // group: lifetime
@@ -96,16 +96,6 @@ typedef struct threadcontext_t {
  * Static initializer for <threadcontext_t>. */
 #define threadcontext_FREE   \
          { 0, iobj_FREE, iobj_FREE, 0, iobj_FREE, iobj_FREE, 0, 0, 0 }
-
-/* define: threadcontext_INIT_STATIC
- * Static initializer for <threadcontext_t>.
- * This pre-initializer ensures that during initialization the static log service is available
- * even before calling <init_threadcontext> or during call to <free_threadcontext>.
- *
- * Parameter:
- * tls - Pointer to thread_localstore_t the threadcontext is located. */
-#define threadcontext_INIT_STATIC(tls) \
-         { &g_maincontext, iobj_FREE, iobj_FREE, 0, iobj_FREE, { (struct log_t*) logwriter_threadlocalstore(tls), interface_logwriter() }, 0, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.
@@ -118,9 +108,27 @@ typedef struct threadcontext_t {
 int init_threadcontext(/*out*/threadcontext_t* tcontext, uint8_t context_type);
 
 /* function: free_threadcontext
- * Frees all resources bound to this object.
+ * Frees resources allocated by <init_threadcontext>.
  * This function is called from <maincontext_t.free_maincontext>. */
 int free_threadcontext(threadcontext_t* tcontext);
+
+/* function: initstatic_threadcontext
+ * Initialisiert tcontext, so daß das grundlegendes Logging funktioniert.
+ * Siehe auch <logwriter_t.initstatic_logwriter>.
+ * Diese Funktion wird von <thread_t.new_thread> aufgerufen,
+ * so dass bei Ausführung von <init_threadcontext> innerhalb der neuen Threadumgebung
+ * schon ein statisch initialisierter Kontext vorliegt.
+ *
+ * Unchecked Precondition:
+ * *tcontext == threadcontext_FREE && _is_initialized_(castPcontext_threadstack(tcontext)) */
+int initstatic_threadcontext(threadcontext_t* tcontext);
+
+/* function: freestatic_threadcontext
+ * Gibt Ressourcen von tcontext frei, die während Ausführung von <initstatic_threadcontext> belegt wurden.
+ * Diese Funktion wird von <thread_t.delete_thread> aufgerufen.
+ * Aber erst nachdem <free_threadcontext> am Ende der Ausführung des zu löschenden Threads aufgerufen wurde.
+ * */
+int freestatic_threadcontext(threadcontext_t* tcontext);
 
 // group: query
 

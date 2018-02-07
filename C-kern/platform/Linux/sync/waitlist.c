@@ -105,9 +105,9 @@ int wait_waitlist(waitlist_t * wlist)
    for (;;) {
       suspend_thread();
 
-      lockflag_thread(self) ;
+      lock_thread(self) ;
       bool isWakeup = (0 == self->wait.next);
-      unlockflag_thread(self) ;
+      unlock_thread(self) ;
 
       if (isWakeup) break ;
       // spurious resume
@@ -126,13 +126,13 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), vo
    }
 
    thread_t* thread = first_wlist(cast_dlist(wlist));
-   lockflag_thread(thread);
+   lock_thread(thread);
    removefirst_wlist(cast_dlist(wlist));
    -- wlist->nr_waiting;
    unlockflag_waitlist(wlist);
 
    settask_thread(thread, main_task, main_arg);
-   unlockflag_thread(thread);
+   unlock_thread(thread);
    resume_thread(thread);
 
    return 0;
@@ -293,7 +293,7 @@ static int test_synchronize(void)
    TEST(wlist.lockflag   == 0) ;
    TEST(threads[0]       == next_wlist(threads[0])) ;
    // wait_waitlist locks lockflag of thread
-   lockflag_thread(threads[0]);
+   lock_thread(threads[0]);
    threads[0]->wait.next = 0;
    threads[0]->wait.prev = 0;
    write_atomicint((uintptr_t*)&wlist.last, 0) ;
@@ -302,7 +302,7 @@ static int test_synchronize(void)
       yield_thread() ;
       TEST(1 == read_atomicint(&s_thread_runcount)) ;
    }
-   unlockflag_thread(threads[0]) ;
+   unlock_thread(threads[0]) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
@@ -332,12 +332,12 @@ static int test_synchronize(void)
          yield_thread() ;
          TEST(lengthof(threads)-i == read_atomicint(&s_thread_runcount)) ;
       }
-      lockflag_thread(threads[i]) ;
+      lock_thread(threads[i]) ;
       TEST( !isempty_wlist(cast_dlist(&wlist)));
       thread_t * firstthread = removefirst_wlist(cast_dlist(&wlist));
       TEST(threads[i]            == firstthread);
       TEST(threads[i]->wait.next == 0);
-      unlockflag_thread(threads[i]) ;
+      unlock_thread(threads[i]) ;
       resume_thread(threads[i]) ;   // real wakeup
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
@@ -359,8 +359,8 @@ static int test_synchronize(void)
    TEST(0 == trywakeup_waitlist(&wlist, (thread_f)1, (void*)2)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->wait.next);               // removed from list
-   TEST(1 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
-   TEST(2 == (uintptr_t) mainarg_thread(self_thread())) ;    // settask called
+   TEST(1 == (uintptr_t) task_thread(self_thread())) ;   // settask called
+   TEST(2 == (uintptr_t) taskarg_thread(self_thread())) ;    // settask called
    TEST(0 == wlist.last) ;       // removed from list
    TEST(0 == wlist.nr_waiting) ; // nr_waiting changed
    TEST(0 == wlist.lockflag) ;
@@ -390,8 +390,8 @@ static int test_synchronize(void)
    TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->wait.next);               // resumed
-   TEST(3 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
-   TEST(4 == (uintptr_t) mainarg_thread(self_thread())) ;    // settask called
+   TEST(3 == (uintptr_t) task_thread(self_thread())) ;   // settask called
+   TEST(4 == (uintptr_t) taskarg_thread(self_thread())) ;    // settask called
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -402,7 +402,7 @@ static int test_synchronize(void)
    TEST(0 != self_thread()->wait.next);
    wlist.nr_waiting = 1 ;
    settask_thread(self_thread(), 0, 0) ;
-   lockflag_thread(self_thread()) ;
+   lock_thread(self_thread()) ;
    trysuspend_thread() ;   // consume any previous resume
    TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_callwakeup, &wlist)) ;
@@ -414,15 +414,15 @@ static int test_synchronize(void)
       yield_thread() ;
       TEST(EAGAIN == trysuspend_thread()) ;  // no resume cause of waiting
    }
-   unlockflag_thread(self_thread()) ;
+   unlock_thread(self_thread()) ;
    TEST(0 == join_thread(threads[0])) ;
    TEST(0 == returncode_thread(threads[0])) ;
    TEST(0 == delete_thread(&threads[0])) ;
    TEST(0 == read_atomicint(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->wait.next);               // resumed
-   TEST(3 == (uintptr_t) maintask_thread(self_thread()));   // settask called
-   TEST(4 == (uintptr_t) mainarg_thread(self_thread()));    // settask called
+   TEST(3 == (uintptr_t) task_thread(self_thread()));   // settask called
+   TEST(4 == (uintptr_t) taskarg_thread(self_thread()));    // settask called
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -440,8 +440,8 @@ static int test_synchronize(void)
    TEST(lengthof(threads) == read_atomicint(&s_thread_runcount)) ;
    for (uintptr_t i = 0; i < lengthof(threads); ++i) {
       TEST(0 == trywakeup_waitlist(&wlist, (thread_f)i, (void*)i));
-      TEST(i == (uintptr_t) maintask_thread(threads[i]));
-      TEST(i == (uintptr_t) mainarg_thread(threads[i]));
+      TEST(i == (uintptr_t) task_thread(threads[i]));
+      TEST(i == (uintptr_t) taskarg_thread(threads[i]));
       TEST(0 == join_thread(threads[i]));
       TEST(0 == returncode_thread(threads[i]));
       TEST(0 == delete_thread(&threads[i]));
@@ -464,8 +464,8 @@ static int test_synchronize(void)
    TEST(0 == wlist.lockflag) ;
    // check that all threads have been resumed
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      TEST(0 == (uintptr_t) maintask_thread(threads[i])) ;   // cleared in free_waitlist
-      TEST(0 == (uintptr_t) mainarg_thread(threads[i])) ;    // cleared in free_waitlist
+      TEST(0 == (uintptr_t) task_thread(threads[i])) ;   // cleared in free_waitlist
+      TEST(0 == (uintptr_t) taskarg_thread(threads[i])) ;    // cleared in free_waitlist
       TEST(0 == threads[i]->wait.next);
       TEST(0 == delete_thread(&threads[i])) ;
    }

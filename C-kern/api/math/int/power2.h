@@ -63,8 +63,22 @@ int ispowerof2_int(unsigned i);
  * Set all bits right of highest to one (00011111111) and then add +1 (00100000000). */
 unsigned makepowerof2_int(unsigned i);
 
+/* function: alignpower2_int
+ * Returns value >= i which is a multiple of size.
+ *
+ * Unchecked Precondition:
+ * 1 == ispowerof2_int(size) && size <= i*/
+unsigned alignpower2_int(unsigned i, unsigned size);
 
 // section: inline implementation
+
+/* define: alignpower2_int
+ * Implements <int_t.alignpower2_int> as a generic function. */
+#define alignpower2_int(i, size) \
+         (  __extension__ ({                       \
+            typeof(i) _m = (typeof(i))((size)-1);  \
+            (typeof(i)) (((i) + _m) & ~_m);        \
+         }))
 
 /* define: ispowerof2_int
  * Implements <int_t.ispowerof2_int> as a generic function. */

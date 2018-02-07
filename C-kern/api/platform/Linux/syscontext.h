@@ -1,6 +1,6 @@
 /* title: LinuxSystemContext
 
-   Defines <syscontext_t.sys_tcontext_syscontext> and other thread context specific functions.
+   Defines <syscontext_t.context_syscontext> and other thread context specific functions.
    The defined functions are implemented inline to speed up performance.
 
    Copyright:
@@ -75,24 +75,21 @@ int isfree_syscontext(const syscontext_t* scontext);
  * Returns true in case syscontext_t is initialized with valid values. */
 int isvalid_syscontext(const syscontext_t* scontext);
 
-// TODO: rename into stacksize_syscontext, rename other too
-// TODO: rename threadcontext into stack !!
-
-/* function: sys_tlssize_syscontext
+/* function: stacksize_syscontext
  * Returns the size in bytes of the thread local storage.
  * This size is reserved for every created thread and the main thread.
  * The size includes the stack and the signal stack size. */
-size_t sys_tlssize_syscontext(void);
+size_t stacksize_syscontext(void);
 
-/* function: sys_tcontext_syscontext
+/* function: context_syscontext
  * Returns <threadcontext_t> of the current thread. */
-struct threadcontext_t* sys_tcontext_syscontext(void);
+struct threadcontext_t* context_syscontext(void);
 
-/* function: sys_tcontext2_syscontext
+/* function: context2_syscontext
  * Returns <threadcontext_t> of the current thread.
- * The parameter local_var must point to a local variable on the current stack.
- * This function is called from <sys_tcontext_syscontext>. */
-struct threadcontext_t* sys_tcontext2_syscontext(void* local_var);
+ * The parameter addr must point to a local variable on the current stack.
+ * This function is called from <context_syscontext>. */
+struct threadcontext_t* context2_syscontext(void* addr);
 
 
 // section: inline implementation
@@ -107,22 +104,22 @@ static inline int free_syscontext(syscontext_t* scontext)
          return 0;
 }
 
-/* define: sys_tcontext_syscontext
- * Implements <syscontext_t.sys_tcontext_syscontext>. */
-#define sys_tcontext_syscontext() \
+/* define: context_syscontext
+ * Implements <syscontext_t.context_syscontext>. */
+#define context_syscontext() \
          ( __extension__ ({                     \
             int _addr;                          \
-            sys_tcontext2_syscontext(&_addr);   \
+            context2_syscontext(&_addr);   \
          }))
 
-/* define: sys_tcontext2_syscontext
- * Implements <syscontext_t.sys_tcontext2_syscontext>. */
-#define sys_tcontext2_syscontext(local_var) \
-         ((struct threadcontext_t*) ( (uintptr_t)(local_var) & ~(uintptr_t) (sys_tlssize_syscontext()-1)))
+/* define: context2_syscontext
+ * Implements <syscontext_t.context2_syscontext>. */
+#define context2_syscontext(addr) \
+         ((struct threadcontext_t*) ( (uintptr_t)(addr) & ~(uintptr_t) (stacksize_syscontext()-1)))
 
-/* define: sys_tlssize_syscontext
- * Implements <syscontext_t.sys_tlssize_syscontext>. */
-#define sys_tlssize_syscontext() \
+/* define: stacksize_syscontext
+ * Implements <syscontext_t.stacksize_syscontext>. */
+#define stacksize_syscontext() \
          (512*1024)
 
 #endif

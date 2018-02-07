@@ -286,7 +286,7 @@ Group: Api  {
 
          File: Process  (api/platform/task/process.h)
          File: Thread  (api/platform/task/thread.h)
-         File: ThreadLocalStorage  (api/platform/task/thread_localstore.h)
+         File: ThreadLocalStorage  (api/platform/task/thread_stack.h)
          }  # Group: Task
 
       Group: X11  {
@@ -562,7 +562,7 @@ Group: Implementation  {
 
             File: Process Linuximpl  (platform/Linux/task/process.c)
             File: Thread Linux  (platform/Linux/task/thread.c)
-            File: ThreadLocalStorage impl  (platform/Linux/task/thread_localstore.c)
+            File: ThreadLocalStorage impl  (platform/Linux/task/thread_stack.c)
             }  # Group: Task
 
          Group: Time  {

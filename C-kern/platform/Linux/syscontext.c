@@ -213,6 +213,20 @@ static int test_query(void)
       TEST( 1 == isvalid_syscontext(&sc));
    }
 
+   // TEST context_syscontext
+   TEST( context_syscontext() == (threadcontext_t*) (((uintptr_t)&sc) - ((uintptr_t)&sc) % stacksize_syscontext()));
+
+   // TEST context2_syscontext
+   for (size_t i = 0; i < 1000*stacksize_syscontext(); i += stacksize_syscontext()) {
+      TEST((threadcontext_t*)i == context2_syscontext(i));
+      TEST((threadcontext_t*)i == context2_syscontext(i+1));
+      TEST((threadcontext_t*)i == context2_syscontext(i+stacksize_syscontext()-1));
+   }
+
+   // TEST stacksize_syscontext
+   TEST( 0 == stacksize_syscontext() % pagesize_vm());
+   TEST( 2 <  stacksize_syscontext() / pagesize_vm());
+
    return 0;
 ONERR:
    return EINVAL;

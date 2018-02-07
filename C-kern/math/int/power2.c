@@ -26,6 +26,80 @@
 
 #ifdef KONFIG_UNITTEST
 
+static int test_align(void)
+{
+   // TEST alignpower2_int: value 0
+   for (int i=-1; i<2; ++i) {
+      TEST(0 == alignpower2_int((uint8_t)0, i));
+      TEST(0 == alignpower2_int((uint16_t)0, i));
+      TEST(0 == alignpower2_int((uint32_t)0, i));
+      TEST(0 == alignpower2_int((uint64_t)0, i));
+   }
+
+   // TEST alignpower2_int: value 1
+   for (unsigned i=1; i<5; ++i) {
+      TEST(i == alignpower2_int((uint8_t)i, 1));
+      TEST(i == alignpower2_int((uint16_t)i, 1));
+      TEST(i == alignpower2_int((uint32_t)i, 1));
+      TEST(i == alignpower2_int((uint64_t)i, 1));
+   }
+
+   // TEST alignpower2_int: uint8_t && (aligned size > UINT8_MAX)
+   TEST(0 == alignpower2_int((uint8_t)255, 128));
+   TEST(0 == alignpower2_int((uint8_t)255, 256));
+
+   // TEST alignpower2_int: uint16_t && (aligned size > UINT16_MAX)
+   TEST(0 == alignpower2_int((uint16_t)65535, 32768));
+   TEST(0 == alignpower2_int((uint16_t)65535, 65536));
+
+   // TEST alignpower2_int: uint32_t && (aligned size > UINT32_MAX)
+   TEST(0 == alignpower2_int((uint32_t)-1, 0x80000000));
+   TEST(0 == alignpower2_int((uint32_t)-1, (uint64_t)0x100000000));
+
+   // TEST alignpower2_int: uint64_t && (aligned size > UINT64_MAX)
+   TEST(0 == alignpower2_int((uint64_t)-1, (uint64_t)0x8000000000000000));
+
+   // TEST alignpower2_int: uint8_t
+   for(uint8_t i=2; i; i = (uint8_t) (i << 1)) {
+      TEST(i == alignpower2_int(i, 1));
+      TEST(i == alignpower2_int((uint8_t)(i-1), i));
+      if (i < 128) {
+         TEST(2*i == alignpower2_int((uint8_t)(i+1), i));
+      }
+   }
+
+   // TEST alignpower2_int: uint16_t
+   for(uint16_t i=2; i; i = (uint16_t) (i << 1)) {
+      TEST(i == alignpower2_int(i, 1));
+      TEST(i == alignpower2_int((uint16_t)(i-1), i));
+      if (i < 32768) {
+         TEST(2*i == alignpower2_int((uint16_t)(i+1), i));
+      }
+   }
+
+   // TEST alignpower2_int: uint32_t
+   for(uint32_t i=2; i; i = (uint32_t) (i << 1)) {
+      TEST(i == alignpower2_int(i, 1));
+      TEST(i == alignpower2_int((uint32_t)(i-1), i));
+      if (i < 0x80000000) {
+         TEST(2*i == alignpower2_int((uint32_t)(i+1), i));
+      }
+   }
+
+   // TEST alignpower2_int: uint64_t
+   for(uint64_t i = 2; i; i<<=1) {
+      TEST(i == alignpower2_int(i, 1));
+      TEST(i == alignpower2_int((uint64_t)(i-1), i));
+      if (i < 0x8000000000000000) {
+         TEST(2*i == alignpower2_int((uint64_t)(i+1), i));
+      }
+   }
+
+   return 0;
+ONERR:
+   return EINVAL;
+}
+
 static int test_powerof2(void)
 {
    // TEST value 0
@@ -103,11 +177,12 @@ ONERR:
 
 int unittest_math_int_power2()
 {
+   if (test_align())       goto ONERR;
    if (test_powerof2())    goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

@@ -102,7 +102,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
@@ -154,7 +154,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
@@ -267,7 +267,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_stack.c.o: C-kern/platform/Linux/task/thread_stack.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
@@ -417,7 +417,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_stack.c.o: C-kern/platform/Linux/task/thread_stack.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c

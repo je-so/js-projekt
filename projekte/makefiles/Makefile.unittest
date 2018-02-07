@@ -102,7 +102,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
@@ -229,7 +229,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
@@ -417,7 +417,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_stack.c.o: C-kern/platform/Linux/task/thread_stack.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
@@ -792,7 +792,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_localstore.c.o: C-kern/platform/Linux/task/thread_localstore.c
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_stack.c.o: C-kern/platform/Linux/task/thread_stack.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
