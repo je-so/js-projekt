@@ -140,6 +140,8 @@ int write_logbuffer(logbuffer_t * logbuf)
 
 void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
 {
+   if (!format) return;
+
    size_t   buffer_size = sizefree_logbuffer(logbuf);
    uint8_t* buffer      = logbuf->addr + logbuf->logsize;
 

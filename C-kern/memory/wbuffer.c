@@ -197,9 +197,10 @@ int appendcopy_wbuffer(wbuffer_t* wbuf, size_t buffer_size, const uint8_t* buffe
       wbuf->next += buffer_size;
 
    } else {
-      memcpy(wbuf->next, buffer, free);
-      wbuf->next += free;
-
+      if (free) {
+         memcpy(wbuf->next, buffer, free);
+         wbuf->next += free;
+      }
       const size_t missing = buffer_size - free;
       err = wbuf->iimpl->alloc(wbuf->impl, missing, (memstream_t*)wbuf);
       if (err) {

@@ -249,7 +249,7 @@ pagecache_it* cast_pagecacheit(void* pgcacheif, TYPENAME pagecache_t);
  * Implements <pagecache_t.pagesizeinbytes_pagecache>. */
 static inline size_t pagesizeinbytes_pagecache(pagesize_e pagesize)
 {
-         return (size_t)256 << pagesize;
+         return (size_t)256 << (pagesize&0x1f);
 }
 
 /* define: log2pagesizeinbytes_pagecache

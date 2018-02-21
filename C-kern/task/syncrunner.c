@@ -2280,7 +2280,7 @@ static int test_exec_wakeup(void)
    TEST(0 == free_process(&process));
    // check
    TEST( process_result.state      == process_state_ABORTED);
-   TEST( process_result.returncode == SIGSEGV);
+   TEST( process_result.returncode == SIGSEGV || process_result.returncode == SIGILL/*DEBUG with -fsanitize*/);
 
    // TEST process_wakeuplist: exitsf
    s_set.doExit = true;

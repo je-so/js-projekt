@@ -113,7 +113,7 @@ int delete_directory(directory_t ** dir) ;
  * 0         - file_path refers to an existing file or directory.
  * ENOENT    - file_path does not refer to an existing file system entry.
  *             No error log entry is written. */
-int trypath_directory(const directory_t* dir/*0 => current working directory*/, const char * const file_path);
+int trypath_directory(const directory_t* dir/*0 => current working directory*/, const char* file_path);
 
 /* function: io_directory
  * Returns <iochannel_t> (file descriptor) of the opened directory.

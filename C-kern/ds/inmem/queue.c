@@ -488,7 +488,7 @@ static int test_queuepage(void)
       TEST(0 == new_queuepage(&qpage, &queue));
       TEST(0 != qpage);
       TEST(qpage->queue == &queue);
-      TEST(SIZEALLOCATED_PAGECACHE() == oldsize + pagesize_queue(&queue));
+      TEST(SIZEALLOCATED_PAGECACHE() == oldsize + (unsigned) pagesize_queue(&queue));
 
       // TEST delete_queuepage
       TEST(0 == delete_queuepage(&qpage, pagesize_queue(&queue)));

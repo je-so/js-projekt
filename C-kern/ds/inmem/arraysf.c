@@ -306,7 +306,7 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
          }
       }
 
-      unsigned prefix = ~0x03u & (posdiff >> found.parent->shift) ;
+      unsigned prefix = ~0x03u & (unsigned)(posdiff >> found.parent->shift);
 
       if (0 == prefix) {
          // prefix does match

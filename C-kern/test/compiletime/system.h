@@ -19,19 +19,6 @@
 #define  de     1
 #define  Linux  1
 
-/* about: Test architecture size
- * Only 32 Bits supported */
-
-#if (!defined(INT_MAX) || (INT_MAX != 2147483647))
-#  if (KONFIG_LANG==de)
-#    error  Momentan wird nur 32 Bit unterstützt
-#    error  TODO: Baue und teste 64 Bit Architektur
-#  elif
-#    error  only 32 Bit architecture supported
-#    error  TODO: Compile and test 64 bit architecture
-#  endif
-#endif
-
 /* about: Filesize-64bit Test
  * Test (in os specific manner) system supports 64 bit file size. */
 

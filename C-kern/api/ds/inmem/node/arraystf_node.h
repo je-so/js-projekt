@@ -178,15 +178,15 @@ static inline arraystf_node_t * cast_arraystfnode(struct string_t * str)
 /* define: childindex_arraystfmwaybranch
  * Implements <arraystf_mwaybranch_t.childindex_arraystfmwaybranch>. */
 #define childindex_arraystfmwaybranch(branch, data) \
-         (0x03u & ((data) >> (branch)->shift))
+         (0x03u & (unsigned)((data) >> (branch)->shift))
 
 /* define: init_arraystfmwaybranch
  * Implements <arraystf_mwaybranch_t.init_arraystfmwaybranch>. */
 static inline void init_arraystfmwaybranch(/*out*/arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_unode_t * childnode1, size_t data2, arraystf_unode_t * childnode2)
 {
          memset(branch->child, 0, sizeof(branch->child));
-         branch->child[0x03u & (data1 >> shift)] = childnode1;
-         branch->child[0x03u & (data2 >> shift)] = childnode2;
+         branch->child[0x03u & (unsigned)(data1 >> shift)] = childnode1;
+         branch->child[0x03u & (unsigned)(data2 >> shift)] = childnode2;
          branch->offset = offset;
          branch->shift  = (uint8_t) shift;
          branch->used   = 2;

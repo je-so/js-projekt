@@ -9,9 +9,10 @@ LFlagLib      = -l
 LFlagLibpath  = -L
 warnings_on   = -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes
 warnings_on  += -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+protections   = -fsanitize=undefined -fsanitize-undefined-trap-on-error
 CFlags        = -MMD -std=gnu1x $(warnings_on)
 LFlags        = 
-CFlags_Debug  = -g -fstack-protector-all $(cflags)
+CFlags_Debug  = -g -fstack-protector-all $(protections) $(cflags)
 LFlags_Debug  = -g $(lflags)
 CFlags_Release= -O2 -fno-strict-aliasing -fno-stack-protector $(cflags)
 LFlags_Release= -O2 $(lflags)

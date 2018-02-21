@@ -698,6 +698,7 @@ static int test_helper(void)
    terminal_t     term2;
    file_t         file = file_FREE;
    bool           isoldconf = false;
+   const char*    filename = "./xxx-no-terminal";
 
    // prepare
    TEST(0 == readconfig(&oldconf, sys_iochannel_STDIN));
@@ -707,7 +708,7 @@ static int test_helper(void)
    memset(&term, 0, sizeof(term));
    memset(&term2, 0, sizeof(term2));
    TEST(0 == memcmp(&tconf, &tconf2, sizeof(tconf)));
-   TEST(0 == initcreate_file(&file, "./xxx", 0));
+   TEST(0 == initcreate_file(&file, filename, 0));
 
    // TEST readconfig
    TEST(0 == readconfig(&tconf, sys_iochannel_STDIN));
@@ -820,7 +821,7 @@ static int test_helper(void)
 
    // unprepare
    TEST(0 == free_file(&file));
-   TEST(0 == remove_file("./xxx", 0));
+   TEST(0 == remove_file(filename, 0));
    TEST(0 == writeconfig(&oldconf, sys_iochannel_STDIN));
 
    return 0;
@@ -829,7 +830,7 @@ ONERR:
       writeconfig(&oldconf, sys_iochannel_STDIN);
    }
    free_file(&file);
-   remove_file("./xxx", 0);
+   remove_file(filename, 0);
    return EINVAL;
 }
 
@@ -994,10 +995,6 @@ static int test_initfree(void)
    TEST(ENOENT == initPpath_terminal(&term, filename));
    TEST(isfree_file(term.sysio));
 
-   // TEST initPpath_terminal: EFAULT (NULL parameter)
-   TEST(EFAULT == initPpath_terminal(&term, 0));
-   TEST(isfree_file(term.sysio));
-
    // TEST initPio_terminal
    for (int isClose = 0; isClose <= 1; ++isClose) {
       file = posix_openpt(O_RDWR|O_NOCTTY);
@@ -1117,7 +1114,7 @@ static int test_query(void)
 
    // TEST io_terminal
    TEST(sys_iochannel_STDIN == io_terminal(&term));
-   for (sys_iochannel_t i = 1; i; i = i << 1) {
+   for (sys_iochannel_t i=1; i<10; ++i) {
       terminal_t tx = { .sysio = i };
       TEST(i == io_terminal(&tx));
    }

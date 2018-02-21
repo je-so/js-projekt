@@ -154,12 +154,12 @@ int free_blockarray(blockarray_t * barray)
       size_t   ptr_per_block     = (size_t)1 << barray->log2ptr_per_block;
 
       struct {
-         ptrblock_t *   block ;
-         size_t         index ;
-      }        treepath[barray->depth] ;
+         ptrblock_t *   block;
+         size_t         index;
+      }        treepath[barray->depth+1];
 
-      treepath[0].block = barray->root ;
-      treepath[0].index = 0 ;
+      treepath[0].block = barray->root;
+      treepath[0].index = 0;
 
       for (uint8_t depth = 0;;) {
          // scan ptrblock

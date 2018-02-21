@@ -1237,12 +1237,13 @@ static int new_trienode(
 
    } else {
       uint8_t * dst_digit = digits_trienode(newnode, offset);
-      memcpy(dst_digit, digit, digitsize_trienode(0, nrchild));
+      unsigned  digitsize = digitsize_trienode(0, nrchild);
+      if (digitsize) memcpy(dst_digit, digit, digitsize);
       offset = off4_child_trienode(offset, digitsize_trienode(0, nrchild));
       trie_node_t ** dst_child = childs_trienode(newnode, offset);
       unsigned childsize = childsize_trienode(0, nrchild);
       offset = off5_value_trienode(offset, childsize);
-      memcpy(dst_child, child, childsize);
+      if (childsize) memcpy(dst_child, child, childsize);
    }
 
    if (value != 0) {
@@ -2702,7 +2703,7 @@ static int compare_content(
    init_nodeoffsets(&off, node);
    TEST(header == node->header);
    TEST(keylen == keylen_trienode(node));
-   TEST(0 == memcmp(memaddr_trienode(node)+off.off2_key, key, keylen));
+   TEST(!keylen || 0 == memcmp(memaddr_trienode(node)+off.off2_key, key, keylen));
    TEST(0 == memcmp(memaddr_trienode(node)+off.off5_value, &value, valuesize_trienode(isvalue_trienode(node))));
    if (issubnode_trienode(node)) {
       TEST(nrchild-1 == nrchild_trienode(node));
@@ -2717,8 +2718,10 @@ static int compare_content(
 
    } else {
       TEST(nrchild == nrchild_trienode(node));
-      TEST(0 == memcmp(memaddr_trienode(node)+off.off3_digit, digit, nrchild));
-      TEST(0 == memcmp(memaddr_trienode(node)+off.off4_child, child, childsize_trienode(0, (uint8_t)nrchild)));
+      if (nrchild) {
+         TEST(0 == memcmp(memaddr_trienode(node)+off.off3_digit, digit, nrchild));
+         TEST(0 == memcmp(memaddr_trienode(node)+off.off4_child, child, childsize_trienode(0, (uint8_t)nrchild)));
+      }
    }
 
    return 0;

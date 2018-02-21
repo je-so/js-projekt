@@ -1272,8 +1272,8 @@ static int check_parts(const uri_encoded_t* uri, uri_type_e utype, const char* p
          uri_param_t param=getparam_uridecoded((const uri_decoded_t*)uri, ip);
          TEST( params[ip].name.size == param.name.size);
          TEST( params[ip].value.size == param.value.size);
-         TEST( 0 == memcmp(params[ip].name.addr, param.name.addr, param.name.size));
-         TEST( 0 == memcmp(params[ip].value.addr, param.value.addr, param.value.size));
+         TEST( 0 == param.name.size  || 0 == memcmp(params[ip].name.addr, param.name.addr, param.name.size));
+         TEST( 0 == param.value.size || 0 == memcmp(params[ip].value.addr, param.value.addr, param.value.size));
       }
    }
 

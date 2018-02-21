@@ -395,7 +395,7 @@ static int test_query(void)
 
    // TEST first_dlist
    list.last = &node;
-   for (intptr_t i = 1; i; i <<= 1) {
+   for (uintptr_t i = 1; i; i <<= 1) {
       node.next = (void*) i;
       TEST(first_dlist(&list) == (void*)i);
    }
@@ -403,7 +403,7 @@ static int test_query(void)
    TEST(0 == first_dlist(&list));
 
    // TEST last_dlist
-   for (intptr_t i = 1; i; i <<= 1) {
+   for (uintptr_t i = 1; i; i <<= 1) {
       list.last = (void*)i;
       TEST(last_dlist(&list) == (void*)i);
    }

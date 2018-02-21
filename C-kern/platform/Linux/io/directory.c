@@ -50,11 +50,13 @@ static inline DIR * cast2DIR_directory(const directory_t * dir)
 
 // group: query
 
-int trypath_directory(const directory_t * dir, const char * const file_path)
+int trypath_directory(const directory_t* dir, const char* file_path)
 {
    int err;
    int statatfd = AT_FDCWD;
    struct stat stat_result;
+
+   if(!file_path) return EFAULT;
 
    if (dir) {
       statatfd = io_directory(dir);
@@ -254,12 +256,13 @@ ONERR:
    return err;
 }
 
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, /*ret*/struct wbuffer_t* dirpath/*could be set to 0*/)
+int newtemp_directory(/*out*/directory_t** dir, const char* name_prefix, /*ret*/struct wbuffer_t* dirpath/*could be set to 0*/)
 {
    int err;
+   if (!name_prefix) name_prefix="";
    char*        mkdpath  = 0;
    const size_t dir_len  = sizeof(P_tmpdir) - 1;
-   size_t       name_len = name_prefix ? strlen(name_prefix) : 0;
+   size_t       name_len = strlen(name_prefix);
    size_t       tmpsize  = dir_len + name_len + 1 + 8;
    uint8_t      strbuf[dir_len + sizeof(((struct dirent*)0)->d_name) + 1];
    wbuffer_t*   tmppath  = dirpath ? dirpath : &(wbuffer_t) wbuffer_INIT_STATIC(sizeof(strbuf), strbuf);

@@ -151,18 +151,17 @@ ONERR:
 int base64decode_string(const string_t * str, /*ret*/wbuffer_t * result)
 {
    int err ;
-   const uint8_t *next    = str->addr ;
-   size_t         count   = str->size / 4 ;
+   const uint8_t *next    = str->addr;
+   size_t         count   = str->size / 4;
    size_t         oldsize = size_wbuffer(result);
-   unsigned       mod3 ;
-   int32_t        quadr ;
-   uint8_t       *dest ;
+   unsigned       mod3;
+   uint32_t       quadr;
+   int32_t        _6bits;
+   uint8_t       *dest;
 
    VALIDATE_INPARAM_TEST(0 == (str->size % 4), ONERR, ) ;
 
-   if (!count) {
-      return 0 ;
-   }
+   if (!count) { return 0; }
 
    mod3 = (unsigned) ('=' == str->addr[str->size-1]) + ('=' == str->addr[str->size-2]) ;
 
@@ -171,59 +170,61 @@ int base64decode_string(const string_t * str, /*ret*/wbuffer_t * result)
    err = appendbytes_wbuffer(result, result_size, &dest);
    if (err) goto ONERR;
 
+   err = EINVAL;
+
    for (count = count - (mod3 != 0); count; -- count) {
-      quadr = s_base64values[*(next ++)] ;
-      quadr <<= 6 ;
-      quadr |= s_base64values[*(next ++)] ;
-      quadr <<= 6 ;
-      quadr |= s_base64values[*(next ++)] ;
-      quadr <<= 6 ;
-      quadr |= s_base64values[*(next ++)] ;
-      if (quadr < 0) {
-         err = EINVAL ;
-         goto ONERR;
-      }
-      dest[2] = (uint8_t) quadr ;
-      quadr >>= 8 ;
-      dest[1] = (uint8_t) quadr ;
-      quadr >>= 8 ;
-      dest[0] = (uint8_t) quadr ;
-      dest += 3 ;
+      _6bits = s_base64values[*(next ++)];
+      quadr = (uint32_t) _6bits;
+      quadr <<= 6;
+      _6bits = s_base64values[*(next ++)];
+      quadr |= (uint32_t) _6bits;
+      quadr <<= 6;
+      _6bits = s_base64values[*(next ++)];
+      quadr |= (uint32_t) _6bits;
+      quadr <<= 6;
+      _6bits = s_base64values[*(next ++)];
+      quadr |= (uint32_t) _6bits;
+      if (0 != (quadr & 0x80000000)) { goto ONERR; }
+      dest[2] = (uint8_t) quadr;
+      quadr >>= 8;
+      dest[1] = (uint8_t) quadr;
+      quadr >>= 8;
+      dest[0] = (uint8_t) quadr;
+      dest += 3;
    }
 
    switch(mod3) {
-   case 0:  break ;
-   case 1:  quadr = s_base64values[*(next ++)] ;
-            quadr <<= 6 ;
-            quadr |= s_base64values[*(next ++)] ;
-            quadr <<= 6 ;
-            quadr |= s_base64values[*(next ++)] ;
-            if (quadr < 0) {
-               err = EINVAL ;
-               goto ONERR;
-            }
-            quadr >>= 2 ;
-            dest[1] = (uint8_t) quadr ;
-            quadr >>= 8 ;
-            dest[0] = (uint8_t) quadr ;
-            break ;
-   case 2:  quadr = s_base64values[*(next ++)] ;
-            quadr <<= 6 ;
-            quadr |= s_base64values[*(next ++)] ;
-            if (quadr < 0) {
-               err = EINVAL ;
-               goto ONERR;
-            }
-            quadr >>= 4 ;
-            dest[0] = (uint8_t) quadr ;
-            break ;
+   case 0:  break;
+   case 1:  _6bits = s_base64values[*(next ++)];
+            quadr = (uint32_t) _6bits;
+            quadr <<= 6;
+            _6bits = s_base64values[*(next ++)];
+            quadr |= (uint32_t) _6bits;
+            quadr <<= 6;
+            _6bits = s_base64values[*(next ++)];
+            quadr |= (uint32_t) _6bits;
+            if (0 != (quadr & 0x80000000)) { goto ONERR; }
+            quadr >>= 2;
+            dest[1] = (uint8_t) quadr;
+            quadr >>= 8;
+            dest[0] = (uint8_t) quadr;
+            break;
+   case 2:  _6bits = s_base64values[*(next ++)];
+            quadr = (uint32_t) _6bits;
+            quadr <<= 6;
+            _6bits = s_base64values[*(next ++)];
+            quadr |= (uint32_t) _6bits;
+            if (0 != (quadr & 0x80000000)) { goto ONERR; }
+            quadr >>= 4;
+            dest[0] = (uint8_t) quadr;
+            break;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    shrink_wbuffer(result, oldsize);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -317,9 +318,15 @@ static int test_base64(void)
    }
 
    // TEST base64decode_string: EINVAL decode wrong chars
-   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab3@"), &result)) ;
-   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab=4"), &result)) ;
-   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("=b34"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("$b34"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("a$b4"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab@4"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab4@"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("$A=="), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("A$=="), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("$AA="), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("A$A="), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("AA$="), &result)) ;
    TEST(oldsize == size_wbuffer(&result)) ;
 
    // unprepare

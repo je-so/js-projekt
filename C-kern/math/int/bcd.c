@@ -35,7 +35,7 @@
 
    Eine Hex-Ziffer im  Wert von 0 bis 9 ist automatisch im richtigen Format.
    Eine Hex-Ziffer im  Wert von 10 bis 15 (A..F) muss um den Wert 6 erhöht werden,
-   damit korrekte BCD-Ziffernfolge 0x10(==10+6) bis 0x15(==15+6) entsteht.
+   damit die korrekte BCD-Ziffernfolge 0x10(==10+6) bis 0x15(==15+6) entsteht.
 
    Sei nun B eine korrekt BCD kodierte Integerzahl. Die Hexdarstellung verwendet
    also nur Ziffern von 0 bis 9. Der Wert einer BCD Zahl von z.B. 0x123 entspricht
@@ -51,8 +51,8 @@
 
    Um jede BCD-Ziffer der Zahl B vor der Multiplikation zu testen, ob diese korrigiert werden muss,
    wird 0x33333333... dazuaddiert. Ziffern von 0 bis 4 ergeben die Werte 0..7.
-   Ziffern jedoch von 5..9 ergeben Werte von 8..12. Diese zu korrigierenden Werte haben alle
-   das Bit 0x8 in ihrer Ziffer gesetzt.
+   Ziffern jedoch von 5..9 ergeben Werte von 8..12. Diese zu korrigierenden Ziffern haben alle
+   das Bit 0x8 gesetzt.
 
    Bildet man eine Maske, wo dieses Bit gesetzt ist (BCD-Ziffer >= 5) oder nicht (BCD-Ziffer<5),
    dann kann der Korrekturwert 6 mittels dieser Maske addiert werden als (Maske >> 2)+(Maske >> 1).
@@ -64,23 +64,27 @@
 
 uint32_t convert2bcd_int32(uint32_t i)
 {
-   uint32_t bcd = i,tmp,incr,mask;
+   uint32_t bcd = i, tmp, incr, mask;
    if (i>9) {
       incr = 0x33333333;
       mask = 0x88888888;
       unsigned nbit = log2_int(i); // log2(8)==3 && i>9 ==> nbit>=3 (nbit == number_of_bits_needed_to_represent_i-1)
       nbit -= 3;     // (nbit == number_of_bits_needed_to_represent_i-4) >= 0
-      bcd >>= nbit;  // bcd contains topmost 4 bits of i in least 4 bits ==> 8<= bcd <=15
-      i <<= bitsof(i)-nbit; // topmost bit of i contains next bit
-      if (bcd>9) bcd+=6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
-      while (nbit-->0) {
-         tmp = bcd+incr; // every digit 0x...5... up to 0x...9... produces 0x...8.... upto 0x...c.... with 0x...8... always set
-         bcd <<= 1;     // multiplies every digit by 2 (digit >= 5 are added with 3 ==> digit >= 8 ==> 2*digit >= 16)
-         tmp &= mask; // every 0x...8... (upto 0x...c...) is reduced to 0x...8... other digits to 0x...0...
-         bcd |= i>>(bitsof(bcd)-1); // shift topmost bit of i into lowest position of bcd
-         i <<= 1;
-         bcd += tmp>>2; // adds 0x...2... to every bcd digit >= 5
-         bcd += tmp>>1; // adds 0x...4... to every bcd digit >= 5 (both together add 0x...6...)
+      if (nbit) {
+         bcd >>= nbit;  // bcd contains topmost 4 bits of i in least 4 bits ==> 8<= bcd <=15
+         i <<= bitsof(i)-nbit; // topmost bit of i contains next bit
+         if (bcd>9) bcd+=6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
+         do {
+            tmp = bcd+incr; // every digit 0x...5... up to 0x...9... produces 0x...8.... upto 0x...c.... with 0x...8... always set
+            bcd <<= 1;     // multiplies every digit by 2 (digit >= 5 are added with 3 ==> digit >= 8 ==> 2*digit >= 16)
+            tmp &= mask; // every 0x...8... (upto 0x...c...) is reduced to 0x...8... other digits to 0x...0...
+            bcd |= i>>(bitsof(bcd)-1); // shift topmost bit of i into lowest position of bcd
+            i <<= 1;
+            bcd += tmp>>2; // adds 0x...2... to every bcd digit >= 5
+            bcd += tmp>>1; // adds 0x...4... to every bcd digit >= 5 (both together add 0x...6...)
+         } while (--nbit>0);
+      } else { // bcd >>= 0; ==> bcd = i; && i > 9 ==> bcd > 9
+         bcd += 6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
       }
    }
    return bcd;
@@ -88,23 +92,27 @@ uint32_t convert2bcd_int32(uint32_t i)
 
 uint64_t convert2bcd_int64(uint64_t i)
 {
-   uint64_t bcd=i,tmp,incr,mask;
+   uint64_t bcd=i, tmp, incr, mask;
    if (i>9) {
       incr = 0x3333333333333333;
       mask = 0x8888888888888888;
       unsigned nbit = log2_int(i); // log2(8)==3 && i>9 ==> nbit>=3 (nbit == number_of_bits_needed_to_represent_i-1)
       nbit -= 3;     // (nbit == number_of_bits_needed_to_represent_i-4) >= 0
-      bcd >>= nbit;  // bcd contains topmost 4 bits of i in least 4 bits ==> 8<= bcd <=15
-      i <<= bitsof(i)-nbit; // topmost bit of i contains next bit
-      if (bcd>9) bcd+=6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
-      while (nbit-->0) {
-         tmp = bcd+incr; // every digit 0x...5... up to 0x...9... produces 0x...8.... upto 0x...c.... with 0x...8... always set
-         bcd <<= 1;     // multiplies every digit by 2 (digit >= 5 are added with 3 ==> digit >= 8 ==> 2*digit >= 16)
-         tmp &= mask; // every 0x...8... (upto 0x...c...) is reduced to 0x...8... other digits to 0x...0...
-         bcd |= i>>(bitsof(bcd)-1); // shift topmost bit of i into lowest position of bcd
-         i <<= 1;
-         bcd += tmp>>2; // adds 0x...2... to every bcd digit >= 5
-         bcd += tmp>>1; // adds 0x...4... to every bcd digit >= 5 (both together add 0x...6...)
+      if (nbit) {
+         bcd >>= nbit;  // bcd contains topmost 4 bits of i in least 4 bits ==> 8<= bcd <=15
+         i <<= bitsof(i)-nbit; // topmost bit of i contains next bit
+         if (bcd>9) bcd+=6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
+         do {
+            tmp = bcd+incr; // every digit 0x...5... up to 0x...9... produces 0x...8.... upto 0x...c.... with 0x...8... always set
+            bcd <<= 1;     // multiplies every digit by 2 (digit >= 5 are added with 3 ==> digit >= 8 ==> 2*digit >= 16)
+            tmp &= mask; // every 0x...8... (upto 0x...c...) is reduced to 0x...8... other digits to 0x...0...
+            bcd |= i>>(bitsof(bcd)-1); // shift topmost bit of i into lowest position of bcd
+            i <<= 1;
+            bcd += tmp>>2; // adds 0x...2... to every bcd digit >= 5
+            bcd += tmp>>1; // adds 0x...4... to every bcd digit >= 5 (both together add 0x...6...)
+         } while (--nbit>0);
+      } else { // bcd >>= 0; ==> bcd = i; && i > 9 ==> bcd > 9
+         bcd += 6; // bcd now represents the topmost 4 bits of i correctly BCD encoded
       }
    }
    return bcd;

@@ -1598,6 +1598,7 @@ int initempty_automat(/*out*/automat_t* ndfa, struct automat_t* use_mman)
    ndfa->mman = mman;
    ndfa->nrstate = 2;
    ndfa->allocated = SIZE;
+   ndfa->isDFA = 0;
    initsingle_statelist(&ndfa->states, endstate);
    insertfirst_statelist(&ndfa->states, startstate);
 
@@ -1640,6 +1641,7 @@ int initmatch_automat(/*out*/automat_t* ndfa, struct automat_t* use_mman, uint8_
    ndfa->mman = mman;
    ndfa->nrstate = 2;
    ndfa->allocated = SIZE;
+   ndfa->isDFA = 0;
    initsingle_statelist(&ndfa->states, endstate);
    insertfirst_statelist(&ndfa->states, startstate);
 
@@ -5733,6 +5735,7 @@ static int test_initfree(void)
          size_t const SIZE_PAGE = SIZEALLOCATED_PAGECACHE();
 
          // TEST initmatch_automat
+         memset(&ndfa, 255, sizeof(ndfa));
          TESTP( 0 == initmatch_automat(&ndfa, tc ? &use_mman : 0, (uint8_t) i, from, to), "i:%zd", i);
          automat_mman_t * mm = ndfa.mman;
          TEST( 0 != mm);
@@ -5808,6 +5811,7 @@ static int test_initfree(void)
    // TEST initempty_automat
    for (unsigned tc = 0; tc <= 1; ++tc) {
       // test
+      memset(&ndfa, 255, sizeof(ndfa));
       TEST( 0 == initempty_automat(&ndfa, tc ? &use_mman : 0));
       automat_mman_t * mm = ndfa.mman;
       TEST( 0 != mm);

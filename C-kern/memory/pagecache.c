@@ -118,7 +118,7 @@ static int test_query(void)
 
    // TEST pagesizeinbytes_pagecache: invalid value
    TEST(bytes == pagesizeinbytes_pagecache(pagesize__NROF));
-   TEST(0 == pagesizeinbytes_pagecache((pagesize_e) (sizeof(size_t)*8-1)));
+   TEST(256   == pagesizeinbytes_pagecache((pagesize_e) (32))); // no shift at all
 
    // TEST log2pagesizeinbytes_pagecache
    static_assert(0 == pagesize_256, "256 bytes is smallest page size");

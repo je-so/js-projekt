@@ -14,7 +14,7 @@ DefineFlag_Debug    := -D
 IncludeFlag_Debug   := -I
 LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
-CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+CFlags_Debug        := -g -fstack-protector-all -fsanitize=undefined -fsanitize-undefined-trap-on-error -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
 Includes_Debug      := $(IncludeFlag_Debug).

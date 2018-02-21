@@ -1,103 +1,97 @@
-[1: 1517863523.433738s]
+[1: 1517987403.938964s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:205
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.433752s]
+[1: 1517987403.938981s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:205
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.433755s]
+[1: 1517987403.938984s]
 init_terminal() C-kern/platform/Linux/io/terminal.c:205
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.434284s]
+[1: 1517987403.939342s]
 initPpath_terminal() C-kern/platform/Linux/io/terminal.c:230
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.434353s]
+[1: 1517987403.939380s]
 initPpath_terminal() C-kern/platform/Linux/io/terminal.c:230
 Exit function with
 Error 25 - Inappropriate ioctl for device
-[1: 1517863523.434366s]
+[1: 1517987403.939392s]
 initPpath_terminal() C-kern/platform/Linux/io/terminal.c:215
 System call 'open(path)' failed with error 2
 path=/tmp/temp.xXq_Yz
 Exit function with
 Error 2 - No such file or directory
-[1: 1517863523.434450s]
-initPpath_terminal() C-kern/platform/Linux/io/terminal.c:215
-System call 'open(path)' failed with error 14
-path=(null)
-Exit function with
-Error 14 - Bad address
-[1: 1517863523.434507s]
+[1: 1517987403.939442s]
 initPio_terminal() C-kern/platform/Linux/io/terminal.c:247
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.434522s]
+[1: 1517987403.939455s]
 initPio_terminal() C-kern/platform/Linux/io/terminal.c:247
 Exit function with
 Error 25 - Inappropriate ioctl for device
-[1: 1517863523.434544s]
+[1: 1517987403.939477s]
 isutf8_terminal() C-kern/platform/Linux/io/terminal.c:321
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.434555s]
+[1: 1517987403.939486s]
 pathname_terminal() C-kern/platform/Linux/io/terminal.c:340
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.540797s]
+[1: 1517987404.044331s]
 setsize_terminal() C-kern/platform/Linux/io/terminal.c:448
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.547284s]
+[1: 1517987404.047580s]
 setstdio_terminal() C-kern/platform/Linux/io/terminal.c:461
 System call 'dup3(sysio, _STDIN, O_CLOEXEC)' failed with error 9
 term->sysio=-1
 iochannel_STDIN=0
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.548569s]
+[1: 1517987404.048399s]
 initPpath_terminal() C-kern/platform/Linux/io/terminal.c:230
 Exit function with
 Error 25 - Inappropriate ioctl for device
-[1: 1517863523.548585s]
+[1: 1517987404.048411s]
 switchcontrolling_terminal() C-kern/platform/Linux/io/terminal.c:535
 Exit function with
 Error 25 - Inappropriate ioctl for device
-[1: 1517863523.548696s]
+[1: 1517987404.048486s]
 configcopy_terminal() C-kern/platform/Linux/io/terminal.c:554
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.548704s]
+[1: 1517987404.048491s]
 configcopy_terminal() C-kern/platform/Linux/io/terminal.c:554
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.548714s]
+[1: 1517987404.048500s]
 configstore_terminal() C-kern/platform/Linux/io/terminal.c:567
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.548719s]
+[1: 1517987404.048503s]
 configstore_terminal() C-kern/platform/Linux/io/terminal.c:567
 Exit function with
 Error 22 - Invalid argument
-[1: 1517863523.677304s]
+[1: 1517987404.160399s]
 size_terminal() C-kern/platform/Linux/io/terminal.c:404
 Exit function with
 Error 9 - Bad file descriptor
-[1: 1517863523.678364s]
+[1: 1517987404.160779s]
 removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:434
 Exit function with
 Error 6 - No such device or address
-[1: 1517863523.679906s]
+[1: 1517987404.161448s]
 removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:434
 Exit function with
 Error 6 - No such device or address
-[1: 1517863523.681188s]
+[1: 1517987404.162142s]
 removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:434
 Exit function with
 Error 6 - No such device or address
-[1: 1517863523.682603s]
+[1: 1517987404.162856s]
 removecontrolling_terminal() C-kern/platform/Linux/io/terminal.c:434
 Exit function with
 Error 6 - No such device or address

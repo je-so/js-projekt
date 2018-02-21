@@ -156,15 +156,15 @@ static inline arraysf_unode_t * castPbranch_arraysfunode(arraysf_mwaybranch_t * 
 /* define: childindex_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
 #define childindex_arraysfmwaybranch(branch, pos) \
-         (0x03u & ((pos) >> (branch)->shift))
+         (0x03u & (unsigned)((pos) >> (branch)->shift))
 
 /* define: init_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.init_arraysfmwaybranch>. */
 static inline void init_arraysfmwaybranch(/*out*/arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_unode_t * childnode1, size_t pos2, arraysf_unode_t * childnode2)
 {
          memset(branch->child, 0, sizeof(branch->child));
-         branch->child[0x03u & (pos1 >> shift)] = childnode1;
-         branch->child[0x03u & (pos2 >> shift)] = childnode2;
+         branch->child[0x03u & (unsigned)(pos1 >> shift)] = childnode1;
+         branch->child[0x03u & (unsigned)(pos2 >> shift)] = childnode2;
          branch->shift = (uint8_t) shift;
          branch->used  = 2;
 }

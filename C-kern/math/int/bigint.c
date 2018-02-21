@@ -1350,13 +1350,13 @@ ONERR:
 void setPi32_bigint(bigint_t * big, int32_t value)
 {
    if (0 == value) {
-      big->sign_and_used_digits = 0 ;
+      big->sign_and_used_digits = 0;
    } else if (value < 0) {
-      big->sign_and_used_digits = -1 ;
-      big->digits[0] = (uint32_t) (- value) ;
+      big->sign_and_used_digits = -1;
+      big->digits[0] = - (uint32_t)value;
    } else {
       big->sign_and_used_digits = 1 ;
-      big->digits[0] = (uint32_t) value ;
+      big->digits[0] = (uint32_t)value;
    }
 
    big->exponent = 0 ;

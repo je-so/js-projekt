@@ -706,7 +706,7 @@ static int test_initfree(void)
    typeadapt_t *              typeadp   = cast_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t) ;
    memblock_t                 memblock1 = memblock_FREE ;
    splaytree_t                tree      = splaytree_FREE ;
-   nodesarray_t               * nodes1 ;
+   nodesarray_t             * nodes1;
    lrtree_node_t              emptynode = lrtree_node_INIT ;
 
    // prepare
@@ -849,9 +849,8 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       (*nodes1)[i].is_freed    = 0 ;
       (*nodes1)[i].index.left  = 0 ;
-      (*nodes1)[i].index.right = &(*nodes1)[i+1].index ;
+      (*nodes1)[i].index.right = i+1 < lengthof((*nodes1)) ? &(*nodes1)[i+1].index : 0;
    }
-   (*nodes1)[lengthof((*nodes1))-1].index.right = 0 ;
    TEST(0 == invariant_splaytree(&tree, offsetof(testnode_t, index), typeadp)) ;
    TEST(0 == free_splaytree(&tree, offsetof(testnode_t, index), typeadp)) ;
    TEST(lengthof((*nodes1)) == typeadapt.freenode_count) ;
