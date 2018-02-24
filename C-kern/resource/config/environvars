@@ -1,8 +1,10 @@
 # TEXT.DB (1.0)
 # documentation:
 # module:  The name of the module (filename without extension)
-# id:      The id of the variable which is used to select the
-#          entry from the module.
+#          where this variable is used.
+# id:      The id of the variable. It is used as name in the
+#          module and in the WHERE condition to get this entry
+#          from this file.
 # envname: The name of the environment variable whose value is read
 #          with C function getenv(<envname>)
 # description: What the read value is used for

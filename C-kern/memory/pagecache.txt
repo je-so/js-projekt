@@ -1,7 +1,7 @@
 TODO: reimplement pagecache_impl as mempage_t
 
 instead of calling alloc_pagecache call init_mempage!
-add mempage process part (bitmap index to locate free pages) to processcontext
+add mempage process part (bitmap index to locate free pages) to maincontext
 add mempage thread part (free list + list of used pages) to threadcontext
 
 TODO: add mempage service to special module-interface

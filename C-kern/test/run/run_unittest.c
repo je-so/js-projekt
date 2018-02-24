@@ -114,7 +114,6 @@ static int run_all_test(maincontext_t* maincontext)
 
 //{ task context
       RUN(unittest_task_module);
-      RUN(unittest_task_processcontext);
       RUN(unittest_task_threadcontext);
 //}
 

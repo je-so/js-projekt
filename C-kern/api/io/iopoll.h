@@ -18,7 +18,7 @@
 #ifndef CKERN_IO_IOPOLL_HEADER
 #define CKERN_IO_IOPOLL_HEADER
 
-// forward
+// import
 struct ioevent_t;
 
 // === exported types

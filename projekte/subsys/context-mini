@@ -1,7 +1,6 @@
 # minimal runtime context needed for every derived project
 Src += C-kern/main/maincontext.c
 Src += C-kern/err/errorcontext.c
-Src += C-kern/task/processcontext.c
 Src += C-kern/task/threadcontext.c
 Src += C-kern/stdtypes/iobj.c
 # default services

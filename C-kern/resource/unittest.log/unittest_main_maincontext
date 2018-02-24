@@ -1,58 +1,199 @@
-[0: 1517907199.178597s]
+[1: 1518361612.635980s]
+free_static_memory() C-kern/main/maincontext.c:119
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1518361612.636281s]
+free_static_memory() C-kern/main/maincontext.c:119
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1518361612.636392s]
 freestatic_threadstack() C-kern/platform/Linux/task/thread_stack.c:351
 One or more resources could not be freed
 Exit function with
 Error 261 - Not all memory freed
-[0: 1517907199.178601s]
-free_static_memory() C-kern/task/processcontext.c:105
+[0: 1518361612.636394s]
+free_static_memory() C-kern/main/maincontext.c:119
 One or more resources could not be freed
 Exit function with
 Error 261 - Not all memory freed
-[0: 1517907199.178602s]
-free_processcontext() C-kern/task/processcontext.c:218
+[0: 1518361612.636395s]
+free_shared_services() C-kern/main/maincontext.c:230
 One or more resources could not be freed
 Exit function with
 Error 261 - Not all memory freed
-[0: 1517907199.178603s]
-free_maincontext() C-kern/main/maincontext.c:146
+[0: 1518361612.636396s]
+free_maincontext() C-kern/main/maincontext.c:318
 One or more resources could not be freed
 Exit function with
 Error 261 - Not all memory freed
-[0: 1517907199.178606s]
-init_maincontext() C-kern/main/maincontext.c:181
+[0: 1518361612.636397s]
+init_shared_services() C-kern/main/maincontext.c:298
 Exit function with
 Error 4 - Interrupted system call
-[0: 1517907199.178607s]
-init_maincontext() C-kern/main/maincontext.c:181
+[0: 1518361612.636399s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 4 - Interrupted system call
+[0: 1518361612.636400s]
+init_shared_services() C-kern/main/maincontext.c:298
 Exit function with
 Error 5 - Input/output error
-[0: 1517907199.178621s]
-free_maincontext() C-kern/main/maincontext.c:146
+[0: 1518361612.636401s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 5 - Input/output error
+[0: 1518361612.636402s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 6 - No such device or address
+[0: 1518361612.636403s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 6 - No such device or address
+[0: 1518361612.636404s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 7 - Argument list too long
+[0: 1518361612.636405s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 7 - Argument list too long
+[0: 1518361612.636408s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 8 - Exec format error
+[0: 1518361612.636409s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 8 - Exec format error
+[0: 1518361612.636418s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 9 - Bad file descriptor
+[0: 1518361612.636419s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 9 - Bad file descriptor
+[0: 1518361612.636429s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 10 - No child processes
+[0: 1518361612.636430s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 10 - No child processes
+[0: 1518361612.636440s]
+init_shared_services() C-kern/main/maincontext.c:298
+Exit function with
+Error 11 - Resource temporarily unavailable
+[0: 1518361612.636441s]
+init_maincontext() C-kern/main/maincontext.c:336
+Exit function with
+Error 11 - Resource temporarily unavailable
+[0: 1518361612.636459s]
+free_shared_services() C-kern/main/maincontext.c:230
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[0: 1517907199.178628s]
-free_maincontext() C-kern/main/maincontext.c:146
+[0: 1518361612.636460s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 2 - No such file or directory
+[0: 1518361612.636470s]
+free_shared_services() C-kern/main/maincontext.c:230
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[0: 1517907199.179090s]
-initrun_maincontext() C-kern/main/maincontext.c:224
+[0: 1518361612.636471s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 3 - No such process
+[0: 1518361612.636481s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1518361612.636482s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[0: 1518361612.636492s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 5 - Input/output error
+[0: 1518361612.636493s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 5 - Input/output error
+[0: 1518361612.636503s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 6 - No such device or address
+[0: 1518361612.636504s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 6 - No such device or address
+[0: 1518361612.636514s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 7 - Argument list too long
+[0: 1518361612.636515s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 7 - Argument list too long
+[0: 1518361612.636525s]
+free_static_memory() C-kern/main/maincontext.c:119
+One or more resources could not be freed
+Exit function with
+Error 8 - Exec format error
+[0: 1518361612.636526s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 8 - Exec format error
+[0: 1518361612.636527s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 8 - Exec format error
+[0: 1518361612.636537s]
+free_shared_services() C-kern/main/maincontext.c:230
+One or more resources could not be freed
+Exit function with
+Error 9 - Bad file descriptor
+[0: 1518361612.636538s]
+free_maincontext() C-kern/main/maincontext.c:318
+One or more resources could not be freed
+Exit function with
+Error 9 - Bad file descriptor
+[0: 1518361612.637067s]
+initrun_maincontext() C-kern/main/maincontext.c:375
 Exit function with
 Error 22 - Invalid argument
-[0: 1517907199.179105s]
-initrun_maincontext() C-kern/main/maincontext.c:224
+[0: 1518361612.637072s]
+initrun_maincontext() C-kern/main/maincontext.c:375
 Exit function with
 Error 22 - Invalid argument
-[0: 1517907199.179109s]
-initrun_maincontext() C-kern/main/maincontext.c:224
+[0: 1518361612.637076s]
+initrun_maincontext() C-kern/main/maincontext.c:375
 Exit function with
 Error 22 - Invalid argument
-[0: 1517907199.179112s]
-initrun_maincontext() C-kern/main/maincontext.c:224
+[0: 1518361612.637080s]
+initrun_maincontext() C-kern/main/maincontext.c:375
 Exit function with
 Error 22 - Invalid argument
-[1: 1517907199.179142s]
-initrun_maincontext() C-kern/main/maincontext.c:194
+[1: 1518361612.637114s]
+initrun_maincontext() C-kern/main/maincontext.c:349
 Exit function with
 Error 114 - Operation already in progress

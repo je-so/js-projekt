@@ -53,6 +53,11 @@ int unittest_task_threadcontext(void);
 
 /* struct: threadcontext_t
  * Stores services useable exclusively from one thread.
+ *
+ * Architecture:
+ * Function init_threadcontext calls every initthread_ and other functions in the same order as defined in
+ * "C-kern/resource/config/initthread". This database file is checked against the whole project with
+ * "C-kern/test/static/check_textdb.sh".
  * */
 typedef struct threadcontext_t {
    /* variable: maincontext
@@ -101,7 +106,8 @@ typedef struct threadcontext_t {
  * Creates all top level services which are bound to a single thread.
  * Services do *not* need to be multi thread safe cause a new tcontext is created for every new thread.
  * If a service shares information between threads then it must be programmed in a thread safe manner.
- * This function is called from <maincontext_t.init_maincontext>. The parameter context_type is of type <maincontext_e>.
+ * This function is called from both <thread_t.new_thread> and <thread_t.runmain_thread>.
+ * The parameter context_type is of type <maincontext_e>.
  *
  * Parameter tcontext must be initialized with a static context before this functino is called.
  * This allows to call the log service any time even if tcontext is the currently active context. */

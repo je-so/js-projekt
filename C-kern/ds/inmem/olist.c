@@ -1,6 +1,6 @@
-/* title: DoubleLinkedListUsingOffsets impl
+/* title: DoubleLinkedOffsetList impl
 
-   Implements <DoubleLinkedListUsingOffsets>.
+   Implements <DoubleLinkedOffsetList>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -9,10 +9,10 @@
    (C) 2017 Jörg Seebohn
 
    file: C-kern/api/ds/inmem/olist.h
-    Header file <DoubleLinkedListUsingOffsets>.
+    Header file <DoubleLinkedOffsetList>.
 
    file: C-kern/ds/inmem/olist.c
-    Implementation file <DoubleLinkedListUsingOffsets impl>.
+    Implementation file <DoubleLinkedOffsetList impl>.
 */
 
 #include "C-kern/konfig.h"

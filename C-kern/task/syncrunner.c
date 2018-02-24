@@ -518,8 +518,8 @@ int wakeupall_syncrunner(syncrunner_t *srun, struct syncwait_t *swait)
  * o param.sfunc points to a valid <syncfunc_t>. */
 #define END_SYNCFUNC(param) \
          do {                                                     \
-            if (0 == param.sfunc->endoffset) {                    \
-               /* not run at least once ! */                      \
+            if (0 == param.sfunc->endoffset/*not run?*/) {        \
+               /* ensure run at least once ! */                   \
                RUN_SYNCFUNC(param);                               \
                /* => param.sfunc->endoffset != 0 */               \
             }                                                     \
@@ -2249,9 +2249,10 @@ static void test_wakeup_sf(syncfunc_param_t *sfparam)
    touch_s_out(&test_wakeup_sf);
 }
 
-static int child_proces_wakeuplist(void *_srun)
+static int child_proces_wakeuplist(void* _srun)
 {
-   syncrunner_t *srun = _srun;
+   syncrunner_t* srun = _srun;
+   assert(srun!=0);
    TEST( isself_linkd(&srun->wakeup));
    process_wakeuplist(srun);
    return 0;
@@ -2275,7 +2276,7 @@ static int test_exec_wakeup(void)
    TEST(0 == init_syncrunner(&srun));
 
    // TEST process_wakeuplist: violated precondition
-   TEST(0 == init_process(&process, &child_proces_wakeuplist, 0, 0));
+   TEST(0 == init_process(&process, &child_proces_wakeuplist, &srun, &(process_stdio_t)process_stdio_INIT_INHERIT));
    TEST(0 == wait_process(&process, &process_result));
    TEST(0 == free_process(&process));
    // check

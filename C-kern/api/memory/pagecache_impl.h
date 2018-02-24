@@ -99,7 +99,7 @@ typedef struct pagecache_impl_t {
          (1024u*1024u)
 
 /* define: pagecache_impl_NRSUBBLOCKS
- * The number of sub-blocks contained in s asingle block. Must be a power of two. */
+ * The number of sub-blocks contained in a single block. Must be a power of two. */
 #if (SIZE_MAX <= 0xffffffff)  // 32 bit (or smaller)
 #define pagecache_impl_NRSUBBLOCKS 32u
 #else                         // 64 bit (or bigger)

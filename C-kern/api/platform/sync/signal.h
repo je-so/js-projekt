@@ -44,7 +44,30 @@ typedef void (* signalhandler_f) (unsigned signr, uintptr_t value);
  * access an unmapped memory region. The parameter ismapped is true if the memory
  * protection does not allow the access (write on read-only or read on none-access).
  * The parameter ismapped is false if memaddr is not mapped in the address space of the process. */
-typedef void (* signalhandler_segv_f) (void * memaddr, bool ismapped);
+typedef void (* signalhandler_segv_f) (void* memaddr, bool ismapped);
+
+/* typedef: enums signal_config_e
+ * Zeigt Aktion an, die bei Empfang dieses Signals vom OS ausgelöst wird.
+ *
+ * Blockierte Signale: Das Signal wird empfangen, aber keine Aktion ausgeführt.
+ *                     Es wird als "pending" vermerkt. Auf empfangene Signale kann dann gewartet
+ *                     werden oder deren Empfang abgefragt werden.
+ *
+ * signal_config_DEFAULT - Führe vom Betriebssystem (OS) festgelegte Standardaktion aus (man 7 signal).
+ * signal_config_IGNORED - Ignoriere den Empfang dieses Signals.
+ * signal_config_HANDLER - Führt eine Programm festgelegte Funktion asynchron aus, wenn dieses Signal empfangen wird.
+ *                         Falls ein Thread speziell auf dieses Signal wartet, wird bei Empfang dieser
+ *                         bevorzugt und die Funktion nicht ausgeführt.
+ * */
+typedef enum signal_config_e {
+   signal_config_DEFAULT,        // default action (if unblocked)
+   signal_config_IGNORED,        // signal will be ignored (if unblocked)
+   signal_config_HANDLER,        // signal handler will be called asynchronously
+   // blocked signals:  configured action will be prevented and signal be added to pending set of signals.
+   //                   Pending signals could be waited for or unblocked.
+} signal_config_e;
+
+#define signal_config__NROF  3
 
 
 // section: Functions
@@ -58,33 +81,59 @@ int unittest_platform_sync_signal(void);
 #endif
 
 
-/* struct: signalhandler_t
+/* struct: signal_config_t
+ * Konfiguration eines OS-Signals, wie auf den Epmfang eines solchen zu reagieren ist.
+ * Wird verwendet, um vorherige Einstellungen zu speichern. */
+typedef struct signal_config_t {
+   uint8_t signr;
+   uint8_t config;
+   uint8_t isblocked;
+   void  (*handler) (int signr);
+} signal_config_t;
+
+
+/* struct: signals_t
  * Stores signal handler for the whole process. */
-typedef struct signalhandler_t signalhandler_t;
+typedef struct signals_t {
+   int                     isinit;
+   signalhandler_segv_f    segv;
+   sigset_t                sys_old_mask;
+   signal_config_t         old_config[3]; // stores previous config of newly configured signal handler
+} signals_t;
 
 // group: init
 
-/* function: initonce_signalhandler
- * Sets up a process wide signal handler and signal masks at process initialization.
+/* define: signals_FREE
+ * Wird benutzt für statische Initialisierung. */
+#define signals_FREE \
+         { .isinit = 0 }
+
+/* function: init_signalhandler
+ * Sets signal handlers and signal masks at process initialization time.
  * The configuration is read from "C-kern/resource/config/signalhandler"
  * during compilation time. */
-int initonce_signalhandler(void);
+int init_signals(signals_t* sigs);
 
-/* function: freeonce_signalhandler
- * Restores default signal configuration. */
-int freeonce_signalhandler(void);
+/* function: free_signals
+ * Restores default signal configuration set by the OS at process start. */
+int free_signals(signals_t* sigs);
 
 // group: query
 
-/* function: getsegv_signalhandler
+/* function: getsegv_signals
  * Returns the current segmentation fault signal handler.
  * There is only one handler per process. A value of 0
  * indicates no handler installed. */
-signalhandler_segv_f getsegv_signalhandler(void) ;
+signalhandler_segv_f getsegv_signals(void);
 
 // group: change
 
-/* function: setsegv_signalhandler
+/* function: clearsegv_signals
+ * Resets to signalhandler_segv_f to NULL.
+ * A segmentation fault will execute the default handling of the OS. */
+void clearsegv_signals(void);
+
+/* function: setsegv_signals
  * Change segmentation fault signal handler.
  * The handler is the same for all threads of a process.
  * The handler is called (in the corresponding thread context) whenever a thread
@@ -92,7 +141,7 @@ signalhandler_segv_f getsegv_signalhandler(void) ;
  * which is protected (write to read-only).
  * If no handler is installed the default is to abort the process.
  * Set segfault_handler to 0 if you want to restore the default behaviour (abort process). */
-int setsegv_signalhandler(signalhandler_segv_f segfault_handler) ;
+void setsegv_signals(signalhandler_segv_f segfault_handler);
 
 
 /* struct: signalwait_t
@@ -104,7 +153,7 @@ int setsegv_signalhandler(signalhandler_segv_f segfault_handler) ;
  * to the whole process.
  *
  * Defines signalwait_t as alias for <sys_iochannel_t>. */
-typedef sys_iochannel_t                   signalwait_t ;
+typedef sys_iochannel_t signalwait_t;
 
 // group: lifetime
 
@@ -182,8 +231,8 @@ int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value) ;
 
 /* struct: signalstate_t
  * Stores current state of all signal handlers and the signal mask.
- * Use this object to compare the current setting of all signal handlers
- * with the setting stored in this object to be equal. */
+ * Use this object to compare settings of all signal handlers
+ * to be equal with each other. */
 typedef struct signalstate_t signalstate_t;
 
 // group: lifetime
@@ -206,15 +255,15 @@ int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * s
 
 // section: inline implementation
 
-// group: signalhandler_t
+// group: signals_t
 
 #if !defined(KONFIG_SUBSYS_THREAD)
-/* define: initonce_signalhandler
+/* define: init_signals
  * Implement init as a no op if !defined(KONFIG_SUBSYS_THREAD) */
-#define initonce_signalhandler()          (0)
-/* define: freeonce_signalhandler
+#define init_signals(signs)          (0)
+/* define: free_signals
  * Implement free as a no op if !defined(KONFIG_SUBSYS_THREAD) */
-#define freeonce_signalhandler()          (0)
+#define free_signals(signs)          (0)
 #endif
 
 // group: signalwait_t

@@ -178,7 +178,7 @@ static inline int init_helper(
 {
    int err;
    thread_stack_t* threadstack = 0;
-   const size_t    static_size = extsize_threadcontext() + (isMainThread ?  extsize_processcontext() : 0);
+   const size_t    static_size = extsize_threadcontext() + (isMainThread ?  extsize_maincontext() : 0);
    memblock_t      signalstack;
 
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
@@ -324,7 +324,6 @@ ONERR:
    return err;
 }
 
-// TODO: add test for runmain_thread
 int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_t* initlog, maincontext_e type, int argc, const char* argv[])
 {
    int err;
@@ -362,7 +361,6 @@ int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_
       TRACE_LOG(initlog, log_channel_ERR, log_flags_NONE, FUNCTION_SYSCALL_ERRLOG, "swapcontext", err);
       goto ONERR;
    }
-
 
    err = returncode_thread(thread);
    if (retcode) *retcode = err;
@@ -800,8 +798,6 @@ static int test_mainthread(void)
    TEST( 0 == switchoff_testmm());
    TEST( 0 == free_start_context(mainthread));
    TEST( maincontext_STATIC == type_maincontext());
-
-   // TODO: ? TEST(0 == init_pipe(&pfd));
 
    // TEST runmain_thread: maincontext is setup and freed
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);

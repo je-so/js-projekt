@@ -186,7 +186,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
  $(ObjectDir_Debug)/C-kern!task!module.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
- $(ObjectDir_Debug)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncwait.c.o \
@@ -312,7 +311,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
- $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!syncwait.c.o \
@@ -665,9 +663,6 @@ $(ObjectDir_Debug)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
@@ -1037,9 +1032,6 @@ $(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncfunc.c.o: C-kern/task/syncfunc.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c

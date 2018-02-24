@@ -23,264 +23,271 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
-// TEXTDB:SELECT('#include "'header'"')FROM(C-kern/resource/config/signalhandler)WHERE(action=='set'&&header!='')
-// TEXTDB:END
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/ioevent.h"
+#include "C-kern/api/io/iopoll.h"
+#include "C-kern/api/io/pipe.h"
 #endif
 
 
-/* struct: signalhandler_t
- * Describes an overwritten signal handler. */
-typedef struct signalhandler_t {
-   /* variable: isvalid
-    * Indicates if this structure contains valid information. */
-   bool              isvalid;
-   /* variable: handler
-    * Function pointer to new signal handler. */
-   signalhandler_f   handler;
-   /* variable: oldstate
-    * Contains old signal handler configuration.
-    * This value is set in <initonce_signalhandler>
-    * before the signal handler is overwritten. */
-   struct sigaction  oldstate;
-} signalhandler_t;
+/* typedef: sys_signalhandler_f
+ * Funktionssignatur eines OS-speifischen Signalhandlers. */
+typedef void (*sys_signalhandler_f) (int signr, siginfo_t* siginfo, void* ucontext);
+
+
+// struct signals_t
 
 // group: static variables
 
-/* variable: s_signalhandler
- * Stores global configuration information for signal handlers.
- * See <signalhandler_t>.
- * All values in the array are set in <initonce_signalhandler>. */
-static signalhandler_t     s_signalhandler[64] = { { .isvalid = false } };
+#ifdef KONFIG_UNITTEST
+/* variable: s_signals_errtimer
+ * Simulates an error in <signals_t.init_signals>. */
+static test_errortimer_t   s_signals_errtimer = test_errortimer_FREE;
+#endif
 
-/* variable: s_signalhandler_oldmask
- * Stores old signal mask.
- * This value is set in <initonce_signalhandler>
- * before the signal mask is changed. */
-static sigset_t            s_signalhandler_oldmask;
-
-// group: callback
+// group: default-signal-handler
 
 /* function: dummy_signalhandler
  * Do nothing callback. Only used to return from blocking system call. */
-static void dummy_signalhandler(unsigned signr, uintptr_t value)
+static void dummy_signalhandler(int signr, siginfo_t* siginfo, void* ucontext)
+{  (void) signr, (void) siginfo, (void)ucontext;
+}
+
+/* function: call_signalhandler
+ * This signal handler is called from the OS and calls the user defined signal handler. */
+static void call_signalhandler(int signr, siginfo_t* siginfo, void* ucontext)
 {
-   (void) signr;
-   (void) value;
+   (void) ucontext;
+
+   if (SIGSEGV ==signr) {
+      signalhandler_segv_f segv_handler = self_maincontext()->signals->segv;
+      if (  siginfo->si_code == SEGV_MAPERR
+            || siginfo->si_code == SEGV_ACCERR) {
+         if (!segv_handler) {
+            signal(signr, SIG_DFL); // install default handler - rexecute instr which caused SEGV
+         } else if (siginfo->si_code == SEGV_MAPERR) {
+            segv_handler(siginfo->si_addr, false);
+         } else {
+            segv_handler(siginfo->si_addr, true);
+         }
+      } else {
+         // ignore user send or other kernel generated SIGSEGV (user => si_code<=0)
+      }
+   } else {
+      // signalhandler_f((unsigned)signr, siginfo->si_code == SI_QUEUE ? (uintptr_t)siginfo->si_ptr : 0);
+   }
 }
 
 // group: helper
 
-/* function: dispatcher_signalhandler
- * This signal handler is called for every signal.
- * It dispatches handling of the signal to the set signal handler. */
-static void dispatcher_signalhandler(int signr, siginfo_t * siginfo, void * ucontext)
+/* function: maxnr_signal
+ * Returns the maximum number of valid signal handlers. */
+static unsigned maxnr_signal(void)
 {
-   (void) ucontext;
-
-   if (0 < signr && signr <= (int)lengthof(s_signalhandler)) {
-      if (signr == SIGSEGV) {
-         if (siginfo->si_code == SEGV_MAPERR) {
-            ((signalhandler_segv_f)s_signalhandler[SIGSEGV-1].handler)(siginfo->si_addr, false) ;
-         } else if (siginfo->si_code == SEGV_ACCERR) {
-            ((signalhandler_segv_f)s_signalhandler[SIGSEGV-1].handler)(siginfo->si_addr, true) ;
-         } else {
-            // ignore user send SIGSEGV
-         }
-
-      } else {
-         s_signalhandler[signr-1].handler((unsigned)signr, siginfo->si_code == SI_QUEUE ? (uintptr_t)siginfo->si_ptr : 0);
-      }
-   }
+   return (unsigned)SIGRTMAX; // signal nr 0 is not used
 }
 
-/* function: clear_signalhandler
- * Restores the default signal handler of the platform. */
-static int clear_signalhandler(unsigned signr)
+/* function: isinvalid_signal
+ * This range of signal numbers is available for user programs.
+ * Linux supports signals numbers from 1 to 31 and from SIGRTMIN to SIGRTMAX.
+ * Default settings for SIGKILL/SIGCONT/SIGSTOP could not be changed. */
+static inline int isinvalid_signal(unsigned sys_signr)
 {
-   int err ;
-
-   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
-
-   if (s_signalhandler[signr-1].isvalid) {
-      s_signalhandler[signr-1].isvalid = false ;
-      s_signalhandler[signr-1].handler = 0 ;
-      err = sigaction((int)signr, &s_signalhandler[signr-1].oldstate, 0) ;
-      if (err) {
-         TRACESYSCALL_ERRLOG("sigaction", err) ;
-         PRINTINT_ERRLOG(signr) ;
-         goto ONERR;
-      }
-   }
-
-   return 0 ;
-ONERR:
-   TRACEEXIT_ERRLOG(err);
-   return err ;
+   return (32 <= sys_signr && sys_signr < (unsigned)SIGRTMIN)
+            || SIGKILL == sys_signr
+            || SIGSTOP == sys_signr;
 }
 
-static inline signalhandler_f get_signalhandler(unsigned signr)
+static int isblocked_signal(unsigned sys_signr)
 {
-   return   (0 < signr && signr <= lengthof(s_signalhandler))
-            ? s_signalhandler[signr-1].handler
-            : 0 ;
-}
-
-/* function: set_signalhandler
- * Overwrites a previously set signal handler with sighandler. */
-static int set_signalhandler(unsigned signr, signalhandler_f sighandler)
-{
-   int err ;
-   struct sigaction  sigact ;
-
-   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
-
-   err = clear_signalhandler(signr) ;
-   if (err) goto ONERR;
-
-   if (sighandler) {
-      sigact.sa_flags     = SA_ONSTACK | SA_SIGINFO ;
-      sigact.sa_sigaction = &dispatcher_signalhandler ;
-      err = sigemptyset(&sigact.sa_mask) ;
-      if (err) {
-         err = EINVAL ;
-         TRACESYSCALL_ERRLOG("sigemptyset", err) ;
-         goto ONERR;
-      }
-
-      err = sigaction((int)signr, &sigact, &s_signalhandler[signr-1].oldstate);
-      if (err) {
-         TRACESYSCALL_ERRLOG("sigaction", err) ;
-         PRINTINT_ERRLOG(signr) ;
-         goto ONERR;
-      }
-      s_signalhandler[signr-1].handler = sighandler ;
-      s_signalhandler[signr-1].isvalid = true ;
-   }
-
-   return 0 ;
-ONERR:
-   TRACEEXIT_ERRLOG(err);
-   return err ;
-}
-
-/* function: setignore_signalhandler
- * Sets signal handler which consumes and ignores signal signr. */
-static int setignore_signalhandler(unsigned signr)
-{
-   int err ;
-   struct sigaction  sighandler ;
-
-   VALIDATE_INPARAM_TEST(signr > 0, ONERR, ) ;
-   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONERR, PRINTINT_ERRLOG(signr)) ;
-
-   err = clear_signalhandler(signr) ;
-   if (err) goto ONERR;
-
-   sighandler.sa_flags     = SA_ONSTACK ;
-   sighandler.sa_handler   = SIG_IGN ;
-   err = sigemptyset(&sighandler.sa_mask) ;
+   sigset_t mask;
+   int err = pthread_sigmask(SIG_SETMASK, 0, &mask);
    if (err) {
-      err = EINVAL ;
-      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
+      TRACESYSCALL_ERRLOG("pthread_sigmask", err);
       goto ONERR;
    }
 
-   err = sigaction((int)signr, &sighandler, &s_signalhandler[signr-1].oldstate) ;
-   if (err) {
-      TRACESYSCALL_ERRLOG("sigaction", err) ;
-      PRINTINT_ERRLOG(signr) ;
-      goto ONERR;
-   }
-   s_signalhandler[signr-1].handler = 0 /*ignored*/ ;
-   s_signalhandler[signr-1].isvalid = true ;
-
-   return 0 ;
+   return 1 == sigismember(&mask, (int)sys_signr);
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return 0;
+}
+
+static inline signal_config_e getconfig_signal(unsigned sys_signr)
+{
+   struct sigaction sigact;
+   int err = sigaction((int)sys_signr, 0, &sigact);
+   if (err) {
+      err = errno;
+      if (!err) err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigaction", err);
+      PRINTINT_ERRLOG(sys_signr);
+      goto ONERR;
+   }
+
+   signal_config_e cfg =
+            sigact.sa_handler == SIG_DFL
+            ? signal_config_DEFAULT
+            : sigact.sa_handler == SIG_IGN
+            ? signal_config_IGNORED
+            : signal_config_HANDLER
+         ;
+
+   return cfg;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return signal_config_IGNORED;
+}
+
+static int getconfig2_signal(unsigned sys_signr, /*out*/signal_config_t* config)
+{
+   struct sigaction sigact;
+   int err = sigaction((int)sys_signr, 0, &sigact);
+   if (err) {
+      err = errno;
+      if (!err) err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigaction", err);
+      PRINTINT_ERRLOG(sys_signr);
+      goto ONERR;
+   }
+
+   signal_config_e cfg =
+            sigact.sa_handler == SIG_DFL
+            ? signal_config_DEFAULT
+            : sigact.sa_handler == SIG_IGN
+            ? signal_config_IGNORED
+            : signal_config_HANDLER
+         ;
+
+   config->signr = (uint8_t) sys_signr;
+   config->config = (uint8_t) cfg;
+   config->isblocked = (uint8_t) isblocked_signal(sys_signr);
+   config->handler = (cfg == signal_config_HANDLER ? sigact.sa_handler : 0);
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
+}
+
+static int config_signal(unsigned sys_signr, signal_config_e cfg, sys_signalhandler_f signalhandler)
+{
+   int err;
+   struct sigaction sigact;
+   sigemptyset(&sigact.sa_mask);
+   err = sigemptyset(&sigact.sa_mask);
+   if (err) {
+      err = EINVAL;
+      TRACESYSCALL_ERRLOG("sigemptyset", err);
+      goto ONERR;
+   }
+
+   if (signal_config_HANDLER == cfg) {
+      sigact.sa_flags     = SA_ONSTACK | SA_SIGINFO;
+      sigact.sa_sigaction = signalhandler;
+   } else {
+      sigact.sa_flags   = 0;
+      sigact.sa_handler = cfg == signal_config_DEFAULT ? SIG_DFL : SIG_IGN;
+   }
+
+   err = sigaction((int)sys_signr, &sigact, 0);
+   if (err) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("sigaction", err);
+      PRINTINT_ERRLOG(sys_signr);
+      goto ONERR;
+   }
+
+   return 0;
+ONERR:
+   TRACEEXIT_ERRLOG(err);
+   return err;
 }
 
 // group: init
 
-// TODO: change initonce into init_signalhandler and store old state into signal handler object !!!
-//       ==> remove static state !!
-int initonce_signalhandler()
+int init_signals(signals_t* sigs)
 {
    int err;
-   sigset_t signalmask;
-   int      signr;
-   bool     isoldmask = false;
+   struct {
+      unsigned             signr;
+      signal_config_e      cfg;
+      sys_signalhandler_f  handler;
+   }  active_signal_table[] = {
+      // used to interrupt a blocking system call
+      { SIGQUIT, signal_config_HANDLER, &dummy_signalhandler},
+      // used to handle an invalid memory access
+      { SIGSEGV, signal_config_HANDLER, &call_signalhandler},
+      // ensures that calls to write return EPIPE
+      { SIGPIPE, signal_config_IGNORED, 0},
+   };
+   struct {
+      unsigned    from_signr;
+      unsigned    to_signr;
+   }  blocked_signal_table[] = {
+      // realtime signals are used in send_signalrt
+      { (unsigned)SIGRTMIN, (unsigned)SIGRTMAX},
+      // used to suspend and resume a single thread
+      { (unsigned)SIGINT, (unsigned)SIGINT },
+      // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
+      { (unsigned)SIGWINCH, (unsigned)SIGWINCH },
+   };
 
-#define set(_SIGNR, _HANDLER) \
-   static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
-   "s_signalhandler must be big enough" );                           \
-   err = set_signalhandler(_SIGNR, _HANDLER);                        \
-   if (err) goto ONERR;
+   sigs->isinit = 0;
 
-// TEXTDB:SELECT("   // "description\n"   set("signal", &"handler");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='set')
-   // used to interrupt a blocking system call
-   set(SIGQUIT, &dummy_signalhandler);
-// TEXTDB:END
-#undef set
-
-#define ignore(_SIGNR) \
-   static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),  \
-   "s_signalhandler must be big enough" );                           \
-   err = setignore_signalhandler(_SIGNR);                            \
-   if (err) goto ONERR;
-
-// TEXTDB:SELECT("   // "description\n"   ignore("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='ignore')
-   // ensures that calls to write return EPIPE
-   ignore(SIGPIPE);
-// TEXTDB:END
-#undef ignore
-
-#define addrange(_MINSIGNR, _MAXSIGNR)  \
-         for (signr = _MINSIGNR; signr <= _MAXSIGNR; ++signr) {   \
-            if (sigaddset(&signalmask, signr)) goto ONERR_add;    \
-         }
-
-   err = sigemptyset(&signalmask);
-   if (err) goto ONERR_emptyset;
-
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   addrange("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='block2')
-   // SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt
-   addrange(SIGRTMIN,SIGRTMAX);
-// TEXTDB:END
-#undef  addrange
-
-#define add(_SIGNR)  \
-         signr = (_SIGNR); \
-         if (sigaddset(&signalmask, signr)) goto ONERR_add;
-
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='block')
-   // used to suspend and resume a single thread
-   add(SIGINT);
-   // allows terminal_t to wait for change of window size with sigwait,sigwaitinfo, or signalfd
-   add(SIGWINCH);
-// TEXTDB:END
-
-   err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_signalhandler_oldmask);
+   err = pthread_sigmask(SIG_SETMASK, 0, &sigs->sys_old_mask);
+   (void) PROCESS_testerrortimer(&s_signals_errtimer, &err);
    if (err) goto ONERR_sigmask;
-   isoldmask = true;
 
+   static_assert( lengthof(active_signal_table) == lengthof(sigs->old_config),
+                  "enough space to safe old state" );
+   for (unsigned i=0; i<lengthof(sigs->old_config); ++i) {
+      err = getconfig2_signal(active_signal_table[i].signr, &sigs->old_config[i]);
+      (void) PROCESS_testerrortimer(&s_signals_errtimer, &err);
+      if (err) goto ONERR;
+   }
+
+   sigs->isinit = 1;
+   sigs->segv = 0;
+
+   // == config bunch of used signals ==
+
+   // == unblocked signals
+
+   sigset_t signalmask;
    err = sigemptyset(&signalmask);
    if (err) goto ONERR_emptyset;
 
-// TEXTDB:SELECT("   // "description\n"   add("signal");")FROM(C-kern/resource/config/signalhandler)WHERE(action=='unblock'||action=='set')
-   // used to interrupt a blocking system call
-   add(SIGQUIT);
-// TEXTDB:END
-#undef add
+   for (unsigned i=0; i<lengthof(active_signal_table); ++i) {
+      unsigned signr = active_signal_table[i].signr;
+      if (sigaddset(&signalmask, (int)signr))   { goto ONERR_add; }
+      err = config_signal(signr, active_signal_table[i].cfg, active_signal_table[i].handler);
+      (void) PROCESS_testerrortimer(&s_signals_errtimer, &err);
+      if (err) goto ONERR;
+   }
 
    err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0);
+   (void) PROCESS_testerrortimer(&s_signals_errtimer, &err);
    if (err) goto ONERR_sigmask;
 
-   return 0 ;
+   // == blocked signals
+
+   err = sigemptyset(&signalmask);
+   if (err) goto ONERR_emptyset;
+
+   for (unsigned i=0; i<lengthof(blocked_signal_table); ++i) {
+      for (unsigned signr = blocked_signal_table[i].from_signr; signr <= blocked_signal_table[i].to_signr; ++signr) {
+         if (sigaddset(&signalmask, (int)signr))  { goto ONERR_add; }
+      }
+   }
+
+   err = pthread_sigmask(SIG_BLOCK, &signalmask, 0);
+   (void) PROCESS_testerrortimer(&s_signals_errtimer, &err);
+   if (err) goto ONERR_sigmask;
+
+   return 0;
 ONERR_sigmask:
    TRACESYSCALL_ERRLOG("pthread_sigmask", err);
    goto ONERR;
@@ -291,64 +298,64 @@ ONERR_emptyset:
 ONERR_add:
    err = EINVAL;
    TRACESYSCALL_ERRLOG("sigaddset", err);
-   PRINTINT_ERRLOG(signr);
    goto ONERR;
 ONERR:
-   if (isoldmask) freeonce_signalhandler();
+   (void) free_signals(sigs);
    TRACEEXIT_ERRLOG(err);
    return err;
 }
 
-int freeonce_signalhandler()
+int free_signals(signals_t* sigs)
 {
-   int err ;
-   int signr ;
+   int err,err2;
 
-   for (unsigned i = 0; i < lengthof(s_signalhandler); ++i) {
-      if (s_signalhandler[i].isvalid) {
-         s_signalhandler[i].isvalid = false ;
-         signr = (int)i + 1 ;
-         err = sigaction(signr, &s_signalhandler[i].oldstate, 0) ;
-         if (err) {
-            TRACESYSCALL_ERRLOG("sigaction", err) ;
-            PRINTINT_ERRLOG(signr) ;
-            goto ONERR;
-         }
+   if (sigs->isinit) {
+
+      sigs->isinit = 0;
+
+      err = 0;
+
+      for (unsigned i=0; i<lengthof(sigs->old_config); ++i) {
+         err2 = config_signal(sigs->old_config[i].signr, sigs->old_config[i].config, (sys_signalhandler_f) sigs->old_config[i].handler);
+         (void) PROCESS_testerrortimer(&s_signals_errtimer, &err2);
+         if (err2) err = err2;
       }
+
+      err2 = pthread_sigmask(SIG_SETMASK, &sigs->sys_old_mask, 0);
+      (void) PROCESS_testerrortimer(&s_signals_errtimer, &err2);
+      if (err2) {
+         err = err2;
+         TRACESYSCALL_ERRLOG("pthread_sigmask", err);
+      }
+
+      if (err) goto ONERR;
    }
 
-   err = pthread_sigmask(SIG_SETMASK, &s_signalhandler_oldmask, 0) ;
-   if (err) {
-      TRACESYSCALL_ERRLOG("pthread_sigmask", err) ;
-      goto ONERR;
-   }
-
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query
 
-signalhandler_segv_f getsegv_signalhandler(void)
+signalhandler_segv_f getsegv_signals(void)
 {
-   return (signalhandler_segv_f) get_signalhandler(SIGSEGV) ;
+   return self_maincontext()->signals->segv;
 }
 
 // group: change
 
-int setsegv_signalhandler(signalhandler_segv_f segfault_handler)
+void clearsegv_signals(void)
 {
-   int err ;
+   volatile signalhandler_segv_f* segv = &self_maincontext()->signals->segv;
+   *segv = 0;
+}
 
-   err = set_signalhandler(SIGSEGV, (signalhandler_f) segfault_handler) ;
-   if (err) goto ONERR;
-
-   return 0 ;
-ONERR:
-   TRACEEXIT_ERRLOG(err);
-   return err ;
+void setsegv_signals(signalhandler_segv_f segfault_handler)
+{
+   volatile signalhandler_segv_f* segv = &self_maincontext()->signals->segv;
+   *segv = segfault_handler;
 }
 
 
@@ -377,21 +384,13 @@ struct signalstate_t {
 
 // group: helper
 
-/* function: nrhandlers_signalstate
- * Returns the number of valid signal handlers.
- * Linux supports signals numbers from 1 to 31 and from SIGRTMIN to SIGRTMAX. */
-static unsigned nrhandlers_signalstate(void)
-{
-   return (unsigned)SIGRTMAX; // signal nr 0 is not used
-}
-
 /* function: objectsize_signalstate
  * Returns size in bytes needed to store a single <signalstate_t>. */
 static size_t objectsize_signalstate(void)
 {
    const size_t objectsize = sizeof(signalstate_t)
-                           + sizeof(struct sigaction) * (unsigned) nrhandlers_signalstate() ;
-   return objectsize ;
+                           + sizeof(struct sigaction) * (unsigned) maxnr_signal();
+   return objectsize;
 }
 
 // group: lifetime
@@ -399,7 +398,7 @@ static size_t objectsize_signalstate(void)
 int new_signalstate(/*out*/signalstate_t ** sigstate)
 {
    int err;
-   const unsigned    nr_signal_handlers = nrhandlers_signalstate();
+   const unsigned    nr_signal_handlers = maxnr_signal();
    const size_t      objectsize         = objectsize_signalstate();
    memblock_t        mem                = memblock_FREE;
    signalstate_t *   newsigstate        = 0;
@@ -418,8 +417,8 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
    }
 
    for (unsigned i = nr_signal_handlers; i > 0; --i) {
-      if (32 <= i && i < (unsigned)SIGRTMIN) continue; // not used in Linux
-      err = sigaction((int)i, 0, &newsigstate->signal_handlers[i-1]) ;
+      if (isinvalid_signal(i)) continue; // not used in Linux
+      err = sigaction((int)i, 0, &newsigstate->signal_handlers[i-1]);
       if (err) {
          err = errno;
          TRACESYSCALL_ERRLOG("sigaction(i,...)", err);
@@ -428,33 +427,33 @@ int new_signalstate(/*out*/signalstate_t ** sigstate)
       }
    }
 
-   *sigstate = newsigstate ;
+   *sigstate = newsigstate;
 
-   return 0 ;
+   return 0;
 ONERR:
-   (void) delete_signalstate(&newsigstate) ;
+   (void) delete_signalstate(&newsigstate);
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int delete_signalstate(signalstate_t ** sigstate)
 {
-   int err ;
-   signalstate_t * delsigstate = *sigstate ;
+   int err;
+   signalstate_t * delsigstate = *sigstate;
 
    if (delsigstate) {
-      memblock_t mem = memblock_INIT(objectsize_signalstate(), (uint8_t*)delsigstate) ;
-      *sigstate = 0 ;
+      memblock_t mem = memblock_INIT(objectsize_signalstate(), (uint8_t*)delsigstate);
+      *sigstate = 0;
 
-      err = FREE_MM(&mem) ;
+      err = FREE_MM(&mem);
 
       if (err) goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 // group: query
@@ -474,9 +473,9 @@ int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * s
 
       for (unsigned i = sigstate1->nr_signal_handlers; i-- > 0; ) {
          if (0 != (FLAGMASK & (sigstate1->signal_handlers[i].sa_flags ^ sigstate2->signal_handlers[i].sa_flags))) {
-            return sign_int(sigstate1->signal_handlers[i].sa_flags - sigstate2->signal_handlers[i].sa_flags) ;
+            return sign_int(sigstate1->signal_handlers[i].sa_flags - sigstate2->signal_handlers[i].sa_flags);
          }
-         cmp = memcmp(&sigstate1->signal_handlers[i].sa_sigaction, &sigstate2->signal_handlers[i].sa_sigaction, sizeof(sigstate2->signal_handlers[i].sa_sigaction)) ;
+         cmp = memcmp(&sigstate1->signal_handlers[i].sa_sigaction, &sigstate2->signal_handlers[i].sa_sigaction, sizeof(sigstate2->signal_handlers[i].sa_sigaction));
          if (cmp) {
             return cmp;
          }
@@ -536,15 +535,15 @@ ONERR:
  * After return the <iochannel_t> returned from <io_signalwait> is invalid. */
 int free_signalwait(signalwait_t * signalwait)
 {
-   int err ;
+   int err;
 
-   err = free_iochannel(signalwait) ;
+   err = free_iochannel(signalwait);
    if (err) goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXITFREE_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 
@@ -555,51 +554,51 @@ ONERR:
 
 signalrt_t maxnr_signalrt(void)
 {
-   return (signalrt_t) (SIGRTMAX - SIGRTMIN) ;
+   return (signalrt_t) (SIGRTMAX - SIGRTMIN);
 }
 
 // group: change
 
 int send_signalrt(signalrt_t nr, uintptr_t value)
 {
-   int err ;
+   int err;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr));
 
-   err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } ) ;
+   err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } );
    if (err) {
       err = errno;
-      TRACESYSCALL_ERRLOG("sigqueue", err) ;
+      TRACESYSCALL_ERRLOG("sigqueue", err);
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int send2_signalrt(signalrt_t nr, uintptr_t value, const thread_t * thread)
 {
-   int err ;
+   int err;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr));
 
-   err = pthread_sigqueue(thread->sys_thread, SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } ) ;
+   err = pthread_sigqueue(thread->sys_thread, SIGRTMIN+nr, (union sigval) { .sival_ptr = (void*)(value) } );
    if (err) {
-      TRACESYSCALL_ERRLOG("sigqueue", err) ;
+      TRACESYSCALL_ERRLOG("sigqueue", err);
       goto ONERR;
    }
 
-   return 0 ;
+   return 0;
 ONERR:
    TRACEEXIT_ERRLOG(err);
-   return err ;
+   return err;
 }
 
 int wait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
 {
-   int err ;
+   int err;
    sigset_t signalmask;
 
    VALIDATE_INPARAM_TEST(nr <= maxnr_signalrt(), ONERR, PRINTINT_ERRLOG(nr));
@@ -647,7 +646,7 @@ ONERR:
 
 int trywait_signalrt(signalrt_t nr, /*out*/uintptr_t * value)
 {
-   int err ;
+   int err;
    sigset_t          signalmask;
    struct timespec   ts = { 0, 0 };
 
@@ -695,6 +694,15 @@ ONERR:
 
 #ifdef KONFIG_UNITTEST
 
+static int test_enum(void)
+{
+   static_assert(signal_config_DEFAULT == 0, "");
+   static_assert(signal_config_IGNORED == 1, "");
+   static_assert(signal_config_HANDLER == 2, "");
+   static_assert(signal_config__NROF   == 3, "");
+   return 0;
+}
+
 void dummy_sighandler(int signr, siginfo_t * siginfo, void * ucontext)
 {
    (void) signr;
@@ -704,76 +712,76 @@ void dummy_sighandler(int signr, siginfo_t * siginfo, void * ucontext)
 
 static int test_signalstate(void)
 {
-   signalstate_t  *  sigstate1 = 0 ;
-   signalstate_t  *  sigstate2 = 0 ;
-   bool              isoldact  = false ;
-   bool              isoldmask = false ;
-   sigset_t          oldmask ;
-   sigset_t          signalmask ;
-   struct sigaction  sigact ;
-   int               oldsignr ;
-   struct sigaction  oldact ;
+   signalstate_t  *  sigstate1 = 0;
+   signalstate_t  *  sigstate2 = 0;
+   bool              isoldact  = false;
+   bool              isoldmask = false;
+   sigset_t          oldmask;
+   sigset_t          signalmask;
+   struct sigaction  sigact;
+   int               oldsignr;
+   struct sigaction  oldact;
 
    // TEST new_signalstate, delete_signalstate
-   TEST(0 == new_signalstate(&sigstate1)) ;
-   TEST(0 != sigstate1) ;
+   TEST(0 == new_signalstate(&sigstate1));
+   TEST(0 != sigstate1);
    TEST(SIGRTMAX == (int) sigstate1->nr_signal_handlers);
    memset(&signalmask, 0, sizeof(signalmask));
-   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &signalmask)) ;
+   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &signalmask));
    TEST(0 == memcmp(&signalmask, &sigstate1->signalmask, sizeof(signalmask)));
-   TEST(0 == delete_signalstate(&sigstate1)) ;
-   TEST(0 == sigstate1) ;
-   TEST(0 == delete_signalstate(&sigstate1)) ;
-   TEST(0 == sigstate1) ;
+   TEST(0 == delete_signalstate(&sigstate1));
+   TEST(0 == sigstate1);
+   TEST(0 == delete_signalstate(&sigstate1));
+   TEST(0 == sigstate1);
 
    // TEST compare_signalstate: equal
-   TEST(0 == new_signalstate(&sigstate1)) ;
-   TEST(0 == new_signalstate(&sigstate2)) ;
-   TEST(0 == compare_signalstate(sigstate1, sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate1)) ;
+   TEST(0 == new_signalstate(&sigstate1));
+   TEST(0 == new_signalstate(&sigstate2));
+   TEST(0 == compare_signalstate(sigstate1, sigstate2));
+   TEST(0 == delete_signalstate(&sigstate2));
+   TEST(0 == delete_signalstate(&sigstate1));
 
    // TEST compare_signalstate: compare nr_signal_handlers
-   TEST(0 == new_signalstate(&sigstate1)) ;
-   TEST(0 == new_signalstate(&sigstate2)) ;
-   ++ sigstate2->nr_signal_handlers ;
-   TEST(-1 == compare_signalstate(sigstate1, sigstate2)) ;
-   -- sigstate2->nr_signal_handlers ;
-   sigstate1->nr_signal_handlers += 100 ;
-   TEST(+1 == compare_signalstate(sigstate1, sigstate2)) ;
-   sigstate1->nr_signal_handlers -= 100 ;
-   TEST(0 == compare_signalstate(sigstate1, sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate1)) ;
+   TEST(0 == new_signalstate(&sigstate1));
+   TEST(0 == new_signalstate(&sigstate2));
+   ++ sigstate2->nr_signal_handlers;
+   TEST(-1 == compare_signalstate(sigstate1, sigstate2));
+   -- sigstate2->nr_signal_handlers;
+   sigstate1->nr_signal_handlers += 100;
+   TEST(+1 == compare_signalstate(sigstate1, sigstate2));
+   sigstate1->nr_signal_handlers -= 100;
+   TEST(0 == compare_signalstate(sigstate1, sigstate2));
+   TEST(0 == delete_signalstate(&sigstate2));
+   TEST(0 == delete_signalstate(&sigstate1));
 
    // TEST compare_signalstate: compare mask
-   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask)) ;
-   isoldmask = true ;
-   sigemptyset(&signalmask) ;
-   TEST(0 == sigaddset(&signalmask, SIGINT)) ;
-   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
-   TEST(0 == pthread_sigmask(SIG_UNBLOCK, &signalmask, 0)) ;
-   TEST(0 == new_signalstate(&sigstate1)) ;
-   sigemptyset(&signalmask) ;
-   TEST(0 == sigaddset(&signalmask, SIGINT)) ;
-   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
-   TEST(0 == pthread_sigmask(SIG_BLOCK, &signalmask, 0)) ;
-   TEST(0 == new_signalstate(&sigstate2)) ;
-   TEST(0 != compare_signalstate(sigstate1, sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate2)) ;
-   sigemptyset(&signalmask) ;
-   TEST(0 == sigaddset(&signalmask, SIGINT)) ;
-   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
-   TEST(0 == pthread_sigmask(SIG_UNBLOCK, &signalmask, 0)) ;
-   TEST(0 == new_signalstate(&sigstate2)) ;
-   TEST(0 == compare_signalstate(sigstate1, sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate2)) ;
-   TEST(0 == delete_signalstate(&sigstate1)) ;
-   TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0)) ;
-   isoldmask = false ;
+   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask));
+   isoldmask = true;
+   sigemptyset(&signalmask);
+   TEST(0 == sigaddset(&signalmask, SIGINT));
+   TEST(0 == sigaddset(&signalmask, SIGUSR1));
+   TEST(0 == pthread_sigmask(SIG_UNBLOCK, &signalmask, 0));
+   TEST(0 == new_signalstate(&sigstate1));
+   sigemptyset(&signalmask);
+   TEST(0 == sigaddset(&signalmask, SIGINT));
+   TEST(0 == sigaddset(&signalmask, SIGUSR1));
+   TEST(0 == pthread_sigmask(SIG_BLOCK, &signalmask, 0));
+   TEST(0 == new_signalstate(&sigstate2));
+   TEST(0 != compare_signalstate(sigstate1, sigstate2));
+   TEST(0 == delete_signalstate(&sigstate2));
+   sigemptyset(&signalmask);
+   TEST(0 == sigaddset(&signalmask, SIGINT));
+   TEST(0 == sigaddset(&signalmask, SIGUSR1));
+   TEST(0 == pthread_sigmask(SIG_UNBLOCK, &signalmask, 0));
+   TEST(0 == new_signalstate(&sigstate2));
+   TEST(0 == compare_signalstate(sigstate1, sigstate2));
+   TEST(0 == delete_signalstate(&sigstate2));
+   TEST(0 == delete_signalstate(&sigstate1));
+   TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0));
+   isoldmask = false;
 
    // TEST compare_signalstate: change handler setting
-   int testsignals[] = { SIGSEGV, SIGUSR1, SIGRTMIN, SIGRTMAX } ;
+   int testsignals[] = { SIGSEGV, SIGUSR1, SIGRTMIN, SIGRTMAX };
    for (unsigned i = 0; i < lengthof(testsignals); ++i) {
       const int signr = testsignals[i];
       TEST(0 == new_signalstate(&sigstate1));
@@ -797,145 +805,327 @@ static int test_signalstate(void)
 
    return 0;
 ONERR:
-   if (isoldact) sigaction(oldsignr, &oldact, 0) ;
-   if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0) ;
-   (void) delete_signalstate(&sigstate1) ;
-   (void) delete_signalstate(&sigstate2) ;
-   return EINVAL ;
+   if (isoldact) sigaction(oldsignr, &oldact, 0);
+   if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0);
+   (void) delete_signalstate(&sigstate1);
+   (void) delete_signalstate(&sigstate2);
+   return EINVAL;
 }
 
-static volatile unsigned   s_signr ;
-static volatile uintptr_t  s_sigvalue ;
-
-static void test_handler(unsigned signr, uintptr_t sigvalue)
+static int thread_call_wait(void* dummy)
 {
-   s_signr    = signr ;
-   s_sigvalue = sigvalue ;
+   thread_t* mainthread = dummy;
+   pipe_t   pipe = pipe_FREE;
+   iopoll_t poll = iopoll_FREE;
+   size_t   nr;
+   ioevent_t events[1];
+
+   TEST(0 == init_pipe(&pipe));
+   TEST(0 == init_iopoll(&poll));
+   TEST(0 == register_iopoll(&poll, pipe.read, &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 555)));
+   resume_thread(mainthread);
+   TEST(EINTR == wait_iopoll(&poll, &nr, 1, events, 5000));
+   TEST(0 == free_iopoll(&poll));
+   TEST(0 == free_pipe(&pipe));
+
+   return 0;
+ONERR:
+   free_iopoll(&poll);
+   free_pipe(&pipe);
+   return EINVAL;
 }
 
-static int test_signalhandler_helper(void)
+static int test_signals_helper(void)
 {
    sigset_t oldmask;
-   int      testsignals[] = { SIGUSR1, SIGUSR2, SIGRTMIN, SIGRTMAX };
    bool     isoldmask = false;
+   thread_t* thread = 0;
+   signal_config_t sigconf;
 
-   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask)) ;
-   isoldmask = true ;
+   TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask));
+   isoldmask = true;
 
-   for (unsigned i = 0; i < lengthof(testsignals); ++i) {
-      int               signr   = testsignals[i] ;
-      signalhandler_t   handler = s_signalhandler[signr-1] ;
-      sigset_t          signalmask ;
-      struct sigaction  oldstate ;
-      struct sigaction  oldstate2 ;
+   // TEST dummy_signalhandler
+   // check handler assigned to SIGQUIT
+   TEST(0 == getconfig2_signal(SIGQUIT, &sigconf));
+   TEST(signal_config_HANDLER == sigconf.config);
+   TEST(&dummy_signalhandler  == (sys_signalhandler_f) sigconf.handler);
+   // start thread waiting on iopoll
+   trysuspend_thread();
+   TEST(0 == new_thread(&thread, &thread_call_wait, self_thread()));
+   suspend_thread();
+   // send thread SIGQUIT
+   for (;;) {
+      TEST(0 == pthread_kill(thread->sys_thread, SIGQUIT) || ESRCH == pthread_kill(thread->sys_thread, SIGQUIT));
+      sleepms_thread(1);
+      if (0 == tryjoin_thread(thread)) break;
+   }
+   // check returncode 0 (==> EINTR received from within thread)
+   TEST(0 == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
 
-      // prepare
-      TEST(0 == sigemptyset(&signalmask)) ;
-      TEST(0 == sigaddset(&signalmask, signr)) ;
-      TEST(0 == pthread_sigmask(SIG_UNBLOCK, &signalmask, 0)) ;
-      TEST(0 == sigaction(signr, 0, &oldstate)) ;
+   // TEST maxnr_signal
+   TEST((unsigned)SIGRTMAX == maxnr_signal());
 
-      // TEST set_signalhandler: test_handler is called
-      s_signalhandler[signr-1].isvalid = false ;
-      TEST(0 == set_signalhandler((unsigned)signr, &test_handler)) ;
-      TEST(1 == s_signalhandler[signr-1].isvalid) ;
-      TEST(&test_handler == s_signalhandler[signr-1].handler) ;
-      TEST(oldstate.sa_handler == s_signalhandler[signr-1].oldstate.sa_handler) ;
-      TEST(oldstate.sa_flags   == s_signalhandler[signr-1].oldstate.sa_flags) ;
-      s_signr    = 0 ;
-      s_sigvalue = 1 ;
-      pthread_kill(pthread_self(), signr) ;
-      TEST(s_signr    == (unsigned)signr) ;
-      TEST(s_sigvalue == 0) ;
-      s_signr    = 0 ;
-      pthread_sigqueue(pthread_self(), signr, (union sigval) { .sival_ptr = (void*)(uintptr_t)(100+i) } );
-      TEST(s_signr    == (unsigned)signr);
-      TEST(s_sigvalue == 100+i);
-
-      // TEST get_signalhandler
-      TEST(&test_handler == get_signalhandler((unsigned)signr));
-
-      // TEST set_signalhandler: restore previous if handler == 0
-      TEST(0 == set_signalhandler((unsigned)signr, 0));
-      TEST(0 == s_signalhandler[signr-1].isvalid);
-      TEST(0 == s_signalhandler[signr-1].handler);
-      s_signalhandler[signr-1] = handler;
-      TEST(0 == sigaction(signr, 0, &oldstate2));
-      TEST(oldstate.sa_handler == oldstate2.sa_handler);
-      TEST(0 == (FLAGMASK & (oldstate.sa_flags ^ oldstate2.sa_flags)));
-
-      // TEST get_signalhandler: 0 value
-      TEST(0 == get_signalhandler((unsigned)signr)) ;
-
-      // TEST setignore_signalhandler
-      s_signalhandler[signr-1].isvalid = false ;
-      TEST(0 == setignore_signalhandler((unsigned)signr)) ;
-      TEST(1 == s_signalhandler[signr-1].isvalid) ;
-      TEST(0 == s_signalhandler[signr-1].handler) ;
-      s_signr = 0 ;
-      pthread_kill(pthread_self(), signr) ;
-      TEST(0 == s_signr) ;
-
-      // TEST clear_signalhandler: restore previous
-      TEST(0 == clear_signalhandler((unsigned)signr));
-      TEST(0 == s_signalhandler[signr-1].isvalid);
-      TEST(0 == s_signalhandler[signr-1].handler);
-      s_signalhandler[signr-1] = handler;
-      TEST(0 == sigaction(signr, 0, &oldstate2));
-      TEST(oldstate.sa_handler == oldstate2.sa_handler);
-      TEST(0 == (FLAGMASK & (oldstate.sa_flags ^ oldstate2.sa_flags)));
-
-      // TEST get_signalhandler: 0 value
-      TEST(0 == get_signalhandler((unsigned)signr)) ;
-
-      // unprepare
-      TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0)) ;
+   // TEST isinvalid_signal
+   for (unsigned signr=1; signr<=maxnr_signal(); ++signr) {
+      struct sigaction old;
+      struct sigaction sa = { .sa_flags = SA_SIGINFO|SA_ONSTACK, .sa_sigaction = &dummy_signalhandler };
+      sigemptyset(&sa.sa_mask);
+      if (isinvalid_signal(signr)) {
+         TEST(-1 == sigaction((int)signr, &sa, &old));
+      } else {
+         TEST(0 == sigaction((int)signr, &sa, &old));
+         TEST(0 == sigaction((int)signr, &old, 0));
+      }
    }
 
-   // TEST clear_signalhandler: EINVAL
-   TEST(EINVAL == clear_signalhandler(0)) ;
-   TEST(EINVAL == clear_signalhandler(lengthof(s_signalhandler)+1)) ;
+   // TEST isblocked_signal, getconfig2_signal: blocked/unblocked
+   for (unsigned signr=1; signr<=maxnr_signal(); ++signr) {
+      if (isinvalid_signal(signr)) continue;
+      sigset_t mask;
+      TEST(0 == sigemptyset(&mask));
+      TEST(0 == sigaddset(&mask, (int)signr));
+      if (isblocked_signal(signr)) {
+         TEST(0 == pthread_sigmask(SIG_UNBLOCK, &mask, 0));
+         TEST(0 == isblocked_signal(signr));
+         TEST(0 == getconfig2_signal(signr, &sigconf));
+         TEST(0 == sigconf.isblocked);
+         TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0));
+         TEST(1 == isblocked_signal(signr));
+         TEST(0 == getconfig2_signal(signr, &sigconf));
+         TEST(1 == sigconf.isblocked);
+      } else {
+         TEST(0 == pthread_sigmask(SIG_BLOCK, &mask, 0));
+         TEST(1 == isblocked_signal(signr));
+         TEST(0 == getconfig2_signal(signr, &sigconf));
+         TEST(1 == sigconf.isblocked);
+         TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0));
+         TEST(0 == isblocked_signal(signr));
+         TEST(0 == getconfig2_signal(signr, &sigconf));
+         TEST(0 == sigconf.isblocked);
+      }
+   }
 
-   // TEST get_signalhandler: (invalid signr)
-   TEST(0 == get_signalhandler(0)) ;
-   TEST(0 == get_signalhandler(lengthof(s_signalhandler)+1)) ;
+   // TEST getconfig_signal
+   for (unsigned signr=1; signr<=7 && signr<=maxnr_signal(); ++signr) {
+      if (isinvalid_signal(signr)) continue;
+      struct sigaction old;
+      struct sigaction sa = { .sa_flags = SA_SIGINFO|SA_ONSTACK, .sa_sigaction = &dummy_signalhandler };
+      sigemptyset(&sa.sa_mask);
+      TEST(0 == sigaction((int)signr, &sa, &old));
+      TEST(signal_config_HANDLER == getconfig_signal(signr));
+      sa = (struct sigaction){ .sa_flags = SA_ONSTACK, .sa_handler = SIG_IGN };
+      TEST(0 == sigaction((int)signr, &sa, 0));
+      TEST(signal_config_IGNORED == getconfig_signal(signr));
+      sa = (struct sigaction){ .sa_flags = SA_ONSTACK, .sa_handler = SIG_DFL };
+      TEST(0 == sigaction((int)signr, &sa, 0));
+      TEST(signal_config_DEFAULT == getconfig_signal(signr));
+      TEST(0 == sigaction((int)signr, &old, 0));
+   }
 
-   // TEST set_signalhandler: EINVAL
-   TEST(EINVAL == set_signalhandler(0, &test_handler)) ;
-   TEST(EINVAL == set_signalhandler(lengthof(s_signalhandler)+1, &test_handler)) ;
+   // TEST getconfig2_signal
+   for (unsigned signr=(unsigned)SIGRTMIN; signr<=(unsigned)SIGRTMIN+7u && signr<=maxnr_signal(); ++signr) {
+      struct sigaction old;
+      struct sigaction sa = { .sa_flags = SA_SIGINFO|SA_ONSTACK, .sa_sigaction = &dummy_signalhandler };
+      sigemptyset(&sa.sa_mask);
+      TEST(0 == sigaction((int)signr, &sa, &old));
+      TEST(0 == getconfig2_signal(signr, &sigconf));
+      TEST(sigconf.signr  == signr);
+      TEST(sigconf.config == signal_config_HANDLER);
+      TEST(sigconf.isblocked == 1);
+      TEST(sigconf.handler == (void(*)(int))&dummy_signalhandler);
+      sa = (struct sigaction){ .sa_flags = SA_ONSTACK, .sa_handler = SIG_IGN };
+      TEST(0 == sigaction((int)signr, &sa, 0));
+      TEST(0 == getconfig2_signal(signr, &sigconf));
+      TEST(sigconf.signr  == signr);
+      TEST(sigconf.config == signal_config_IGNORED);
+      TEST(sigconf.isblocked == 1);
+      TEST(sigconf.handler == 0);
+      sa = (struct sigaction){ .sa_flags = SA_ONSTACK, .sa_handler = SIG_DFL };
+      TEST(0 == sigaction((int)signr, &sa, 0));
+      TEST(0 == getconfig2_signal(signr, &sigconf));
+      TEST(sigconf.signr  == signr);
+      TEST(sigconf.config == signal_config_DEFAULT);
+      TEST(sigconf.isblocked == 1);
+      TEST(sigconf.handler == 0);
+      TEST(0 == sigaction((int)signr, &old, 0));
+   }
 
-   // TEST setignore_signalhandler: EINVAL
-   TEST(EINVAL == setignore_signalhandler(0));
-   TEST(EINVAL == setignore_signalhandler(lengthof(s_signalhandler)+1));
+   // TEST config_signal
+   for (unsigned signr=1; signr<=7 && signr<=maxnr_signal(); ++signr) {
+      struct sigaction old;
+      TEST(0 == sigaction((int)signr, 0, &old));
+      for (signal_config_e sc=0; sc<signal_config__NROF; ++sc) {
+         TEST(0 == config_signal(signr, sc, &dummy_signalhandler));
+         TEST(0 == getconfig2_signal(signr, &sigconf));
+         TEST(sigconf.signr  == signr);
+         TEST(sigconf.config == sc);
+         TEST(sigconf.isblocked == isblocked_signal(signr));
+         if (sc == signal_config_HANDLER) {
+            TEST(sigconf.handler == (void(*)(int))&dummy_signalhandler);
+         } else {
+            TEST(sigconf.handler == 0);
+         }
+      }
+      TEST(0 == sigaction((int)signr, &old, 0));
+   }
+
+   // reset
+   TEST(0 == pthread_sigmask(SIG_SETMASK, &oldmask, 0));
 
    return 0;
 ONERR:
    if (isoldmask) (void) pthread_sigmask(SIG_SETMASK, &oldmask, 0);
+   delete_thread(&thread);
    return EINVAL;
 }
 
-static int test_signalhandler_initonce(void)
+static int check_signal_config(unsigned signr, bool isblocked, signal_config_e conf, sys_signalhandler_f handler)
 {
-   sigset_t          old_signalmask ;
-   signalhandler_t   signalhandler[lengthof(s_signalhandler)] ;
+   signal_config_t config;
+   int err = getconfig2_signal(signr, &config);
+   if (err) goto ONERR;
 
-   static_assert(sizeof(old_signalmask) == sizeof(s_signalhandler_oldmask), "must be of same type") ;
-   static_assert(sizeof(signalhandler) == sizeof(s_signalhandler), "must be of same type") ;
+   TEST(signr == config.signr);
+   TEST(conf  == config.config);
+   TEST(isblocked == config.isblocked);
+   TEST(handler == (sys_signalhandler_f) config.handler);
 
-   memcpy(&old_signalmask, &s_signalhandler_oldmask, sizeof(old_signalmask)) ;
-   memcpy(signalhandler, s_signalhandler, sizeof(signalhandler)) ;
-   memset(&s_signalhandler, 0, sizeof(s_signalhandler)) ;
-
-   TEST(0 == initonce_signalhandler()) ;
-   TEST(0 == freeonce_signalhandler()) ;
-
-   memcpy(&s_signalhandler_oldmask, &old_signalmask, sizeof(s_signalhandler_oldmask)) ;
-   memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
-
-   return 0 ;
+   return 0;
 ONERR:
-   memcpy(&s_signalhandler_oldmask, &old_signalmask, sizeof(old_signalmask)) ;
-   memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
+   return EINVAL;
+}
+
+static int test_signals_initfree(void)
+{
+   signals_t      signs = signals_FREE;
+   signalstate_t* sigstate = 0;
+   signalstate_t* sigstate2 = 0;
+
+   // TEST signals_FREE
+   TEST(0 == signs.isinit);
+   TEST(0 == signs.segv);
+
+   // TEST init_signals, free_signals: restore old signal state
+   for (unsigned tc=0; tc<2; ++tc) {
+      TEST(0 == new_signalstate(&sigstate));
+      TEST(0 == init_signals(&signs));
+      TEST(1 == signs.isinit);
+      TEST(0 == free_signals(&signs));
+      TEST(0 == signs.isinit);
+      // check old signal state
+      TEST(0 == new_signalstate(&sigstate2));
+      TEST(0 == compare_signalstate(sigstate, sigstate2));
+      TEST(0 == delete_signalstate(&sigstate));
+      TEST(0 == delete_signalstate(&sigstate2));
+      if (tc == 1) {
+         for (unsigned i=1; i<maxnr_signal(); ++i) {
+            if (isinvalid_signal(i)) continue;
+            TEST(signal_config_DEFAULT == getconfig_signal(i));
+         }
+      }
+      // reset config to default handlers
+      if (tc == 0) {
+         for (unsigned i=1; i<maxnr_signal(); ++i) {
+            if (isinvalid_signal(i)) continue;
+            TEST(0 == config_signal(i, signal_config_DEFAULT, 0));
+         }
+      }
+   }
+
+   // TEST init_signals: configurated values
+   memset(&signs, 255, sizeof(signs));
+   signs.isinit = 0;
+   TEST( 0 == init_signals(&signs));
+   // check signal_t
+   TEST( 1 == signs.isinit);
+   TEST( SIGQUIT == signs.old_config[0].signr);
+   TEST( SIGSEGV == signs.old_config[1].signr);
+   TEST( SIGPIPE == signs.old_config[2].signr);
+   TEST( 0 == signs.segv);
+   static_assert( 3 == lengthof(signs.old_config), "every entry checked");
+
+   // check configured signals
+   for (unsigned i=1; i<maxnr_signal(); ++i) {
+      if (isinvalid_signal(i)) continue;
+      bool isRealtime = (unsigned)SIGRTMIN<=i && i<=(unsigned)SIGRTMAX;
+      switch(i) {
+      case SIGQUIT: TEST( 0 == check_signal_config(i, false, signal_config_HANDLER, &dummy_signalhandler)); break;
+      case SIGSEGV: TEST( 0 == check_signal_config(i, false, signal_config_HANDLER, &call_signalhandler)); break;
+      case SIGPIPE: TEST( 0 == check_signal_config(i, false, signal_config_IGNORED, 0)); break;
+      case SIGWINCH: // also blocked
+      case SIGINT:  TEST( 0 == check_signal_config(i, true, signal_config_DEFAULT, 0)); break;
+      default:      TEST( 0 == check_signal_config(i, isRealtime, signal_config_DEFAULT, 0)); break;
+      }
+   }
+
+   // TEST free_signals: double free
+   for (unsigned tc=0; tc<2; ++tc) {
+      TEST( 0 == free_signals(&signs));
+      // check signal_t
+      TEST( 0 == signs.isinit);
+      // check configured signals
+      for (unsigned i=1; i<maxnr_signal(); ++i) {
+         if (isinvalid_signal(i)) continue;
+         TEST(signal_config_DEFAULT == getconfig_signal(i));
+      }
+   }
+
+   // TEST init_signals: simulated errors
+   TEST(0 == new_signalstate(&sigstate));
+   for (unsigned i=1; ; ++i) {
+      init_testerrortimer(&s_signals_errtimer, i, (int)i);
+      int err = init_signals(&signs);
+      if (!err) {
+         free_testerrortimer(&s_signals_errtimer);
+         TESTP(i == 10, "i:%d", i);
+         TEST(1 == signs.isinit);
+         TEST(0 == free_signals(&signs));
+         TEST(0 == new_signalstate(&sigstate2));
+         TEST(0 == compare_signalstate(sigstate, sigstate2));
+         TEST(0 == delete_signalstate(&sigstate2));
+         break;
+      }
+      // check return value
+      TEST(err == (int)i);
+      // check sigs
+      TEST(0 == signs.isinit);
+      // check signal state
+      TEST(0 == new_signalstate(&sigstate2));
+      TEST(0 == compare_signalstate(sigstate, sigstate2));
+      TEST(0 == delete_signalstate(&sigstate2));
+   }
+   TEST(0 == delete_signalstate(&sigstate));
+
+   // TEST free_signals: simulated errors
+   TEST(0 == new_signalstate(&sigstate));
+   for (unsigned i=1; ; ++i) {
+      TEST(0 == init_signals(&signs));
+      init_testerrortimer(&s_signals_errtimer, i, (int)i);
+      int err = free_signals(&signs);
+      // check sigs
+      TEST(0 == signs.isinit);
+      // check signal state
+      TEST(0 == new_signalstate(&sigstate2));
+      TEST(0 == compare_signalstate(sigstate, sigstate2));
+      TEST(0 == delete_signalstate(&sigstate2));
+      if (!err) {
+         free_testerrortimer(&s_signals_errtimer);
+         TESTP(i == 5, "i:%d", i);
+         TEST(0 == free_signals(&signs));
+         break;
+      }
+      // check return value
+      TEST(err == (int)i);
+   }
+   TEST(0 == delete_signalstate(&sigstate));
+
+   return 0;
+ONERR:
+   free_signals(&signs);
+   delete_signalstate(&sigstate);
+   delete_signalstate(&sigstate2);
    return EINVAL;
 }
 
@@ -960,84 +1150,86 @@ static void segfault_handler(void * memaddr, bool ismapped)
    abort_thread();
 }
 
-static int thread_segfault_queue(void * dummy)
+static int thread_segfault_send(void * dummy)
 {
-   (void) dummy ;
-   pthread_sigqueue(self_thread()->sys_thread, SIGSEGV, (union sigval) { .sival_ptr = 0 }) ;
-   return 0 ;
+   (void) dummy;
+   pthread_sigqueue(self_thread()->sys_thread, SIGSEGV, (union sigval) { .sival_ptr = 0 });
+   kill(getpid(), SIGSEGV);
+   kill(getpid(), SIGSEGV);
+   pthread_sigqueue(self_thread()->sys_thread, SIGSEGV, (union sigval) { .sival_ptr = (void*)1 });
+   return 0;
 }
 
-static int thread_segfault(void * memaddr)
+static int thread_segfault_write(void * memaddr)
 {
-   *(uint8_t*)memaddr = 0 ;
-   return 0 ;
+   *(uint8_t*)memaddr = 0;
+   return 0;
 }
 
-static int test_signalhandler(void)
+static int test_segv(void)
 {
-   signalhandler_segv_f oldhandler = getsegv_signalhandler() ;
-   thread_t *           thread     = 0 ;
-   void *               memaddr    = MAP_FAILED ;
+   signalhandler_segv_f oldhandler = getsegv_signals();
+   thread_t *           thread     = 0;
+   void *               memaddr    = MAP_FAILED;
 
-   // TEST getsegv_signalhandler
-   TEST(0 == clear_signalhandler(SIGSEGV)) ;
-   TEST(0 == getsegv_signalhandler()) ;
+   // TEST getsegv_signals
    for (uintptr_t i = 0; i < 10; ++i) {
-      s_signalhandler[SIGSEGV-1].handler = (signalhandler_f)i ;
-      TEST(i == (uintptr_t)getsegv_signalhandler()) ;
+      self_maincontext()->signals->segv = (signalhandler_segv_f)i;
+      TEST(i == (uintptr_t)getsegv_signals());
    }
-   s_signalhandler[SIGSEGV-1].handler = 0 ;
 
-   // TEST setsegv_signalhandler
-   TEST(0 == setsegv_signalhandler(&segfault_handler)) ;
-   TEST(1 == s_signalhandler[SIGSEGV-1].isvalid) ;
-   TEST(&segfault_handler == (signalhandler_segv_f) s_signalhandler[SIGSEGV-1].handler) ;
-   TEST(0 == setsegv_signalhandler(0)) ;
-   TEST(0 == s_signalhandler[SIGSEGV-1].isvalid) ;
-   TEST(0 == (signalhandler_segv_f) s_signalhandler[SIGSEGV-1].handler) ;
+   // TEST clearsegv_signals
+   clearsegv_signals();
+   TEST(0 == getsegv_signals());
 
-   // TEST setsegv_signalhandler: user send SIGSEGV are ignored
-   TEST(0 == setsegv_signalhandler(segfault_handler)) ;
-   TEST(0 == new_thread(&thread, &thread_segfault_queue, (void*)0)) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(0 == returncode_thread(thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
+   // TEST setsegv_signals
+   setsegv_signals(&segfault_handler);
+   TEST(&segfault_handler == self_maincontext()->signals->segv);
+   setsegv_signals(0);
+   TEST(0 == self_maincontext()->signals->segv);
 
-   // TEST setsegv_signalhandler: write access to read-only
-   s_memaddr  = 0 ;
-   s_ismapped = false ;
-   memaddr = mmap(0, 1, PROT_READ, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
-   TEST(memaddr != MAP_FAILED) ;
-   TEST(0 == setsegv_signalhandler(segfault_handler)) ;
-   TEST(0 == new_thread(&thread, &thread_segfault, memaddr)) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(ENOTRECOVERABLE == returncode_thread(thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
-   TEST(s_memaddr  == memaddr) ;
-   TEST(s_ismapped == true) ;
+   // TEST setsegv_signals: user send SIGSEGV are ignored
+   setsegv_signals(segfault_handler);
+   TEST(0 == new_thread(&thread, &thread_segfault_send, (void*)0));
+   TEST(0 == join_thread(thread));
+   TEST(0 == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
 
-   // TEST setsegv_signalhandler: write access to unmapped memory
-   s_memaddr  = 0 ;
-   s_ismapped = true ;
-   TEST(0 == munmap(memaddr, 1)) ;
-   TEST(0 == setsegv_signalhandler(segfault_handler)) ;
-   TEST(0 == new_thread(&thread, &thread_segfault, memaddr)) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(ENOTRECOVERABLE == returncode_thread(thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
-   TEST(s_memaddr  == memaddr) ;
-   TEST(s_ismapped == false) ;
-   memaddr = MAP_FAILED ;
+   // TEST setsegv_signals: write access to read-only
+   setsegv_signals(segfault_handler);
+   s_memaddr  = 0;
+   s_ismapped = false;
+   memaddr = mmap(0, 1, PROT_READ, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+   TEST(memaddr != MAP_FAILED);
+   TEST(0 == new_thread(&thread, &thread_segfault_write, memaddr));
+   TEST(0 == join_thread(thread));
+   TEST(ENOTRECOVERABLE == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
+   TEST(s_memaddr  == memaddr);
+   TEST(s_ismapped == true);
+
+   // TEST setsegv_signals: write access to unmapped memory
+   s_memaddr  = 0;
+   s_ismapped = true;
+   TEST(0 == munmap(memaddr, 1));
+   setsegv_signals(segfault_handler);
+   TEST(0 == new_thread(&thread, &thread_segfault_write, memaddr));
+   TEST(0 == join_thread(thread));
+   TEST(ENOTRECOVERABLE == returncode_thread(thread));
+   TEST(0 == delete_thread(&thread));
+   TEST(s_memaddr  == memaddr);
+   TEST(s_ismapped == false);
+   memaddr = MAP_FAILED;
 
    // unprepare
-   TEST(0 == setsegv_signalhandler(oldhandler)) ;
+   setsegv_signals(oldhandler);
 
-  return 0 ;
+   return 0;
 ONERR:
-   setsegv_signalhandler(oldhandler) ;
-   (void) delete_thread(&thread) ;
-   if (memaddr != MAP_FAILED) munmap(memaddr, 1) ;
-   return EINVAL ;
+   setsegv_signals(oldhandler);
+   (void) delete_thread(&thread);
+   if (memaddr != MAP_FAILED) munmap(memaddr, 1);
+   return EINVAL;
 }
 
 static int thread_callwait(thread_t* caller)
@@ -1057,7 +1249,7 @@ static int test_signalrt(void)
    struct timespec   ts       = { 0, 0 };
 
    // prepare
-   TEST(0 == sigemptyset(&signalmask)) ;
+   TEST(0 == sigemptyset(&signalmask));
    for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
       TEST(0 == sigaddset(&signalmask, i));
    }
@@ -1070,40 +1262,40 @@ static int test_signalrt(void)
    while (0 < sigtimedwait(&signalmask, 0, &ts));
    for (int i = 0; i <= maxnr_signalrt(); ++i) {
       uintptr_t value = 1;
-      uintptr_t V     = (unsigned)i + 100u ;
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
-      TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
-      TEST(0 == trywait_signalrt((signalrt_t)i, &value)) ;
-      TEST(0 == value) ;
-      TEST(0 == sigqueue(getpid(), SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } )) ;
-      TEST(0 == trywait_signalrt((signalrt_t)i, &value)) ;
-      TEST(V == value) ;
-      ++ V ;
-      TEST(0 == pthread_sigqueue(self_thread()->sys_thread, SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } )) ;
-      TEST(0 == trywait_signalrt((signalrt_t)i, &value)) ;
-      TEST(V == value) ;
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
+      uintptr_t V     = (unsigned)i + 100u;
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
+      TEST(0 == kill(getpid(), SIGRTMIN+i));
+      TEST(0 == trywait_signalrt((signalrt_t)i, &value));
+      TEST(0 == value);
+      TEST(0 == sigqueue(getpid(), SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } ));
+      TEST(0 == trywait_signalrt((signalrt_t)i, &value));
+      TEST(V == value);
+      ++ V;
+      TEST(0 == pthread_sigqueue(self_thread()->sys_thread, SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } ));
+      TEST(0 == trywait_signalrt((signalrt_t)i, &value));
+      TEST(V == value);
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
    }
 
    // TEST trywait_signalrt: EINVAL
-   TEST(EINVAL == trywait_signalrt((signalrt_t)(maxnr_signalrt()+1), 0)) ;
+   TEST(EINVAL == trywait_signalrt((signalrt_t)(maxnr_signalrt()+1), 0));
 
    // TEST wait_signalrt
    for (int i = 0; i <= maxnr_signalrt(); ++i) {
-      uintptr_t value = 1 ;
-      uintptr_t V     = (unsigned)i + 100u ;
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
-      TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
-      TEST(0 == wait_signalrt((signalrt_t)i, &value)) ;
-      TEST(0 == value) ;
-      TEST(0 == sigqueue(getpid(), SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } )) ;
-      TEST(0 == wait_signalrt((signalrt_t)i, &value)) ;
-      TEST(V == value) ;
-      ++ V ;
-      TEST(0 == pthread_sigqueue(self_thread()->sys_thread, SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } )) ;
-      TEST(0 == wait_signalrt((signalrt_t)i, &value)) ;
-      TEST(V == value) ;
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
+      uintptr_t value = 1;
+      uintptr_t V     = (unsigned)i + 100u;
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
+      TEST(0 == kill(getpid(), SIGRTMIN+i));
+      TEST(0 == wait_signalrt((signalrt_t)i, &value));
+      TEST(0 == value);
+      TEST(0 == sigqueue(getpid(), SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } ));
+      TEST(0 == wait_signalrt((signalrt_t)i, &value));
+      TEST(V == value);
+      ++ V;
+      TEST(0 == pthread_sigqueue(self_thread()->sys_thread, SIGRTMIN+i, (union sigval) { .sival_ptr = (void*)V } ));
+      TEST(0 == wait_signalrt((signalrt_t)i, &value));
+      TEST(V == value);
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
    }
 
    // TEST wait_signalrt: EINVAL
@@ -1125,14 +1317,14 @@ static int test_signalrt(void)
    // TEST send_signalrt: signals are queued
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
       for (uintptr_t nr = 10; nr < 20; ++nr) {
-         TEST(0 == send_signalrt((signalrt_t)i, nr)) ;
+         TEST(0 == send_signalrt((signalrt_t)i, nr));
       }
       for (uintptr_t nr = 10; nr < 20; nr += 2) {
-         uintptr_t value = 0 ;
-         TEST(0 == trywait_signalrt((signalrt_t)i, &value)) ;
-         TEST(nr == value) ;
-         TEST(0 == wait_signalrt((signalrt_t)i, &value)) ;
-         TEST(nr+1 == value) ;
+         uintptr_t value = 0;
+         TEST(0 == trywait_signalrt((signalrt_t)i, &value));
+         TEST(nr == value);
+         TEST(0 == wait_signalrt((signalrt_t)i, &value));
+         TEST(nr+1 == value);
       }
    }
 
@@ -1172,41 +1364,41 @@ static int test_signalrt(void)
    }
 
    // TEST send_signalrt: EINVAL
-   TEST(EINVAL == send_signalrt((signalrt_t)(maxnr_signalrt()+1), 0)) ;
+   TEST(EINVAL == send_signalrt((signalrt_t)(maxnr_signalrt()+1), 0));
 
    // TEST send_signalrt: EAGAIN
-   unsigned queue_size ;
+   unsigned queue_size;
    for (queue_size = 0; queue_size < 1000000; ++queue_size) {
-      if (0 == send_signalrt(0, queue_size)) continue ;
-      TEST(EAGAIN == send_signalrt(0, 0)) ;
-      TEST(EAGAIN == send2_signalrt(0, 0, self_thread())) ;
-      break ;
+      if (0 == send_signalrt(0, queue_size)) continue;
+      TEST(EAGAIN == send_signalrt(0, 0));
+      TEST(EAGAIN == send2_signalrt(0, 0, self_thread()));
+      break;
    }
-   TEST(queue_size > 16) ;
+   TEST(queue_size > 16);
    for (unsigned i = 0; i < queue_size; ++i) {
-      uintptr_t value ;
-      TEST(0 == wait_signalrt(0, &value)) ;
-      TEST(i == value) ;
+      uintptr_t value;
+      TEST(0 == wait_signalrt(0, &value));
+      TEST(i == value);
    }
-   TEST(EAGAIN == trywait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(0, 0));
 
    // TEST send2_signalrt: signals are queued
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
       for (uintptr_t nr = 20; nr < 30; ++nr) {
-         TEST(0 == send2_signalrt((signalrt_t)i, nr, self_thread())) ;
+         TEST(0 == send2_signalrt((signalrt_t)i, nr, self_thread()));
       }
       for (uintptr_t nr = 20; nr < 30; nr += 2) {
-         uintptr_t value = 0 ;
-         TEST(0 == trywait_signalrt((signalrt_t)i, &value)) ;
-         TEST(nr == value) ;
-         TEST(0 == wait_signalrt((signalrt_t)i, &value)) ;
-         TEST(nr+1 == value) ;
+         uintptr_t value = 0;
+         TEST(0 == trywait_signalrt((signalrt_t)i, &value));
+         TEST(nr == value);
+         TEST(0 == wait_signalrt((signalrt_t)i, &value));
+         TEST(nr+1 == value);
       }
    }
 
    // TEST send2_signalrt: only specific thread receives
    for (uintptr_t i = 1; i <= maxnr_signalrt(); ++i) {
-      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0)) ;
+      TEST(EAGAIN == trywait_signalrt((signalrt_t)i, 0));
       for (unsigned t = 0; t < lengthof(group); ++t) {
          TEST(0 == newgeneric_thread(&group[t], &thread_receivesignal, i));
       }
@@ -1216,7 +1408,7 @@ static int test_signalrt(void)
       }
       for (unsigned t = 1; t <= lengthof(group); ++t) {
          // wake up one thread
-         TEST(0 == send2_signalrt((signalrt_t)i, t*i, group[t-1])) ;
+         TEST(0 == send2_signalrt((signalrt_t)i, t*i, group[t-1]));
          // wait until woken up
          uintptr_t v = 0;
          TEST(0 == wait_signalrt(0, &v));
@@ -1230,118 +1422,122 @@ static int test_signalrt(void)
    }
 
    // TEST send2_signalrt: EINVAL
-   TEST(EINVAL == send2_signalrt((signalrt_t)(maxnr_signalrt()+1), 0, self_thread())) ;
+   TEST(EINVAL == send2_signalrt((signalrt_t)(maxnr_signalrt()+1), 0, self_thread()));
 
    // TEST send2_signalrt: EAGAIN
    for (queue_size = 0; queue_size < 1000000; ++queue_size) {
-      if (0 == send2_signalrt(0, queue_size, self_thread())) continue ;
-      TEST(EAGAIN == send2_signalrt(0, 0, self_thread())) ;
-      TEST(EAGAIN == send_signalrt(0, 0)) ;
-      break ;
+      if (0 == send2_signalrt(0, queue_size, self_thread())) continue;
+      TEST(EAGAIN == send2_signalrt(0, 0, self_thread()));
+      TEST(EAGAIN == send_signalrt(0, 0));
+      break;
    }
-   TEST(queue_size > 16) ;
+   TEST(queue_size > 16);
    for (unsigned i = 0; i < queue_size; ++i) {
-      uintptr_t value ;
-      TEST(0 == trywait_signalrt(0, &value)) ;
-      TEST(i == value) ;
+      uintptr_t value;
+      TEST(0 == trywait_signalrt(0, &value));
+      TEST(i == value);
    }
-   TEST(EAGAIN == trywait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(0, 0));
 
    // unprepare
-   while (0 < sigtimedwait(&signalmask, 0, &ts)) ;
+   while (0 < sigtimedwait(&signalmask, 0, &ts));
 
-   return 0 ;
+   return 0;
 ONERR:
    for (unsigned i = 0; i < lengthof(group);++i) {
-      (void) delete_thread(&group[i]) ;
+      (void) delete_thread(&group[i]);
    }
-   while (0 < sigtimedwait(&signalmask, 0, &ts)) ;
-   return EINVAL ;
+   while (0 < sigtimedwait(&signalmask, 0, &ts));
+   return EINVAL;
 }
 
 static int test_signalwait(void)
 {
-   signalwait_t signalwait = signalwait_FREE ;
+   signalwait_t signalwait = signalwait_FREE;
 
    // TEST signalwait_FREE
-   TEST(1 == isfree_iochannel(signalwait)) ;
+   TEST(1 == isfree_iochannel(signalwait));
 
    // TEST initrealtime_signalwait
-   TEST(0 == initrealtime_signalwait(&signalwait, 0, maxnr_signalrt())) ;
-   TEST(0 == isfree_iochannel(signalwait)) ;
+   TEST(0 == initrealtime_signalwait(&signalwait, 0, maxnr_signalrt()));
+   TEST(0 == isfree_iochannel(signalwait));
 
    // TEST free_signalwait
-   TEST(0 == free_signalwait(&signalwait)) ;
-   TEST(1 == isfree_iochannel(signalwait)) ;
-   TEST(0 == free_signalwait(&signalwait)) ;
-   TEST(1 == isfree_iochannel(signalwait)) ;
+   TEST(0 == free_signalwait(&signalwait));
+   TEST(1 == isfree_iochannel(signalwait));
+   TEST(0 == free_signalwait(&signalwait));
+   TEST(1 == isfree_iochannel(signalwait));
 
    // TEST initrealtime_signalwait: EINVAL
-   TEST(EINVAL == initrealtime_signalwait(&signalwait, 1, 0)) ;
-   TEST(1 == isfree_iochannel(signalwait)) ;
-   TEST(EINVAL == initrealtime_signalwait(&signalwait, 0, (signalrt_t)(maxnr_signalrt()+1))) ;
-   TEST(1 == isfree_iochannel(signalwait)) ;
+   TEST(EINVAL == initrealtime_signalwait(&signalwait, 1, 0));
+   TEST(1 == isfree_iochannel(signalwait));
+   TEST(EINVAL == initrealtime_signalwait(&signalwait, 0, (signalrt_t)(maxnr_signalrt()+1)));
+   TEST(1 == isfree_iochannel(signalwait));
 
    // TEST free_signalwait: EBADF
-   int fd = dup(STDIN_FILENO) ;
-   TEST(fd > 0) ;
-   TEST(0 == close(fd)) ;
-   signalwait = fd ;
-   TEST(0 == isfree_iochannel(signalwait)) ;
-   TEST(EBADF == free_signalwait(&signalwait)) ;
-   TEST(1 == isfree_iochannel(signalwait)) ;
+   int fd = dup(STDIN_FILENO);
+   TEST(fd > 0);
+   TEST(0 == close(fd));
+   signalwait = fd;
+   TEST(0 == isfree_iochannel(signalwait));
+   TEST(EBADF == free_signalwait(&signalwait));
+   TEST(1 == isfree_iochannel(signalwait));
 
    // TEST io_signalwait
    for (unsigned minrt = 0; minrt <= maxnr_signalrt(); ++minrt) {
       for (unsigned maxrt = minrt; maxrt <= maxnr_signalrt(); ++ maxrt) {
-         TEST(0 == initrealtime_signalwait(&signalwait, (signalrt_t)minrt, maxnr_signalrt())) ;
+         TEST(0 == initrealtime_signalwait(&signalwait, (signalrt_t)minrt, maxnr_signalrt()));
 
          // TEST io_signalwait
-         iochannel_t ioc = io_signalwait(signalwait) ;
-         TEST(ioc == signalwait) ;
-         TEST(1 == isvalid_iochannel(ioc)) ;
+         iochannel_t ioc = io_signalwait(signalwait);
+         TEST(ioc == signalwait);
+         TEST(1 == isvalid_iochannel(ioc));
 
          // TEST io_signalwait: returns always same value
-         TEST(ioc == io_signalwait(signalwait)) ;
+         TEST(ioc == io_signalwait(signalwait));
 
             // TEST io_signalwait: file descriptor generates read event
          for (unsigned signr = minrt; signr <= maxrt; ++signr) {
             for (unsigned nrqueued = 1; nrqueued <= 2; ++nrqueued) {
-               struct pollfd pfd = { .fd = ioc, .events = POLLIN } ;
-               TEST(EAGAIN == trywait_signalrt((signalrt_t)minrt, 0)) ;
-               TEST(0 == poll(&pfd, 1, 0)) ;    // not readable
+               struct pollfd pfd = { .fd = ioc, .events = POLLIN };
+               TEST(EAGAIN == trywait_signalrt((signalrt_t)minrt, 0));
+               TEST(0 == poll(&pfd, 1, 0));    // not readable
                for (unsigned i = 0; i < nrqueued; ++i) {
-                  TEST(0 == send_signalrt((signalrt_t)signr, 1u+signr+i)) ;
+                  TEST(0 == send_signalrt((signalrt_t)signr, 1u+signr+i));
                }
                for (unsigned i = 0; i < nrqueued; ++i) {
-                  TEST(1 == poll(&pfd, 1, 0)) ;    // readable
-                  uintptr_t v = 0 ;
-                  TEST(0 == trywait_signalrt((signalrt_t)signr, &v)) ;
-                  TEST(v == 1u+signr+i) ;
+                  TEST(1 == poll(&pfd, 1, 0));    // readable
+                  uintptr_t v = 0;
+                  TEST(0 == trywait_signalrt((signalrt_t)signr, &v));
+                  TEST(v == 1u+signr+i);
                }
-               TEST(EAGAIN == trywait_signalrt((signalrt_t)signr, 0)) ;
+               TEST(EAGAIN == trywait_signalrt((signalrt_t)signr, 0));
             }
          }
 
          if (maxrt < maxnr_signalrt()) {
-            maxrt += 5u ;
-            if (maxrt >= maxnr_signalrt()) maxrt = maxnr_signalrt()-1u ;
+            maxrt += 5u;
+            if (maxrt >= maxnr_signalrt()) maxrt = maxnr_signalrt()-1u;
          }
-         TEST(0 == free_signalwait(&signalwait)) ;
+         TEST(0 == free_signalwait(&signalwait));
       }
    }
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 int unittest_platform_sync_signal()
 {
+   int err;
+
+   if (test_enum())                    goto ONERR;
    if (test_signalstate())             goto ONERR;
-   if (test_signalhandler_helper())    goto ONERR;
-   if (test_signalhandler_initonce())  goto ONERR;
-   if (test_signalhandler())           goto ONERR;
+   if (test_signals_helper())          goto ONERR;
+   if (execasprocess_unittest(&test_signals_initfree, &err)) goto ONERR;
+   if (err) goto ONERR;
+   if (test_segv())                    goto ONERR;
    if (test_signalrt())                goto ONERR;
    if (test_signalwait())              goto ONERR;
 

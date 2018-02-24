@@ -56,7 +56,7 @@ typedef struct thread_stack_t thread_stack_t;
  * Called from <syscontext_t.initrun_syscontext> therefore initlog is used if needed.
  * Parameter static_size must be set to the number of bytes needed during initialization
  * of <threadcontext_t> (size determined by extsize_threadcontext) and <maincontext_t>
- * (size determined by extsize_processcontext). */
+ * (size determined by extsize_maincontext). */
 int new_threadstack(/*out*/thread_stack_t** st, ilog_t* initlog, const size_t static_size, /*out*/struct memblock_t* threadstack, /*out*/struct memblock_t* signalstack);
 
 /* function: delete_threadstack

@@ -1,0 +1,22 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of modules with initonce_ / freeonce_ functions called once per process.
+# They are called from init_maincontext and free_maincontext.
+# Init functions are called from first to last entry in this database.
+# Free functions are called from last entry to first entry.
+# The header-name field references the C99 header file which exports the function prototypes.
+# The field inittype determines what kind of init function is called.
+# Possible values:
+# "once"       - Calls initonce_module(&parameter) / freeonce_module(&parameter)
+# "param"      - Calls init_module(&parameter) / free_module(&parameter)
+# "object"     - Calls init_module(&parameter) / free_module(&parameter)
+#                The memory is allocated and freed with
+#                allocstatic_threadstack / freestatic_threadstack
+#                from main thread.
+"module",            "inittype",    "objtype",            "parameter",    "header-name"
+"syscontext",        "param",       "",                   "sysinfo",      ""
+"errorcontext",      "once",        "",                   "error",        "C-kern/api/err/errorcontext.h"
+"locale",            "once",        "",                   "",             "C-kern/api/platform/locale.h"
+"signals",           "object",      "signals_t",          "signals",      "C-kern/api/platform/sync/signal.h"
+"syslogin",          "object",      "syslogin_t",         "syslogin",     "C-kern/api/platform/syslogin.h"
+"X11",               "once",        "",                   "",             "C-kern/api/platform/X11/x11.h"

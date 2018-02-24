@@ -94,7 +94,7 @@ typedef struct subheader_t {
     * Same marker as used in <freepage_t> to mark a page as free.
     * The page <subheader_t> is located on is used as last one in
     * the allocation process. */
-   struct block_t*marker;
+   struct block_t* marker;
    /* variable: self
     * Additional marker for subheader_t. */
    struct subheader_t* self;

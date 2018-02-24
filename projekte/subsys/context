@@ -1,7 +1,6 @@
 # Runtime context needed for platform linux
 Src += C-kern/main/maincontext.c
 Src += C-kern/err/errorcontext.c
-Src += C-kern/task/processcontext.c
 Src += C-kern/task/threadcontext.c
 # default services
 Src += C-kern/cache/objectcache_impl.c

@@ -1,4 +1,4 @@
-/* title: DoubleLinkeolistUsingOffsets
+/* title: DoubleLinkedOffsetList
 
    Implementiert eine doppelt verkettete Liste
    mit Offsets anstatt Zeigern.
@@ -30,10 +30,10 @@
    (C) 2017 Jörg Seebohn
 
    file: C-kern/api/ds/inmem/olist.h
-    Header file <DoubleLinkeolistUsingOffsets>.
+    Header file <DoubleLinkedOffsetList>.
 
    file: C-kern/ds/inmem/olist.c
-    Implementation file <DoubleLinkeolistUsingOffsets impl>.
+    Implementation file <DoubleLinkedOffsetList impl>.
 */
 #ifndef CKERN_DS_INMEM_OLIST_HEADER
 #define CKERN_DS_INMEM_OLIST_HEADER

@@ -4,7 +4,7 @@
 # *******************************************************************
 # * 1. Tests that C-kern/resource/config/initthread contains all    *
 #      initthread_NAME implementations from every source file       *
-# * 2. Tests that C-kern/resource/config/initprocess contains all   *
+# * 2. Tests that C-kern/resource/config/initmain contains all      *
 # *    initonce_NAME    implementations from every source file      *
 # *******************************************************************
 # environment variables:
@@ -221,11 +221,11 @@ if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
 fi
 
 sort $temp_process_db > $temp_compare1
-sort C-kern/resource/config/initprocess \
+sort C-kern/resource/config/initmain \
     | sed -e "/^#/d;/^$/d" -e '/^"[^"]*",[ ]*"object"/d;' > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
-   info="$info  file: <C-kern/resource/config/initprocess> is incomplete'\n"
+   info="$info  file: <C-kern/resource/config/initmain> is incomplete'\n"
    info="$info  start-diff:\n"`diff $temp_compare1 $temp_compare2 `"\n  end-diff:\n"
 fi
 

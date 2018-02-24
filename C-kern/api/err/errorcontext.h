@@ -22,11 +22,11 @@
 typedef struct errorcontext_t errorcontext_t;
 
 /* variable: g_errorcontext_stroffset
- * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
+ * Used in <maincontext_INIT_STATIC> to initialize static <maincontext_t>. */
 extern uint16_t   g_errorcontext_stroffset[];
 
 /* variable: g_errorcontext_strdata
- * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
+ * Used in <maincontext_INIT_STATIC> to initialize static <maincontext_t>. */
 extern uint8_t    g_errorcontext_strdata[];
 
 
@@ -80,7 +80,7 @@ int freeonce_errorcontext(errorcontext_t* error);
 #define errorcontext_FREE { 0, 0 }
 
 /* define: errorcontext_INIT_STATIC
- * Static initializer used in <processcontext_INIT_STATIC>. */
+ * Static initializer used in <maincontext_INIT_STATIC>. */
 #define errorcontext_INIT_STATIC { g_errorcontext_stroffset, g_errorcontext_strdata }
 
 /* function: init_errorcontext

@@ -373,7 +373,7 @@ static int test_initfree(void)
    size_t         oldlogsize;
    ilog_t       * defaultlog = GETWRITER0_LOG();
 
-   const size_t test_static_size[] = { 0, extsize_threadcontext() + extsize_processcontext(), 12345, 65535 };
+   const size_t test_static_size[] = { 0, extsize_threadcontext() + extsize_maincontext(), 12345, 65535 };
    for (unsigned si=0; si<lengthof(test_static_size); ++si) {
       const size_t static_size = test_static_size[si];
       const size_t sizevars = compute_sizevars(static_size, pagesize_vm());

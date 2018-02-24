@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Mai.07  16:44:36
+GenerationDate  := 2018.Feb.24  19:13:00
 GeneratedBy     := Jörg Seebohn
 
 ## Release
@@ -47,20 +47,19 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
+ $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
- $(ObjectDir_Release)/C-kern!task!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
+$(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!task!processcontext.c.o: C-kern/task/processcontext.c
+$(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
@@ -70,9 +69,6 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!terminal.c.o: C-kern/platform/Linux/io/terminal.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
 	@$(CC_Release)
 
 -include $(Objects_Release:.o=.d)

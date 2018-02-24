@@ -41,7 +41,7 @@ int init_iobuffer(/*out*/iobuffer_t* iobuf)
 
    // TODO: use ALLOC_PAGECACHE
    // reimplement ALLOC_PAGECACHE as init_mempage
-   // add mempage process part (bitmap index to locate free pages) to processcontext
+   // add mempage process part (bitmap index to locate free pages) to maincontext
    // add mempage thread part (free list + list of used pages) to threadcontext
 
    err = init_vmpage(cast_vmpage(iobuf,), 1024*1024);

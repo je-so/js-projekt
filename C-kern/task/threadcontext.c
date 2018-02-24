@@ -395,6 +395,7 @@ ONERR_NOFREE:
 bool isstatic_threadcontext(const threadcontext_t* tcontext)
 {
    struct log_t *log = (struct log_t*) &get_static_data(tcontext)->logwriter;
+   const size_t S=extsize_threadcontext();
    return   &g_maincontext == tcontext->maincontext
             && isfree_iobj(&tcontext->pagecache)
             && isfree_iobj(&tcontext->mm)
@@ -403,7 +404,8 @@ bool isstatic_threadcontext(const threadcontext_t* tcontext)
             && log == tcontext->log.object
             && interface_logwriter() == tcontext->log.iimpl
             && 0 == tcontext->initcount
-            && (const uint8_t*)tcontext < tcontext->staticdata;
+            && (const uint8_t*)tcontext < tcontext->staticdata
+            && S == sizestatic_threadstack(castPcontext_threadstack(CONST_CAST(threadcontext_t,tcontext)));
 }
 
 size_t extsize_threadcontext(void)
@@ -796,62 +798,79 @@ ONERR:
 
 static int test_query(void)
 {
-   threadcontext_t tcontext = threadcontext_FREE;
-   static_data_t   sd;
+   thread_stack_t *  tls        = 0;
+   threadcontext_t * tcontext   = 0;
+   ilog_t *          defaultlog = GETWRITER0_LOG();
+
+   // prepare
+   TEST(0 == new_threadstack(&tls, defaultlog, extsize_threadcontext(), 0, 0));
+   tcontext = context_threadstack(tls);
 
    // TEST maincontext_threadcontext
-   TEST( &tcontext.maincontext == &maincontext_threadcontext(&tcontext));
+   TEST( &tcontext->maincontext == &maincontext_threadcontext(tcontext));
 
    // TEST isstatic_threadcontext: threadcontext_FREE;
-   TEST(0 == isstatic_threadcontext(&tcontext));
+   TEST(0 == isstatic_threadcontext(tcontext));
 
    // TEST isstatic_threadcontext: after simulated initstatic
-   tcontext.maincontext = &g_maincontext;
-   tcontext.staticdata  = (void*)&sd;
-   tcontext.log         = (ilog_t)iobj_INIT((void*)&sd, interface_logwriter());
-   TEST(1 == isstatic_threadcontext(&tcontext));
+   TEST(0 == alloc_static_memory(tcontext, defaultlog));
+   tcontext->maincontext = &g_maincontext;
+   tcontext->log         = (ilog_t)iobj_INIT((void*)tcontext->staticdata, interface_logwriter());
+   TEST(1 == isstatic_threadcontext(tcontext));
 
    // TEST isstatic_threadcontext
-   TEST(1 == isstatic_threadcontext(&tcontext));
-   tcontext.maincontext = 0;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.maincontext = &g_maincontext;
-   tcontext.pagecache.object = (void*)1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.pagecache.object = 0;
-   tcontext.mm.object = (void*)1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.mm.object = 0;
-   tcontext.syncrunner = (void*)1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.syncrunner = 0;
-   tcontext.objectcache.object = (void*)1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.objectcache.object = 0;
-   tcontext.log.object = 0;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.log.object = (void*)&sd;
-   tcontext.log.iimpl = 0;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.log.iimpl = interface_logwriter();
-   tcontext.thread_id = 1; // does not matter !
-   TEST(1 == isstatic_threadcontext(&tcontext));
-   tcontext.thread_id = 0;
-   tcontext.initcount = 1;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.initcount = 0;
-   tcontext.staticdata = 0;
-   TEST(0 == isstatic_threadcontext(&tcontext));
-   tcontext.staticdata = (uint8_t*)&sd;
-   TEST(1 == isstatic_threadcontext(&tcontext));
+   TEST(1 == isstatic_threadcontext(tcontext));
+   tcontext->maincontext = 0;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->maincontext = &g_maincontext;
+   tcontext->pagecache.object = (void*)1;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->pagecache.object = 0;
+   tcontext->mm.object = (void*)1;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->mm.object = 0;
+   tcontext->syncrunner = (void*)1;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->syncrunner = 0;
+   tcontext->objectcache.object = (void*)1;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->objectcache.object = 0;
+   void* old = tcontext->log.object;
+   tcontext->log.object = 0;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->log.object = old;
+   tcontext->log.iimpl = 0;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->log.iimpl = interface_logwriter();
+   tcontext->thread_id = 1; // does not matter !
+   TEST(1 == isstatic_threadcontext(tcontext));
+   tcontext->thread_id = 0;
+   tcontext->initcount = 1;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->initcount = 0;
+   old = tcontext->staticdata;
+   tcontext->staticdata = 0;
+   TEST(0 == isstatic_threadcontext(tcontext));
+   tcontext->staticdata = old;
+   TEST(1 == isstatic_threadcontext(tcontext));
 
    // TEST extsize_threadcontext
-   for (int i = 0; i < 4; ++i) {
+   for (unsigned i=0; i<2; ++i) {
+      TEST(extsize_threadcontext() != 0);
       TEST(extsize_threadcontext() == static_memory_size());
    }
 
+   // reset
+   TEST(0 == free_static_memory(tcontext, defaultlog));
+   tcontext = 0;
+   TEST(0 == delete_threadstack(&tls, defaultlog));
+
    return 0;
 ONERR:
+   if (tcontext) {
+      free_static_memory(tcontext, defaultlog);
+   }
+   delete_threadstack(&tls, defaultlog);
    return EINVAL;
 }
 
