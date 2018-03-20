@@ -57,14 +57,8 @@ int init_syslogin(/*out*/syslogin_t* syslogin)
    sys_userid_t uid;
    sys_userid_t euid;
 
-   if (0 != syslogin_maincontext()) {
-      // already initialized (used in testing)
-      uid  = syslogin_maincontext()->realuser;
-      euid = syslogin_maincontext()->privilegeduser;
-   } else {
-      uid  = getuid();
-      euid = geteuid();
-   }
+   uid  = getuid();
+   euid = geteuid();
 
    err = switchuser(syslogin, uid);
    if (err) goto ONERR;

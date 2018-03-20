@@ -22,7 +22,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
-#include "C-kern/api/platform/locale.h"
+#include "C-kern/api/string/clocale.h"
 
 
 typedef struct strtable_t {
@@ -176,13 +176,13 @@ static int main_thread(maincontext_t * maincontext)
    filedata.addr[filesize-1] = 0;
 
    // get current language id
-   strncpy(langid, current_locale(), sizeof(langid));
+   strncpy(langid, current_clocale(), sizeof(langid));
    langid[sizeof(langid)-1] = 0;
    if (strstr(langid, "_"))  *strstr(langid, "_") = 0;
 
    // build user language and C table
    build_errtable(&errtable[0]);
-   resetmsg_locale();
+   resetmsg_clocale();
    build_errtable(&errtable[1]);
    //
 

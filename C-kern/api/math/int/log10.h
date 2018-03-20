@@ -61,14 +61,8 @@ unsigned log10_int64(uint64_t i);
 // section: inline implementation
 
 /* function: log10_int
- * Implements <int_t.log10_int>.
- * TODO: reimplement it with _Generic */
+ * Implements <int_t.log10_int>. */
 #define log10_int(number) \
-         ( __extension__ ({                                                   \
-            static_assert(0 < (typeof(number))-1, "only unsigned allowed");   \
-            (sizeof(number) <= sizeof(uint32_t))                              \
-               ? log10_int32((uint32_t)number)                                \
-               : log10_int64(number) ;                                        \
-         }))
+         (_Generic((number), uint8_t: log10_int32((uint32_t)(number)), uint16_t: log10_int32((uint32_t)(number)), uint32_t: log10_int32((uint32_t)(number)), uint64_t: log10_int64(number)))
 
 #endif

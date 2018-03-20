@@ -1,5 +1,4 @@
 # Minimal Linux
-Src  += C-kern/platform/Linux/locale.c
 Src  += C-kern/platform/Linux/vm.c
 Src  += C-kern/platform/Linux/syscontext.c
 Src  += C-kern/platform/Linux/io/directory.c

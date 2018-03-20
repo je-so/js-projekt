@@ -24,7 +24,7 @@
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_sqroot
  * Tests implementation of <sqroot_int>. */
-int unittest_math_int_sqroot(void) ;
+int unittest_math_int_sqroot(void);
 #endif
 
 
@@ -40,33 +40,29 @@ int unittest_math_int_sqroot(void) ;
  * > number >= sqroot_int(number) * sqroot_int(number)
  * > && number < (sqroot_int(number)+1) * (sqroot_int(number)+1)
  * */
-unsigned sqroot_int(unsigned number) ;
+unsigned sqroot_int(unsigned number);
 
 /* function: sqroot_int32
  * Returns the square root from an unsigned 32 bit integer.
  * This function is called from <sqroot_int>. */
-uint16_t sqroot_int32(uint32_t number) ;
+uint16_t sqroot_int32(uint32_t number);
 
 /* function: sqroot_int64
  * Returns the square root from an unsigned 64 bit integer.
  * This function is called from <sqroot_int>. */
-uint32_t sqroot_int64(uint64_t number) ;
+uint32_t sqroot_int64(uint64_t number);
 
 
 // section: inline implementation
 
 /* function: sqroot_int
  * Implements <int_t.sqroot_int>.
- * Calls <sys_sqroot_int64> for a faster implementation of the default implementation <sqroot_int64>.
- * TODO: reimplement it with _Generic
- * */
-#define sqroot_int(number)                                              \
-   ( __extension__ ({                                                   \
-      static_assert(0 < (typeof(number))-1, "only unsigned allowed") ;  \
-      static_assert(8 >= sizeof(number), "max. uint64_t supported") ;   \
-      (sizeof(number) <= sizeof(uint32_t))                              \
-         ? sqroot_int32((uint32_t)number)                               \
-         : (uint32_t)sys_sqroot_int64(number) ;                         \
-   }))
+ * Calls <sys_sqroot_int64> for a faster implementation of the default implementation <sqroot_int64>. */
+#define sqroot_int(number) \
+         ( _Generic((number),                               \
+            uint8_t:  sqroot_int32((uint32_t)(number)),     \
+            uint16_t: sqroot_int32((uint32_t)(number)),     \
+            uint32_t: sqroot_int32((uint32_t)(number)),     \
+            uint64_t: (uint32_t)sys_sqroot_int64(number)))
 
 #endif

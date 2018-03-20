@@ -345,7 +345,7 @@ int readall_iochannel(iochannel_t ioc, size_t size, void* buffer/*uint8_t[size]*
       ssize_t part = read(ioc, (uint8_t*)buffer + bytes, size-bytes);
 
       if (part > 0) {
-         bytes += (unsigned) part;
+         bytes += (size_t) part;
          if (bytes == size) break/*DONE*/;
          continue;
       }
@@ -385,7 +385,7 @@ int writeall_iochannel(iochannel_t ioc, size_t size, const void* buffer/*uint8_t
       ssize_t part = write(ioc, (const uint8_t*)buffer + bytes, size-bytes);
 
       if (part >= 0) {
-         bytes += (unsigned) part;
+         bytes += (size_t) part;
          if (bytes == size) break/*DONE*/;
          continue;
       }
@@ -1630,6 +1630,7 @@ static int test_rdwrall(directory_t* tempdir)
 
    return 0;
 ONERR:
+   while (0 == trywait_signalrt(0, 0)/*SIGUSR1 processed*/) { }
    if (isoldsignalmask) {
       sigprocmask(SIG_SETMASK, &oldsignalmask, 0);
    }

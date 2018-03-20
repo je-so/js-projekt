@@ -126,9 +126,9 @@
  * Implements the <High School Square Root Algorithm> for 32 bit unsigned integer. */
 uint16_t sqroot_int32(uint32_t number)
 {
-   uint32_t one = 0x40000000 ;
-   uint32_t a   = 0 ;
-   uint32_t r   = number ;
+   uint32_t one = 0x40000000;
+   uint32_t a   = 0;
+   uint32_t r   = number;
 
    // determine next b
 
@@ -147,19 +147,19 @@ uint16_t sqroot_int32(uint32_t number)
     * > │       aₙ|aₙ₋₁ │  ?  │ (next b)│ 0 | 0 │
     * > ╰─────────┴───────────┴─────────┴───────╯
     * */
-   uint32_t a4_plus_1 = one ;
+   uint32_t a4_plus_1 = one;
    if (a4_plus_1 <= r) {
-      a += one ;
-      r -= a4_plus_1 ;
+      a += one;
+      r -= a4_plus_1;
    }
    #define NEXT                  \
    {                             \
-      one >>= 2 ; /*next pair*/  \
-      a4_plus_1 = a + one ;      \
-      a >>= 1 ;                  \
+      one >>= 2; /*next pair*/   \
+      a4_plus_1 = a + one;       \
+      a >>= 1;                   \
       if (a4_plus_1 <= r) {      \
-         a += one ;              \
-         r -= a4_plus_1 ;        \
+         a += one;               \
+         r -= a4_plus_1;         \
       }                          \
    }
    /*2*/NEXT
@@ -179,7 +179,7 @@ uint16_t sqroot_int32(uint32_t number)
    /*16*/NEXT
 #undef NEXT
 
-   return (uint16_t) a ;
+   return (uint16_t) a;
 }
 
 /* function: sqroot_int64
@@ -189,28 +189,28 @@ uint16_t sqroot_int32(uint32_t number)
 uint32_t sqroot_int64(uint64_t number)
 {
    if (!(uint32_t)(number >> 32)) {
-      return sqroot_int32((uint32_t)number) ;
+      return sqroot_int32((uint32_t)number);
    }
 
    // determine first 16 bit from first 32 bit
 
-   uint32_t one = 0x40000000 ;
-   uint32_t a2  = 0 ;
-   uint32_t r2  = (uint32_t)(number >> 32) ;
+   uint32_t one = 0x40000000;
+   uint32_t a2  = 0;
+   uint32_t r2  = (uint32_t)(number >> 32);
 
-   uint32_t a4_plus_1_2 = one ;
+   uint32_t a4_plus_1_2 = one;
    if (a4_plus_1_2 <= r2) {
-      a2 += one ;
-      r2 -= a4_plus_1_2 ;
+      a2 += one;
+      r2 -= a4_plus_1_2;
    }
    #define NEXT                  \
    {                             \
-      one >>= 2 ; /*next pair*/  \
-      a4_plus_1_2 = a2 + one ;   \
-      a2 >>= 1 ;                 \
+      one >>= 2; /*next pair*/   \
+      a4_plus_1_2 = a2 + one;    \
+      a2 >>= 1;                  \
       if (a4_plus_1_2 <= r2) {   \
-         a2 += one ;             \
-         r2 -= a4_plus_1_2 ;     \
+         a2 += one;              \
+         r2 -= a4_plus_1_2;      \
       }                          \
    }
    /*2*/NEXT
@@ -232,9 +232,9 @@ uint32_t sqroot_int64(uint64_t number)
 
    // determine last 16 bit from last 32 bit
 
-   one = 0x40000000 ;
-   uint64_t a   = (uint64_t)a2 << 32 ;
-   uint64_t r   = ((uint64_t)r2 << 32) + (uint32_t)number ;
+   one = 0x40000000;
+   uint64_t a   = (uint64_t)a2 << 32;
+   uint64_t r   = ((uint64_t)r2 << 32) + (uint32_t)number;
 
    // determine next b
 
@@ -253,20 +253,20 @@ uint32_t sqroot_int64(uint64_t number)
     * > │       aₙ|aₙ₋₁ │  ?  │ (next b)│ 0 | 0 │
     * > ╰─────────┴───────────┴─────────┴───────╯
     * */
-   uint64_t a4_plus_1 = a | one ;
-   a >>= 1 ;
+   uint64_t a4_plus_1 = a | one;
+   a >>= 1;
    if (a4_plus_1 <= r) {
-      a |= one ;
-      r -= a4_plus_1 ;
+      a |= one;
+      r -= a4_plus_1;
    }
    #define NEXT                  \
    {                             \
-      one >>= 2 ; /*next pair*/  \
-      a4_plus_1 = a | one ;      \
-      a >>= 1 ;                  \
+      one >>= 2; /*next pair*/   \
+      a4_plus_1 = a | one;       \
+      a >>= 1;                   \
       if (a4_plus_1 <= r) {      \
-         a |= one ;              \
-         r -= a4_plus_1 ;        \
+         a |= one;               \
+         r -= a4_plus_1;         \
       }                          \
    }
    /*2*/NEXT
@@ -286,7 +286,7 @@ uint32_t sqroot_int64(uint64_t number)
    /*16*/NEXT
 #undef NEXT
 
-   return (uint32_t) a ;
+   return (uint32_t) a;
 }
 
 
@@ -298,97 +298,109 @@ static int test_squareroot(void)
 {
    // TEST sqroot_int,sqroot_int32,sqroot_int64 for all return values 0..UINT16_MAX
    for (uint32_t r = 0; r <= UINT16_MAX; ++r) {
-      uint32_t N = r * r ;
-      TEST(r == sqroot_int(N)) ;
-      TEST(r == sqroot_int32(N)) ;
-      TEST(r == sqroot_int64(N)) ;
+      uint32_t N = r * r;
+      TEST(r == sqroot_int(N));
+      TEST(r == sqroot_int32(N));
+      TEST(r == sqroot_int64(N));
       if (r) {
-         TEST(r == 1u+sqroot_int(N-1u)) ;
-         TEST(r == 1u+sqroot_int32(N-1u)) ;
-         TEST(r == 1u+sqroot_int64(N-1u)) ;
+         TEST(r == 1u+sqroot_int(N-1u));
+         TEST(r == 1u+sqroot_int32(N-1u));
+         TEST(r == 1u+sqroot_int64(N-1u));
       }
    }
 
    // TEST sqroot_int,sqroot_int32,sqroot_int64 for all values returning UINT16_MAX
    for (uint32_t N = (uint32_t)UINT16_MAX*UINT16_MAX; N; ++N) {
-      TEST(UINT16_MAX == sqroot_int(N)) ;
-      TEST(UINT16_MAX == sqroot_int32(N)) ;
-      TEST(UINT16_MAX == sqroot_int64(N)) ;
+      TEST(UINT16_MAX == sqroot_int(N));
+      TEST(UINT16_MAX == sqroot_int32(N));
+      TEST(UINT16_MAX == sqroot_int64(N));
    }
 
    // TEST sqroot_int,sqroot_int64 for some return values > UINT16_MAX
-   TEST(0x80000000 == sqroot_int((uint64_t)0x80000000*0x80000000)) ;
-   TEST(0x80000000 == sqroot_int64((uint64_t)0x80000000*0x80000000)) ;
-   TEST(0x80000001 == sqroot_int((uint64_t)0x80000001*0x80000001)) ;
-   TEST(0x80000001 == sqroot_int64((uint64_t)0x80000001*0x80000001)) ;
-   TEST(0x80010001 == sqroot_int((uint64_t)0x80010001*0x80010001)) ;
-   TEST(0x80010001 == sqroot_int64((uint64_t)0x80010001*0x80010001)) ;
+   TEST(0x80000000 == sqroot_int((uint64_t)0x80000000*0x80000000));
+   TEST(0x80000000 == sqroot_int64((uint64_t)0x80000000*0x80000000));
+   TEST(0x80000001 == sqroot_int((uint64_t)0x80000001*0x80000001));
+   TEST(0x80000001 == sqroot_int64((uint64_t)0x80000001*0x80000001));
+   TEST(0x80010001 == sqroot_int((uint64_t)0x80010001*0x80010001));
+   TEST(0x80010001 == sqroot_int64((uint64_t)0x80010001*0x80010001));
    for (uint32_t r = UINT16_MAX+1, incr = 1; r > UINT16_MAX; r += incr) {
-      uint64_t N = (uint64_t)r * r ;
-      TEST(r == sqroot_int(N)) ;
-      TEST(r == sqroot_int64(N)) ;
-      TEST(r == 1u+sqroot_int(N-1u)) ;
-      TEST(r == 1u+sqroot_int64(N-1u)) ;
-      incr <<= 1 ;
-      if (incr > UINT16_MAX) incr = 1 ;
+      uint64_t N = (uint64_t)r * r;
+      TEST(r == sqroot_int(N));
+      TEST(r == sqroot_int64(N));
+      TEST(r == 1u+sqroot_int(N-1u));
+      TEST(r == 1u+sqroot_int64(N-1u));
+      incr <<= 1;
+      if (incr > UINT16_MAX) incr = 1;
    }
    for (uint32_t r = UINT32_MAX; r > UINT32_MAX-10000; --r) {
-      uint64_t N = (uint64_t)r * r ;
-      TEST(r == sqroot_int(N)) ;
-      TEST(r == sqroot_int64(N)) ;
-      TEST(r == 1u+sqroot_int(N-1u)) ;
-      TEST(r == 1u+sqroot_int64(N-1u)) ;
+      uint64_t N = (uint64_t)r * r;
+      TEST(r == sqroot_int(N));
+      TEST(r == sqroot_int64(N));
+      TEST(r == 1u+sqroot_int(N-1u));
+      TEST(r == 1u+sqroot_int64(N-1u));
    }
 
    // TEST sqroot_int,sqroot_int64 for values returning UINT32_MAX
-   TEST(UINT32_MAX == sqroot_int(UINT64_MAX)) ;
-   TEST(UINT32_MAX == sqroot_int64(UINT64_MAX)) ;
+   TEST(UINT32_MAX == sqroot_int(UINT64_MAX));
+   TEST(UINT32_MAX == sqroot_int64(UINT64_MAX));
    for (uint64_t N = (uint64_t)UINT32_MAX*UINT32_MAX; N > UINT32_MAX; N += UINT32_MAX) {
-      TEST(UINT32_MAX == sqroot_int(N)) ;
-      TEST(UINT32_MAX == sqroot_int64(N)) ;
+      TEST(UINT32_MAX == sqroot_int(N));
+      TEST(UINT32_MAX == sqroot_int64(N));
    }
 
-   return 0 ;
+   // TEST sqroot_int: uint8_t
+   for (uint8_t r=1; r<16; ++r) {
+      uint8_t N = (uint8_t)(r*r);
+      TEST(r == sqroot_int(N));
+   }
+
+   // TEST sqroot_int: uint16_t
+   for (uint16_t r=1; r<256; ++r) {
+      uint16_t N = (uint16_t)(r*r);
+      TEST(r == sqroot_int(N));
+   }
+
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static int test_speedcompare(void)
 {
-   uint64_t   time_in_microseconds_slow = 0 ;
-   uint64_t   time_in_microseconds_fast = 0 ;
-   systimer_t timer    = systimer_FREE ;
-   uint32_t   sum_slow = 0 ;
-   uint32_t   sum_fast = 0 ;
+   uint64_t   time_in_microseconds_slow = 0;
+   uint64_t   time_in_microseconds_fast = 0;
+   systimer_t timer    = systimer_FREE;
+   uint32_t   sum_slow = 0;
+   uint32_t   sum_fast = 0;
 
    if ((uint32_t(*)(uint64_t))&sys_sqroot_int64 == &sqroot_int64) {
       // compare default implementation with itself does not make sense
-      return 0 ;
+      return 0;
    }
 
-   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC));
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } ));
    for (unsigned i = 0; i < 500000; ++i) {
-      sum_slow += sqroot_int64(UINT64_MAX-i) ;
+      sum_slow += sqroot_int64(UINT64_MAX-i);
    }
-   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_slow)) ;
+   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_slow));
    for (unsigned i = 0; i < 500000; ++i) {
-      sum_fast += (uint32_t)sys_sqroot_int64(UINT64_MAX-i) ;
+      sum_fast += (uint32_t)sys_sqroot_int64(UINT64_MAX-i);
    }
-   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_fast)) ;
-   TEST(0 == stop_systimer(timer)) ;
-   TEST(0 == free_systimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_fast));
+   TEST(0 == stop_systimer(timer));
+   TEST(0 == free_systimer(&timer));
 
    // TEST sqroot_int64 has same result as sys_sqroot_int64
-   TEST(sum_slow == sum_fast) ;
+   TEST(sum_slow == sum_fast);
 
    // TEST sqroot_int64 is slower than sys_sqroot_int64
-   TEST(time_in_microseconds_slow > time_in_microseconds_fast) ;
+   TEST(time_in_microseconds_slow > time_in_microseconds_fast);
 
-   return 0 ;
+   return 0;
 ONERR:
-   free_systimer(&timer) ;
-   return EINVAL ;
+   free_systimer(&timer);
+   return EINVAL;
 }
 
 int unittest_math_int_sqroot()
@@ -396,9 +408,9 @@ int unittest_math_int_sqroot()
    if (test_squareroot())     goto ONERR;
    if (test_speedcompare())   goto ONERR;
 
-   return 0 ;
+   return 0;
 ONERR:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

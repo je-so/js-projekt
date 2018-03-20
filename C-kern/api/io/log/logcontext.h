@@ -1,6 +1,11 @@
 /* title: LogContext
 
-   TODO: describe module interface
+   Helps to manage additional information sources needed during logging.
+   This access to information during logging is possible even
+   if <maincontext_t> / <threadcontext_t> is not set-up.
+
+   Therrefore every logging object must link to either an initial
+   <logcontext_t> or the default one accessed by <maincontex_t.logcontext_maincontext>.
 
    Copyright:
    This program is free software. See accompanying LICENSE file.
@@ -83,19 +88,23 @@ typedef struct logcontext_t {
          { logcontext_error_FREE }
 
 /* function: initstatic_logcontext
- * TODO: Describe Initializes object. */
+ * Initializes logcontext lc. This contructor is used
+ * to set-up an initial logging object before the main
+ * and thread context is initialized. */
 void initstatic_logcontext(/*out*/logcontext_t* lc);
 
 /* function: freestatic_logcontext
- * TODO: Describe Initializes object. */
+ * Frees lc which has been initialized by a call to <initstatic_logcontext>. */
 void freestatic_logcontext(logcontext_t* lc);
 
 /* function: init_logcontext
- * TODO: Describe Initializes object. */
+ * Initializes lc with the default logcontext.
+ * This constructor is called from <maincontext_t.init_maincontext>.
+ * This context is shared between all threads. s*/
 int init_logcontext(/*out*/logcontext_t* lc);
 
 /* function: free_logcontext
- * TODO: Describe Frees all associated resources. */
+ * Frees lc which has been initialized by a call to <init_logcontext>. */
 int free_logcontext(logcontext_t* lc);
 
 // group: query
@@ -110,14 +119,15 @@ int isfree_logcontext(const logcontext_t* lc);
 uint16_t maxsyserrno_logcontext(void);
 
 /* function: errstr_logcontext
- * TODO: */
+ * Converts error code err into a textual error description.
+ * This string is localized.
+ * Error numbers 1..255 are operating system error codes.
+ * Error numbers 256..511 are application specific error codes. */
 const uint8_t* errstr_logcontext(const logcontext_t* lc, int err);
 
 /* function: errstr2_logcontext
- * TODO: */
+ * Same as errstr_logcontext except that it accepts an unsigned instead of int type. */
 static inline const uint8_t* errstr2_logcontext(const logcontext_t* lc, unsigned err);
-
-// group: update
 
 
 

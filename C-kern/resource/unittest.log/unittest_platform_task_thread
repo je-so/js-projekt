@@ -1,121 +1,162 @@
-[1: 1518426136.373353s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:374
+[0: 1519494110.842552s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 1 - Operation not permitted
-[1: 1518426136.373367s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:374
+[0: 1519494110.842577s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 2 - No such file or directory
-[1: 1518426136.373377s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:345
-System call 'getcontext' failed with error 3
+[1: 1519494110.842614s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 3 - No such process
-[1: 1518426136.373391s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:361
-System call 'swapcontext' failed with error 4
-Exit function with
-Error 4 - Interrupted system call
-[1: 1518426136.373408s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:374
-Exit function with
-Error 5 - Input/output error
-[1: 1518426136.373422s]
-runmain_thread() C-kern/platform/Linux/task/thread.c:374
-Exit function with
-Error 6 - No such device or address
-[0: 1518426136.373443s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
-Exit function with
-Error 1 - Operation not permitted
-[0: 1518426136.373465s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
-Exit function with
-Error 2 - No such file or directory
-[1: 1518426136.373502s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
-Exit function with
-Error 3 - No such process
-[1: 1518426136.373544s]
-init_start_context() C-kern/platform/Linux/task/thread.c:102
+[1: 1519494110.842657s]
+init_start_context() C-kern/platform/Linux/task/thread.c:100
 System call 'sigaltstack' failed with error 4
-[1: 1518426136.373545s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
+[1: 1519494110.842658s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 4 - Interrupted system call
-[1: 1518426136.373589s]
-start_thread() C-kern/platform/Linux/task/thread.c:147
+[1: 1519494110.842703s]
+start_thread() C-kern/platform/Linux/task/thread.c:145
 System call 'getcontext' failed with error 5
 Exit function with
 Error 5 - Input/output error
-[1: 1518426136.373639s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
+[1: 1519494110.842754s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 6 - No such device or address
-[1: 1518426136.373682s]
-start_thread() C-kern/platform/Linux/task/thread.c:163
+[1: 1519494110.842798s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
 Exit function with
 Error 7 - Argument list too long
-[1: 1518426136.373732s]
-delete_thread() C-kern/platform/Linux/task/thread.c:263
+[1: 1519494110.842311s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 1 - Operation not permitted
+[1: 1519494110.842324s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 2 - No such file or directory
+[1: 1519494110.842332s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 3 - No such process
+[1: 1519494110.842340s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:359
+System call 'getcontext' failed with error 4
+Exit function with
+Error 4 - Interrupted system call
+[1: 1519494110.842381s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:375
+System call 'swapcontext' failed with error 5
+Exit function with
+Error 5 - Input/output error
+[1: 1519494110.842423s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 6 - No such device or address
+[1: 1519494110.842465s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 7 - Argument list too long
+[1: 1519494110.842504s]
+runmain_thread() C-kern/platform/Linux/task/thread.c:388
+Exit function with
+Error 8 - Exec format error
+[1: 1519494110.842849s]
+delete_thread() C-kern/platform/Linux/task/thread.c:277
 One or more resources could not be freed
 Exit function with
 Error 22 - Invalid argument
-[1: 1518426136.375130s]
-exit_thread() C-kern/platform/Linux/task/thread.c:553
+[0: 1519494110.845022s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
+Exit function with
+Error 1 - Operation not permitted
+[26: 1519494110.845064s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
+Exit function with
+Error 2 - No such file or directory
+[27: 1519494110.845110s]
+init_start_context() C-kern/platform/Linux/task/thread.c:100
+System call 'sigaltstack' failed with error 3
+[27: 1519494110.845111s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
+Exit function with
+Error 3 - No such process
+[28: 1519494110.845156s]
+start_thread() C-kern/platform/Linux/task/thread.c:145
+System call 'getcontext' failed with error 4
+Exit function with
+Error 4 - Interrupted system call
+[29: 1519494110.845207s]
+start_thread() C-kern/platform/Linux/task/thread.c:161
+Exit function with
+Error 5 - Input/output error
+[1: 1519494110.844556s]
+exit_thread() C-kern/platform/Linux/task/thread.c:567
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error
-[1: 1518426136.375452s]
-new_thread() C-kern/platform/Linux/task/thread.c:323
+[1: 1519494110.844915s]
+new_thread() C-kern/platform/Linux/task/thread.c:337
 Exit function with
 Error 1 - Operation not permitted
-[1: 1518426136.375461s]
-new_thread() C-kern/platform/Linux/task/thread.c:323
+[1: 1519494110.844925s]
+new_thread() C-kern/platform/Linux/task/thread.c:337
 Exit function with
 Error 2 - No such file or directory
-[1: 1518426136.375467s]
-new_thread() C-kern/platform/Linux/task/thread.c:284
-System call 'pthread_attr_init' failed with error 3
+[1: 1519494110.844932s]
+new_thread() C-kern/platform/Linux/task/thread.c:337
 Exit function with
 Error 3 - No such process
-[1: 1518426136.375477s]
-new_thread() C-kern/platform/Linux/task/thread.c:292
-System call 'pthread_attr_setstack' failed with error 4
+[1: 1519494110.844938s]
+new_thread() C-kern/platform/Linux/task/thread.c:298
+System call 'pthread_attr_init' failed with error 4
+Exit function with
+Error 4 - Interrupted system call
+[1: 1519494110.844948s]
+new_thread() C-kern/platform/Linux/task/thread.c:306
+System call 'pthread_attr_setstack' failed with error 5
 stack.addr=0xXXXXXXXXXXXX
 stack.size=262144
 Exit function with
-Error 4 - Interrupted system call
-[1: 1518426136.375486s]
-new_thread() C-kern/platform/Linux/task/thread.c:303
-System call 'pthread_create' failed with error 5
-Exit function with
 Error 5 - Input/output error
-[1: 1518426136.375568s]
-delete_thread() C-kern/platform/Linux/task/thread.c:263
+[1: 1519494110.844959s]
+new_thread() C-kern/platform/Linux/task/thread.c:317
+System call 'pthread_create' failed with error 6
+Exit function with
+Error 6 - No such device or address
+[1: 1519494110.845304s]
+delete_thread() C-kern/platform/Linux/task/thread.c:277
 One or more resources could not be freed
 Exit function with
 Error 1 - Operation not permitted
-[1: 1518426136.375610s]
-delete_thread() C-kern/platform/Linux/task/thread.c:263
+[1: 1519494110.845349s]
+delete_thread() C-kern/platform/Linux/task/thread.c:277
 One or more resources could not be freed
 Exit function with
 Error 2 - No such file or directory
-[1: 1518426136.375651s]
-delete_thread() C-kern/platform/Linux/task/thread.c:263
+[1: 1519494110.845393s]
+delete_thread() C-kern/platform/Linux/task/thread.c:277
 One or more resources could not be freed
 Exit function with
 Error 3 - No such process
-[1: 1518426136.388485s]
-join_thread() C-kern/platform/Linux/task/thread.c:397
+[1: 1519494110.845437s]
+delete_thread() C-kern/platform/Linux/task/thread.c:277
+One or more resources could not be freed
+Exit function with
+Error 4 - Interrupted system call
+[1: 1519494110.858223s]
+join_thread() C-kern/platform/Linux/task/thread.c:411
 Exit function with
 Error 35 - Resource deadlock avoided
-[1: 1518426136.388600s]
-join_thread() C-kern/platform/Linux/task/thread.c:397
+[1: 1519494110.858316s]
+join_thread() C-kern/platform/Linux/task/thread.c:411
 Exit function with
 Error 3 - No such process
-[1: 1518426136.964344s]
-exit_thread() C-kern/platform/Linux/task/thread.c:553
+[1: 1519494111.338151s]
+exit_thread() C-kern/platform/Linux/task/thread.c:567
 Operation allowed only in state (! ismain_thread(thread))
 Exit function with
 Error 71 - Protocol error

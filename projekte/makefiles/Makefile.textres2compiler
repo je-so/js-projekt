@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2017.Aug.27  18:55:09
+GenerationDate  := 2018.Mär.20  15:47:02
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -74,7 +74,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
@@ -94,6 +93,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!string!clocale.c.o \
  $(ObjectDir_Debug)/C-kern!io!log!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o \
@@ -109,7 +109,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
@@ -129,6 +128,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!string!clocale.c.o \
  $(ObjectDir_Release)/C-kern!io!log!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!log!logwriter.c.o \
@@ -148,9 +148,6 @@ $(Target_Debug): $(Objects_Debug)
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
@@ -209,6 +206,9 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c
 	@$(CC_Debug)
 
@@ -247,9 +247,6 @@ $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
 
 $(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Debug)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
@@ -306,6 +303,9 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c

@@ -44,11 +44,11 @@
  * de - German
  * en - English */
 #define KONFIG_LANG                    en
-/*define: KONFIG_MEMALIGN
+/* define: KONFIG_MEMALIGN
  * Alignment of allocated memory.
  * Every allocated memory address must be aligned with this value.
- * The value of 4 is suitable for architectures with a i386 processor. */
-#define KONFIG_MEMALIGN                4
+ * The value of 8 is suitable for 64 bit architectures. */
+#define KONFIG_MEMALIGN                8
 /* define: KONFIG_OS
  * Choose name of operating system this project is compiled for.
  * The value is used as include path for system specific settings.

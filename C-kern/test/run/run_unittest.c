@@ -28,7 +28,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/math/fpu.h"
-#include "C-kern/api/platform/locale.h"
+#include "C-kern/api/string/clocale.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/mm/testmm.h"
@@ -50,7 +50,8 @@ static void prepare_test(void)
       ilog_t* ilog = &log_maincontext();
       ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_IGNORED);
       ilog->iimpl->setstate(ilog->object, log_channel_ERR,     log_state_BUFFERED);
-      g_maincontext.type = maincontext_DEFAULT;
+      volatile maincontext_t* maincontext = self_maincontext();
+      maincontext->type = maincontext_DEFAULT;
    }
 
 }
@@ -275,7 +276,7 @@ static int run_all_test(maincontext_t* maincontext)
       RUN(unittest_platform_task_thread);
       RUN(unittest_platform_task_thread_stack);
       // other
-      RUN(unittest_platform_locale);
+      RUN(unittest_string_clocale);
       RUN(unittest_platform_malloc);
       RUN(unittest_platform_syslogin);
       RUN(unittest_platform_syscontext);

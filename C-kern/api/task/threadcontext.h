@@ -21,7 +21,8 @@
 #ifndef CKERN_TASK_THREADCONTEXT_HEADER
 #define CKERN_TASK_THREADCONTEXT_HEADER
 
-// forward
+// import
+struct maincontext_t;
 struct syncrunner_t;
 
 // === exported types
@@ -127,7 +128,7 @@ int free_threadcontext(threadcontext_t* tcontext);
  *
  * Unchecked Precondition:
  * *tcontext == threadcontext_FREE && _is_initialized_(castPcontext_threadstack(tcontext)) */
-int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog);
+int initstatic_threadcontext(threadcontext_t* tcontext, struct maincontext_t* maincontext, ilog_t* initlog);
 
 /* function: freestatic_threadcontext
  * Gibt Ressourcen von tcontext frei, die während Ausführung von <initstatic_threadcontext> belegt wurden.

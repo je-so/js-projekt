@@ -16,7 +16,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/convertwchar.h"
-#include "C-kern/api/platform/locale.h"
+#include "C-kern/api/string/clocale.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/resourceusage.h"
@@ -108,7 +108,7 @@ ONERR:
 static int test_fromutf8(void)
 {
    convert_wchar_t conv ;
-   const char        * encoding = charencoding_locale() ;
+   const char        * encoding = charencoding_clocale() ;
 
    if (strcmp(encoding,"UTF-8")) {
       PRINTCSTR_ERRLOG(encoding) ;

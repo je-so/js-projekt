@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/perftest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2018.Feb.24  19:13:00
+GenerationDate  := 2018.Mär.20  15:47:02
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -74,7 +74,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
@@ -117,6 +116,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!string!clocale.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!perftest_main.c.o \
@@ -124,7 +124,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!run!run_perftest.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
@@ -167,6 +166,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!string!clocale.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!main!test!perftest_main.c.o \
@@ -178,9 +178,6 @@ $(Target_Debug): $(Objects_Debug)
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Debug)
@@ -308,6 +305,9 @@ $(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c
 	@$(CC_Debug)
 
@@ -322,9 +322,6 @@ $(ObjectDir_Debug)/C-kern!test!perftest.c.o: C-kern/test/perftest.c
 
 $(ObjectDir_Debug)/C-kern!test!run!run_perftest.c.o: C-kern/test/run/run_perftest.c
 	@$(CC_Debug)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Release)
@@ -450,6 +447,9 @@ $(ObjectDir_Release)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!syncrunner.c.o: C-kern/task/syncrunner.c

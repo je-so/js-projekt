@@ -10,5 +10,5 @@ Src += C-kern/ds/inmem/queue.c
 Src += C-kern/memory/pagecache_impl.c
 Src += C-kern/memory/wbuffer.c
 Src += C-kern/memory/mm/mm_impl.c
-Src += C-kern/string/cstring.c
+Src += C-kern/string/cstring.c C-kern/string/clocale.c
 Src += C-kern/io/log/errlog.c C-kern/io/log/logbuffer.c C-kern/io/log/logwriter.c C-kern/io/log/logcontext.c

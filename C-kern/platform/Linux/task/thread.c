@@ -62,7 +62,7 @@ typedef struct startarg_t {
  * Simulates an error in <new_thread>. */
 static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
 
-/* variable: s_thread_errtimer
+/* variable: s_start_errtimer
  * Simulates an error in <start_thread>. */
 static test_errortimer_t   s_start_errtimer = test_errortimer_FREE;
 #endif
@@ -82,17 +82,15 @@ static int init_start_context(thread_t* thread)
    assert(startarg->self == thread);
    assert(pthread_self() != sys_thread_FREE);
 
-   if (maincontext_STATIC != startarg->type) {
-      if (PROCESS_testerrortimer(&s_start_errtimer, &err)) { return err; }
-      if (thread->ismain) {
-         err = init_maincontext(startarg->type, startarg->argc, startarg->argv);
-         (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
-         if (err) return err;
-      }
-      err = init_threadcontext(&thread->threadcontext, startarg->type);
+   if (PROCESS_testerrortimer(&s_start_errtimer, &err)) { return err; }
+   if (thread->ismain) {
+      err = init_maincontext(thread->threadcontext.maincontext, startarg->type, startarg->argc, startarg->argv);
       (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
       if (err) return err;
    }
+   err = init_threadcontext(&thread->threadcontext, startarg->type);
+   (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
+   if (err) return err;
 
    // do not access startarg after sigaltstack (startarg is stored on this stack)
    err = sigaltstack(&startarg->signalstack, (stack_t*)0);
@@ -116,7 +114,7 @@ static int free_start_context(thread_t* thread)
    (void) PROCESS_testerrortimer(&s_start_errtimer, &err);
 
    if (thread->ismain) {
-      int err2 = free_maincontext();
+      int err2 = free_maincontext(thread->threadcontext.maincontext);
       (void) PROCESS_testerrortimer(&s_start_errtimer, &err2);
       if (err2) err = err2;
    }
@@ -150,7 +148,7 @@ static void* start_thread(void* _dummy)
 
    // abort_thread sets thread->returncode to ENOTRECOVERABLE
    if (0 == thread->returncode && thread->task) {
-      thread->returncode = thread->task(thread->task_arg);
+      thread->returncode = thread->task(thread->ismain ? thread->threadcontext.maincontext : thread->task_arg);
    }
 
    err = free_start_context(thread);
@@ -186,8 +184,18 @@ static inline int init_helper(
    }
    if (err) goto ONERR;
 
+   maincontext_t* maincontext;
    if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
-      err = initstatic_threadcontext(context_threadstack(threadstack), log);
+      if (isMainThread) {
+         err = newstatic_maincontext(&maincontext, threadstack, log);
+      } else {
+         maincontext = self_maincontext();
+      }
+   }
+   if (err) goto ONERR;
+
+   if (! PROCESS_testerrortimer(&s_thread_errtimer, &err)) {
+      err = initstatic_threadcontext(context_threadstack(threadstack), maincontext, log);
    }
    if (err) goto ONERR;
 
@@ -225,7 +233,13 @@ static inline int free_helper(thread_t** thread, ilog_t* log)
 
    thread_stack_t* threadstack = castPthread_threadstack(delobj);
 
-   int err2 = delete_threadstack(&threadstack, log);
+   int err2 = (delobj->ismain
+               ? deletestatic_maincontext(&delobj->threadcontext.maincontext, threadstack, log)
+               : 0);
+   (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
+   if (err2) err = err2;
+
+   err2 = delete_threadstack(&threadstack, log);
    (void) PROCESS_testerrortimer(&s_thread_errtimer, &err2);
    if (err2) err = err2;
 
@@ -235,7 +249,7 @@ static inline int free_helper(thread_t** thread, ilog_t* log)
 
 // group: lifetime
 
-int delete_thread(thread_t ** thread)
+int delete_thread(thread_t** thread)
 {
    int err;
    thread_t* delobj = *thread;
@@ -324,7 +338,7 @@ ONERR:
    return err;
 }
 
-int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_t* initlog, maincontext_e type, int argc, const char* argv[])
+int runmain_thread(/*out;err*/int* retcode, mainthread_f task, ilog_t* initlog, maincontext_e type, int argc, const char* argv[])
 {
    int err;
    thread_t*  thread=0;
@@ -333,7 +347,7 @@ int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_
    ucontext_t context_mainthread;
    const uint8_t mainThread  = 1;
 
-   err = init_helper(&thread, &stack, initlog, task, task_arg, mainThread, type, argc, argv);
+   err = init_helper(&thread, &stack, initlog, (thread_f)task, 0/*task_arg*/, mainThread, type, argc, argv);
    if (err) goto ONERR;
 
    err = getcontext(&context_mainthread);
@@ -584,6 +598,7 @@ void abort_thread(void)
 #ifdef KONFIG_UNITTEST
 
 static void*         s_thread_param    = 0;
+static void*         s_thread_maincontext = 0;
 static unsigned      s_thread_runcount = 0;
 static unsigned      s_thread_signal   = 0;
 static int           s_thread_retcode  = 0;
@@ -610,25 +625,28 @@ static int thread_returncode(intptr_t retcode)
    return (int) retcode;
 }
 
-static int thread_param(void* param)
+static int thread_param(maincontext_t* param)
 {
    s_thread_id = pthread_self();
    s_thread_param = param;
+   s_thread_maincontext = self_maincontext();
    return s_thread_retcode;
 }
 
-static int thread_context(void* param)
-{  (void) param;
+static int thread_context(maincontext_t* param)
+{
    s_thread_id = pthread_self();
+   s_thread_param = param;
+   s_thread_maincontext = self_maincontext();
    s_thread_type = type_maincontext();
    s_thread_argc = self_maincontext()->argc;
    s_thread_argv = self_maincontext()->argv;
-   return 0;
+   return s_thread_retcode;
 }
 
-static int thread_printferrlog(void* text)
+static int thread_printferrlog(maincontext_t* maincontext)
 {
-   PRINTF_ERRLOG("%s",(char*)text);
+   PRINTF_ERRLOG("%s",maincontext->argv[0]);
    return 0;
 }
 
@@ -713,13 +731,13 @@ static int test_initfree(void)
    TEST(0 == read_atomicint(&s_thread_signal)); // => delete has waited until thread has been run
    TEST(T == s_thread_id);
 
-   // TEST new_thread: ERROR
+   // TEST new_thread: simulated ERROR
    for (int i = 1; i; ++i) {
       init_testerrortimer(&s_thread_errtimer, (unsigned)i, i);
       int err = newgeneric_thread(&thread, &thread_returncode, (intptr_t)0);
       if (!err) {
          TEST(0 != thread);
-         TEST(6 == i)
+         TESTP(7 == i, "i:%d", i);
          break;
       }
       TEST(0 == thread);
@@ -729,6 +747,28 @@ static int test_initfree(void)
    write_atomicint(&s_thread_signal, 1);
    TEST(0 == delete_thread(&thread));
 
+   // TEST new_thread: simulated ERROR in start function
+   for (int i=1; i; ++i) {
+      init_testerrortimer(&s_start_errtimer, (unsigned)i, i);
+      s_thread_signal = 1;
+      TEST(0 == newgeneric_thread(&thread, &thread_returncode, (intptr_t)0));
+      TEST(0 == join_thread(thread));
+      int err = thread->syserr;
+      TEST(err == returncode_thread(thread));
+      TEST(0 == delete_thread(&thread));
+      if (i <= 4) {
+         TESTP( 1 == s_thread_signal, "i:%d", i); // error before call
+      } else {
+         TESTP( 0 == s_thread_signal, "i:%d", i); // err in free resources
+      }
+      if (!err) {
+         TESTP(6 == i, "i:%d", i);
+         break;
+      }
+      TEST(i == err);
+   }
+   free_testerrortimer(&s_start_errtimer);
+
    // TEST delete_thread: simulated ERROR
    for (unsigned i = 1; i; ++i) {
       TEST(0 == new_thread(&thread, &thread_donothing, 0));
@@ -737,7 +777,7 @@ static int test_initfree(void)
       // check
       TEST( 0 == thread);
       if (!err) {
-         TESTP(4 == i,"i:%d",i)
+         TESTP(5 == i,"i:%d",i)
          break;
       }
       TEST( (int)i == err);
@@ -795,23 +835,23 @@ static int test_mainthread(void)
 
    // prepare
    TEST( 1 == mainthread->ismain);
-   TEST( 0 == switchoff_testmm());
-   TEST( 0 == free_start_context(mainthread));
-   TEST( maincontext_STATIC == type_maincontext());
+   TEST( 0 != type_maincontext());
 
-   // TEST runmain_thread: maincontext is setup and freed
+   // TEST runmain_thread: argument / return code / maincontext is setup and freed
    GETBUFFER_ERRLOG(&logbuffer, &logsize1);
-   maincontext_e test_type[3] = { maincontext_STATIC, maincontext_DEFAULT, maincontext_CONSOLE };
+   maincontext_e ttype[] = { maincontext_DEFAULT, maincontext_CONSOLE };
    for (uintptr_t i = 0; i <= 10; ++i) {
-      maincontext_e T = test_type[i%3];
+      maincontext_e T = ttype[i%lengthof(ttype)];
       int retcode = -1;
       int C=(int)(1+(i%3));
       const char** V=&argv[2-(i%3)];
-      TEST(0 == runmain_thread(&retcode, &thread_context, (void*)(i+1), GETWRITER0_LOG(), T, C, V));
+      s_thread_retcode = (int)i;
+      TEST(0 == runmain_thread(&retcode, &thread_context, GETWRITER0_LOG(), T, C, V));
       // check context type and params
-      TEST(0 == retcode);
+      TEST(i == (uintptr_t) retcode);
+      TEST(0 != s_thread_param);
+      TEST(s_thread_param == s_thread_maincontext);
       TEST(T == s_thread_type);
-      if (maincontext_STATIC==T) { C=0; V=0; } // maincontext not initialized !!
       TEST(C == s_thread_argc);
       TEST(V == s_thread_argv);
       // check no new thread created
@@ -820,25 +860,9 @@ static int test_mainthread(void)
       // check no log written
       GETBUFFER_ERRLOG(&logbuffer, &logsize2);
       TEST(logsize2 == logsize1);
-      // check maincontext freed
-      TEST(maincontext_STATIC == type_maincontext());
-   }
-
-   // TEST runmain_thread: argument && return code
-   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
-   for (uintptr_t i = 0; i <= 10; ++i) {
-      int retcode = -1;
-      s_thread_retcode = (int)i;
-      TEST(0 == runmain_thread(&retcode, &thread_param, (void*)(i+1), GETWRITER0_LOG(), maincontext_STATIC, 0, 0));
-      // check param and return code
-      TEST(i == (uintptr_t) retcode);
-      TEST(i == ((uintptr_t)s_thread_param) -1);
-      // check no new thread created
-      TEST(pthread_self() == s_thread_id);
-      s_thread_id = sys_thread_FREE;
-      // check no log written
-      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
-      TEST(logsize2 == logsize1);
+      // check this maincontext not changed
+      TEST(s_thread_param != self_maincontext());
+      TEST(0 != type_maincontext());
    }
 
    // prepare
@@ -849,46 +873,50 @@ static int test_mainthread(void)
    // TEST runmain_thread: use log
    {
       int retcode = -1;
-      char text[] = { "123456789\n" };
-      char buffer[sizeof(text)] = {0};
-      TEST(0 == runmain_thread(&retcode, &thread_printferrlog, text, GETWRITER0_LOG(), maincontext_STATIC, 0, 0));
+      const char * text = "123456789\n";
+      char buffer[11] = {0};
+      TEST(0 == runmain_thread(&retcode, &thread_printferrlog, GETWRITER0_LOG(), maincontext_DEFAULT, 1, &text));
       TEST(0 == retcode);
       size_t len = (size_t) read(pipe.read, buffer, sizeof(buffer));
-      TEST(len == strlen(text));
+      if (len < strlen(text)) len += (size_t) read(pipe.read, buffer+len, sizeof(buffer)-len);
+      TESTP(len == strlen(text), "len:%zd strlen:%zd buffer:%.*s", len, strlen(text), (int)len, buffer);
       TEST(0 == strcmp(text, buffer));
    }
 
    // TEST runmain_thread: simulated error conditions in runmain_thread
    s_thread_retcode = 0;
-   s_thread_param = 0;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1);
    for (unsigned i=1; ;++i) {
       init_testerrortimer(&s_thread_errtimer, i, (int)i);
-      int err = runmain_thread(0, &thread_param, (void*)(uintptr_t)i, GETWRITER0_LOG(), maincontext_STATIC, 0, 0);
-      if (i <= 3) {
+      s_thread_param = 0;
+      int err = runmain_thread(0, &thread_context, GETWRITER0_LOG(), maincontext_DEFAULT, 0, 0);
+      if (i <= 4) {
          TEST( 0 == s_thread_param); // error before call
       } else {
-         TEST( i == (uintptr_t)s_thread_param); // err in free resources
+         TEST( 0 != s_thread_param); // err in free resources
       }
       if (!err) {
-         TEST( 7 == i);
+         TESTP( 9 == i, "i:%d", i);
          free_testerrortimer(&s_thread_errtimer);
          break;
       }
       TEST(err == (int)i);
-      TEST(0 == check_error_logged(&pipe, olderr));
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2);
+      TEST(logsize2 > logsize1);
+      logsize1 = logsize2;
    }
 
    // TEST runmain_thread: simulated error conditions in start_thread
    s_thread_retcode = 0;
-   s_thread_param = 0;
    for (unsigned i=1; ;++i) {
       init_testerrortimer(&s_start_errtimer, i, (int)i);
       int retcode=0;
-      TEST(0 == runmain_thread(&retcode, &thread_param, (void*)(uintptr_t)i, GETWRITER0_LOG(), maincontext_DEFAULT, 0, 0));
+      s_thread_param = 0;
+      TEST(0 == runmain_thread(&retcode, &thread_param, GETWRITER0_LOG(), maincontext_DEFAULT, 0, 0));
       if (i <= 5) {
          TESTP( 0 == s_thread_param, "i:%d", i); // error before call
       } else {
-         TESTP( i == (uintptr_t)s_thread_param, "i:%d", i); // err in free resources
+         TESTP( 0 != s_thread_param, "i:%d", i); // err in free resources
       }
       if (!retcode) {
          TESTP( 8 == i, "i:%d", i);
@@ -924,6 +952,10 @@ static int test_query(void)
    // TEST context_thread
    TEST(&thread.threadcontext == context_thread(&thread));
    TEST((threadcontext_t*)0   == context_thread((thread_t*)0));
+
+   // TEST castPcontext_thread
+   TEST(&thread == castPcontext_thread(&thread.threadcontext));
+   TEST((thread_t*)offsetof(thread_t,threadcontext) == castPcontext_thread((threadcontext_t*)0));
 
    // TEST self_thread
    TEST(self_thread() == thread_threadstack(self_threadstack()));

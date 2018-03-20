@@ -31,6 +31,10 @@ struct thread_t;
  * Defines function type executed by <thread_t>. */
 typedef int (* thread_f) (void * thread_arg);
 
+/* typedef: mainthread_f
+ * Signature of of new main function. It is stored in <maincontext_t>. */
+typedef int (* mainthread_f) (struct maincontext_t* maincontext);
+
 
 // section: Functions
 
@@ -83,7 +87,7 @@ typedef struct thread_t {
    /* variable: syserr
     * Contains the error code produced by init or free operations of thread context.
     * This value is only valid after thread has stopped running. */
-   volatile int   syserr; // TODO: add test for this value
+   volatile int   syserr;
    /* variable: lockflag
     * Lock flag used to protect access to data members.
     * Set and cleared with atomic operations. */
@@ -132,7 +136,7 @@ typedef struct thread_t {
  * This function is called during execution of <maincontext_t.initrun_maincontext>
  * to set up the thread environment of the main thread.
  * */
-int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_t* initlog, maincontext_e type, int argc, const char* argv[]);
+int runmain_thread(/*out;err*/int* retcode, mainthread_f task, ilog_t* initlog, maincontext_e type, int argc, const char* argv[]);
 
 /* function: new_thread
  * Creates and starts a new system thread.
@@ -196,6 +200,10 @@ void* taskarg_thread(const thread_t* thread);
 /* function: ismain_thread
  * Returns true if the calling thread is the main thread. */
 bool ismain_thread(const thread_t* thread);
+
+/* function: ismain_thread
+ * Converts pointer to <threadcontext_t> into pointer to <thread_t>. */
+/*const*/ thread_t* castPcontext_thread(/*const*/ threadcontext_t* tcontext);
 
 // group: update
 
@@ -337,6 +345,12 @@ int setcontinue_thread(thread_t* thread);
 
 
 // section: inline implementation
+
+
+/* define: castPcontext_thread
+ * Implements <thread_t.castPcontext_thread>. */
+#define castPcontext_thread(tcontext) \
+         _Generic((tcontext), const threadcontext_t*: (const thread_t*) ((uintptr_t)tcontext - offsetof(thread_t, threadcontext)), threadcontext_t*: (thread_t*) ((uintptr_t)tcontext - offsetof(thread_t, threadcontext)))
 
 /* define: context_thread
  * Implements <thread_t.context_thread>. */

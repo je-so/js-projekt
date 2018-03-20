@@ -19,6 +19,7 @@
 #include "C-kern/api/task/threadcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/log/logbuffer.h" // needed by logwriter.h
+#include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
@@ -76,7 +77,7 @@ static inline size_t static_memory_size(void)
          + sizeof(logwriter_t)
 // TEXTDB:END
       ;
-   return memorysize;
+   return alignpower2_int(memorysize, KONFIG_MEMALIGN);
 }
 
 /* function: alloc_static_memory
@@ -171,7 +172,7 @@ static inline void set_static_data(threadcontext_t* tcontext, maincontext_t* mai
 
 // group: lifetime
 
-int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog)
+int initstatic_threadcontext(threadcontext_t* tcontext, maincontext_t* maincontext, ilog_t* initlog)
 {
    int err;
 
@@ -184,7 +185,7 @@ int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog)
    }
    if (err) goto ONERR;
 
-   set_static_data(tcontext, &g_maincontext, sd);
+   set_static_data(tcontext, maincontext, sd);
 
    return 0;
 ONERR:
@@ -292,13 +293,16 @@ ONERR:
    return err;
 }
 
-int init_threadcontext(/*out*/threadcontext_t * tcontext, uint8_t context_type)
+int init_threadcontext(/*out*/threadcontext_t* tcontext, uint8_t context_type)
 {
    int err;
 
-   VALIDATE_INPARAM_TEST(context_type < maincontext__NROF, ONERR_NOFREE, );
-
-   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONERR_NOFREE, );
+   if (  context_type <= maincontext_STATIC
+      || context_type >= maincontext__NROF
+      || type_maincontext() == maincontext_STATIC) {
+      err = EINVAL;
+      goto ONERR_NOFREE;
+   }
 
    thread_stack_t* st = castPcontext_threadstack(tcontext);
 
@@ -397,7 +401,9 @@ bool isstatic_threadcontext(const threadcontext_t* tcontext)
 {
    struct log_t *log = (struct log_t*) &get_static_data(tcontext)->logwriter;
    const size_t S=extsize_threadcontext();
-   return   &g_maincontext == tcontext->maincontext
+   return   0 != tcontext->maincontext
+            && (  !castPcontext_thread(tcontext)->ismain
+               || tcontext->staticdata - static_memory_size() == (uint8_t*) tcontext->maincontext)
             && isfree_iobj(&tcontext->pagecache)
             && isfree_iobj(&tcontext->mm)
             && 0 == tcontext->syncrunner
@@ -528,10 +534,10 @@ static int test_initfree_static(void)
    TEST(STDERR_FILENO == dup2(pipe.write, STDERR_FILENO));
 
    // TEST initstatic_threadcontext
-   *tcontext = (threadcontext_t) threadcontext_FREE;
-   TEST( 0 == initstatic_threadcontext(tcontext, defaultlog));
+   TEST( 0 == initstatic_threadcontext(tcontext, self_maincontext(), defaultlog));
    // check tcontext
-   TEST( tcontext->maincontext == &g_maincontext);
+   TEST( 1 == isstatic_threadcontext(tcontext));
+   TEST( tcontext->maincontext == self_maincontext());
    TEST( tcontext->staticdata  != 0);
    TEST( tcontext->log.object  == (struct log_t*)tcontext->staticdata);
    TEST( tcontext->log.iimpl   == interface_logwriter());
@@ -545,14 +551,12 @@ static int test_initfree_static(void)
    printf_logwriter(&sd->logwriter, log_channel_ERR, log_flags_LAST, 0, "%s", "hello log");
    TEST( 9 == read(pipe.read, buffer, sizeof(buffer)));
    TEST( 0 == strncmp(buffer, "hello log", 9));
-   // check isstatic_threadcontext
-   TEST( 1 == isstatic_threadcontext(tcontext));
 
    // TEST freestatic_threadcontext
    TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
-   // check memory
-   TEST( 0 == tcontext->staticdata);
    // check tcontext
+   TEST( tcontext->maincontext == self_maincontext()); // not changed
+   TEST( tcontext->staticdata == 0);
    TEST( tcontext->log.object == 0);
    TEST( tcontext->log.iimpl  == 0);
 
@@ -560,7 +564,7 @@ static int test_initfree_static(void)
    for (unsigned i=1; ; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, i, (int)i);
       *tcontext = (threadcontext_t) threadcontext_FREE;
-      int err = initstatic_threadcontext(tcontext, defaultlog);
+      int err = initstatic_threadcontext(tcontext, self_maincontext(), defaultlog);
       if (!err) {
          TEST( 3 == i);
          free_testerrortimer(&s_threadcontext_errtimer);
@@ -574,7 +578,7 @@ static int test_initfree_static(void)
    TEST( 0 == freestatic_threadcontext(tcontext, defaultlog));
 
    // TEST freestatic_threadcontext: simulated error: not all memory freed
-   TEST(0 == initstatic_threadcontext(tcontext, defaultlog));
+   TEST(0 == initstatic_threadcontext(tcontext, 0, defaultlog));
    memblock_t extramem;
    TEST(0 == allocstatic_threadstack(castPcontext_threadstack(tcontext), defaultlog, 1, &extramem));
    // test
@@ -609,7 +613,7 @@ static int test_initfree_main(void)
    threadcontext_t* tc = tcontext_maincontext();
 
    // prepare
-   TEST( ismain_thread(self_thread()));
+   TEST(1 == ismain_thread(self_thread()));
    TEST(0 == switchoff_testmm());
 
    // TEST free_threadcontext: main thread ==> reset s_threadcontext_nextid
@@ -664,7 +668,7 @@ static int test_initfree(void)
    TEST(0 == tc->staticdata);
 
    // prepare
-   TEST(0 == initstatic_threadcontext(tc, defaultlog));
+   TEST(0 == initstatic_threadcontext(tc, M, defaultlog));
    TEST(static_memory_size() == sizestatic_threadstack(st));
 
    maincontext_e contexttype[] = { maincontext_DEFAULT, maincontext_CONSOLE };
@@ -738,20 +742,16 @@ static int test_initfree(void)
       TEST(1 == isstatic_threadcontext(tc));
    }
 
-   // TEST init_threadcontext: EPROTO
-   // prepare
-   oldtype = g_maincontext.type;
-   g_maincontext.type = maincontext_STATIC;
-   // test
-   TEST(EPROTO == init_threadcontext(tc, maincontext_DEFAULT));
-   TEST(1 == isstatic_threadcontext(tc));
-   // reset
-   g_maincontext.type = oldtype;
-   oldtype = maincontext_STATIC;
-
    // TEST init_threadcontext: EINVAL
-   TEST(EINVAL == init_threadcontext(tc, maincontext_CONSOLE+1));
+   TEST(EINVAL == init_threadcontext(tc, maincontext__NROF));
    TEST(1 == isstatic_threadcontext(tc));
+   TEST(EINVAL == init_threadcontext(tc, maincontext_STATIC));
+   TEST(1 == isstatic_threadcontext(tc));
+   oldtype = type_maincontext();
+   type_maincontext() = maincontext_STATIC;
+   TEST(EINVAL == init_threadcontext(tc, maincontext_DEFAULT));
+   TEST(1 == isstatic_threadcontext(tc));
+   type_maincontext() = oldtype;
 
    // TEST init_threadcontext: simulated ERROR
    s_threadcontext_nextid = 2;
@@ -792,7 +792,7 @@ static int test_initfree(void)
    return 0;
 ONERR:
    if (oldtype != maincontext_STATIC) {
-      g_maincontext.type = oldtype;
+      type_maincontext() = oldtype;
    }
    free_testerrortimer(&s_threadcontext_errtimer);
    delete_thread(&thread);
@@ -819,7 +819,7 @@ static int test_query(void)
 
    // TEST isstatic_threadcontext: after simulated initstatic
    TEST(0 == alloc_static_memory(tcontext, defaultlog));
-   tcontext->maincontext = &g_maincontext;
+   tcontext->maincontext = self_maincontext();
    tcontext->log         = (ilog_t)iobj_INIT((void*)tcontext->staticdata, interface_logwriter());
    TEST(1 == isstatic_threadcontext(tcontext));
 
@@ -827,7 +827,7 @@ static int test_query(void)
    TEST(1 == isstatic_threadcontext(tcontext));
    tcontext->maincontext = 0;
    TEST(0 == isstatic_threadcontext(tcontext));
-   tcontext->maincontext = &g_maincontext;
+   tcontext->maincontext = self_maincontext();
    tcontext->pagecache.object = (void*)1;
    TEST(0 == isstatic_threadcontext(tcontext));
    tcontext->pagecache.object = 0;

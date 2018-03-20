@@ -24,16 +24,18 @@
 
 // import
 #include "C-kern/api/task/threadcontext.h"
+struct clocale_t;
 struct logwriter_t;
-struct syslogin_t;
 struct signals_t;
+struct syslogin_t;
+struct thread_stack_t;
 
 // === exported types
 struct maincontext_t;
 
 /* typedef: mainthread_f
  * Signature of of new main function. It is stored in <maincontext_t>. */
-typedef int (* mainthread_f) (struct maincontext_t * maincontext);
+typedef int (* mainthread_f) (struct maincontext_t* maincontext);
 
 
 /* enums: maincontext_e
@@ -64,13 +66,6 @@ typedef enum maincontext_e {
 } maincontext_e;
 
 #define maincontext__NROF (maincontext_CONSOLE + 1)
-
-
-/* variable: g_maincontext
- * Global variable which describes the main context for the current process.
- * The variable is located in process global storage.
- * So every thread references the same <maincontext_t>. */
-extern struct maincontext_t   g_maincontext;
 
 
 // section: Functions
@@ -108,10 +103,6 @@ typedef struct maincontext_t {
     * The initlog macros (see <LogMacros>) use this value to determine if standard error log is available ! */
    maincontext_e     type;
 
-   /* variable: staticmemblock
-    * Start address of static memory block. */
-   void*             staticmemblock;
-
    /* variable: initcount
     * Counts the number of successfully initialized services/subsystems.
     * This number counts all subsystems even if they
@@ -125,15 +116,18 @@ typedef struct maincontext_t {
    /* variable: sysinfo
     * Contains queried once information about the platform/OS. */
    syscontext_t         sysinfo;
-   /* variable: syslogin
-    * Context for <syslogin_t> module. */
-   struct syslogin_t*   syslogin;
-   /* variable: signals
-    * Context for <signals_t> module. */
-   struct signals_t*    signals;
    /* variable: logcontext
     * Provides additional information used during logging. */
    struct logcontext_t* logcontext;
+   /* variable: locale
+    * Changes locale of C runtime to the one set by the user starting the program. */
+   struct clocale_t*    locale;
+   /* variable: signals
+    * Context for <signals_t> module. */
+   struct signals_t*    signals;
+   /* variable: syslogin
+    * Context for <syslogin_t> module. */
+   struct syslogin_t*   syslogin;
 
    // --- program arguments
 
@@ -157,19 +151,32 @@ typedef struct maincontext_t {
 /* define: maincontext_INIT_STATIC
  * Static initializer for <maincontext_t>. */
 #define maincontext_INIT_STATIC \
-         {  maincontext_STATIC, (void*)0, (uint16_t)0, syscontext_FREE, (struct syslogin_t*)0, (struct signals_t*)0, (struct logcontext_t*)0, (const char*)0, (int)0, (const char**)0 }
+         {  maincontext_STATIC, (uint16_t)0, syscontext_FREE, (struct logcontext_t*)0, (struct clocale_t*)0,(struct signals_t*)0, (struct syslogin_t*)0, (const char*)0, (int)0, (const char**)0 }
+
+/* function: free_maincontext
+ * Frees all initialized services.
+ * After return maincontext is reset to static mode, i.e. <isstatic_maincontext> would return true if applied to argument maincontext. */
+int free_maincontext(maincontext_t* maincontext);
 
 /* function: init_maincontext
- * Initializes <maincontext_t> and all its contained shared services (shared between threads).
+ * Initializes maincontext with type, argc, argc.
+ * All contained shared services (shared between threads) are initialized.
  * This function is called from <thread_t.runmain_thread>.
- * The parameter context_type is of type <maincontext_e>.
+ * The parameter type has type <maincontext_e>.
+ * A shared service can only access services previously initialized in maincontext
+ * and a static log service from <threadcontext_t>.
+ *
+ * Unchecked Precondition:
+ * It is expected that init_maincontext is only called from the main thread.
+ * Also the caller does already use an allocated <thread_stack_t> as its stack
+ * and maincontext points to the address returned from <newstatic_maincontext>.
  *
  * Architecture:
  * Function init_maincontext calls every initonce_NAME function and others in the same order
  * as defined in "C-kern/resource/config/initmain".
  * This init database file is checked against the whole project with
  * "C-kern/test/static/check_textdb.sh". */
-int init_maincontext(const maincontext_e context_type, int argc, const char* argv[]);
+int init_maincontext(/*out*/maincontext_t* maincontext, const maincontext_e type, int argc, const char* argv[]);
 
 /* function: initrun_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
@@ -195,11 +202,17 @@ int init_maincontext(const maincontext_e context_type, int argc, const char* arg
  * */
 int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, const char** argv);
 
-/* function: free_maincontext
- * Frees <g_maincontext> of type <maincontext_t>.
- * All initialized shared services are freed.
- * After return <isstatic_maincontext> returns true. */
-int free_maincontext(void);
+/* function: newstatic_maincontext
+ * Allocates a new <maincontext_t> from static memory of <thread_stack_t> and initializes it with <maincontext_INIT_STATIC>.
+ * This function is called from <thread_t.runmain_thread>.
+ *
+ * Unchecked Precondition:
+ * _is_initialized_(tstack) */
+int newstatic_maincontext(/*out*/maincontext_t** maincontext, struct thread_stack_t* tstack, ilog_t* initlog);
+
+/* function: deletestatic_maincontext
+ * Frees static memory used by maincontext. Sets *maincontext to 0 before return. */
+int deletestatic_maincontext(maincontext_t** maincontext, struct thread_stack_t* tstack, ilog_t* initlog);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.

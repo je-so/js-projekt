@@ -74,7 +74,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!syslogin.c.o \
@@ -184,6 +183,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode.c.o \
+ $(ObjectDir_Debug)/C-kern!string!clocale.c.o \
  $(ObjectDir_Debug)/C-kern!task!module.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Debug)/C-kern!task!syncrunner.c.o \
@@ -199,7 +199,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!time!timevalue.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!syslogin.c.o \
@@ -309,6 +308,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!strsearch.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode.c.o \
+ $(ObjectDir_Release)/C-kern!string!clocale.c.o \
  $(ObjectDir_Release)/C-kern!task!module.c.o \
  $(ObjectDir_Release)/C-kern!task!syncfunc.c.o \
  $(ObjectDir_Release)/C-kern!task!syncrunner.c.o \
@@ -328,9 +328,6 @@ $(Target_Debug): $(Objects_Debug)
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Debug)
@@ -659,6 +656,9 @@ $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 $(ObjectDir_Debug)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!task!module.c.o: C-kern/task/module.c
 	@$(CC_Debug)
 
@@ -697,9 +697,6 @@ $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittes
 
 $(ObjectDir_Debug)/C-kern!time!timevalue.c.o: C-kern/time/timevalue.c
 	@$(CC_Debug)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
-	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!syscontext.c.o: C-kern/platform/Linux/syscontext.c
 	@$(CC_Release)
@@ -1026,6 +1023,9 @@ $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!base64encode.c.o: C-kern/string/base64encode.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!clocale.c.o: C-kern/string/clocale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!module.c.o: C-kern/task/module.c
