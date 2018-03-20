@@ -84,8 +84,8 @@
    <namesuffix value=_ERRLOG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
-   <firstparam value="struct logbuffer_t * logbuffer"/>
-   <fctparam name="ERRSTR" value="str_static_errorcontext(p->err)" format="%s"/>
+   <firstparam value="struct logbuffer_t* logbuffer, struct logcontext_t* logcontext"/>
+   <fctparam name="ERRSTR" value="errstr_logcontext(logcontext,p->err)" format="%s"/>
    <languages>de, en</languages>
 </outconfig>
 

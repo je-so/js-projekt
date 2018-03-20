@@ -27,7 +27,7 @@
 /* struct: ilog_t
  * Defined as <iobj_T>(log).
  * Type struct log_t and log_it are opaque.
- * struct log_it is defined in file <C-kern/api/io/writer/log/log.h>. */
+ * struct log_it is defined in file <C-kern/api/io/log/log.h>. */
 typedef iobj_T(log) ilog_t;
 
 // group: generic

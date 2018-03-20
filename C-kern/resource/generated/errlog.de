@@ -5,154 +5,154 @@
  *
  */
 
-void ASSERT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void ASSERT_FAILED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_ASSERT_FAILED_ERRLOG * p = _p;
 
    PRINTF("Assertion '%s' fehlgeschlagen.\n", p->wrong_condition);
 }
 
-void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void ERROR_DESCRIPTION_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_ERROR_DESCRIPTION_ERRLOG * p = _p;
 
-   PRINTF("Fehler %d - %s\n", p->err, str_static_errorcontext(p->err));
+   PRINTF("Fehler %d - %s\n", p->err, errstr_logcontext(logcontext,p->err));
 }
 
-void ERROR_IGNORED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void ERROR_IGNORED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Fehler wird ignoriert\n");
 }
 
-void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_FORMAT_WRONG_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_FORMAT_WRONG_ERRLOG * p = _p;
 
    PRINTF("Datei '%s' besitzt unbekanntes Format\n", p->filename);
 }
 
-void FILE_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_NAME_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_NAME_ERRLOG * p = _p;
 
    PRINTF("Dateiname '%s%s'\n", p->workdir, p->filename);
 }
 
-void FILE_HEADER_NAME_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_HEADER_NAME_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_HEADER_NAME_ERRLOG * p = _p;
 
    PRINTF("Datei '%s%s': ", p->filedir, p->filename);
 }
 
-void FILE_HEADER_LINECOL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_HEADER_LINECOL_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_HEADER_LINECOL_ERRLOG * p = _p;
 
    PRINTF("Datei '%s%s': Zeile %zu, Spalte %zu: ", p->filedir, p->filename, p->linenr, p->colnr);
 }
 
-void FILE_CREATE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_CREATE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_CREATE_ERRLOG * p = _p;
 
-   PRINTF("Kann Datei '%s%s' nicht anlegen - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
+   PRINTF("Kann Datei '%s%s' nicht anlegen - %s\n", p->workdir, p->filename, errstr_logcontext(logcontext,p->err));
 }
 
-void FILE_OPEN_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_OPEN_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_OPEN_ERRLOG * p = _p;
 
-   PRINTF("Kann Datei '%s%s' nicht öffnen - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
+   PRINTF("Kann Datei '%s%s' nicht öffnen - %s\n", p->workdir, p->filename, errstr_logcontext(logcontext,p->err));
 }
 
-void FILE_REMOVE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FILE_REMOVE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FILE_REMOVE_ERRLOG * p = _p;
 
-   PRINTF("Kann Datei '%s%s' nicht löschen - %s\n", p->workdir, p->filename, str_static_errorcontext(p->err));
+   PRINTF("Kann Datei '%s%s' nicht löschen - %s\n", p->workdir, p->filename, errstr_logcontext(logcontext,p->err));
 }
 
-void FUNCTION_CALL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FUNCTION_CALL_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FUNCTION_CALL_ERRLOG * p = _p;
 
    PRINTF("Funktionsaufruf '%s' fehlgeschlagen mit Fehler %d\n", p->funcname, p->err);
 }
 
-void FUNCTION_EXIT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FUNCTION_EXIT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FUNCTION_EXIT_ERRLOG * p = _p;
 
-   PRINTF("Beende Funktion mit\nFehler %d - %s\n", p->err, str_static_errorcontext(p->err));
+   PRINTF("Beende Funktion mit\nFehler %d - %s\n", p->err, errstr_logcontext(logcontext,p->err));
 }
 
-void FUNCTION_EXIT_FREE_RESOURCE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FUNCTION_EXIT_FREE_RESOURCE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FUNCTION_EXIT_FREE_RESOURCE_ERRLOG * p = _p;
 
-   PRINTF("Ressourcen-Freigabe schlug fehl\nBeende Funktion mit\nFehler %d - %s\n", p->err, str_static_errorcontext(p->err));
+   PRINTF("Ressourcen-Freigabe schlug fehl\nBeende Funktion mit\nFehler %d - %s\n", p->err, errstr_logcontext(logcontext,p->err));
 }
 
-void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FUNCTION_SYSCALL_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FUNCTION_SYSCALL_ERRLOG * p = _p;
 
    PRINTF("Systemaufruf '%s' fehlgeschlagen mit Fehler %d\n", p->funcname, p->err);
 }
 
-void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void FUNCTION_WRONG_RETURNVALUE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_FUNCTION_WRONG_RETURNVALUE_ERRLOG * p = _p;
 
    PRINTF("Funktion '%s' liefert falschen Rückgabewert (%s)\n", p->funcname, p->wrong_value);
 }
 
-void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void LOCALE_SETLOCALE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n");
 }
 
-void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void LOGENTRY_HEADER_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_LOGENTRY_HEADER_ERRLOG * p = _p;
 
    PRINTF("[%zu: %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\n", p->threadid, p->sec, p->usec, p->funcname, p->filename, p->linenr);
 }
 
-void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void MEMORY_OUT_OF_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_MEMORY_OUT_OF_ERRLOG * p = _p;
 
    PRINTF("Keine %zu Bytes Speicher mehr frei - Fehler %d\n", p->size, p->err);
 }
 
-void PARSEERROR_ENDOFINPUT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFINPUT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Eingabeende");
 }
 
-void PARSEERROR_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ENDOFLINE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Zeilenendezeichen");
 }
 
-void PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_PARSEERROR_ILLEGALCHARACTERENCODING_ERRLOG * p = _p;
 
    PRINTF("Falsch kodiertes Zeichen '%s'\n", p->str);
 }
 
-void PARSEERROR_EXPECT_INSTEADOF_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_EXPECT_INSTEADOF_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_PARSEERROR_EXPECT_INSTEADOF_ERRLOG * p = _p;
 
@@ -166,91 +166,91 @@ void PARSEERROR_EXPECT_INSTEADOF_ERRLOG(struct logbuffer_t * logbuffer, void * _
    PRINTF("\n");
 }
 
-void PARSEERROR_UNEXPECTED_CHAR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_UNEXPECTED_CHAR_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_PARSEERROR_UNEXPECTED_CHAR_ERRLOG * p = _p;
 
    PRINTF("Unerwartetes Zeichen '%s'\n", p->str);
 }
 
-void PARSEERROR_EXPECT_ENDOFLINE_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_EXPECT_ENDOFLINE_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Erwarte Zeilenendezeichen\n");
 }
 
-void PARSEERROR_WRONG_FORMAT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PARSEERROR_WRONG_FORMAT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Inhalt besitzt unbekanntes Format\n");
 }
 
-void PROGRAM_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void PROGRAM_ABORT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_PROGRAM_ABORT_ERRLOG * p = _p;
 
-   PRINTF("Programmabbruch wegen fatalem Fehler\nFehler %d - %s\n", p->err, str_static_errorcontext(p->err));
+   PRINTF("Programmabbruch wegen fatalem Fehler\nFehler %d - %s\n", p->err, errstr_logcontext(logcontext,p->err));
 }
 
-void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void RESOURCE_USAGE_DIFFERENT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Ungleiche Anzahl benutzter Ressourcen\n");
 }
 
-void OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_OS_INSTALLED_SIGHANDLER_PRODUCES_UNDEFINED_BEHAVIOUR_ERRLOG * p = _p;
 
    PRINTF("Ein für Signal »%s« installierter Signalhandler erzeugt möglicherweise undefiniertes Verhalten in diesem Modul.\n", p->signame);
 }
 
-void VALIDATE_INPARAM_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_INPARAM_FAILED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_VALIDATE_INPARAM_FAILED_ERRLOG * p = _p;
 
    PRINTF("Eingabewert verletzt Bedingung (%s)\n", p->violated_condition);
 }
 
-void VALIDATE_INVARIANT_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_INVARIANT_FAILED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_VALIDATE_INVARIANT_FAILED_ERRLOG * p = _p;
 
    PRINTF("Interne Zustandsvariablen verletzen Bedingung (%s)\n", p->violated_condition);
 }
 
-void VALIDATE_OUTPARAM_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_OUTPARAM_FAILED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_VALIDATE_OUTPARAM_FAILED_ERRLOG * p = _p;
 
    PRINTF("Ausgabewert verletzt Bedingung (%s)\n", p->violated_condition);
 }
 
-void VALIDATE_STATE_FAILED_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void VALIDATE_STATE_FAILED_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_VALIDATE_STATE_FAILED_ERRLOG * p = _p;
 
    PRINTF("Operation nur erlaubt im Zustand (%s)\n", p->violated_condition);
 }
 
-void THREAD_MAIN_ABORT_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void THREAD_MAIN_ABORT_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_THREAD_MAIN_ABORT_ERRLOG * p = _p;
 
    PRINTF("Hauptthread '%zu' abgebrochen wegen fatalem Fehler\n", p->threadid);
 }
 
-void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void X11_DISPLAY_NOT_SET_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    (void) _p;
 
    PRINTF("Name des X11 Display-Servers nicht bekannt\nBitte die Umgebungsvariable »DISPLAY« setzen\n");
 }
 
-void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t * logbuffer, void * _p)
+void X11_NO_CONNECTION_ERRLOG(struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * _p)
 {
    struct p_X11_NO_CONNECTION_ERRLOG * p = _p;
 

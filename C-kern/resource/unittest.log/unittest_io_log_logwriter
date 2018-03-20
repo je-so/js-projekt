@@ -1,0 +1,9 @@
+[1: 1518539703.057002s]
+free_logwriter() C-kern/io/log/logwriter.c:195
+One or more resources could not be freed
+Exit function with
+Error 22 - Invalid argument
+[1: 1518539703.057005s]
+init_logwriter() C-kern/io/log/logwriter.c:164
+Exit function with
+Error 12 - Cannot allocate memory

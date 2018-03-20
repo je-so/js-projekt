@@ -17,8 +17,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/maincontext.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/logbuffer.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/io/log/logbuffer.h"
+#include "C-kern/api/io/log/logcontext.h"
+#include "C-kern/api/io/log/logwriter.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/platform/syslogin.h"
@@ -26,7 +27,7 @@
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/task/thread_stack.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/config/initmain)WHERE(header-name!='')
-#include "C-kern/api/err/errorcontext.h"
+#include "C-kern/api/io/log/logcontext.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/syslogin.h"
@@ -70,6 +71,7 @@ static inline uint16_t static_memory_size(void)
 {
    uint16_t memorysize = 0
 // TEXTDB:SELECT("         + sizeof("objtype")")FROM(C-kern/resource/config/initmain)WHERE(inittype=="object")
+         + sizeof(logcontext_t)
          + sizeof(signals_t)
          + sizeof(syslogin_t)
 // TEXTDB:END
@@ -149,9 +151,16 @@ static inline void clear_args_maincontext(/*out*/maincontext_t* maincontext)
    maincontext->argv = 0;
 }
 
-static inline void initlog_maincontext(/*out*/ilog_t* initlog, logwriter_t* logwriter, size_t size, uint8_t logbuffer[size])
+static inline void initlog_maincontext(
+      /*out*/logcontext_t* logcontext,
+      /*out*/ilog_t*       initlog,
+      /*out*/logwriter_t*  logwriter,
+      size_t   size,
+      uint8_t  logbuffer[size])
 {
-   if (initstatic_logwriter(logwriter, size, logbuffer) || PROCESS_testerrortimer(&s_maincontext_errtimer, 0)) {
+   initstatic_logcontext(logcontext);
+   if (initstatic_logwriter(logwriter, logcontext, size, logbuffer) || PROCESS_testerrortimer(&s_maincontext_errtimer, 0)) {
+      freestatic_logcontext(logcontext);
       #define ERRSTR "FATAL ERROR: initlog_maincontext(): call to initstatic_logwriter failed\n"
       ssize_t ignore = write(sys_iochannel_STDERR, ERRSTR, sizeof(ERRSTR)-1);
       (void) ignore;
@@ -161,8 +170,9 @@ static inline void initlog_maincontext(/*out*/ilog_t* initlog, logwriter_t* logw
    *initlog = (ilog_t) iobj_INIT((struct log_t*)logwriter, interface_logwriter());
 }
 
-static inline void freelog_maincontext(ilog_t* initlog)
+static inline void freelog_maincontext(logcontext_t* lc, ilog_t* initlog)
 {
+   freestatic_logcontext(lc);
    if (!isfree_iobj(initlog)) {
       freestatic_logwriter((logwriter_t*)initlog->object);
       *initlog = (ilog_t) iobj_FREE;
@@ -206,9 +216,10 @@ int free_shared_services(maincontext_t* maincontext)
             if (err2) err = err2;
 
    case (2+1):
-            err2 = freeonce_errorcontext(&maincontext->error);
+            err2 = free_logcontext(maincontext->logcontext);
             (void) PROCESS_testerrortimer(&s_maincontext_errtimer, &err2);
             if (err2) err = err2;
+            maincontext->logcontext = 0;
 
    case (1+1):
             err2 = free_syscontext(&maincontext->sysinfo);
@@ -250,11 +261,15 @@ int init_shared_services(maincontext_t* maincontext)
    if (err) goto ONERR;
    ++ maincontext->initcount;
 
+   assert( sizeof(logcontext_t) <= mblock.size);
    if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
-      err = initonce_errorcontext(&maincontext->error);
+      err = init_logcontext((logcontext_t*) mblock.addr);
    }
    if (err) goto ONERR;
    ++ maincontext->initcount;
+   maincontext->logcontext = (logcontext_t*) mblock.addr;
+   mblock.addr += sizeof(logcontext_t);
+   mblock.size -= sizeof(logcontext_t);
 
    if (! PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) {
       err = initonce_locale();
@@ -289,7 +304,6 @@ int init_shared_services(maincontext_t* maincontext)
    ++ maincontext->initcount;
 // TEXTDB:END
 
-   assert(mblock.size == 0);
    if (PROCESS_testerrortimer(&s_maincontext_errtimer, &err)) goto ONERR;
 
    return 0;
@@ -341,9 +355,10 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, 
 {
    int err;
    int is_already_initialized = (maincontext_STATIC != g_maincontext.type);
-   logwriter_t lgwrt;
-   uint8_t     logbuffer[log_config_MINSIZE];
-   ilog_t      initlog = iobj_FREE;
+   logwriter_t    lgwrt;
+   uint8_t        logbuffer[log_config_MINSIZE];
+   logcontext_t   logcontext = logcontext_FREE;
+   ilog_t         initlog = iobj_FREE;
 
    if (is_already_initialized) {
       TRACEEXIT_ERRLOG(EALREADY);
@@ -351,7 +366,7 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, 
    }
 
    // setup initlog which is used for error logging during initialization
-   initlog_maincontext(&initlog, &lgwrt, sizeof(logbuffer), logbuffer);
+   initlog_maincontext(&logcontext, &initlog, &lgwrt, sizeof(logbuffer), logbuffer);
 
    if (  type <= maincontext_STATIC
       || type >= maincontext__NROF) {
@@ -368,12 +383,12 @@ int initrun_maincontext(maincontext_e type, mainthread_f main_thread, int argc, 
    err = runmain_thread(&retcode, (thread_f)main_thread, &g_maincontext, &initlog, type, argc, argv);
    if (!err) err = retcode;
 
-   freelog_maincontext(&initlog);
+   freelog_maincontext(&logcontext, &initlog);
 
    return err;
 ONERR:
    TRACE_LOG(&initlog, log_channel_ERR, log_flags_LAST, FUNCTION_EXIT_ERRLOG, err);
-   freelog_maincontext(&initlog);
+   freelog_maincontext(&logcontext, &initlog);
    return err;
 }
 
@@ -407,7 +422,7 @@ bool isstatic_maincontext(const maincontext_t* maincontext)
             && 1 == isfree_syscontext(&maincontext->sysinfo)
             && 0 == maincontext->syslogin
             && 0 == maincontext->signals
-            && g_errorcontext_stroffset == maincontext->error.stroffset && g_errorcontext_strdata == maincontext->error.strdata
+            && 0 == maincontext->logcontext
             // program arguments
             && 0 == maincontext->progname
             && 0 == maincontext->argc
@@ -487,7 +502,7 @@ ONERR:
 static int test_querymacros(void)
 {
    // TEST error_maincontext
-   TEST(&error_maincontext()       == &self_maincontext()->error);
+   TEST(&logcontext_maincontext()  == &self_maincontext()->logcontext);
 
    // TEST log_maincontext
    TEST(&log_maincontext()         == &tcontext_maincontext()->log);
@@ -536,11 +551,13 @@ static int test_staticmemory(void)
    const size_t   S        = static_memory_size();
    memblock_t     mblock   = memblock_FREE;
    uint8_t        logbuf[log_config_MINSIZE];
+   logcontext_t   logctxt  = logcontext_FREE;
    logwriter_t    lgwrt    = logwriter_FREE;
    ilog_t         initlog  = iobj_INIT((struct log_t*)&lgwrt, interface_logwriter());
 
    // prepare
-   TEST(0 == initstatic_logwriter(&lgwrt, sizeof(logbuf), logbuf));
+   initstatic_logcontext(&logctxt);
+   TEST(0 == initstatic_logwriter(&lgwrt, &logctxt, sizeof(logbuf), logbuf));
    TEST(0 == new_threadstack(&tls, &initlog, S, 0, 0));
 
    // TEST static_memory_size
@@ -585,11 +602,13 @@ static int test_staticmemory(void)
    // reset
    TEST(0 == delete_threadstack(&tls, &initlog));
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
 
    return 0;
 ONERR:
    delete_threadstack(&tls, &initlog);
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
    return EINVAL;
 }
 
@@ -630,17 +649,21 @@ static int test_helper(void)
    TEST(0 == check_isfree_args(&maincontext));
 
    // TEST initlog_maincontext
-   ilog_t initlog = iobj_FREE;
-   logwriter_t lw = logwriter_FREE;
-   uint8_t     lb[log_config_MINSIZE];
-   initlog_maincontext(&initlog, &lw, log_config_MINSIZE, lb);
+   ilog_t  initlog = iobj_FREE;
+   logwriter_t  lw = logwriter_FREE;
+   logcontext_t lc = logcontext_FREE;
+   uint8_t      lb[log_config_MINSIZE];
+   initlog_maincontext(&lc, &initlog, &lw, log_config_MINSIZE, lb);
+   TEST(0 == isfree_logcontext(&lc));
+   TEST(0 != errstr_logcontext(&lc, 1));
    TEST(initlog.object == (struct log_t*)&lw);
    TEST(initlog.iimpl  == interface_logwriter());
    TEST(lw.addr == lb);
    TEST(lw.size == log_config_MINSIZE);
 
    // TEST freelog_maincontext
-   freelog_maincontext(&initlog);
+   freelog_maincontext(&lc, &initlog);
+   TEST(isfree_logcontext(&lc));
    TEST(isfree_iobj(&initlog));
    TEST(isfree_logwriter(&lw));
 
@@ -654,6 +677,7 @@ static int test_init(void)
    maincontext_t     maincontext = maincontext_INIT_STATIC;
    const uint16_t    I        = 7;
    const size_t      S        = sizestatic_threadstack(self_threadstack());
+   logcontext_t      logctxt  = logcontext_FREE;
    logwriter_t       lgwrt    = logwriter_FREE;
    ilog_t            initlog  = iobj_INIT((struct log_t*)&lgwrt, interface_logwriter());
    const char *      argv[4]  = { "progname", 0, 0, 0 };
@@ -661,7 +685,8 @@ static int test_init(void)
 
    // prepare
    TEST(0 == check_isstatic(&g_maincontext));
-   TEST(0 == initstatic_logwriter(&lgwrt, sizeof(logbuf), logbuf));
+   initstatic_logcontext(&logctxt);
+   TEST(0 == initstatic_logwriter(&lgwrt, &logctxt, sizeof(logbuf), logbuf));
 
    // TEST maincontext_INIT_STATIC
    TEST(1 == isstatic_maincontext(&maincontext));
@@ -676,8 +701,7 @@ static int test_init(void)
    TEST(I == g_maincontext.initcount);
    TEST(0 != g_maincontext.syslogin);
    TEST(0 != g_maincontext.signals);
-   TEST(0 != g_maincontext.error.stroffset);
-   TEST(0 != g_maincontext.error.strdata);
+   TEST(0 != g_maincontext.logcontext);
    TEST(S == sizestatic_threadstack(self_threadstack()) - static_memory_size());
 
    // TEST free_maincontext: double free
@@ -775,14 +799,16 @@ static int test_init(void)
       TEST( 0 == logsize);
    }
 
-   // unprepare
+   // reset
    TEST(0 == check_isstatic(&g_maincontext));
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
 
    return 0;
 ONERR:
    free_maincontext();
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
    return EINVAL;
 }
 
@@ -813,12 +839,9 @@ static int test_query(void)
    maincontext.signals = (void*)1;
    TEST(0 == isstatic_maincontext(&maincontext));
    maincontext.signals = 0;
-   maincontext.error.stroffset = 0;
+   maincontext.logcontext = (void*)1;
    TEST(0 == isstatic_maincontext(&maincontext));
-   maincontext.error.stroffset = g_errorcontext_stroffset;
-   maincontext.error.strdata = 0;
-   TEST(0 == isstatic_maincontext(&maincontext));
-   maincontext.error.strdata = g_errorcontext_strdata;
+   maincontext.logcontext = 0;
    // arguments
    TEST(1 == isstatic_maincontext(&maincontext));
    maincontext.progname = (void*)1;

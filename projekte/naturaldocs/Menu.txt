@@ -112,7 +112,7 @@ Group: Api  {
 
    Group: Err  {
 
-      File: ErrlogMacros  (api/err/errlog_macros.h)
+      File: ErrlogMacros  (api/io/log/errlog_macros.h)
       File: ErrorContext  (api/err/errorcontext.h)
       File: ErrorNumbers  (api/err/errornr.h)
       }  # Group: Err
@@ -170,10 +170,10 @@ Group: Api  {
 
       Group: Writer  {
 
-         File: Log-Object  (api/io/writer/log/log.h)
-         File: LogBuffer  (api/io/writer/log/logbuffer.h)
-         File: LogMacros  (api/io/writer/log/log_macros.h)
-         File: LogWriter  (api/io/writer/log/logwriter.h)
+         File: Log-Object  (api/io/log/log.h)
+         File: LogBuffer  (api/io/log/logbuffer.h)
+         File: LogMacros  (api/io/log/log_macros.h)
+         File: LogWriter  (api/io/log/logwriter.h)
          }  # Group: Writer
 
       File: IO-Accessmode  (api/io/accessmode.h)
@@ -425,7 +425,7 @@ Group: Implementation  {
    Group: Err  {
 
       File: ErrorContext impl  (err/errorcontext.c)
-      File: Errorlog-Writer  (err/errlog.c)
+      File: Errorlog-Writer  (io/log/errlog.c)
       File: ErrorNumbers impl  (err/errornr.c)
       }  # Group: Err
 
@@ -457,8 +457,8 @@ Group: Implementation  {
 
       Group: Writer  {
 
-         File: LogBuffer impl  (io/writer/log/logbuffer.c)
-         File: LogWriter impl  (io/writer/log/logwriter.c)
+         File: LogBuffer impl  (io/log/logbuffer.c)
+         File: LogWriter impl  (io/log/logwriter.c)
          }  # Group: Writer
 
       File: File-Util impl  (io/filesystem/fileutil.c)

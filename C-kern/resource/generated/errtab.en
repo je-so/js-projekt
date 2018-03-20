@@ -1,4 +1,4 @@
-uint16_t g_errorcontext_stroffset[] = {
+const uint16_t s_logcontext_err_offsets[] = {
    [0x00] = 0,
    [0x01] = 8,
    [0x02] = 32,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 3147 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[3414] = {
+static const uint8_t s_logcontext_err_strings[3414] = {
    "Success\0"
    "Operation not permitted\0"
    "No such file or directory\0"

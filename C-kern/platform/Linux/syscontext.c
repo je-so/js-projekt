@@ -21,8 +21,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/Linux/syscontext.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/logbuffer.h" // needed for _LOG(INIT,
-#include "C-kern/api/io/writer/log/logwriter.h" // needed for _LOG(INIT,
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/vm.h"

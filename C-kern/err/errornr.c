@@ -20,8 +20,10 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/io/log/logcontext.h"
 #endif
 
+// TODO: rename and move this module ?
 
 // section: errornr_e
 
@@ -55,7 +57,7 @@ static inline void test_defines(void)
 static int test_errorstr(void)
 {
 
-#define CHECK(ERR,STR) TEST(0 == memcmp(str_errorcontext(error_maincontext(), ERR), STR, strlen(STR)+1))
+#define CHECK(ERR,STR) TEST(0 == memcmp(errstr_logcontext(logcontext_maincontext(), ERR), STR, strlen(STR)+1))
 
    CHECK(ENOTINIT,   "Subsystem not yet initialized");
    CHECK(EINVARIANT, "Internal invariant violated - (software bug or corrupt memory)");

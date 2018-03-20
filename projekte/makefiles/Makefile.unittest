@@ -129,19 +129,19 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Debug)/C-kern!err!errornr.c.o \
- $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
- $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!io!www!uri.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!iosys!iobuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!iosys!iothread.c.o \
  $(ObjectDir_Debug)/C-kern!io!iosys!iolist.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
@@ -254,19 +254,19 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Release)/C-kern!err!errornr.c.o \
- $(ObjectDir_Release)/C-kern!err!errlog.c.o \
- $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!www!uri.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!iosys!iobuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!iosys!iothread.c.o \
  $(ObjectDir_Release)/C-kern!io!iosys!iolist.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
@@ -494,12 +494,6 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
 $(ObjectDir_Debug)/C-kern!err!errornr.c.o: C-kern/err/errornr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!io!www!uri.c.o: C-kern/io/www/uri.c
 	@$(CC_Debug)
 
@@ -507,6 +501,18 @@ $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileu
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!log!logbuffer.c.o: C-kern/io/log/logbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o: C-kern/io/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -525,12 +531,6 @@ $(ObjectDir_Debug)/C-kern!io!iosys!iothread.c.o: C-kern/io/iosys/iothread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!iosys!iolist.c.o: C-kern/io/iosys/iolist.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
@@ -863,12 +863,6 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.
 $(ObjectDir_Release)/C-kern!err!errornr.c.o: C-kern/err/errornr.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!io!www!uri.c.o: C-kern/io/www/uri.c
 	@$(CC_Release)
 
@@ -876,6 +870,18 @@ $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fil
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!terminal!termadapt.c.o: C-kern/io/terminal/termadapt.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!log!logbuffer.c.o: C-kern/io/log/logbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!log!logwriter.c.o: C-kern/io/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -894,12 +900,6 @@ $(ObjectDir_Release)/C-kern!io!iosys!iothread.c.o: C-kern/io/iosys/iothread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!iosys!iolist.c.o: C-kern/io/iosys/iolist.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c

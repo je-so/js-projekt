@@ -15,9 +15,8 @@
 #ifndef CKERN_API_ERRORHANDLING_HEADER
 #define CKERN_API_ERRORHANDLING_HEADER
 
-#include "C-kern/api/err/errorcontext.h"
 #include "C-kern/api/err/errornr.h"
-#include "C-kern/api/err/errlog_macros.h"
+#include "C-kern/api/io/log/errlog_macros.h"
 #include "C-kern/api/test/validate.h"
 
 

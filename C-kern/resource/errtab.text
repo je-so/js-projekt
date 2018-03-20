@@ -36,7 +36,7 @@
 <textresource version='5'>
 
 <outconfig type=C-table>
-   <tablename strdata="uint8_t g_errorcontext_strdata" stroffset="uint16_t g_errorcontext_stroffset"/>
+   <tablename strdata="static const uint8_t s_logcontext_err_strings" stroffset="const uint16_t s_logcontext_err_offsets"/>
    <generate  source="C-kern/resource/generated/errtab"/>
    <languages>de, en</languages>
 </outconfig>

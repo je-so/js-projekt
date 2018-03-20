@@ -15,7 +15,7 @@
 #                from main thread.
 "module",            "inittype",    "objtype",            "parameter",    "header-name"
 "syscontext",        "param",       "",                   "sysinfo",      ""
-"errorcontext",      "once",        "",                   "error",        "C-kern/api/err/errorcontext.h"
+"logcontext",        "object",      "logcontext_t",       "logcontext",   "C-kern/api/io/log/logcontext.h"
 "locale",            "once",        "",                   "",             "C-kern/api/platform/locale.h"
 "signals",           "object",      "signals_t",          "signals",      "C-kern/api/platform/sync/signal.h"
 "syslogin",          "object",      "syslogin_t",         "syslogin",     "C-kern/api/platform/syslogin.h"

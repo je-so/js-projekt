@@ -7,13 +7,13 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/io/writer/log/log_macros.h
+   file: C-kern/api/io/log/log_macros.h
     Header file of <LogMacros>.
 */
-#ifndef CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
-#define CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
+#ifndef CKERN_IO_LOG_LOG_MACROS_HEADER
+#define CKERN_IO_LOG_LOG_MACROS_HEADER
 
-#include "C-kern/api/io/writer/log/log.h"
+#include "C-kern/api/io/log/log.h"
 
 
 // section: Functions
@@ -42,14 +42,32 @@
             _iobj.iimpl-> fname (_iobj.object, __VA_ARGS__);                              \
          }))
 
+/* define: CALLFUNCTION_NOARG_LOG
+ * Calls the function fname on the log object obtained by GETWRITER?_LOG. See <ilog_t> and <log_it>. */
+#define CALLFUNCTION_NOARG_LOG(WRITER, fname) \
+         ( __extension__ ({                                                               \
+            ilog_t _iobj = * CONCAT(CONCAT(GETWRITER, nrargsof(WRITER)), _LOG)(WRITER);   \
+            _iobj.iimpl-> fname (_iobj.object);                                           \
+         }))
+
 // group: query
+
+/* define: GETCONTEXT_LOG
+ * Returns a poiner to <logcontext_t> associated with WRITER.
+ * See also <getcontext_logwriter>.
+ *
+ * Parameter:
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
+ */
+#define GETCONTEXT_LOG(WRITER) \
+         CALLFUNCTION_NOARG_LOG(WRITER, getcontext)
 
 /* define: GETBUFFER_LOG
  * Returns C-string of buffered log and its length.
  * See also <getbuffer_logwriter>.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * buffer     - Contains pointer to C string after return. Must have type (uint8_t**).
  *              The string is terminated with a 0 byte.
@@ -63,7 +81,7 @@
  * See also <compare_logwriter>.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * logsize    - Contains size of logbuffer.
  * buffer     - Contains pointer to the logbuffer in memory which is compared to the internal buffer. */
@@ -74,7 +92,7 @@
  * Returns <log_state_e> for LOGCHANNEL.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>. */
 #define GETSTATE_LOG(WRITER, LOGCHANNEL) \
          CALLFUNCTION_LOG(WRITER, getstate, LOGCHANNEL)
@@ -95,7 +113,7 @@
  * Sets LOGSTATE for LOGCHANNEL.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
  * LOGSTATE   - The state of the LOGCHANNEL which will be set - see <log_state_e>. */
 #define SETSTATE_LOG(WRITER, LOGCHANNEL, LOGSTATE) \
@@ -107,7 +125,7 @@
  * Logs a generic printf type format string.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * HEADER     - The pointer to a struct of type <log_header_t>. Could be set to 0 if no header should be printed.
@@ -129,7 +147,7 @@
  * Logs a text resource string.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -152,7 +170,7 @@
  * Logs a text resource string.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -176,7 +194,7 @@
  * set to __func__, __FILE__, and __LINE__ respectively.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -188,7 +206,7 @@
  * Logs any TEXTID and a header.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - The name of the text resource, for example FUNCTION_ABORT_ERRLOG.
@@ -212,7 +230,7 @@
  * Use this macro to log any language specific text which needs no additional parameters.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * TEXTID     - Error text ID from C-kern/resource/errlog.text. */
@@ -233,7 +251,7 @@
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * format     - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
  *              Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
@@ -253,7 +271,7 @@
  * The logged text is "array[i]=value".
  *
  * Parameter:
- * WRITER     - A pointer to a logwriter_t object. Leave it empty for using the default logwriter_t.
+ * WRITER     - A pointer to a ilog_t object. Leave it empty for using the default logwriter_t.
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * format     - Type of the variable as string in printf format. Use "s" for C strings.
  *              Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...

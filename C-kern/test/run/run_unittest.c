@@ -104,7 +104,6 @@ static int run_all_test(maincontext_t* maincontext)
       // ...
 
 //{ err
-      RUN(unittest_err_errorcontext);
       RUN(unittest_err_errornr);
 //}
 
@@ -240,6 +239,10 @@ static int run_all_test(maincontext_t* maincontext)
       // IP
       RUN(unittest_io_ip_ipaddr);
       RUN(unittest_io_ip_ipsocket);
+      // log
+      RUN(unittest_io_log_logbuffer);
+      RUN(unittest_io_log_logcontext);
+      RUN(unittest_io_log_logwriter);
       // generic
       RUN(unittest_io_iochannel);
       RUN(unittest_io_iopoll);
@@ -254,8 +257,6 @@ static int run_all_test(maincontext_t* maincontext)
       RUN(unittest_io_terminal_termadapt);
       RUN(unittest_io_terminal_terminal);
       // writer
-      RUN(unittest_io_writer_log_logbuffer);
-      RUN(unittest_io_writer_log_logwriter);
       // www
       RUN(unittest_io_www_uri);
 //}

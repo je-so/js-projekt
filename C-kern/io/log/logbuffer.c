@@ -8,15 +8,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/writer/log/logbuffer.h
+   file: C-kern/api/io/log/logbuffer.h
     Header file <LogBuffer>.
 
-   file: C-kern/io/writer/log/logbuffer.c
+   file: C-kern/io/log/logbuffer.c
     Implementation file <LogBuffer impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/writer/log/logbuffer.h"
+#include "C-kern/api/io/log/logbuffer.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/iochannel.h"
 #ifdef KONFIG_UNITTEST
@@ -31,7 +31,7 @@
 
 // group: lifetime
 
-int init_logbuffer(/*out*/logbuffer_t * logbuf, size_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io)
+int init_logbuffer(/*out*/logbuffer_t* logbuf, size_t buffer_size, uint8_t buffer_addr[buffer_size], sys_iochannel_t io)
 {
    int err;
 
@@ -49,7 +49,7 @@ ONERR:
    return err;
 }
 
-int free_logbuffer(logbuffer_t * logbuf)
+int free_logbuffer(logbuffer_t* logbuf)
 {
    int err;
 
@@ -73,7 +73,7 @@ ONERR:
 
 // group: query
 
-int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t logbuffer[logsize])
+int compare_logbuffer(const logbuffer_t* logbuf, size_t logsize, const uint8_t logbuffer[logsize])
 {
    if (logsize != logbuf->logsize) return EINVAL;
 
@@ -107,7 +107,7 @@ int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t 
 
 // group: update
 
-int write_logbuffer(logbuffer_t * logbuf)
+int write_logbuffer(logbuffer_t* logbuf)
 {
    size_t bytes_written = 0;
 
@@ -123,12 +123,11 @@ int write_logbuffer(logbuffer_t * logbuf)
 
       if (bytes < 0) {
          if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            // TODO: add code that indicates error state in logging
-            return errno;
+            goto ONERR;
          }
          struct pollfd pfd = { .fd = logbuf->io, .events = POLLOUT };
          while (poll(&pfd, 1, -1/*no timeout*/) < 0) {
-            if (errno != EINTR) return errno;
+            if (errno != EINTR) { goto ONERR; }
          }
       } else {
          bytes_written += (size_t) bytes;
@@ -136,9 +135,12 @@ int write_logbuffer(logbuffer_t * logbuf)
    }
 
    return 0;
+ONERR:
+   // TODO: add code that indicates error state in logging
+   return errno;
 }
 
-void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
+void vprintf_logbuffer(logbuffer_t* logbuf, const char * format, va_list args)
 {
    if (!format) return;
 
@@ -162,7 +164,7 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
    }
 }
 
-void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
+void printf_logbuffer(logbuffer_t* logbuf, const char * format, ...)
 {
    va_list args;
    va_start(args, format);
@@ -170,7 +172,7 @@ void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
    va_end(args);
 }
 
-void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header)
+void printheader_logbuffer(logbuffer_t* logbuf, struct logcontext_t* logcontext, const struct log_header_t * header)
 {
    struct timeval tv;
    if (-1 == gettimeofday(&tv, 0)) {
@@ -181,14 +183,8 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
    // !not needed! static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works");
    // cause only values are expected in range 0..999999 < UINT32_MAX
 
-#define CALL(TEXTID, ...) \
-   {                                         \
-      struct p_ ## TEXTID ## _ERRLOG         \
-         params = { __VA_ARGS__ };           \
-      TEXTID ## _ERRLOG (logbuf, &params);   \
-   }
-   CALL(LOGENTRY_HEADER, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr);
-#undef CALL
+   struct p_LOGENTRY_HEADER_ERRLOG params = { threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr };
+   LOGENTRY_HEADER_ERRLOG(logbuf, logcontext, &params);
 }
 
 
@@ -362,11 +358,11 @@ ONERR:
    return EINVAL;
 }
 
-static int thread_printheader(logbuffer_t * logbuf)
+static int thread_printheader(logbuffer_t* logbuf)
 {
    logbuf->logsize = 0;
    log_header_t header = log_header_INIT("thread_printheader", __FILE__, 100);
-   printheader_logbuffer(logbuf, &header);
+   printheader_logbuffer(logbuf, logcontext_maincontext(), &header);
    TEST(0 == compare_header(logbuf->logsize, logbuf->addr, "thread_printheader", __FILE__, 100));
 
    return 0;
@@ -437,10 +433,10 @@ static int test_update(void)
    // TEST printheader_logbuffer
    logbuf.logsize = 0;
    log_header_t header = log_header_INIT("test_update", "file", 123456);
-   printheader_logbuffer(&logbuf, &header);
+   printheader_logbuffer(&logbuf, logcontext_maincontext(), &header);
    TEST(0 == compare_header(logbuf.logsize, logbuf.addr, "test_update", "file", 123456));
    for (size_t len = logbuf.logsize, i = 1; i < 10; ++i) {
-      printheader_logbuffer(&logbuf, &header);
+      printheader_logbuffer(&logbuf, logcontext_maincontext(), &header);
       TEST((i+1)*len == logbuf.logsize);
       TEST(0 == compare_header(len, logbuf.addr + i*len, "test_update", "file", 123456));
    }
@@ -454,7 +450,7 @@ static int test_update(void)
    // TEST printheader_logbuffer: adds " ..." at end in case of truncated message
    logbuf.logsize = logbuf.size - 10;
    logbuf.addr[logbuf.logsize] = 0;
-   printheader_logbuffer(&logbuf, &header);
+   printheader_logbuffer(&logbuf, logcontext_maincontext(), &header);
    TEST(logbuf.logsize == logbuf.size - 1)
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 10, "[", 1));
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 5, " ...", 5));
@@ -556,7 +552,7 @@ ONERR:
    return EINVAL;
 }
 
-int unittest_io_writer_log_logbuffer()
+int unittest_io_log_logbuffer()
 {
    if (test_initfree())    goto ONERR;
    if (test_query())       goto ONERR;

@@ -138,7 +138,7 @@ struct xmlattribute_t {
 /* struct: outconfig_fctparam_t
  * Holds function parameter for <outconfig_C>.
  * A function parameter is describes as
- * > <fctparam name="ERRSTR" value="(const char*)str_errorcontext(error_maincontext(), err)" format="%s"/>
+ * > <fctparam name="ERRSTR" value="errno_to_string(err)" format="%s"/>
  * where name is stgring it referenced with in a text resource description. The value is used as function call
  * to get the parameter value. And format is the printf format description used to log the value.
  * */

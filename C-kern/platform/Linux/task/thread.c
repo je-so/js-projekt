@@ -32,8 +32,8 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/pipe.h"
-#include "C-kern/api/io/writer/log/logbuffer.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/io/log/logbuffer.h"
+#include "C-kern/api/io/log/logwriter.h"
 #include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/time/sysclock.h"
@@ -64,7 +64,7 @@ static test_errortimer_t   s_thread_errtimer = test_errortimer_FREE;
 
 /* variable: s_thread_errtimer
  * Simulates an error in <start_thread>. */
-static test_errortimer_t   s_start_errtimer = test_errortimer_FREE; // TODO: add tests
+static test_errortimer_t   s_start_errtimer = test_errortimer_FREE;
 #endif
 
 // group: helper
@@ -333,7 +333,7 @@ int runmain_thread(/*out;err*/int* retcode, thread_f task, void* task_arg, ilog_
    ucontext_t context_mainthread;
    const uint8_t mainThread  = 1;
 
-   err = init_helper(&thread,&stack,initlog,task,task_arg,mainThread,type,argc,argv);
+   err = init_helper(&thread, &stack, initlog, task, task_arg, mainThread, type, argc, argv);
    if (err) goto ONERR;
 
    err = getcontext(&context_mainthread);
@@ -554,10 +554,10 @@ int exit_thread(int retcode)
 
    setreturncode_thread(thread, retcode);
 
-   err = free_threadcontext(&thread->threadcontext);
+   err = free_start_context(thread);
    if (err) {
       TRACECALL_ERRLOG("free_threadcontext",err);
-      abort_maincontext(err);
+      goto ONERR;
    }
 
    pthread_exit(0);
@@ -2018,9 +2018,6 @@ ONERR:
 static int thread_callexit(intptr_t retval)
 {
    exit_thread((int)retval);
-   while (1) {
-      sleepms_thread(1000);
-   }
    return 0;
 }
 
@@ -2034,7 +2031,7 @@ static int test_exit(void)
    }
    for (unsigned i = 0; i < lengthof(thread); ++i) {
       TEST(0 == join_thread(thread[i]));
-      TEST( (int)i == returncode_thread(thread[i]));
+      TEST(i == (unsigned) returncode_thread(thread[i]));
       TEST(0 == delete_thread(&thread[i]));
    }
 

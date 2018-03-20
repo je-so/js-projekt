@@ -9,18 +9,19 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/io/writer/log/logwriter.h
+   file: C-kern/api/io/log/logwriter.h
     Header file of <LogWriter>.
 
-   file: C-kern/io/writer/log/logwriter.c
+   file: C-kern/io/log/logwriter.c
     Implementation file <LogWriter impl>.
 */
-#ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
-#define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
+#ifndef CKERN_IO_LOG_LOGWRITER_HEADER
+#define CKERN_IO_LOG_LOGWRITER_HEADER
 
 // import
-// #include "C-kern/api/io/writer/log/log.h"
-// #include "C-kern/api/io/writer/log/logbuffer.h"
+// #include "C-kern/api/io/log/log.h"
+// #include "C-kern/api/io/log/logbuffer.h"
+struct logcontext_t;
 
 // === exported types
 struct logwriter_t;
@@ -32,9 +33,9 @@ struct logwriter_chan_t;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_writer_log_logwriter
+/* function: unittest_io_log_logwriter
  * Tests <initthread_logwriter> and functionality of <logwriter_t>. */
-int unittest_io_writer_log_logwriter(void);
+int unittest_io_log_logwriter(void);
 #endif
 
 
@@ -75,12 +76,18 @@ typedef struct logwriter_chan_t {
  * are truncated if they are bigger than log_config_MINSIZE.
  * */
 typedef struct logwriter_t {
+   // group: private
    /* variable: addr
     * Address of allocated buffer. */
    uint8_t *         addr;
    /* variable: size
     * Size in bytes of allocated buffer. */
    size_t            size;
+   /* variable: logcontext
+    * Pointer to context providing support functions.
+    * Converting errno into an error string is one of them. */
+   struct
+   logcontext_t*     logcontext;
    /* variable: chan
     * Array of <logwriter_chan_t>.
     * A <log_channel_e> is mapped to a <logwriter_chan_t> with help of this array. */
@@ -98,13 +105,13 @@ struct log_it * interface_logwriter(void);
 
 /* define: logwriter_FREE
  * Static initializer. */
-#define logwriter_FREE { 0, 0, { logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE } }
+#define logwriter_FREE { 0, 0, 0, { logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE, logwriter_chan_FREE } }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
  * The default configuration is to write the log to standard error.
  * This log service is *not* thread safe. So use it only within a single thread. */
-int init_logwriter(/*out*/logwriter_t * lgwrt);
+int init_logwriter(/*out*/logwriter_t* lgwrt);
 
 /* function: initstatic_logwriter
  * (de:) Initialisiert einen <logwriter_t> Logservice, der von außen zugewiesenen,
@@ -125,26 +132,30 @@ int init_logwriter(/*out*/logwriter_t * lgwrt);
  *
  *
  * No error log is written cause function is called during system initialization. */
-int initstatic_logwriter(/*out*/logwriter_t * lgwrt, size_t bufsize/*>= log_config_MINSIZE*/, uint8_t logbuf[bufsize]);
+int initstatic_logwriter(/*out*/logwriter_t* lgwrt, struct logcontext_t* lgctxt, size_t bufsize/*>= log_config_MINSIZE*/, uint8_t logbuf[bufsize]);
 
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
  * In case the function is called more than it does nothing. */
-int free_logwriter(logwriter_t * lgwrt);
+int free_logwriter(logwriter_t* lgwrt);
 
 /* function: freestatic_logwriter
  * Does nothing at the moment except for setting lgwrt to a freed state. */
-void freestatic_logwriter(/*out*/logwriter_t * lgwrt);
+void freestatic_logwriter(/*out*/logwriter_t* lgwrt);
 
 // group: query
 
 /* function: isfree_logwriter
  * Returns true if lgwrt equals <logwriter_FREE>. */
-bool isfree_logwriter(const logwriter_t * lgwrt);
+bool isfree_logwriter(const logwriter_t* lgwrt);
 
 /* function: minbufsize_logwriter
  * Returns log_channel__NROF * (sizeof(logwriter_chan_t) + log_config_MINSIZE). */
 size_t minbufsize_logwriter(void);
+
+/* function: getcontext_logwriter
+ * Returns the <logcontext_t> associated with this <logwriter_t>. */
+struct logcontext_t* getcontext_logwriter(const logwriter_t* lgwrt);
 
 /* function: getbuffer_logwriter
  * Returns content of internal buffer corrseponding to channel as C-string.
@@ -152,22 +163,22 @@ size_t minbufsize_logwriter(void);
  * The address of the buffer is valid as long as no call to <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size);
+void getbuffer_logwriter(const logwriter_t* lgwrt, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size);
 
 /* function: getstate_logwriter
  * Returns current <log_state_e> of channel (<log_channel_e>). */
-uint8_t getstate_logwriter(const logwriter_t * lgwrt, uint8_t channel);
+uint8_t getstate_logwriter(const logwriter_t* lgwrt, uint8_t channel);
 
 /* function: compare_logwriter
  * Returns 0 if logbuffer compares equal to channel content of lgwrt.
  * The call is delegated to <compare_logbuffer>. */
-int compare_logwriter(const logwriter_t * lgwrt, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
+int compare_logwriter(const logwriter_t* lgwrt, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
 
 // group: config
 
 /* function: setstate_logwriter
  * Change <log_state_e> of <log_channel_e> channel to logstate. */
-void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate);
+void setstate_logwriter(logwriter_t* lgwrt, uint8_t channel, uint8_t logstate);
 
 // group: change
 
@@ -176,27 +187,27 @@ void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate);
  * Seting the length to 0 clears the whole buffer.
  * This call is ignored if the log is not configured to be in buffered mode
  * or if parameter size is bigger or equal than the size of the stored buffer. */
-void truncatebuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, size_t size);
+void truncatebuffer_logwriter(logwriter_t* lgwrt, uint8_t channel, size_t size);
 
 /* function: flushbuffer_logwriter
  * Writes content of buffer to STDERR or configured file descriptor and clears log buffer.
  * This call is ignored if the log is not configured to be in buffered mode. */
-void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel);
+void flushbuffer_logwriter(logwriter_t* lgwrt, uint8_t channel);
 
 /* function: printf_logwriter
  * Writes new log entry to internal buffer.
  * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
-void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ...) __attribute__ ((__format__ (__printf__, 5, 6)));
+void printf_logwriter(logwriter_t* lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ...) __attribute__ ((__format__ (__printf__, 5, 6)));
 
 /* function: printtext_logwriter
  * Writes a text resource to internal buffer.
  * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
-void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
+void printtext_logwriter(logwriter_t* lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
 
 /* function: vprintf_logwriter
  * Same as <printf_logwriter> except that variadic arguments are replaced by args.
  * Function used internally to implement <printf_logwriter>. */
-void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, va_list args);
+void vprintf_logwriter(logwriter_t* lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, va_list args);
 
 
 

@@ -1,4 +1,4 @@
-uint16_t g_errorcontext_stroffset[] = {
+const uint16_t s_logcontext_err_offsets[] = {
    [0x00] = 0,
    [0x01] = 7,
    [0x02] = 31,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 4830 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[5121] = {
+static const uint8_t s_logcontext_err_strings[5121] = {
    "Erfolg\0"
    "Vorgang nicht zulässig\0"
    "Datei oder Verzeichnis nicht gefunden\0"

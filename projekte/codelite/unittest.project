@@ -204,10 +204,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
-          <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
-          <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
-          <File Name="../../C-kern/api/io/writer/log/log.h"/>
-          <File Name="../../C-kern/api/io/writer/log/logbuffer.h"/>
+          <File Name="../../C-kern/api/io/log/log_macros.h"/>
+          <File Name="../../C-kern/api/io/log/logwriter.h"/>
+          <File Name="../../C-kern/api/io/log/log.h"/>
+          <File Name="../../C-kern/api/io/log/logbuffer.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="terminal">
@@ -261,7 +261,7 @@
     <VirtualDirectory Name="err">
       <File Name="../../C-kern/api/err/errorcontext.h"/>
       <File Name="../../C-kern/api/err/errornr.h"/>
-      <File Name="../../C-kern/api/err/errlog_macros.h"/>
+      <File Name="../../C-kern/api/io/log/errlog_macros.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="proglang">
       <File Name="../../C-kern/api/proglang/regexpr.h"/>
@@ -282,8 +282,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
-        <File Name="../../C-kern/io/writer/log/logwriter.c"/>
-        <File Name="../../C-kern/io/writer/log/logbuffer.c"/>
+        <File Name="../../C-kern/io/log/logwriter.c"/>
+        <File Name="../../C-kern/io/log/logbuffer.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="filesystem">
@@ -563,7 +563,7 @@
   <VirtualDirectory Name="err">
     <File Name="../../C-kern/err/errorcontext.c"/>
     <File Name="../../C-kern/err/errornr.c"/>
-    <File Name="../../C-kern/err/errlog.c"/>
+    <File Name="../../C-kern/io/log/errlog.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="proglang">
     <File Name="../../C-kern/proglang/regexpr.c"/>

@@ -12,19 +12,19 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/err/errlog_macros.h
+   file: C-kern/api/io/log/errlog_macros.h
     Header file of <ErrlogMacros>.
 
-   file: C-kern/err/errlog.c
+   file: C-kern/io/log/errlog.c
     Implementation file <Errorlog-Writer>.
 */
-#ifndef CKERN_ERR_ERRLOG_MACROS_HEADER
-#define CKERN_ERR_ERRLOG_MACROS_HEADER
+#ifndef CKERN_IO_LOG_ERRLOG_MACROS_HEADER
+#define CKERN_IO_LOG_ERRLOG_MACROS_HEADER
 
 // forward
 struct logbuffer_t;
 
-#include "C-kern/api/io/writer/log/log_macros.h"
+#include "C-kern/api/io/log/log_macros.h"
 #include "C-kern/resource/generated/errlog.h"
 
 

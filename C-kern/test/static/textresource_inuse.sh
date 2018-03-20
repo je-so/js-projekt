@@ -22,8 +22,8 @@ function check_textresource_inuse()
    files=( `find "C-kern/" -name "*.[ch]" -exec grep -lf $textids_file {} \;` )
    IFS=$IFS_old
    for i in "${files[@]}"; do
-      if [ "$i" = "C-kern/api/resource/logerrtext.h" ]\
-         || [ "$i" = "C-kern/io/writer/logerrtext.c" ]; then
+      if [ "${i/resource\/generated/}" != "$i" ]\
+         || [ "$i" = "C-kern/io/log/errlog.c" ]; then
          continue ;
       fi
       grep -o -f $textids_file $i >> $used_resources_file

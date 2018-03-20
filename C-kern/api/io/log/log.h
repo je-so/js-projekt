@@ -10,20 +10,24 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/io/writer/log/log.h
+   file: C-kern/api/io/log/log.h
     Header file of <Log-Object>.
 */
-#ifndef CKERN_IO_WRITER_LOG_LOG_HEADER
-#define CKERN_IO_WRITER_LOG_LOG_HEADER
+#ifndef CKERN_IO_LOG_LOG_HEADER
+#define CKERN_IO_LOG_LOG_HEADER
 
-// forward
+// import
 struct logbuffer_t;
+struct logcontext_t;
+
+// === exported types
 struct log_header_t;
+struct log_it;
+
 
 /* typedef: log_text_f
  * Declare function pointer which writes a text resource into <logbuffer_t>. */
-typedef void (*log_text_f) (struct logbuffer_t * logbuffer, void * params);
-
+typedef void (*log_text_f) (struct logbuffer_t* logbuffer, struct logcontext_t* logcontext, void * params);
 
 /* enums: log_config_e
  * Used to configure system wide restrictions.
@@ -35,7 +39,6 @@ typedef void (*log_text_f) (struct logbuffer_t * logbuffer, void * params);
 typedef enum log_config_e {
    log_config_MINSIZE = 512
 } log_config_e;
-
 
 /* enums: log_flags_e
  * Controls additional information written in addition to a log message.
@@ -60,7 +63,6 @@ typedef enum log_flags_e {
    log_flags_NONE = 0,
    log_flags_LAST = 1
 } log_flags_e;
-
 
 /* enums: log_channel_e
  * Used to switch between log channels.
@@ -117,6 +119,7 @@ typedef enum log_state_e {
 #define log_state__NROF (log_state_IMMEDIATE + 1)
 
 
+
 /* struct: log_it
  * The function table which describes the log service. */
 typedef struct log_it {
@@ -130,44 +133,51 @@ typedef struct log_it {
     * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation.
     * If format == 0 only the header is written. */
-   void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6)));
+   void  (*printf)      (void* log, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6)));
    /* variable: printtext
     * Writes text resource as new log entry to in internal buffer.
     * See <printf> for a description of the parameter. The variable parameter list must match the resource.
     * If textf == 0 only the header is written. */
-   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
+   void  (*printtext)   (void* log, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, void * params);
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
     * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
-   void  (*flushbuffer) (void * log, uint8_t channel);
+   void  (*flushbuffer) (void* log, uint8_t channel);
    /* variable: truncatebuffer
     * Sets length of logbuffer to size.
     * This call is ignored if the log is not configured to be in buffered mode
     * or if the current size of the buffered log is lower or equal to the value
     * of the parameter size.
     * See <logwriter_t.truncatebuffer_logwriter> for an implementation. */
-   void  (*truncatebuffer) (void * log, uint8_t channel, size_t size);
+   void  (*truncatebuffer) (void* log, uint8_t channel, size_t size);
+
    // -- query --
+   /* variable: getcontext
+    * Returns the <logcontext_t> bound to this log.
+    * Needed to initialize a log object from another if it is unknown whether <maincontext_t> is already initialized. */
+   struct logcontext_t*
+         (*getcontext)  (const void* log);
    /* variable: getbuffer
     * Returns content of log buffer as C-string and its size in bytes.
     * The returned values are valid as long as no other function is called on log.
     * The string has a trailing NULL byte, i.e. buffer[size] == 0.
     * See <logwriter_t.getbuffer_logwriter> for an implementation. */
-   void  (*getbuffer)   (const void * log, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size);
+   void  (*getbuffer)   (const void* log, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size);
    /* variable: getstate
     * Returns configured <log_state_e> for a specific <log_channel_e> channel.
     * You can switch <log_state_e> by calling <setstate>. */
-   uint8_t (*getstate)  (const void * log, uint8_t channel);
+   uint8_t (*getstate)  (const void* log, uint8_t channel);
    /* variable: compare
     * Returns 0 if logbuffer compares equal to content in log for a specific <log_channel_e> channel.
     * The return value EINVAL indicates not equal. The comparison should ignore timestamps. */
-   int   (*compare)     (const void * log, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
+   int   (*compare)     (const void* log, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
+
    // -- configuration --
    /* variable: setstate
     * Sets <log_state_e> logstate for a specific <log_channel_e> channel.
     * You can query the current <log_state_e> by calling <getstate>. */
-   void  (*setstate)    (void * log, uint8_t channel, uint8_t logstate);
+   void  (*setstate)    (void* log, uint8_t channel, uint8_t logstate);
 } log_it;
 
 // group: generic
@@ -245,6 +255,10 @@ typedef struct log_header_t {
                && &_l->truncatebuffer                  \
                   == (void(**)(log_t*,uint8_t,size_t)) \
                      &((log_it*) _l)->truncatebuffer   \
+               && &_l->getcontext                      \
+                  == (struct logcontext_t*(**)(        \
+                        const log_t*))                 \
+                     &((log_it*) _l)->getcontext       \
                && &_l->getbuffer                       \
                   == (void(**)(const log_t*,uint8_t,   \
                         uint8_t**,size_t*))            \
@@ -271,19 +285,20 @@ typedef struct log_header_t {
 #define log_it_DECLARE(declared_it, log_t) \
          typedef struct declared_it declared_it;                                          \
          struct declared_it {                                                             \
-            void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,            \
+            void  (*printf)      (log_t* log, uint8_t channel, uint8_t flags,             \
                                   const log_header_t * header, const char * format, ... ) \
                                   __attribute__ ((__format__ (__printf__, 5, 6)));        \
-            void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,            \
+            void  (*printtext)   (log_t* log, uint8_t channel, uint8_t flags,             \
                                   const log_header_t * header, log_text_f textf, void*p); \
-            void  (*flushbuffer) (log_t * log, uint8_t channel);                          \
-            void  (*truncatebuffer) (log_t * log, uint8_t channel, size_t size);          \
-            void  (*getbuffer)   (const log_t * log, uint8_t channel,                     \
+            void  (*flushbuffer) (log_t* log, uint8_t channel);                           \
+            void  (*truncatebuffer) (log_t* log, uint8_t channel, size_t size);           \
+            struct logcontext_t* (*getcontext) (const log_t* log);                        \
+            void  (*getbuffer)   (const log_t* log, uint8_t channel,                      \
                                   /*out*/uint8_t ** buffer, /*out*/size_t * size);        \
-            uint8_t (*getstate)  (const log_t * log, uint8_t channel);                    \
-            int     (*compare)   (const log_t * log, uint8_t channel, size_t logsize,     \
+            uint8_t (*getstate)  (const log_t* log, uint8_t channel);                     \
+            int     (*compare)   (const log_t* log, uint8_t channel, size_t logsize,      \
                                   const uint8_t logbuffer[logsize]);                      \
-            void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate);        \
+            void    (*setstate)  (log_t* log, uint8_t channel, uint8_t logstate);         \
          };
 
 #endif

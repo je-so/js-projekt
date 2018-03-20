@@ -1,5 +1,5 @@
 [1: 1457678607.743602s]
-init_logbuffer() C-kern/io/writer/log/logbuffer.c:38
+init_logbuffer() C-kern/io/log/logbuffer.c:38
 Function input violates condition (buffer_size > log_config_MINSIZE)
 Exit function with
 Error 22 - Invalid argument

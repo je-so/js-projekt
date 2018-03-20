@@ -20,4 +20,4 @@
 "mmimpl",            "interface",   "mm_impl_t",          "mm",            "C-kern/api/memory/mm/mm_impl.h"
 "syncrunner",        "object",      "syncrunner_t",       "syncrunner",    "C-kern/api/task/syncrunner.h"
 "objectcacheimpl",   "interface",   "objectcache_impl_t", "objectcache",   "C-kern/api/cache/objectcache_impl.h"
-"logwriter",         "interface",   "logwriter_t",        "log",           "C-kern/api/io/writer/log/logwriter.h"
+"logwriter",         "interface",   "logwriter_t",        "log",           "C-kern/api/io/log/logwriter.h"

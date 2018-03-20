@@ -84,7 +84,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Debug)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
@@ -95,9 +94,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
- $(ObjectDir_Debug)/C-kern!err!errlog.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!window.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!surface.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!gconfig.c.o \
@@ -136,7 +136,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_stack.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!main!maincontext.c.o \
- $(ObjectDir_Release)/C-kern!err!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!task!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!stdtypes!iobj.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
@@ -147,9 +146,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
- $(ObjectDir_Release)/C-kern!err!errlog.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!log!logcontext.c.o \
  $(ObjectDir_Release)/C-kern!graphic!window.c.o \
  $(ObjectDir_Release)/C-kern!graphic!surface.c.o \
  $(ObjectDir_Release)/C-kern!graphic!gconfig.c.o \
@@ -213,9 +213,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/
 $(ObjectDir_Debug)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
 	@$(CC_Debug)
 
@@ -246,13 +243,16 @@ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
+$(ObjectDir_Debug)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+$(ObjectDir_Debug)/C-kern!io!log!logbuffer.c.o: C-kern/io/log/logbuffer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+$(ObjectDir_Debug)/C-kern!io!log!logwriter.c.o: C-kern/io/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!graphic!window.c.o: C-kern/graphic/window.c
@@ -363,9 +363,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linu
 $(ObjectDir_Release)/C-kern!main!maincontext.c.o: C-kern/main/maincontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!err!errorcontext.c.o: C-kern/err/errorcontext.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!task!threadcontext.c.o: C-kern/task/threadcontext.c
 	@$(CC_Release)
 
@@ -396,13 +393,16 @@ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!err!errlog.c.o: C-kern/err/errlog.c
+$(ObjectDir_Release)/C-kern!io!log!errlog.c.o: C-kern/io/log/errlog.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+$(ObjectDir_Release)/C-kern!io!log!logbuffer.c.o: C-kern/io/log/logbuffer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+$(ObjectDir_Release)/C-kern!io!log!logwriter.c.o: C-kern/io/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!log!logcontext.c.o: C-kern/io/log/logcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!graphic!window.c.o: C-kern/graphic/window.c

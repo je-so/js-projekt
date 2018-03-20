@@ -18,7 +18,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/task/threadcontext.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/writer/log/logbuffer.h" // needed by logwriter.h
+#include "C-kern/api/io/log/logbuffer.h" // needed by logwriter.h
 #include "C-kern/api/memory/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
@@ -32,13 +32,14 @@
 #include "C-kern/api/memory/mm/mm_impl.h"
 #include "C-kern/api/task/syncrunner.h"
 #include "C-kern/api/cache/objectcache_impl.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/io/log/logwriter.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/pipe.h"
+#include "C-kern/api/io/log/logcontext.h"
 #endif
 
 // Wird als erste S
@@ -179,7 +180,7 @@ int initstatic_threadcontext(threadcontext_t* tcontext, ilog_t* initlog)
 
    static_data_t *sd = (static_data_t*) tcontext->staticdata;
    if (! PROCESS_testerrortimer(&s_threadcontext_errtimer, &err)) {
-      err = initstatic_logwriter(&sd->logwriter, sizeof(sd->logmem), sd->logmem);
+      err = initstatic_logwriter(&sd->logwriter, GETCONTEXT_LOG(initlog), sizeof(sd->logmem), sd->logmem);
    }
    if (err) goto ONERR;
 
@@ -432,12 +433,14 @@ static int test_lifehelper(void)
    const size_t   staticsize = static_memory_size();
    uint8_t        slogbuf[2*log_config_MINSIZE];
    logwriter_t    lgwrt    = logwriter_FREE;
+   logcontext_t   logctxt  = logcontext_FREE;
    ilog_t         initlog  = iobj_INIT((struct log_t*)&lgwrt, interface_logwriter());
    uint8_t       *logbuf;
    size_t         logsize;
 
    // prepare0
-   TEST(0 == initstatic_logwriter(&lgwrt, sizeof(slogbuf), slogbuf));
+   initstatic_logcontext(&logctxt);
+   TEST(0 == initstatic_logwriter(&lgwrt, &logctxt, sizeof(slogbuf), slogbuf));
    TEST(0 == new_threadstack(&st, &initlog, extsize_threadcontext(), 0, 0));
    tcontext = context_threadstack(st);
 
@@ -496,11 +499,13 @@ static int test_lifehelper(void)
    // reset0
    TEST(0 == delete_threadstack(&st, &initlog));
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
 
    return 0;
 ONERR:
    delete_threadstack(&st, &initlog);
    freestatic_logwriter(&lgwrt);
+   freestatic_logcontext(&logctxt);
    return EINVAL;
 }
 

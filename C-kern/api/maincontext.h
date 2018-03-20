@@ -124,21 +124,16 @@ typedef struct maincontext_t {
 
    /* variable: sysinfo
     * Contains queried once information about the platform/OS. */
-   // TODO: integrate it into initmain !!!
    syscontext_t         sysinfo;
-
    /* variable: syslogin
     * Context for <syslogin_t> module. */
    struct syslogin_t*   syslogin;
    /* variable: signals
     * Context for <signals_t> module. */
    struct signals_t*    signals;
-   /* variable: error
-    * Data for <errorcontext_t> module. */
-   struct {
-      uint16_t* stroffset;
-      uint8_t*  strdata;
-   }                    error;
+   /* variable: logcontext
+    * Provides additional information used during logging. */
+   struct logcontext_t* logcontext;
 
    // --- program arguments
 
@@ -162,7 +157,7 @@ typedef struct maincontext_t {
 /* define: maincontext_INIT_STATIC
  * Static initializer for <maincontext_t>. */
 #define maincontext_INIT_STATIC \
-         {  maincontext_STATIC, (void*)0, (uint16_t)0, syscontext_FREE, (struct syslogin_t*)0, (struct signals_t*)0, errorcontext_INIT_STATIC, (const char*)0, (int)0, (const char**)0 }
+         {  maincontext_STATIC, (void*)0, (uint16_t)0, syscontext_FREE, (struct syslogin_t*)0, (struct signals_t*)0, (struct logcontext_t*)0, (const char*)0, (int)0, (const char**)0 }
 
 /* function: init_maincontext
  * Initializes <maincontext_t> and all its contained shared services (shared between threads).
@@ -254,9 +249,9 @@ size_t threadid_maincontext(void);
 
 // group: query-service
 
-/* function: error_maincontext
- * Returns error string table (see <errorcontext_t>). */
-/*ref*/typeof(((maincontext_t*)0)->error) error_maincontext(void);
+/* function: logcontext_maincontext
+ * Returns logcontext containing table with error descriptions for every system error code  (see <logcontext_t>). */
+/*ref*/struct logcontext_t* logcontext_maincontext(void);
 
 /* function: log_maincontext
  * Returns log service <log_t> (see <logwriter_t>).
@@ -294,9 +289,9 @@ struct syncrunner_t* syncrunner_maincontext(void);
 
 // section: inline implementation
 
-/* define: error_maincontext
- * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()               (self_maincontext()->error)
+/* define: logcontext_maincontext
+ * Implementation of <maincontext_t.logcontext_maincontext>. */
+#define logcontext_maincontext()          (self_maincontext()->logcontext)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
