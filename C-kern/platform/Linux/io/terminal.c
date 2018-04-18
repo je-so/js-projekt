@@ -687,6 +687,15 @@ ONERR:
    return EINVAL;
 }
 
+static void ensure_extra_rows(void)
+{
+   // needed for linux terminal so that resize (shrink) does not change cursor position
+   // VT100: \x1bD : move cursor down + scroll if bottom
+   // VT100: \x1b[3A : move cursor 3 lines up + stop at corner of screen
+   ssize_t bytes = write(sys_iochannel_STDIN,"\x1b""D\x1b""D\x1b""D\x1b[3A",10);
+   (void) bytes;
+}
+
 static int test_helper(void)
 {
    struct termios tconf;
@@ -1531,11 +1540,11 @@ static int test_update(void)
    // TEST setsize_terminal: size changed
    TEST(0 == size_terminal(&term, &x, &y));
    TEST(! issizechange_terminal());
-   TEST(0 == setsize_terminal(&term, (uint16_t) (x+1), (uint16_t) (y+2)));
+   TEST(0 == setsize_terminal(&term, (uint16_t) (x-1), (uint16_t) (y-2)));
    TEST( issizechange_terminal());
    TEST(0 == size_terminal(&term, &x2, &y2));
-   TEST(x2 == x+1);
-   TEST(y2 == y+2);
+   TEST(x2 == x-1);
+   TEST(y2 == y-2);
    TEST(0 == setsize_terminal(&term, x, y));
    TEST( issizechange_terminal());
    TEST(0 == size_terminal(&term, &x2, &y2));
@@ -1978,7 +1987,7 @@ int unittest_io_terminal_terminal()
 
    // get path to controlling terminal
    TEST(0 == ttyname_r(sys_iochannel_STDIN, (char*) termpath1, sizeof(termpath1)));
-
+   ensure_extra_rows();
    if (test_helper())         goto ONERR;
    if (test_initfree())       goto ONERR;
    if (test_query())          goto ONERR;
