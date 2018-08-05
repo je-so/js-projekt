@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2018.Jan.20  09:11:15
+GenerationDate  := 2018.Aug.05  16:08:21
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -155,6 +155,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!lfsr.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!bcd.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
@@ -280,6 +281,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!lfsr.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!math!int!bcd.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
@@ -570,6 +572,9 @@ $(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!lfsr.c.o: C-kern/math/int/lfsr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
@@ -939,6 +944,9 @@ $(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!lfsr.c.o: C-kern/math/int/lfsr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
