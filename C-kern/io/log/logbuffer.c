@@ -174,11 +174,13 @@ void printf_logbuffer(logbuffer_t* logbuf, const char * format, ...)
 
 void printheader_logbuffer(logbuffer_t* logbuf, struct logcontext_t* logcontext, const struct log_header_t * header)
 {
+   // returns time elapsed (in UTC) since 1970-01-01 00:00:00 +0000 (UTC)
    struct timeval tv;
    if (-1 == gettimeofday(&tv, 0)) {
       tv.tv_sec  = 0;
       tv.tv_usec = 0;
    }
+   // TODO: ! add time module and use it !
    static_assert(sizeof(tv.tv_sec) <= sizeof(uint64_t), "conversion works");
    // !not needed! static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works");
    // cause only values are expected in range 0..999999 < UINT32_MAX
