@@ -1,7 +1,11 @@
 /* title: Linear-feedback-shift-register
 
    Used for generating pseudo-random numbers,
-   for a description see https://en.wikipedia.org/wiki/Linear-feedback_shift_register#Galois_LFSRs.
+   for a description see:
+   - Algebraic Structures in Cryptography by V. Niemi
+   - Wikipedia (https://en.wikipedia.org/wiki/Linear-feedback_shift_register#Galois_LFSRs)
+   - Tutorial on Linear Feedback Shift Registers by EETimes (https://www.eetimes.com/document.asp?doc_id=1274550)
+   - Encyclopedia of Cryptography and Security by Anne Canteout (https://www.rocq.inria.fr/secret/Anne.Canteaut/MPRI/chapter3.pdf)
 
    In German:
    Linear rückgekoppeltes Schieberegister - siehe auch https://de.wikipedia.org/wiki/LFSR.
